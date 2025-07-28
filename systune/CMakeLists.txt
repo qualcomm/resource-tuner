@@ -27,16 +27,6 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(jsoncpp)
 
-# Detect AArch64 cross-compilation
-if(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
-    message(STATUS "Note:Cross-compiling for AArch64 — building libcpuinfo from source")
-    add_compile_definitions(CROSS_COMPILE_BUILD="TRUE")
-
-    if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-      set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/syslock_aarch64" CACHE PATH "Install path for AArch64 target" FORCE)
-    endif()
-endif()
-
 # Enable Doxygen documentation build
 # first we can indicate the documentation build as an option and set it to OFF by default
 option(BUILD_DOC "Build documentation" OFF)
@@ -63,6 +53,8 @@ else (DOXYGEN_FOUND)
   message("Doxygen need to be installed to generate the doxygen documentation")
 endif (DOXYGEN_FOUND)
 endif()
+
+option(BUILD_SHARED_LIBS "Build shared libraries instead of static ones" ON)
 
 # Mandatory Builds
 add_subdirectory(Auxiliary)
@@ -94,8 +86,6 @@ add_executable(systune_cli
 target_link_libraries(systune_cli CommunicationClient ClientAPIs)
 endif()
 
-# Executables
-
 # Server Executable
 if(BUILD_SIGNALS)
   add_executable(systune ./ServerMain.cpp ./Signals/SignalServer.cpp)
@@ -112,13 +102,22 @@ add_executable(sys_tests_ex ./Tests/System/SystemWideTests.cpp)
 target_link_libraries(sys_tests_ex PUBLIC Auxiliary ClientAPIs)
 endif()
 
+#install libs
 install(TARGETS systune RUNTIME DESTINATION bin)
-install(TARGETS Auxiliary CommunicationClient SystuneCommunicationServer ClientAPIs SysConfigProps Server ExtAPIs LIBRARY DESTINATION lib)
+install(TARGETS Auxiliary CommunicationClient SystuneCommunicationServer
+        ClientAPIs SysConfigProps Server ExtAPIs
+        SysRequestReceiver SysSignals LIBRARY DESTINATION lib)
 
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/Auxiliary/include/ DESTINATION include)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/Client/Provisioner/include/ DESTINATION include)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/Provisioner/Comm/include/ DESTINATION include)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/Provisioner/Server/include/ DESTINATION include)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/Extensions/Provisioner/include/ DESTINATION include)
+#install headers
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/Client/APIs/include/ DESTINATION include)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/Extensions/include/ DESTINATION include)
 
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/Provisioner/SysConfigs DESTINATION .)
+#install config files
+install(
+    DIRECTORY ${CMAKE_SOURCE_DIR}/Configs/
+    DESTINATION /etc/systune/
+    FILES_MATCHING
+    PATTERN "*.json"
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
+
