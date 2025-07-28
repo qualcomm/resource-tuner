@@ -1,0 +1,7 @@
+{
+  "PropertyConfigs": [
+    {"Name": "test.debug.enabled", "Value" : "true"},
+    {"Name": "test.doc.build.mode.enabled", "Value" : "false"},
+    {"Name": "test.current.worker_thread.count", "Value" : "125"}
+  ]
+}

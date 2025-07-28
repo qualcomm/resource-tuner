@@ -1,0 +1,46 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+
+#ifndef ERROR_CODES_H
+#define ERROR_CODES_H
+
+enum ErrCode {
+    RC_SUCCESS,
+    RC_MODULE_INIT_FAILURE,
+    RC_FILE_NOT_FOUND,
+    RC_JSON_PARSING_ERROR,
+    RC_INVALID_JSON,
+    RC_REQUEST_SANITY_FAILURE,
+    RC_REQUEST_VERIFICATION_FAILURE,
+    RC_REQUEST_NOT_FOUND,
+    RC_DUPLICATE_REQUEST,
+    RC_MEMORY_ALLOCATION_FAILURE,
+    RC_MEMORY_POOL_ALLOCATION_FAILURE,
+    RC_MEMORY_POOL_BLOCK_RETRIEVAL_FAILURE,
+    RC_PROP_PARSING_ERROR,
+    RC_PROP_NOT_FOUND,
+    RC_BAD_ARG,
+    RC_INVALID_VALUE,
+    RC_SOCKET_CONN_NOT_INITIALIZED,
+    RC_SOCKET_OP_FAILURE,
+    RC_SOCKET_FD_READ_FAILURE,
+    RC_SOCKET_FD_WRITE_FAILURE,
+    RC_SOCKET_FD_CLOSE_FAILURE,
+    RC_REQUEST_DESERIALIZATION_FAILURE,
+    RC_REQUEST_PARSING_FAILED,
+    RC_WORKER_THREAD_ASSIGNMENT_FAILURE
+};
+
+#define RC_IS_OK(rc) ({          \
+    int8_t retval;               \
+    retval = (rc == RC_SUCCESS); \
+    retval;                      \
+})
+
+#define RC_IS_NOTOK(rc) ({       \
+    int8_t retval;               \
+    retval = !RC_IS_OK(rc);      \
+    retval;                      \
+})
+
+#endif

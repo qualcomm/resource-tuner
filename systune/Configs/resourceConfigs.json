@@ -1,0 +1,120 @@
+/*
+This is a target specific resource config file
+*/
+{
+    "ResourceConfigs":[
+        {
+            "ResType": "0x1",
+            "ResID":"0x0",
+            "Name":"/proc/sys/kernel/sched_util_clamp_min",
+            "Supported":true,
+            "HighThreshold": 1024,
+            "LowThreshold": 0,
+            "Permissions": "third_party",
+            "Modes": ["display_on", "doze"],
+            "Policy": "higher_is_better",
+            "CoreLevelConflict": false
+        },
+        {
+            "ResType": "0x1",
+            "ResID":"0x1",
+            "Name":"/proc/sys/kernel/sched_util_clamp_max",
+            "Supported":true,
+            "HighThreshold": 1024,
+            "LowThreshold": 0,
+            "Permissions": "third_party",
+            "Modes": ["display_on", "doze"],
+            "Policy": "lower_is_better",
+            "CoreLevelConflict": false
+        },
+        {
+            "ResType": "0x1",
+            "ResID":"0x2",
+            "Name":"/sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq",
+            "Supported":true,
+            "HighThreshold": 2048,
+            "LowThreshold": 512,
+            "Permissions": "third_party",
+            "Modes": ["display_on", "display_off"],
+            "Policy": "lower_is_better",
+            "CoreLevelConflict": true
+        },
+        {
+            "ResType": "0x1",
+            "ResID":"0x3",
+            "Name":"/sys/devices/system/cpu/cpufreq/policy1/scaling_min_freq",
+            "Supported":true,
+            "HighThreshold": 5,
+            "LowThreshold": 0,
+            "Modes": ["display_on", "display_off"],
+            "Policy": "instant_apply",
+            "CoreLevelConflict": true
+        },
+        {
+            "ResType": "0x1",
+            "ResID":"0x4",
+            "Name":"/sys/devices/system/cpu/cpufreq/policy2/scaling_min_freq",
+            "Supported":true,
+            "HighThreshold": 5,
+            "LowThreshold": 0,
+            "Modes": ["display_on", "display_off"],
+            "Policy": "lazy_apply",
+            "CoreLevelConflict": false
+        },
+        {
+            "ResType": "0x1",
+            "ResID":"0x5",
+            "Name":"/sys/devices/system/cpu/cpufreq/policy3/scaling_min_freq",
+            "Supported":true,
+            "HighThreshold": 5,
+            "LowThreshold": 0,
+            "Modes": ["display_on", "display_off"],
+            "Policy": "lower_is_better",
+            "CoreLevelConflict": true
+        },
+        {
+            "ResType": "0x1",
+            "ResID":"0x6",
+            "Name":"/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq",
+            "Supported":true,
+            "HighThreshold": 5,
+            "LowThreshold": 0,
+            "Modes": ["display_on", "display_off"],
+            "Policy": "higher_is_better",
+            "CoreLevelConflict": false
+        },
+        {
+            "ResType": "0x1",
+            "ResID":"0x7",
+            "Name":"/sys/devices/system/cpu/cpufreq/policy1/scaling_max_freq",
+            "Supported":true,
+            "HighThreshold": 5,
+            "LowThreshold": 0,
+            "Modes": ["display_on", "display_off"],
+            "Policy": "higher_is_better",
+            "CoreLevelConflict": true
+        },
+        {
+            "ResType": "0x1",
+            "ResID":"0x8",
+            "Name":"/sys/devices/system/cpu/cpufreq/policy2/scaling_max_freq",
+            "Supported":true,
+            "HighThreshold": 5,
+            "LowThreshold": 0,
+            "Modes": ["display_on", "display_off"],
+            "Policy": "higher_is_better",
+            "CoreLevelConflict": false
+        },
+        {
+            "ResType": "0x1",
+            "ResID":"0x9",
+            "Name":"/sys/devices/system/cpu/cpufreq/policy3/scaling_max_freq",
+            "Supported":true,
+            "HighThreshold": 5,
+            "LowThreshold": 0,
+            "Modes": ["display_on", "display_off"],
+            "Policy": "higher_is_better",
+            "CoreLevelConflict": true
+        }
+    ]
+}

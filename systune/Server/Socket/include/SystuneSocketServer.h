@@ -1,0 +1,46 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+
+#ifndef SYSTUNE_SOCKET_SERVER_H
+#define SYSTUNE_SOCKET_SERVER_H
+
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <unordered_map>
+#include <fcntl.h>
+#include <string.h>
+
+#include "MemoryPool.h"
+#include "Request.h"
+#include "Signal.h"
+#include "Types.h"
+#include "SysConfig.h"
+#include "SafeOps.h"
+#include "ServerEndpoint.h"
+#include "ErrCodes.h"
+#include "Logger.h"
+
+class SystuneSocketServer : public ServerEndpoint {
+private:
+    int32_t sockFd;
+    uint32_t mListeningPort;
+    SystuneMessageAsyncCallback mSystuneMessageAsyncCb;
+    SystuneMessageSyncCallback mSystuneMessageSyncCb;
+
+    void parseIncomingRequest(char* buf, int32_t clientSocket);
+
+public:
+    SystuneSocketServer(uint32_t mListeningPort,
+                        SystuneMessageAsyncCallback mSystuneMessageAsyncCb,
+                        SystuneMessageSyncCallback mSystuneMessageSyncCb);
+
+    ~SystuneSocketServer();
+
+    virtual int32_t ListenForClientRequests();
+    virtual int32_t closeConnection();
+};
+
+#endif

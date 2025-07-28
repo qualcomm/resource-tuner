@@ -1,0 +1,82 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+
+#ifndef ORDERED_QUEUE_H
+#define ORDERED_QUEUE_H
+
+#include <iostream>
+#include <thread>
+#include <queue>
+#include <vector>
+#include <mutex>
+#include <condition_variable>
+
+#include "Message.h"
+#include "MemoryPool.h"
+#include "Utils.h"
+
+class OrderedQueue {
+protected:
+    int32_t mElementCount;
+    std::mutex mOrderedQueueMutex;
+    std::condition_variable mOrderedQueueCondition;
+    int8_t lockStatus;
+
+    struct QueueOrdering {
+        int8_t operator() (Message* &a,  Message* &b) {
+            return a->getPriority() > b->getPriority();
+        }
+    };
+
+    /**
+    * @brief Core OrderedQueue Data Structure, to store the Requests pushed by the Publisher threads.
+    * Make used of std::priority_queue, which is ordered here based on the Request Priorities.
+    */
+    std::priority_queue<Message*, std::vector<Message*>, QueueOrdering> mOrderedQueue;
+
+public:
+    OrderedQueue();
+    ~OrderedQueue();
+
+    /**
+    * @brief Used by the producers to add a new request to the OrderedQueue.
+    * @details This routine will wake up the consumer end to process the task.
+    * @param priority Client specified request priority
+    * @param req Pointer to the Request
+    */
+    void addAndWakeup(Message* req);
+
+    /**
+    * @brief Provides a mechanism, to hook or plug-in the Consumer Code.
+    * @details Using this routine, the consumer can safely (lock-protected) extract
+    *          and process Requests enqueued by the Producers.
+    */
+    virtual void orderedQueueConsumerHook() = 0;
+
+    /**
+    * @brief Used by the consumer end to poll a request from the OrderedQueue
+    * @details This routine will return the Request with the highest priority to the consumer
+    *          and remove it from the OrderedQueue.
+    *          If the OrderedQueue is empty this function returns a null pointer.
+    * @return void* Pointer to the request polled
+    */
+    Message* pop();
+
+    /**
+    * @brief Used by the Consumer end to wait for Requests.
+    * @details This routine will put the consumer to sleep.
+    */
+    void wait();
+
+    /**
+    * @brief Used by the consumer to check if there are any pending requests in the OrderedQueue
+    * @return int8_t
+    *              1: If there are pending Requests
+    *              0: otherwise
+    */
+    int8_t hasPendingTasks();
+
+    void forcefulAwake();
+};
+
+#endif

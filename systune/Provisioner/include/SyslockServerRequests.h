@@ -1,0 +1,31 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+
+#ifndef PROVISIONER_SERVER_REQUEST_H
+#define PROVISIONER_SERVER_REQUEST_H
+
+#include "Utils.h"
+#include "RequestQueue.h"
+#include "ThreadPool.h"
+#include "CocoTable.h"
+#include "RateLimiter.h"
+#include "RequestManager.h"
+#include "Request.h"
+#include "SystuneSettings.h"
+#include "ResourceProcessor.h"
+#include "ResourceRegistry.h"
+#include "RequestManager.h"
+#include "SyslockInternal.h"
+#include "Logger.h"
+#include "TargetRegistry.h"
+
+/**
+ * @brief Main server thread for processing Resource Provisioning requests.
+ *
+ * @details Continuously monitors the request queue and dispatches requests
+ * to appropriate internal handlers based on their type. The request queue goes idle if
+ * there are no more requests. When a new request arrives, it wakes up the queue.
+ */
+void* SyslocksdServerThread();
+
+#endif

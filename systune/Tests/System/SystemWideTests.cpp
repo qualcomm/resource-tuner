@@ -1,0 +1,2268 @@
+#include "TestUtils.h"
+#include "SystuneAPIs.h"
+
+#include <cstdint>
+
+// Helper methods for Resource Generation
+static Resource* generateResourceForTesting(uint32_t opId, int32_t seed) {
+    Resource* resource = (Resource*)malloc(sizeof(Resource));
+    resource->mOpId = opId;
+    resource->mOpInfo = 27 + 3 * seed;
+    resource->mOptionalInfo = 1445 + 8 * seed;
+    resource->mNumValues = 1;
+    resource->mConfigValue.singleValue = seed;
+
+    return resource;
+}
+
+/*
+ * These tests mirror the Client Perspective, i.e. how the client interacts with various
+ * Systune APIs like tuneResources / untuneResources, tuneSignal etc.
+ * The results of these are evaluated by validating the Resource sysfs Nodes.
+ * As part of these Tests Request Verification and Application are Covered.
+ */
+
+/*
+* =========================================================
+*   TEST CATEGORY - I: "PROVISIONER REQUEST-VERIFICATION"
+* =========================================================
+*/
+
+namespace ProvisionerRequestVerification {
+   /*
+    * Description:
+    * This Section contains tests which aim to verify the correctness of the Verifier.
+    * The Verifier is responsible for validating the Tune Request on various param before
+    * handing it to the RequestQueue for application. Specifically it checks the following params:
+    * - Request Level Tests
+    *   - Sanity Tests
+    *       - Request should have a positive duration (with the exception of -1) [A]
+    *       - Request should specify a non-zero number of Resources to Tune [B]
+    *       - The argument numRes and the size of the Resource vector must match [C]
+    *   - Priority Level Checking
+    *       - As part of tuneResources API call the Client can specify a desired level of priority
+    *         for the Request, if the Client has System level of Permissions then it can assume any
+    *         priority it wants, However in case of a third_party Client it can only assume a priority
+    *         of either THIRD_PARTY_HIGH or THIRD_PARTY_LOW. Any violation of the above rule will result
+    *         in the Request being dropped. [D]
+    * - Resource Level Tests
+    *   - Verifier will iterate over all the Resources part of the Request, and perform the following
+    *     tests on each of them. Note if any test fails for any (even one) Resource part of the Request,
+    *     then the entire Request shall be dropped.
+    *   - Sanity Tests
+    *       - Each Resource with the specified ID should exist in the Resource Registry [E]
+    *   - Application Tests
+    *       - The configured value for the Resource should be in the Range LT, HT as specified by the
+    *         Resource Config [F]
+    *       - If the Resource has a core level conflict, then Logical to Physical Mapping happens
+    *         as part of the Verifier, if the translation cannot be performed then the Request is dropped. [G]
+    *       - If the Resource does not support tuning, then the Request will be dropped. [H]
+    *       - Check if the Resorce can be tuned in the current System mode. Note, each Resource can specify
+    *         via Config, the list of Modes (for example: Display On, Doze) it can be tuned in. [I]
+    *   - Permission Check:
+    *       - Each Resource can specify a permission level, i.e. only the client with Permission level equal
+    *         to or greater than what is specified in the Resource Config can tune that Resource. [J]
+    * All the above mentioned cases are covered by the different tests under this section.
+    * Note: While almost all the Request Verification happens on the Server end, however to save Server
+    * Request Processing time, some very basic Request Verification happens on the Client side as well.
+    * This includes testing for cases A, B and C.
+    */
+
+    std::string __testGroupName = "Provisioner Requests Verification / Integrity Checks";
+    /**
+    * API under test: Tune
+    * - The client tries to send a Request with a duration of 0.
+    * - The Request will fail
+    *   preliminary tests on the Client side and won't be submitted to the Server,
+    *   returning -1 to the End-Client.
+    * Cross-Reference id: [A]
+    */
+    static void TestNullOrInvalidRequestVerification1() {
+        LOG_START
+
+        std::vector<Resource*>* resources = nullptr;
+
+        int64_t handle = tuneResources(0, THIRD_PARTY_HIGH, 0, nullptr);
+        assert(handle == -1);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        LOG_END
+    }
+
+    /**
+    * API under test: Tune
+    * - Resources List should be non-empty for the Request to be considered valid.
+    * - Each of the Resource, part of this list should be non-null and valid as well.
+    * - Here, a null Resources List is passed to the Tune API, the Request will fail
+    *   preliminary tests on the Client side and won't be submitted to the Server,
+    *   returning -1 to the End-Client.
+    * Cross-Reference id: [B]
+    */
+    static void TestNullOrInvalidRequestVerification2() {
+        LOG_START
+
+        std::vector<Resource*>* resources = nullptr;
+
+        int64_t handle = tuneResources(-1, THIRD_PARTY_HIGH, 0, nullptr);
+        assert(handle == -1);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        LOG_END
+    }
+
+    /**
+    * API under test: Tune
+    * - Resources List should be non-empty for the Request to be considered valid.
+    * - Each of the Resource, part of this list should be non-null and valid as well.
+    * - Here a non-null Resources List is passed to the Tune API, however the only Resource part of
+    *   the Request is null, hence the Request will fail the preliminary tests on the Client side
+    *   and won't be submitted to the Server, returning -1 to the End-Client.
+    * Cross-Reference id: [B]
+    */
+    static void TestNullOrInvalidRequestVerification3() {
+        LOG_START
+
+        std::vector<Resource*>* resources = new std::vector<Resource*>;
+        resources->push_back(nullptr);
+
+        int64_t handle = tuneResources(-1, THIRD_PARTY_HIGH, 1, resources);
+        assert(handle == -1);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        LOG_END
+    }
+
+    /**
+    * API under test: Tune
+    * - Resources List should be non-empty for the Request to be considered valid.
+    * - Each of the Resource, part of this list should be non-null and valid as well.
+    * - Additionally the number of Resources passed as part of the Resource List should
+    *   match the value of numRes specified in the API call. If these 2 valeus don't match
+    *   the Request will be considered invalid.
+    * - Here, a non-null Resources List is passed to the Tune API, however the number of Resources
+    *   in this list and the numRes argument don't match, this will result in the Request failing
+    *   preliminary tests on the Client side and won't be submitted to the Server,
+    *   returning -1 to the End-Client.
+    * Cross-Reference id: [C]
+    */
+    static void TestNullOrInvalidRequestVerification4() {
+        LOG_START
+
+        std::vector<Resource*>* resources = new std::vector<Resource*>;
+        resources->push_back(nullptr);
+
+        int64_t handle = tuneResources(-1, THIRD_PARTY_HIGH, 2, resources);
+        assert(handle == -1);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        LOG_END
+    }
+
+    /**
+    * API under test: Tune
+    * - As part of the tune API call, the client specifies a desired priority, which is one of the
+    *   following values:
+    *    1. System High
+    *    2. System Low
+    *    3. Third Party High
+    *    4. Third Party Low
+    * A Client with system permissions can assume any of the above priorities, however a client
+    * with third party permissions can only acquire Third Party High / Low Priority.
+    * - If a client with Third Party Permissions tries to acquire System High / Low Priority, then
+    *   the request should be rejected by the Verifier.
+    * - Verify that the Resource Node's value remains unchanged.
+    * Cross-Reference id: [D]
+    */
+    static void TestClientPriorityAcquisitionVerification() {
+        LOG_START
+
+        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+        int32_t testResourceOriginalValue = 107;
+
+        std::string value;
+        int32_t originalValue, newValue;
+
+        value = readFromNode(testResourceName);
+        originalValue = C_STOI(value);
+        assert(originalValue == testResourceOriginalValue);
+
+        std::vector<Resource*>* resources = new std::vector<Resource*>;
+        Resource* resource = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 2), 554);
+        resources->push_back(resource);
+        int64_t handle = tuneResources(-1, SYSTEM_HIGH, 1, resources);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        value = readFromNode(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == testResourceOriginalValue);
+
+        std::this_thread::sleep_for(std::chrono::seconds(4));
+
+        delete resource;
+        delete resources;
+
+        LOG_END
+    }
+
+    /**
+    * API under test: Tune
+    * - A client sends a Resource(s) Provisioning Request to tune a resource for some (possibly inf) duration
+    * - The resource in question does not exist in the Resource Registry, i.e. the Client
+    * - has specified an invalid Resource ID. The Request should be dropped.
+    * - Here we issue a Request with 2 Resources, only one of them is Valid.
+    * - Since Verifier checks all the Resource part of the Request, hence when it detects
+    *   that one of the Resource does not exist in the Registry, it will drop the Request.
+    * - Verify that the Valid Resource Node's value remains unchanged.
+    * Cross-Reference id: [E]
+    */
+    static void TestInvalidResourceTuning() {
+        LOG_START
+
+        // Create a list of 2 Resources, where only one of them is valid
+        std::string validResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+        int32_t validResourceOriginalValue = 107;
+
+        std::string value;
+        int32_t originalValue, newValue;
+
+        value = readFromNode(validResourceName);
+        originalValue = C_STOI(value);
+        assert(originalValue == validResourceOriginalValue);
+
+        std::vector<Resource*>* resources = new std::vector<Resource*>;
+        Resource* resource1 = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 2), 554);
+        // No Resource with this ID exists
+        Resource* resource2 = generateResourceForTesting(12000, 554);
+
+        resources->push_back(resource1);
+        resources->push_back(resource2);
+
+        int64_t handle = tuneResources(-1, THIRD_PARTY_HIGH, 2, resources);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        value = readFromNode(validResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == validResourceOriginalValue);
+
+        std::this_thread::sleep_for(std::chrono::seconds(4));
+
+        delete resource1;
+        delete resource2;
+        delete resources;
+
+        LOG_END
+    }
+
+    /**
+    * API under test: Tune
+    * - A client sends a Resource(s) Provisioning Request to tune a resource for some (possibly inf) duration
+    * - The resource in question has a "lower_is_better" policy.
+    * - Each Resource has an associated Low Threshold (LT) and High Threshold (HT).
+    * - If a client tries to configure a value which is (< LT) or (> HT), then the Reuqest
+    *   should be rejected by the Verifier
+    * - Verify that the Resource Node's value remains unchanged.
+    * Cross-Reference id: [F]
+    */
+    static void TestOutOfBoundsResourceTuning() {
+        LOG_START
+
+        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+        int32_t testResourceOriginalValue = 107;
+
+        std::string value;
+        int32_t originalValue, newValue;
+
+        value = readFromNode(testResourceName);
+        originalValue = C_STOI(value);
+        assert(originalValue == testResourceOriginalValue);
+
+        std::vector<Resource*>* resources = new std::vector<Resource*>;
+        Resource* resource = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 2), 1200);
+        resources->push_back(resource);
+        int64_t handle = tuneResources(-1, THIRD_PARTY_HIGH, 1, resources);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        value = readFromNode(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == testResourceOriginalValue);
+
+        std::this_thread::sleep_for(std::chrono::seconds(4));
+
+        delete resource;
+        delete resources;
+
+        LOG_END
+    }
+
+    /**
+    * API under test: Tune
+    * - As part of the tune API call, the client specifies the target Logical Cluster and Core, if
+    *   the resource in question has Core Level Conflict Enabled.
+    * - For such a Resource (part of the Request), Core / Cluster Logical To Physical Translation is
+    *   needed.
+    * - If the logical Core / Cluster value is invalid, or if translation cannot be performed then the
+    *   Request is dropped.
+    * - Here, we setup the values of logical Core and Cluster such that the Translation will fail.
+    * - Verify that the Resource Node's value remains unchanged.
+    * Cross-Reference id: [G]
+    */
+    static void TestResourceLogicalToPhysicalTranslationVerification1() {
+        LOG_START
+
+        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/target_test_resource2";
+        int32_t testResourceOriginalValue = 333;
+
+        std::string value;
+        int32_t originalValue, newValue;
+
+        value = readFromNode(testResourceName);
+        originalValue = C_STOI(value);
+        assert(originalValue == testResourceOriginalValue);
+
+        std::vector<Resource*>* resources = new std::vector<Resource*>;
+        Resource* resource = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 5), 2300);
+        resource->mOpInfo = SET_RESOURCE_CLUSTER_VALUE(resource->mOpInfo, 2);
+        resource->mOpInfo = SET_RESOURCE_CORE_VALUE(resource->mOpInfo, 27);
+        resources->push_back(resource);
+        int64_t handle = tuneResources(-1, THIRD_PARTY_HIGH, 1, resources);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        value = readFromNode(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == testResourceOriginalValue);
+
+        std::this_thread::sleep_for(std::chrono::seconds(4));
+
+        delete resource;
+        delete resources;
+
+        LOG_END
+    }
+
+    /**
+    * API under test: Tune
+    * - As part of the tune API call, the client specifies the target Logical Cluster and Core, if
+    *   the resource in question has Core Level Conflict Enabled.
+    * - For such a Resource (part of the Request), Core / Cluster Logical To Physical Translation is
+    *   needed.
+    * - If the logical Core / Cluster value is invalid, or if translation cannot be performed then the
+    *   Request is dropped.
+    * - Here, we setup the values of logical Core and Cluster such that the Translation will fail.
+    * - Verify that the Resource Node's value remains unchanged.
+    * Cross-Reference id: [G]
+    */
+    static void TestResourceLogicalToPhysicalTranslationVerification2() {
+        LOG_START
+
+        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/target_test_resource2";
+        int32_t testResourceOriginalValue = 333;
+
+        std::string value;
+        int32_t originalValue, newValue;
+
+        value = readFromNode(testResourceName);
+        originalValue = C_STOI(value);
+        assert(originalValue == testResourceOriginalValue);
+
+        std::vector<Resource*>* resources = new std::vector<Resource*>;
+        Resource* resource = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 5), 2300);
+        resource->mOpInfo = SET_RESOURCE_CLUSTER_VALUE(resource->mOpInfo, 5);
+        resource->mOpInfo = SET_RESOURCE_CORE_VALUE(resource->mOpInfo, 2);
+        resources->push_back(resource);
+        int64_t handle = tuneResources(-1, THIRD_PARTY_HIGH, 1, resources);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        value = readFromNode(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == testResourceOriginalValue);
+
+        std::this_thread::sleep_for(std::chrono::seconds(4));
+
+        delete resource;
+        delete resources;
+
+        LOG_END
+    }
+
+    /**
+    * API under test: Tune
+    * - As part of the tune API call, the client specifies the target Logical Cluster and Core, if
+    *   the resource in question has Core Level Conflict Enabled.
+    * - For such a Resource (part of the Request), Core / Cluster Logical To Physical Translation is
+    *   needed.
+    * - If the logical Core / Cluster value is invalid, or if translation cannot be performed then the
+    *   Request is dropped.
+    * - Here, we setup the values of logical Core and Cluster such that the Translation will succeed.
+    * - Verify that the Resource Node's changes to the desired value.
+    * - Verify that once the Request Expires, the Resource Node value is reset.
+    * Cross-Reference id: [G]
+    */
+    static void TestResourceLogicalToPhysicalTranslationVerification3() {
+        LOG_START
+
+        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/target_test_resource2";
+        int32_t testResourceOriginalValue = 333;
+
+        std::string value;
+        int32_t originalValue, newValue;
+
+        value = readFromNode(testResourceName);
+        originalValue = C_STOI(value);
+        assert(originalValue == testResourceOriginalValue);
+
+        std::vector<Resource*>* resources = new std::vector<Resource*>;
+        Resource* resource = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 5), 2300);
+        resource->mOpInfo = SET_RESOURCE_CLUSTER_VALUE(resource->mOpInfo, 2);
+        resource->mOpInfo = SET_RESOURCE_CORE_VALUE(resource->mOpInfo, 2);
+        resources->push_back(resource);
+        int64_t handle = tuneResources(5000, THIRD_PARTY_HIGH, 1, resources);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        value = readFromNode(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == 2300);
+
+        std::this_thread::sleep_for(std::chrono::seconds(5));
+
+        value = readFromNode(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == testResourceOriginalValue);
+
+        std::this_thread::sleep_for(std::chrono::seconds(4));
+
+        delete resource;
+        delete resources;
+
+        LOG_END
+    }
+
+    /**
+    * API under test: Tune
+    * - As part of the tune API call, the client specifies the target Logical Cluster and Core, if
+    *   the resource in question has Core Level Conflict Enabled.
+    * - For such a Resource (part of the Request), Core / Cluster Logical To Physical Translation is
+    *   needed.
+    * - If the logical Core / Cluster value is invalid, or if translation cannot be performed then the
+    *   Request is dropped.
+    * - Here, we setup the values of logical Core and Cluster such that the Translation will fail.
+    * - Verify that the Resource Node's value remains unchanged.
+    * Cross-Reference id: [G]
+    */
+    static void TestResourceLogicalToPhysicalTranslationVerification4() {
+        LOG_START
+
+        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/target_test_resource2";
+        int32_t testResourceOriginalValue = 333;
+
+        std::string value;
+        int32_t originalValue, newValue;
+
+        value = readFromNode(testResourceName);
+        originalValue = C_STOI(value);
+        assert(originalValue == testResourceOriginalValue);
+
+        std::vector<Resource*>* resources = new std::vector<Resource*>;
+        Resource* resource = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 5), 2300);
+        resource->mOpInfo = SET_RESOURCE_CLUSTER_VALUE(resource->mOpInfo, 1);
+        resource->mOpInfo = SET_RESOURCE_CORE_VALUE(resource->mOpInfo, 0);
+        resources->push_back(resource);
+        int64_t handle = tuneResources(-1, THIRD_PARTY_HIGH, 1, resources);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        value = readFromNode(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == testResourceOriginalValue);
+
+        std::this_thread::sleep_for(std::chrono::seconds(4));
+
+        delete resource;
+        delete resources;
+
+        LOG_END
+    }
+
+    /**
+    * API under test: Tune
+    * - As part of the Config, a Resource can specify a "supported" bit, which indicates
+    *   If Tuning is allowed for that Resource
+    * - If a Request tries to tune a Resource with the supported bit set to false, then the
+    * - the Request should be dropped.
+    * - Verify that the Resource Node's value remains unchanged.
+    * Cross-Reference id: [H]
+    */
+    static void TestNonSupportedResourceTuningVerification() {
+        LOG_START
+
+        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/target_test_resource4";
+        int32_t testResourceOriginalValue = 516;
+
+        std::string value;
+        int32_t originalValue, newValue;
+
+        value = readFromNode(testResourceName);
+        originalValue = C_STOI(value);
+        assert(originalValue == testResourceOriginalValue);
+
+        std::vector<Resource*>* resources = new std::vector<Resource*>;
+        Resource* resource = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 7), 653);
+        resources->push_back(resource);
+        int64_t handle = tuneResources(-1, THIRD_PARTY_HIGH, 1, resources);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        value = readFromNode(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == testResourceOriginalValue);
+
+        std::this_thread::sleep_for(std::chrono::seconds(4));
+
+        delete resource;
+        delete resources;
+
+        LOG_END
+    }
+
+    /**
+    * API under test: Tune
+    * - The Client issues a Tune Request for a Resource which supports Processing in Display Off mode only
+    * - However, the current System mode is Display On. In this case, the Configured value for the Resource
+    * - as part of the API call should not take effect on the Sysfs Node.
+    * - Verify that the Resource Node's value remains unchanged.
+    *  Cross-Reference id: [I]
+    */
+    static void TestResourceOperationModeVerification() {
+        LOG_START
+
+        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/target_test_resource3";
+        int32_t testResourceOriginalValue = 4400;
+
+        std::string value;
+        int32_t originalValue, newValue;
+
+        value = readFromNode(testResourceName);
+        originalValue = C_STOI(value);
+        assert(originalValue == testResourceOriginalValue);
+
+        std::vector<Resource*>* resources = new std::vector<Resource*>;
+        Resource* resource = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 6), 4670);
+        resources->push_back(resource);
+        int64_t handle = tuneResources(-1, THIRD_PARTY_HIGH, 1, resources);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        value = readFromNode(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == testResourceOriginalValue);
+
+        std::this_thread::sleep_for(std::chrono::seconds(4));
+
+        delete resource;
+        delete resources;
+
+        LOG_END
+    }
+
+    /**
+    * API under test: Tune
+    * - A client sends a Resource(s) Provisioning Request to tune a resource for some (possibly inf) duration
+    * - The resource in question has a "higher_is_better" policy.
+    * - Each Resource has an associated permission, either system or third_party. Here the
+    *   resource in question has system Permissions i.e. only Clients having system permissions
+    *   can tune the resource.
+    * - The client here only has third_party permissions, hence the request should be rejected
+    *   by the Verifier
+    * - Verify that the Resource Node's value remains unchanged.
+    * Cross-Reference id: [J]
+    */
+    static void TestClientPermissionChecksVerification() {
+        LOG_START
+
+        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/target_test_resource1";
+        int32_t testResourceOriginalValue = 240;
+
+        std::string value;
+        int32_t originalValue, newValue;
+
+        value = readFromNode(testResourceName);
+        originalValue = C_STOI(value);
+        assert(originalValue == testResourceOriginalValue);
+
+        std::vector<Resource*>* resources = new std::vector<Resource*>;
+        Resource* resource = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 4), 460);
+        resources->push_back(resource);
+        int64_t handle = tuneResources(-1, THIRD_PARTY_HIGH, 1, resources);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        value = readFromNode(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == testResourceOriginalValue);
+
+        std::this_thread::sleep_for(std::chrono::seconds(4));
+
+        delete resource;
+        delete resources;
+
+        LOG_END
+    }
+
+    static void RunTestGroup() {
+        std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
+
+        RUN_TEST(TestNullOrInvalidRequestVerification1);
+        RUN_TEST(TestNullOrInvalidRequestVerification2);
+        RUN_TEST(TestNullOrInvalidRequestVerification3);
+        RUN_TEST(TestNullOrInvalidRequestVerification4);
+        RUN_TEST(TestClientPermissionChecksVerification);
+        RUN_TEST(TestInvalidResourceTuning);
+        RUN_TEST(TestNonSupportedResourceTuningVerification);
+        RUN_TEST(TestOutOfBoundsResourceTuning);
+        RUN_TEST(TestClientPriorityAcquisitionVerification);
+        RUN_TEST(TestResourceLogicalToPhysicalTranslationVerification1);
+        RUN_TEST(TestResourceLogicalToPhysicalTranslationVerification2);
+        RUN_TEST(TestResourceLogicalToPhysicalTranslationVerification3);
+        RUN_TEST(TestResourceLogicalToPhysicalTranslationVerification4);
+        RUN_TEST(TestResourceOperationModeVerification);
+
+        std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
+    }
+}
+
+/*
+* =========================================================
+*   TEST CATEGORY - II: "SYSSIGNAL REQUEST-VERIFICATION"
+* =========================================================
+*/
+
+namespace SignalRequestVerification {
+   /*
+    * Description:
+    * This Section contains tests which aim to verify the correctness of the Signal Verifier.
+    * The Signal Verifier works similarly to the Provisioner Verifier, and performs the following checks:
+    *   - Sanity Tests
+    *       - Signal Request should have a positive duration (with the exception of -1) [A]
+    *   - Priority Level Checking
+    *       - As part of tuneSignal API call the Client can specify a desired level of priority
+    *         for the Request, if the Client has System level of Permissions then it can assume any
+    *         priority it wants, However in case of a third_party Client it can only assume a priority
+    *         of either THIRD_PARTY_HIGH or THIRD_PARTY_LOW. Any violation of the above rule will result
+    *         in the Request being dropped. [B]
+    *   - Permission Check:
+    *       - Each Signal Config can specify a permission level, i.e. only the clients with Permission level equal
+    *         to or greater than what is specified in the Signal Config can provision that Signal. [C]
+    *   - Resource Level Tests: Verifier will iterate over all the Resources part of the Request, and perform Verification
+    *     tests on each of them (As discussed before for Provisioner Request Verifier). Note if any test fails for any (even one) Resource part of the Signal,
+    *     then the entire Request shall be dropped. [D]
+    *   - Target Compatability Tests: Checks if the signal is eligible for provisioning on the given Target. [E]
+    *   - Application Tests:
+    *       - The Specified signal should be Enabled for Provisioning [F]
+    * All the above mentioned cases are covered by the different tests under this section.
+    */
+
+    std::string __testGroupName = "Signal Requests Verification / Integrity Checks";
+    /**
+    * API under test: ACQ
+    * - The client tries to acquire a Signal with a duration of 0.
+    * - The Request will fail reliminary tests on the Client side and won't be
+    *   submitted to the Server returning -1 to the End-Client.
+    * Cross-Reference id: [A]
+    */
+    static void TestNullOrInvalidRequestVerification() {
+        LOG_START
+
+        std::vector<Resource*>* resources = nullptr;
+
+        int64_t handle = tuneSignal(1, 0, THIRD_PARTY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+        assert(handle == -1);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        LOG_END
+    }
+
+    /**
+    * API under test: ACQ
+    * - As part of the ACQ API call, the client specifies a desired priority, which is one of the
+    *   following values:
+    *    1. System High
+    *    2. System Low
+    *    3. Third Party High
+    *    4. Third Party Low
+    * A Client with system permissions can assume any of the above priorities, however a client
+    * with third party permissions can only acquire Third Party High / Low Priority.
+    * - If a client with Third Party Permissions tries to acquire System High / Low Priority, then
+    *   the request should be rejected by the Verifier.
+    * - Verify that the Resource Node's value remains unchanged.
+    * Cross-Reference id: [B]
+    */
+    static void TestClientPriorityAcquisitionVerification() {
+        LOG_START
+
+        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
+        int32_t testResourceOriginalValue = 300;
+
+        std::string value;
+        int32_t originalValue, newValue;
+
+        value = readFromNode(testResourceName);
+        originalValue = C_STOI(value);
+        assert(originalValue == testResourceOriginalValue);
+
+        int64_t handle =
+            tuneSignal(GENERATE_RESOURCE_ID(1, 0), 5000, SYSTEM_HIGH, "app-name", "scenario-zip", 0, nullptr);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        value = readFromNode(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == testResourceOriginalValue);
+
+        std::this_thread::sleep_for(std::chrono::seconds(4));
+
+        LOG_END
+    }
+
+    /**
+    * API under test: ACQ
+    * - A client sends a Signal Request to acquire a Signal for some (possibly inf) duration
+    * - Each Signal Config has an associated permission, either system or third_party. Here the
+    *   Signal in question has system Permissions i.e. only Clients having system permissions
+    *   can acquire this signal.
+    * - The client here only has third_party permissions, hence the request should be rejected
+    *   by the Signal Verifier
+    * - Verify that the Resource Node's value remains unchanged.
+    * Cross-Reference id: [C]
+    */
+    static void TestClientPermissionChecksVerification() {
+        LOG_START
+
+        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_max";
+        int32_t testResourceOriginalValue = 684;
+
+        std::string value;
+        int32_t originalValue, newValue;
+
+        value = readFromNode(testResourceName);
+        originalValue = C_STOI(value);
+        assert(originalValue == testResourceOriginalValue);
+
+        int64_t handle =
+            tuneSignal(GENERATE_RESOURCE_ID(1, 1), 5000, THIRD_PARTY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        value = readFromNode(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == testResourceOriginalValue);
+
+        std::this_thread::sleep_for(std::chrono::seconds(4));
+
+        LOG_END
+    }
+
+    /**
+    * API under test: ACQ
+    * - A client sends a Signal Request to Acquire a Signal for some (possibly inf) duration
+    * - Each Resource associated with the Signal Config has an associated Low Threshold (LT) and High Threshold (HT).
+    * - If a Signal Config specifies a value which is (< LT) or (> HT) for any Resource, then the Reuqest
+    *   should be rejected by the Signal Verifier
+    * - Verify that the Resource Node's value remains unchanged.
+    * Cross-Reference id: [D]
+    */
+    static void TestOutOfBoundsResourceTuning() {
+        LOG_START
+
+        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
+        int32_t testResourceOriginalValue = 300;
+
+        std::string value;
+        int32_t originalValue, newValue;
+
+        value = readFromNode(testResourceName);
+        originalValue = C_STOI(value);
+        assert(originalValue == testResourceOriginalValue);
+
+        int64_t handle =
+            tuneSignal(GENERATE_RESOURCE_ID(1, 2), 5000, THIRD_PARTY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        value = readFromNode(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == testResourceOriginalValue);
+
+        std::this_thread::sleep_for(std::chrono::seconds(4));
+
+        LOG_END
+    }
+
+    /**
+    * API under test: ACQ
+    * - Through the Signal Configs, it can be specified for each Signal which target it is supported
+    *   on and for which it is not eligible for provisioning.
+    * - If a client tries to acquire a Signal on a Target, where the Signal is not supported, the
+    *   request should be rejected by the Signal Verifier.
+    * - Verify that the Resource Node's value remains unchanged.
+    * - Here the Signal in question is supported on "sun" and "moon", but the client tries to acquire it
+    *   on Kodiak. Hence, the Request should be dropped.
+    * Cross-Reference id: [E]
+    */
+    static void TestTargetCompatabilityVerificationChecks() {
+        LOG_START
+
+        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
+        int32_t testResourceOriginalValue = 300;
+
+        std::string value;
+        int32_t originalValue, newValue;
+
+        value = readFromNode(testResourceName);
+        originalValue = C_STOI(value);
+        assert(originalValue == testResourceOriginalValue);
+
+        int64_t handle =
+            tuneSignal(GENERATE_RESOURCE_ID(1, 0), 5000, THIRD_PARTY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        value = readFromNode(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == testResourceOriginalValue);
+
+        std::this_thread::sleep_for(std::chrono::seconds(4));
+
+        LOG_END
+    }
+
+    /**
+    * API under test: ACQ
+    * - If the Enabled Field for the Signal Config is set to false, the Signal should not be provisioned.
+    * - Hence, the Request is rejected by the Signal Verifier.
+    * - Verify that the Resource Node's value remains unchanged.
+    * Cross-Reference id: [F]
+    */
+    static void TestNonSupportedSignalProvisioningVerification() {
+        LOG_START
+
+        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
+        int32_t testResourceOriginalValue = 300;
+
+        std::string value;
+        int32_t originalValue, newValue;
+
+        value = readFromNode(testResourceName);
+        originalValue = C_STOI(value);
+        assert(originalValue == testResourceOriginalValue);
+
+        int64_t handle =
+            tuneSignal(GENERATE_RESOURCE_ID(1, 3), 5000, THIRD_PARTY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        value = readFromNode(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == testResourceOriginalValue);
+
+        std::this_thread::sleep_for(std::chrono::seconds(4));
+
+        LOG_END
+    }
+
+    static void RunTestGroup() {
+        std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
+
+        RUN_TEST(TestNullOrInvalidRequestVerification);
+        RUN_TEST(TestClientPriorityAcquisitionVerification);
+        RUN_TEST(TestClientPermissionChecksVerification);
+        RUN_TEST(TestOutOfBoundsResourceTuning);
+        RUN_TEST(TestTargetCompatabilityVerificationChecks);
+        RUN_TEST(TestNonSupportedSignalProvisioningVerification);
+
+        std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
+    }
+}
+
+// /*
+// * =========================================================
+// *   TEST CATEGORY - III: "REQUEST-APPLICATION"
+// * =========================================================
+// */
+
+// namespace RequestApplicationTests {
+//    /*
+//     * Description:
+//     * This Section contains tests which aim to verify the correctness of Request Application.
+//     * Here the components majorly involved are RequestQueue and CocoTable.
+//     * The value of the resource Node is updated based on it's policy.
+//     * The tests in this section aim to verify that the Resource Nodes are updated
+//     * correctly in accordace with the Policy, in the case of Concurrent Requests for the same Resource.
+//     * The tests are enumerated as follows:
+//     * => Single Client - Single Resource Tuning [A]
+//     * => Single Client - Multiple Resources Tuning [B]
+//     * => Multiple Clients - Single Resource Tuning
+//     *   -- Policy: Higher Is Better [C]
+//     *   -- Polciy: Lower is Better [D]
+//     *   -- Policy: Lazy Apply [E]
+//     *   -- Instant Apply [F]
+//     * => Multiple Clients - Multiple Resources [G]
+//     * Special Cases:
+//     *   => Single Client, Multiple Sequential Requests [S1]
+//     *   => Multiple Client TIDs, Concurrent Requests [S2]
+//     * Untune Requests Handling
+//     * => Valid Untuning: Client C1 issued Request H1, and C1 issues an untune for H1 [U1]
+//     * => Invalid Untuning: Client C1 issue Request H1, however another client C2 tries
+//     *    to issue an untune for H2 [U2]
+//     * Priority Acquisition:
+//     * => Ensure that a Request with higher Priority always takes effect over another
+//     *    Request trying to provision the same resource, but with a lower Priority. [H]
+//     * Retune Requests Handling:
+//     * => Valid Retuning: Client C1 issued Request H1, and C1 issues a Retune for H1 [R1]
+//     * => Invalid Retuning:
+//     * - Client tries to reduce Request Duration [R2]
+//     * - Client C1 issues Request H1, however another client C2 tries to Retune H1 [R3]
+//     */
+
+//     std::string __testGroupName = "Request Application Checks";
+
+//     /**
+//     * API under test: Tune / Untune
+//     * - Try to configure the value for a specific resource Node.
+//     * - Here we have a single client, hence no concurrency considerations.
+//     * - Verify that the config takes effect.
+//     * - Verify that once the Request Expires, the Resource Node value is reset.
+//     * Cross-Reference id: [A]
+//     */
+//     static void TestSingleClientTuneRequest() {
+//         LOG_START
+
+//         std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
+//         int32_t testResourceOriginalValue = 300;
+
+//         // Check the original value for the Resource
+//         std::string value = readFromNode(testResourceName);
+//         int32_t originalValue = C_STOI(value);
+//         assert(originalValue == testResourceOriginalValue);
+
+//         std::vector<Resource*>* resources = new std::vector<Resource*>;
+
+//         Resource* resource = (Resource*)malloc(sizeof(Resource));
+//         resource->mOpId = GENERATE_RESOURCE_ID(1, 0);
+//         resource->mOpInfo = 0;
+//         resource->mOptionalInfo = 0;
+//         resource->mNumValues = 1;
+//         resource->mConfigValue.singleValue = 980;
+
+//         resources->push_back(resource);
+
+//         int64_t handle = tuneResources(5000, THIRD_PARTY_HIGH, 1, resources);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(1));
+
+//         // Check if the new value was successfully written to the node
+//         value = readFromNode(testResourceName);
+//         int32_t newValue = C_STOI(value);
+//         assert(newValue == 980);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(6));
+
+//         // Wait for the Request to expire, check if the value resets
+//         value = readFromNode(testResourceName);
+//         newValue = C_STOI(value);
+//         assert(newValue == originalValue);
+
+//         LOG_END
+//     }
+
+//     /**
+//     * API under test: Tune / Untune
+//     * - Single Client sends a request to tune multiple resources (3 here).
+//     * - Here we have a single client, hence no concurrency considerations.
+//     * - Verify that the supplied valued takes effect on each of the resource nodes.
+//     * - Verify that once the Request Expires, each of the Resource Node value is reset.
+//     * Cross-Reference id: [B]
+//     */
+//     static void TestSingleClientTuneRequestMultipleResources() {
+//         LOG_START
+
+//         // Check the original value for each of the Resource
+//         std::string testResourceName1 = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+//         std::string testResourceName2 = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+//         std::string testResourceName3 = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_max";
+
+//         int32_t testResourceOriginalValue1 = 114;
+//         int32_t testResourceOriginalValue2 = 107;
+//         int32_t testResourceOriginalValue3 = 684;
+
+//         std::string value;
+//         int32_t originalValue[3], newValue;
+
+//         value = readFromNode(testResourceName1);
+//         originalValue[0] = C_STOI(value);
+//         assert(originalValue[0] == testResourceOriginalValue1);
+
+//         value = readFromNode(testResourceName2);
+//         originalValue[1] = C_STOI(value);
+//         assert(originalValue[1] == testResourceOriginalValue2);
+
+//         value = readFromNode(testResourceName3);
+//         originalValue[2] = C_STOI(value);
+//         assert(originalValue[2] == testResourceOriginalValue3);
+
+//         std::vector<Resource*>* resources = new std::vector<Resource*>;
+
+//         Resource* resource1 = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 3), 765);
+//         Resource* resource3 = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 2), 617);
+//         Resource* resource2 = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 1), 889);
+
+//         resources->push_back(resource1);
+//         resources->push_back(resource2);
+//         resources->push_back(resource3);
+
+//         int64_t handle = tuneResources(6000, THIRD_PARTY_HIGH, 3, resources);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(1));
+
+//         // Check if the new value was successfully written to each of the nodes
+//         value = readFromNode(testResourceName1);
+//         newValue = C_STOI(value);
+//         assert(newValue == 765);
+
+//         value = readFromNode(testResourceName2);
+//         newValue = C_STOI(value);
+//         assert(newValue == 617);
+
+//         value = readFromNode(testResourceName3);
+//         newValue = C_STOI(value);
+//         assert(newValue == 889);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(6));
+
+//         // Wait for the Request to expire, check if the values reset
+//         value = readFromNode(testResourceName1);
+//         newValue = C_STOI(value);
+//         assert(newValue == originalValue[0]);
+
+//         value = readFromNode(testResourceName2);
+//         newValue = C_STOI(value);
+//         assert(newValue == originalValue[1]);
+
+//         value = readFromNode(testResourceName3);
+//         newValue = C_STOI(value);
+//         assert(newValue == originalValue[2]);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(4));
+
+//         LOG_END
+//     }
+
+//     /**
+//     * API under test: Tune / Untune
+//     * - Two clients send requests for the same resource concurrently.
+//     * - Verify that the correct values takes effect for the Resource Node.
+//     * - Here the resource in question has the "Higher-Is-Better" policy, hence the bigger value of
+//     *   the 2 should take effect.
+//     * - Verify that once both the Request Expires (Note: Here both the requests have exactly the same duration), the
+//     *   Resource Node value should be reset.
+//     * Cross-Reference id: [C]
+//     */
+//     static void TestMultipleClientsHigherIsBetterPolicy1() {
+//         LOG_START
+
+//         // Check the original value for the Resource
+//         std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+//         int32_t testResourceOriginalValue = 114;
+
+//         std::string value = readFromNode(testResourceName);
+//         int32_t originalValue = C_STOI(value);
+//         assert(originalValue == testResourceOriginalValue);
+
+//         int32_t rc = fork();
+//         if(rc == 0) {
+//             std::vector<Resource*>* resources = new std::vector<Resource*>;
+//             Resource* resource = (Resource*)malloc(sizeof(Resource));
+//             resource->mOpId = GENERATE_RESOURCE_ID(1, 3);
+//             resource->mOpInfo = 0;
+//             resource->mOptionalInfo = 0;
+//             resource->mNumValues = 1;
+//             resource->mConfigValue.singleValue = 315;
+//             resources->push_back(resource);
+
+//             int64_t handle = tuneResources(8000, THIRD_PARTY_HIGH, 1, resources);
+//             exit(EXIT_SUCCESS);
+
+//         } else if(rc > 0) {
+//             wait(nullptr);
+
+//             std::vector<Resource*>* resources = new std::vector<Resource*>;
+//             Resource* resource = (Resource*)malloc(sizeof(Resource));
+//             resource->mOpId = GENERATE_RESOURCE_ID(1, 3);
+//             resource->mOpInfo = 0;
+//             resource->mOptionalInfo = 0;
+//             resource->mNumValues = 1;
+//             resource->mConfigValue.singleValue = 209;
+//             resources->push_back(resource);
+
+//             int64_t handle = tuneResources(8000, THIRD_PARTY_HIGH, 1, resources);
+
+//             std::this_thread::sleep_for(std::chrono::seconds(2));
+
+//             // Check if the new value was successfully written to the node
+//             value = readFromNode(testResourceName);
+//             int32_t newValue = C_STOI(value);
+
+//             // Note value should be the higher of the 2, since for this resource the
+//             // policy set is "Higher is Better"
+//             assert(newValue == 315);
+
+//             std::this_thread::sleep_for(std::chrono::seconds(8));
+
+//             // Wait for the Request to expire, check if the value resets
+//             value = readFromNode(testResourceName);
+//             newValue = C_STOI(value);
+//             assert(newValue == originalValue);
+//         }
+
+//         LOG_END
+//     }
+
+//     /**
+//     * API under test: Tune / Untune
+//     * - Two clients send requests for Provisioning the same resource concurrently, with different durations
+//     * - Req1: duration: d1, value: v1
+//     * - Req2: duration: d2, value: v2
+//     * - Here the resource in question has the "Higher-Is-Better" policy, hence the bigger value should always take effect
+//     *   on the node in case of conflicts.
+//     * - Here d2 > d1 and v1 > v2, both requests are issued concurrently by different processes.
+//     * - Verify that the correct value takes effect for the Resource Node at different points in time.
+//     * - From time ~0 to d1, the value v1 (since v1 > v2) should be written to the node, however from time d1 to d2, the value v2 should be written to the node.
+//     * - Verify that once both the Request Expires (Note: Here both the requests don't have the same duration), the
+//     *   Resource Node value is reset.
+//     * Cross-Reference id: [C]
+//     */
+//     static void TestMultipleClientsHigherIsBetterPolicy2() {
+//         LOG_START
+
+//         // Check the original value for the Resource
+//         std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+//         int32_t testResourceOriginalValue = 114;
+
+//         std::string value;
+//         int32_t originalValue, newValue;
+
+//         value = readFromNode(testResourceName);
+//         originalValue = C_STOI(value);
+//         assert(originalValue == testResourceOriginalValue);
+
+//         int32_t rc1 = fork();
+//         if(rc1 == 0) {
+//             std::vector<Resource*>* resources = new std::vector<Resource*>;
+//             Resource* resource = (Resource*)malloc(sizeof(Resource));
+//             resource->mOpId = GENERATE_RESOURCE_ID(1, 3);
+//             resource->mOpInfo = 0;
+//             resource->mOptionalInfo = 0;
+//             resource->mNumValues = 1;
+//             resource->mConfigValue.singleValue = 1176;
+
+//             resources->push_back(resource);
+//             int64_t handle = tuneResources(5000, THIRD_PARTY_HIGH, 1, resources);
+
+//             exit(EXIT_SUCCESS);
+
+//         } else if(rc1 > 0) {
+//             wait(nullptr);
+//             std::vector<Resource*>* resources = new std::vector<Resource*>;
+//             Resource* resource = (Resource*)malloc(sizeof(Resource));
+//             resource->mOpId = GENERATE_RESOURCE_ID(1, 3);
+//             resource->mOpInfo = 0;
+//             resource->mOptionalInfo = 0;
+//             resource->mNumValues = 1;
+//             resource->mConfigValue.singleValue = 823;
+
+//             resources->push_back(resource);
+//             int64_t handle = tuneResources(14000, THIRD_PARTY_HIGH, 1, resources);
+
+//             std::this_thread::sleep_for(std::chrono::seconds(2));
+
+//             // Check if the new value was successfully written to the node
+//             // The higher value should be written to the node, since the Resource has
+//             // Higer is better policy
+//             value = readFromNode(testResourceName);
+//             newValue = C_STOI(value);
+//             assert(newValue == 1176);
+
+//             std::this_thread::sleep_for(std::chrono::seconds(6));
+
+//             // By this time the Request configuring the value of 1176 should have expired
+//             // And the Pending Request with a configuration value of 823, should take effect.
+//             value = readFromNode(testResourceName);
+//             newValue = C_STOI(value);
+//             assert(newValue == 823);
+
+//             std::this_thread::sleep_for(std::chrono::seconds(10));
+
+//             value = readFromNode(testResourceName);
+//             newValue = C_STOI(value);
+//             assert(newValue == originalValue);
+//         }
+
+//         LOG_END
+//     }
+
+//     /**
+//     * API under test: Tune / Untune
+//     * - Four clients send requests for the same resource concurrently, with the same durations
+//     * - Req1: duration: d1, value: v1
+//     * - Req2: duration: d2, value: v2
+//     *   and similary for other Requests.
+//     * - d1 = d2 = d3 = d4.
+//     * - v1 > v2 > v3 > v4
+//     * - Here the resource in question has the "Lower-Is-Better" policy, hence the smaller value should always take effect
+//     *   on the node in case of conflicts.
+//     * - Verify that the correct value takes effect for the Resource Node at different points in time.
+//     * - Verify that once all the Requests Expires (Note: Here all the requests have exactly the same duration), the
+//     *   Resource Node value is reset.
+//     * Cross-Reference id: [D]
+//     */
+//     static void TestMultipleClientsLowerIsBetterPolicy() {
+//         LOG_START
+
+//         // Check the original value for the Resource
+//         std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+//         int32_t testResourceOriginalValue = 107;
+
+//         std::string value;
+//         int32_t originalValue, newValue;
+
+//         value = readFromNode(testResourceName);
+//         originalValue = C_STOI(value);
+//         assert(originalValue == testResourceOriginalValue);
+
+//         int64_t handle;
+
+//         int32_t rc1 = fork();
+//         if(rc1 == 0) {
+//             std::vector<Resource*>* resources = new std::vector<Resource*>;
+//             Resource* resource = (Resource*)malloc(sizeof(Resource));
+//             resource->mOpId = GENERATE_RESOURCE_ID(1, 2);
+//             resource->mOpInfo = 0;
+//             resource->mOptionalInfo = 0;
+//             resource->mNumValues = 1;
+//             resource->mConfigValue.singleValue = 578;
+
+//             resources->push_back(resource);
+//             handle = tuneResources(5000, THIRD_PARTY_HIGH, 1, resources);
+
+//             exit(EXIT_SUCCESS);
+
+//         } else if(rc1 > 0) {
+//             wait(nullptr);
+//             std::this_thread::sleep_for(std::chrono::seconds(1));
+
+//             value = readFromNode(testResourceName);
+//             newValue = C_STOI(value);
+//             assert(newValue == 578);
+
+//             int32_t rc2 = fork();
+//             if(rc2 == 0) {
+//                 std::vector<Resource*>* resources = new std::vector<Resource*>;
+//                 Resource* resource = (Resource*)malloc(sizeof(Resource));
+//                 resource->mOpId = GENERATE_RESOURCE_ID(1, 2);
+//                 resource->mOpInfo = 0;
+//                 resource->mOptionalInfo = 0;
+//                 resource->mNumValues = 1;
+//                 resource->mConfigValue.singleValue = 445;
+//                 resources->push_back(resource);
+
+//                 handle = tuneResources(5000, THIRD_PARTY_HIGH, 1, resources);
+
+//                 exit(EXIT_SUCCESS);
+
+//             } else if(rc2 > 0) {
+//                 wait(nullptr);
+//                 std::this_thread::sleep_for(std::chrono::seconds(1));
+
+//                 value = readFromNode(testResourceName);
+//                 newValue = C_STOI(value);
+//                 assert(newValue == 445);
+
+//                 int32_t rc3 = fork();
+//                 if(rc3 == 0) {
+//                     std::vector<Resource*>* resources = new std::vector<Resource*>;
+//                     Resource* resource = (Resource*)malloc(sizeof(Resource));
+//                     resource->mOpId = GENERATE_RESOURCE_ID(1, 2);
+//                     resource->mOpInfo = 0;
+//                     resource->mOptionalInfo = 0;
+//                     resource->mNumValues = 1;
+//                     resource->mConfigValue.singleValue = 412;
+
+//                     resources->push_back(resource);
+//                     handle = tuneResources(5000, THIRD_PARTY_HIGH, 1, resources);
+
+//                     exit(EXIT_SUCCESS);
+
+//                 } else if(rc3 > 0) {
+//                     wait(nullptr);
+//                     std::this_thread::sleep_for(std::chrono::seconds(1));
+
+//                     value = readFromNode(testResourceName);
+//                     newValue = C_STOI(value);
+//                     assert(newValue == 412);
+
+//                     std::vector<Resource*>* resources = new std::vector<Resource*>;
+//                     Resource* resource = (Resource*)malloc(sizeof(Resource));
+//                     resource->mOpId = GENERATE_RESOURCE_ID(1, 2);
+//                     resource->mOpInfo = 0;
+//                     resource->mOptionalInfo = 0;
+//                     resource->mNumValues = 1;
+//                     resource->mConfigValue.singleValue = 378;
+//                     resources->push_back(resource);
+
+//                     handle = tuneResources(5000, THIRD_PARTY_HIGH, 1, resources);
+
+//                     std::this_thread::sleep_for(std::chrono::seconds(1));
+
+//                     value = readFromNode(testResourceName);
+//                     newValue = C_STOI(value);
+//                     assert(newValue == 378);
+
+//                     std::this_thread::sleep_for(std::chrono::seconds(8));
+
+//                     value = readFromNode(testResourceName);
+//                     newValue = C_STOI(value);
+//                     assert(newValue == originalValue);
+
+//                     waitpid(rc1, nullptr, 0);
+//                     waitpid(rc2, nullptr, 0);
+//                     waitpid(rc3, nullptr, 0);
+//                 }
+//             }
+//         }
+
+//         LOG_END
+//     }
+
+//     /**
+//     * API under test: Tune / Untune
+//     * - Two clients send requests for the same resource concurrently, with different durations
+//     * - Req1: duration: d1, value: v1
+//     * - Req2: duration: d2, value: v2
+//     * - Here the resource in question has the "Lazy-Apply" policy, hence the Request should take
+//     * - effect in a "First-In First-Out (FIFO)" manner.
+//     * - Verify that the correct value takes effect for the Resource Node at different points in time.
+//     * - Verify that once all the Requests Expires, the Resource Node value is reset.
+//     * Cross-Reference id: ['E']
+//     */
+//     static void TestMultipleClientsLazyApplyPolicy() {
+//         LOG_START
+
+//         std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/target_test_resource5";
+//         int32_t testResourceOriginalValue = 17;
+
+//         std::string value;
+//         int32_t originalValue, newValue;
+
+//         value = readFromNode(testResourceName);
+//         originalValue = C_STOI(value);
+//         assert(originalValue == testResourceOriginalValue);
+
+//         int64_t handle;
+//         int32_t rc1 = fork();
+//         if(rc1 == 0) {
+//             std::vector<Resource*>* resources = new std::vector<Resource*>;
+//             Resource* resource = (Resource*)malloc(sizeof(Resource));
+//             resource->mOpId = GENERATE_RESOURCE_ID(1, 8);
+//             resource->mOpInfo = 0;
+//             resource->mOptionalInfo = 0;
+//             resource->mNumValues = 1;
+//             resource->mConfigValue.singleValue = 15;
+//             resources->push_back(resource);
+
+//             handle = tuneResources(8000, THIRD_PARTY_HIGH, 1, resources);
+
+//             exit(EXIT_SUCCESS);
+
+//         } else if(rc1 > 0) {
+//             wait(nullptr);
+//             std::this_thread::sleep_for(std::chrono::seconds(1));
+
+//             std::vector<Resource*>* resources = new std::vector<Resource*>;
+//             Resource* resource = (Resource*)malloc(sizeof(Resource));
+//             resource->mOpId = GENERATE_RESOURCE_ID(1, 8);
+//             resource->mOpInfo = 0;
+//             resource->mOptionalInfo = 0;
+//             resource->mNumValues = 1;
+//             resource->mConfigValue.singleValue = 18;
+//             resources->push_back(resource);
+
+//             handle = tuneResources(15000, THIRD_PARTY_HIGH, 1, resources);
+
+//             std::this_thread::sleep_for(std::chrono::seconds(1));
+
+//             // The new Value should be valid for 8 seconds
+//             value = readFromNode(testResourceName);
+//             newValue = C_STOI(value);
+//             assert(newValue == 15);
+
+//             std::this_thread::sleep_for(std::chrono::seconds(3));
+//             value = readFromNode(testResourceName);
+//             newValue = C_STOI(value);
+//             assert(newValue == 15);
+
+//             std::this_thread::sleep_for(std::chrono::seconds(8));
+//             value = readFromNode(testResourceName);
+//             newValue = C_STOI(value);
+//             assert(newValue == 18);
+
+//             std::this_thread::sleep_for(std::chrono::seconds(10));
+
+//             value = readFromNode(testResourceName);
+//             newValue = C_STOI(value);
+//             assert(newValue == originalValue);
+//         }
+
+//         LOG_END
+//     }
+
+//     /**
+//     * API under test: Tune / Untune
+//     * - Three clients send requests for three different resources concurrently, with the same duration
+//     * - Here the Requests are for separate resources, hence no concurrency considerations at Resource Level
+//     * - Verify that the supplied value takes effect for each of the Resource Nodes (Note, all the Requests are designed to be valid).
+//     * - Verify that each of the request expires, the corresponding Resource Node's value is reset
+//     * - Cross-Reference id: ['G']
+//     */
+//     static void TestMultipleClientsTuneRequestDifferentResources() {
+//         LOG_START
+
+//         // Check the original value for the Resource
+//         std::string testResourceName1 = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+//         std::string testResourceName2 = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+//         std::string testResourceName3 = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_max";
+
+//         int32_t testResourceOriginalValue1 = 107;
+//         int32_t testResourceOriginalValue2 = 114;
+//         int32_t testResourceOriginalValue3 = 684;
+
+//         std::string value;
+//         int32_t originalValue, newValue;
+
+//         value = readFromNode(testResourceName1);
+//         originalValue = C_STOI(value);
+//         assert(originalValue == testResourceOriginalValue1);
+
+//         value = readFromNode(testResourceName2);
+//         originalValue = C_STOI(value);
+//         assert(originalValue == testResourceOriginalValue2);
+
+//         value = readFromNode(testResourceName3);
+//         originalValue = C_STOI(value);
+//         assert(originalValue == testResourceOriginalValue3);
+
+//         int32_t rc1 = fork();
+//         if(rc1 == 0) {
+//             std::vector<Resource*>* resources = new std::vector<Resource*>;
+//             Resource* resource = (Resource*)malloc(sizeof(Resource));
+//             resource->mOpId = GENERATE_RESOURCE_ID(1, 2);
+//             resource->mOpInfo = 0;
+//             resource->mOptionalInfo = 0;
+//             resource->mNumValues = 1;
+//             resource->mConfigValue.singleValue = 717;
+//             resources->push_back(resource);
+
+//             int64_t handle = tuneResources(8000, THIRD_PARTY_HIGH, 1, resources);
+
+//             delete resource;
+//             delete resources;
+//             exit(EXIT_SUCCESS);
+
+//         } else if(rc1 > 0) {
+//             int32_t rc2 = fork();
+//             if(rc2 == 0) {
+//                 std::vector<Resource*>* resources = new std::vector<Resource*>;
+//                 Resource* resource = (Resource*)malloc(sizeof(Resource));
+//                 resource->mOpId = GENERATE_RESOURCE_ID(1, 3);
+//                 resource->mOpInfo = 0;
+//                 resource->mOptionalInfo = 0;
+//                 resource->mNumValues = 1;
+//                 resource->mConfigValue.singleValue = 800;
+//                 resources->push_back(resource);
+//                 int64_t handle = tuneResources(8000, THIRD_PARTY_HIGH, 1, resources);
+
+//                 delete resource;
+//                 delete resources;
+
+//                 exit(EXIT_SUCCESS);
+
+//             } else if(rc2 > 0) {
+//                 std::vector<Resource*>* resources = new std::vector<Resource*>;
+//                 Resource* resource = (Resource*)malloc(sizeof(Resource));
+//                 resource->mOpId = GENERATE_RESOURCE_ID(1, 1);
+//                 resource->mOpInfo = 0;
+//                 resource->mOptionalInfo = 0;
+//                 resource->mNumValues = 1;
+//                 resource->mConfigValue.singleValue = 557;
+//                 resources->push_back(resource);
+
+//                 int64_t handle = tuneResources(8000, THIRD_PARTY_HIGH, 1, resources);
+
+//                 std::this_thread::sleep_for(std::chrono::seconds(4));
+
+//                 // Check if the new value was successfully written to the node
+//                 value = readFromNode(testResourceName1);
+//                 newValue = C_STOI(value);
+//                 assert(newValue == 717);
+
+//                 value = readFromNode(testResourceName2);
+//                 newValue = C_STOI(value);
+//                 assert(newValue == 800);
+
+//                 value = readFromNode(testResourceName3);
+//                 newValue = C_STOI(value);
+//                 assert(newValue == 557);
+
+//                 // Wait for the Nodes to Reset
+//                 std::this_thread::sleep_for(std::chrono::seconds(10));
+
+//                 value = readFromNode(testResourceName1);
+//                 originalValue = C_STOI(value);
+//                 assert(originalValue == testResourceOriginalValue1);
+
+//                 value = readFromNode(testResourceName2);
+//                 originalValue = C_STOI(value);
+//                 assert(originalValue == testResourceOriginalValue2);
+
+//                 value = readFromNode(testResourceName3);
+//                 originalValue = C_STOI(value);
+//                 assert(originalValue == testResourceOriginalValue3);
+
+//                 delete resource;
+//                 delete resources;
+
+//                 waitpid(rc1, nullptr, 0);
+//                 waitpid(rc2, nullptr, 0);
+//             }
+//         }
+
+//         LOG_END
+//     }
+
+//     /**
+//     * API under test: Tune / Untune
+//     * - Single Client sends multiple requests sequentially to tune the same resource.
+//     * - The resource in question has a "high_is_better" policy.
+//     * - Verify that the higher of the two supplied valued takes effect on the resource node.
+//     * - Verify that once the Request Expires, the Resource Node's value is reset.
+//     * Cross-Reference id: ['S1']
+//     */
+//     static void TestSingleClientSequentialRequests() {
+//         LOG_START
+
+//         std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+//         int32_t testResourceOriginalValue = 114;
+//         int64_t handle;
+
+//         std::string value;
+//         int32_t originalValue, newValue;
+
+//         value = readFromNode(testResourceName);
+//         originalValue = C_STOI(value);
+//         assert(originalValue == testResourceOriginalValue);
+
+//         std::vector<Resource*>* resources1 = new std::vector<Resource*>;
+//         Resource* resource1 = (Resource*)malloc(sizeof(Resource));
+//         resource1->mOpId = GENERATE_RESOURCE_ID(1, 3);
+//         resource1->mOpInfo = 0;
+//         resource1->mOptionalInfo = 0;
+//         resource1->mNumValues = 1;
+//         resource1->mConfigValue.singleValue = 889;
+//         resources1->push_back(resource1);
+
+//         std::vector<Resource*>* resources2 = new std::vector<Resource*>;
+//         Resource* resource2 = (Resource*)malloc(sizeof(Resource));
+//         resource2->mOpId = GENERATE_RESOURCE_ID(1, 3);
+//         resource2->mOpInfo = 0;
+//         resource2->mOptionalInfo = 0;
+//         resource2->mNumValues = 1;
+//         resource2->mConfigValue.singleValue = 917;
+//         resources2->push_back(resource2);
+
+//         handle = tuneResources(6000, THIRD_PARTY_HIGH, 1, 0, resources1);
+//         handle = tuneResources(6000, THIRD_PARTY_HIGH, 1, 0, resources2);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(2));
+
+//         value = readFromNode(testResourceName);
+//         newValue = C_STOI(value);
+//         assert(newValue == 917);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(6));
+
+//         value = readFromNode(testResourceName);
+//         newValue = C_STOI(value);
+//         assert(newValue == testResourceOriginalValue);
+
+//         LOG_END
+//     }
+
+//     /**
+//     * API under test: Tune / Untune
+//     * - Two threads of the same Client process send requests concurrently to tune the same resource.
+//     * - The resource in question has a "high_is_better" policy.
+//     * - Verify that the higher of the two supplied valued takes effect on the resource node.
+//     * - Verify that once the Request Expires, the Resource Node's value is reset.
+//     * - Note, only a single thread can send a message over the Socket at once, the other thread will
+//     * - be blocked until the first thread is done.
+//     * Cross-Reference id: ['S2']
+//     */
+//     static void TestMultipleClientTIDsConcurrentRequests() {
+//         LOG_START
+
+//         std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+//         int32_t testResourceOriginalValue = 114;
+//         int64_t handle;
+
+//         std::string value;
+//         int32_t originalValue, newValue;
+
+//         value = readFromNode(testResourceName);
+//         originalValue = C_STOI(value);
+//         assert(originalValue == testResourceOriginalValue);
+
+//         std::thread th([&]{
+//             std::vector<Resource*>* resources1 = new std::vector<Resource*>;
+//             Resource* resource1 = (Resource*)malloc(sizeof(Resource));
+//             resource1->mOpId = GENERATE_RESOURCE_ID(1, 3);
+//             resource1->mOpInfo = 0;
+//             resource1->mOptionalInfo = 0;
+//             resource1->mNumValues = 1;
+//             resource1->mConfigValue.singleValue = 664;
+//             resources1->push_back(resource1);
+
+//             handle = tuneResources(6000, THIRD_PARTY_HIGH, 1, 0, resources1);
+//         });
+
+//         std::vector<Resource*>* resources2 = new std::vector<Resource*>;
+//         Resource* resource2 = (Resource*)malloc(sizeof(Resource));
+//         resource2->mOpId = GENERATE_RESOURCE_ID(1, 3);
+//         resource2->mOpInfo = 0;
+//         resource2->mOptionalInfo = 0;
+//         resource2->mNumValues = 1;
+//         resource2->mConfigValue.singleValue = 702;
+//         resources2->push_back(resource2);
+
+//         handle = tuneResources(6000, THIRD_PARTY_HIGH, 1, 0, resources2);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(2));
+
+//         value = readFromNode(testResourceName);
+//         newValue = C_STOI(value);
+//         assert(newValue == 702);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(6));
+
+//         value = readFromNode(testResourceName);
+//         newValue = C_STOI(value);
+//         assert(newValue == testResourceOriginalValue);
+
+//         th.join();
+
+//         LOG_END
+//     }
+
+//     /**
+//     * API under test: Tune / Untune
+//     * - A client sends a Resource(s) Provisioning Request to tune a resource for an infinite (-1) duration
+//     * - The resource in question has a "lower_is_better" policy.
+//     * - Verify that the supplied valued takes effect on the resource node.
+//     * - Send an untune request from the client.
+//     * - Verify that the Resource Node's value is reset.
+//     * - Note only the client which issued the Tune request can issue a corresponding Untune
+//     *   Request for the same Handle.
+//     * Cross-Reference id: ['U1']
+//     */
+//     static void TestInfiniteDurationTuneRequestAndValidUntuning() {
+//         LOG_START
+
+//         std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+//         int32_t testResourceOriginalValue = 107;
+//         int64_t handle;
+
+//         std::string value;
+//         int32_t originalValue, newValue;
+
+//         value = readFromNode(testResourceName);
+//         originalValue = C_STOI(value);
+//         assert(originalValue == testResourceOriginalValue);
+
+//         std::vector<Resource*>* resources = new std::vector<Resource*>;
+//         Resource* resource = (Resource*)malloc(sizeof(Resource));
+//         resource->mOpId = GENERATE_RESOURCE_ID(1, 2);
+//         resource->mOpInfo = 0;
+//         resource->mOptionalInfo = 0;
+//         resource->mNumValues = 1;
+//         resource->mConfigValue.singleValue = 245;
+//         resources->push_back(resource);
+//         handle = tuneResources(-1, THIRD_PARTY_HIGH, 1, resources);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(2));
+
+//         value = readFromNode(testResourceName);
+//         newValue = C_STOI(value);
+//         assert(newValue == 245);
+
+//         untuneResources(handle);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(2));
+
+//         value = readFromNode(testResourceName);
+//         newValue = C_STOI(value);
+//         assert(newValue == testResourceOriginalValue);
+
+//         delete resource;
+//         delete resources;
+
+//         LOG_END
+//     }
+
+//     /**
+//     * API under test: Tune / Untune
+//     * - A client (X) sends a Resource(s) Provisioning Request to tune a resource for an infinite (-1) duration
+//     * - The resource in question has a "lower_is_better" policy.
+//     * - Verify that the supplied valued takes effect on the resource node.
+//     * - Send an untune request from another client (Y).
+//     * - Verify that the Resource Node's value is not reset.
+//     * - Note only the client which issued the Tune request can issue a corresponding Untune
+//     *   Request for the same Handle.
+//     * - Now send an Untune request from Client X, and verify that the Resource Node's value
+//     *   is indeed reset.
+//     * Cross-Reference id: ['U2']
+//     */
+//     static void TestInfiniteDurationTuneRequestAndInValidUntuning() {
+//         LOG_START
+
+//         std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+//         int32_t testResourceOriginalValue = 107;
+//         int64_t handle;
+
+//         std::string value;
+//         int32_t originalValue, newValue;
+
+//         value = readFromNode(testResourceName);
+//         originalValue = C_STOI(value);
+//         assert(originalValue == testResourceOriginalValue);
+
+//         std::vector<Resource*>* resources = new std::vector<Resource*>;
+//         Resource* resource = (Resource*)malloc(sizeof(Resource));
+//         resource->mOpId = GENERATE_RESOURCE_ID(1, 2);
+//         resource->mOpInfo = 0;
+//         resource->mOptionalInfo = 0;
+//         resource->mNumValues = 1;
+//         resource->mConfigValue.singleValue = 245;
+//         resources->push_back(resource);
+//         handle = tuneResources(-1, THIRD_PARTY_HIGH, 1, resources);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(2));
+
+//         value = readFromNode(testResourceName);
+//         newValue = C_STOI(value);
+//         assert(newValue == 245);
+
+//         int32_t rc = fork();
+//         if(rc == 0) {
+//             // Child Process
+//             untuneResources(handle);
+
+//             exit(EXIT_SUCCESS);
+
+//         } else if(rc > 0) {
+//             wait(nullptr);
+
+//             std::this_thread::sleep_for(std::chrono::seconds(2));
+
+//             // Verify that there is no change in value
+//             value = readFromNode(testResourceName);
+//             newValue = C_STOI(value);
+//             assert(newValue == 245);
+
+//             untuneResources(handle);
+
+//             std::this_thread::sleep_for(std::chrono::seconds(2));
+
+//             value = readFromNode(testResourceName);
+//             newValue = C_STOI(value);
+//             assert(newValue == testResourceOriginalValue);
+
+//             delete resource;
+//             delete resources;
+//         }
+
+//         LOG_END
+//     }
+
+//     /**
+//     * API under test: Tune / Untune
+//     * - The CocoTable structure is built to handle 4 levels of Priority. A request with
+//     *   higher priority should take precedence over another with lower priority.
+//     * - This notion should reflect with respect to Resource Tuning as well, i.e. if there
+//     *   are 2 valid Requests:
+//     *   R1, with Priority P1 trying to configure a value of V1 for Resource X
+//     *   R2, with Priority P2 trying to configure a value of V2 for Resource X
+//     *   Where, P1 > P1, then the value V1 should take effect on the Resource Sysfs Node
+//     *   rather than the value V2.
+//     * - In this case both Requests are sent by the same Client
+//     * - Verify that the Correct Value takes affect on the Sysfs Nodes
+//     * - Verify that the Sysfs Node is reset, once the Request Expires
+//     * Cross-Reference id: ['H']
+//     */
+//     static void TestPriorityBasedResourceAcquisition1() {
+//         LOG_START
+
+//         std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+//         int32_t testResourceOriginalValue = 107;
+//         int64_t handle;
+
+//         std::string value;
+//         int32_t originalValue, newValue;
+
+//         value = readFromNode(testResourceName);
+//         originalValue = C_STOI(value);
+//         assert(originalValue == testResourceOriginalValue);
+
+//         std::vector<Resource*>* resources1 = new std::vector<Resource*>;
+//         Resource* resource1 = (Resource*)malloc(sizeof(Resource));
+//         resource1->mOpId = GENERATE_RESOURCE_ID(1, 2);
+//         resource1->mOpInfo = 0;
+//         resource1->mOptionalInfo = 0;
+//         resource1->mNumValues = 1;
+//         resource1->mConfigValue.singleValue = 515;
+//         resources1->push_back(resource1);
+//         handle = tuneResources(8000, THIRD_PARTY_LOW, 1, resources1);
+
+//         std::vector<Resource*>* resources2 = new std::vector<Resource*>;
+//         Resource* resource2 = (Resource*)malloc(sizeof(Resource));
+//         resource2->mOpId = GENERATE_RESOURCE_ID(1, 2);
+//         resource2->mOpInfo = 0;
+//         resource2->mOptionalInfo = 0;
+//         resource2->mNumValues = 1;
+//         resource2->mConfigValue.singleValue = 559;
+//         resources2->push_back(resource2);
+//         handle = tuneResources(8000, THIRD_PARTY_HIGH, 1, resources2);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(2));
+
+//         value = readFromNode(testResourceName);
+//         newValue = C_STOI(value);
+//         assert(newValue == 559);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(10));
+
+//         value = readFromNode(testResourceName);
+//         newValue = C_STOI(value);
+//         assert(newValue == testResourceOriginalValue);
+
+//         delete resource1;
+//         delete resource2;
+//         delete resources1;
+//         delete resources2;
+
+//         LOG_END
+//     }
+
+//     /**
+//     * API under test: Tune / Untune
+//     * - The CocoTable structure is built to handle 4 levels of Priority. A request with
+//     *   higher priority should take precedence over another with lower priority.
+//     * - This notion should reflect with respect to Resource Tuning as well, i.e. if there
+//     *   are 2 valid Requests:
+//     *   R1, with Priority P1 trying to configure a value of V1 for Resource X
+//     *   R2, with Priority P2 trying to configure a value of V2 for Resource X
+//     *   Where, P1 > P1, then the value V1 should take effect on the Resource Sysfs Node
+//     *   rather than the value V2.
+//     * - The Resource in Question here has a "lower_is_better" policy.
+//     * - In this case both Requests are sent by the same Client within an interval of 5 seconds
+//     * - i.e. R2 will be sent at time t and R1 at time t + 5
+//     * - Verify that the Correct Value takes affect on the Sysfs Nodes, i.e. from time
+//     *   [t, t + 5) the value on the Node should be V2, following which the value V1 should
+//     *   take effect (as the Request with Higher Priority will be submitted).
+//     * - Verify that the Sysfs Node is reset, once the Request Expires.
+//     * Cross-Reference id: ['H']
+//     */
+//     static void TestPriorityBasedResourceAcquisition2() {
+//         LOG_START
+
+//         std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+//         int32_t testResourceOriginalValue = 107;
+//         int64_t handle;
+
+//         std::string value;
+//         int32_t originalValue, newValue;
+
+//         value = readFromNode(testResourceName);
+//         originalValue = C_STOI(value);
+//         assert(originalValue == testResourceOriginalValue);
+
+//         std::vector<Resource*>* resources1 = new std::vector<Resource*>;
+//         Resource* resource1 = (Resource*)malloc(sizeof(Resource));
+//         resource1->mOpId = GENERATE_RESOURCE_ID(1, 2);
+//         resource1->mOpInfo = 0;
+//         resource1->mOptionalInfo = 0;
+//         resource1->mNumValues = 1;
+//         resource1->mConfigValue.singleValue = 515;
+//         resources1->push_back(resource1);
+//         handle = tuneResources(12000, THIRD_PARTY_LOW, 1, resources1);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(2));
+
+//         value = readFromNode(testResourceName);
+//         newValue = C_STOI(value);
+//         assert(newValue == 515);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(3));
+
+//         std::vector<Resource*>* resources2 = new std::vector<Resource*>;
+//         Resource* resource2 = (Resource*)malloc(sizeof(Resource));
+//         resource2->mOpId = GENERATE_RESOURCE_ID(1, 2);
+//         resource2->mOpInfo = 0;
+//         resource2->mOptionalInfo = 0;
+//         resource2->mNumValues = 1;
+//         resource2->mConfigValue.singleValue = 559;
+//         resources2->push_back(resource2);
+//         handle = tuneResources(8000, THIRD_PARTY_HIGH, 1, resources2);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(2));
+
+//         value = readFromNode(testResourceName);
+//         newValue = C_STOI(value);
+//         assert(newValue == 559);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(10));
+
+//         value = readFromNode(testResourceName);
+//         newValue = C_STOI(value);
+//         assert(newValue == testResourceOriginalValue);
+
+//         delete resource1;
+//         delete resource2;
+//         delete resources1;
+//         delete resources2;
+
+//         LOG_END
+//     }
+
+//   /**
+//     * API under test: Tune / Untune
+//     * - The CocoTable structure is built to handle 4 levels of Priority. A request with
+//     *   higher priority should take precedence over another with lower priority.
+//     * - This notion should reflect with respect to Resource Tuning as well, i.e. if there
+//     *   are 2 valid Requests:
+//     *   R1, with Priority P1 trying to configure a value of V1 for Resource X
+//     *   R2, with Priority P2 trying to configure a value of V2 for Resource X
+//     *   Where, P1 > P2, and V1 < V2
+//     * - Here the Resource in Question has a "higher_is_better" policy.
+//     * - At time t = 0 seconds, Request R1 arrives, since there are no other Requests, it should
+//         immediately take effect.
+//     * - At time t = 5 seconds, Request R2 arrives, since V2 > V1, in normal conditions, V2 should
+//     *   be applied to the Resource Node.
+//     * - However, since P1 > P2, hence V1 will continue to remain applied ahead of V2.
+//     * - Verify that the Resource Node is reset once the Requests expire
+//     * Cross-Reference id: ['H']
+//     */
+//     static void TestPriorityBasedResourceAcquisition3() {
+//         LOG_START
+
+//         std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+//         int32_t testResourceOriginalValue = 114;
+//         int64_t handle;
+
+//         std::string value;
+//         int32_t originalValue, newValue;
+
+//         value = readFromNode(testResourceName);
+//         originalValue = C_STOI(value);
+//         assert(originalValue == testResourceOriginalValue);
+
+//         std::vector<Resource*>* resources1 = new std::vector<Resource*>;
+//         Resource* resource1 = (Resource*)malloc(sizeof(Resource));
+//         resource1->mOpId = GENERATE_RESOURCE_ID(1, 3);
+//         resource1->mOpInfo = 0;
+//         resource1->mOptionalInfo = 0;
+//         resource1->mNumValues = 1;
+//         resource1->mConfigValue.singleValue = 645;
+//         resources1->push_back(resource1);
+//         handle = tuneResources(10000, THIRD_PARTY_HIGH, 1, resources1);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(2));
+
+//         value = readFromNode(testResourceName);
+//         newValue = C_STOI(value);
+//         assert(newValue == 645);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(1));
+
+//         std::vector<Resource*>* resources2 = new std::vector<Resource*>;
+//         Resource* resource2 = (Resource*)malloc(sizeof(Resource));
+//         resource2->mOpId = GENERATE_RESOURCE_ID(1, 3);
+//         resource2->mOpInfo = 0;
+//         resource2->mOptionalInfo = 0;
+//         resource2->mNumValues = 1;
+//         resource2->mConfigValue.singleValue = 716;
+//         resources2->push_back(resource2);
+//         handle = tuneResources(5000, THIRD_PARTY_LOW, 1, resources2);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(2));
+
+//         value = readFromNode(testResourceName);
+//         newValue = C_STOI(value);
+//         assert(newValue == 645);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(10));
+
+//         value = readFromNode(testResourceName);
+//         newValue = C_STOI(value);
+//         assert(newValue == testResourceOriginalValue);
+
+//         delete resource1;
+//         delete resource2;
+//         delete resources1;
+//         delete resources2;
+
+//         LOG_END
+//     }
+
+//   /**
+//     * API under test: Retune
+//     * - Client can use the Retune API to extend the duration of a previously issued Tune Request.
+//     * - Note only the client which issue the Tune Request with H1, can issue a Retune API for H1.
+//     * - Here the issues a Tune Request for 8 seconds, however later Retunes it to 15 seconds.
+//     * - Verify that the Configured values is applied to the Resource Node for this entire duration, i.e. till
+//     *   15 seconds from the point of issuing the Retune Request.
+//     * - Note, Retune API only supports extending the duration of a Request and not decreasing it.
+//     * Cross-Reference id: ['R1']
+//     */
+//     static void TestRequestValidRetuning() {
+//         LOG_START
+
+//         std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+//         int32_t testResourceOriginalValue = 114;
+//         int64_t handle;
+
+//         std::string value;
+//         int32_t originalValue, newValue;
+
+//         value = readFromNode(testResourceName);
+//         originalValue = C_STOI(value);
+//         assert(originalValue == testResourceOriginalValue);
+
+//         std::vector<Resource*>* resources = new std::vector<Resource*>;
+//         Resource* resource = (Resource*)malloc(sizeof(Resource));
+//         resource->mOpId = GENERATE_RESOURCE_ID(1, 3);
+//         resource->mOpInfo = 0;
+//         resource->mOptionalInfo = 0;
+//         resource->mNumValues = 1;
+//         resource->mConfigValue.singleValue = 778;
+//         resources->push_back(resource);
+//         handle = tuneResources(8000, THIRD_PARTY_HIGH, 1, resources);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(4));
+
+//         value = readFromNode(testResourceName);
+//         newValue = C_STOI(value);
+//         assert(newValue == 778);
+
+//         // Wait for 10 seconds and check the Sysfs Node value
+//         // The Request will expire in 4 seconds, hence the value should reset to original value
+//         // However we issue an Untune Request for this handle, and change the duration to 15 seconds
+//         // Hence when we check the value after 10 seconds, it should still be 778
+//         retuneResources(handle, 15000);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(10));
+
+//         value = readFromNode(testResourceName);
+//         newValue = C_STOI(value);
+//         assert(newValue == 778);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(10));
+
+//         value = readFromNode(testResourceName);
+//         newValue = C_STOI(value);
+//         assert(newValue == testResourceOriginalValue);
+
+//         delete resource;
+//         delete resources;
+
+//         LOG_END
+//     }
+
+//   /**
+//     * API under test: Retune
+//     * - Client can use the Retune API to extend the duration of a previously issued Tune Request.
+//     * - Note only the client which issue the Tune Request with H1, can issue a Retune API for H1.
+//     * - Retune API only supports extending the duration of a Request and not decreasing it.
+//     * - Here the Client issues a Tune Request for 12 seconds, and later tries to Retune it to 6 seconds.
+//     * - Since the Retune API does not support decreasing Request Duration, hence this Retune Request
+//     *   should be rejected.
+//     * Cross-Reference id: ['R2']
+//     */
+//     static void TestRequestInvalidRetuning1() {
+//         LOG_START
+
+//         std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+//         int32_t testResourceOriginalValue = 114;
+//         int64_t handle;
+
+//         std::string value;
+//         int32_t originalValue, newValue;
+
+//         value = readFromNode(testResourceName);
+//         originalValue = C_STOI(value);
+//         assert(originalValue == testResourceOriginalValue);
+
+//         std::vector<Resource*>* resources = new std::vector<Resource*>;
+//         Resource* resource = (Resource*)malloc(sizeof(Resource));
+//         resource->mOpId = GENERATE_RESOURCE_ID(1, 3);
+//         resource->mOpInfo = 0;
+//         resource->mOptionalInfo = 0;
+//         resource->mNumValues = 1;
+//         resource->mConfigValue.singleValue = 778;
+//         resources->push_back(resource);
+//         handle = tuneResources(12000, THIRD_PARTY_HIGH, 1, resources);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(2));
+
+//         value = readFromNode(testResourceName);
+//         newValue = C_STOI(value);
+//         assert(newValue == 778);
+
+//         // This Request should be rejected by the Server, since Request duration cannot be decreased
+//         retuneResources(handle, 6000);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(7));
+
+//         // Node value should still be set to the value configured via the Tune Request, as the Retune
+//         // Request was rejected.
+//         value = readFromNode(testResourceName);
+//         newValue = C_STOI(value);
+//         assert(newValue == 778);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(6));
+
+//         value = readFromNode(testResourceName);
+//         newValue = C_STOI(value);
+//         assert(newValue == testResourceOriginalValue);
+
+//         delete resource;
+//         delete resources;
+
+//         LOG_END
+//     }
+
+//   /**
+//     * API under test: Retune
+//     * - Client can use the Retune API to extend the duration of a previously issued Tune Request.
+//     * - Note only the client which issue the Tune Request with H1, can issue a Retune API for H1.
+//     * - Retune API only supports extending the duration of a Request and not decreasing it.
+//     * - Here the Client issues a Tune Request for 12 seconds, and later tries to Retune it to 6 seconds.
+//     * - Since the Retune API does not support decreasing Request Duration, hence this Retune Request
+//     *   should be rejected.
+//     * Cross-Reference id: ['R3']
+//     */
+//     static void TestRequestInvalidRetuning2() {
+//         LOG_START
+
+//         std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
+//         int32_t testResourceOriginalValue = 300;
+
+//         std::string value;
+//         int32_t originalValue, newValue;
+
+//         int64_t handle;
+
+//         value = readFromNode(testResourceName);
+//         originalValue = C_STOI(value);
+//         assert(originalValue == testResourceOriginalValue);
+
+//         std::vector<Resource*>* resources = new std::vector<Resource*>;
+//         Resource* resource = (Resource*)malloc(sizeof(Resource));
+//         resource->mOpId = GENERATE_RESOURCE_ID(1, 0);
+//         resource->mOpInfo = 0;
+//         resource->mOptionalInfo = 0;
+//         resource->mNumValues = 1;
+//         resource->mConfigValue.singleValue = 597;
+//         resources->push_back(resource);
+//         handle = tuneResources(7000, THIRD_PARTY_HIGH, 1, resources);
+
+//         std::this_thread::sleep_for(std::chrono::seconds(2));
+
+//         value = readFromNode(testResourceName);
+//         newValue = C_STOI(value);
+//         assert(newValue == 597);
+
+//         int32_t rc = fork();
+//         if(rc == 0) {
+//             // Child Process
+//             retuneResources(handle, 20000);
+
+//             exit(EXIT_SUCCESS);
+
+//         } else if(rc > 0) {
+//             wait(nullptr);
+
+//             // Verify that the value has reset after the original Request duration has expired
+//             std::this_thread::sleep_for(std::chrono::seconds(10));
+
+//             value = readFromNode(testResourceName);
+//             newValue = C_STOI(value);
+//             assert(newValue == testResourceOriginalValue);
+
+//             delete resource;
+//             delete resources;
+//         }
+
+//         LOG_END
+//     }
+
+//     static void RunTestGroup() {
+//         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
+
+//         // RUN_TEST(TestSingleClientTuneRequest);
+//         // RUN_TEST(TestSingleClientTuneRequestMultipleResources)
+//         // RUN_TEST(TestMultipleClientsHigherIsBetterPolicy1)
+//         // RUN_TEST(TestMultipleClientsHigherIsBetterPolicy2)
+//         // RUN_TEST(TestMultipleClientsLowerIsBetterPolicy)
+//         // RUN_TEST(TestMultipleClientsLazyApplyPolicy)
+//         // RUN_TEST(TestMultipleClientsTuneRequestDifferentResources)
+//         // RUN_TEST(TestSingleClientSequentialRequests)
+//         // RUN_TEST(TestMultipleClientTIDsConcurrentRequests)
+//         // RUN_TEST(TestInfiniteDurationTuneRequestAndValidUntuning)
+//         // RUN_TEST(TestInfiniteDurationTuneRequestAndInValidUntuning)
+//         // RUN_TEST(TestPriorityBasedResourceAcquisition1)
+//         // RUN_TEST(TestPriorityBasedResourceAcquisition2)
+//         // RUN_TEST(TestPriorityBasedResourceAcquisition3)
+//         RUN_TEST(TestRequestValidRetuning)
+//         RUN_TEST(TestRequestInvalidRetuning1)
+
+//         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
+//     }
+// }
+
+int32_t main() {
+    // Request-Verification Tests
+    // - Provisioner
+    // ProvisionerRequestVerification::RunTestGroup();
+    // - SysSignal
+    SignalRequestVerification::RunTestGroup();
+
+    // // Request Application Tests
+    // RequestApplicationTests::RunTestGroup();
+}

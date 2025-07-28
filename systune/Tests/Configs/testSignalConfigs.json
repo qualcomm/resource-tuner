@@ -1,0 +1,48 @@
+{
+    "SignalConfigs": [
+        {
+            "SigId": "0x0",
+            "Category": "0x1",
+            "Name": "INSTALL",
+            "Enable": true,
+            "TargetsEnabled": ["sun","moon"],
+            "Permissions": ["third_party"],
+            "Derivatives": ["solar"],
+            "Timeout": 4000,
+            "Resources": [2147549184,700]
+        },
+        {
+            "SigId": "0x1",
+            "Category": "0x1",
+            "Name": "EARLY_WAKEUP",
+            "Enable": true,
+            "TargetsDisabled": ["sun"],
+            "Permissions": ["system"],
+            "Derivatives": ["derivative_v2"],
+            "Timeout": 5000,
+            "Resources": [2147549185,814]
+        },
+        {
+            "SigId": "0x2",
+            "Category": "0x1",
+            "Name": "LIGHTNING_LAUNCHES",
+            "Enable": true,
+            "TargetsEnabled": ["sun","moon"],
+            "Permissions": ["third_party"],
+            "Derivatives": ["solar"],
+            "Timeout": 4000,
+            "Resources": [2147549184,1200]
+        },
+        {
+            "SigId": "0x3",
+            "Category": "0x1",
+            "Name": "SMOOTH_SCROLL",
+            "Enable": false,
+            "TargetsEnabled": ["SUN","QLI"],
+            "Permissions": ["third_party"],
+            "Derivatives": ["solar"],
+            "Timeout": 4000,
+            "Resources": [2147549184,800]
+        }
+    ]
+}

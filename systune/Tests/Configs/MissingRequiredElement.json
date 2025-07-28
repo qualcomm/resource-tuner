@@ -1,0 +1,12 @@
+{
+    "ResourceConfigs":[
+        {
+            "Opcode":"0x1",
+            "Supported":true,
+            "HighThreshold": 1000,
+            "LowThreshold": 500,
+            "Permissions": "system",
+            "Modes": ["display_on", "doze"]
+        }
+    ]
+}

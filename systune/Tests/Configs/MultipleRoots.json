@@ -1,0 +1,41 @@
+{
+    "ResourceConfigs":[
+        {
+            "Opcode":"0x1",
+            "Name":"/sys/kernel/msm_performance/parameters/cpu_min_freq",
+            "Supported":true,
+            "HighThreshold": 1000,
+            "LowThreshold": 500,
+            "Permissions": "system",
+            "Modes": ["display_on", "doze"]
+        },
+        {
+            "Opcode":"0x1",
+            "Name":"/sys/kernel/msm_performance/parameters/cpu_max_freq",
+            "Supported":true,
+            "HighThreshold": 2000,
+            "LowThreshold": 1000,
+            "Permissions": "third_party",
+            "Modes": ["display_off", "doze"]
+        },
+        {
+            "Opcode":"0x1",
+            "Name":"/sys/kernel/msm_performance/parameters/gpu_min_freq",
+            "Supported":false,
+            "HighThreshold": 1500,
+            "LowThreshold": 750,
+            "Modes": ["display_on", "display_off"]
+        }
+    ], 
+    "ResourceConfigs2":[
+        {
+            "Opcode":"0x1",
+            "Name":"/sys/kernel/msm_performance/parameters/cpu_min_freq",
+            "Supported":true,
+            "HighThreshold": 1000,
+            "LowThreshold": 500,
+            "Permissions": "system",
+            "Modes": ["display_on", "doze"]
+        }
+    ]
+}
