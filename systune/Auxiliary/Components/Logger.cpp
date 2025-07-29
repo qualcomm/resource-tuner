@@ -50,7 +50,7 @@ void Logger::log(LogLevel level, const std::string& tag, const std::string& func
     // Add a property, to log to file OR Ftrace
     // Default: log to ftrace
     if(mRedirectOutputTo == RedirectOptions::LOG_FILE) {
-        std::ofstream logFile("log.txt", std::ios::app);
+        std::ofstream logFile("log.txt", std::ios::app); //TODO: FIXME
         if(logFile.is_open()) {
             logFile << "[" << timestamp << "] [" << tag << "] [" << levelStr << "] " << funcName <<" "<< message << std::endl;
             logFile.close();

@@ -13,7 +13,7 @@ User=root
 Group=root
 Restart=always
 RemainAfterExit=yes
-ExecStart=/usr/bin/qcom-systune
+ExecStart=/usr/bin/qcom-systune --start
 TimeoutStopSec=1
 
 [Install]

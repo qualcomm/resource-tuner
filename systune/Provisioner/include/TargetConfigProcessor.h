@@ -22,7 +22,7 @@
 #define TARGET_CONFIGS_ID "Id"
 #define TARGET_CONFIGS_TYPE "Type"
 
-#define TARGET_CONFIGS_FILE "../Configs/targetConfigs.json"
+#define TARGET_CONFIGS_FILE "/etc/systune/targetConfigs.json"
 
 class TargetConfigProcessor {
 private:

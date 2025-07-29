@@ -110,8 +110,8 @@ int32_t main(int32_t argc, char *argv[]) {
                 break;
             case 't':
                 SystuneSettings::serverInTestMode = true;
-                URM_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourceConfigs.json")
-                URM_REGISTER_CONFIG(SIGNALS_CONFIG, "../Tests/Configs/testSignalConfigs.json")
+                URM_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/systune/testResourceConfigs.json")
+                URM_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/systune/testSignalConfigs.json")
                 break;
             case 'h':
                 std::cout<<"Help Options"<<std::endl;

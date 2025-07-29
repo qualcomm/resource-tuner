@@ -16,7 +16,7 @@
 #include "ResourceRegistry.h"
 #include "Utils.h"
 
-#define RESOURCE_CONFIGS_FILE "../Configs/resourceConfigs.json"
+#define RESOURCE_CONFIGS_FILE "/etc/systune/resourceConfigs.json"
 
 #define RESOURCE_CONFIGS_ROOT "ResourceConfigs"
 #define RESOURCE_CONFIGS_ELEM_RESOURCE_TYPE "ResType"

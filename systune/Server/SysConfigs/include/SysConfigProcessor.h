@@ -14,7 +14,7 @@
 #define PROP_NAME "Name"
 #define PROP_VALUE "Value"
 
-#define SYS_CONFIGS_PROPS_FILE "../Configs/propertiesConfigs.json"
+#define SYS_CONFIGS_PROPS_FILE "/etc/systune/propertiesConfigs.json"
 
 class SysConfigProcessor {
 private:

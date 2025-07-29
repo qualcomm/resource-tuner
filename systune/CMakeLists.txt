@@ -84,6 +84,7 @@ add_executable(systune_cli
   ./Client/ClientCLI.cpp
 )
 target_link_libraries(systune_cli CommunicationClient ClientAPIs)
+install(TARGETS systune_cli RUNTIME DESTINATION bin)
 endif()
 
 # Server Executable

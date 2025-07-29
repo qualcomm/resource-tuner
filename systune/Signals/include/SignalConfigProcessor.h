@@ -10,7 +10,7 @@
 #include "JsonParser.h"
 #include "SignalRegistry.h"
 
-#define SIGNAL_CONFIGS_FILE  "../Configs/signalConfigs.json"
+#define SIGNAL_CONFIGS_FILE  "/etc/systune/signalConfigs.json"
 #define SIGNAL_CONFIGS_ROOT "SignalConfigs"
 
 #define SIGNAL_SIGID "SigId"
