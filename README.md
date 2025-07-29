@@ -1,14 +1,15 @@
 **After repository creation:**
-- [ ] Update this `README.md`. Update the Project Name, description, and all sections. Remove this checklist.
-- [ ] If required, update `LICENSE.txt` and the License section with your project's approved license
-- [ ] Search this repo for "REPLACE-ME" and update all instances accordingly
-- [ ] Update `CONTRIBUTING.md` as needed
+- [* ] Update this `README.md`. Update the Project Name, description, and all sections. Remove this checklist.
+- [* ] If required, update `LICENSE.txt` and the License section with your project's approved license
+- [* ] Search this repo for "REPLACE-ME" and update all instances accordingly
+- [* ] Update `CONTRIBUTING.md` as needed
 - [ ] Review the workflows in `.github/workflows`, updating as needed. See https://docs.github.com/en/actions for information on what these files do and how they work.
 - [ ] Review and update the suggested Issue and PR templates as needed in `.github/ISSUE_TEMPLATE` and `.github/PULL_REQUEST_TEMPLATE`
 
 # Project Name
 
-*\<update with your project name and a short description\>*
+Userspace Resource Moderator is a lightweight daemon that monitors and dynamically regulates CPU, memory, and I/O usage of user-space processes.
+It leverages kernel interfaces like procfs, sysfs and cgroups to enforce runtime policies, ensuring system stability and performance in embedded and resource-constrained environments.
 
 Project that does ... implemented in ... runs on Qualcomm® *\<processor\>* 
 
@@ -18,7 +19,15 @@ Project that does ... implemented in ... runs on Qualcomm® *\<processor\>*
 
 ## Requirements
 
-List requirements to run the project, how to install them, instructions to use docker container, etc...
+This project depends on the following external libraries:
+    jsoncpp – Used for parsing and handling JSON configuration files.
+    Installing jsoncpp:
+        1. Debian/Ubuntu
+            sudo apt-get install libjsoncpp-dev
+        2. Fedora/OpenSure
+            sudo dnf install jsoncpp-devel
+        3. Yocto: Add the following to your recipe or image
+            DEPENDS += "jsoncpp"
 
 ## Installation Instructions
 
@@ -38,10 +47,8 @@ How to contact maintainers. E.g. GitHub Issues, GitHub Discussions could be indi
 
 * [Report an Issue on GitHub](../../issues)
 * [Open a Discussion on GitHub](../../discussions)
-* [E-mail us](mailto:REPLACE-ME@qti.qualcomm.com) for general questions
+* [E-mail us](mailto:rajulu@qti.qualcomm.com) for general questions
 
 ## License
 
-*\<update with your project name and license\>*
-
-*\<REPLACE-ME\>* is licensed under the [BSD-3-clause License](https://spdx.org/licenses/BSD-3-Clause.html). See [LICENSE.txt](LICENSE.txt) for the full license text.
+*userspace-resource-moderator* is licensed under the [BSD-3-Clause-Clear license](https://spdx.org/licenses/BSD-3-Clause-Clear.html). See [LICENSE.txt](LICENSE.txt) for the full license text.
