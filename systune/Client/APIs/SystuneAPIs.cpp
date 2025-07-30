@@ -18,7 +18,7 @@ int64_t tuneResources(int64_t duration, int32_t prio, int32_t numRes, std::vecto
         // These are some basic checks done at the Client end itself to detect
         // Potentially Malformed Reqeusts, to prevent wastage of Server-End Resources.
         if(res == nullptr || res->size() != numRes || duration == 0 || duration < -1) {
-            return -1;
+            return RC_REQ_SUBMISSION_FAILURE;
         }
 
         Request* request = nullptr;
@@ -26,7 +26,7 @@ int64_t tuneResources(int64_t duration, int32_t prio, int32_t numRes, std::vecto
             request = new Request;
 
         } catch(const std::bad_alloc& e) {
-            return -1;
+            return RC_REQ_SUBMISSION_FAILURE;
         }
 
         request->setRequestType(REQ_RESOURCE_TUNING);
@@ -39,14 +39,14 @@ int64_t tuneResources(int64_t duration, int32_t prio, int32_t numRes, std::vecto
 
         if(conn == nullptr || RC_IS_NOTOK(conn->initiateConnection())) {
             delete request;
-            return -1;
+            return RC_REQ_SUBMISSION_FAILURE;
         }
 
         // Send the request to Systune Server
         if(RC_IS_NOTOK(conn->sendMsg(REQ_RESOURCE_TUNING, static_cast<void*>(request)))) {
             conn->closeConnection();
             delete request;
-            return -1;
+            return RC_REQ_SUBMISSION_FAILURE;
         }
 
         // Get the handle
@@ -54,7 +54,7 @@ int64_t tuneResources(int64_t duration, int32_t prio, int32_t numRes, std::vecto
         if(RC_IS_NOTOK(conn->readMsg(buf, sizeof(buf)))) {
             conn->closeConnection();
             delete request;
-            return -1;
+            return RC_REQ_SUBMISSION_FAILURE;
         }
 
         int64_t handleReceived = -1;
@@ -69,24 +69,26 @@ int64_t tuneResources(int64_t duration, int32_t prio, int32_t numRes, std::vecto
         delete request;
         return handleReceived;
 
-    } catch(std::exception & e) {}
+    } catch(std::exception & e) {
+        // add logging to file or ftrace
+    }
 
-    return -1;
+    return RC_REQ_SUBMISSION_FAILURE;
 }
 
 // - Construct a Request object and populate it with the API specified Params
 // - Initiate a connection to the Systune Server, and send the request to the server
-int8_t retuneResources(int64_t handle, int64_t duration) {
+ErrCode retuneResources(int64_t handle, int64_t duration) {
     try {
         const std::lock_guard<std::mutex> lock(apiLock);
 
-        if(handle <= 0  || duration == 0 || duration < -1) return -1;
+        if(handle <= 0  || duration == 0 || duration < -1) return RC_REQ_SUBMISSION_FAILURE;
 
         Request* request = nullptr;
         try {
             request = new Request;
         } catch(const std::bad_alloc& e) {
-            return -1;
+            return RC_REQ_SUBMISSION_FAILURE;
         }
 
         request->setRequestType(REQ_RESOURCE_RETUNING);
@@ -100,38 +102,38 @@ int8_t retuneResources(int64_t handle, int64_t duration) {
 
         if(RC_IS_NOTOK(conn == nullptr || conn->initiateConnection())) {
             delete request;
-            return -1;
+            return RC_REQ_SUBMISSION_FAILURE;
         }
 
         if(RC_IS_NOTOK(conn->sendMsg(REQ_RESOURCE_RETUNING, static_cast<void*>(request)))) {
             conn->closeConnection();
             delete request;
-            return -1;
+            return RC_REQ_SUBMISSION_FAILURE;
         }
 
         conn->closeConnection();
 
         delete request;
-        return 0;
+        return RC_SUCCESS;
 
     } catch(std::exception& e) {
-        return -1;
+        return RC_REQ_SUBMISSION_FAILURE;
     }
 }
 
 // - Construct a Request object and populate it with the API specified Params
 // - Initiate a connection to the Systune Server, and send the request to the server
-int8_t untuneResources(int64_t handle) {
+ErrCode untuneResources(int64_t handle) {
     try {
         const std::lock_guard<std::mutex> lock(apiLock);
 
-        if(handle <= 0) return -1;
+        if(handle <= 0) return RC_REQ_SUBMISSION_FAILURE;
 
         Request* request = nullptr;
         try {
             request = new Request;
         } catch(const std::bad_alloc& e) {
-            return -1;
+            return RC_REQ_SUBMISSION_FAILURE;
         }
 
         request->setRequestType(REQ_RESOURCE_UNTUNING);
@@ -145,22 +147,22 @@ int8_t untuneResources(int64_t handle) {
 
         if(conn == nullptr || RC_IS_NOTOK(conn->initiateConnection())) {
             delete request;
-            return -1;
+            return RC_REQ_SUBMISSION_FAILURE;
         }
 
         if(RC_IS_NOTOK(conn->sendMsg(REQ_RESOURCE_UNTUNING, static_cast<void*>(request)))) {
             conn->closeConnection();
             delete request;
-            return -1;
+            return RC_REQ_SUBMISSION_FAILURE;
         }
 
         conn->closeConnection();
 
         delete request;
-        return 0;
+        return RC_SUCCESS;
 
     } catch(std::exception& e) {
-        return -1;
+        return RC_REQ_SUBMISSION_FAILURE;
     }
 }
 
@@ -224,7 +226,7 @@ std::string getrequests() {
 // - Construct a SysConfig object and populate it with the SysConfig Request Params
 // - Initiate a connection to the Systune Server, and send the request to the server
 // - Wait for the response from the server, and return the response to the caller (end-client).
-int8_t getprop(const char* prop, char* buffer, size_t buffer_size, const char* def_value) {
+ErrCode getprop(const char* prop, char* buffer, size_t buffer_size, const char* def_value) {
     try {
         const std::lock_guard<std::mutex> lock(apiLock);
 
@@ -232,7 +234,7 @@ int8_t getprop(const char* prop, char* buffer, size_t buffer_size, const char* d
         try {
             sysConfig = new SysConfig;
         } catch(const std::bad_alloc& e) {
-            return -1;
+            return RC_REQ_SUBMISSION_FAILURE;
         }
 
         sysConfig->setRequestType(REQ_SYSCONFIG_GET_PROP);
@@ -245,13 +247,13 @@ int8_t getprop(const char* prop, char* buffer, size_t buffer_size, const char* d
 
         if(conn == nullptr || RC_IS_NOTOK(conn->initiateConnection())) {
             delete sysConfig;
-            return -1;
+            return RC_REQ_SUBMISSION_FAILURE;
         }
 
         if(RC_IS_NOTOK(conn->sendMsg(REQ_SYSCONFIG_GET_PROP, static_cast<void*>(sysConfig)))) {
             conn->closeConnection();
             delete sysConfig;
-            return -1;
+            return RC_REQ_SUBMISSION_FAILURE;
         }
 
         // read the response
@@ -259,7 +261,7 @@ int8_t getprop(const char* prop, char* buffer, size_t buffer_size, const char* d
         if(RC_IS_NOTOK(conn->readMsg(buf, sizeof(buf)) == -1)) {
             conn->closeConnection();
             delete sysConfig;
-            return -1;
+            return RC_REQ_SUBMISSION_FAILURE;
         }
 
         buffer[buffer_size - 1] = '\0';
@@ -267,16 +269,16 @@ int8_t getprop(const char* prop, char* buffer, size_t buffer_size, const char* d
 
         conn->closeConnection();
         delete sysConfig;
-        return 0;
+        return RC_SUCCESS;
 
     } catch(const std::exception& e) {}
 
-    return -1;
+    return RC_REQ_SUBMISSION_FAILURE;
 }
 
 // - Construct a SysConfig object and populate it with the SysConfig Request Params
 // - Initiate a connection to the Systune Server, and send the request to the server
-int8_t setprop(const char* prop, const char* value) {
+ErrCode setprop(const char* prop, const char* value) {
     try {
         const std::lock_guard<std::mutex> lock(apiLock);
 
@@ -285,7 +287,7 @@ int8_t setprop(const char* prop, const char* value) {
             sysConfig = new SysConfig;
 
         } catch(const std::bad_alloc& e) {
-            return -1;
+            return RC_REQ_SUBMISSION_FAILURE;
         }
 
         sysConfig->setRequestType(REQ_SYSCONFIG_SET_PROP);
@@ -298,22 +300,22 @@ int8_t setprop(const char* prop, const char* value) {
 
         if(conn == nullptr || RC_IS_NOTOK(conn->initiateConnection())) {
             delete sysConfig;
-            return -1;
+            return RC_REQ_SUBMISSION_FAILURE;
         }
 
         if(RC_IS_NOTOK(conn->sendMsg(REQ_SYSCONFIG_SET_PROP, static_cast<void*>(sysConfig)))) {
             conn->closeConnection();
             delete sysConfig;
-            return -1;
+            return RC_REQ_SUBMISSION_FAILURE;
         }
 
         conn->closeConnection();
         delete sysConfig;
-        return 0;
+        return RC_SUCCESS;
 
     } catch(std::exception& e) {}
 
-    return -1;
+    return RC_REQ_SUBMISSION_FAILURE;
 }
 
 // - Construct a Signal object and populate it with the SysSignal Request Params
@@ -326,7 +328,7 @@ int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t prio,
         const std::lock_guard<std::mutex> lock(apiLock);
 
         if(duration == 0 || duration < -1 || (list != nullptr && list->size() != numArgs)) {
-            return -1;
+            return RC_REQ_SUBMISSION_FAILURE;
         }
 
         Signal* signal = nullptr;
@@ -334,7 +336,7 @@ int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t prio,
             signal = new Signal;
 
         } catch(const std::bad_alloc& e) {
-            return -1;
+            return RC_REQ_SUBMISSION_FAILURE;
         }
 
         signal->setRequestType(SIGNAL_ACQ);
@@ -350,14 +352,14 @@ int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t prio,
 
         if(conn == nullptr || RC_IS_NOTOK(conn->initiateConnection())) {
             delete signal;
-            return -1;
+            return RC_REQ_SUBMISSION_FAILURE;
         }
 
         // Send the request to Systune Server
         if(RC_IS_NOTOK(conn->sendMsg(SIGNAL_ACQ, static_cast<void*>(signal)))) {
             conn->closeConnection();
             delete signal;
-            return -1;
+            return RC_REQ_SUBMISSION_FAILURE;
         }
 
         // Get the handle
@@ -365,7 +367,7 @@ int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t prio,
         if(RC_IS_NOTOK(conn->readMsg(buf, sizeof(buf)))) {
             conn->closeConnection();
             delete signal;
-            return -1;
+            return RC_REQ_SUBMISSION_FAILURE;
         }
 
         int64_t handleReceived = -1;
@@ -380,12 +382,12 @@ int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t prio,
 
     } catch(std::exception& e) {}
 
-    return -1;
+    return RC_REQ_SUBMISSION_FAILURE;
 }
 
 // - Construct a Signal object and populate it with the SysSignal Request Params
 // - Initiate a connection to the Systune Server, and send the request to the server
-int8_t untuneSignal(int64_t handle) {
+ErrCode untuneSignal(int64_t handle) {
     try {
         const std::lock_guard<std::mutex> lock(apiLock);
 
@@ -394,7 +396,7 @@ int8_t untuneSignal(int64_t handle) {
             signal = new Signal;
 
         } catch(const std::bad_alloc& e) {
-            return -1;
+            return RC_REQ_SUBMISSION_FAILURE;
         }
 
         signal->setRequestType(SIGNAL_FREE);
@@ -411,23 +413,23 @@ int8_t untuneSignal(int64_t handle) {
 
         if(conn == nullptr || RC_IS_NOTOK(conn->initiateConnection())) {
             delete signal;
-            return -1;
+            return RC_REQ_SUBMISSION_FAILURE;
         }
 
         // Send the request to Systune Server
         if(RC_IS_NOTOK(conn->sendMsg(SIGNAL_FREE, static_cast<void*>(signal)))) {
             conn->closeConnection();
             delete signal;
-            return -1;
+            return RC_REQ_SUBMISSION_FAILURE;
         }
 
         // Close the connection
         conn->closeConnection();
 
         delete signal;
-        return 0;
+        return RC_SUCCESS;
 
     } catch(std::exception& e) {}
 
-    return -1;
+    return RC_REQ_SUBMISSION_FAILURE;
 }

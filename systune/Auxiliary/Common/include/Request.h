@@ -8,17 +8,21 @@
 #include <vector>
 
 #include "Timer.h"
+#include "SafeOps.h"
 #include "Utils.h"
 #include "Types.h"
 
+/**
+* @brief Encapsulation type for a Resource Provisioning Request.
+*/
 class Request : public Message {
 private:
-    int32_t mNumResources; //!< Number of resources requested.
-    int32_t mNumCocoNodes; //!< Number of coco nodes Allocated.
-    std::vector<Resource*>* mResources; //!< List of pointers to the requested Resource objects.
-    std::vector<CocoNode*>* mCocoNodes; //!< List of pointers to CocoNode objects associated with this request.
+    int32_t mNumResources; //!< Number of resources to be tuned as Part of the Request.
+    int32_t mNumCocoNodes; //!< Number of coco nodes Allocated for the Request.
+    std::vector<Resource*>* mResources; //!< Pointer to a vector, storing all the Resources to be tuned.
+    std::vector<CocoNode*>* mCocoNodes; //!< Pointer to a vector, storing all the CocoNodes for the Request.
     Timer* mTimer; //<! Timer associated with the request.
-    int8_t mBackgroundProcessing;
+    int8_t mBackgroundProcessing; //<! Flag indicating if Background Processing is Enabled for the Request.
 
 public:
     Request();
@@ -39,6 +43,9 @@ public:
     void setResources(std::vector<Resource*>* resources);
     void setCocoNodes(std::vector<CocoNode*>* cocoNodes);
     void setBackgroundProcessing(int8_t isBackgroundProcessingEnabled);
+
+    ErrCode serialize(char* buf);
+    ErrCode deserialize(char* buf);
 
     void populateUntuneRequest(Request* request);
     void populateRetuneRequest(Request* request, int64_t duration);

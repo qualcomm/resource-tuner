@@ -1,6 +1,10 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
+/*!
+ * \file  Utils.h
+ */
+
 #ifndef UTILS_H
 #define UTILS_H
 
@@ -48,8 +52,9 @@ enum Permissions {
 
 /**
  * @enum PriorityLevel
- * @brief Each Request will have a priority level. This is used to determine the order in which
- *        requests are processed for a specific Resource. The Requests with higher Priority will be prioritized.
+ * @brief Systune Priority Levels
+ * @details Each Request will have a priority level. This is used to determine the order in which
+ * requests are processed for a specific Resource. The Requests with higher Priority will be prioritized.
  */
 enum PriorityLevel {
     SYSTEM_HIGH, // Highest Level of Priority
@@ -65,8 +70,7 @@ enum PriorityLevel {
 /**
  * @enum Modes
  * @brief Represents the operational modes based on the device's display state.
- *
- * Certain system resources are optimized only when the device display is active,
+ * @details Certain system resources are optimized only when the device display is active,
  * primarily to conserve power. However, for critical components, tuning may be
  * performed regardless of the display state, including during doze mode.
  */
@@ -77,15 +81,17 @@ enum Modes {
 };
 
 /**
- * - Resource Policies determine the order in which the Tuning Requests will be processed for
+ * @enum Policy
+ * @brief Different Resource Policies supported by Systune
+ * @details Resource Policies determine the order in which the Tuning Requests will be processed for
  *   particular resource. Currently 4 types of Policies are supported:
- * - 1) Instant Apply (or Always Apply): This policy is for resources where the latest request needs to be honored.
+ * - Instant Apply (or Always Apply): This policy is for resources where the latest request needs to be honored.
  *   This is kept as the default policy.
- * - 2) Higher is better: This policy honors the request writing the highest value to the node.
+ * - Higher is better: This policy honors the request writing the highest value to the node.
  *   One of the cases where this makes sense is for resources that describe the upper bound value.
  *   By applying the higher-valued request, the lower-valued request is implicitly honored.
- * - 3) Lower is better: Self-explanatory. Works exactly opposite of the higher is better policy.
- * - 4) Lazy Apply: Sometimes, you want the resources to apply requests in a first-in-first-out manner.
+ * - Lower is better: Self-explanatory. Works exactly opposite of the higher is better policy.
+ * - Lazy Apply: Sometimes, you want the resources to apply requests in a first-in-first-out manner.
  */
 enum Policy {
     INSTANT_APPLY,
@@ -96,8 +102,9 @@ enum Policy {
 
 /**
  * @enum ConfigType
- * @brief Different Config (via JSON) types supported. Note, the Config File corresponding to each config type
- *        can be altered via the Extensions interface.
+ * @brief Different Config (via JSON) Types supported.
+ * @details Note, the Config File corresponding to each config type
+ * can be altered via the Extensions interface.
  */
 enum ConfigType {
     RESOURCE_CONFIG,

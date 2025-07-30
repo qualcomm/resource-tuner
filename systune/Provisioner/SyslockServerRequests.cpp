@@ -64,9 +64,12 @@ static int8_t VerifyIncomingRequest(Request* req) {
 
     int8_t clientPermissions =
         ClientDataManager::getInstance()->getClientLevelByClientID(req->getClientPID());
+    // If the client permissions could not be determined, reject this request.
+    // This could happen if the /proc/<pid>/status file for the Process could not be opened.
     if(clientPermissions == -1) return false;
 
     // Check Request Priority
+    // Request - 2 priortive levels (HIGH / LOW), client 2 levels (third party / system)
     int32_t reqSpecifiedPriority = req->getPriority();
     if(reqSpecifiedPriority >= TOTAL_PRIORITIES || reqSpecifiedPriority < -1) return false;
 
@@ -167,6 +170,7 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
     if(request == nullptr) return;
 
     int64_t currActiveReqCount = RequestManager::getInstance()->getActiveReqeustsCount();
+    // Cover this check as part of Rate Limiter
     if(currActiveReqCount >= SystuneSettings::metaConfigs.mMaxConcurrentRequests) {
         LOGE("URM_PROVISIONER_SERVER_REQUESTS",
              "Max Concurrent Requests Count hit, "  \
@@ -210,6 +214,7 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
             // Refer the comment in the if-block for more explanation
             RequestManager::getInstance()->modifyRequestDuration(request->getHandle(), request->getDuration());
         }
+
         if(!ClientDataManager::getInstance()->clientExists(request->getClientPID(), request->getClientTID())) {
             // Client does not exist, drop the request
             Request::cleanUpRequest(request);
@@ -255,7 +260,7 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
             // Add this request to the RequestQueue
             RequestQueue::getInstance()->addAndWakeup(request);
 
-        }  else {
+        } else {
             LOGD("URM_PROVISIONER_SERVER_REQUESTS", "Duplicate found, dropping request.");
             Request::cleanUpRequest(request);
         }
@@ -334,6 +339,7 @@ void RequestQueue::orderedQueueConsumerHook() {
 
         if(req->getRequestType() == REQ_RESOURCE_TUNING) {
             int64_t requestProcessingStatus = RequestManager::getInstance()->getRequestProcessingStatus(req->getHandle());
+            // Find better status code
             if(requestProcessingStatus == REQ_UNTUNED || requestProcessingStatus == REQ_COMPLETED) {
                 // Request has already been untuned or expired (Edge Cases)
                 // No need to process it again.

@@ -1,11 +1,22 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
+/*!
+ * \file  ErrCodes.h
+ */
+
 #ifndef ERROR_CODES_H
 #define ERROR_CODES_H
 
+/**
+ * @enum ErrCode
+ * @brief Custom Error Codes used by Systune APIs and Internal Functions.
+ * @details These Error Codes should be used in conjunction with the Macros
+ *          RC_IS_OK and RC_IS_NOTOK to check for Success or Failure.
+ */
 enum ErrCode {
     RC_SUCCESS,
+    RC_REQ_SUBMISSION_FAILURE,
     RC_MODULE_INIT_FAILURE,
     RC_FILE_NOT_FOUND,
     RC_JSON_PARSING_ERROR,

@@ -5,16 +5,22 @@
 #define SIGNAL_H
 
 #include <cstdint>
+#include <string>
 
+#include "SafeOps.h"
+#include "Logger.h"
 #include "Types.h"
 
+/**
+* @brief Encapsulation type for a Signal Tuning Request.
+*/
 class Signal : public Message {
 private:
-    uint32_t mSignalID;
-    const char* mAppName;
-    const char* mScenario;
-    int32_t mNumArgs;
-    std::vector<uint32_t>* mListArgs;
+    uint32_t mSignalID;  //!< ID of the Signal to be Tuned to be tuned as Part of the Request
+    std::string mAppName;
+    std::string mScenario;
+    int32_t mNumArgs; //!< Number of Additional Args
+    std::vector<uint32_t>* mListArgs; //!< Pointer to a list, storing the additional args.
 
 public:
     Signal();
@@ -22,14 +28,17 @@ public:
 
     uint32_t getSignalID();
     int32_t getNumArgs();
-    const char* getAppName();
-    const char* getScenario();
+    const std::string getAppName();
+    const std::string getScenario();
     std::vector<uint32_t>* getListArgs();
     uint32_t getListArgAt(int32_t index);
 
+    ErrCode serialize(char* buf);
+    ErrCode deserialize(char* buf);
+
     void setSignalID(uint32_t signalID);
-    void setAppName(const char* appName);
-    void setScenario(const char* scenario);
+    void setAppName(const std::string& appName);
+    void setScenario(const std::string& scenario);
     void setNumArgs(int32_t numArgs);
     void setList(std::vector<uint32_t>* mListArgs);
 };

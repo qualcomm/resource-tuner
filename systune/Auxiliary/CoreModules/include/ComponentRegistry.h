@@ -12,7 +12,6 @@
 enum ModuleIdentifier {
     MOD_PROVISIONER,
     MOD_SYSSIGNAL,
-    MOD_SYS_CONFIG // Remove
 };
 
 typedef struct {

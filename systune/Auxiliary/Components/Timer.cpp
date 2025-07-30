@@ -7,22 +7,26 @@
 ThreadPool* Timer::mTimerThreadPool = nullptr;
 
 Timer::Timer(std::function<void(void*)>callBack, int8_t isRecurring) {
-    mStop.store(false);
-    mIsRecurring = isRecurring;
+    this->mStop.store(false);
+    this->mIsRecurring = isRecurring;
     this->mCallBack = callBack;
 }
 
 void Timer::implementTimer() {
-    do {
-        std::unique_lock<std::mutex> lock(mMutex);
-        mCv.wait_for(lock, std::chrono::milliseconds(this->mDuration), [this]{return mStop.load();});
-        lock.unlock();
-        if(!mStop.load()) {
-            if(this->mCallBack) {
-                this->mCallBack(nullptr);
+    try {
+        do {
+            std::unique_lock<std::mutex> lock(mMutex);
+            mCv.wait_for(lock, std::chrono::milliseconds(this->mDuration), [this]{return mStop.load();});
+            lock.unlock();
+            if(!mStop.load()) {
+                if(this->mCallBack) {
+                    this->mCallBack(nullptr);
+                }
             }
-        }
-    } while(mIsRecurring && !mStop.load());
+        } while(mIsRecurring && !mStop.load());
+    } catch(std::exception& e) {
+        LOGE("URM_TIMER", "Timer Could not be started, Error: " + std::string(e.what()));
+    }
 }
 
 int8_t Timer::startTimer(int64_t duration) {

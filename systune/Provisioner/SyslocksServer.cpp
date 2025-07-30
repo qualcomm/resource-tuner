@@ -27,7 +27,11 @@ ErrCode fetchProperties() {
         return opStatus;
     }
 
-    fetchMetaConfigs();
+    opStatus = fetchMetaConfigs();
+    if(RC_IS_NOTOK(opStatus)) {
+        return opStatus;
+    }
+
     return RC_SUCCESS;
 }
 

@@ -29,7 +29,7 @@ private:
     void ExtFeaturesConfigsParserCB(const Json::Value& item);
 
 public:
-    ExtFeaturesConfigProcessor(std::string jsonFilePath);
+    ExtFeaturesConfigProcessor(const std::string& jsonFilePath);
     ~ExtFeaturesConfigProcessor();
 
     ErrCode parseExtFeaturesConfigs();

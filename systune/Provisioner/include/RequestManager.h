@@ -26,10 +26,10 @@ enum RequestProcessingStatus {
 };
 
 /**
- * @brief   A singleton class storing data about active requests and clients in maps
- * @details When a new request comes in, first it needs to be checked if it honors the rate limit. Next, request
- *          sanity and duplication needs to be checked. When an untune/retune request comes, handle verification is
- *          done before honoring the request.
+ * @details Responsible for Tracking and Maintaining all the active Requests, currently
+ *          submitted to the Syslock Server. Additionally it is responsible for performing
+ *          Request Duplication Check, which aims to improve System efficiency by reducing
+ *          wasteful duplicate processing.
  */
 class RequestManager {
 private:
@@ -92,10 +92,25 @@ public:
     */
     Request* getRequestFromMap(int64_t handle);
 
+    /**
+    * @brief Get the current Global Active Requests Count
+    * @return: int64_t
+    */
     int64_t getActiveReqeustsCount();
 
     int8_t isRequestAlive(int64_t handle);
 
+    /**
+    * @brief Mark the Request Handle, so that the Request won't be applied.
+    * @details This method is used to Handle Untune Requests, as soon as an Untune
+    *          Request for Handle h1 is received, we call this Rountine for h1, so that
+    *          it doesn't get serviced in case it has not been inserted into the Coco
+    *          Table yet.
+    *          Note: If the Request was already inserted, then it will be untuned as and
+    *          when the Untune Request gets serviced by the RequestQueue.
+    *
+    * @param handle Request Identifier, for which processing needs to be disabled.
+    */
     void disableRequestProcessing(int64_t handle);
 
     void modifyRequestDuration(int64_t handle, int64_t duration);

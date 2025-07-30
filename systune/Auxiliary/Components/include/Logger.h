@@ -50,14 +50,13 @@ enum CommonMessageTypes {
 };
 
 /**
-* @brief class to simplify logging on both android and linux devices. It currently supports three log levels.
+* @brief Logger.
+* @details Provides a Simplified and Consistent interface for Logging across different Targets
+* Currently We support 3 levels of Logging
 * 1. Debug - For almost all non-essential debug statements.
 * 2. Info - For essential statements.
 * 3. Error - Statements if printed, shows errors.
-*
-* We need to set a certain log level. All statements with log level lower than that level are not printed.
 */
-
 class Logger {
 private:
     static int8_t mCurrentLevel;
@@ -68,7 +67,27 @@ private:
     static std::string levelToString(LogLevel level);
 
 public:
-    static void configure(int8_t level, int8_t levelSpecificLogging, RedirectOptions logToCustomFile);
+    /**
+     * @brief Configure the Logger
+     * @details The logger is designed to be Customizable. Among the knobs which can be configured are:
+                1) What levels to Log, (User can specify an exact value say ERROR, or a Lower Bound say INFO).
+                   In case of Lower Bound Config for Logging, any Message with Log Level higher than the
+                   specified Level will be logged.
+                2) Output Redirection: Output can be captured in a File or directly in ftrace
+     * @param level The exact level to Log or the Lower Bound Logging level.
+     * @param levelSpecificLogging Indicates whether Exact Level Logging is needed, default behaviour is
+     *                             Lower Bound Logging.
+     * @param redirectOutputTo Indicates whether a new file needs to be created to capture the Logging,
+     *                         Or Ftrace should be used.
+     * @return int32_t: Number of blocks which were actually allocated (<= blockCount)
+     */
+    static void configure(int8_t level, int8_t levelSpecificLogging, RedirectOptions redirectOutputTo);
+
+    /**
+     * @brief Responsible for actually Logging a Message to the desired Medium (file or Ftrace)
+     * @details Note, this Routine should not be called directly, instead the Macros
+     *          LOGD, LOGE, LOGI, TYPELOGD and TYPELOGV should be used.
+     */
     static void log(LogLevel level, const std::string& tag, const std::string& funcName, const std::string& message);
     static void typeLog(CommonMessageTypes type, const std::string& funcName, ...);
 };

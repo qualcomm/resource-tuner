@@ -29,7 +29,7 @@ void preAllocateMemory() {
 }
 
 ErrCode fetchMetaConfigs() {
-    char resultBuffer[512];
+    std::string resultBuffer;
 
     try {
         // Fetch target Name
@@ -70,7 +70,7 @@ ErrCode fetchMetaConfigs() {
 
         int8_t levelSpecificLogging = false;
         sysConfigGetProp("systune.logging.level.exact", resultBuffer, sizeof(resultBuffer), "false");
-        if(strncmp(resultBuffer, "true", 4) == 0) {
+        if(resultBuffer == "true") {
             levelSpecificLogging = true;
         }
 

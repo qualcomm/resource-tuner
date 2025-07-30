@@ -5,7 +5,7 @@
 
 std::shared_ptr<SysConfigProcessor> SysConfigProcessor::sysConfigProcessorInstance = nullptr;
 
-SysConfigProcessor::SysConfigProcessor(std::string jsonFilePath) {
+SysConfigProcessor::SysConfigProcessor(const std::string& jsonFilePath) {
     this->mJsonParser = new (std::nothrow) JsonParser();
     if(this->mJsonParser == nullptr) {
         LOGE("URM_SYSCONFIG_PROCESSOR", "SysConfig Properties Parsing Failed");

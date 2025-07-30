@@ -3,7 +3,7 @@
 
 #include "ExtFeaturesConfigProcessor.h"
 
-ExtFeaturesConfigProcessor::ExtFeaturesConfigProcessor(std::string jsonFilePath) {
+ExtFeaturesConfigProcessor::ExtFeaturesConfigProcessor(const std::string& jsonFilePath) {
     this->mJsonParser = new (std::nothrow) JsonParser();
     if(this->mJsonParser == nullptr) {
         LOGE("URM_EXT_FEATURES_CONFIG_PROCESSOR", "ExtFeatureConfig Parsing Failed");

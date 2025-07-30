@@ -24,6 +24,36 @@
 
 #define TARGET_CONFIGS_FILE "/etc/systune/targetConfigs.json"
 
+/**
+ * @brief TargetConfigProcessor
+ * @details Responsible for Parsing the Target Config (JSON) file.
+ *          Note, this class uses the JsonParser class for actually Reading and
+ *          Parsing the JSON data.
+ *
+ * The configuration file must follow a specific structure.
+ * Example JSON configuration:
+ * @code{.json}
+ *{
+ *  "TargetName": "<>",
+ *  "ClusterInfo" : [
+ *      {"Id": 0, "Type": "big"},
+ *      {"Id": 1, "Type": "little"},
+ *      {"Id": 2, "Type": "prime"},
+ *      {"Id": 3, "Type": "titanium"}
+ *  ],
+ *  "ClusterSpread" : [
+ *      {"Id": 0, "NumCores": 4},
+ *      {"Id": 1, "NumCores": 4},
+ *      {"Id": 2, "NumCores": 4},
+ *      {"Id": 3, "NumCores": 4}
+ *  ],
+ *  "TotalCoreCount": 16
+ *}
+ * @endcode
+ *
+ * @example Target_Configs
+ * This example shows the expected JSON format for Target configuration.
+*/
 class TargetConfigProcessor {
 private:
     JsonParser* mJsonParser;
@@ -32,7 +62,7 @@ private:
     void TargetConfigCB(const Json::Value& item);
 
 public:
-    TargetConfigProcessor(std::string jsonFile);
+    TargetConfigProcessor(const std::string& jsonFile);
     ~TargetConfigProcessor();
 
     ErrCode parseTargetConfigs();

@@ -81,9 +81,7 @@ static int32_t getOnlineCpuCount() {
 std::shared_ptr<TargetRegistry> TargetRegistry::targetRegistryInstance = nullptr;
 TargetRegistry::TargetRegistry() {}
 
-void TargetRegistry::setTargetName(std::string targetName) {
-    std::transform(targetName.begin(), targetName.end(), targetName.begin(),
-        [](unsigned char ch) {return std::tolower(ch);});
+void TargetRegistry::setTargetName(const std::string& targetName) {
     this->mTargetName = targetName;
     SystuneSettings::targetConfigs.targetName = targetName;
 }
@@ -94,10 +92,10 @@ void TargetRegistry::setTotalCoreCount(uint8_t totalCoreCount) {
 }
 
 int8_t TargetRegistry::addMapping(const std::string& clusterName, int8_t physicalClusterId) {
-    if(strcmp(clusterName.c_str(), "little") &&
-       strcmp(clusterName.c_str(), "big") &&
-       strcmp(clusterName.c_str(), "prime") &&
-       strcmp(clusterName.c_str(), "titanium")) {
+    if((clusterName != "little") &&
+       (clusterName != "big") &&
+       (clusterName != "prime") &&
+       (clusterName != "titanium")) {
         LOGE("URM_TARGET_CONFIG_PROCESSOR", "Incorrect cluster info");
         return RC_INVALID_VALUE;
     }

@@ -40,10 +40,10 @@ Issues a resource provisioning (tuning) request for a finite or infinite duratio
 **Function Signature:**
 ```cpp
 int64_t tuneResources(int64_t duration,
-                 int32_t prio,
-                 int32_t numRes,
-                 int8_t backgroundProcessing,
-                 std::vector<Resource*>* res);
+                      int32_t prio,
+                      int32_t numRes,
+                      int8_t backgroundProcessing,
+                      std::vector<Resource*>* res);
 ```
 
 **Parameters:**

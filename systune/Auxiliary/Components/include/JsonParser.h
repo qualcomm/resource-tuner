@@ -7,13 +7,15 @@
 #include <fstream>
 #include <string>
 #include <stdint.h>
-#include <json/json.h>
+#include <jsoncpp/json/json.h>
 #include <functional>
 
 #include "ErrCodes.h"
 
 /**
- * @brief Utilises the external jsoncpp library for parsing config files.
+ * @brief JsonParser
+ * @details Utility for Reading and Parsing JSON files (Note, Systune Configs are based in JSON).
+ *          Note, it internally uses the external json_cpp lib.
  */
 class JsonParser {
 private:

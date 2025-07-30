@@ -249,6 +249,8 @@ int8_t CocoTable::insertInCocoTable(CocoNode* currNode, Resource* resource, int3
 // Memory allocation failures, hence we resort to a best-effort approach, where in
 // We allocate as many CocoNodes as possible for the Request.
 int8_t CocoTable::insertRequest(Request* req) {
+    if(req == nullptr) return false;
+
     LOGD("URM_COCO_TABLE","Inserting in CocoTable: Request Handle " + std::to_string(req->getHandle()));
 
     // Create a List to Hold all the CocoNodes for the Request

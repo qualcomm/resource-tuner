@@ -149,14 +149,14 @@ ResourceConfigInfoBuilder::ResourceConfigInfoBuilder() {
     this->mResourceConfigInfo->mModes = 0;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setName(std::string name) {
+ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setName(const std::string& name) {
     if(this->mResourceConfigInfo == nullptr) return this;
 
     this->mResourceConfigInfo->mResourceName = name;
     return this;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setOptype(std::string opTypeString) {
+ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setOptype(const std::string& opTypeString) {
     if(this->mResourceConfigInfo == nullptr) return this;
 
     this->mResourceConfigInfo->mResourceOptype = -1;
@@ -172,7 +172,7 @@ ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setOptype(std::string opTy
     return this;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setOpcode(std::string opCodeString) {
+ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setOpcode(const std::string& opCodeString) {
     if(this->mResourceConfigInfo == nullptr) return this;
 
     this->mResourceConfigInfo->mResourceOpcode = -1;
@@ -202,7 +202,7 @@ ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setLowThreshold(int32_t lo
     return this;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setPermissions(std::string permissionString) {
+ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setPermissions(const std::string& permissionString) {
     if(this->mResourceConfigInfo == nullptr) return this;
 
     enum Permissions permissions = PERMISSION_THIRD_PARTY;
@@ -216,7 +216,7 @@ ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setPermissions(std::string
     return this;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setModes(std::string modeString) {
+ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setModes(const std::string& modeString) {
     if(this->mResourceConfigInfo == nullptr) return this;
 
     if(modeString == "display_on") {
@@ -236,7 +236,7 @@ ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setSupported(int8_t suppor
     return this;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setPolicy(std::string policyString) {
+ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setPolicy(const std::string& policyString) {
     if(this->mResourceConfigInfo == nullptr) return this;
 
     enum Policy policy = INSTANT_APPLY;

@@ -15,6 +15,11 @@
 #include "MemoryPool.h"
 #include "Utils.h"
 
+/**
+ * @brief This class represents a mutex-protected multiple producer, single consumer priority queue.
+ * @details The Queue items are ordered by their Priority, so that the Queue Item with the highest
+ *          Priority is always served first.
+ */
 class OrderedQueue {
 protected:
     int32_t mElementCount;

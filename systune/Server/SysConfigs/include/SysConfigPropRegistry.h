@@ -20,10 +20,10 @@ private:
 public:
     ~SysConfigPropRegistry();
 
-    int8_t createProperty(std::string& propertyName, std::string& propertyValue);
-    int8_t queryProperty(std::string& propertyName, std::string& result);
-    int8_t modifyProperty(std::string& propertyName, std::string& propertyValue);
-    int8_t deleteProperty(std::string& propertyName);
+    int8_t createProperty(const std::string& propertyName, const std::string& propertyValue);
+    int8_t queryProperty(const std::string& propertyName, std::string& result);
+    int8_t modifyProperty(const std::string& propertyName, const std::string& propertyValue);
+    int8_t deleteProperty(const std::string& propertyName);
 
     int32_t getPropertiesCount();
 

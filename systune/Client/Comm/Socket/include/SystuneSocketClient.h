@@ -18,6 +18,8 @@
 #include "ClientEndpoint.h"
 #include "ErrCodes.h"
 
+static const int32_t socketConnPort = 12000;
+
 class SystuneSocketClient : public ClientEndpoint {
 private:
     int32_t sockFd;

@@ -4,6 +4,35 @@
 #ifndef THREAD_POOL_H
 #define THREAD_POOL_H
 
+/*!
+ * \file  ThreadPool.h
+ */
+
+/*!
+ * \ingroup THREAD_POOL
+ * \defgroup THREAD_POOL Thread Pool
+ * \details Used to Pre-Allocate Worker Capacity. As part of the ThreadPool instance creation,
+ *          User needs to specify 2 parameters:
+ *          1. Desired Capacity: Number of threads to be created as part of the Pool.\n
+ *          2. Max Pending Queue Size: The size upto which the Pending Queue can grow.
+ *
+ *          - When a task is submitted (via the enqueueTask API), first we check if there
+ *          any spare or free threads in the Pool, if there are we assign the task to one
+ *          of those threads.\n\n
+ *          - However if no threads are currently free, we check the size of the Waiting Queue,
+ *          If the size is less than the Max Threshold then we add the task to the Waiting Queue.
+ *          As soon as any of the threads is available, it will Poll this task from the Queue and
+ *          Process it.\n\n
+ *          - If even the Pending Queue is full, then the task is Dropped.\n\n
+ *
+ *          Internally the ThreadPool implementation makes use of Condition Variables. Initially
+ *          when the pool is created, the threads put themselves to sleep by calling wait on this
+ *          Condition Variable. Whenever a task comes in, One of these threads (considering there
+ *          are threads available in the pool), will be woken up and it will pick up the new task.
+ *
+ * @{
+ */
+
 #include <assert.h>
 #include <iostream>
 #include <thread>
@@ -32,7 +61,7 @@ struct ThreadNode {
 
 /**
 * @brief ThreadPool
-* @details Pre-Allocate thread capacity for future use, so as to prevent repeated Thread creation / destruction costs.
+* @details Pre-Allocate thread (Workers) capacity for future use, so as to prevent repeated Thread creation / destruction costs.
 */
 class ThreadPool {
 private:
@@ -71,3 +100,5 @@ public:
 };
 
 #endif
+
+/*! @} */

@@ -6,12 +6,16 @@
 
 #include <cstdint>
 
+/**
+* @brief Base-Type for Request and Signal classes.
+*/
 class Message {
 protected:
     int8_t mReqType; //!< Type of the request. Possible values: TUNE, UNTUNE, RETUNE.
     int64_t mHandle; //!< The unique generated handle for the request.
     int64_t mDuration; //!< Duration. -1 means infinite duration.
     int32_t mPriority; //!<Priority of the request, as specified in the tuneResources API call.
+    int32_t mProperties;
     int32_t mClientPID; //!< Process ID of the client making the request.
     int32_t mClientTID; //!< Thread ID of the client making the request.
 

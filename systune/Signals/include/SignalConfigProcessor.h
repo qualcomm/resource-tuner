@@ -24,6 +24,31 @@
 #define SIGNAL_DERIVATIVES "Derivatives"
 #define SIGNAL_RESOURCES "Resources"
 
+/**
+ * @brief SignalConfigProcessor
+ * @details Responsible for Parsing the SignalConfig (JSON) file.
+ *          Note, this class uses the JsonParser class for actually Reading and
+ *          Parsing the JSON data.
+ *
+ * The configuration file must follow a specific structure.
+ * Example JSON configuration:
+ * @code{.json}
+ *{
+ *  "SigId": "0x0",
+ *  "Category": "0x1",
+ *  "Name": "INSTALL",
+ *  "Enable": true,
+ *  "TargetsEnabled": ["sun","moon"],
+ *  "Permissions": ["system", "third_party"],
+ *  "Derivatives": ["solar"],
+ *  "Timeout": 4000,
+ *  "Resources": [65536,700]
+ *}
+ * @endcode
+ *
+ * @example Signal_Configs
+ * This example shows the expected JSON format for Signal configuration.
+*/
 class SignalConfigProcessor {
 private:
     JsonParser* mJsonParser;
@@ -33,7 +58,7 @@ private:
     void SignalConfigsParserCB(const Json::Value& item);
 
 public:
-    SignalConfigProcessor(std::string jsonFilePath);
+    SignalConfigProcessor(const std::string& jsonFilePath);
     ~SignalConfigProcessor();
 
     ErrCode parseSignalConfigs();

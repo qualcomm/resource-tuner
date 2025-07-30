@@ -11,6 +11,7 @@ OrderedQueue::OrderedQueue() {
 void OrderedQueue::addAndWakeup(Message* queueItem) {
     try {
         const std::unique_lock<std::mutex> lock(this->mOrderedQueueMutex);
+
         if(queueItem == nullptr) return;
         if(queueItem->getPriority() < SERVER_CLEANUP_TRIGGER_PRIORITY) return;
 

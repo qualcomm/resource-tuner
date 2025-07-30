@@ -21,6 +21,12 @@ typedef struct _memoryNode {
     void* block;
 } MemoryNode;
 
+/**
+* @brief MemoryPool
+* @details Preallocate certain amount of Memory for Commonly Used types, to decrease the
+*          Runtime Overhead of Memory Allocation and Deallocation System Calls
+*          while Processing Requests.
+*/
 class MemoryPool {
 private:
     static std::shared_ptr<MemoryPool> mMemoryPoolInstance;
@@ -42,16 +48,16 @@ public:
     /**
      * @brief Allocate memory for the specified type T.
      * @details This routine will allocate the number of memory blocks for the type specified by the client.
-     *
-     * @param mBlockCount Number of blocks to be allocated.
+     * @param blockCount Number of blocks to be allocated.
+     * @return int32_t: Number of blocks which were actually allocated (<= blockCount)
      */
     int32_t makeAllocation(int32_t blockCount);
 
     /**
      * @brief Get an allocated block for the already allocated type T.
      * @details This routine should only be called after the makeAllocation call for a particular type
-     *
-     * @return void* Pointer to the allocated type.
+     * Note: If a block is not available then the Routine throws a std::bad_alloc exception.
+     * @return void*: Pointer to the allocated type.
      */
     void* getBlock();
 

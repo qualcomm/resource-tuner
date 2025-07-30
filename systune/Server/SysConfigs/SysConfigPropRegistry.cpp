@@ -6,7 +6,7 @@
 std::shared_ptr<SysConfigPropRegistry> SysConfigPropRegistry::sysConfigPropRegistryInstance = nullptr;
 SysConfigPropRegistry::SysConfigPropRegistry() {}
 
-int8_t SysConfigPropRegistry::createProperty(std::string& propertyName, std::string& propertyValue) {
+int8_t SysConfigPropRegistry::createProperty(const std::string& propertyName, const std::string& propertyValue) {
     if(propertyName.length() == 0 || propertyValue.length() == 0) {
         return false;
     }
@@ -17,7 +17,7 @@ int8_t SysConfigPropRegistry::createProperty(std::string& propertyName, std::str
     return true;
 }
 
-int8_t SysConfigPropRegistry::queryProperty(std::string& propertyName, std::string& result) {
+int8_t SysConfigPropRegistry::queryProperty(const std::string& propertyName, std::string& result) {
     if(propertyName.length() == 0) {
         return false;
     }
@@ -34,7 +34,7 @@ int8_t SysConfigPropRegistry::queryProperty(std::string& propertyName, std::stri
     return true;
 }
 
-int8_t SysConfigPropRegistry::modifyProperty(std::string& propertyName, std::string& propertyValue) {
+int8_t SysConfigPropRegistry::modifyProperty(const std::string& propertyName, const std::string& propertyValue) {
     if(propertyName.length() == 0 || propertyValue.length() == 0) {
         return false;
     }
@@ -44,14 +44,19 @@ int8_t SysConfigPropRegistry::modifyProperty(std::string& propertyName, std::str
         return false;
     }
 
-    this->mPropRegistryMutex.lock();
-    this->mProperties[propertyName] = propertyValue;
-    this->mPropRegistryMutex.unlock();
+    try {
+        this->mPropRegistryMutex.lock();
+        this->mProperties[propertyName] = propertyValue;
+        this->mPropRegistryMutex.unlock();
+
+    } catch(const std::system_error& e) {
+        return false;
+    }
 
     return true;
 }
 
-int8_t SysConfigPropRegistry::deleteProperty(std::string& propertyName) {
+int8_t SysConfigPropRegistry::deleteProperty(const std::string& propertyName) {
     if(propertyName.length() == 0) {
         return false;
     }
@@ -61,9 +66,14 @@ int8_t SysConfigPropRegistry::deleteProperty(std::string& propertyName) {
         return false;
     }
 
-    this->mPropRegistryMutex.lock();
-    this->mProperties.erase(propertyName);
-    this->mPropRegistryMutex.unlock();
+    try {
+        this->mPropRegistryMutex.lock();
+        this->mProperties.erase(propertyName);
+        this->mPropRegistryMutex.unlock();
+
+    } catch(const std::system_error& e) {
+        return false;
+    }
 
     return true;
 }

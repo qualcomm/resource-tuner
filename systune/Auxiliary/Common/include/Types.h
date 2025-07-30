@@ -1,6 +1,10 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
+/*!
+ * \file  Types.h
+ */
+
 #ifndef TYPES_H
 #define TYPES_H
 
@@ -15,6 +19,7 @@
  * @brief Represents a sysfs node that needs to be written to by the client.
  * @details If the number of values to write is just one, a single value is stored
  *          otherwise a pointer to a vector of values is stored.
+ * @struct
  */
 class Resource {
 public:
@@ -28,10 +33,9 @@ public:
     } mConfigValue;
 };
 
-// Define Utilities to parse and set the mOpInfo field in Resource struct.
-#define EXTRACT_RESOURCE_CORE_VALUE(optionalInfo)({ \
-    (int32_t) (optionalInfo) & ((1 << 8) - 1); \
-}) \
+#define EXTRACT_RESOURCE_CORE_VALUE(optionalInfo) ({ \
+    (int32_t)(optionalInfo) & ((1 << 8) - 1); \
+})
 
 #define EXTRACT_RESOURCE_CLUSTER_VALUE(optionalInfo)({ \
     (int32_t) (optionalInfo >> 8) & ((1 << 8) - 1); \

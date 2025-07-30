@@ -83,7 +83,7 @@ namespace ProvisionerRequestVerification {
         std::vector<Resource*>* resources = nullptr;
 
         int64_t handle = tuneResources(0, THIRD_PARTY_HIGH, 0, nullptr);
-        assert(handle == -1);
+        assert(handle == RC_REQ_SUBMISSION_FAILURE);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -105,7 +105,7 @@ namespace ProvisionerRequestVerification {
         std::vector<Resource*>* resources = nullptr;
 
         int64_t handle = tuneResources(-1, THIRD_PARTY_HIGH, 0, nullptr);
-        assert(handle == -1);
+        assert(handle == RC_REQ_SUBMISSION_FAILURE);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -128,7 +128,7 @@ namespace ProvisionerRequestVerification {
         resources->push_back(nullptr);
 
         int64_t handle = tuneResources(-1, THIRD_PARTY_HIGH, 1, resources);
-        assert(handle == -1);
+        assert(handle == RC_REQ_SUBMISSION_FAILURE);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -155,7 +155,7 @@ namespace ProvisionerRequestVerification {
         resources->push_back(nullptr);
 
         int64_t handle = tuneResources(-1, THIRD_PARTY_HIGH, 2, resources);
-        assert(handle == -1);
+        assert(handle == RC_REQ_SUBMISSION_FAILURE);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -684,7 +684,7 @@ namespace SignalRequestVerification {
         std::vector<Resource*>* resources = nullptr;
 
         int64_t handle = tuneSignal(1, 0, THIRD_PARTY_HIGH, "app-name", "scenario-zip", 0, nullptr);
-        assert(handle == -1);
+        assert(handle == RC_REQ_SUBMISSION_FAILURE);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -2259,7 +2259,7 @@ namespace SignalRequestVerification {
 int32_t main() {
     // Request-Verification Tests
     // - Provisioner
-    // ProvisionerRequestVerification::RunTestGroup();
+    ProvisionerRequestVerification::RunTestGroup();
     // - SysSignal
     SignalRequestVerification::RunTestGroup();
 

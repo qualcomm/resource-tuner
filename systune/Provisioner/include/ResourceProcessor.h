@@ -31,10 +31,31 @@
 #define RESOURCE_CONFIGS_ELEM_CORE_LEVEL_CONFLICT "CoreLevelConflict"
 
 /**
- * @brief Handles processing of the resource config files. It stores them in a vector where
- *        each config is represented by a struct ResourceConfigInfo.
+ * @brief ResourceProcessor
+ * @details Responsible for Parsing the ResourceConfig (JSON) file.
+ *          Note, this class uses the JsonParser class for actually Reading and
+ *          Parsing the JSON data.
  *
- */
+ * The configuration file must follow a specific structure.
+ * Example JSON configuration:
+ * @code{.json}
+ *{
+ *    "ResType": "0x1",
+ *    "ResID":"0x0",
+ *    "Name":"/proc/sys/kernel/sched_util_clamp_min",
+ *    "Supported":true,
+ *    "HighThreshold": 1024,
+ *    "LowThreshold": 0,
+ *    "Permissions": "third_party",
+ *    "Modes": ["display_on", "doze"],
+ *    "Policy": "higher_is_better",
+ *    "CoreLevelConflict": false
+ *}
+ * @endcode
+ *
+ * @example Resource_Configs
+ * This example shows the expected JSON format for Resource configuration.
+*/
 class ResourceProcessor {
 private:
     std::string mResourceConfigJsonFilePath;
@@ -47,7 +68,7 @@ private:
     void TargetResourcesCB(const Json::Value& item);
 
 public:
-    ResourceProcessor(std::string jsonFilePath);
+    ResourceProcessor(const std::string& jsonFilePath);
     ~ResourceProcessor();
 
     ErrCode parseResourceConfigs();

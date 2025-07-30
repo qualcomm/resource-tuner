@@ -14,17 +14,65 @@
 #include "Logger.h"
 #include "MemoryPool.h"
 
+/**
+ * @struct SignalInfo
+ * @brief Representation of a single Signal Configuration
+ * @details This information is read from the Config files.\n
+ *          Note this (SignalInfo) struct is separate from the Signal struct.
+ */
 typedef struct {
+    /**
+     * @brief 16-bit Signal Opcode
+     */
     int16_t mSignalOpId;
+
+    /**
+     * @brief Category of the Signal
+     */
     int8_t mSignalCategory;
+
+    /**
+     * @brief Signal Name, for ex: EARLY_WAKEUP
+     */
     std::string mSignalName;
+
+    /**
+     * @brief Boolean flag which is set if Signal is available for Provisioning.
+     */
     int8_t mIsEnabled;
+
+    /**
+     * @brief Default Signal Timeout, to be used if Client specifies aduration
+     *        of 0 in the tuneSignal API call.
+     */
     int32_t mTimeout;
+
+    /**
+     * @brief Pointer to a vector, storing the list of targets for
+     *        which the signal is enabled.
+     */
     std::unordered_set<std::string>* mTargetsEnabled;
+
+    /**
+     * @brief Pointer to a vector, storing the list of targets for which the
+     *        signal is not eligible for Provisioning.
+     */
     std::unordered_set<std::string>* mTargetsDisabled;
+
+    /**
+     * @brief Pointer to a list of Permissions, i.e. only Clients with one of
+     *        these permissions can provision the signal.
+     */
     std::vector<enum Permissions>* mPermissions;
+
     std::vector<std::string>* mDerivatives;
+
+    /**
+     * @brief List of Actual Resource Opcodes (which will be Provisioned) and the
+     *        Values to be configured for the Resources.
+     */
     std::vector<uint32_t>* mLocks;
+
 } SignalInfo;
 
 class SignalRegistry {
@@ -74,14 +122,14 @@ private:
 public:
     SignalInfoBuilder();
 
-    SignalInfoBuilder* setOpID(std::string signalOpIdString);
-    SignalInfoBuilder* setCategory(std::string categoryString);
-    SignalInfoBuilder* setName(std::string signalName);
+    SignalInfoBuilder* setOpID(const std::string& signalOpIdString);
+    SignalInfoBuilder* setCategory(const std::string& categoryString);
+    SignalInfoBuilder* setName(const std::string& signalName);
     SignalInfoBuilder* setTimeout(int32_t timeout);
     SignalInfoBuilder* setIsEnabled(int8_t isEnabled);
-    SignalInfoBuilder* addTarget(int8_t isEnabled, std::string target);
-    SignalInfoBuilder* addPermission(std::string permissionString);
-    SignalInfoBuilder* addDerivative(std::string derivative);
+    SignalInfoBuilder* addTarget(int8_t isEnabled, const std::string& target);
+    SignalInfoBuilder* addPermission(const std::string& permissionString);
+    SignalInfoBuilder* addDerivative(const std::string& derivative);
     SignalInfoBuilder* addLock(uint32_t lockId);
 
     SignalInfo* build();

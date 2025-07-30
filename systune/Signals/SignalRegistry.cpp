@@ -105,7 +105,7 @@ SignalInfoBuilder::SignalInfoBuilder() {
     }
 }
 
-SignalInfoBuilder* SignalInfoBuilder::setOpID(std::string signalOpIdString) {
+SignalInfoBuilder* SignalInfoBuilder::setOpID(const std::string& signalOpIdString) {
     if(this->mSignalInfo == nullptr) {
         return this;
     }
@@ -123,7 +123,7 @@ SignalInfoBuilder* SignalInfoBuilder::setOpID(std::string signalOpIdString) {
     return this;
 }
 
-SignalInfoBuilder* SignalInfoBuilder::setCategory(std::string categoryString) {
+SignalInfoBuilder* SignalInfoBuilder::setCategory(const std::string& categoryString) {
     if(this->mSignalInfo == nullptr) {
         return this;
     }
@@ -141,7 +141,7 @@ SignalInfoBuilder* SignalInfoBuilder::setCategory(std::string categoryString) {
     return this;
 }
 
-SignalInfoBuilder* SignalInfoBuilder::setName(std::string signalName) {
+SignalInfoBuilder* SignalInfoBuilder::setName(const std::string& signalName) {
     if(this->mSignalInfo == nullptr) {
         return this;
     }
@@ -168,7 +168,7 @@ SignalInfoBuilder* SignalInfoBuilder::setIsEnabled(int8_t isEnabled) {
     return this;
 }
 
-SignalInfoBuilder* SignalInfoBuilder::addPermission(std::string permissionString) {
+SignalInfoBuilder* SignalInfoBuilder::addPermission(const std::string& permissionString) {
     if(this->mSignalInfo == nullptr) {
         return this;
     }
@@ -191,10 +191,12 @@ SignalInfoBuilder* SignalInfoBuilder::addPermission(std::string permissionString
     return this;
 }
 
-SignalInfoBuilder* SignalInfoBuilder::addTarget(int8_t isEnabled, std::string target) {
+SignalInfoBuilder* SignalInfoBuilder::addTarget(int8_t isEnabled, const std::string& target) {
     if(this->mSignalInfo == nullptr) {
         return this;
     }
+
+    std::string targetName(target);
 
     if(isEnabled) {
         if(this->mSignalInfo->mTargetsEnabled == nullptr) {
@@ -202,9 +204,9 @@ SignalInfoBuilder* SignalInfoBuilder::addTarget(int8_t isEnabled, std::string ta
         }
 
         if(this->mSignalInfo->mTargetsEnabled != nullptr) {
-            std::transform(target.begin(), target.end(), target.begin(),
+            std::transform(targetName.begin(), targetName.end(), targetName.begin(),
                 [](unsigned char ch) {return std::tolower(ch);});
-            this->mSignalInfo->mTargetsEnabled->insert(target);
+            this->mSignalInfo->mTargetsEnabled->insert(targetName);
         }
     } else {
         if(this->mSignalInfo->mTargetsDisabled == nullptr) {
@@ -212,16 +214,16 @@ SignalInfoBuilder* SignalInfoBuilder::addTarget(int8_t isEnabled, std::string ta
         }
 
         if(this->mSignalInfo->mTargetsDisabled != nullptr) {
-            std::transform(target.begin(), target.end(), target.begin(),
+            std::transform(targetName.begin(), targetName.end(), targetName.begin(),
                 [](unsigned char ch) {return std::tolower(ch);});
-            this->mSignalInfo->mTargetsDisabled->insert(target);
+            this->mSignalInfo->mTargetsDisabled->insert(targetName);
         }
     }
 
     return this;
 }
 
-SignalInfoBuilder* SignalInfoBuilder::addDerivative(std::string derivative) {
+SignalInfoBuilder* SignalInfoBuilder::addDerivative(const std::string& derivative) {
     if(this->mSignalInfo == nullptr) {
         return this;
     }

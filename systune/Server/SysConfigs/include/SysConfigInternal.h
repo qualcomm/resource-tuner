@@ -23,7 +23,7 @@
 *              1: If the Property was found in the store
 *              0: Otherwise
 */
-int8_t sysConfigGetProp(const char* prop, char* buffer, size_t buffer_size, const char* def_value);
+int8_t sysConfigGetProp(const std::string& prop, std::string& buffer, size_t buffer_size, const std::string& def_value);
 
 /**
 * @brief Modifies an already existing property in the Config Store.
@@ -35,7 +35,7 @@ int8_t sysConfigGetProp(const char* prop, char* buffer, size_t buffer_size, cons
 *              1: If the Property with the specified name was found in the store, and was updated successfully.
 *              0: Otherwise
 */
-int8_t sysConfigSetProp(const char* prop, const char* value);
+int8_t sysConfigSetProp(const std::string& prop, const std::string& value);
 
 /**
 * @brief Submit an incoming SysConfig Request from a Client, for processing.
@@ -46,6 +46,6 @@ int8_t sysConfigSetProp(const char* prop, const char* value);
 *              1: If the Property with the specified name was found in the store, and was updated successfully.
 *              0: Otherwise
 */
-int8_t submitSysConfigRequest(char* resultBuf, SysConfig* clientReq);
+int8_t submitSysConfigRequest(std::string& resultBuf, SysConfig* clientReq);
 
 #endif

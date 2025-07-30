@@ -3,7 +3,7 @@
 
 #include "SysConfigInternal.h"
 
-int8_t sysConfigGetProp(const char* prop, char* buffer, uint64_t buffer_size, const char* def_value) {
+int8_t sysConfigGetProp(const std::string& prop, std::string& buffer, uint64_t buffer_size, const std::string& def_value) {
     std::string propertyName(prop);
     std::string result;
 
@@ -12,21 +12,18 @@ int8_t sysConfigGetProp(const char* prop, char* buffer, uint64_t buffer_size, co
         result = def_value;
     }
 
-    memset(buffer, 0, buffer_size);
-    buffer[buffer_size - 1] = '\0';
-    strncpy(buffer, result.data(), std::min(buffer_size - 1, strlen(result.data())));
-
+    buffer = result;
     return propFound;
 }
 
-int8_t sysConfigSetProp(const char* prop, const char* value) {
+int8_t sysConfigSetProp(const std::string& prop, const std::string& value) {
     std::string propertyName(prop);
     std::string propertyValue(value);
 
     return SysConfigPropRegistry::getInstance()->modifyProperty(propertyName, propertyValue);
 }
 
-int8_t submitSysConfigRequest(char* resultBuf, SysConfig* clientReq) {
+int8_t submitSysConfigRequest(std::string& resultBuf, SysConfig* clientReq) {
     int8_t status = false;
     switch(clientReq->getRequestType()) {
         case REQ_SYSCONFIG_GET_PROP:

@@ -3,7 +3,7 @@
 
 #include "SignalConfigProcessor.h"
 
-SignalConfigProcessor::SignalConfigProcessor(std::string jsonFilePath) {
+SignalConfigProcessor::SignalConfigProcessor(const std::string& jsonFilePath) {
     this->mJsonParser = new (std::nothrow) JsonParser();
     if(this->mJsonParser == nullptr) {
         LOGE("URM_SIGNAL_CONFIG_PROCESSOR", "SignalConfig Parsing Failed");

@@ -100,11 +100,11 @@ int8_t OnSysTuneMessageSyncCallback(int8_t reqType, void* reqMsg, char* resultBu
         case REQ_SYSCONFIG_GET_PROP:
         case REQ_SYSCONFIG_SET_PROP: {
             SysConfig* config = (SysConfig*) reqMsg;
-            if(ComponentRegistry::getModuleMessageHandlerCallback(MOD_SYS_CONFIG) != nullptr) {
-                // return ComponentRegistry::getModuleMessageHandlerCallback(MOD_SYS_CONFIG)(reqMsg);
-            } else {
-                LOGE("URM_REQUEST_RECEIVER", "No Callback registered for SysConfig");
-            }
+            // if(ComponentRegistry::getModuleMessageHandlerCallback() != nullptr) {
+            //     // return ComponentRegistry::getModuleMessageHandlerCallback()(reqMsg);
+            // } else {
+            //     LOGE("URM_REQUEST_RECEIVER", "No Callback registered for SysConfig");
+            // }
             break;
         }
         default:

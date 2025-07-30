@@ -4,6 +4,11 @@
 #ifndef CLIENT_ENDPOINT_H
 #define CLIENT_ENDPOINT_H
 
+/**
+* @brief ClientEndpoint
+* @details Defines the Client Side Interface, which any Communication Medium
+*          (for example Socket) must Implement.
+*/
 class ClientEndpoint {
 public:
     virtual int32_t initiateConnection() = 0;

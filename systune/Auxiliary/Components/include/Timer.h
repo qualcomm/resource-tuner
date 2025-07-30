@@ -15,8 +15,6 @@
 
 /**
 * @brief Timer
-* @details Class to store timer information
-*
 */
 class Timer {
 private:

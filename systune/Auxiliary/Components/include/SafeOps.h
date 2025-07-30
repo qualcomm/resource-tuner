@@ -6,6 +6,7 @@
 
 #include <climits>
 #include <limits>
+#include <stdexcept>
 
 /*******************************************
 Note: Arguments must be of the same types,
@@ -106,5 +107,15 @@ T Divide(T firstArg, T secondArg, OperationStatus& status)  {
 
 #define SafeAssignment(ptr, val) \
     (ptr == nullptr) ? throw std::invalid_argument("Null Pointer Assignment") : *ptr = val
+
+#define ASSIGN_AND_INCR(ptr, val)        \
+    SafeAssignment(ptr, val);            \
+    ptr++;                               \
+
+#define DEREF_AND_INCR(ptr, type) ({     \
+    type val = (type)(SafeDeref(ptr));   \
+    ptr++;                               \
+    val;                                 \
+})
 
 #endif

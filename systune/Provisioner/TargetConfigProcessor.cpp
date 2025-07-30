@@ -3,7 +3,7 @@
 
 #include "TargetConfigProcessor.h"
 
-TargetConfigProcessor::TargetConfigProcessor(std::string jsonFile) {
+TargetConfigProcessor::TargetConfigProcessor(const std::string& jsonFile) {
     this->mJsonParser = new (std::nothrow) JsonParser();
     if(this->mJsonParser == nullptr) {
         LOGE("URM_TARGET_CONFIG_PROCESSOR", "SysConfig Properties Parsing Failed");

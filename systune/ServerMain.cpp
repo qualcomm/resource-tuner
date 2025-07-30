@@ -86,13 +86,13 @@ static void serverCleanup() {
  * @details The parsing occurs in this stage.
  */
 int32_t main(int32_t argc, char *argv[]) {
-    std::signal(SIGINT, handleSIGINT);
-    std::signal(SIGTSTP, handleSIGTSTP);
-
     if(argc != 2) {
         std::cout << "Usage: " << argv[0] << " <start|stop>" << std::endl;
         return -1;
     }
+
+    std::signal(SIGINT, handleSIGINT);
+    std::signal(SIGTSTP, handleSIGTSTP);
 
     const char* shortPrompts = "sth";
     const struct option longPrompts[] = {
