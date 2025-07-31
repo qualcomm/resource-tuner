@@ -61,30 +61,21 @@ ErrCode SysConfig::serialize(char* buf) {
         int8_t* ptr8 = (int8_t*)buf;
         ASSIGN_AND_INCR(ptr8, this->getRequestType());
 
-        const char* charIterator = this->getProp().c_str();
         char* charPointer = (char*) ptr8;
-
-        while(*charIterator != '\0') {
-            ASSIGN_AND_INCR(charPointer, *charIterator);
-            charIterator++;
+        for(char ch: this->getProp()) {
+            ASSIGN_AND_INCR(charPointer, ch);
         }
 
         ASSIGN_AND_INCR(charPointer, '\0');
 
-        charIterator = this->getValue().c_str();
-
-        while(*charIterator != '\0') {
-            ASSIGN_AND_INCR(charPointer, *charIterator);
-            charIterator++;
+        for(char ch: this->getValue()) {
+            ASSIGN_AND_INCR(charPointer, ch);
         }
 
         ASSIGN_AND_INCR(charPointer, '\0');
 
-        charIterator = this->getDefaultValue().c_str();
-
-        while(*charIterator != '\0') {
-            ASSIGN_AND_INCR(charPointer, *charIterator);
-            charIterator++;
+        for(char ch: this->getDefaultValue()) {
+            ASSIGN_AND_INCR(charPointer, ch);
         }
 
         ASSIGN_AND_INCR(charPointer, '\0');

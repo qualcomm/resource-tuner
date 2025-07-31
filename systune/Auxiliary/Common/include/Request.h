@@ -30,7 +30,6 @@ public:
 
     int32_t getResourcesCount();
     int32_t getCocoNodesCount();
-    int8_t isBackgroundProcessingEnabled();
     std::vector<Resource*>* getResources();
     Resource* getResourceAt(int32_t index);
     std::vector<CocoNode*>* getCocoNodes();
@@ -42,7 +41,6 @@ public:
     void updateTimer(int64_t newDuration);
     void setResources(std::vector<Resource*>* resources);
     void setCocoNodes(std::vector<CocoNode*>* cocoNodes);
-    void setBackgroundProcessing(int8_t isBackgroundProcessingEnabled);
 
     ErrCode serialize(char* buf);
     ErrCode deserialize(char* buf);

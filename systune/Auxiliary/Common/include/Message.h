@@ -11,28 +11,34 @@
 */
 class Message {
 protected:
-    int8_t mReqType; //!< Type of the request. Possible values: TUNE, UNTUNE, RETUNE.
+    int8_t mReqType; //!< Type of the request. Possible values: TUNE, UNTUNE, RETUNE, TUNESIGNAL, FREESIGNAL.
     int64_t mHandle; //!< The unique generated handle for the request.
     int64_t mDuration; //!< Duration. -1 means infinite duration.
-    int32_t mPriority; //!<Priority of the request, as specified in the tuneResources API call.
-    int32_t mProperties;
+    int32_t mProperties; //<! Request Properties, includes Priority and Background Processing Status.
     int32_t mClientPID; //!< Process ID of the client making the request.
     int32_t mClientTID; //!< Thread ID of the client making the request.
 
 public:
+
+    Message() : mProperties(0) {}
+
     int8_t getRequestType();
     int64_t getDuration();
     int32_t getClientPID();
     int32_t getClientTID();
     int64_t getHandle();
-    int32_t getPriority();
+    int8_t getPriority();
+    int8_t isBackgroundProcessingEnabled();
+    int32_t getProperties();
 
     void setRequestType(int8_t reqType);
     void setDuration(int64_t duration);
     void setClientPID(int32_t clientPID);
     void setClientTID(int32_t clientTID);
-    void setPriority(int32_t priority);
+    void setProperties(int32_t properties);
+    void setPriority(int8_t priority);
     void setHandle(int64_t handle);
+    void setBackgroundProcessing(int8_t backgroundProcessing);
 
     virtual ~Message() {}
 };

@@ -9,6 +9,7 @@
 
 #include "SafeOps.h"
 #include "Logger.h"
+#include "MemoryPool.h"
 #include "Types.h"
 
 /**
@@ -30,17 +31,19 @@ public:
     int32_t getNumArgs();
     const std::string getAppName();
     const std::string getScenario();
-    std::vector<uint32_t>* getListArgs();
     uint32_t getListArgAt(int32_t index);
-
-    ErrCode serialize(char* buf);
-    ErrCode deserialize(char* buf);
+    std::vector<uint32_t>* getListArgs();
 
     void setSignalID(uint32_t signalID);
     void setAppName(const std::string& appName);
     void setScenario(const std::string& scenario);
     void setNumArgs(int32_t numArgs);
     void setList(std::vector<uint32_t>* mListArgs);
+
+    ErrCode serialize(char* buf);
+    ErrCode deserialize(char* buf);
+
+    static void cleanUpSignal(Signal* signal);
 };
 
 #endif

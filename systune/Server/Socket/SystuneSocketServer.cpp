@@ -23,9 +23,6 @@ void SystuneSocketServer::parseIncomingRequest(char* buf, int32_t clientSocket) 
             Request* request = nullptr;
             try {
                 request = new (GetBlock<Request>()) Request();
-                std::vector<Resource*>* resourceList =
-                    new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
-                request->setResources(resourceList);
 
             } catch(const std::bad_alloc& e) {
                 TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE, "Error", e);
@@ -105,9 +102,6 @@ void SystuneSocketServer::parseIncomingRequest(char* buf, int32_t clientSocket) 
             Signal* signal = nullptr;
             try {
                 signal = new (GetBlock<Signal>()) Signal();
-                std::vector<uint32_t>* mListArgs =
-                    new (GetBlock<std::vector<uint32_t>>()) std::vector<uint32_t>;
-                signal->setList(mListArgs);
 
             } catch(const std::bad_alloc& e) {
                 TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE, "Error", e);

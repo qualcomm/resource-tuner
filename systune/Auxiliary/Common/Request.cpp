@@ -17,10 +17,6 @@ int32_t Request::getCocoNodesCount() {
     return this->mNumCocoNodes;
 }
 
-int8_t Request::isBackgroundProcessingEnabled() {
-    return this->mBackgroundProcessing;
-}
-
 std::vector<Resource*>* Request::getResources() {
     return this->mResources;
 }
@@ -52,10 +48,6 @@ void Request::setNumCocoNodes(int32_t numCocoNodes) {
     this->mNumCocoNodes = numCocoNodes;
 }
 
-void Request::setBackgroundProcessing(int8_t isBackgroundProcessingEnabled) {
-    this->mBackgroundProcessing = isBackgroundProcessingEnabled;
-}
-
 void Request::setResources(std::vector<Resource*>* resources) {
     this->mResources = resources;
 }
@@ -78,7 +70,7 @@ Request::~Request() {}
 
 void Request::populateUntuneRequest(Request* untuneRequest) {
     untuneRequest->mReqType= REQ_RESOURCE_UNTUNING;
-    untuneRequest->mPriority = this->getPriority();
+    untuneRequest->mProperties = this->getProperties();
     untuneRequest->mHandle = this->getHandle();
     untuneRequest->mClientPID = this->getClientPID();
     untuneRequest->mClientTID = this->getClientTID();
@@ -91,7 +83,7 @@ void Request::populateUntuneRequest(Request* untuneRequest) {
 void Request::populateRetuneRequest(Request* retuneRequest, int64_t newDuration) {
     retuneRequest->mReqType= REQ_RESOURCE_RETUNING;
     retuneRequest->mHandle = this->getHandle();
-    retuneRequest->mPriority = this->getPriority();
+    retuneRequest->mProperties = this->getProperties();
     retuneRequest->mClientPID = this->getClientPID();
     retuneRequest->mClientTID = this->getClientTID();
     retuneRequest->mDuration = newDuration;
@@ -109,7 +101,7 @@ ErrCode Request::serialize(char* buf) {
 
         int32_t* ptr = (int32_t*)ptr64;
         ASSIGN_AND_INCR(ptr, this->getResourcesCount());
-        ASSIGN_AND_INCR(ptr, this->getPriority());
+        ASSIGN_AND_INCR(ptr, this->getProperties());
         ASSIGN_AND_INCR(ptr, this->getClientPID());
         ASSIGN_AND_INCR(ptr, this->getClientTID());
 
@@ -157,33 +149,38 @@ ErrCode Request::deserialize(char* buf) {
 
         int32_t* ptr = (int32_t*)ptr64;
         this->mNumResources = DEREF_AND_INCR(ptr, int32_t);
-        this->mPriority = DEREF_AND_INCR(ptr, int32_t);
+        this->mProperties = DEREF_AND_INCR(ptr, int32_t);
         this->mClientPID = DEREF_AND_INCR(ptr, int32_t);
         this->mClientTID = DEREF_AND_INCR(ptr, int32_t);
 
         ptr8 = (int8_t*)ptr;
         this->mBackgroundProcessing = DEREF_AND_INCR(ptr8, int8_t);
 
-        this->mResources->resize(this->getResourcesCount());
+        if(this->mReqType == REQ_RESOURCE_TUNING) {
+            this->mResources = new (GetBlock<std::vector<Resource*>>())
+                                    std::vector<Resource*>;
 
-        ptr = (int32_t*)ptr8;
-        for(int32_t i = 0; i < this->getResourcesCount(); i++) {
-            Resource* resource = (Resource*) (GetBlock<Resource>());
+            this->mResources->resize(this->getResourcesCount());
 
-            resource->mOpId = DEREF_AND_INCR(ptr, int32_t);
-            resource->mOpInfo = DEREF_AND_INCR(ptr, int32_t);
-            resource->mOptionalInfo = DEREF_AND_INCR(ptr, int32_t);
-            resource->mNumValues = DEREF_AND_INCR(ptr, int32_t);
+            ptr = (int32_t*)ptr8;
+            for(int32_t i = 0; i < this->getResourcesCount(); i++) {
+                Resource* resource = (Resource*) (GetBlock<Resource>());
 
-            if(resource->mNumValues == 1) {
-                resource->mConfigValue.singleValue = DEREF_AND_INCR(ptr, int32_t);
-            } else {
-                for(int32_t j = 0; j < resource->mNumValues; j++) {
-                    resource->mConfigValue.valueArray->push_back(DEREF_AND_INCR(ptr, int32_t));
+                resource->mOpId = DEREF_AND_INCR(ptr, int32_t);
+                resource->mOpInfo = DEREF_AND_INCR(ptr, int32_t);
+                resource->mOptionalInfo = DEREF_AND_INCR(ptr, int32_t);
+                resource->mNumValues = DEREF_AND_INCR(ptr, int32_t);
+
+                if(resource->mNumValues == 1) {
+                    resource->mConfigValue.singleValue = DEREF_AND_INCR(ptr, int32_t);
+                } else {
+                    for(int32_t j = 0; j < resource->mNumValues; j++) {
+                        resource->mConfigValue.valueArray->push_back(DEREF_AND_INCR(ptr, int32_t));
+                    }
                 }
-            }
 
-            (*this->mResources)[i] = resource;
+                (*this->mResources)[i] = resource;
+            }
         }
 
     } catch(const std::invalid_argument& e) {

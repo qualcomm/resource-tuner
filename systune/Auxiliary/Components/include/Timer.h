@@ -39,22 +39,21 @@ private:
 
     /**
     * @brief Starts the timer for the given duration in milliseconds
-    * @details It spawns an independent thread that sleeps for the given
-    *          duration. When awake, it atomically checks if the timer was
-    *          updated or not. it executes a pre-registered callback function
-    *          after that.
-    * @param dur
+    * @details It spawns an independent thread that Waits (on Condition Variable)
+    *          for the given duration. When woken up, it atomically checks if the timer was
+    *          updated or not. Following which it it executes a pre-registered callback function.
+    * @param duration
     */
-    int8_t startTimer(int64_t dur);
+    int8_t startTimer(int64_t duration);
 
     /**
     * @brief Updates the same timer duration to some higher value.
     * @details Updates the value of an atomic variable and acts the same way as
     *          starting a new timer while invalidating the old timer
     *
-    * @param dur Updated duration of timer.
+    * @param duration Updated duration of timer.
     */
-    int8_t updateTimer(int64_t dur);
+    int8_t updateTimer(int64_t duration);
 
     /**
     * @brief Invalidates current timer.

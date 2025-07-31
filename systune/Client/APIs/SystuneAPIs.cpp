@@ -9,7 +9,7 @@ static std::mutex apiLock;
 // - Construct a Request object and populate it with the API specified Params
 // - Initiate a connection to the Systune Server, and send the request to the server
 // - Wait for the response from the server, and return the response to the caller (end-client).
-int64_t tuneResources(int64_t duration, int32_t prio, int32_t numRes, std::vector<Resource*>* res) {
+int64_t tuneResources(int64_t duration, int32_t properties, int32_t numRes, std::vector<Resource*>* res) {
     // Only one client Thread can send a Request at any moment
     try {
         const std::lock_guard<std::mutex> lock(apiLock);
@@ -32,7 +32,7 @@ int64_t tuneResources(int64_t duration, int32_t prio, int32_t numRes, std::vecto
         request->setRequestType(REQ_RESOURCE_TUNING);
         request->setNumResources(numRes);
         request->setDuration(duration);
-        request->setPriority(prio);
+        request->setProperties(properties);
         request->setClientPID(getpid());
         request->setClientTID(gettid());
         request->setResources(res);
@@ -96,7 +96,7 @@ ErrCode retuneResources(int64_t handle, int64_t duration) {
         request->setDuration(duration);
         request->setClientPID(getpid());
         request->setClientTID(gettid());
-        request->setBackgroundProcessing(false); // Not important for Retune Requests
+        request->setProperties(0); // Not important for Retune Requests
         request->setNumResources(0);
         request->setResources(nullptr);
 
@@ -140,10 +140,9 @@ ErrCode untuneResources(int64_t handle) {
         request->setHandle(handle);
         request->setClientPID(getpid());
         request->setClientTID(gettid());
-        request->setBackgroundProcessing(false); // Not important for Untune Requests
+        request->setProperties(0); // Not important for Untune Requests
         request->setNumResources(0);
         request->setResources(nullptr);
-        request->setBackgroundProcessing(false);
 
         if(conn == nullptr || RC_IS_NOTOK(conn->initiateConnection())) {
             delete request;
@@ -321,13 +320,13 @@ ErrCode setprop(const char* prop, const char* value) {
 // - Construct a Signal object and populate it with the SysSignal Request Params
 // - Initiate a connection to the Systune Server, and send the request to the server
 // - Wait for the response from the server, and return the response to the caller (end-client).
-int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t prio,
+int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t properties,
                    const char* appName, const char* scenario, int32_t numArgs,
                    std::vector<uint32_t>* list) {
     try {
         const std::lock_guard<std::mutex> lock(apiLock);
 
-        if(duration == 0 || duration < -1 || (list != nullptr && list->size() != numArgs)) {
+        if(duration < -1 || (list != nullptr && list->size() != numArgs)) {
             return RC_REQ_SUBMISSION_FAILURE;
         }
 
@@ -342,7 +341,7 @@ int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t prio,
         signal->setRequestType(SIGNAL_ACQ);
         signal->setSignalID(signalID);
         signal->setDuration(duration);
-        signal->setPriority(prio);
+        signal->setProperties(properties);
         signal->setClientPID(getpid());
         signal->setClientTID(gettid());
         signal->setNumArgs(numArgs);
@@ -403,7 +402,7 @@ ErrCode untuneSignal(int64_t handle) {
         signal->setSignalID(0);
         signal->setDuration(0);
         signal->setHandle(handle);
-        signal->setPriority(0);
+        signal->setProperties(0);
         signal->setClientPID(getpid());
         signal->setClientTID(gettid());
         signal->setNumArgs(0);

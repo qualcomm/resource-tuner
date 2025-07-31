@@ -47,7 +47,7 @@ void TargetConfigProcessor::TargetConfigCB(const Json::Value& item) {
     }
 
     if(item[TARGET_CLUSTER_INFO].isArray()) {
-        for(int i = 0; i < item[TARGET_CLUSTER_INFO].size(); i++) {
+        for(int32_t i = 0; i < item[TARGET_CLUSTER_INFO].size(); i++) {
             const Json::Value& clusterInfo = item[TARGET_CLUSTER_INFO][i];
             int8_t id;
             std::string clusterType;
@@ -65,7 +65,7 @@ void TargetConfigProcessor::TargetConfigCB(const Json::Value& item) {
     }
 
     if(item[TARGET_CLUSTER_SPREAD].isArray()) {
-        for(int i = 0; i < item[TARGET_CLUSTER_SPREAD].size(); i++) {
+        for(int32_t i = 0; i < item[TARGET_CLUSTER_SPREAD].size(); i++) {
             const Json::Value& clusterSpread = item[TARGET_CLUSTER_SPREAD][i];
             int8_t id;
             int32_t numCores;

@@ -12,6 +12,9 @@ if(BUILD_TESTS)
     add_executable(TimerTest Auxiliary/TimerTest.cpp)
     target_link_libraries(TimerTest GTest::gtest_main Auxiliary)
 
+    add_executable(MiscTests Auxiliary/MiscTests.cpp)
+    target_link_libraries(MiscTests GTest::gtest_main Auxiliary)
+
     add_executable(JsonParserTest Auxiliary/JsonParserTest.cpp)
     target_link_libraries(JsonParserTest GTest::gtest_main Auxiliary)
 
@@ -55,6 +58,7 @@ if(BUILD_TESTS)
     gtest_discover_tests(RateLimiterTests)
     gtest_discover_tests(MemoryPoolTests)
     gtest_discover_tests(SafeOpsTest)
+    gtest_discover_tests(MiscTests)
     gtest_discover_tests(ThreadPoolTest)
     gtest_discover_tests(TimerTest)
     gtest_discover_tests(JsonParserTest)

@@ -14,7 +14,6 @@ private:
     std::string mProp;
     std::string mValue;
     std::string mDefValue;
-    std::string mBuffer;
     uint64_t mBufferSize;
     int32_t mClientPID;
     int32_t mClientTID;
@@ -28,9 +27,6 @@ public:
     int32_t getClientTID();
     uint64_t getBufferSize();
 
-    ErrCode serialize(char* buf);
-    ErrCode deserialize(char* buf);
-
     void setRequestType(int8_t type);
     void setProp(const std::string& prop);
     void setValue(const std::string& value);
@@ -38,6 +34,9 @@ public:
     void setClientPID(int32_t clientPID);
     void setClientTID(int32_t clientTID);
     void setBufferSize(uint64_t bufferSize);
+
+    ErrCode serialize(char* buf);
+    ErrCode deserialize(char* buf);
 };
 
 #endif

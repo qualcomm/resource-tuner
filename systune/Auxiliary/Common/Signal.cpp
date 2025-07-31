@@ -59,31 +59,25 @@ ErrCode Signal::serialize(char* buf) {
 
         int64_t* ptr64 = (int64_t*)ptr;
         ASSIGN_AND_INCR(ptr64, this->getHandle());
-
         ASSIGN_AND_INCR(ptr64, this->getDuration());
 
-        const char* charIterator = this->getAppName().c_str();
         char* charPointer = (char*) ptr64;
 
-        while(*charIterator != '\0') {
-            ASSIGN_AND_INCR(charPointer, *charIterator);
-            charIterator++;
+        for(char ch: this->getAppName()) {
+            ASSIGN_AND_INCR(charPointer, ch);
         }
 
         ASSIGN_AND_INCR(charPointer, '\0');
 
-        charIterator = this->getScenario().c_str();
-
-        while(*charIterator != '\0') {
-            ASSIGN_AND_INCR(charPointer, *charIterator);
-            charIterator++;
+        for(char ch: this->getScenario()) {
+            ASSIGN_AND_INCR(charPointer, ch);
         }
 
         ASSIGN_AND_INCR(charPointer, '\0');
 
         ptr = (int32_t*)charPointer;
         ASSIGN_AND_INCR(ptr, this->getNumArgs());
-        ASSIGN_AND_INCR(ptr, this->getPriority());
+        ASSIGN_AND_INCR(ptr, this->getProperties());
         ASSIGN_AND_INCR(ptr, this->getClientPID());
         ASSIGN_AND_INCR(ptr, this->getClientTID());
 
@@ -114,6 +108,7 @@ ErrCode Signal::deserialize(char* buf) {
 
         char* charIterator = (char*)ptr64;
         this->mAppName = charIterator;
+
         while(*charIterator != '\0') {
             charIterator++;
         }
@@ -128,13 +123,14 @@ ErrCode Signal::deserialize(char* buf) {
 
         ptr = (int32_t*)charIterator;
         this->mNumArgs = DEREF_AND_INCR(ptr, int32_t);
-        this->mPriority = DEREF_AND_INCR(ptr, int32_t);
+        this->mProperties = DEREF_AND_INCR(ptr, int32_t);
         this->mClientPID = DEREF_AND_INCR(ptr, int32_t);
         this->mClientTID = DEREF_AND_INCR(ptr, int32_t);
 
-        this->mListArgs->resize(this->getNumArgs());
+        this->mListArgs = new (GetBlock<std::vector<uint32_t>>()) std::vector<uint32_t>;
+        this->mListArgs->resize(this->mNumArgs);
 
-        for(int32_t i = 0; i < this->getNumArgs(); i++) {
+        for(int32_t i = 0; i < this->mNumArgs; i++) {
             (*this->mListArgs)[i] = DEREF_AND_INCR(ptr, uint32_t);
         }
 
@@ -156,3 +152,17 @@ ErrCode Signal::deserialize(char* buf) {
 }
 
 Signal::~Signal() {}
+
+// Signal Utils
+void Signal::cleanUpSignal(Signal* signal) {
+    if(signal == nullptr) return;
+    // Note: Resources and CocoNodes are expected to be allocated via the MemoryPool.
+
+    if(signal->mListArgs != nullptr) {
+        FreeBlock<std::vector<uint32_t>>
+                (static_cast<void*>(signal->mListArgs));
+        signal->mListArgs = nullptr;
+    }
+
+    FreeBlock<Signal>(static_cast<void*>(signal));
+}

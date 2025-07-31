@@ -212,7 +212,7 @@ static Request* createResourceTuningRequest(Signal* signal) {
     request->setRequestType(REQ_RESOURCE_TUNING);
     request->setHandle(signal->getHandle());
     request->setDuration(signal->getDuration());
-    request->setPriority(signal->getPriority());
+    request->setProperties(signal->getProperties());
     request->setClientPID(signal->getClientPID());
     request->setClientTID(signal->getClientTID());
 
@@ -274,7 +274,7 @@ static Request* createResourceUntuneRequest(Signal* signal) {
     request->setRequestType(REQ_RESOURCE_UNTUNING);
     request->setHandle(signal->getHandle());
     request->setDuration(-1);
-    request->setPriority(signal->getPriority());
+    request->setProperties(signal->getProperties());
     request->setClientPID(signal->getClientPID());
     request->setClientTID(signal->getClientTID());
     request->setNumResources(0);

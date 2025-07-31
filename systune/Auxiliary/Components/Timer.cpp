@@ -30,7 +30,10 @@ void Timer::implementTimer() {
 }
 
 int8_t Timer::startTimer(int64_t duration) {
-    if(duration <= 0) {
+    if(duration == -1) {
+        return true;
+    }
+    if(duration == 0 || duration < -1) {
         return false;
     }
 

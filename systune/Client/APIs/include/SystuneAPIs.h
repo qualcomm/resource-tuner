@@ -36,17 +36,18 @@
 * @brief Tune Resource Values for finite or finite duration.
 * @details Use this API to issue Resource Provisioning / Tuning Requests.
 * @param duration Duration (in milliseconds) to provision the Resources for. A value of -1 denotes infinite duration.
-* @param prio Priority of the Request
+* @param properties A 32 bit signed Integer storing the Properties of the Request.
+*                   - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
+*                   - The Next 8 bits [17 - 24] represent a Boolean Flag, which indicates
+*                     if the Request should be processed in the background (in case of Display Off or Doze Mode).
 * @param numRes Number of Resources to be tuned as part of the Request
-* @param backgroundProcessing Boolean Flag to indicate if the Request is to be processed in the background.
+* @param backgroundProcessing Boolean Flag to
 * @param res List of Resources to be provisioned as part of the Request
 * @return int64_t :
 *              A Positive Unique Handle to identify the issued Request. The handle is used for future retune / untune APIs.\n
 *              RC_REQ_SUBMISSION_FAILURE: If the Request could not be sent to the server.
 */
 
-// Change prio to Properties / props
-// Use 16 bits for backgroundProcessing mode, last 16 bits for prio
 int64_t tuneResources(int64_t duration, int32_t prop, int32_t numRes, std::vector<Resource*>* res);
 
 /**
@@ -82,7 +83,7 @@ std::string getrequests();
 
 /**
 * @brief Gets a property from the Config Store.
-* @details Use this API to fetch a property by it's name, all of the properties were parsed during Systune initialization.
+* @details Use this API to fetch a SysConfig property by it's name, all of the properties were Parsed during Systune initialization.
 * @param prop Name of the Property to be fetched.
 * @param buffer A buffer to hold the result, i.e. the property value corresponding to the specified name.
 * @param buffer_size Size of the buffer
@@ -110,7 +111,11 @@ ErrCode setprop(const char* prop, const char* value);
 * @details Use this API to issue Signal Provisioning Requests, for a certain duration of time.
 * @param signalID ID of the Signal to be acquired.
 * @param duration Duration (in milliseconds) to provision the Resources for. A value of -1 denotes infinite duration.
-* @param prio Priority of the Request
+* @param properties A 32 bit signed Integer storing the Properties of the Request.
+*                   - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
+*                   - The Next 8 bits [17 - 24] represent a Boolean Flag, which indicates
+*                     if the Request should be processed in the background (in case of Display Off or Doze Mode).
+*
 * @param appName Name of the Application that is issuing the Request
 * @param scenario Name of the Scenario that is issuing the Request
 * @param numArgs Number of Additional Arguments to be passed as part of the Request
@@ -119,7 +124,7 @@ ErrCode setprop(const char* prop, const char* value);
 *              A Positive Unique Handle to identify the issued Request. The handle is used for freeing the acquired signal later.\n
 *              RC_REQ_SUBMISSION_FAILURE: If the Request could not be sent to the server.
 */
-int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t prio, // modify similar to tuneResources
+int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t properties,
                    const char* appName, const char* scenario, int32_t numArgs, std::vector<uint32_t>* list);
 // Use uint32* array // C
 
