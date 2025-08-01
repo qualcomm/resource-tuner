@@ -56,7 +56,22 @@ struct TaskNode {
 
 struct ThreadNode {
     std::thread* th;
-    struct ThreadNode* next;
+    ThreadNode* next;
+};
+
+class TaskQueue {
+private:
+    int32_t size;
+    TaskNode* head;
+    TaskNode* tail;
+
+public:
+    TaskQueue();
+
+    void add(TaskNode* taskNode);
+    TaskNode* poll();
+    int8_t isEmpty();
+    int32_t getSize();
 };
 
 /**
@@ -65,27 +80,30 @@ struct ThreadNode {
 */
 class ThreadPool {
 private:
-    int32_t mMaxPending;
-    int32_t mDesiredCapacity;
+    int32_t mMaxWaitingListCapacity;
+    int32_t mDesiredPoolCapacity;
+    int32_t mMaxPoolCapacity;
 
+    int32_t mCoreThreadsInUse;
+    int32_t mCurrentThreadsCount;
+    int32_t mTotalTasksCount;
     int8_t mTerminatePool;
+
+    TaskQueue* mCurrentTasks;
+    TaskQueue* mWaitingList;
 
     ThreadNode* mThreadQueueHead;
     ThreadNode* mThreadQueueTail;
 
-    // Pending WAIT queue List: RENAME
-    TaskNode* mTasksQueueHead;
-    TaskNode* mTasksQueueTail;
-    int32_t mTasksQueueSize;
-
     std::mutex mThreadPoolMutex;
     std::condition_variable mThreadPoolCond;
 
-    void addNewThreads(int32_t mThreadCount);
-    int8_t threadRoutineHelper();
+    TaskNode* createTaskNode(std::function<void(void*)> taskCallback, void* args);
+    int8_t addNewThread(int8_t isCoreThread);
+    int8_t threadRoutineHelper(int8_t isCoreThread, int8_t& firstTask);
 
 public:
-    ThreadPool(int32_t mDesiredCapacity, int32_t mMaxPending);
+    ThreadPool(int32_t desiredCapacity, int32_t maxPending, int32_t maxCapacity);
     ~ThreadPool();
 
     /**

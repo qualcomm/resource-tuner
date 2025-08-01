@@ -171,11 +171,11 @@ std::unordered_map<int64_t, Request*> RequestManager::getActiveRequests() {
 }
 
 void RequestManager::disableRequestProcessing(int64_t handle) {
-    this->mRequestProcessingStatus[handle] = REQ_UNTUNED;
+    this->mRequestProcessingStatus[handle] = REQ_CANCELLED;
 }
 
 void RequestManager::modifyRequestDuration(int64_t handle, int64_t duration) {
-    if(this->mRequestProcessingStatus[handle] != REQ_UNTUNED) {
+    if(this->mRequestProcessingStatus[handle] != REQ_CANCELLED) {
         this->mRequestProcessingStatus[handle] = duration;
     }
 }
@@ -223,12 +223,12 @@ void RequestManager::triggerDisplayOffOrDozeMode() {
         if(request->isBackgroundProcessingEnabled() == false) {
             // If the Request is not a background Request, then add it to the Pending List
             // and remove it from the activeRequestsList
-            if(getRequestProcessingStatus(request->getHandle()) != REQ_UNTUNED) {
+            if(getRequestProcessingStatus(request->getHandle()) != REQ_CANCELLED) {
                 this->mRequestsList[PENDING_TUNE].insert(request);
                 requestsToBeRemoved.push_back(request);
             }
         } else {
-            if(getRequestProcessingStatus(request->getHandle()) == REQ_UNTUNED) {
+            if(getRequestProcessingStatus(request->getHandle()) == REQ_CANCELLED) {
                 requestsToBeRemoved.push_back(request);
             }
         }
@@ -264,7 +264,7 @@ void RequestManager::triggerDisplayOnMode() {
             RequestQueue::getInstance()->addAndWakeup(untuneRequest);
         }
 
-        if(getRequestProcessingStatus(request->getHandle()) == REQ_UNTUNED) {
+        if(getRequestProcessingStatus(request->getHandle()) == REQ_CANCELLED) {
             untunedRequests.push_back(request);
         }
     }

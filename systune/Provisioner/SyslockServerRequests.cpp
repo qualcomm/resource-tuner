@@ -340,7 +340,7 @@ void RequestQueue::orderedQueueConsumerHook() {
         if(req->getRequestType() == REQ_RESOURCE_TUNING) {
             int64_t requestProcessingStatus = RequestManager::getInstance()->getRequestProcessingStatus(req->getHandle());
             // Find better status code
-            if(requestProcessingStatus == REQ_UNTUNED || requestProcessingStatus == REQ_COMPLETED) {
+            if(requestProcessingStatus == REQ_CANCELLED || requestProcessingStatus == REQ_COMPLETED) {
                 // Request has already been untuned or expired (Edge Cases)
                 // No need to process it again.
                 continue;

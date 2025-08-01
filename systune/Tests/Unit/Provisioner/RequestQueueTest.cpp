@@ -3,18 +3,57 @@
 // #include "Request.h"
 // #include "RequestQueue.h"
 
+// class RequestQueueTests: public::testing::Test {
+// protected:
+//     void SetUp() override {
+//         static int8_t firstTest = true;
+//         if(firstTest == true) {
+//             MakeAlloc<ClientInfo> (30);
+//             MakeAlloc<ClientTidData> (30);
+//             MakeAlloc<std::unordered_set<int64_t>> (30);
+//             MakeAlloc<Resource> (30);
+//             MakeAlloc<std::vector<Resource*>> (30);
+//             MakeAlloc<Request> (30);
+//             firstTest = false;
+//         }
+
+//         SystuneSettings::metaConfigs.mDelta = 5000;
+//         SystuneSettings::metaConfigs.mPenaltyFactor = 2.0;
+//         SystuneSettings::metaConfigs.mRewardFactor = 0.4;
+//     }
+// };
+
 // TEST(RequestQueueTaskProcessingTests, TestRequestQueueTaskEnqueue) {
 //     std::shared_ptr<RequestQueue> requestQueue = RequestQueue::getInstance();
 //     int32_t requestCount = 8;
 //     int32_t requestsProcessed = 0;
 
 //     for(int32_t count = 0; count < requestCount; count++) {
-//         std::vector<Resource*>* resources = new std::vector<Resource*>;
-//         Request* request = new Request(REQ_RESOURCE_TUNING, -1, -1, 1, 0, 321, 2445, resources);
+//         Resource* resource = (Resource*) GetBlock<Resource>();
+
+//         resource->mOpId = 16;
+//         resource->mOpInfo = 27;
+//         resource->mOptionalInfo = 1480;
+//         resource->mNumValues = 1;
+//         resource->mConfigValue.singleValue = 8;
+
+//         std::vector<Resource*>* resources =
+//             new (GetBlock<std::vector<Resource*>>())std::vector<Resource*>;
+//         resources->push_back(resource);
+
+//         Request* request = new (GetBlock<Request>()) Request;
+//         request->setRequestType(REQ_RESOURCE_TUNING);
+//         request->setHandle(25);
+//         request->setDuration(-1);
+//         request->setPriority(0);
+//         request->setNumResources(1);
+//         request->setClientPID(321);
+//         request->setClientTID(2445);
+//         request->setResources(resources);
+//         request->setBackgroundProcessing(false);
+
 //         requestQueue->addAndWakeup(request);
 //     }
-
-//     requestQueue->registerAsConsumer();
 
 //     while(requestQueue->hasPendingTasks()) {
 //         requestsProcessed++;
@@ -24,11 +63,8 @@
 //         delete request;
 //     }
 
-//     requestQueue->unRegisterAsConsumer();
-
 //     ASSERT_EQ(requestsProcessed, requestCount);
 // }
-
 
 // TEST(RequestQueueTaskProcessingTests, TestRequestQueueSingleTaskPickup1) {
 //     std::shared_ptr<RequestQueue> requestQueue = RequestQueue::getInstance();

@@ -43,6 +43,7 @@ void OrderedQueue::wait() {
     } catch(const std::system_error& e) {
         LOGE("URM_ORDERED_QUEUE",
              "Cannot wait on Ordered Queue, error: " + std::string(e.what()));
+
     } catch(std::exception& e) {
         LOGE("URM_ORDERED_QUEUE",
              "Cannot wait on Ordered Queue, error: " + std::string(e.what()));
@@ -59,7 +60,6 @@ Message* OrderedQueue::pop() {
             throw std::range_error("Request Queue is empty");
         }
     } catch (const std::exception& e) {
-        std::cerr << "Cannot Pop Element from the OrderedQueue: " << e.what() << std::endl;
         return nullptr;
     }
 

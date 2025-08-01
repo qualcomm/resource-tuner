@@ -110,8 +110,8 @@ int32_t main(int32_t argc, char *argv[]) {
                 break;
             case 't':
                 SystuneSettings::serverInTestMode = true;
-                URM_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/systune/testResourceConfigs.json")
-                URM_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/systune/testSignalConfigs.json")
+                URM_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourceConfigs.json")
+                URM_REGISTER_CONFIG(SIGNALS_CONFIG, "../Tests/Configs/testSignalConfigs.json")
                 break;
             case 'h':
                 std::cout<<"Help Options"<<std::endl;
@@ -154,8 +154,8 @@ int32_t main(int32_t argc, char *argv[]) {
     ErrCode mOpStatus = RC_SUCCESS;
     SystuneSettings::setServerOnlineStatus(true);
     SystuneSettings::targetConfigs.currMode = MODE_DISPLAY_ON;
-    RequestReceiver::mRequestsThreadPool = new ThreadPool(4, 4);
-    Timer::mTimerThreadPool = new ThreadPool(4, 4);
+    RequestReceiver::mRequestsThreadPool = new ThreadPool(4, 4, 6);
+    Timer::mTimerThreadPool = new ThreadPool(4, 4, 6);
 
     mOpStatus = fetchProperties();
     if(RC_IS_NOTOK(mOpStatus)) {
@@ -248,6 +248,14 @@ int32_t main(int32_t argc, char *argv[]) {
 
     // Restore all the Resources to Original Values
     ResourceRegistry::getInstance()->restoreResourcesToDefaultValues();
+
+    if(RequestReceiver::mRequestsThreadPool != nullptr) {
+        delete RequestReceiver::mRequestsThreadPool;
+    }
+
+    if(Timer::mTimerThreadPool != nullptr) {
+        delete Timer::mTimerThreadPool;
+    }
 
     kill(childProcessID, SIGKILL);
     // Wait for the Child Process to terminate

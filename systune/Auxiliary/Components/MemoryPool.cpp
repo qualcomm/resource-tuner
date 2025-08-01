@@ -3,8 +3,6 @@
 
 #include "MemoryPool.h"
 
-std::shared_ptr<PoolWrapper> PoolWrapper::mPoolWrapperInstance = nullptr;
-
 MemoryPool::MemoryPool(int32_t blockSize) {
     this->mFreeListHead = this->mFreeListTail = nullptr;
     this->mAllocatedListHead = nullptr;
@@ -252,4 +250,10 @@ void PoolWrapper::freeBlock(std::type_index typeIndex, void* block) {
     if(memoryPool != nullptr) {
         memoryPool->freeBlock(block);
     }
+}
+
+static std::shared_ptr<PoolWrapper> poolWrapperInstance(new PoolWrapper());
+
+std::shared_ptr<PoolWrapper> getPoolWrapper() {
+    return poolWrapperInstance;
 }

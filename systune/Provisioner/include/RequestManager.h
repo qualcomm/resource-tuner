@@ -21,7 +21,7 @@ enum RequestListType {
 
 enum RequestProcessingStatus {
     REQ_UNCHANGED = -2,
-    REQ_UNTUNED,
+    REQ_CANCELLED,
     REQ_COMPLETED
 };
 

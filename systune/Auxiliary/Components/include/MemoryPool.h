@@ -70,8 +70,6 @@ public:
 
 class PoolWrapper {
 private:
-    static std::shared_ptr<PoolWrapper> mPoolWrapperInstance;
-
     std::unordered_map<std::type_index, MemoryPool*> mMemoryPoolRefs;
     std::mutex mPoolWrapperMutex;
 
@@ -111,33 +109,35 @@ public:
      * @brief Free an allocated block of the specified type T.
      * @param block Pointer to the block to be freed.
      */
-    template <typename T>
-    void freeBlock(void* block) {
+    template<typename T>
+    typename std::enable_if<std::is_class<T>::value, void>::type
+    freeBlock(void* block) {
         reinterpret_cast<T*>(block)->~T();
         freeBlock(std::type_index(typeid(T)), block);
     }
 
-    static std::shared_ptr<PoolWrapper> getInstance() {
-        if(mPoolWrapperInstance == nullptr) {
-            mPoolWrapperInstance = std::shared_ptr<PoolWrapper>(new PoolWrapper());
-        }
-        return mPoolWrapperInstance;
+    template<typename T>
+    typename std::enable_if<!std::is_class<T>::value, void>::type
+    freeBlock(void* block) {
+        freeBlock(std::type_index(typeid(T)), block);
     }
 };
 
+std::shared_ptr<PoolWrapper> getPoolWrapper();
+
 template <typename T>
 inline void MakeAlloc(int32_t blockCount) {
-    PoolWrapper::getInstance()->makeAllocation<T>(blockCount);
+    getPoolWrapper()->makeAllocation<T>(blockCount);
 }
 
 template <typename T>
 inline void* GetBlock() {
-    return PoolWrapper::getInstance()->getBlock<T>();
+    return getPoolWrapper()->getBlock<T>();
 }
 
 template <typename T>
 inline void FreeBlock(void* block) {
-    PoolWrapper::getInstance()->freeBlock<T>(block);
+    getPoolWrapper()->freeBlock<T>(block);
 }
 
 #endif

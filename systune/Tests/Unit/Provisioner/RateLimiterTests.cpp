@@ -1,167 +1,224 @@
-// #include <gtest/gtest.h>
-// #include <thread>
-// #include "RequestManager.h"
-// #include "RateLimiter.h"
+#include <gtest/gtest.h>
+#include <thread>
 
-// class RateLimiterTests: public::testing::Test {
-// protected:
-//     void SetUp() override {
-//         static int8_t firstTest = true;
-//         if(firstTest == true) {
-//             firstTest = false;
-//             PoolAllocate<ClientInfo> (30);
-//             PoolAllocate<ClientTidData> (30);
-//             PoolAllocate<std::unordered_set<int64_t>> (30);
-//             PoolAllocate<std::vector<int32_t>> (30);
-//         }
+#include "RequestManager.h"
+#include "RateLimiter.h"
 
-//         SystuneSettings::metaConfigs.mDelta = 1000;
-//         SystuneSettings::metaConfigs.mPenaltyFactor = 2.0;
-//         SystuneSettings::metaConfigs.mRewardFactor = 0.4;
-//     }
-// };
+class RateLimiterTests: public::testing::Test {
+protected:
+    void SetUp() override {
+        static int8_t firstTest = true;
+        if(firstTest == true) {
+            firstTest = false;
+            MakeAlloc<ClientInfo> (30);
+            MakeAlloc<ClientTidData> (30);
+            MakeAlloc<std::unordered_set<int64_t>> (30);
+            MakeAlloc<std::vector<int32_t>> (30);
+            MakeAlloc<Resource> (120);
+            MakeAlloc<std::vector<Resource*>> (100);
+            MakeAlloc<Request> (100);
+        }
 
-// // Helper methods for Resource Generation
-// Resource* generateResourceForTesting(int32_t seed) {
-//     Resource* resource = (Resource*)malloc(sizeof(Resource));
-//     resource->mOpId = 16 + seed;
-//     resource->mOpInfo = 27 + 3 * seed;
-//     resource->mOptionalInfo = 1445 + 8 * seed;
-//     resource->mNumValues = 1;
-//     resource->mConfigValue.singleValue = 2 * seed;
+        SystuneSettings::metaConfigs.mDelta = 1000;
+        SystuneSettings::metaConfigs.mPenaltyFactor = 2.0;
+        SystuneSettings::metaConfigs.mRewardFactor = 0.4;
+    }
+};
 
-//     return resource;
-// }
+// Helper methods for Resource Generation
+Resource* generateResourceForTesting(int32_t seed) {
+    Resource* resource = (Resource*)malloc(sizeof(Resource));
+    resource->mOpId = 16 + seed;
+    resource->mOpInfo = 27 + 3 * seed;
+    resource->mOptionalInfo = 1445 + 8 * seed;
+    resource->mNumValues = 1;
+    resource->mConfigValue.singleValue = 2 * seed;
 
-// TEST_F(RateLimiterTests, TestClientSpammingScenario) {
-//     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
-//     std::shared_ptr<RateLimiter> rateLimiter = RateLimiter::getInstance();
+    return resource;
+}
 
-//     int32_t clientPID = 999;
-//     int32_t clientTID = 999;
+TEST_F(RateLimiterTests, TestClientSpammingScenario) {
+    std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
+    std::shared_ptr<RateLimiter> rateLimiter = RateLimiter::getInstance();
 
-//     std::vector<Request*> requests;
+    int32_t clientPID = 999;
+    int32_t clientTID = 999;
 
-//     // Generate 50 different requests from the same client
-//     for(int32_t i = 0; i < 50; i++) {
-//         std::vector<Resource*>* resources = new std::vector<Resource*>;
-//         resources->push_back(generateResourceForTesting(i + 1));
+    std::vector<Request*> requests;
 
-//         Request* req = new Request(REQ_RESOURCE_TUNING, 300 + i, 50, 1,  1, clientPID, clientTID, resources);
-//         if(!clientDataManager->clientExists(req->getClientPID(), req->getClientTID())) {
-//             clientDataManager->createNewClient(req->getClientPID(), req->getClientTID());
-//         }
+    try {
+        // Generate 51 different requests from the same client
+        for(int32_t i = 0; i < 51; i++) {
+            Resource* resource = (Resource*) GetBlock<Resource>();
+            resource->mOpId = 16;
+            resource->mOpInfo = 27;
+            resource->mOptionalInfo = 1480;
+            resource->mNumValues = 1;
+            resource->mConfigValue.singleValue = 8;
 
-//         requests.push_back(req);
-//     }
+            std::vector<Resource*>* resources =
+                new (GetBlock<std::vector<Resource*>>())std::vector<Resource*>;
+            resources->push_back(resource);
 
-//     // Add first 49 requests — should be accepted
-//     for(int32_t i = 0; i < 49; i++) {
-//         int8_t result = rateLimiter->isRateLimitHonored(requests[i]->getClientTID());
-//         ASSERT_EQ(result, true);
-//     }
+            Request* request = new (GetBlock<Request>()) Request;
+            request->setRequestType(REQ_RESOURCE_TUNING);
+            request->setHandle(300 + i);
+            request->setDuration(-1);
+            request->setPriority(1);
+            request->setNumResources(1);
+            request->setClientPID(clientPID);
+            request->setClientTID(clientTID);
+            request->setResources(resources);
 
-//     // Add 50th request — should be rejected
-//     int8_t result = rateLimiter->isRateLimitHonored(requests[49]->getClientTID());
-//     ASSERT_EQ(result, false);
+            if(!clientDataManager->clientExists(request->getClientPID(), request->getClientTID())) {
+                clientDataManager->createNewClient(request->getClientPID(), request->getClientTID());
+            }
 
-//     clientDataManager->deleteClientPID(clientPID);
-//     clientDataManager->deleteClientTID(clientTID);
+            requests.push_back(request);
+        }
 
-//     // Cleanup
-//     for(Request* req : requests) {
-//         std::vector<Resource*> reqResources = *(req->getResources());
-//         for(int32_t i = 0; i < reqResources.size(); i++) {
-//             free(reqResources[i]);
-//         }
-//         delete(req->getResources());
-//         delete(req);
-//     }
-// }
+        // Add first 50 requests — should be accepted
+        for(int32_t i = 0; i < 50; i++) {
+            int8_t result = rateLimiter->isRateLimitHonored(requests[i]->getClientTID());
+            ASSERT_EQ(result, true);
+        }
 
-// TEST_F(RateLimiterTests, TestClientHealthInCaseOfGoodRequests) {
-//     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
-//     std::shared_ptr<RateLimiter> rateLimiter = RateLimiter::getInstance();
+        // Add 51st request — should be rejected
+        int8_t result = rateLimiter->isRateLimitHonored(requests[50]->getClientTID());
+        ASSERT_EQ(result, false);
 
-//     int32_t clientPID = 999;
-//     int32_t clientTID = 999;
+    } catch(const std::bad_alloc& e) {
+        FAIL();
+    }
 
-//     std::vector<Request*> requests;
+    clientDataManager->deleteClientPID(clientPID);
+    clientDataManager->deleteClientTID(clientTID);
 
-//     // Generate 50 different requests from the same client
-//     for(int32_t i = 0; i < 50; i++) {
-//         std::vector<Resource*>* resources = new std::vector<Resource*>;
-//         resources->push_back(generateResourceForTesting(i + 1));
+    // Cleanup
+    for(Request* req : requests) {
+        Request::cleanUpRequest(req);
+    }
+}
 
-//         Request* req = new Request(REQ_RESOURCE_TUNING, 300 + i, 50, 1, 1, clientPID, clientTID, resources);
-//         if(!clientDataManager->clientExists(req->getClientPID(), req->getClientTID())) {
-//             clientDataManager->createNewClient(req->getClientPID(), req->getClientTID());
-//         }
+TEST_F(RateLimiterTests, TestClientHealthInCaseOfGoodRequests) {
+    std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
+    std::shared_ptr<RateLimiter> rateLimiter = RateLimiter::getInstance();
 
-//         requests.push_back(req);
-//         std::this_thread::sleep_for(std::chrono::seconds(2));
+    int32_t clientPID = 999;
+    int32_t clientTID = 999;
 
-//         ASSERT_EQ(clientDataManager->getHealthByClientID(req->getClientTID()), 100);
-//     }
+    std::vector<Request*> requests;
 
-//     clientDataManager->deleteClientPID(clientPID);
-//     clientDataManager->deleteClientTID(clientTID);
+    try {
+        // Generate 50 different requests from the same client
+        for(int32_t i = 0; i < 50; i++) {
+            Resource* resource = (Resource*) GetBlock<Resource>();
+            resource->mOpId = 16;
+            resource->mOpInfo = 27;
+            resource->mOptionalInfo = 1480;
+            resource->mNumValues = 1;
+            resource->mConfigValue.singleValue = 8;
 
-//     // Cleanup
-//     for(Request* req : requests) {
-//         std::vector<Resource*> reqResources = *(req->getResources());
-//         for(int32_t i = 0; i < reqResources.size(); i++) {
-//             free(reqResources[i]);
-//         }
-//         delete(req->getResources());
-//         delete(req);
-//     }
-// }
+            std::vector<Resource*>* resources =
+                new (GetBlock<std::vector<Resource*>>())std::vector<Resource*>;
+            resources->push_back(resource);
 
-// TEST_F(RateLimiterTests, TestClientSpammingWithGoodRequests) {
-//     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
-//     std::shared_ptr<RateLimiter> rateLimiter = RateLimiter::getInstance();
+            Request* req = new (GetBlock<Request>()) Request;
+            req->setRequestType(REQ_RESOURCE_TUNING);
+            req->setHandle(300 + i);
+            req->setDuration(-1);
+            req->setNumResources(1);
+            req->setPriority(1);
+            req->setClientPID(clientPID);
+            req->setClientTID(clientTID);
+            req->setResources(resources);
 
-//     int32_t clientPID = 999;
-//     int32_t clientTID = 999;
+            if(!clientDataManager->clientExists(req->getClientPID(), req->getClientTID())) {
+                clientDataManager->createNewClient(req->getClientPID(), req->getClientTID());
+            }
 
-//     std::vector<Request*> requests;
+            requests.push_back(req);
+            std::this_thread::sleep_for(std::chrono::seconds(2));
 
-//     // Generate 63 different requests from the same client
-//     for(int32_t i = 0; i < 63; i++) {
-//         std::vector<Resource*>* resources = new std::vector<Resource*>;
-//         resources->push_back(generateResourceForTesting(i + 1));
-//         Request* req = new Request(REQ_RESOURCE_TUNING, 300 + i, 50, 1, 1, clientPID, clientTID, resources);
+            int8_t isRateLimitHonored = rateLimiter->isRateLimitHonored(req->getClientTID());
+            ASSERT_EQ(isRateLimitHonored, true);
+            ASSERT_EQ(clientDataManager->getHealthByClientID(req->getClientTID()), 100);
+        }
 
-//         if(!clientDataManager->clientExists(req->getClientPID(), req->getClientTID())) {
-//             clientDataManager->createNewClient(req->getClientPID(), req->getClientTID());
-//         }
-//         requests.push_back(req);
-//     }
+    } catch(const std::bad_alloc& e) {
+        FAIL();
+    }
 
-//     // Add first 61 requests — should be accepted
-//     for(int32_t i = 0; i < 61; i++) {
-//         if(i % 5 == 0 && i < 50){
-//             std::this_thread::sleep_for(std::chrono::seconds(2));
-//         }
-//         int8_t result = rateLimiter->isRateLimitHonored(requests[i]->getClientTID());
-//         ASSERT_EQ(result, true);
-//     }
+    clientDataManager->deleteClientPID(clientPID);
+    clientDataManager->deleteClientTID(clientTID);
 
-//     // Add 62th request — should be rejected
-//     int8_t result = rateLimiter->isRateLimitHonored(requests[61]->getClientTID());
-//     ASSERT_EQ(result, false);
+    // Cleanup
+    for(Request* req : requests) {
+        Request::cleanUpRequest(req);
+    }
+}
 
-//     clientDataManager->deleteClientPID(clientPID);
-//     clientDataManager->deleteClientTID(clientTID);
+TEST_F(RateLimiterTests, TestClientSpammingWithGoodRequests) {
+    std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
+    std::shared_ptr<RateLimiter> rateLimiter = RateLimiter::getInstance();
 
-//     // Cleanup
-//     for(Request* req : requests) {
-//         std::vector<Resource*> reqResources = *(req->getResources());
-//         for(int32_t i = 0; i < reqResources.size(); i++) {
-//             free(reqResources[i]);
-//         }
-//         delete(req->getResources());
-//         delete(req);
-//     }
-// }
+    int32_t clientPID = 999;
+    int32_t clientTID = 999;
+
+    std::vector<Request*> requests;
+
+    // Generate 63 different requests from the same client
+    try {
+        for(int32_t i = 0; i < 63; i++) {
+            Resource* resource = (Resource*) GetBlock<Resource>();
+            resource->mOpId = 16;
+            resource->mOpInfo = 27;
+            resource->mOptionalInfo = 1480;
+            resource->mNumValues = 1;
+            resource->mConfigValue.singleValue = 8;
+
+            std::vector<Resource*>* resources =
+                new (GetBlock<std::vector<Resource*>>())std::vector<Resource*>;
+            resources->push_back(resource);
+
+            Request* req = new (GetBlock<Request>()) Request;
+            req->setRequestType(REQ_RESOURCE_TUNING);
+            req->setHandle(300 + i);
+            req->setDuration(-1);
+            req->setNumResources(1);
+            req->setPriority(1);
+            req->setClientPID(clientPID);
+            req->setClientTID(clientTID);
+            req->setResources(resources);
+
+            if(!clientDataManager->clientExists(req->getClientPID(), req->getClientTID())) {
+                clientDataManager->createNewClient(req->getClientPID(), req->getClientTID());
+            }
+            requests.push_back(req);
+        }
+
+        // Add first 61 requests — should be accepted
+        for(int32_t i = 0; i < 61; i++) {
+            if(i % 5 == 0 && i < 50){
+                std::this_thread::sleep_for(std::chrono::seconds(2));
+            }
+            int8_t result = rateLimiter->isRateLimitHonored(requests[i]->getClientTID());
+            ASSERT_EQ(result, true);
+        }
+
+        // Add 62th request — should be rejected
+        int8_t result = rateLimiter->isRateLimitHonored(requests[61]->getClientTID());
+        ASSERT_EQ(result, false);
+
+    } catch(const std::bad_alloc& e) {
+        FAIL();
+    }
+
+    clientDataManager->deleteClientPID(clientPID);
+    clientDataManager->deleteClientTID(clientTID);
+
+    // Cleanup
+    for(Request* req : requests) {
+        Request::cleanUpRequest(req);
+    }
+}

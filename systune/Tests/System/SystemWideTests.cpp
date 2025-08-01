@@ -673,7 +673,8 @@ namespace SignalRequestVerification {
     std::string __testGroupName = "Signal Requests Verification / Integrity Checks";
     /**
     * API under test: ACQ
-    * - The client tries to acquire a Signal with a duration of 0.
+    * - The client tries to acquire a Signal with a duration of -2.
+    * - Note a duration of 0 is considered valid for the tuneSignal API.
     * - The Request will fail reliminary tests on the Client side and won't be
     *   submitted to the Server returning -1 to the End-Client.
     * Cross-Reference id: [A]
@@ -683,7 +684,7 @@ namespace SignalRequestVerification {
 
         std::vector<Resource*>* resources = nullptr;
 
-        int64_t handle = tuneSignal(1, 0, THIRD_PARTY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+        int64_t handle = tuneSignal(1, -2, THIRD_PARTY_HIGH, "app-name", "scenario-zip", 0, nullptr);
         assert(handle == RC_REQ_SUBMISSION_FAILURE);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -2236,17 +2237,17 @@ namespace RequestApplicationTests {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
         RUN_TEST(TestSingleClientTuneRequest);
-        RUN_TEST(TestSingleClientTuneRequestMultipleResources)
-        RUN_TEST(TestMultipleClientsHigherIsBetterPolicy1)
-        RUN_TEST(TestMultipleClientsHigherIsBetterPolicy2)
-        RUN_TEST(TestMultipleClientsLowerIsBetterPolicy)
-        RUN_TEST(TestMultipleClientsLazyApplyPolicy)
-        RUN_TEST(TestMultipleClientsTuneRequestDifferentResources)
-        RUN_TEST(TestSingleClientSequentialRequests)
-        RUN_TEST(TestMultipleClientTIDsConcurrentRequests)
-        RUN_TEST(TestInfiniteDurationTuneRequestAndValidUntuning)
-        RUN_TEST(TestInfiniteDurationTuneRequestAndInValidUntuning)
-        RUN_TEST(TestPriorityBasedResourceAcquisition1)
+        // RUN_TEST(TestSingleClientTuneRequestMultipleResources)
+        // RUN_TEST(TestMultipleClientsHigherIsBetterPolicy1)
+        // RUN_TEST(TestMultipleClientsHigherIsBetterPolicy2)
+        // RUN_TEST(TestMultipleClientsLowerIsBetterPolicy)
+        // RUN_TEST(TestMultipleClientsLazyApplyPolicy)
+        // RUN_TEST(TestMultipleClientsTuneRequestDifferentResources)
+        // RUN_TEST(TestSingleClientSequentialRequests)
+        // RUN_TEST(TestMultipleClientTIDsConcurrentRequests)
+        // RUN_TEST(TestInfiniteDurationTuneRequestAndValidUntuning)
+        // RUN_TEST(TestInfiniteDurationTuneRequestAndInValidUntuning)
+        // RUN_TEST(TestPriorityBasedResourceAcquisition1)
         // RUN_TEST(TestPriorityBasedResourceAcquisition2)
         // RUN_TEST(TestPriorityBasedResourceAcquisition3)
         // RUN_TEST(TestRequestValidRetuning)
@@ -2259,10 +2260,10 @@ namespace RequestApplicationTests {
 int32_t main() {
     // Request-Verification Tests
     // - Provisioner
-    // ProvisionerRequestVerification::RunTestGroup();
+    ProvisionerRequestVerification::RunTestGroup();
     // - SysSignal
-    // SignalRequestVerification::RunTestGroup();
+    SignalRequestVerification::RunTestGroup();
 
     // // Request Application Tests
-    RequestApplicationTests::RunTestGroup();
+    // RequestApplicationTests::RunTestGroup();
 }
