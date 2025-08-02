@@ -1,12 +1,20 @@
+/**
+ * @brief Sample Usage of Systune APIs.
+ *
+ * @example SystuneCoreAPIs.cpp
+ * This files covers examples of the following APIs:
+ * - tuneResources
+ * - retuneResources
+ * - untuneResources
+ */
 #include <SystuneAPIs.h>
 
+// EXAMPLE #1
 // In the following Example the Client Sends:
-// - A Resource Provisioning (Tune) Request to Tune 1 or more Resources
-// - Issues an Untune Request to Withdraw (or De-Provision) a Previously
-//   Issued Tune Request
+// - A Resource Provisioning (Tune) Request to Tune 1 Resource
 
-// We try to Provision a Single Resource as part of this Request,
-// The Resource Config for this Resource is as follows:
+// i.e. We try to Provision a Single Resource as part of this Request,
+// The Resource Config for this Resource is as follows (note Configs are specified as JSON files):
 
 /*
 Resource:
@@ -108,6 +116,8 @@ void func1() {
 
     // Finally we can issue  the Resource Provisioning (or Tune) Request
     int64_t handle = tuneResources(duration, properties, resources->size(), resources);
+
+    // Check the Returned Handle
     if(RC_IS_OK(handle)) {
         std::cout<<"Handle Returned is: "<<handle<<std::endl;
     } else {
