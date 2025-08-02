@@ -17,14 +17,25 @@ static void dumpRequest(Signal* clientReq) {
     LOGD(LOG_TAG, "Priority: " + std::to_string(clientReq->getPriority()));
 }
 
-static int32_t getRequestPriority(int8_t clientPermissions, int8_t reqSpecifiedPriority) {
+static int8_t getRequestPriority(int8_t clientPermissions, int8_t reqSpecifiedPriority) {
     if(clientPermissions == PERMISSION_SYSTEM) {
-        return reqSpecifiedPriority;
+        switch(reqSpecifiedPriority) {
+            case RequestPriority::REQ_PRIORITY_HIGH:
+                return SYSTEM_HIGH;
+            case RequestPriority::REQ_PRIORITY_LOW:
+                return SYSTEM_LOW;
+            default:
+                return -1;
+        }
+
     } else if(clientPermissions == PERMISSION_THIRD_PARTY) {
-        if(reqSpecifiedPriority == SYSTEM_HIGH || reqSpecifiedPriority == SYSTEM_LOW) {
-            return -1;
-        } else {
-            return reqSpecifiedPriority;
+        switch(reqSpecifiedPriority) {
+            case RequestPriority::REQ_PRIORITY_HIGH:
+                return THIRD_PARTY_HIGH;
+            case RequestPriority::REQ_PRIORITY_LOW:
+                return THIRD_PARTY_LOW;
+            default:
+                return -1;
         }
     }
 
@@ -58,20 +69,16 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
         return false;
     }
 
-    int32_t reqSpecifiedPriority = signal->getPriority();
-    if(reqSpecifiedPriority >= TOTAL_PRIORITIES || reqSpecifiedPriority < -1) {
+    int8_t reqSpecifiedPriority = signal->getPriority();
+    if(reqSpecifiedPriority > RequestPriority::REQ_PRIORITY_LOW ||
+       reqSpecifiedPriority < RequestPriority::REQ_PRIORITY_HIGH) {
         LOGI("URM_SIGNAL_SERVER_REQUESTS", "Priority Level = " +
              std::to_string(reqSpecifiedPriority) + "is not a valid value");
         return false;
     }
 
-    int32_t allowedPriority = getRequestPriority(clientPermissions, signal->getPriority());
-    if(allowedPriority == -1 || reqSpecifiedPriority > allowedPriority) {
-        LOGI("URM_SIGNAL_SERVER_REQUESTS",
-             "Client does not have sufficient Permissions to acquire the specified Priority Level");
-        return false;
-    }
-
+    int8_t allowedPriority = getRequestPriority(clientPermissions, reqSpecifiedPriority);
+    if(allowedPriority == -1) return false;
     signal->setPriority(allowedPriority);
 
     // Check if the Signal is enabled for provisioning
@@ -235,7 +242,7 @@ static Request* createResourceTuningRequest(Signal* signal) {
         if(i % 2 == 0) {
             try {
                 resource = (Resource*) (GetBlock<Resource>());
-                resource->mOpId = (*signalLocks)[i];
+                resource->mOpCode = (*signalLocks)[i];
 
             } catch(const std::bad_alloc& e) {
                 LOGE("URM_SIGNAL_SERVER",

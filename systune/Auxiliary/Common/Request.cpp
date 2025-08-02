@@ -40,6 +40,10 @@ CocoNode* Request::getCocoNodeAt(int32_t index) {
     return (*this->mCocoNodes)[index];
 }
 
+Timer* Request::getTimer() {
+    return this->mTimer;
+}
+
 void Request::setNumResources(int32_t numResources) {
     this->mNumResources = numResources;
 }
@@ -61,8 +65,8 @@ void Request::setTimer(Timer* timer) {
     this->mTimer = timer;
 }
 
-void Request::updateTimer(int64_t newDuration) {
-    this->mTimer->updateTimer(newDuration);
+void Request::unsetTimer() {
+    this->mTimer = nullptr;
 }
 
 // Use cleanpUpRequest for clearing a Request and it's associated components
@@ -115,7 +119,7 @@ ErrCode Request::serialize(char* buf) {
                 return RC_INVALID_VALUE;
             }
 
-            ASSIGN_AND_INCR(ptr, resource->mOpId);
+            ASSIGN_AND_INCR(ptr, resource->mOpCode);
             ASSIGN_AND_INCR(ptr, resource->mOpInfo);
             ASSIGN_AND_INCR(ptr, resource->mOptionalInfo);
             ASSIGN_AND_INCR(ptr, resource->mNumValues);
@@ -166,7 +170,7 @@ ErrCode Request::deserialize(char* buf) {
             for(int32_t i = 0; i < this->getResourcesCount(); i++) {
                 Resource* resource = (Resource*) (GetBlock<Resource>());
 
-                resource->mOpId = DEREF_AND_INCR(ptr, int32_t);
+                resource->mOpCode = DEREF_AND_INCR(ptr, int32_t);
                 resource->mOpInfo = DEREF_AND_INCR(ptr, int32_t);
                 resource->mOptionalInfo = DEREF_AND_INCR(ptr, int32_t);
                 resource->mNumValues = DEREF_AND_INCR(ptr, int32_t);
@@ -231,6 +235,12 @@ void Request::cleanUpRequest(Request* request) {
         FreeBlock<std::vector<CocoNode*>>
                 (static_cast<void*>(request->mCocoNodes));
         request->mCocoNodes = nullptr;
+    }
+
+    // Free timer block
+    if(request->mTimer != nullptr) {
+        FreeBlock<Timer>(static_cast<void*>(request->mTimer));
+        request->mTimer = nullptr;
     }
 
     FreeBlock<Request>(static_cast<void*>(request));

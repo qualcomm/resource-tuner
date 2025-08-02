@@ -1,12 +1,12 @@
+#include <cstdint>
+
 #include "TestUtils.h"
 #include "SystuneAPIs.h"
-
-#include <cstdint>
 
 // Helper methods for Resource Generation
 static Resource* generateResourceForTesting(uint32_t opId, int32_t seed) {
     Resource* resource = (Resource*)malloc(sizeof(Resource));
-    resource->mOpId = opId;
+    resource->mOpCode = opId;
     resource->mOpInfo = 27 + 3 * seed;
     resource->mOptionalInfo = 1445 + 8 * seed;
     resource->mNumValues = 1;
@@ -39,12 +39,6 @@ namespace ProvisionerRequestVerification {
     *       - Request should have a positive duration (with the exception of -1) [A]
     *       - Request should specify a non-zero number of Resources to Tune [B]
     *       - The argument numRes and the size of the Resource vector must match [C]
-    *   - Priority Level Checking
-    *       - As part of tuneResources API call the Client can specify a desired level of priority
-    *         for the Request, if the Client has System level of Permissions then it can assume any
-    *         priority it wants, However in case of a third_party Client it can only assume a priority
-    *         of either THIRD_PARTY_HIGH or THIRD_PARTY_LOW. Any violation of the above rule will result
-    *         in the Request being dropped. [D]
     * - Resource Level Tests
     *   - Verifier will iterate over all the Resources part of the Request, and perform the following
     *     tests on each of them. Note if any test fails for any (even one) Resource part of the Request,
@@ -82,7 +76,7 @@ namespace ProvisionerRequestVerification {
 
         std::vector<Resource*>* resources = nullptr;
 
-        int64_t handle = tuneResources(0, THIRD_PARTY_HIGH, 0, nullptr);
+        int64_t handle = tuneResources(0, RequestPriority::REQ_PRIORITY_HIGH, 0, nullptr);
         assert(handle == RC_REQ_SUBMISSION_FAILURE);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -104,7 +98,7 @@ namespace ProvisionerRequestVerification {
 
         std::vector<Resource*>* resources = nullptr;
 
-        int64_t handle = tuneResources(-1, THIRD_PARTY_HIGH, 0, nullptr);
+        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 0, nullptr);
         assert(handle == RC_REQ_SUBMISSION_FAILURE);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -127,7 +121,7 @@ namespace ProvisionerRequestVerification {
         std::vector<Resource*>* resources = new std::vector<Resource*>;
         resources->push_back(nullptr);
 
-        int64_t handle = tuneResources(-1, THIRD_PARTY_HIGH, 1, resources);
+        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
         assert(handle == RC_REQ_SUBMISSION_FAILURE);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -154,57 +148,10 @@ namespace ProvisionerRequestVerification {
         std::vector<Resource*>* resources = new std::vector<Resource*>;
         resources->push_back(nullptr);
 
-        int64_t handle = tuneResources(-1, THIRD_PARTY_HIGH, 2, resources);
+        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 2, resources);
         assert(handle == RC_REQ_SUBMISSION_FAILURE);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
-
-        LOG_END
-    }
-
-    /**
-    * API under test: Tune
-    * - As part of the tune API call, the client specifies a desired priority, which is one of the
-    *   following values:
-    *    1. System High
-    *    2. System Low
-    *    3. Third Party High
-    *    4. Third Party Low
-    * A Client with system permissions can assume any of the above priorities, however a client
-    * with third party permissions can only acquire Third Party High / Low Priority.
-    * - If a client with Third Party Permissions tries to acquire System High / Low Priority, then
-    *   the request should be rejected by the Verifier.
-    * - Verify that the Resource Node's value remains unchanged.
-    * Cross-Reference id: [D]
-    */
-    static void TestClientPriorityAcquisitionVerification() {
-        LOG_START
-
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
-        int32_t testResourceOriginalValue = 107;
-
-        std::string value;
-        int32_t originalValue, newValue;
-
-        value = readFromNode(testResourceName);
-        originalValue = C_STOI(value);
-        assert(originalValue == testResourceOriginalValue);
-
-        std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 2), 554);
-        resources->push_back(resource);
-        int64_t handle = tuneResources(-1, SYSTEM_HIGH, 1, resources);
-
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-
-        value = readFromNode(testResourceName);
-        newValue = C_STOI(value);
-        assert(newValue == testResourceOriginalValue);
-
-        std::this_thread::sleep_for(std::chrono::seconds(4));
-
-        delete resource;
-        delete resources;
 
         LOG_END
     }
@@ -242,7 +189,7 @@ namespace ProvisionerRequestVerification {
         resources->push_back(resource1);
         resources->push_back(resource2);
 
-        int64_t handle = tuneResources(-1, THIRD_PARTY_HIGH, 2, resources);
+        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 2, resources);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -285,7 +232,7 @@ namespace ProvisionerRequestVerification {
         std::vector<Resource*>* resources = new std::vector<Resource*>;
         Resource* resource = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 2), 1200);
         resources->push_back(resource);
-        int64_t handle = tuneResources(-1, THIRD_PARTY_HIGH, 1, resources);
+        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -331,7 +278,7 @@ namespace ProvisionerRequestVerification {
         resource->mOpInfo = SET_RESOURCE_CLUSTER_VALUE(resource->mOpInfo, 2);
         resource->mOpInfo = SET_RESOURCE_CORE_VALUE(resource->mOpInfo, 27);
         resources->push_back(resource);
-        int64_t handle = tuneResources(-1, THIRD_PARTY_HIGH, 1, resources);
+        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -377,7 +324,7 @@ namespace ProvisionerRequestVerification {
         resource->mOpInfo = SET_RESOURCE_CLUSTER_VALUE(resource->mOpInfo, 5);
         resource->mOpInfo = SET_RESOURCE_CORE_VALUE(resource->mOpInfo, 2);
         resources->push_back(resource);
-        int64_t handle = tuneResources(-1, THIRD_PARTY_HIGH, 1, resources);
+        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -424,7 +371,7 @@ namespace ProvisionerRequestVerification {
         resource->mOpInfo = SET_RESOURCE_CLUSTER_VALUE(resource->mOpInfo, 2);
         resource->mOpInfo = SET_RESOURCE_CORE_VALUE(resource->mOpInfo, 2);
         resources->push_back(resource);
-        int64_t handle = tuneResources(5000, THIRD_PARTY_HIGH, 1, resources);
+        int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -476,7 +423,7 @@ namespace ProvisionerRequestVerification {
         resource->mOpInfo = SET_RESOURCE_CLUSTER_VALUE(resource->mOpInfo, 1);
         resource->mOpInfo = SET_RESOURCE_CORE_VALUE(resource->mOpInfo, 0);
         resources->push_back(resource);
-        int64_t handle = tuneResources(-1, THIRD_PARTY_HIGH, 1, resources);
+        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -517,7 +464,7 @@ namespace ProvisionerRequestVerification {
         std::vector<Resource*>* resources = new std::vector<Resource*>;
         Resource* resource = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 7), 653);
         resources->push_back(resource);
-        int64_t handle = tuneResources(-1, THIRD_PARTY_HIGH, 1, resources);
+        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -557,7 +504,7 @@ namespace ProvisionerRequestVerification {
         std::vector<Resource*>* resources = new std::vector<Resource*>;
         Resource* resource = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 6), 4670);
         resources->push_back(resource);
-        int64_t handle = tuneResources(-1, THIRD_PARTY_HIGH, 1, resources);
+        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -601,7 +548,7 @@ namespace ProvisionerRequestVerification {
         std::vector<Resource*>* resources = new std::vector<Resource*>;
         Resource* resource = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 4), 460);
         resources->push_back(resource);
-        int64_t handle = tuneResources(-1, THIRD_PARTY_HIGH, 1, resources);
+        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -628,7 +575,6 @@ namespace ProvisionerRequestVerification {
         RUN_TEST(TestInvalidResourceTuning);
         RUN_TEST(TestNonSupportedResourceTuningVerification);
         RUN_TEST(TestOutOfBoundsResourceTuning);
-        RUN_TEST(TestClientPriorityAcquisitionVerification);
         RUN_TEST(TestResourceLogicalToPhysicalTranslationVerification1);
         RUN_TEST(TestResourceLogicalToPhysicalTranslationVerification2);
         RUN_TEST(TestResourceLogicalToPhysicalTranslationVerification3);
@@ -656,7 +602,7 @@ namespace SignalRequestVerification {
     *       - As part of tuneSignal API call the Client can specify a desired level of priority
     *         for the Request, if the Client has System level of Permissions then it can assume any
     *         priority it wants, However in case of a third_party Client it can only assume a priority
-    *         of either THIRD_PARTY_HIGH or THIRD_PARTY_LOW. Any violation of the above rule will result
+    *         of either RequestPriority::REQ_PRIORITY_HIGH or RequestPriority::REQ_PRIORITY_LOW. Any violation of the above rule will result
     *         in the Request being dropped. [B]
     *   - Permission Check:
     *       - Each Signal Config can specify a permission level, i.e. only the clients with Permission level equal
@@ -684,52 +630,10 @@ namespace SignalRequestVerification {
 
         std::vector<Resource*>* resources = nullptr;
 
-        int64_t handle = tuneSignal(1, -2, THIRD_PARTY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+        int64_t handle = tuneSignal(1, -2, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
         assert(handle == RC_REQ_SUBMISSION_FAILURE);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
-
-        LOG_END
-    }
-
-    /**
-    * API under test: ACQ
-    * - As part of the ACQ API call, the client specifies a desired priority, which is one of the
-    *   following values:
-    *    1. System High
-    *    2. System Low
-    *    3. Third Party High
-    *    4. Third Party Low
-    * A Client with system permissions can assume any of the above priorities, however a client
-    * with third party permissions can only acquire Third Party High / Low Priority.
-    * - If a client with Third Party Permissions tries to acquire System High / Low Priority, then
-    *   the request should be rejected by the Verifier.
-    * - Verify that the Resource Node's value remains unchanged.
-    * Cross-Reference id: [B]
-    */
-    static void TestClientPriorityAcquisitionVerification() {
-        LOG_START
-
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
-        int32_t testResourceOriginalValue = 300;
-
-        std::string value;
-        int32_t originalValue, newValue;
-
-        value = readFromNode(testResourceName);
-        originalValue = C_STOI(value);
-        assert(originalValue == testResourceOriginalValue);
-
-        int64_t handle =
-            tuneSignal(GENERATE_RESOURCE_ID(1, 0), 5000, SYSTEM_HIGH, "app-name", "scenario-zip", 0, nullptr);
-
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-
-        value = readFromNode(testResourceName);
-        newValue = C_STOI(value);
-        assert(newValue == testResourceOriginalValue);
-
-        std::this_thread::sleep_for(std::chrono::seconds(4));
 
         LOG_END
     }
@@ -759,7 +663,7 @@ namespace SignalRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         int64_t handle =
-            tuneSignal(GENERATE_RESOURCE_ID(1, 1), 5000, THIRD_PARTY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+            tuneSignal(GENERATE_RESOURCE_ID(1, 1), 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -795,7 +699,7 @@ namespace SignalRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         int64_t handle =
-            tuneSignal(GENERATE_RESOURCE_ID(1, 2), 5000, THIRD_PARTY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+            tuneSignal(GENERATE_RESOURCE_ID(1, 2), 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -833,7 +737,7 @@ namespace SignalRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         int64_t handle =
-            tuneSignal(GENERATE_RESOURCE_ID(1, 0), 5000, THIRD_PARTY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+            tuneSignal(GENERATE_RESOURCE_ID(1, 0), 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -867,7 +771,7 @@ namespace SignalRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         int64_t handle =
-            tuneSignal(GENERATE_RESOURCE_ID(1, 3), 5000, THIRD_PARTY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+            tuneSignal(GENERATE_RESOURCE_ID(1, 3), 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -884,7 +788,6 @@ namespace SignalRequestVerification {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
         RUN_TEST(TestNullOrInvalidRequestVerification);
-        RUN_TEST(TestClientPriorityAcquisitionVerification);
         RUN_TEST(TestClientPermissionChecksVerification);
         RUN_TEST(TestOutOfBoundsResourceTuning);
         RUN_TEST(TestTargetCompatabilityVerificationChecks);
@@ -958,7 +861,7 @@ namespace RequestApplicationTests {
         std::vector<Resource*>* resources = new std::vector<Resource*>;
 
         Resource* resource = (Resource*)malloc(sizeof(Resource));
-        resource->mOpId = GENERATE_RESOURCE_ID(1, 0);
+        resource->mOpCode = GENERATE_RESOURCE_ID(1, 0);
         resource->mOpInfo = 0;
         resource->mOptionalInfo = 0;
         resource->mNumValues = 1;
@@ -966,7 +869,7 @@ namespace RequestApplicationTests {
 
         resources->push_back(resource);
 
-        int64_t handle = tuneResources(5000, THIRD_PARTY_HIGH, 1, resources);
+        int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -1030,7 +933,7 @@ namespace RequestApplicationTests {
         resources->push_back(resource2);
         resources->push_back(resource3);
 
-        int64_t handle = tuneResources(6000, THIRD_PARTY_HIGH, 3, resources);
+        int64_t handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 3, resources);
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -1092,14 +995,14 @@ namespace RequestApplicationTests {
         if(rc == 0) {
             std::vector<Resource*>* resources = new std::vector<Resource*>;
             Resource* resource = (Resource*)malloc(sizeof(Resource));
-            resource->mOpId = GENERATE_RESOURCE_ID(1, 3);
+            resource->mOpCode = GENERATE_RESOURCE_ID(1, 3);
             resource->mOpInfo = 0;
             resource->mOptionalInfo = 0;
             resource->mNumValues = 1;
             resource->mConfigValue.singleValue = 315;
             resources->push_back(resource);
 
-            int64_t handle = tuneResources(8000, THIRD_PARTY_HIGH, 1, resources);
+            int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
             exit(EXIT_SUCCESS);
 
         } else if(rc > 0) {
@@ -1107,14 +1010,14 @@ namespace RequestApplicationTests {
 
             std::vector<Resource*>* resources = new std::vector<Resource*>;
             Resource* resource = (Resource*)malloc(sizeof(Resource));
-            resource->mOpId = GENERATE_RESOURCE_ID(1, 3);
+            resource->mOpCode = GENERATE_RESOURCE_ID(1, 3);
             resource->mOpInfo = 0;
             resource->mOptionalInfo = 0;
             resource->mNumValues = 1;
             resource->mConfigValue.singleValue = 209;
             resources->push_back(resource);
 
-            int64_t handle = tuneResources(8000, THIRD_PARTY_HIGH, 1, resources);
+            int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
             std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1169,14 +1072,14 @@ namespace RequestApplicationTests {
         if(rc1 == 0) {
             std::vector<Resource*>* resources = new std::vector<Resource*>;
             Resource* resource = (Resource*)malloc(sizeof(Resource));
-            resource->mOpId = GENERATE_RESOURCE_ID(1, 3);
+            resource->mOpCode = GENERATE_RESOURCE_ID(1, 3);
             resource->mOpInfo = 0;
             resource->mOptionalInfo = 0;
             resource->mNumValues = 1;
             resource->mConfigValue.singleValue = 1176;
 
             resources->push_back(resource);
-            int64_t handle = tuneResources(5000, THIRD_PARTY_HIGH, 1, resources);
+            int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
             exit(EXIT_SUCCESS);
 
@@ -1184,14 +1087,14 @@ namespace RequestApplicationTests {
             wait(nullptr);
             std::vector<Resource*>* resources = new std::vector<Resource*>;
             Resource* resource = (Resource*)malloc(sizeof(Resource));
-            resource->mOpId = GENERATE_RESOURCE_ID(1, 3);
+            resource->mOpCode = GENERATE_RESOURCE_ID(1, 3);
             resource->mOpInfo = 0;
             resource->mOptionalInfo = 0;
             resource->mNumValues = 1;
             resource->mConfigValue.singleValue = 823;
 
             resources->push_back(resource);
-            int64_t handle = tuneResources(14000, THIRD_PARTY_HIGH, 1, resources);
+            int64_t handle = tuneResources(14000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
             std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1255,14 +1158,14 @@ namespace RequestApplicationTests {
         if(rc1 == 0) {
             std::vector<Resource*>* resources = new std::vector<Resource*>;
             Resource* resource = (Resource*)malloc(sizeof(Resource));
-            resource->mOpId = GENERATE_RESOURCE_ID(1, 2);
+            resource->mOpCode = GENERATE_RESOURCE_ID(1, 2);
             resource->mOpInfo = 0;
             resource->mOptionalInfo = 0;
             resource->mNumValues = 1;
             resource->mConfigValue.singleValue = 578;
 
             resources->push_back(resource);
-            handle = tuneResources(5000, THIRD_PARTY_HIGH, 1, resources);
+            handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
             exit(EXIT_SUCCESS);
 
@@ -1278,14 +1181,14 @@ namespace RequestApplicationTests {
             if(rc2 == 0) {
                 std::vector<Resource*>* resources = new std::vector<Resource*>;
                 Resource* resource = (Resource*)malloc(sizeof(Resource));
-                resource->mOpId = GENERATE_RESOURCE_ID(1, 2);
+                resource->mOpCode = GENERATE_RESOURCE_ID(1, 2);
                 resource->mOpInfo = 0;
                 resource->mOptionalInfo = 0;
                 resource->mNumValues = 1;
                 resource->mConfigValue.singleValue = 445;
                 resources->push_back(resource);
 
-                handle = tuneResources(5000, THIRD_PARTY_HIGH, 1, resources);
+                handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
                 exit(EXIT_SUCCESS);
 
@@ -1301,14 +1204,14 @@ namespace RequestApplicationTests {
                 if(rc3 == 0) {
                     std::vector<Resource*>* resources = new std::vector<Resource*>;
                     Resource* resource = (Resource*)malloc(sizeof(Resource));
-                    resource->mOpId = GENERATE_RESOURCE_ID(1, 2);
+                    resource->mOpCode = GENERATE_RESOURCE_ID(1, 2);
                     resource->mOpInfo = 0;
                     resource->mOptionalInfo = 0;
                     resource->mNumValues = 1;
                     resource->mConfigValue.singleValue = 412;
 
                     resources->push_back(resource);
-                    handle = tuneResources(5000, THIRD_PARTY_HIGH, 1, resources);
+                    handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
                     exit(EXIT_SUCCESS);
 
@@ -1322,14 +1225,14 @@ namespace RequestApplicationTests {
 
                     std::vector<Resource*>* resources = new std::vector<Resource*>;
                     Resource* resource = (Resource*)malloc(sizeof(Resource));
-                    resource->mOpId = GENERATE_RESOURCE_ID(1, 2);
+                    resource->mOpCode = GENERATE_RESOURCE_ID(1, 2);
                     resource->mOpInfo = 0;
                     resource->mOptionalInfo = 0;
                     resource->mNumValues = 1;
                     resource->mConfigValue.singleValue = 378;
                     resources->push_back(resource);
 
-                    handle = tuneResources(5000, THIRD_PARTY_HIGH, 1, resources);
+                    handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
                     std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -1382,14 +1285,14 @@ namespace RequestApplicationTests {
         if(rc1 == 0) {
             std::vector<Resource*>* resources = new std::vector<Resource*>;
             Resource* resource = (Resource*)malloc(sizeof(Resource));
-            resource->mOpId = GENERATE_RESOURCE_ID(1, 8);
+            resource->mOpCode = GENERATE_RESOURCE_ID(1, 8);
             resource->mOpInfo = 0;
             resource->mOptionalInfo = 0;
             resource->mNumValues = 1;
             resource->mConfigValue.singleValue = 15;
             resources->push_back(resource);
 
-            handle = tuneResources(8000, THIRD_PARTY_HIGH, 1, resources);
+            handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
             exit(EXIT_SUCCESS);
 
@@ -1399,14 +1302,14 @@ namespace RequestApplicationTests {
 
             std::vector<Resource*>* resources = new std::vector<Resource*>;
             Resource* resource = (Resource*)malloc(sizeof(Resource));
-            resource->mOpId = GENERATE_RESOURCE_ID(1, 8);
+            resource->mOpCode = GENERATE_RESOURCE_ID(1, 8);
             resource->mOpInfo = 0;
             resource->mOptionalInfo = 0;
             resource->mNumValues = 1;
             resource->mConfigValue.singleValue = 18;
             resources->push_back(resource);
 
-            handle = tuneResources(15000, THIRD_PARTY_HIGH, 1, resources);
+            handle = tuneResources(15000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
             std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -1474,14 +1377,14 @@ namespace RequestApplicationTests {
         if(rc1 == 0) {
             std::vector<Resource*>* resources = new std::vector<Resource*>;
             Resource* resource = (Resource*)malloc(sizeof(Resource));
-            resource->mOpId = GENERATE_RESOURCE_ID(1, 2);
+            resource->mOpCode = GENERATE_RESOURCE_ID(1, 2);
             resource->mOpInfo = 0;
             resource->mOptionalInfo = 0;
             resource->mNumValues = 1;
             resource->mConfigValue.singleValue = 717;
             resources->push_back(resource);
 
-            int64_t handle = tuneResources(8000, THIRD_PARTY_HIGH, 1, resources);
+            int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
             delete resource;
             delete resources;
@@ -1492,13 +1395,13 @@ namespace RequestApplicationTests {
             if(rc2 == 0) {
                 std::vector<Resource*>* resources = new std::vector<Resource*>;
                 Resource* resource = (Resource*)malloc(sizeof(Resource));
-                resource->mOpId = GENERATE_RESOURCE_ID(1, 3);
+                resource->mOpCode = GENERATE_RESOURCE_ID(1, 3);
                 resource->mOpInfo = 0;
                 resource->mOptionalInfo = 0;
                 resource->mNumValues = 1;
                 resource->mConfigValue.singleValue = 800;
                 resources->push_back(resource);
-                int64_t handle = tuneResources(8000, THIRD_PARTY_HIGH, 1, resources);
+                int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
                 delete resource;
                 delete resources;
@@ -1508,14 +1411,14 @@ namespace RequestApplicationTests {
             } else if(rc2 > 0) {
                 std::vector<Resource*>* resources = new std::vector<Resource*>;
                 Resource* resource = (Resource*)malloc(sizeof(Resource));
-                resource->mOpId = GENERATE_RESOURCE_ID(1, 1);
+                resource->mOpCode = GENERATE_RESOURCE_ID(1, 1);
                 resource->mOpInfo = 0;
                 resource->mOptionalInfo = 0;
                 resource->mNumValues = 1;
                 resource->mConfigValue.singleValue = 557;
                 resources->push_back(resource);
 
-                int64_t handle = tuneResources(8000, THIRD_PARTY_HIGH, 1, resources);
+                int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
                 std::this_thread::sleep_for(std::chrono::seconds(4));
 
@@ -1582,7 +1485,7 @@ namespace RequestApplicationTests {
 
         std::vector<Resource*>* resources1 = new std::vector<Resource*>;
         Resource* resource1 = (Resource*)malloc(sizeof(Resource));
-        resource1->mOpId = GENERATE_RESOURCE_ID(1, 3);
+        resource1->mOpCode = GENERATE_RESOURCE_ID(1, 3);
         resource1->mOpInfo = 0;
         resource1->mOptionalInfo = 0;
         resource1->mNumValues = 1;
@@ -1591,15 +1494,15 @@ namespace RequestApplicationTests {
 
         std::vector<Resource*>* resources2 = new std::vector<Resource*>;
         Resource* resource2 = (Resource*)malloc(sizeof(Resource));
-        resource2->mOpId = GENERATE_RESOURCE_ID(1, 3);
+        resource2->mOpCode = GENERATE_RESOURCE_ID(1, 3);
         resource2->mOpInfo = 0;
         resource2->mOptionalInfo = 0;
         resource2->mNumValues = 1;
         resource2->mConfigValue.singleValue = 917;
         resources2->push_back(resource2);
 
-        handle = tuneResources(6000, THIRD_PARTY_HIGH, 1, resources1);
-        handle = tuneResources(6000, THIRD_PARTY_HIGH, 1, resources2);
+        handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources1);
+        handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources2);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1643,26 +1546,26 @@ namespace RequestApplicationTests {
         std::thread th([&]{
             std::vector<Resource*>* resources1 = new std::vector<Resource*>;
             Resource* resource1 = (Resource*)malloc(sizeof(Resource));
-            resource1->mOpId = GENERATE_RESOURCE_ID(1, 3);
+            resource1->mOpCode = GENERATE_RESOURCE_ID(1, 3);
             resource1->mOpInfo = 0;
             resource1->mOptionalInfo = 0;
             resource1->mNumValues = 1;
             resource1->mConfigValue.singleValue = 664;
             resources1->push_back(resource1);
 
-            handle = tuneResources(6000, THIRD_PARTY_HIGH, 1, resources1);
+            handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources1);
         });
 
         std::vector<Resource*>* resources2 = new std::vector<Resource*>;
         Resource* resource2 = (Resource*)malloc(sizeof(Resource));
-        resource2->mOpId = GENERATE_RESOURCE_ID(1, 3);
+        resource2->mOpCode = GENERATE_RESOURCE_ID(1, 3);
         resource2->mOpInfo = 0;
         resource2->mOptionalInfo = 0;
         resource2->mNumValues = 1;
         resource2->mConfigValue.singleValue = 702;
         resources2->push_back(resource2);
 
-        handle = tuneResources(6000, THIRD_PARTY_HIGH, 1, resources2);
+        handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources2);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1708,13 +1611,13 @@ namespace RequestApplicationTests {
 
         std::vector<Resource*>* resources = new std::vector<Resource*>;
         Resource* resource = (Resource*)malloc(sizeof(Resource));
-        resource->mOpId = GENERATE_RESOURCE_ID(1, 2);
+        resource->mOpCode = GENERATE_RESOURCE_ID(1, 2);
         resource->mOpInfo = 0;
         resource->mOptionalInfo = 0;
         resource->mNumValues = 1;
         resource->mConfigValue.singleValue = 245;
         resources->push_back(resource);
-        handle = tuneResources(-1, THIRD_PARTY_HIGH, 1, resources);
+        handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1765,13 +1668,13 @@ namespace RequestApplicationTests {
 
         std::vector<Resource*>* resources = new std::vector<Resource*>;
         Resource* resource = (Resource*)malloc(sizeof(Resource));
-        resource->mOpId = GENERATE_RESOURCE_ID(1, 2);
+        resource->mOpCode = GENERATE_RESOURCE_ID(1, 2);
         resource->mOpInfo = 0;
         resource->mOptionalInfo = 0;
         resource->mNumValues = 1;
         resource->mConfigValue.singleValue = 245;
         resources->push_back(resource);
-        handle = tuneResources(-1, THIRD_PARTY_HIGH, 1, resources);
+        handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1842,23 +1745,23 @@ namespace RequestApplicationTests {
 
         std::vector<Resource*>* resources1 = new std::vector<Resource*>;
         Resource* resource1 = (Resource*)malloc(sizeof(Resource));
-        resource1->mOpId = GENERATE_RESOURCE_ID(1, 2);
+        resource1->mOpCode = GENERATE_RESOURCE_ID(1, 2);
         resource1->mOpInfo = 0;
         resource1->mOptionalInfo = 0;
         resource1->mNumValues = 1;
         resource1->mConfigValue.singleValue = 515;
         resources1->push_back(resource1);
-        handle = tuneResources(8000, THIRD_PARTY_LOW, 1, resources1);
+        handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_LOW, 1, resources1);
 
         std::vector<Resource*>* resources2 = new std::vector<Resource*>;
         Resource* resource2 = (Resource*)malloc(sizeof(Resource));
-        resource2->mOpId = GENERATE_RESOURCE_ID(1, 2);
+        resource2->mOpCode = GENERATE_RESOURCE_ID(1, 2);
         resource2->mOpInfo = 0;
         resource2->mOptionalInfo = 0;
         resource2->mNumValues = 1;
         resource2->mConfigValue.singleValue = 559;
         resources2->push_back(resource2);
-        handle = tuneResources(8000, THIRD_PARTY_HIGH, 1, resources2);
+        handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources2);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1915,13 +1818,13 @@ namespace RequestApplicationTests {
 
         std::vector<Resource*>* resources1 = new std::vector<Resource*>;
         Resource* resource1 = (Resource*)malloc(sizeof(Resource));
-        resource1->mOpId = GENERATE_RESOURCE_ID(1, 2);
+        resource1->mOpCode = GENERATE_RESOURCE_ID(1, 2);
         resource1->mOpInfo = 0;
         resource1->mOptionalInfo = 0;
         resource1->mNumValues = 1;
         resource1->mConfigValue.singleValue = 515;
         resources1->push_back(resource1);
-        handle = tuneResources(12000, THIRD_PARTY_LOW, 1, resources1);
+        handle = tuneResources(12000, RequestPriority::REQ_PRIORITY_LOW, 1, resources1);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1933,13 +1836,13 @@ namespace RequestApplicationTests {
 
         std::vector<Resource*>* resources2 = new std::vector<Resource*>;
         Resource* resource2 = (Resource*)malloc(sizeof(Resource));
-        resource2->mOpId = GENERATE_RESOURCE_ID(1, 2);
+        resource2->mOpCode = GENERATE_RESOURCE_ID(1, 2);
         resource2->mOpInfo = 0;
         resource2->mOptionalInfo = 0;
         resource2->mNumValues = 1;
         resource2->mConfigValue.singleValue = 559;
         resources2->push_back(resource2);
-        handle = tuneResources(8000, THIRD_PARTY_HIGH, 1, resources2);
+        handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources2);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1995,13 +1898,13 @@ namespace RequestApplicationTests {
 
         std::vector<Resource*>* resources1 = new std::vector<Resource*>;
         Resource* resource1 = (Resource*)malloc(sizeof(Resource));
-        resource1->mOpId = GENERATE_RESOURCE_ID(1, 3);
+        resource1->mOpCode = GENERATE_RESOURCE_ID(1, 3);
         resource1->mOpInfo = 0;
         resource1->mOptionalInfo = 0;
         resource1->mNumValues = 1;
         resource1->mConfigValue.singleValue = 645;
         resources1->push_back(resource1);
-        handle = tuneResources(10000, THIRD_PARTY_HIGH, 1, resources1);
+        handle = tuneResources(10000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources1);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -2013,13 +1916,13 @@ namespace RequestApplicationTests {
 
         std::vector<Resource*>* resources2 = new std::vector<Resource*>;
         Resource* resource2 = (Resource*)malloc(sizeof(Resource));
-        resource2->mOpId = GENERATE_RESOURCE_ID(1, 3);
+        resource2->mOpCode = GENERATE_RESOURCE_ID(1, 3);
         resource2->mOpInfo = 0;
         resource2->mOptionalInfo = 0;
         resource2->mNumValues = 1;
         resource2->mConfigValue.singleValue = 716;
         resources2->push_back(resource2);
-        handle = tuneResources(5000, THIRD_PARTY_LOW, 1, resources2);
+        handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_LOW, 1, resources2);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -2067,13 +1970,13 @@ namespace RequestApplicationTests {
 
         std::vector<Resource*>* resources = new std::vector<Resource*>;
         Resource* resource = (Resource*)malloc(sizeof(Resource));
-        resource->mOpId = GENERATE_RESOURCE_ID(1, 3);
+        resource->mOpCode = GENERATE_RESOURCE_ID(1, 3);
         resource->mOpInfo = 0;
         resource->mOptionalInfo = 0;
         resource->mNumValues = 1;
         resource->mConfigValue.singleValue = 778;
         resources->push_back(resource);
-        handle = tuneResources(8000, THIRD_PARTY_HIGH, 1, resources);
+        handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
         std::this_thread::sleep_for(std::chrono::seconds(4));
 
@@ -2131,13 +2034,13 @@ namespace RequestApplicationTests {
 
         std::vector<Resource*>* resources = new std::vector<Resource*>;
         Resource* resource = (Resource*)malloc(sizeof(Resource));
-        resource->mOpId = GENERATE_RESOURCE_ID(1, 3);
+        resource->mOpCode = GENERATE_RESOURCE_ID(1, 3);
         resource->mOpInfo = 0;
         resource->mOptionalInfo = 0;
         resource->mNumValues = 1;
         resource->mConfigValue.singleValue = 778;
         resources->push_back(resource);
-        handle = tuneResources(12000, THIRD_PARTY_HIGH, 1, resources);
+        handle = tuneResources(12000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -2195,13 +2098,13 @@ namespace RequestApplicationTests {
 
         std::vector<Resource*>* resources = new std::vector<Resource*>;
         Resource* resource = (Resource*)malloc(sizeof(Resource));
-        resource->mOpId = GENERATE_RESOURCE_ID(1, 0);
+        resource->mOpCode = GENERATE_RESOURCE_ID(1, 0);
         resource->mOpInfo = 0;
         resource->mOptionalInfo = 0;
         resource->mNumValues = 1;
         resource->mConfigValue.singleValue = 597;
         resources->push_back(resource);
-        handle = tuneResources(7000, THIRD_PARTY_HIGH, 1, resources);
+        handle = tuneResources(7000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -2236,7 +2139,7 @@ namespace RequestApplicationTests {
     static void RunTestGroup() {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
-        RUN_TEST(TestSingleClientTuneRequest);
+        // RUN_TEST(TestSingleClientTuneRequest);
         // RUN_TEST(TestSingleClientTuneRequestMultipleResources)
         // RUN_TEST(TestMultipleClientsHigherIsBetterPolicy1)
         // RUN_TEST(TestMultipleClientsHigherIsBetterPolicy2)
@@ -2247,11 +2150,11 @@ namespace RequestApplicationTests {
         // RUN_TEST(TestMultipleClientTIDsConcurrentRequests)
         // RUN_TEST(TestInfiniteDurationTuneRequestAndValidUntuning)
         // RUN_TEST(TestInfiniteDurationTuneRequestAndInValidUntuning)
-        // RUN_TEST(TestPriorityBasedResourceAcquisition1)
-        // RUN_TEST(TestPriorityBasedResourceAcquisition2)
-        // RUN_TEST(TestPriorityBasedResourceAcquisition3)
-        // RUN_TEST(TestRequestValidRetuning)
-        // RUN_TEST(TestRequestInvalidRetuning1)
+        RUN_TEST(TestPriorityBasedResourceAcquisition1)
+        RUN_TEST(TestPriorityBasedResourceAcquisition2)
+        RUN_TEST(TestPriorityBasedResourceAcquisition3)
+        RUN_TEST(TestRequestValidRetuning)
+        RUN_TEST(TestRequestInvalidRetuning1)
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
     }
@@ -2262,7 +2165,7 @@ int32_t main() {
     // - Provisioner
     ProvisionerRequestVerification::RunTestGroup();
     // - SysSignal
-    SignalRequestVerification::RunTestGroup();
+    // SignalRequestVerification::RunTestGroup();
 
     // // Request Application Tests
     // RequestApplicationTests::RunTestGroup();

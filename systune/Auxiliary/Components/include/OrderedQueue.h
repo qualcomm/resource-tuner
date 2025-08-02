@@ -46,7 +46,6 @@ public:
     /**
     * @brief Used by the producers to add a new request to the OrderedQueue.
     * @details This routine will wake up the consumer end to process the task.
-    * @param priority Client specified request priority
     * @param req Pointer to the Request
     */
     void addAndWakeup(Message* req);

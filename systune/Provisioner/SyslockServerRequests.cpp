@@ -3,14 +3,25 @@
 
 #include "SyslockServerRequests.h"
 
-static int32_t getRequestPriority(int8_t clientPermissions, int8_t reqSpecifiedPriority) {
+static int8_t getRequestPriority(int8_t clientPermissions, int8_t reqSpecifiedPriority) {
     if(clientPermissions == PERMISSION_SYSTEM) {
-        return reqSpecifiedPriority;
+        switch(reqSpecifiedPriority) {
+            case RequestPriority::REQ_PRIORITY_HIGH:
+                return SYSTEM_HIGH;
+            case RequestPriority::REQ_PRIORITY_LOW:
+                return SYSTEM_LOW;
+            default:
+                return -1;
+        }
+
     } else if(clientPermissions == PERMISSION_THIRD_PARTY) {
-        if(reqSpecifiedPriority == SYSTEM_HIGH || reqSpecifiedPriority == SYSTEM_LOW) {
-            return -1;
-        } else {
-            return reqSpecifiedPriority;
+        switch(reqSpecifiedPriority) {
+            case RequestPriority::REQ_PRIORITY_HIGH:
+                return THIRD_PARTY_HIGH;
+            case RequestPriority::REQ_PRIORITY_LOW:
+                return THIRD_PARTY_LOW;
+            default:
+                return -1;
         }
     }
 
@@ -69,13 +80,14 @@ static int8_t VerifyIncomingRequest(Request* req) {
     if(clientPermissions == -1) return false;
 
     // Check Request Priority
-    // Request - 2 priortive levels (HIGH / LOW), client 2 levels (third party / system)
-    int32_t reqSpecifiedPriority = req->getPriority();
-    if(reqSpecifiedPriority >= TOTAL_PRIORITIES || reqSpecifiedPriority < -1) return false;
+    int8_t reqSpecifiedPriority = req->getPriority();
+    if(reqSpecifiedPriority > RequestPriority::REQ_PRIORITY_LOW ||
+       reqSpecifiedPriority < RequestPriority::REQ_PRIORITY_HIGH) {
+        return false;
+    }
 
-    int32_t allowedPriority = getRequestPriority(clientPermissions, req->getPriority());
-    if(allowedPriority == -1 || reqSpecifiedPriority > allowedPriority) return false;
-
+    int8_t allowedPriority = getRequestPriority(clientPermissions, reqSpecifiedPriority);
+    if(allowedPriority == -1) return false;
     req->setPriority(allowedPriority);
 
     for(int32_t i = 0; i < resourcesToBeTuned.size(); i++) {
@@ -84,7 +96,7 @@ static int8_t VerifyIncomingRequest(Request* req) {
             return false;
         }
 
-        ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->mOpId);
+        ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->mOpCode);
 
         // Basic sanity: Invalid resource Opcode
         if(resourceConfig == nullptr) {
@@ -160,7 +172,7 @@ static void dumpRequest(Request* clientReq) {
     for(int32_t i = 0; i < clientReq->getResourcesCount(); i++) {
         Resource* res = clientReq->getResourceAt(i);
         LOGD(LOG_TAG, "Resource " + std::to_string(i + 1) + ":");
-        LOGD(LOG_TAG, "Opcode ID: " + std::to_string(res->mOpId));
+        LOGD(LOG_TAG, "Opcode ID: " + std::to_string(res->mOpCode));
         LOGD(LOG_TAG, "Number of Values: " + std::to_string(res->mNumValues));
         LOGD(LOG_TAG, "-- Single Value: " + std::to_string(res->mConfigValue.singleValue));
     }

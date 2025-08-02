@@ -23,7 +23,7 @@
  */
 class Resource {
 public:
-    uint32_t mOpId;
+    uint32_t mOpCode;
     int32_t mOpInfo;
     int32_t mOptionalInfo;
     int32_t mNumValues;
@@ -47,6 +47,14 @@ public:
 
 #define SET_RESOURCE_CLUSTER_VALUE(optionalInfo, newValue)({ \
     (int32_t) (optionalInfo ^ (EXTRACT_RESOURCE_CLUSTER_VALUE(optionalInfo) << 8)) | (newValue << 8);  \
+}) \
+
+#define SET_RESOURCE_ID(resourceOpcode, resID)({ \
+    (uint32_t) (resourceOpcode | (uint32_t)resID); \
+})
+
+#define SET_RESOURCE_TYPE(resourceOpcode, resType)({ \
+    (uint32_t) (resourceOpcode | ((uint32_t)resType << 16)); \
 }) \
 
 typedef struct _cocoNode {

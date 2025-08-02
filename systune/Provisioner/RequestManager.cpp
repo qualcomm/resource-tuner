@@ -63,7 +63,7 @@ int8_t RequestManager::requestMatch(Request* request) {
             Resource* res1 = request->getResourceAt(i);
             Resource* res2 = targetRequest->getResourceAt(i);
 
-            if(res1->mOpId != res2->mOpId) return false;
+            if(res1->mOpCode != res2->mOpCode) return false;
             if(res1->mOpInfo != res2->mOpInfo) return false;
             if(res1->mOptionalInfo != res2->mOptionalInfo) return false;
             if(res1->mNumValues != res2->mNumValues) return false;

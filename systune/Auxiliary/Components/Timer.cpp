@@ -33,6 +33,7 @@ int8_t Timer::startTimer(int64_t duration) {
     if(duration == -1) {
         return true;
     }
+
     if(duration == 0 || duration < -1) {
         return false;
     }
@@ -48,33 +49,6 @@ int8_t Timer::startTimer(int64_t duration) {
     }
 
     LOGD("URM_TIMER", "Timer started with " + std::to_string(duration));
-    return true;
-}
-
-int8_t Timer::updateTimer(int64_t duration) {
-    if(duration != - 1 && (duration < this->mDuration)) {
-        return false;
-    }
-
-    LOGD("URM_TIMER", "Timer updated to: " + std::to_string(duration));
-    killTimer();
-
-    if(duration != -1) {
-        // Re-Trigger the Timer
-        this->mDuration = duration;
-        mStop.store(false);
-
-        if(mTimerThreadPool == nullptr) {
-            return false;
-        }
-
-        if(!mTimerThreadPool->enqueueTask(std::bind(&Timer::implementTimer, this), nullptr)) {
-            return false;
-        }
-
-        LOGD("URM_TIMER", "Timer started with " + std::to_string(duration));
-    }
-
     return true;
 }
 

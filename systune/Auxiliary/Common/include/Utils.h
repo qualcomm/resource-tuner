@@ -47,7 +47,13 @@ enum SignalRequestType {
 enum Permissions {
     PERMISSION_SYSTEM, //<! Special permission level for system clients.
     PERMISSION_THIRD_PARTY, //<! Third party clients. Default value.
-    NUMBER_OF_PERMISSIONS //<! Trick to get total number of permissions currently supported. Value = 2 at the moment.
+    NUMBER_PERMISSIONS //<! Trick to get total number of permissions currently supported. Value = 2 at the moment.
+};
+
+enum RequestPriority {
+    REQ_PRIORITY_HIGH = 0,
+    REQ_PRIORITY_LOW,
+    NUMBER_REQUEST_PRIORITIES
 };
 
 /**

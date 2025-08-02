@@ -90,7 +90,7 @@ protected:
 //     int32_t valueToBeWritten = 100;
 
 //     Resource* resource = (Resource*) (GetBlock<Resource>());
-//     resource->mOpId = (1 << 31) | (1 << 16);
+//     resource->mOpCode = (1 << 31) | (1 << 16);
 //     resource->mOpInfo = 0;
 //     resource->mOptionalInfo = 0;
 //     resource->mNumValues = 1;
@@ -124,7 +124,7 @@ protected:
 //             new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
-//         resource->mOpId = testOpId;
+//         resource->mOpCode = testOpId;
 //         resource->mOpInfo = 0;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
@@ -174,7 +174,7 @@ protected:
 //             new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
-//         resource->mOpId = testOpId;
+//         resource->mOpCode = testOpId;
 //         resource->mOpInfo = 0;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
@@ -224,7 +224,7 @@ protected:
 //             new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
-//         resource->mOpId = testOpId;
+//         resource->mOpCode = testOpId;
 //         resource->mOpInfo = 0;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
@@ -272,7 +272,7 @@ protected:
 //             new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
-//         resource->mOpId = testOpId;
+//         resource->mOpCode = testOpId;
 //         resource->mOpInfo = 0;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
@@ -324,7 +324,7 @@ protected:
 //         values.push_back(rand() % 1000);
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
-//         resource->mOpId = testOpId;
+//         resource->mOpCode = testOpId;
 //         resource->mOpInfo = 0;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
@@ -375,7 +375,7 @@ protected:
 //         values.push_back(rand() % 1000);
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
-//         resource->mOpId = testOpId;
+//         resource->mOpCode = testOpId;
 //         resource->mOpInfo = 0;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
@@ -426,7 +426,7 @@ protected:
 //         values.push_back(rand() % 1000);
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
-//         resource->mOpId = testOpId;
+//         resource->mOpCode = testOpId;
 //         resource->mOpInfo = 0;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
@@ -475,7 +475,7 @@ protected:
 //         values.push_back(rand() % 1000);
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
-//         resource->mOpId = testOpId;
+//         resource->mOpCode = testOpId;
 //         resource->mOpInfo = 0;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
@@ -525,7 +525,7 @@ protected:
 //             new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
-//         resource->mOpId = testOpId;
+//         resource->mOpCode = testOpId;
 //         resource->mOpInfo = 0;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
@@ -596,7 +596,7 @@ protected:
 // //             int32_t val = rand() % 100;
 
 // //             Resource* resource = (Resource*) (GetBlock<Resource>());
-// //             resource->mOpId = testOpId;
+// //             resource->mOpCode = testOpId;
 // //             resource->mOpInfo = 0;
 // //             resource->mOptionalInfo = 0;
 // //             resource->mNumValues = 1;
@@ -650,7 +650,7 @@ protected:
 //         new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
 
 //     Resource* resource = (Resource*) (GetBlock<Resource>());
-//     resource->mOpId = testOpId;
+//     resource->mOpCode = testOpId;
 //     resource->mOpInfo = 0;
 //     resource->mOptionalInfo = 0;
 //     resource->mNumValues = 1;
@@ -691,7 +691,7 @@ protected:
 // //         vector<Resource*> resources;
 
 // //         Resource* resource = (Resource*) (GetBlock<Resource>());
-// //         resource->mOpId = 0;
+// //         resource->mOpCode = 0;
 // //         resource->mOpInfo = 0;
 // //         resource->mOptionalInfo = 0;
 // //         resource->mNumValues = 1;
@@ -781,7 +781,7 @@ protected:
 // // //     for(int32_t i = 0; i < values.size(); i++) {
 // // //         vector<Resource*> resource;
 // // //         Resource* r = (Resource*) (GetBlock<Resource>());
-// // //         r->mOpId = 0;
+// // //         r->mOpCode = 0;
 // // //         r->mOpInfo = 0;
 // // //         r->mOptionalInfo = 0;
 // // //         r->mNumValues = 1;
@@ -873,7 +873,7 @@ protected:
    
 // // //     vector<Resource*> resource;
 // // //     Resource* r = (Resource*) (GetBlock<Resource>());
-// // //     r->mOpId = 0;
+// // //     r->mOpCode = 0;
 // // //     r->mOpInfo = 0;
 // // //     r->mOptionalInfo = 0;
 // // //     r->mNumValues = 1;

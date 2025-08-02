@@ -101,24 +101,24 @@ private:
     */
     std::vector<int32_t> mCurrentlyAppliedPriority;
 
-    void deleteNode(CocoNode* node, int32_t primaryIndex, int32_t secondaryIndex, int32_t priority);
+    void deleteNode(CocoNode* node, int32_t primaryIndex, int32_t secondaryIndex, int8_t priority);
 
-    void applyAction(CocoNode* currNode, int32_t index, int32_t priority);
+    void applyAction(CocoNode* currNode, int32_t index, int8_t priority);
     void applyDefaultAction(int32_t index, Resource* resource);
-    int8_t insertInCocoTable(CocoNode* currNode, Resource* resource, int32_t priority);
+    int8_t insertInCocoTable(CocoNode* currNode, Resource* resource, int8_t priority);
 
     void insertInCocoTableHigherLower(CocoNode* newNode, int32_t primaryIndex, int32_t secondaryIndex,
-                                                 int32_t policy, int32_t priority);
+                                                 int32_t policy, int8_t priority);
 
     void insertInCocoTableLazyApply(CocoNode* newNode, int32_t primaryIndex,
-                                               int32_t secondaryIndex, int32_t priority);
+                                               int32_t secondaryIndex, int8_t priority);
 
     void insertInCocoTableInstantApply(CocoNode* newNode, int32_t primaryIndex,
-                                                  int32_t secondaryIndex, int32_t priority);
+                                                  int32_t secondaryIndex, int8_t priority);
 
     int32_t getCocoTablePrimaryIndex(uint32_t opId);
 
-    int32_t getCocoTableSecondaryIndex(uint32_t opId, int32_t mOpInfo, int32_t priority);
+    int32_t getCocoTableSecondaryIndex(uint32_t opId, int32_t mOpInfo, int8_t priority);
 
     /**
     * @brief This is a private routine called when a timer finishes for a request. It initiates

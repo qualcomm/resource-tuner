@@ -51,14 +51,14 @@ TEST(MiscTests, TestRequestSerializingAndDeserializing) {
                                                             std::vector<Resource*>;
 
         Resource* res1 = (Resource*) GetBlock<Resource>();
-        res1->mOpId = 65536;
+        res1->mOpCode = 65536;
         res1->mNumValues = 1;
         res1->mConfigValue.singleValue = 754;
         firstReqResourceList->push_back(res1);
         firstRequest->setResources(firstReqResourceList);
 
         Resource* resource = firstRequest->getResourceAt(0);
-        ASSERT_EQ(resource->mOpId, 65536);
+        ASSERT_EQ(resource->mOpCode, 65536);
         ASSERT_EQ(resource->mNumValues, 1);
         ASSERT_EQ(resource->mConfigValue.singleValue, 754);
 

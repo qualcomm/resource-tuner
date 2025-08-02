@@ -28,7 +28,7 @@ protected:
 // Helper methods for Resource Generation
 Resource* generateResourceForTesting(int32_t seed) {
     Resource* resource = (Resource*)malloc(sizeof(Resource));
-    resource->mOpId = 16 + seed;
+    resource->mOpCode = 16 + seed;
     resource->mOpInfo = 27 + 3 * seed;
     resource->mOptionalInfo = 1445 + 8 * seed;
     resource->mNumValues = 1;
@@ -50,7 +50,7 @@ TEST_F(RateLimiterTests, TestClientSpammingScenario) {
         // Generate 51 different requests from the same client
         for(int32_t i = 0; i < 51; i++) {
             Resource* resource = (Resource*) GetBlock<Resource>();
-            resource->mOpId = 16;
+            resource->mOpCode = 16;
             resource->mOpInfo = 27;
             resource->mOptionalInfo = 1480;
             resource->mNumValues = 1;
@@ -64,7 +64,7 @@ TEST_F(RateLimiterTests, TestClientSpammingScenario) {
             request->setRequestType(REQ_RESOURCE_TUNING);
             request->setHandle(300 + i);
             request->setDuration(-1);
-            request->setPriority(1);
+            request->setPriority(REQ_PRIORITY_HIGH);
             request->setNumResources(1);
             request->setClientPID(clientPID);
             request->setClientTID(clientTID);
@@ -113,7 +113,7 @@ TEST_F(RateLimiterTests, TestClientHealthInCaseOfGoodRequests) {
         // Generate 50 different requests from the same client
         for(int32_t i = 0; i < 50; i++) {
             Resource* resource = (Resource*) GetBlock<Resource>();
-            resource->mOpId = 16;
+            resource->mOpCode = 16;
             resource->mOpInfo = 27;
             resource->mOptionalInfo = 1480;
             resource->mNumValues = 1;
@@ -128,7 +128,7 @@ TEST_F(RateLimiterTests, TestClientHealthInCaseOfGoodRequests) {
             req->setHandle(300 + i);
             req->setDuration(-1);
             req->setNumResources(1);
-            req->setPriority(1);
+            req->setPriority(REQ_PRIORITY_HIGH);
             req->setClientPID(clientPID);
             req->setClientTID(clientTID);
             req->setResources(resources);
@@ -171,7 +171,7 @@ TEST_F(RateLimiterTests, TestClientSpammingWithGoodRequests) {
     try {
         for(int32_t i = 0; i < 63; i++) {
             Resource* resource = (Resource*) GetBlock<Resource>();
-            resource->mOpId = 16;
+            resource->mOpCode = 16;
             resource->mOpInfo = 27;
             resource->mOptionalInfo = 1480;
             resource->mNumValues = 1;
@@ -186,7 +186,7 @@ TEST_F(RateLimiterTests, TestClientSpammingWithGoodRequests) {
             req->setHandle(300 + i);
             req->setDuration(-1);
             req->setNumResources(1);
-            req->setPriority(1);
+            req->setPriority(REQ_PRIORITY_HIGH);
             req->setClientPID(clientPID);
             req->setClientTID(clientTID);
             req->setResources(resources);

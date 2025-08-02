@@ -3,6 +3,20 @@
 
 #include "ThreadPool.h"
 
+TaskNode::TaskNode() {
+    this->taskCallback = nullptr;
+    this->args = nullptr;
+    this->next = nullptr;
+}
+
+TaskNode::~TaskNode() {
+    if(this->taskCallback != nullptr) {
+        FreeBlock<std::function<void(void*)>> (this->taskCallback);
+        this->taskCallback = nullptr;
+    }
+    this->next = nullptr;
+}
+
 TaskQueue::TaskQueue() {
     this->size = 0;
     this->head = this->tail = nullptr;
@@ -43,6 +57,15 @@ int8_t TaskQueue::isEmpty() {
 
 int32_t TaskQueue::getSize() {
     return this->size;
+}
+
+TaskQueue::~TaskQueue() {
+    while(!this->isEmpty()) {
+        TaskNode* taskNode = this->poll();
+        if(taskNode != nullptr) {
+            FreeBlock<TaskNode>(static_cast<void*>(taskNode));
+        }
+    }
 }
 
 int8_t ThreadPool::threadRoutineHelper(int8_t isCoreThread, int8_t& firstTask) {
@@ -102,7 +125,7 @@ int8_t ThreadPool::threadRoutineHelper(int8_t isCoreThread, int8_t& firstTask) {
         }
 
         // Free the TaskNode, before proceeding to the next task
-        FreeBlock<TaskNode>(taskNode);
+        FreeBlock<TaskNode>(static_cast<void*>(taskNode));
         return false;
 
     } catch(const std::system_error& e) {
@@ -158,6 +181,8 @@ int8_t ThreadPool::addNewThread(int8_t isCoreThread) {
             this->mThreadQueueTail = this->mThreadQueueTail->next;
         }
 
+        return true;
+
     } catch(const std::exception& e) {
         TYPELOGV(THREAD_POOL_THREAD_CREATION_FAILURE, e.what());
     }
@@ -169,8 +194,7 @@ ThreadPool::ThreadPool(int32_t desiredCapacity, int32_t maxPending, int32_t maxC
     this->mThreadQueueHead = this->mThreadQueueTail = nullptr;
 
     this->mDesiredPoolCapacity = desiredCapacity;
-    // make it iterative
-    this->mCurrentThreadsCount = desiredCapacity;
+    this->mCurrentThreadsCount = 0;
     this->mMaxWaitingListCapacity = maxPending;
 
     if(maxCapacity < desiredCapacity) {
@@ -186,20 +210,36 @@ ThreadPool::ThreadPool(int32_t desiredCapacity, int32_t maxPending, int32_t maxC
         this->mCurrentTasks = new TaskQueue;
         this->mWaitingList = new TaskQueue;
 
-        MakeAlloc<ThreadNode>(20);
-        MakeAlloc<TaskNode>(50);
-
     } catch (const std::bad_alloc& e) {
         TYPELOGV(THREAD_POOL_INIT_FAILURE, e.what());
+
+        if(this->mCurrentTasks != nullptr) {
+            delete this->mCurrentTasks;
+        }
+        if(this->mWaitingList != nullptr) {
+            delete this->mWaitingList;
+        }
     }
+
+    MakeAlloc<ThreadNode>(this->mMaxPoolCapacity);
+    MakeAlloc<TaskNode>(this->mMaxPoolCapacity + this->mMaxWaitingListCapacity);
+    MakeAlloc<std::function<void(void*)>>(this->mMaxPoolCapacity + this->mMaxWaitingListCapacity);
 
     // Add desired number of Threads to the Pool
     for(int32_t i = 0; i < this->mDesiredPoolCapacity; i++) {
-        this->addNewThread(true);
+        if(this->addNewThread(true)) {
+            this->mCurrentThreadsCount++;
+        }
     }
+
+    LOGI("URM_THREAD_POOL",
+         "Requested Thread Count = " + std::to_string(this->mDesiredPoolCapacity) + ", "  \
+         "Allocated Thread Count = " + std::to_string(this->mCurrentThreadsCount));
+
+    this->mDesiredPoolCapacity = this->mCurrentThreadsCount;
 }
 
-TaskNode* ThreadPool::createTaskNode(std::function<void(void*)> taskCallback, void* args) {
+TaskNode* ThreadPool::createTaskNode(std::function<void(void*)> callback, void* args) {
     // Create a task Node
     TaskNode* taskNode = nullptr;
     try {
@@ -210,8 +250,10 @@ TaskNode* ThreadPool::createTaskNode(std::function<void(void*)> taskCallback, vo
     }
 
     try {
-        taskNode->taskCallback = new std::function<void(void*)>;
-        *taskNode->taskCallback = std::move(taskCallback);
+        taskNode->taskCallback = new(GetBlock<std::function<void(void*)>>())
+                                     std::function<void(void*)>;
+
+        *taskNode->taskCallback = std::move(callback);
 
     } catch(const std::bad_alloc& e) {
         FreeBlock<TaskNode>(static_cast<void*>(taskNode));
@@ -329,12 +371,7 @@ ThreadPool::~ThreadPool() {
             thNode = nextNode;
         }
 
-        while(!this->mCurrentTasks->isEmpty()) {
-            TaskNode* taskNode = this->mCurrentTasks->poll();
-            if(taskNode != nullptr) {
-                FreeBlock<TaskNode>(static_cast<void*>(taskNode));
-            }
-        }
+        delete this->mCurrentTasks;
 
     } catch (const std::exception& e) {}
 }

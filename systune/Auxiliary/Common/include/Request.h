@@ -34,11 +34,12 @@ public:
     Resource* getResourceAt(int32_t index);
     std::vector<CocoNode*>* getCocoNodes();
     CocoNode* getCocoNodeAt(int32_t index);
+    Timer* getTimer();
 
     void setNumResources(int32_t numResources);
     void setNumCocoNodes(int32_t numCocoNodes);
     void setTimer(Timer* timer);
-    void updateTimer(int64_t newDuration);
+    void unsetTimer();
     void setResources(std::vector<Resource*>* resources);
     void setCocoNodes(std::vector<CocoNode*>* cocoNodes);
 

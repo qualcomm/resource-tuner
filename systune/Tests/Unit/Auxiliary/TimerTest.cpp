@@ -41,32 +41,6 @@ TEST_F(TimerTest, BaseCase) {
     EXPECT_NEAR(dur, 200, 25); //some tolerance
 }
 
-TEST_F(TimerTest, updateCase) {
-    ASSERT_NE(timer, nullptr);
-    auto start = std::chrono::high_resolution_clock::now();
-    timer->startTimer(200);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    timer->updateTimer(400);
-    simulateWork();
-    auto finish = std::chrono::high_resolution_clock::now();
-    auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
-
-    EXPECT_NEAR(dur, 500, 25); //some tolerance
-}
-
-TEST_F(TimerTest, updateCaseWithSmallerValue) {
-    ASSERT_NE(timer, nullptr);
-    auto start = std::chrono::high_resolution_clock::now();
-    timer->startTimer(200);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    timer->updateTimer(100);
-    simulateWork();
-    auto finish = std::chrono::high_resolution_clock::now();
-    auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
-
-    EXPECT_NEAR(dur, 200, 25); //some tolerance
-}
-
 TEST_F(TimerTest, killBeforeCompletion) {
     ASSERT_NE(timer, nullptr);
     auto start = std::chrono::high_resolution_clock::now();

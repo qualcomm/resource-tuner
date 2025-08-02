@@ -48,10 +48,14 @@
 #include "Logger.h"
 #include "MemoryPool.h"
 
-struct TaskNode {
+class TaskNode {
+public:
     std::function<void(void*)>* taskCallback;
     void* args;
     TaskNode* next;
+
+    TaskNode();
+    ~TaskNode();
 };
 
 struct ThreadNode {
@@ -72,6 +76,8 @@ public:
     TaskNode* poll();
     int8_t isEmpty();
     int32_t getSize();
+
+    ~TaskQueue();
 };
 
 /**
