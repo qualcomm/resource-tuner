@@ -26,10 +26,8 @@ Resource* generateResourceForTesting(int32_t seed) {
     Resource* resource = nullptr;
     try {
         resource = (Resource*) GetBlock<Resource>();
-        resource->mOpCode = 16 + seed;
-        resource->mOpInfo = 27 + 3 * seed;
-        resource->mOptionalInfo = 1445 + 8 * seed;
-        resource->mNumValues = 1;
+        resource->setOpCode(16 + seed);
+        resource->setNumValues(1);
         resource->mConfigValue.singleValue = 2 * seed;
     } catch(const std::bad_alloc& e) {
         throw std::bad_alloc();
@@ -40,10 +38,8 @@ Resource* generateResourceForTesting(int32_t seed) {
 
 Resource* generateResourceFromMemoryPoolForTesting(int32_t seed) {
     Resource* resource = (Resource*)GetBlock<Resource>();
-    resource->mOpCode = 16 + seed;
-    resource->mOpInfo = 27 + 3 * seed;
-    resource->mOptionalInfo = 1445 + 8 * seed;
-    resource->mNumValues = 1;
+    resource->setOpCode(16 + seed);
+    resource->setNumValues(1);
     resource->mConfigValue.singleValue = 2 * seed;
 
     return resource;
@@ -57,10 +53,8 @@ TEST_F(RequestMapTests, TestSingleRequestScenario) {
 
     Resource* resource = (Resource*) GetBlock<Resource>();
 
-    resource->mOpCode = 16;
-    resource->mOpInfo = 27;
-    resource->mOptionalInfo = 1480;
-    resource->mNumValues = 1;
+    resource->setOpCode(16);
+    resource->setNumValues(1);
     resource->mConfigValue.singleValue = 8;
 
     std::vector<Resource*>* resources =
@@ -1001,10 +995,9 @@ TEST_F(RequestMapTests, TestGetRequestFromMap) {
         FAIL();
     }
 
-    resource->mOpCode = 15564;
-    resource->mOpInfo = 58;
-    resource->mOptionalInfo = 4445;
-    resource->mNumValues = 1;
+    resource->setOpCode(15564);
+    resource->setOptionalInfo(4445);
+    resource->setNumValues(1);
     resource->mConfigValue.singleValue = 42;
 
     std::vector<Resource*>* resources;

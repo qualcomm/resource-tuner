@@ -12,7 +12,6 @@
 #include "Request.h"
 #include "Signal.h"
 #include "SysConfig.h"
-#include "Types.h"
 #include "SafeOps.h"
 #include "Utils.h"
 #include "ClientEndpoint.h"

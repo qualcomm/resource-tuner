@@ -186,8 +186,8 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
 
         case CommonMessageTypes::REQUEST_MEMORY_ALLOCATION_FAILURE:
             vsnprintf(buffer, sizeof(buffer),
-                      "Memory allocation for Incoming Request: " \
-                      "[TYPE: %s], Failed with Error: %s", args);
+                      "Memory allocation for Incoming Request. " \
+                      "Failed with Error: %s", args);
 
             Logger::log(ERROR, "URM_REQUEST_ALLOCATION_FAILURE",
                         funcName, std::string(buffer));
@@ -195,8 +195,8 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
 
         case CommonMessageTypes::REQUEST_PARSING_FAILURE:
             vsnprintf(buffer, sizeof(buffer),
-                      "Request Parsing Failed, Request is Malformed: " \
-                      "[TYPE: %s ]. Error:  %s", args);
+                      "Request Parsing Failed, Request is Malformed. " \
+                      "Error: %s", args);
 
             Logger::log(ERROR, "URM_REQUEST_PARSING_FAILURE",
                         funcName, std::string(buffer));
@@ -207,6 +207,66 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
                       "Call to %s, Failed with Error: %s", args);
 
             Logger::log(ERROR, "URM_SYSCALL_FAILURE", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::VERIFIER_INVALID_OPCODE:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Invalid Opcode [%u], Dropping Request.", args);
+
+            Logger::log(ERROR, "URM_REQUEST_VERIFIER", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::VERIFIER_INVALID_PERMISSION:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Permissions for Client [PID: %d, TID: %d] Could not be Fetched, " \
+                      "Dropping Request.", args);
+
+            Logger::log(ERROR, "URM_REQUEST_VERIFIER", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::VERIFIER_INVALID_PRIORITY:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Invalid Priority [%d], Dropping Request.", args);
+
+            Logger::log(ERROR, "URM_REQUEST_VERIFIER", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::VERIFIER_VALUE_OUT_OF_BOUNDS:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Config Value [%d] does not fall in the Allowed Range" \
+                      "for the Resource [%u], Dropping Request.", args);
+
+            Logger::log(ERROR, "URM_REQUEST_VERIFIER", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::VERIFIER_NOT_SUFFICIENT_PERMISSION:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Permission Check Failed for Resource [%u], "  \
+                      "Dropping Request", args);
+
+            Logger::log(ERROR, "URM_REQUEST_VERIFIER", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::VERIFIER_LOGICAL_TO_PHYSICAL_MAPPING_FAILED:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Logical to Physical Core / Cluster Mapping for the "  \
+                      "Resource [%u], Failed. Dropping Request", args);
+
+            Logger::log(ERROR, "URM_REQUEST_VERIFIER", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::VERIFIER_REQUEST_VALIDATED:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Request with handle: %lld, Successfully Validated.", args);
+
+            Logger::log(INFO, "URM_REQUEST_VERIFIER", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::VERIFIER_STATUS_FAILURE:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Verification Failed for Request [%lld], Dropping Request.", args);
+
+            Logger::log(ERROR, "URM_REQUEST_VERIFIER", funcName, std::string(buffer));
             break;
 
         default:

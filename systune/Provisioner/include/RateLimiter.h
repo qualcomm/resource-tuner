@@ -63,6 +63,8 @@ public:
     */
     int8_t isRateLimitHonored(int32_t clientTID);
 
+    int8_t isGlobalRateLimitHonored();
+
     static std::shared_ptr<RateLimiter> getInstance() {
         if(mRateLimiterInstance == nullptr) {
             instanceProtectionLock.lock();

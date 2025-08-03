@@ -12,9 +12,8 @@
 // EXAMPLE #1
 // In the following Example the Client Sends:
 // - A Resource Provisioning (Tune) Request to Tune 1 Resource
-
-// i.e. We try to Provision a Single Resource as part of this Request,
-// The Resource Config for this Resource is as follows (note Configs are specified as JSON files):
+//   i.e. We try to Provision a Single Resource as part of this Request,
+//   The Resource Config for this Resource is as follows (note Configs are specified as JSON files):
 
 /*
 Resource:
@@ -74,7 +73,7 @@ void func1() {
     uint32_t resourceOpcode = 0;
     resourceOpcode = SET_RESOURCE_ID(resourceOpcode, 0);
     resourceOpcode = SET_RESOURCE_TYPE(resourceOpcode, 1);
-    resource->mOpCode = resourceOpcode;
+    resource->setOpCode(resourceOpcode);
 
     // Field: mOpInfo
     // This field is a 32-bit signed integer, which stores information
@@ -86,11 +85,13 @@ void func1() {
     // Field "CoreLevelConflict" is set to True.
     // In this case since CoreLevelConflict is false for R1, hence this field
     // will not be processed by the Systune Server
-    resource->mOpInfo = 0;
+    resource->mOpInfo = 0;  // Not necessary, since the field is already initialized to 0
+                            // via the Constructor.
 
     // Field: mOptionalInfo
     // TODO
-    resource->mOptionalInfo = 0;
+    resource->mOptionalInfo = 0;   // Not necessary, since the field is already initialized to 0
+                                   // via the Constructor.
 
     // Field: mNumValues
     // Number of Values to be Configured for this Resource

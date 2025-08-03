@@ -44,8 +44,8 @@
 * @param backgroundProcessing Boolean Flag to
 * @param res List of Resources to be provisioned as part of the Request
 * @return int64_t :
-*              A Positive Unique Handle to identify the issued Request. The handle is used for future retune / untune APIs.\n
-*              RC_REQ_SUBMISSION_FAILURE: If the Request could not be sent to the server.
+*              A Positive Integer Handle which uniquely identifies the issued Request. The handle is used for future retune / untune APIs.\n
+*              -1: If the Request could not be sent to the server.
 */
 
 int64_t tuneResources(int64_t duration, int32_t prop, int32_t numRes, std::vector<Resource*>* res);
@@ -90,7 +90,7 @@ std::string getrequests();
 * @param def_value Value to return in case a property with the specified Name is not found in the Config Store
 * @return ErrCode:
 *              RC_SUCCESS: If the Request was successfully Submitted to the Server.\n
-*              RC_REQ_SUBMISSION_FAILURE: Otherwise
+*              RC_REQ_SUBMISSION_FAILURE: Otherwise\n\n
 * Note: The result of the Query itself is stored in the buffer (IN / OUT arg).
 */
 ErrCode getprop(const char* prop, char* buffer, size_t buffer_size, const char* def_value);
@@ -122,11 +122,10 @@ ErrCode setprop(const char* prop, const char* value);
 * @param list List of Additional Arguments to be passed as part of the Request
 * @return int64_t :
 *              A Positive Unique Handle to identify the issued Request. The handle is used for freeing the acquired signal later.\n
-*              RC_REQ_SUBMISSION_FAILURE: If the Request could not be sent to the server.
+*              -1: If the Request could not be sent to the server.
 */
 int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t properties,
                    const char* appName, const char* scenario, int32_t numArgs, std::vector<uint32_t>* list);
-// Use uint32* array // C
 
 /**
 * @brief Release (or free) the signal with the given handle.

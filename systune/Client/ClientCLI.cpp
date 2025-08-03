@@ -59,7 +59,7 @@ void sendTuneRequest(int64_t duration, int32_t priority, int32_t count, const st
 
     for(auto& resourcePair : resourcePairs) {
         Resource* resource = (Resource*) malloc(sizeof(Resource));
-        resource->mOpCode = resourcePair.first;
+        resource->setOpCode(resourcePair.first);
         resource->mNumValues = 1;
         resource->mConfigValue.singleValue = resourcePair.second;
 

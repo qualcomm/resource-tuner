@@ -4,130 +4,14 @@
 #include "SystuneSocketServer.h"
 
 SystuneSocketServer::SystuneSocketServer(uint32_t mListeningPort,
+                                         ServerOnlineCheckCallback mServerOnlineCheckCb,
                                          SystuneMessageAsyncCallback mSystuneMessageAsyncCb,
                                          SystuneMessageSyncCallback mSystuneMessageSyncCb) {
 
     this->mListeningPort = mListeningPort;
+    this->mServerOnlineCheckCb = mServerOnlineCheckCb;
     this->mSystuneMessageAsyncCb = mSystuneMessageAsyncCb;
     this->mSystuneMessageSyncCb = mSystuneMessageSyncCb;
-}
-
-void SystuneSocketServer::parseIncomingRequest(char* buf, int32_t clientSocket) {
-    int8_t requestType = *(int8_t*) buf;
-
-    switch(requestType) {
-        case REQ_RESOURCE_TUNING:
-        case REQ_RESOURCE_RETUNING:
-        case REQ_RESOURCE_UNTUNING:
-        case REQ_CLIENT_GET_REQUESTS: {
-            Request* request = nullptr;
-            try {
-                request = new (GetBlock<Request>()) Request();
-
-            } catch(const std::bad_alloc& e) {
-                TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE, "Error", e);
-                return;
-            }
-
-            if(RC_IS_NOTOK(request->deserialize(buf))) {
-                FreeBlock<Request>(static_cast<void*>(request));
-                return;
-            }
-
-            if(requestType == REQ_CLIENT_GET_REQUESTS) {
-                char resultBuffer[2048];
-                resultBuffer[sizeof(resultBuffer) - 1] = '\0';
-                // this->mSystuneMessageAsyncCb(PROVISIONER_SEND_DATA_TO_BUFFER_CALLBACK, request, resultBuffer);
-
-                if(write(clientSocket, resultBuffer, sizeof(resultBuffer)) == -1) {
-                    TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-                }
-            } else {
-                // Note in case of untune / retune requests, this value is the original handle passed via the Request.
-                // For tune requests, this value is the new Request Handle.
-                int64_t handleToReturn = this->mSystuneMessageAsyncCb(PROVISIONER_MESSAGE_RECEIVER_CALLBACK, request);
-
-                // Only in Case of Tune Requests, Write back the handle to the client.
-                if(requestType == REQ_RESOURCE_TUNING) {
-                    if(write(clientSocket, &handleToReturn, sizeof(int64_t)) == -1) {
-                        TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-                    }
-                }
-            }
-            break;
-        }
-        case REQ_SYSCONFIG_GET_PROP:
-        case REQ_SYSCONFIG_SET_PROP: {
-            SysConfig* sysConfig = nullptr;
-            try {
-                sysConfig = new (GetBlock<SysConfig>()) SysConfig();
-
-            } catch(const std::bad_alloc& e) {
-                TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE, "Error", e);
-                return;
-            }
-
-            if(RC_IS_NOTOK(sysConfig->deserialize(buf))) {
-                FreeBlock<SysConfig>(static_cast<void*>(sysConfig));
-                return;
-            }
-
-            uint64_t bufferSize = sysConfig->getBufferSize();
-
-            // Create a Buffer to hold the result
-            char* resultBuf = nullptr;
-
-            try {
-                resultBuf = new char[bufferSize];
-
-            } catch(const std::bad_alloc& e) {
-                LOGE("URM_MEMORY_POOL", "Failed to allocate memory for Result Buffer");
-                FreeBlock<SysConfig>(static_cast<void*>(sysConfig));
-                return;
-            }
-
-            // Call the SysConfig CALLBACK
-            this->mSystuneMessageSyncCb(requestType, sysConfig, resultBuf, bufferSize);
-
-            if(requestType == REQ_SYSCONFIG_GET_PROP) {
-                if(write(clientSocket, resultBuf, bufferSize) == -1) {
-                    TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-                }
-            }
-            break;
-        }
-        case SIGNAL_ACQ:
-        case SIGNAL_FREE:
-        case SIGNAL_RELAY: {
-            Signal* signal = nullptr;
-            try {
-                signal = new (GetBlock<Signal>()) Signal();
-
-            } catch(const std::bad_alloc& e) {
-                TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE, "Error", e);
-                return;
-            }
-
-            if(RC_IS_NOTOK(signal->deserialize(buf))) {
-                FreeBlock<Signal>(static_cast<void*>(signal));
-                return;
-            }
-
-            // Note in case of free Signal requests, this value is the original handle passed via the Request.
-            // For grab Signal requests, this value is the new Request Handle.
-            int64_t handleToReturn = this->mSystuneMessageAsyncCb(SIGNAL_MESSAGE_RECEIVER_CALLBACK, signal);
-
-            if(requestType == SIGNAL_ACQ) {
-                if(write(clientSocket, &handleToReturn, sizeof(int64_t)) == -1) {
-                    TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-                }
-            }
-            break;
-        }
-        default:
-            LOGE("URM_SOCKET_SERVER", "Invalid Request Type");
-            break;
-    }
 }
 
 // Called by server, this will put the server in listening mode
@@ -168,7 +52,7 @@ int32_t SystuneSocketServer::ListenForClientRequests() {
         return RC_SOCKET_CONN_NOT_INITIALIZED;
     }
 
-    while(this->mSystuneMessageAsyncCb(SERVER_ONLINE_CHECK_CALLBACK, nullptr)) {
+    while(this->mServerOnlineCheckCb()) {
         int32_t clientSocket;
         if((clientSocket = accept(sockFd, nullptr, nullptr)) < 0) {
             if(errno != EAGAIN && errno != EWOULDBLOCK) {
@@ -179,10 +63,12 @@ int32_t SystuneSocketServer::ListenForClientRequests() {
         }
 
         if(clientSocket >= 0) {
-            char buf[1024];
+            MsgForwardInfo* info = new MsgForwardInfo;
+            info->buffer = new char[1024];
+            info->bufferSize = 1024;
 
             int32_t bytesRead;
-            if((bytesRead = recv(clientSocket, buf, 1024, 0)) < 0) {
+            if((bytesRead = recv(clientSocket, info->buffer, info->bufferSize, 0)) < 0) {
                 if(errno != EAGAIN && errno != EWOULDBLOCK) {
                     TYPELOGV(ERRNO_LOG, "recv", strerror(errno));
                     LOGE("URM_SOCKET_SERVER", "Server Socket-Endpoint crashed");
@@ -191,7 +77,7 @@ int32_t SystuneSocketServer::ListenForClientRequests() {
             }
 
             if(bytesRead > 0) {
-                parseIncomingRequest(buf, clientSocket);
+                this->mSystuneMessageAsyncCb(clientSocket, info);
             }
             close(clientSocket);
         }

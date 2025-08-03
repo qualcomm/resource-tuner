@@ -1,79 +1,79 @@
-#include <gtest/gtest.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include <memory>
+// #include <gtest/gtest.h>
+// #include <stdio.h>
+// #include <stdlib.h>
+// #include <unistd.h>
+// #include <limits.h>
+// #include <memory>
 
-#include "Extensions.h"
-#include "CocoTable.h"
-#include "ResourceRegistry.h"
-#include "SyslockServerRequests.h"
+// #include "Extensions.h"
+// #include "CocoTable.h"
+// #include "ResourceRegistry.h"
+// #include "SyslockServerRequests.h"
 
-URM_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourceConfigs.json")
+// URM_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourceConfigs.json")
 
-class CocoTableTest : public ::testing::Test {
-protected:
-    void SetUp() override {
-        static int8_t firstTest = true;
+// class CocoTableTest : public ::testing::Test {
+// protected:
+//     void SetUp() override {
+//         static int8_t firstTest = true;
 
-        if(firstTest == true) {
-            firstTest = false;
-            ResourceProcessor resourceProcessor(Extensions::getResourceConfigFilePath());
+//         if(firstTest == true) {
+//             firstTest = false;
+//             ResourceProcessor resourceProcessor(Extensions::getResourceConfigFilePath());
 
-            if(RC_IS_NOTOK(resourceProcessor.parseResourceConfigs())) {
-                return;
-            }
+//             if(RC_IS_NOTOK(resourceProcessor.parseResourceConfigs())) {
+//                 return;
+//             }
 
-            MakeAlloc<ClientInfo> (120);
-            MakeAlloc<ClientTidData> (120);
-            MakeAlloc<std::unordered_set<int64_t>> (120);
-            MakeAlloc<Resource> (120);
-            MakeAlloc<std::vector<Resource*>> (120);
-            MakeAlloc<Request> (120);
-            MakeAlloc<CocoNode>(120);
-        }
-    }
+//             MakeAlloc<ClientInfo> (120);
+//             MakeAlloc<ClientTidData> (120);
+//             MakeAlloc<std::unordered_set<int64_t>> (120);
+//             MakeAlloc<Resource> (120);
+//             MakeAlloc<std::vector<Resource*>> (120);
+//             MakeAlloc<Request> (120);
+//             MakeAlloc<CocoNode>(120);
+//         }
+//     }
 
-    std::vector<std::vector<std::pair<CocoNode*, CocoNode*>>> getCocoTableInternal() {
-        return CocoTable::getInstance()->mCocoTable;
-    }
+//     std::vector<std::vector<std::pair<CocoNode*, CocoNode*>>> getCocoTableInternal() {
+//         return CocoTable::getInstance()->mCocoTable;
+//     }
 
-    Resource* getCocoNodeResource(CocoNode* cocoNode) {
-        return cocoNode->mResource;
-    }
+//     Resource* getCocoNodeResource(CocoNode* cocoNode) {
+//         return cocoNode->mResource;
+//     }
 
-    int32_t getCocoTablePrimaryIndex(uint32_t opId) {
-       return CocoTable::getInstance()->getCocoTablePrimaryIndex(opId);
-    }
+//     int32_t getCocoTablePrimaryIndex(uint32_t opId) {
+//        return CocoTable::getInstance()->getCocoTablePrimaryIndex(opId);
+//     }
 
-    int32_t getCocoTableSecondaryIndex(uint32_t opId, int32_t mOpInfo, int32_t priority) {
-        return CocoTable::getInstance()->getCocoTableSecondaryIndex(opId, mOpInfo, priority);
-    }
+//     int32_t getCocoTableSecondaryIndex(uint32_t opId, int32_t mOpInfo, int32_t priority) {
+//         return CocoTable::getInstance()->getCocoTableSecondaryIndex(opId, mOpInfo, priority);
+//     }
 
-    CocoNode* getNext(CocoNode* cocoTableNode) {
-        return cocoTableNode->next;
-    }
+//     CocoNode* getNext(CocoNode* cocoTableNode) {
+//         return cocoTableNode->next;
+//     }
 
-    int32_t getCurrentlyAppliedPriorityAtIndex(int32_t index) {
-        return CocoTable::getInstance()-> mCurrentlyAppliedPriority[index];
-    }
+//     int32_t getCurrentlyAppliedPriorityAtIndex(int32_t index) {
+//         return CocoTable::getInstance()-> mCurrentlyAppliedPriority[index];
+//     }
 
-    std::string readFromNode(const std::string& fName) {
-        std::fstream myFile(fName, std::ios::in | std::ios::out | std::ios::app);
-        std::string value;
+//     std::string readFromNode(const std::string& fName) {
+//         std::fstream myFile(fName, std::ios::in | std::ios::out | std::ios::app);
+//         std::string value;
 
-        if(myFile.is_open()) {
-            getline(myFile, value);
-            myFile.close();
-        } else {
-            LOGE("URM_COCO_TABLE",
-                 "Failed to open the file: " + fName);
-            return "";
-        }
-        return value;
-    }
-};
+//         if(myFile.is_open()) {
+//             getline(myFile, value);
+//             myFile.close();
+//         } else {
+//             LOGE("URM_COCO_TABLE",
+//                  "Failed to open the file: " + fName);
+//             return "";
+//         }
+//         return value;
+//     }
+// };
 
 // TEST_F(CocoTableTest, ConstructorInitializesFields) {
 //     int32_t totalResources = ResourceRegistry::getInstance()->getTotalResourcesCount();
@@ -91,7 +91,6 @@ protected:
 
 //     Resource* resource = (Resource*) (GetBlock<Resource>());
 //     resource->mOpCode = (1 << 31) | (1 << 16);
-//     resource->mOpInfo = 0;
 //     resource->mOptionalInfo = 0;
 //     resource->mNumValues = 1;
 //     resource->mConfigValue.singleValue = valueToBeWritten;
@@ -125,7 +124,6 @@ protected:
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
 //         resource->mOpCode = testOpId;
-//         resource->mOpInfo = 0;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
 //         resource->mConfigValue.singleValue = values[i];
@@ -175,7 +173,6 @@ protected:
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
 //         resource->mOpCode = testOpId;
-//         resource->mOpInfo = 0;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
 //         resource->mConfigValue.singleValue = values[i];
@@ -225,7 +222,6 @@ protected:
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
 //         resource->mOpCode = testOpId;
-//         resource->mOpInfo = 0;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
 //         resource->mConfigValue.singleValue = values[i];
@@ -273,7 +269,6 @@ protected:
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
 //         resource->mOpCode = testOpId;
-//         resource->mOpInfo = 0;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
 //         resource->mConfigValue.singleValue = values[i];
@@ -325,7 +320,6 @@ protected:
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
 //         resource->mOpCode = testOpId;
-//         resource->mOpInfo = 0;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
 //         resource->mConfigValue.singleValue = values.back();
@@ -376,7 +370,6 @@ protected:
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
 //         resource->mOpCode = testOpId;
-//         resource->mOpInfo = 0;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
 //         resource->mConfigValue.singleValue = values.back();
@@ -427,7 +420,6 @@ protected:
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
 //         resource->mOpCode = testOpId;
-//         resource->mOpInfo = 0;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
 //         resource->mConfigValue.singleValue = values.back();
@@ -476,7 +468,6 @@ protected:
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
 //         resource->mOpCode = testOpId;
-//         resource->mOpInfo = 0;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
 //         resource->mConfigValue.singleValue = values.back();
@@ -526,7 +517,6 @@ protected:
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
 //         resource->mOpCode = testOpId;
-//         resource->mOpInfo = 0;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
 //         resource->mConfigValue.singleValue = values[i];
@@ -597,7 +587,6 @@ protected:
 
 // //             Resource* resource = (Resource*) (GetBlock<Resource>());
 // //             resource->mOpCode = testOpId;
-// //             resource->mOpInfo = 0;
 // //             resource->mOptionalInfo = 0;
 // //             resource->mNumValues = 1;
 // //             resource->mConfigValue.singleValue = val;
@@ -651,7 +640,6 @@ protected:
 
 //     Resource* resource = (Resource*) (GetBlock<Resource>());
 //     resource->mOpCode = testOpId;
-//     resource->mOpInfo = 0;
 //     resource->mOptionalInfo = 0;
 //     resource->mNumValues = 1;
 //     resource->mConfigValue.singleValue = 111;
@@ -692,8 +680,6 @@ protected:
 
 // //         Resource* resource = (Resource*) (GetBlock<Resource>());
 // //         resource->mOpCode = 0;
-// //         resource->mOpInfo = 0;
-// //         resource->mOptionalInfo = 0;
 // //         resource->mNumValues = 1;
 // //         resource->mConfigValue.singleValue = values[i];
 
@@ -782,8 +768,6 @@ protected:
 // // //         vector<Resource*> resource;
 // // //         Resource* r = (Resource*) (GetBlock<Resource>());
 // // //         r->mOpCode = 0;
-// // //         r->mOpInfo = 0;
-// // //         r->mOptionalInfo = 0;
 // // //         r->mNumValues = 1;
 // // //         r->mConfigValue.singleValue = values[i];
 
@@ -874,8 +858,6 @@ protected:
 // // //     vector<Resource*> resource;
 // // //     Resource* r = (Resource*) (GetBlock<Resource>());
 // // //     r->mOpCode = 0;
-// // //     r->mOpInfo = 0;
-// // //     r->mOptionalInfo = 0;
 // // //     r->mNumValues = 1;
 // // //     r->mConfigValue.singleValue = 300;
  

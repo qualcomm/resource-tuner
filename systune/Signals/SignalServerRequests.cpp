@@ -164,8 +164,6 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
 }
 
 static void processIncomingRequest(Signal* signal) {
-    // dumpRequest(clientMsg);
-
     if(signal->getRequestType() == SIGNAL_RELAY || signal->getRequestType() == SIGNAL_ACQ) {
         // Check if the client exists, if not create a new client tracking entry
         if(!ClientDataManager::getInstance()->clientExists(signal->getClientPID(), signal->getClientTID())) {
@@ -199,7 +197,25 @@ static void processIncomingRequest(Signal* signal) {
 }
 
 void submitSignalRequest(void* clientReq) {
-    processIncomingRequest((Signal*)clientReq);
+    MsgForwardInfo* info = (MsgForwardInfo*) clientReq;
+    if(info == nullptr) return;
+
+    Signal* signal = nullptr;
+    try {
+        signal = new (GetBlock<Signal>()) Signal();
+
+    } catch(const std::bad_alloc& e) {
+        TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE, e.what());
+        return;
+    }
+
+    if(RC_IS_NOTOK(signal->deserialize(info->buffer))) {
+        Signal::cleanUpSignal(signal);
+        return;
+    }
+
+    signal->setHandle(info->handle);
+    processIncomingRequest(signal);
 }
 
 static Request* createResourceTuningRequest(Signal* signal) {
@@ -242,7 +258,7 @@ static Request* createResourceTuningRequest(Signal* signal) {
         if(i % 2 == 0) {
             try {
                 resource = (Resource*) (GetBlock<Resource>());
-                resource->mOpCode = (*signalLocks)[i];
+                resource->setOpCode((*signalLocks)[i]);
 
             } catch(const std::bad_alloc& e) {
                 LOGE("URM_SIGNAL_SERVER",
@@ -253,7 +269,7 @@ static Request* createResourceTuningRequest(Signal* signal) {
             }
 
         } else {
-            resource->mNumValues = 1;
+            resource->setNumValues(1);
             resource->mConfigValue.singleValue = (*signalLocks)[i];
             (*resourceList)[i - 1] = resource;
         }

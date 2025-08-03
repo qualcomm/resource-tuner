@@ -28,10 +28,8 @@ protected:
 // Helper methods for Resource Generation
 Resource* generateResourceForTesting(int32_t seed) {
     Resource* resource = (Resource*)malloc(sizeof(Resource));
-    resource->mOpCode = 16 + seed;
-    resource->mOpInfo = 27 + 3 * seed;
-    resource->mOptionalInfo = 1445 + 8 * seed;
-    resource->mNumValues = 1;
+    resource->setOpCode(16 + seed);
+    resource->setNumValues(1);
     resource->mConfigValue.singleValue = 2 * seed;
 
     return resource;
@@ -50,10 +48,8 @@ TEST_F(RateLimiterTests, TestClientSpammingScenario) {
         // Generate 51 different requests from the same client
         for(int32_t i = 0; i < 51; i++) {
             Resource* resource = (Resource*) GetBlock<Resource>();
-            resource->mOpCode = 16;
-            resource->mOpInfo = 27;
-            resource->mOptionalInfo = 1480;
-            resource->mNumValues = 1;
+            resource->setOpCode(16);
+            resource->setNumValues(1);
             resource->mConfigValue.singleValue = 8;
 
             std::vector<Resource*>* resources =
@@ -113,10 +109,8 @@ TEST_F(RateLimiterTests, TestClientHealthInCaseOfGoodRequests) {
         // Generate 50 different requests from the same client
         for(int32_t i = 0; i < 50; i++) {
             Resource* resource = (Resource*) GetBlock<Resource>();
-            resource->mOpCode = 16;
-            resource->mOpInfo = 27;
-            resource->mOptionalInfo = 1480;
-            resource->mNumValues = 1;
+            resource->setOpCode(16);
+            resource->setNumValues(1);
             resource->mConfigValue.singleValue = 8;
 
             std::vector<Resource*>* resources =
@@ -171,10 +165,8 @@ TEST_F(RateLimiterTests, TestClientSpammingWithGoodRequests) {
     try {
         for(int32_t i = 0; i < 63; i++) {
             Resource* resource = (Resource*) GetBlock<Resource>();
-            resource->mOpCode = 16;
-            resource->mOpInfo = 27;
-            resource->mOptionalInfo = 1480;
-            resource->mNumValues = 1;
+            resource->setOpCode(16);
+            resource->setNumValues(1);
             resource->mConfigValue.singleValue = 8;
 
             std::vector<Resource*>* resources =

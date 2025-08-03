@@ -8,7 +8,6 @@
 
 #include "SysConfigPropRegistry.h"
 #include "SysConfig.h"
-#include "Types.h"
 #include "Utils.h"
 
 /**

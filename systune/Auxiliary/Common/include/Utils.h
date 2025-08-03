@@ -11,6 +11,8 @@
 #include <cstdint>
 #include <vector>
 
+#include "ErrCodes.h"
+#include "Message.h"
 #include "Logger.h"
 
 #define PROVISIONER "Provisioner"
@@ -128,6 +130,20 @@ enum ClusterTypes {
     TITANIUM,
     TOTAL_CLUSTER_COUNT
 };
+
+typedef struct {
+    char* buffer;
+    uint64_t bufferSize;
+    int64_t handle;
+} MsgForwardInfo;
+
+// GLOBAL TYPEDEFS: Declare Function Pointers as types
+typedef ErrCode (*ModuleCallback)();
+typedef void (*ModuleMessageHandlerCallback)(void*);
+typedef int8_t (*ServerOnlineCheckCallback)();
+typedef int64_t (*SystuneMessageAsyncCallback)(int32_t, MsgForwardInfo*);
+typedef int8_t (*SystuneMessageSyncCallback)(int8_t, void*, char*, uint64_t);
+typedef void (*ResourceApplierCallback)(void*);
 
 #define SERVER_ONLINE_CHECK_CALLBACK 150
 #define PROVISIONER_MESSAGE_RECEIVER_CALLBACK 180

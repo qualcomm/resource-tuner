@@ -31,9 +31,7 @@
 //     for(int32_t count = 0; count < requestCount; count++) {
 //         Resource* resource = (Resource*) GetBlock<Resource>();
 
-//         resource->mOpCode = 16;
-//         resource->mOpInfo = 27;
-//         resource->mOptionalInfo = 1480;
+//         resource->setOpCode(16);
 //         resource->mNumValues = 1;
 //         resource->mConfigValue.singleValue = 8;
 

@@ -10,7 +10,6 @@
 #include "SafeOps.h"
 #include "Logger.h"
 #include "MemoryPool.h"
-#include "Types.h"
 
 /**
 * @brief Encapsulation type for a Signal Tuning Request.

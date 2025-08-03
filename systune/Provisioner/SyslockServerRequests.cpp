@@ -39,7 +39,7 @@ static int8_t getRequestPriority(int8_t clientPermissions, int8_t reqSpecifiedPr
  * @return int8_t: 1 if a valid Logical to Physical Translation exists.
  *                 0 otherwise.
  */
- static int8_t performPhysicalMapping(int32_t& coreValue, int32_t& clusterValue) {
+static int8_t performPhysicalMapping(int32_t& coreValue, int32_t& clusterValue) {
     std::shared_ptr<TargetRegistry> targetRegistry = TargetRegistry::getInstance();
     if(targetRegistry == nullptr) return false;
 
@@ -58,7 +58,6 @@ static int8_t getRequestPriority(int8_t clientPermissions, int8_t reqSpecifiedPr
 
 /**
  * @brief Verifies the validity of an incoming request.
- *
  * @details This function checks the request's resources against configuration constraints,
  * permissions, and performs logical-to-physical mapping.
  *
@@ -77,12 +76,16 @@ static int8_t VerifyIncomingRequest(Request* req) {
         ClientDataManager::getInstance()->getClientLevelByClientID(req->getClientPID());
     // If the client permissions could not be determined, reject this request.
     // This could happen if the /proc/<pid>/status file for the Process could not be opened.
-    if(clientPermissions == -1) return false;
+    if(clientPermissions == -1) {
+        TYPELOGV(VERIFIER_INVALID_PERMISSION, req->getClientPID(), req->getClientTID());
+        return false;
+    }
 
     // Check Request Priority
     int8_t reqSpecifiedPriority = req->getPriority();
     if(reqSpecifiedPriority > RequestPriority::REQ_PRIORITY_LOW ||
        reqSpecifiedPriority < RequestPriority::REQ_PRIORITY_HIGH) {
+        TYPELOGV(VERIFIER_INVALID_PRIORITY, reqSpecifiedPriority);
         return false;
     }
 
@@ -96,24 +99,22 @@ static int8_t VerifyIncomingRequest(Request* req) {
             return false;
         }
 
-        ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->mOpCode);
+        ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
 
         // Basic sanity: Invalid resource Opcode
         if(resourceConfig == nullptr) {
-            LOGE("URM_PROVISIONER_SERVER_REQUESTS",
-                 "Invalid Opcode, Dropping Request");
+            TYPELOGV(VERIFIER_INVALID_OPCODE, resource->getOpCode());
             return false;
         }
 
-        if(resource->mNumValues == 1) {
+        if(resource->getValuesCount() == 1) {
             // Verify value is in the range [LT, HT]
             int32_t configValue = resource->mConfigValue.singleValue;
             int32_t lowThreshold = resourceConfig->mLowThreshold;
             int32_t highThreshold = resourceConfig->mHighThreshold;
 
             if(configValue < lowThreshold || configValue > highThreshold) {
-                LOGE("URM_PROVISIONER_SERVER_REQUESTS",
-                     "Range Checking Failed, Dropping Request");
+                TYPELOGV(VERIFIER_VALUE_OUT_OF_BOUNDS, configValue, resource->getOpCode());
                 return false;
             }
         } else {
@@ -125,32 +126,30 @@ static int8_t VerifyIncomingRequest(Request* req) {
 
         // Check for Client permissions
         if(resourceConfig->mPermissions == PERMISSION_SYSTEM && clientPermissions == PERMISSION_THIRD_PARTY) {
-            LOGI("URM_PROVISIONER_SERVER_REQUESTS",
-                 "Permission Check Failed, Dropping Request");
+            TYPELOGV(VERIFIER_NOT_SUFFICIENT_PERMISSION, resource->getOpCode());
             return false;
         }
 
         // If CoreLevelConflict for the Resource is set to true, then perform Logical to Physical Translation
         if(resourceConfig->mCoreLevelConflict) {
             // Check for invalid Core / cluster values, these are the logical values
-            int32_t coreValue = EXTRACT_RESOURCE_CORE_VALUE(resource->mOpInfo);
-            int32_t clusterValue = EXTRACT_RESOURCE_CLUSTER_VALUE(resource->mOpInfo);
+            int32_t coreValue = resource->getCoreValue();
+            int32_t clusterValue = resource->getClusterValue();
 
             if(coreValue <= 0 || clusterValue < 0) return false;
 
             // Perform logical to physical mapping here, as part of which verification can happen
             // Replace mOpInfo with the Physical values here:
             if(!performPhysicalMapping(coreValue, clusterValue)) {
+                TYPELOGV(VERIFIER_LOGICAL_TO_PHYSICAL_MAPPING_FAILED, resource->getOpCode());
                 return false;
             }
 
-            resource->mOpInfo = SET_RESOURCE_CORE_VALUE(resource->mOpInfo, coreValue);
-            resource->mOpInfo = SET_RESOURCE_CLUSTER_VALUE(resource->mOpInfo, clusterValue);
+            resource->setCoreValue(coreValue);
+            resource->setClusterValue(clusterValue);
         }
     }
 
-    LOGI("URM_PROVISIONER_SERVER_REQUESTS",
-         "Request with handle = " + std::to_string(req->getHandle()) + ", Verified");
     return true;
 }
 
@@ -172,21 +171,23 @@ static void dumpRequest(Request* clientReq) {
     for(int32_t i = 0; i < clientReq->getResourcesCount(); i++) {
         Resource* res = clientReq->getResourceAt(i);
         LOGD(LOG_TAG, "Resource " + std::to_string(i + 1) + ":");
-        LOGD(LOG_TAG, "Opcode ID: " + std::to_string(res->mOpCode));
-        LOGD(LOG_TAG, "Number of Values: " + std::to_string(res->mNumValues));
+        LOGD(LOG_TAG, "Opcode ID: " + std::to_string(res->getOpCode()));
+        LOGD(LOG_TAG, "Number of Values: " + std::to_string(res->getValuesCount()));
         LOGD(LOG_TAG, "-- Single Value: " + std::to_string(res->mConfigValue.singleValue));
     }
 }
 
 static void processIncomingRequest(Request* request, int8_t isValidated=false) {
-    if(request == nullptr) return;
+    std::shared_ptr<RateLimiter> rateLimiter = RateLimiter::getInstance();
 
-    int64_t currActiveReqCount = RequestManager::getInstance()->getActiveReqeustsCount();
-    // Cover this check as part of Rate Limiter
-    if(currActiveReqCount >= SystuneSettings::metaConfigs.mMaxConcurrentRequests) {
+    // Perform a Global Rate Limit Check before Processing the Request
+    // This is to check if the current Active Request count has hit the
+    // Max Number of Concurrent Requests Allowed Threshold
+    // If the Threshold has been hit, we don't process the Request any further.
+    if(!rateLimiter->isGlobalRateLimitHonored()) {
         LOGE("URM_PROVISIONER_SERVER_REQUESTS",
              "Max Concurrent Requests Count hit, "  \
-             "Request with handle = " + std::to_string(request->getHandle()) + " Rejected.");
+             "Request with handle = " + std::to_string(request->getHandle()) + " Dropped.");
 
         // Free the Request Memory Block
         Request::cleanUpRequest(request);
@@ -234,7 +235,6 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
         }
     }
 
-    std::shared_ptr<RateLimiter> rateLimiter = RateLimiter::getInstance();
     if(!rateLimiter->isRateLimitHonored(request->getClientTID())) {
         LOGI("URM_PROVISIONER_SERVER_REQUESTS", "ClientTID: " + std::to_string(request->getClientTID()) + " Rate Limited");
         return;
@@ -245,11 +245,9 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
     // For requests of type tune
     // - Check for duplicate requests, using the RequestManager
     // - Check if any of the outstanding requests of this client matches the current request
-
     if(request->getRequestType() == REQ_RESOURCE_UNTUNING ||
        request->getRequestType() == REQ_RESOURCE_RETUNING) {
         if(!RequestManager::getInstance()->verifyHandle(request->getHandle())) {
-            // No Further processing
             LOGD("URM_PROVISIONER_SERVER_REQUESTS", "No existing request with this handle found, dropping the request");
             Request::cleanUpRequest(request);
         } else {
@@ -265,8 +263,9 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
     }
 
     if(isValidated || VerifyIncomingRequest(request)) {
+        TYPELOGV(VERIFIER_REQUEST_VALIDATED, request->getHandle());
+
         if(RequestManager::getInstance()->shouldRequestBeAdded(request)) {
-            LOGD("URM_PROVISIONER_SERVER_REQUESTS", "Request validated and has no duplicates");
             RequestManager::getInstance()->addRequest(request);
 
             // Add this request to the RequestQueue
@@ -278,7 +277,7 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
         }
 
     } else {
-        LOGD("URM_PROVISIONER_SERVER_REQUESTS", "Request verification failed, dropping request.");
+        TYPELOGV(VERIFIER_STATUS_FAILURE, request->getHandle());
         Request::cleanUpRequest(request);
     }
 }
@@ -287,8 +286,26 @@ void submitResourceProvisioningRequest(Request* request, int8_t isValidated) {
     processIncomingRequest(request, isValidated);
 }
 
-void submitResourceProvisioningRequest(void* request) {
-    processIncomingRequest((Request*)request);
+void submitResourceProvisioningRequest(void* msg) {
+    MsgForwardInfo* info = (MsgForwardInfo*) msg;
+    if(info == nullptr) return;
+
+    Request* request = nullptr;
+    try {
+        request = new (GetBlock<Request>()) Request();
+
+    } catch(const std::bad_alloc& e) {
+        TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE, e.what());
+        return;
+    }
+
+    if(RC_IS_NOTOK(request->deserialize(info->buffer))) {
+        Request::cleanUpRequest(request);
+        return;
+    }
+
+    request->setHandle(info->handle);
+    processIncomingRequest(request);
 }
 
 void toggleDisplayModes() {
@@ -357,12 +374,6 @@ void RequestQueue::orderedQueueConsumerHook() {
                 // No need to process it again.
                 continue;
             }
-
-            // if(requestProcessingStatus > REQ_COMPLETED) {
-            //     // Update Request Duration
-            //     // Retune Edge Case
-            //     // req->updateDuration(requestProcessingStatus);
-            // }
 
             RequestManager::getInstance()->markRequestAsComplete(req->getHandle());
             if(!cocoTable->insertRequest(req)) {

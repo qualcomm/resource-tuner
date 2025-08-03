@@ -3,18 +3,6 @@
 #include "TestUtils.h"
 #include "SystuneAPIs.h"
 
-// Helper methods for Resource Generation
-static Resource* generateResourceForTesting(uint32_t opId, int32_t seed) {
-    Resource* resource = (Resource*)malloc(sizeof(Resource));
-    resource->mOpCode = opId;
-    resource->mOpInfo = 27 + 3 * seed;
-    resource->mOptionalInfo = 1445 + 8 * seed;
-    resource->mNumValues = 1;
-    resource->mConfigValue.singleValue = seed;
-
-    return resource;
-}
-
 /*
  * These tests mirror the Client Perspective, i.e. how the client interacts with various
  * Systune APIs like tuneResources / untuneResources, tuneSignal etc.
@@ -182,9 +170,16 @@ namespace ProvisionerRequestVerification {
         assert(originalValue == validResourceOriginalValue);
 
         std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource1 = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 2), 554);
+        Resource* resource1 = new Resource;
+        resource1->setOpCode(GENERATE_RESOURCE_ID(1, 2));
+        resource1->setNumValues(1);
+        resource1->mConfigValue.singleValue = 554;
+
         // No Resource with this ID exists
-        Resource* resource2 = generateResourceForTesting(12000, 554);
+        Resource* resource2 = new Resource;
+        resource2->setOpCode(12000);
+        resource2->setNumValues(1);
+        resource2->mConfigValue.singleValue = 554;
 
         resources->push_back(resource1);
         resources->push_back(resource2);
@@ -230,7 +225,10 @@ namespace ProvisionerRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 2), 1200);
+        Resource* resource = new Resource;
+        resource->setOpCode(GENERATE_RESOURCE_ID(1, 2));
+        resource->setNumValues(1);
+        resource->mConfigValue.singleValue = 1200;
         resources->push_back(resource);
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
@@ -274,9 +272,12 @@ namespace ProvisionerRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 5), 2300);
-        resource->mOpInfo = SET_RESOURCE_CLUSTER_VALUE(resource->mOpInfo, 2);
-        resource->mOpInfo = SET_RESOURCE_CORE_VALUE(resource->mOpInfo, 27);
+        Resource* resource = new Resource;
+        resource->setOpCode(GENERATE_RESOURCE_ID(1, 5));
+        resource->setNumValues(1);
+        resource->mConfigValue.singleValue = 2300;
+        resource->setClusterValue(2);
+        resource->setCoreValue(27);
         resources->push_back(resource);
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
@@ -320,9 +321,12 @@ namespace ProvisionerRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 5), 2300);
-        resource->mOpInfo = SET_RESOURCE_CLUSTER_VALUE(resource->mOpInfo, 5);
-        resource->mOpInfo = SET_RESOURCE_CORE_VALUE(resource->mOpInfo, 2);
+        Resource* resource = new Resource;
+        resource->setOpCode(GENERATE_RESOURCE_ID(1, 5));
+        resource->setNumValues(1);
+        resource->mConfigValue.singleValue = 2300;
+        resource->setClusterValue(5);
+        resource->setCoreValue(2);
         resources->push_back(resource);
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
@@ -367,9 +371,12 @@ namespace ProvisionerRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 5), 2300);
-        resource->mOpInfo = SET_RESOURCE_CLUSTER_VALUE(resource->mOpInfo, 2);
-        resource->mOpInfo = SET_RESOURCE_CORE_VALUE(resource->mOpInfo, 2);
+        Resource* resource = new Resource;
+        resource->setOpCode(GENERATE_RESOURCE_ID(1, 5));
+        resource->setNumValues(1);
+        resource->mConfigValue.singleValue = 2300;
+        resource->setClusterValue(2);
+        resource->setCoreValue(2);
         resources->push_back(resource);
         int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
@@ -419,9 +426,12 @@ namespace ProvisionerRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 5), 2300);
-        resource->mOpInfo = SET_RESOURCE_CLUSTER_VALUE(resource->mOpInfo, 1);
-        resource->mOpInfo = SET_RESOURCE_CORE_VALUE(resource->mOpInfo, 0);
+        Resource* resource = new Resource;
+        resource->setOpCode(GENERATE_RESOURCE_ID(1, 5));
+        resource->setNumValues(1);
+        resource->mConfigValue.singleValue = 2300;
+        resource->setClusterValue(1);
+        resource->setCoreValue(0);
         resources->push_back(resource);
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
@@ -462,7 +472,10 @@ namespace ProvisionerRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 7), 653);
+        Resource* resource = new Resource;
+        resource->setOpCode(GENERATE_RESOURCE_ID(1, 7));
+        resource->setNumValues(1);
+        resource->mConfigValue.singleValue = 653;
         resources->push_back(resource);
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
@@ -502,7 +515,10 @@ namespace ProvisionerRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 6), 4670);
+        Resource* resource = new Resource;
+        resource->setOpCode(GENERATE_RESOURCE_ID(1, 6));
+        resource->setNumValues(1);
+        resource->mConfigValue.singleValue = 4670;
         resources->push_back(resource);
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
@@ -546,7 +562,10 @@ namespace ProvisionerRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 4), 460);
+        Resource* resource = new Resource;
+        resource->setOpCode(GENERATE_RESOURCE_ID(1, 4));
+        resource->setNumValues(1);
+        resource->mConfigValue.singleValue = 460;
         resources->push_back(resource);
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
 
@@ -860,11 +879,9 @@ namespace RequestApplicationTests {
 
         std::vector<Resource*>* resources = new std::vector<Resource*>;
 
-        Resource* resource = (Resource*)malloc(sizeof(Resource));
-        resource->mOpCode = GENERATE_RESOURCE_ID(1, 0);
-        resource->mOpInfo = 0;
-        resource->mOptionalInfo = 0;
-        resource->mNumValues = 1;
+        Resource* resource = new Resource;
+        resource->setOpCode(GENERATE_RESOURCE_ID(1, 0));
+        resource->setNumValues(1);
         resource->mConfigValue.singleValue = 980;
 
         resources->push_back(resource);
@@ -925,9 +942,20 @@ namespace RequestApplicationTests {
 
         std::vector<Resource*>* resources = new std::vector<Resource*>;
 
-        Resource* resource1 = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 3), 765);
-        Resource* resource3 = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 2), 617);
-        Resource* resource2 = generateResourceForTesting(GENERATE_RESOURCE_ID(1, 1), 889);
+        Resource* resource1 = new Resource;
+        resource1->setOpCode(GENERATE_RESOURCE_ID(1, 3));
+        resource1->setNumValues(1);
+        resource1->mConfigValue.singleValue = 765;
+
+        Resource* resource2 = new Resource;
+        resource2->setOpCode(GENERATE_RESOURCE_ID(1, 1));
+        resource2->setNumValues(1);
+        resource2->mConfigValue.singleValue = 889;
+
+        Resource* resource3 = new Resource;
+        resource3->setOpCode(GENERATE_RESOURCE_ID(1, 2));
+        resource3->setNumValues(1);
+        resource3->mConfigValue.singleValue = 617;
 
         resources->push_back(resource1);
         resources->push_back(resource2);
@@ -994,11 +1022,9 @@ namespace RequestApplicationTests {
         int32_t rc = fork();
         if(rc == 0) {
             std::vector<Resource*>* resources = new std::vector<Resource*>;
-            Resource* resource = (Resource*)malloc(sizeof(Resource));
-            resource->mOpCode = GENERATE_RESOURCE_ID(1, 3);
-            resource->mOpInfo = 0;
-            resource->mOptionalInfo = 0;
-            resource->mNumValues = 1;
+            Resource* resource = new Resource;
+            resource->setOpCode(GENERATE_RESOURCE_ID(1, 3));
+            resource->setNumValues(1);
             resource->mConfigValue.singleValue = 315;
             resources->push_back(resource);
 
@@ -1009,11 +1035,9 @@ namespace RequestApplicationTests {
             wait(nullptr);
 
             std::vector<Resource*>* resources = new std::vector<Resource*>;
-            Resource* resource = (Resource*)malloc(sizeof(Resource));
-            resource->mOpCode = GENERATE_RESOURCE_ID(1, 3);
-            resource->mOpInfo = 0;
-            resource->mOptionalInfo = 0;
-            resource->mNumValues = 1;
+            Resource* resource = new Resource;
+            resource->setOpCode(GENERATE_RESOURCE_ID(1, 3));
+            resource->setNumValues(1);
             resource->mConfigValue.singleValue = 209;
             resources->push_back(resource);
 
@@ -1071,11 +1095,9 @@ namespace RequestApplicationTests {
         int32_t rc1 = fork();
         if(rc1 == 0) {
             std::vector<Resource*>* resources = new std::vector<Resource*>;
-            Resource* resource = (Resource*)malloc(sizeof(Resource));
-            resource->mOpCode = GENERATE_RESOURCE_ID(1, 3);
-            resource->mOpInfo = 0;
-            resource->mOptionalInfo = 0;
-            resource->mNumValues = 1;
+            Resource* resource = new Resource;
+            resource->setOpCode(GENERATE_RESOURCE_ID(1, 3));
+            resource->setNumValues(1);
             resource->mConfigValue.singleValue = 1176;
 
             resources->push_back(resource);
@@ -1086,11 +1108,9 @@ namespace RequestApplicationTests {
         } else if(rc1 > 0) {
             wait(nullptr);
             std::vector<Resource*>* resources = new std::vector<Resource*>;
-            Resource* resource = (Resource*)malloc(sizeof(Resource));
-            resource->mOpCode = GENERATE_RESOURCE_ID(1, 3);
-            resource->mOpInfo = 0;
-            resource->mOptionalInfo = 0;
-            resource->mNumValues = 1;
+            Resource* resource = new Resource;
+            resource->setOpCode(GENERATE_RESOURCE_ID(1, 3));
+            resource->setNumValues(1);
             resource->mConfigValue.singleValue = 823;
 
             resources->push_back(resource);
@@ -1157,11 +1177,9 @@ namespace RequestApplicationTests {
         int32_t rc1 = fork();
         if(rc1 == 0) {
             std::vector<Resource*>* resources = new std::vector<Resource*>;
-            Resource* resource = (Resource*)malloc(sizeof(Resource));
-            resource->mOpCode = GENERATE_RESOURCE_ID(1, 2);
-            resource->mOpInfo = 0;
-            resource->mOptionalInfo = 0;
-            resource->mNumValues = 1;
+            Resource* resource = new Resource;
+            resource->setOpCode(GENERATE_RESOURCE_ID(1, 2));
+            resource->setNumValues(1);
             resource->mConfigValue.singleValue = 578;
 
             resources->push_back(resource);
@@ -1180,11 +1198,9 @@ namespace RequestApplicationTests {
             int32_t rc2 = fork();
             if(rc2 == 0) {
                 std::vector<Resource*>* resources = new std::vector<Resource*>;
-                Resource* resource = (Resource*)malloc(sizeof(Resource));
-                resource->mOpCode = GENERATE_RESOURCE_ID(1, 2);
-                resource->mOpInfo = 0;
-                resource->mOptionalInfo = 0;
-                resource->mNumValues = 1;
+                Resource* resource = new Resource;
+                resource->setOpCode(GENERATE_RESOURCE_ID(1, 2));
+                resource->setNumValues(1);
                 resource->mConfigValue.singleValue = 445;
                 resources->push_back(resource);
 
@@ -1203,11 +1219,9 @@ namespace RequestApplicationTests {
                 int32_t rc3 = fork();
                 if(rc3 == 0) {
                     std::vector<Resource*>* resources = new std::vector<Resource*>;
-                    Resource* resource = (Resource*)malloc(sizeof(Resource));
-                    resource->mOpCode = GENERATE_RESOURCE_ID(1, 2);
-                    resource->mOpInfo = 0;
-                    resource->mOptionalInfo = 0;
-                    resource->mNumValues = 1;
+                    Resource* resource = new Resource;
+                    resource->setOpCode(GENERATE_RESOURCE_ID(1, 2));
+                    resource->setNumValues(1);
                     resource->mConfigValue.singleValue = 412;
 
                     resources->push_back(resource);
@@ -1224,11 +1238,9 @@ namespace RequestApplicationTests {
                     assert(newValue == 412);
 
                     std::vector<Resource*>* resources = new std::vector<Resource*>;
-                    Resource* resource = (Resource*)malloc(sizeof(Resource));
-                    resource->mOpCode = GENERATE_RESOURCE_ID(1, 2);
-                    resource->mOpInfo = 0;
-                    resource->mOptionalInfo = 0;
-                    resource->mNumValues = 1;
+                    Resource* resource = new Resource;
+                    resource->setOpCode(GENERATE_RESOURCE_ID(1, 2));
+                    resource->setNumValues(1);
                     resource->mConfigValue.singleValue = 378;
                     resources->push_back(resource);
 
@@ -1284,11 +1296,9 @@ namespace RequestApplicationTests {
         int32_t rc1 = fork();
         if(rc1 == 0) {
             std::vector<Resource*>* resources = new std::vector<Resource*>;
-            Resource* resource = (Resource*)malloc(sizeof(Resource));
-            resource->mOpCode = GENERATE_RESOURCE_ID(1, 8);
-            resource->mOpInfo = 0;
-            resource->mOptionalInfo = 0;
-            resource->mNumValues = 1;
+            Resource* resource = new Resource;
+            resource->setOpCode(GENERATE_RESOURCE_ID(1, 8));
+            resource->setNumValues(1);
             resource->mConfigValue.singleValue = 15;
             resources->push_back(resource);
 
@@ -1301,11 +1311,9 @@ namespace RequestApplicationTests {
             std::this_thread::sleep_for(std::chrono::seconds(1));
 
             std::vector<Resource*>* resources = new std::vector<Resource*>;
-            Resource* resource = (Resource*)malloc(sizeof(Resource));
-            resource->mOpCode = GENERATE_RESOURCE_ID(1, 8);
-            resource->mOpInfo = 0;
-            resource->mOptionalInfo = 0;
-            resource->mNumValues = 1;
+            Resource* resource = new Resource;
+            resource->setOpCode(GENERATE_RESOURCE_ID(1, 8));
+            resource->setNumValues(1);
             resource->mConfigValue.singleValue = 18;
             resources->push_back(resource);
 
@@ -1376,11 +1384,9 @@ namespace RequestApplicationTests {
         int32_t rc1 = fork();
         if(rc1 == 0) {
             std::vector<Resource*>* resources = new std::vector<Resource*>;
-            Resource* resource = (Resource*)malloc(sizeof(Resource));
-            resource->mOpCode = GENERATE_RESOURCE_ID(1, 2);
-            resource->mOpInfo = 0;
-            resource->mOptionalInfo = 0;
-            resource->mNumValues = 1;
+            Resource* resource = new Resource;
+            resource->setOpCode(GENERATE_RESOURCE_ID(1, 2));
+            resource->setNumValues(1);
             resource->mConfigValue.singleValue = 717;
             resources->push_back(resource);
 
@@ -1394,11 +1400,9 @@ namespace RequestApplicationTests {
             int32_t rc2 = fork();
             if(rc2 == 0) {
                 std::vector<Resource*>* resources = new std::vector<Resource*>;
-                Resource* resource = (Resource*)malloc(sizeof(Resource));
-                resource->mOpCode = GENERATE_RESOURCE_ID(1, 3);
-                resource->mOpInfo = 0;
-                resource->mOptionalInfo = 0;
-                resource->mNumValues = 1;
+                Resource* resource = new Resource;
+                resource->setOpCode(GENERATE_RESOURCE_ID(1, 3));
+                resource->setNumValues(1);
                 resource->mConfigValue.singleValue = 800;
                 resources->push_back(resource);
                 int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
@@ -1410,11 +1414,9 @@ namespace RequestApplicationTests {
 
             } else if(rc2 > 0) {
                 std::vector<Resource*>* resources = new std::vector<Resource*>;
-                Resource* resource = (Resource*)malloc(sizeof(Resource));
-                resource->mOpCode = GENERATE_RESOURCE_ID(1, 1);
-                resource->mOpInfo = 0;
-                resource->mOptionalInfo = 0;
-                resource->mNumValues = 1;
+                Resource* resource = new Resource;
+                resource->setOpCode(GENERATE_RESOURCE_ID(1, 1));
+                resource->setNumValues(1);
                 resource->mConfigValue.singleValue = 557;
                 resources->push_back(resource);
 
@@ -1484,20 +1486,16 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         std::vector<Resource*>* resources1 = new std::vector<Resource*>;
-        Resource* resource1 = (Resource*)malloc(sizeof(Resource));
-        resource1->mOpCode = GENERATE_RESOURCE_ID(1, 3);
-        resource1->mOpInfo = 0;
-        resource1->mOptionalInfo = 0;
-        resource1->mNumValues = 1;
+        Resource* resource1 = new Resource;
+        resource1->setOpCode(GENERATE_RESOURCE_ID(1, 3));
+        resource1->setNumValues(1);
         resource1->mConfigValue.singleValue = 889;
         resources1->push_back(resource1);
 
         std::vector<Resource*>* resources2 = new std::vector<Resource*>;
-        Resource* resource2 = (Resource*)malloc(sizeof(Resource));
-        resource2->mOpCode = GENERATE_RESOURCE_ID(1, 3);
-        resource2->mOpInfo = 0;
-        resource2->mOptionalInfo = 0;
-        resource2->mNumValues = 1;
+        Resource* resource2 = new Resource;
+        resource2->setOpCode(GENERATE_RESOURCE_ID(1, 3));
+        resource2->setNumValues(1);
         resource2->mConfigValue.singleValue = 917;
         resources2->push_back(resource2);
 
@@ -1545,11 +1543,10 @@ namespace RequestApplicationTests {
 
         std::thread th([&]{
             std::vector<Resource*>* resources1 = new std::vector<Resource*>;
-            Resource* resource1 = (Resource*)malloc(sizeof(Resource));
-            resource1->mOpCode = GENERATE_RESOURCE_ID(1, 3);
-            resource1->mOpInfo = 0;
-            resource1->mOptionalInfo = 0;
-            resource1->mNumValues = 1;
+            Resource* resource1 = new Resource;
+            resource1->setOpCode(GENERATE_RESOURCE_ID(1, 3));
+            resource1->setOptionalInfo(0);
+            resource1->setNumValues(1);
             resource1->mConfigValue.singleValue = 664;
             resources1->push_back(resource1);
 
@@ -1557,11 +1554,10 @@ namespace RequestApplicationTests {
         });
 
         std::vector<Resource*>* resources2 = new std::vector<Resource*>;
-        Resource* resource2 = (Resource*)malloc(sizeof(Resource));
-        resource2->mOpCode = GENERATE_RESOURCE_ID(1, 3);
-        resource2->mOpInfo = 0;
-        resource2->mOptionalInfo = 0;
-        resource2->mNumValues = 1;
+        Resource* resource2 = new Resource;
+        resource2->setOpCode(GENERATE_RESOURCE_ID(1, 3));
+        resource2->setOptionalInfo(0);
+        resource2->setNumValues(1);
         resource2->mConfigValue.singleValue = 702;
         resources2->push_back(resource2);
 
@@ -1610,11 +1606,9 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource = (Resource*)malloc(sizeof(Resource));
-        resource->mOpCode = GENERATE_RESOURCE_ID(1, 2);
-        resource->mOpInfo = 0;
-        resource->mOptionalInfo = 0;
-        resource->mNumValues = 1;
+        Resource* resource = new Resource;
+        resource->setOpCode(GENERATE_RESOURCE_ID(1, 2));
+        resource->setNumValues(1);
         resource->mConfigValue.singleValue = 245;
         resources->push_back(resource);
         handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
@@ -1667,11 +1661,9 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource = (Resource*)malloc(sizeof(Resource));
-        resource->mOpCode = GENERATE_RESOURCE_ID(1, 2);
-        resource->mOpInfo = 0;
-        resource->mOptionalInfo = 0;
-        resource->mNumValues = 1;
+        Resource* resource = new Resource;
+        resource->setOpCode(GENERATE_RESOURCE_ID(1, 2));
+        resource->setNumValues(1);
         resource->mConfigValue.singleValue = 245;
         resources->push_back(resource);
         handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
@@ -1744,21 +1736,17 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         std::vector<Resource*>* resources1 = new std::vector<Resource*>;
-        Resource* resource1 = (Resource*)malloc(sizeof(Resource));
-        resource1->mOpCode = GENERATE_RESOURCE_ID(1, 2);
-        resource1->mOpInfo = 0;
-        resource1->mOptionalInfo = 0;
-        resource1->mNumValues = 1;
+        Resource* resource1 = new Resource;
+        resource1->setOpCode(GENERATE_RESOURCE_ID(1, 2));
+        resource1->setNumValues(1);
         resource1->mConfigValue.singleValue = 515;
         resources1->push_back(resource1);
         handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_LOW, 1, resources1);
 
         std::vector<Resource*>* resources2 = new std::vector<Resource*>;
-        Resource* resource2 = (Resource*)malloc(sizeof(Resource));
-        resource2->mOpCode = GENERATE_RESOURCE_ID(1, 2);
-        resource2->mOpInfo = 0;
-        resource2->mOptionalInfo = 0;
-        resource2->mNumValues = 1;
+        Resource* resource2 = new Resource;
+        resource2->setOpCode(GENERATE_RESOURCE_ID(1, 2));
+        resource2->setNumValues(1);
         resource2->mConfigValue.singleValue = 559;
         resources2->push_back(resource2);
         handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources2);
@@ -1817,11 +1805,9 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         std::vector<Resource*>* resources1 = new std::vector<Resource*>;
-        Resource* resource1 = (Resource*)malloc(sizeof(Resource));
-        resource1->mOpCode = GENERATE_RESOURCE_ID(1, 2);
-        resource1->mOpInfo = 0;
-        resource1->mOptionalInfo = 0;
-        resource1->mNumValues = 1;
+        Resource* resource1 = new Resource;
+        resource1->setOpCode(GENERATE_RESOURCE_ID(1, 2));
+        resource1->setNumValues(1);
         resource1->mConfigValue.singleValue = 515;
         resources1->push_back(resource1);
         handle = tuneResources(12000, RequestPriority::REQ_PRIORITY_LOW, 1, resources1);
@@ -1835,11 +1821,9 @@ namespace RequestApplicationTests {
         std::this_thread::sleep_for(std::chrono::seconds(3));
 
         std::vector<Resource*>* resources2 = new std::vector<Resource*>;
-        Resource* resource2 = (Resource*)malloc(sizeof(Resource));
-        resource2->mOpCode = GENERATE_RESOURCE_ID(1, 2);
-        resource2->mOpInfo = 0;
-        resource2->mOptionalInfo = 0;
-        resource2->mNumValues = 1;
+        Resource* resource2 = new Resource;
+        resource2->setOpCode(GENERATE_RESOURCE_ID(1, 2));
+        resource2->setNumValues(1);
         resource2->mConfigValue.singleValue = 559;
         resources2->push_back(resource2);
         handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources2);
@@ -1897,11 +1881,10 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         std::vector<Resource*>* resources1 = new std::vector<Resource*>;
-        Resource* resource1 = (Resource*)malloc(sizeof(Resource));
-        resource1->mOpCode = GENERATE_RESOURCE_ID(1, 3);
-        resource1->mOpInfo = 0;
-        resource1->mOptionalInfo = 0;
-        resource1->mNumValues = 1;
+        Resource* resource1 = new Resource;
+        resource1->setOpCode(GENERATE_RESOURCE_ID(1, 3));
+        resource1->setOptionalInfo(0);
+        resource1->setNumValues(1);
         resource1->mConfigValue.singleValue = 645;
         resources1->push_back(resource1);
         handle = tuneResources(10000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources1);
@@ -1915,11 +1898,9 @@ namespace RequestApplicationTests {
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
         std::vector<Resource*>* resources2 = new std::vector<Resource*>;
-        Resource* resource2 = (Resource*)malloc(sizeof(Resource));
-        resource2->mOpCode = GENERATE_RESOURCE_ID(1, 3);
-        resource2->mOpInfo = 0;
-        resource2->mOptionalInfo = 0;
-        resource2->mNumValues = 1;
+        Resource* resource2 = new Resource;
+        resource2->setOpCode(GENERATE_RESOURCE_ID(1, 3));
+        resource2->setNumValues(1);
         resource2->mConfigValue.singleValue = 716;
         resources2->push_back(resource2);
         handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_LOW, 1, resources2);
@@ -1969,11 +1950,9 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource = (Resource*)malloc(sizeof(Resource));
-        resource->mOpCode = GENERATE_RESOURCE_ID(1, 3);
-        resource->mOpInfo = 0;
-        resource->mOptionalInfo = 0;
-        resource->mNumValues = 1;
+        Resource* resource = new Resource;
+        resource->setOpCode(GENERATE_RESOURCE_ID(1, 3));
+        resource->setNumValues(1);
         resource->mConfigValue.singleValue = 778;
         resources->push_back(resource);
         handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
@@ -2033,11 +2012,9 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource = (Resource*)malloc(sizeof(Resource));
-        resource->mOpCode = GENERATE_RESOURCE_ID(1, 3);
-        resource->mOpInfo = 0;
-        resource->mOptionalInfo = 0;
-        resource->mNumValues = 1;
+        Resource* resource = new Resource;
+        resource->setOpCode(GENERATE_RESOURCE_ID(1, 3));
+        resource->setNumValues(1);
         resource->mConfigValue.singleValue = 778;
         resources->push_back(resource);
         handle = tuneResources(12000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
@@ -2097,11 +2074,9 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource = (Resource*)malloc(sizeof(Resource));
-        resource->mOpCode = GENERATE_RESOURCE_ID(1, 0);
-        resource->mOpInfo = 0;
-        resource->mOptionalInfo = 0;
-        resource->mNumValues = 1;
+        Resource* resource = new Resource;
+        resource->setOpCode(GENERATE_RESOURCE_ID(1, 0));
+        resource->setNumValues(1);
         resource->mConfigValue.singleValue = 597;
         resources->push_back(resource);
         handle = tuneResources(7000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
@@ -2165,7 +2140,7 @@ int32_t main() {
     // - Provisioner
     ProvisionerRequestVerification::RunTestGroup();
     // - SysSignal
-    // SignalRequestVerification::RunTestGroup();
+    SignalRequestVerification::RunTestGroup();
 
     // // Request Application Tests
     // RequestApplicationTests::RunTestGroup();

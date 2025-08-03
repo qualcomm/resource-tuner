@@ -6,11 +6,9 @@ Systune is a lightweight daemon that monitors and dynamically regulates CPU, mem
 
 \section features_sec Features
 
-- Modular architecture for easy extension
-- Comprehensive error handling and logging
-- High-performance algorithms and data structures
-- Clean and well-documented codebase
-- Cross-platform compatibility
+- Follows the One Software Package (OneSP) Strategy
+- Highly Configurable and Extensible
+- Light Weight and Flexible Packaging
 
 \section usage_sec Getting Started
 
@@ -18,7 +16,7 @@ To get started with the project:
 
 1. Clone the repository:
    \code{.sh}
-   git clone https://github.com/yourusername/yourproject.git
+   git clone https://github.com/qualcomm/systune.git
    \endcode
 
 2. Build the project:
@@ -30,29 +28,33 @@ To get started with the project:
 
 3. Run the application:
    \code{.sh}
-   ./your_executable
+   ./systune
    \endcode
+
+Refer the **Examples** Tab for guidance on Systune API usage.
+
+[GitHub Repo](https://github.com/qualcomm/systune/tree/main)
+
+[Further Documentation](https://github.com/qualcomm/systune/blob/main/systune/docs/README.pdf)
 
 \section structure_sec Project Structure
 
 \verbatim
-/src        → Core source files  
-/include    → Public headers  
-/tests      → Unit tests  
-/docs       → Documentation files  
-/CMakeLists.txt → Build configuration  
+/Framework  → Core Resource Provisioning Request Logic
+/Auxiliary  → Common Utilities and Components used across Systune Modules.
+/Client     → Exposes the Client Facing APIs, and Defines the Client Communication Endpoint
+/Server     → Defines the Server Communication Endpoint and other Common Server-Side Utils.
+/Signals    → Optional Module, exposes Signal Acquire / Relay APIs
+/Tests      → Unit and System Wide Tests
+/docs       → Documentation
 \endverbatim
 
 \section contact_sec Contact
 
 For questions, suggestions, or contributions, feel free to reach out:
 
-- **Author**: Your Name  
-- **Email**: your.email@example.com  
-- **GitHub**: https://github.com/yourusername
+- **Email**: maintainers.urm.systune@qti.qualcomm.com
 
 \section license_sec License
 
-This project is licensed under the MIT License. See the `LICENSE` file for details.
-
-
+This project is licensed under the BSD 3-Clause Clear License.

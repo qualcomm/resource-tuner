@@ -5,3 +5,6 @@ To make use of these APIs, the Client needs to add the the "SystuneAPIs.h" Heade
 Note: The Client just needs to invoke the right API, the Systune Client Module will take care
 of all the details of encoding the Request Message and sending it to the Systune Server for
 Processing.
+
+Refer:
+- SystuneCoreAPIs.cpp: For usage of various Resource Provisioning APIs

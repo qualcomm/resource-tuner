@@ -133,13 +133,12 @@ ErrCode SysConfig::deserialize(char* buf) {
         this->mBufferSize = DEREF_AND_INCR(ptr64, uint64_t);
 
     } catch(const std::invalid_argument& e) {
-        TYPELOGV(REQUEST_PARSING_FAILURE, "Error", e);
+        TYPELOGV(REQUEST_PARSING_FAILURE, e.what());
 
         return RC_REQUEST_PARSING_FAILED;
 
     } catch(const std::bad_alloc& e) {
-        TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE, "Error", e);
-
+        TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE, e.what());
         return RC_MEMORY_POOL_BLOCK_RETRIEVAL_FAILURE;
 
     } catch(const std::exception& e) {

@@ -3,10 +3,63 @@
 
 #include "Request.h"
 
-Request::Request() {
-    this->mResources = nullptr;
-    this->mCocoNodes = nullptr;
-    this->mTimer = nullptr;
+int32_t Resource::getCoreValue() {
+    return (int32_t)(this->mOpInfo) & ((1 << 8) - 1);
+}
+
+int32_t Resource::getClusterValue() {
+    return (int32_t)(this->mOpInfo >> 8) & ((1 << 8) - 1);
+}
+
+int32_t Resource::getOperationalInfo() {
+    return this->mOpInfo;
+}
+
+int32_t Resource::getOptionalInfo() {
+    return this->mOptionalInfo;
+}
+
+uint32_t Resource::getOpCode() {
+    return this->mOpCode;
+}
+int32_t Resource::getValuesCount() {
+    return this->mNumValues;
+}
+
+void Resource::setCoreValue(int32_t core) {
+    this->mOpInfo = (this->mOpInfo ^ this->getCoreValue()) | core;
+}
+
+void Resource::setClusterValue(int32_t cluster) {
+    this->mOpInfo = (this->mOpInfo ^ (this->getClusterValue() << 8)) | (cluster << 8);
+}
+
+void Resource::setResourceID(int16_t resID) {
+    this->mOpCode |= (uint32_t)resID;
+}
+
+void Resource::setResourceType(int8_t resType) {
+    this->mOpCode |= ((uint32_t)resType << 16);
+}
+
+void Resource::setOpCode(uint32_t opCode) {
+    this->mOpCode = opCode;
+}
+
+void Resource::setOperationalInfo(int32_t opInfo) {
+    this->mOpInfo = opInfo;
+}
+
+void Resource::setOptionalInfo(int32_t optionalInfo) {
+    this->mOptionalInfo = optionalInfo;
+}
+
+void Resource::setNumValues(int32_t numValues) {
+    this->mNumValues = numValues;
+}
+
+void Resource::setAsCustom() {
+    this->mOpCode |= (1 << 31);
 }
 
 int32_t Request::getResourcesCount() {
@@ -109,25 +162,21 @@ ErrCode Request::serialize(char* buf) {
         ASSIGN_AND_INCR(ptr, this->getClientPID());
         ASSIGN_AND_INCR(ptr, this->getClientTID());
 
-        ptr8 = (int8_t*)ptr;
-        ASSIGN_AND_INCR(ptr8, this->isBackgroundProcessingEnabled());
-
-        ptr = (int32_t*)ptr8;
         for(int32_t i = 0; i < this->getResourcesCount(); i++) {
             Resource* resource = this->getResourceAt(i);
             if(resource == nullptr) {
                 return RC_INVALID_VALUE;
             }
 
-            ASSIGN_AND_INCR(ptr, resource->mOpCode);
-            ASSIGN_AND_INCR(ptr, resource->mOpInfo);
-            ASSIGN_AND_INCR(ptr, resource->mOptionalInfo);
-            ASSIGN_AND_INCR(ptr, resource->mNumValues);
+            ASSIGN_AND_INCR(ptr, resource->getOpCode());
+            ASSIGN_AND_INCR(ptr, resource->getOperationalInfo());
+            ASSIGN_AND_INCR(ptr, resource->getOptionalInfo());
+            ASSIGN_AND_INCR(ptr, resource->getValuesCount());
 
-            if(resource->mNumValues == 1) {
+            if(resource->getValuesCount() == 1) {
                 ASSIGN_AND_INCR(ptr, resource->mConfigValue.singleValue);
             } else {
-                for(int32_t j = 0; j < resource->mNumValues; j++) {
+                for(int32_t j = 0; j < resource->getValuesCount(); j++) {
                     ASSIGN_AND_INCR(ptr, (*resource->mConfigValue.valueArray)[j]);
                 }
             }
@@ -157,28 +206,24 @@ ErrCode Request::deserialize(char* buf) {
         this->mClientPID = DEREF_AND_INCR(ptr, int32_t);
         this->mClientTID = DEREF_AND_INCR(ptr, int32_t);
 
-        ptr8 = (int8_t*)ptr;
-        this->mBackgroundProcessing = DEREF_AND_INCR(ptr8, int8_t);
-
         if(this->mReqType == REQ_RESOURCE_TUNING) {
             this->mResources = new (GetBlock<std::vector<Resource*>>())
                                     std::vector<Resource*>;
 
             this->mResources->resize(this->getResourcesCount());
 
-            ptr = (int32_t*)ptr8;
             for(int32_t i = 0; i < this->getResourcesCount(); i++) {
                 Resource* resource = (Resource*) (GetBlock<Resource>());
 
-                resource->mOpCode = DEREF_AND_INCR(ptr, int32_t);
-                resource->mOpInfo = DEREF_AND_INCR(ptr, int32_t);
-                resource->mOptionalInfo = DEREF_AND_INCR(ptr, int32_t);
-                resource->mNumValues = DEREF_AND_INCR(ptr, int32_t);
+                resource->setOpCode(DEREF_AND_INCR(ptr, int32_t));
+                resource->setOperationalInfo(DEREF_AND_INCR(ptr, int32_t));
+                resource->setOptionalInfo(DEREF_AND_INCR(ptr, int32_t));
+                resource->setNumValues(DEREF_AND_INCR(ptr, int32_t));
 
-                if(resource->mNumValues == 1) {
+                if(resource->getValuesCount() == 1) {
                     resource->mConfigValue.singleValue = DEREF_AND_INCR(ptr, int32_t);
                 } else {
-                    for(int32_t j = 0; j < resource->mNumValues; j++) {
+                    for(int32_t j = 0; j < resource->getValuesCount(); j++) {
                         resource->mConfigValue.valueArray->push_back(DEREF_AND_INCR(ptr, int32_t));
                     }
                 }
@@ -188,11 +233,11 @@ ErrCode Request::deserialize(char* buf) {
         }
 
     } catch(const std::invalid_argument& e) {
-        TYPELOGV(REQUEST_PARSING_FAILURE, "Error", e);
+        TYPELOGV(REQUEST_PARSING_FAILURE, e.what());
         return RC_REQUEST_PARSING_FAILED;
 
     } catch(const std::bad_alloc& e) {
-        TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE, "Error", e);
+        TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE, e.what());
         return RC_MEMORY_POOL_BLOCK_RETRIEVAL_FAILURE;
 
     } catch(const std::exception& e) {

@@ -16,7 +16,6 @@
 #include "MemoryPool.h"
 #include "Request.h"
 #include "Signal.h"
-#include "Types.h"
 #include "SysConfig.h"
 #include "SafeOps.h"
 #include "ServerEndpoint.h"
@@ -27,13 +26,13 @@ class SystuneSocketServer : public ServerEndpoint {
 private:
     int32_t sockFd;
     uint32_t mListeningPort;
+    ServerOnlineCheckCallback mServerOnlineCheckCb;
     SystuneMessageAsyncCallback mSystuneMessageAsyncCb;
     SystuneMessageSyncCallback mSystuneMessageSyncCb;
 
-    void parseIncomingRequest(char* buf, int32_t clientSocket);
-
 public:
     SystuneSocketServer(uint32_t mListeningPort,
+                        ServerOnlineCheckCallback mServerOnlineCheckCb,
                         SystuneMessageAsyncCallback mSystuneMessageAsyncCb,
                         SystuneMessageSyncCallback mSystuneMessageSyncCb);
 

@@ -53,3 +53,12 @@ int8_t RateLimiter::shouldBeProcessed(int32_t clientTID) {
 int8_t RateLimiter::isRateLimitHonored(int32_t clientTID) {
     return shouldBeProcessed(clientTID);
 }
+
+int8_t RateLimiter::isGlobalRateLimitHonored() {
+    int64_t currActiveReqCount = RequestManager::getInstance()->getActiveReqeustsCount();
+    // Cover this check as part of Rate Limiter
+    if(currActiveReqCount >= SystuneSettings::metaConfigs.mMaxConcurrentRequests) {
+        return false;
+    }
+    return true;
+}

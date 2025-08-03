@@ -19,7 +19,6 @@ protected:
     int32_t mClientTID; //!< Thread ID of the client making the request.
 
 public:
-
     Message() : mProperties(0) {}
 
     int8_t getRequestType();

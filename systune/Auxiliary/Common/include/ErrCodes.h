@@ -15,8 +15,8 @@
  *          RC_IS_OK and RC_IS_NOTOK to check for Success or Failure.
  */
 enum ErrCode {
+    RC_REQ_SUBMISSION_FAILURE = -1,
     RC_SUCCESS,
-    RC_REQ_SUBMISSION_FAILURE,
     RC_MODULE_INIT_FAILURE,
     RC_FILE_NOT_FOUND,
     RC_JSON_PARSING_ERROR,

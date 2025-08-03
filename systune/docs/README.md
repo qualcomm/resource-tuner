@@ -1,13 +1,14 @@
 # Systune: A System Resource Provisioning Framework
 
-## Table of Contents    
+## Table of Contents
 
 - [Introduction](#introduction)
-- [Syslocks APIs](#syslocks-apis)
-- [Resource Structure](#resource-format)
-- [Example Usage](#example-usage-of-syslock-apis)
-- [Config Files Format](#config-files-format)
+- [Systune Key Points](#systune-key-points)
 - [Systune Features](#systune-features)
+- [Config Files Format](#config-files-format)
+- [Systune APIs](#systune-apis)
+- [Resource Structure](#resource-format)
+- [Example Usage](#example-usage-of-systune-apis)
 - [Extension Interface](#extension-interface)
 - [Server CLI](#server-cli)
 - [Client CLI](#client-cli)
@@ -27,7 +28,235 @@ The Systune framework supports `Signals` which is dynamic provisioning of system
 <div style="page-break-after: always;"></div>
 
 
-# Syslocks APIs
+# Systune Key Points
+
+- Systune exposes a Variery of APIs for Resource Provisioning. These APIs can be directly used
+  by the End-Client.
+- Using these APIs the Client can Tune any System Resource Parameter, like cpu, dcvs, min / max frequencies etc.
+- To provide a Convenient and Transparent Method for Clients to interact with the Systune Server, a Client Library is Provided, which takes care of Encoding and Sending the Request Message across to the Server for further Processing.
+- A Request in this context, is a Group of Resources which need to Tuned for a certain (or possibly infinite) Duration.
+- Systune also provides a Signal Framework which is useful for identifying Use Cases and Provisioning according to the Use Case.
+- The Client is returned a Handle, a 64-bit Integer, which uniquely Identifies the Request.
+- The Extension Interface Provides a way to Customize Systune Behaviour, by Specifying Custom Resources, Custom Signals and Features.
+- Systune uses JSON based Config files, for fetching Information relating to Resources / Signals and Properties.
+
+<div style="page-break-after: always;"></div>
+
+# Systune Features
+
+![alt text](images/design_systune.png)
+
+Systune Architecture is captured above.
+## Initialization
+- During the Server Initialization Phase, the JSON Config Files are Read to build up the Resource Registry, Property Store etc.
+- If the BU has Registered any Custom Resources, Signals or Custom JSON files via the Extension Interface, then these changes are detected during this Phase itself to build up a Consolidated System view, before it can start serving Requests.
+- During the Initialization Phase, Memory is Pre-Allocated for Commonly used types (via Memory Pool), and Worker (Thread) capacity is reserved in advance via the ThreadPool, to avoid any delays during the Request Processing Phase.
+- Systune will also Fetch the Target Details, like target Name, total Number of Cores, Logical to Physical Cluster / Core Mapping in this phase.
+- If the Signals Module is Plugged In, it will be initialized as well and the Signal Configs will be Parsed similarly to Resource Configs.
+- Once all the Initialization is completed, the Server is Ready to Serve Requests, a new Listener Thread is created for Handling Requests.
+
+<div style="page-break-after: always;"></div>
+
+## Request Processing
+- The Client Can use the Systune Client Library to Send their Requests.
+- Systune Supports Sockets and Binders for Client-Server Communication.
+- As soon as the Request is received on the Server end, a Handle is generated and returned to the Client. This handle uniquely identifies the Request and can be used for subsequent Retune (retuneResources) or Untune (untuneResources) API calls.
+- The Request is submitted to the ThreadPool for async Processing.
+- When the Request is Picked up by a Worker (from the ThreadPool), it will first Decode the Request Message and then Validate the Request.
+- The Request Verifier, will run a series of Checks on the Request like Permission Checks, and on the Resources part of the Request, like Config Value Bounds Check.
+- Once Request is verified, a Duplicate Check is Performed, to verify if the Client has already submitted the same Request before. This is done so as to the improve System Efficiency and Performace.
+- Next the Request is added to an Queue, which is essentially PriorityQueue, which orders Requests based on their Priorities (for more details on Priority Levels, refer the next Section). This is done so that the Request with the highest Priority is always served first.
+- To Handle Concurrent Requests for the same Resource, we maintain Resource Level Linked Lists of Pending Requests, which are ordered according to the Request Priority and Resource Policy. This ensures that the Request with the higher Priority will always be applied first. For 2 Requests with the same Priority, the application Order will depend on Resource Policy. For example, in case of Resource with "Higher is Better" Policy, the Request with a higher Configuration Value for the Resource shall take effect first.
+- Once a Request reaches the head of the Resource Level Linked List, it is applied, i.e. the Config Value specified by this Request for the Resource takes effect on the corresponding Sysfs Node.
+- A timer is created and used to keep track of a Request, i.e. check if it has expired. Once it is detected that the Request has expired an Untune Request for the same Handle as this Request, is automatically generated and submitted, it will take care of Resetting the effected Resource Nodes to their Original Values.
+- BUs can Provide their own Custom Appliers for any Resource. The Default Action provided by Systune is writing to the Resource Sysfs Node.
+
+<div style="page-break-after: always;"></div>
+
+Here is a more detailed explanation of the key features discussed above:
+
+## 1. Permissions
+Certain resources can be tuned only by system clients and some which have no such restrictions and can be tuned even by third party clients. The Client permissions are dynamically determined, the first time it makes a Request. If a client with Third Party Permissions tries to tune a Resource, which allows only clients with System Permissions to tune it, then the Request shall be dropped.
+
+## 2. Policies
+To ensure efficient and predictable handling of concurrent requests, each system resource is governed by one of four predefined policies.
+Selecting the appropriate policy helps maintain system stability, optimize performance, and align resource behavior with application requirements.
+
+- Instant Apply (or Always Apply): This policy is for resources where the latest request needs to be honored. This is kept as the default policy.
+- Higher is better: This policy honors the request writing the highest value to the node. One of the cases where this makes sense is for resources that describe the upper bound value. By applying the higher-valued request, the lower-valued request is implicitly honored.
+- Lower is better: Self-explanatory. Works exactly opposite of the higher is better policy.
+- Lazy Apply: Sometimes, you want the resources to apply requests in a first-in-first-out manner.
+
+## 3. Priorities
+As part of the tuneResources API call, the Client is allowed to specify a desired Priority Level for the Request. Systune supports 4 priority levels:
+- System High [SH]
+- System Low [SL]
+- Third Party High (or Regular High) [TPH]
+- Third Party Low (or Regular Low) [TPL]
+
+Requests with a higher Priority will always be prioritized, over another Request with a lower priority. Note, the Request Priorities are related to the Client Permissions. A client with System Permission is allowed to acquire any priority Level it wants, however a Client with Third Party Permissions can only acquire either Third Party High (TPH) or Third Party Low (TPL) level of Priorities. If a Client
+with Third Party Permissions tries to acquire a System High or System Low level of Priority, then the
+Request will not be honoured.
+
+## 4. Detection of Dead Clients and Subsequent Cleanup
+To improve efficiency and conserve Memory, it is essential to Regularly Check for Dead Clients and Free up any System Resources associated to them. This includes, Untuning all (if any) Ongoing Tune Request issued by this Client and Freeing up the Memory used to store Client Specific Data (Example:
+Client's List of Requests (Handles), Health, Permissions, Threads Associated with the Client etc).
+Systune Ensures that such clients are detected and Cleaned Up within 90 seconds of the Client Terminating.
+
+Systune performs these actions by making use of two components:
+- Pulse Monitor: Pulse Monitor scans the list of the Active Clients, and checks if any of the Client (PID) is dead (It does by checking if an entry for that PID exisits in /proc/pid/). If it finds a Dead Client, it schedules the Client for Cleanup by adding this PID to a Queue (called the GC Queue).
+- Client Garbage Collector: When the Garbage Collector runs it iterates over the GC Queue and Performs the Cleanup.
+
+Both Pulse Monitor and Client Garbage Collector run as Daemon Threads.
+
+## 5. Preventing System Abuse
+Systune has a built in RateLimiter component that prevents abuse of the system by limiting the number of requests a client can make within a given time frame. This helps to prevent clients from overwhelming the system with requests and ensures that the system remains responsive and efficient. RateLimiter works on a Reward / Punishment methodology. Whenever a Client enters the System for the first time, it is assigned a "Health" of 100. A Punishment is incurred if a Client makes subsequent Requests in a very short Time Interval (called Delta, say 5 ms).
+A Reward results in increasing the health of a Client (not above 100), while a Punishment involves decreasing the health of the Client. If at any point this value of Health reaches Zero then any further Requests from this Client wil be dropped. Note the Exact value of Delta, Punishment and Rewards are BU-configurable.
+
+## 6. Duplicate Checking
+Systune's RequestManager component is Responsible for detecting any duplicate Requests issued by a Client, and dropping them. This is done by maintaining a List of all the Requests issued by a Client. Whenever a new Request is received, it is checked against this List to see if it is a duplicate. If it is, then the Request is dropped. If it is not, then the Request is added to this List and processed. Duplicate Checking helps to improve System Efficiency, by saving wasteful CPU time on processing Duplicates.
+
+## 7. Logical to Physical Mapping
+Logical to Physical Core / Cluster Mapping helps us to achieve achieve decoupling on the Client side, as the Client does not need to be aware of the Physical Topology of the Target to issue Resource Tuning Requests. Instead the Client can specify Logical values for Core and Cluster. Systune will translate these values to their physical counterparts and apply the Request accordingly. Logical to Physical mapping in essence like System Independent Layer makes the same client code interchangable across different Targets, and Systune will take care of the mapping.
+
+## 8. Display-Aware Operational Modes
+The system's operational modes are influenced by the state of the device's display. To conserve power, certain system resources are optimized only when the display is active. However, for critical components that require consistent performance—such as during background processing or time-sensitive tasks, resource tuning can still be applied even when the display is off, including during low-power states like Doze mode. This ensures that essential operations maintain responsiveness without compromising overall energy efficiency.
+
+## 9. Crash Recovery
+In case of Server Crash, Systune ensures that all the Resource Sysfs Nodes are restored to a Sane State, i.e. they are reset to their Original Values. This is done by maintaining a List of all the Resource Sysfs Nodes and their Original Values, before any modification was made on behalf of the Clients by Systune. In the event of Server crash, this File is read and all Sysfs Nodes are reset to their Original Values.
+
+## 10. Flexible Packaging
+The Users are free to pick and Choose the Systune Modules they want for their use-case and which fit their constraints. The Framework Module is the core / central module, however if the Users choose they can add on top of it other Modules: Signals and Profiles.
+
+## 11. Pre-Allocate Capacity for efficiency
+Systune provides a MemoryPool component, which allows for pre-allocation of memory for certain commonly used type at the time of Server initialization. This is done to improve the efficiency of the system, by reducing the number of memory allocations and deallocations that are required during the processing of Requests. The allocated memory is managed as a series of blocks which can be recycled without any system call overhead. This reduces the overhead of memory allocation and deallocation, and improves the performance of the system.
+
+Further, a ThreadPool component is provided to pre-allocate processing capacity. This is done to improve the efficiency of the system, by reducing the number of thread creation and destruction required during the processing of Requests, further ThreadPool allows for the Threads to be repeatedly reused for processing different tasks.
+
+<div style="page-break-after: always;"></div>
+
+
+<div style="page-break-after: always;"></div>
+
+# Config Files Format
+Systune utilises JSON files for configuration. This includes the Resources, Signal Config Files. The BUs can provide their own Config Files, which are specific to their use-case through the Extension Interface
+
+## 1. Resource Configs
+These file resourceConfigs.json stores resource-specific information. The Resources are Defined as a JSON-array.
+
+#### Field Descriptions
+
+| Field           | Type       | Description |
+|----------------|------------|-------------|
+| `ResID`        | `string`   | 16-bit Resource Identifier, unique within the Resource Type. |
+| `ResType`       | `integer`  | 8-bit Type of the Resource, for example: cpu / dcvs
+| `Name`          | `string`   | Path to the system sysfs node. |
+| `Supported`     | `boolean`  | Indicates if the Resource is Eligible for Provisioning. |
+| `HighThreshold` | `integer`   | Upper threshold value for the resource. |
+| `LowThreshold`  | `integer`   | Lower threshold value for the resource. |
+| `Permissions`   | `string`   | Type of client allowed to Provision this Resource (`system` or `third_party`). |
+| `Modes`         | `array`    | Display modes applicable (`"display_on"`, `"display_off"`, `"doze"`). |
+| `Policy`        | `string`   | Concurrency policy (`"higher_is_better"`, `"lower_is_better"`, `"instant_apply"`, `"lazy_apply"`). |
+| `CoreLevelConflict` | `boolean`  | Indicates if the resource can have different values, across different cores. |
+
+
+#### Example
+
+```json
+"ResourceConfigs": [
+  {
+    "ResType": "0x1",
+    "ResID":"0x0",
+    "Name":"/proc/sys/kernel/sched_util_clamp_min",
+    "Supported":true,
+    "HighThreshold": 1024,
+    "LowThreshold": 0,
+    "Permissions": "third_party",
+    "Modes": ["display_on", "doze"],
+    "Policy": "higher_is_better",
+    "CoreLevelConflict": false
+  },
+  {
+    "ResType": "0x1",
+    "ResID":"0x1",
+    "Name":"/proc/sys/kernel/sched_util_clamp_max",
+    "Supported":true,
+    "HighThreshold": 1024,
+    "LowThreshold": 0,
+    "Permissions": "third_party",
+    "Modes": ["display_on", "doze"],
+    "Policy": "lower_is_better",
+    "CoreLevelConflict": false
+  }
+]
+```
+
+---
+<div style="page-break-after: always;"></div>
+
+## 2. Properties Config
+This targetPropertiesConfigs.json file stores various properties which are used by the Systune Modules internally (for example, to allocate sufficient amount of Memory for different Types, or to determine the Pulse Monitor Duration) as well as by the End Client.
+
+#### Field Descriptions
+
+| Field           | Type       | Description |
+|----------------|------------|-------------|
+| `Name`          | `string`   | Unique name of the parameter |
+| `Value`          | `integer`   | The value for the parameter. |
+
+
+#### Example
+
+```json
+{
+  "PropertyConfigs": [
+    {"Name": "systune.maximum.concurrent.requests", "Value" : "130"},
+    {"Name": "systune.maximum.resources.per.request", "Value" :"5"},
+  ]
+}
+```
+<div style="page-break-after: always;"></div>
+
+## 3. Signal Configs
+The file signalConfigs.json defines the Signal Configs.
+
+#### Field Descriptions
+
+| Field           | Type       | Description |
+|----------------|------------|-------------|
+| `SigId`          | `integer`   | Signal Identifier |
+| `Category`          | `integer`   | Category of the Signal, for example: Generic, App Lifecycle. |
+| `Name`          | `string`   |
+| `Enable`          | `boolean`   | Indicates if the Signal is Eligible for Provisioning. |
+| `TargetsEnabled`          | `array`   | List of Targets on which this Signal can be Acquired |
+| `TargetsEnabled`          | `array`   | List of Targets on which this Signal cannot be Acquired |
+| `Permissions`          | `array`   | List of acceptable Client Level Permissions for tuning this |
+|`Timeout`              | `integer` | Default Signal Acquire Duration to be used in case the Client specifies a value of 0 for duration in the tuneSignal API call. |
+| `Resources` | `array` | List of Resource OpCode / Value pairs. |
+
+#### Example
+
+```json
+{
+      "SignalConfigs": [
+        {
+            "SigId": "0x0",
+            "Category": "0x1",
+            "Name": "INSTALL",
+            "Enable": true,
+            "TargetsEnabled": ["sun","moon"],
+            "Permissions": ["system", "third_party"],
+            "Derivatives": ["solar"],
+            "Timeout": 4000,
+            "Resources": [65536,700]
+        }
+      ]
+}
+```
+<div style="page-break-after: always;"></div>
+
+
+# Systune APIs
 This API suite allows you to manage system resource provisioning through tuning requests. You can issue, modify, or withdraw resource tuning requests with specified durations and priorities.
 
 ---
@@ -35,26 +264,23 @@ This API suite allows you to manage system resource provisioning through tuning 
 ## `tuneResources`
 
 **Description:**
-Issues a resource provisioning (tuning) request for a finite or infinite duration.
+Issues a Resource provisioning (or Tuning) request for a finite or infinite duration.
 
 **Function Signature:**
 ```cpp
 int64_t tuneResources(int64_t duration,
                       int32_t prio,
                       int32_t numRes,
-                      int8_t backgroundProcessing,
                       std::vector<Resource*>* res);
 ```
 
 **Parameters:**
 
-- `duration` (`int64_t`): Duration in milliseconds for which the Resource(s) lock should be held. Use `-1` for an infinite duration.
+- `duration` (`int64_t`): Duration in milliseconds for which the Resource(s) should be Provisioned. Use `-1` for an infinite duration.
 
 - `prio` (`int32_t`): Priority level of the request.
 
 - `numRes` (`int32_t`): Number of resources to be tuned as part of the Request.
-
-- `backgroundProcessing` (`int8_t`): Boolean Flag to indicate if the Request is to be processed in the background.
 
 - `res` (`std::vector<Resource*>*`): Pointer to a list of resources to be provisioned. Details about the resource format are provided below (Refer section "Resource Format").
 
@@ -74,7 +300,7 @@ Modifies the duration of an existing Tune request.
 **Function Signature:**
 ```cpp
 int8_t retuneResources(int64_t handle,
-                  int64_t duration);
+                       int64_t duration);
 ```
 
 **Parameters:**
@@ -108,7 +334,7 @@ int8_t untuneResources(int64_t handle);
 
 **Returns:**
 `int8_t`
-- `0` if the request was successfully submitted.  
+- `0` if the request was successfully submitted.
 - `-1` otherwise.
 
 ---
@@ -188,18 +414,6 @@ typedef struct Resource {
 
 **OpId**: An unsigned 32-bit unique identifier for the resource. It encodes essential information that is useful in abstracting away the system specific details.
 
-Systune implements a System Independent Layer (SIL) which Provides a Transparent and Consistent way for Indexing Resources. This makes it easy for the Clients to Identify the Resource they want to provision, without needing to worry about Compatability Issues across Targets and the Order in which the Resources are described in the JSON files.
-Essentially, the Resource ID (unsigned 32 bit) is broken up into two fiels:
-- Resource Opcode (16 bits)
-- Resource Optype (8 bits)
-- [Additionally if BU is providing their own Custom Resource Config Files, then the MSB must be set to "1", Indicating this is a Custom Resource else it shall be treated as a Default Resource].
-
-These fields can uniquely identify a Resource across targets, hence making the code operating on these Resources interchangable. In Essence, we ensure that the Resource with ID "x", refers to the same Tunable Resource across different Targets.
-
-Examples:
-- The Resource ID: 65536 [00000000 00000001 00000000 00000000], Refers to the Default Resource with Opcode 0 and Optype 1.
-- The Resource ID: 2147549185 [10000000 00000001 00000000 00000001], Refers to the Custom Resource with Opcode 1 and Optype 1.
-
 <!-- ![OpId Bitmap] (images/OpId_Bitmap.png) -->
 ![OpID Bitmap](images/OpId_Bitmap.png)
 
@@ -211,11 +425,42 @@ Examples:
 
 **Value / Values**: It is a single value when the resource requires a single value or a pointer to an array of values for multi-value configurations.
 
+<div style="page-break-after: always;"></div>
+
+## Notes on Resource Opcode
+
+As mentioned above, the Resource OpCode is an unsigned 32 bit integer. This section describes how this OpCode can be generated.
+Systune implements a System Independent Layer (SIL) which Provides a Transparent and Consistent way for Indexing Resources. This makes it easy for the Clients to Identify the Resource they want to provision, without needing to worry about Compatability Issues across Targets or about the Order in which the Resources are defined in the JSON files.
+
+Essentially, the Resource Opcode (unsigned 32 bit) is composed of two fields:
+- ResID (last 16 bits, 17 - 32)
+- ResType (next 8 bits, 9 - 16)
+- [Additionally if the BU is providing it's own Custom Resource Config Files, then the MSB must be set to "1", Indicating this is a Custom Resource else it shall be treated as a Default Resource].
+
+These fields can uniquely identify a Resource across targets, hence making the code operating on these Resources interchangable. In Essence, we ensure that the Resource with OpCode "x", refers to the same Tunable Resource across different Targets.
+
+Examples:
+- The Resource OpCode: 65536 [00000000 00000001 00000000 00000000], Refers to the Default Resource with ResID 0 and ResType 1.
+- The Resource OpCode: 2147549185 [10000000 00000001 00000000 00000001], Refers to the Custom Resource with ResID 1 and ResType 1.
+
+#### List Of Resource Types
+
+| Name           | ResType  |
+|----------------|----------|
+| `POWER`        |   `1`    |
+| `CPU_DCVS`     |   `2`    |
+| `CPU_SCHED`    |   `3`    |
+| `GPU`          |   `4`    |
+| `NPU`          |   `5`    |
+| `CACHES`       |   `6`    |
+| `MPAM`         |   `7`    |
+| `MISC`         |   `8`    |
+
 ---
 
 <div style="page-break-after: always;"></div>
 
-# Example Usage of Syslock APIs
+# Example Usage of Systune APIs
 
 ## tuneResources
 
@@ -279,168 +524,6 @@ void sendRequest() {
 }
 ```
 
-<div style="page-break-after: always;"></div>
-
-# Config Files Format
-Systune utilises JSON files for configuration. This includes the Resources, Signal Config Files. The BUs can provide their own Config Files, which are specific to their use-case through the Extension Interface
-
-## 1. Resource Configs
-These files store resource-specific information. They are stored as a JSON-array.Their detailed format and description is shown below:
-
-#### Field Descriptions
-
-| Field           | Type       | Description |
-|----------------|------------|-------------|
-| `Opcode`        | `string`   | Operation ID associated with the lock. |
-| `Name`          | `string`   | Path to the system sysfs node. |
-| `Supported`     | `boolean`  | Indicates if the lock is supported on the target. |
-| `HighThreshold` | `number`   | Upper threshold value for the resource. |
-| `LowThreshold`  | `number`   | Lower threshold value for the resource. |
-| `Permissions`   | `string`   | Type of client allowed (`system` or `regular`). |
-| `Modes`         | `array`    | Display modes applicable (`"display_on"`, `"display_off"`, `"doze"`). |
-| `Policy`        | `string`   | Concurrency policy (`"higher_is_better"`, `"lower_is_better"`, `"instant_apply"`, `"lazy_apply"`). |
-
-
-#### Example
-
-```json
-"LocksConfigs": [
-  {
-    "Opcode": "0x0",
-    "Name": "/proc/sys/kernel/sched_util_clamp_min",
-    "Supported": true,
-    "HighThreshold": 1024,
-    "LowThreshold": 0,
-    "Permissions": "system",
-    "Modes": ["display_on", "doze"],
-    "Policy": "higher_is_better"
-  },
-  {
-    "Opcode": "0x1",
-    "Name": "/proc/sys/kernel/sched_util_clamp_max",
-    "Supported": true,
-    "HighThreshold": 1024,
-    "LowThreshold": 0,
-    "Permissions": "system",
-    "Modes": ["display_on", "doze"],
-    "Policy": "higher_is_better"
-  }
-]
-```
-
----
-<div style="page-break-after: always;"></div>
-
-## 2. Properties Configs
-This targetPropertiesConfigs.json file stores various properties which are used by the Systune Modules internally (for example, to allocate sufficient amount of Memory, or to determine the Pulse Monitor Duration) as well as by the End Client.
-
-#### Field Descriptions
-
-| Field           | Type       | Description |
-|----------------|------------|-------------|
-| `Name`          | `string`   | Unique name of the parameter |
-| `Value`          | `integer`   | The value for the parameter. |
-
-
-#### Example
-
-```json
-{
-  "PropertyConfigs": [
-    {"Name": "systune.maximum.concurrent.requests", "Value" : "130"},
-    {"Name": "systune.maximum.resources.per.request", "Value" :"5"},
-  ]
-}
-```
-<div style="page-break-after: always;"></div>
-
-## 3. SysSignals
-This file stores all tunable parameters that the end-user can tune according to their usecase. This enables our service to perform optimally for different clients. 
-For example: The amount of memory pre-allocated differs a lot if the service is being used in a large server or a small modem. This user-aware optimizations can be made through these configs.
-
-#### Field Descriptions
-
-| Field           | Type       | Description |
-|----------------|------------|-------------|
-| `Name`          | `string`   | Unique name of the parameter |
-| `Value`          | `integer`   | The value for the parameter. |
-
-
-#### Example
-
-```json
-{
-  "PropertyConfigs": [
-    {"Name": "systune.maximum.concurrent.requests", "Value" : "130"},
-    {"Name": "systune.maximum.resources.per.request", "Value" :"5"},
-  ]
-}
-```
-<div style="page-break-after: always;"></div>
-
-
-# Systune Features
-
-## 1. Permissions
-Certain resources can be tuned only by system clients and some which have no such restrictions and can be tuned even by third party clients. The Client permissions are dynamically determined, the first time it makes a Request. If a client with Third Party Permissions tries to tune a Resource, which allows only clients with System Permissions to tune it, then the Request shall be dropped.
-
-## 2. Policies
-To ensure efficient and predictable handling of concurrent requests, each system resource is governed by one of four predefined policies.
-Selecting the appropriate policy helps maintain system stability, optimize performance, and align resource behavior with application requirements.
-
-- Instant Apply (or Always Apply): This policy is for resources where the latest request needs to be honored. This is kept as the default policy.
-- Higher is better: This policy honors the request writing the highest value to the node. One of the cases where this makes sense is for resources that describe the upper bound value. By applying the higher-valued request, the lower-valued request is implicitly honored.
-- Lower is better: Self-explanatory. Works exactly opposite of the higher is better policy.
-- Lazy Apply: Sometimes, you want the resources to apply requests in a first-in-first-out manner.
-
-## 3. Priorities
-As part of the tuneResources API call, the Client is allowed to specify a desired Priority Level for the Request. Systune supports 4 priority levels:
-- System High [SH]
-- System Low [SL]
-- Third Party High (or Regular High) [TPH]
-- Third Party Low (or Regular Low) [TPL]
-
-Requests with a higher Priority will always be prioritized, over another Request with a lower priority. Note, the Request Priorities are related to the Client Permissions. A client with System Permission is allowed to acquire any priority Level it wants, however a Client with Third Party Permissions can only acquire either Third Party High (TPH) or Third Party Low (TPL) level of Priorities. If a Client
-with Third Party Permissions tries to acquire a System High or System Low level of Priority, then the
-Request will not be honoured.
-
-## 4. Detection of Dead Clients and Subsequent Cleanup
-To improve efficiency and conserve Memory, it is essential to Regularly Check for Dead Clients and Free up any System Resources associated to them. This includes, Untuning all (if any) Ongoing Tune Request issued by this Client and Freeing up the Memory used to store Client Specific Data (Example:
-Client's List of Requests (Handles), Health, Permissions, Threads Associated with the Client etc).
-Systune Ensures that such clients are detected and Cleaned Up within 90 seconds of the Client Terminating.
-
-Systune performs these actions by making use of two components:
-- Pulse Monitor: Pulse Monitor scans the list of the Active Clients, and checks if any of the Client (PID) is dead (It does by checking if an entry for that PID exisits in /proc/pid/). If it finds a Dead Client, it schedules the Client for Cleanup by adding this PID to a Queue (called the GC Queue).
-- Client Garbage Collector: When the Garbage Collector runs it iterates over the GC Queue and Performs the Cleanup.
-
-Both Pulse Monitor and Client Garbage Collector run as Daemon Threads.
-
-## 5. Preventing System Abuse
-Systune has a built in RateLimiter component that prevents abuse of the system by limiting the number of requests a client can make within a given time frame. This helps to prevent clients from overwhelming the system with requests and ensures that the system remains responsive and efficient. RateLimiter works on a Reward / Punishment methodology. Whenever a Client enters the System for the first time, it is assigned a "Health" of 100. A Punishment is incurred if a Client makes subsequent Requests in a very short Time Interval (called Delta, say 5 ms).
-A Reward results in increasing the health of a Client (not above 100), while a Punishment involves decreasing the health of the Client. If at any point this value of Health reaches Zero then any further Requests from this Client wil be dropped. Note the Exact value of Delta, Punishment and Rewards are BU-configurable.
-
-## 6. Duplicate Checking
-Systune's RequestManager component is Responsible for detecting any duplicate Requests issued by a Client, and dropping them. This is done by maintaining a List of all the Requests issued by a Client. Whenever a new Request is received, it is checked against this List to see if it is a duplicate. If it is, then the Request is dropped. If it is not, then the Request is added to this List and processed. Duplicate Checking helps to improve System Efficiency, by saving wasteful CPU time on processing Duplicates.
-
-## 7. Logical to Physical Mapping
-Logical to Physical Core / Cluster Mapping helps us to achieve achieve decoupling on the Client side, as the Client does not need to be aware of the Physical Topology of the Target to issue Resource Tuning Requests. Instead the Client can specify Logical values for Core and Cluster. Systune will translate these values to their physical counterparts and apply the Request accordingly. Logical to Physical mapping in essence like System Independent Layer makes the same client code interchangable across different Targets, and Systune will take care of the mapping.
-
-## 8. Display-Aware Operational Modes
-The system's operational modes are influenced by the state of the device's display. To conserve power, certain system resources are optimized only when the display is active. However, for critical components that require consistent performance—such as during background processing or time-sensitive tasks, resource tuning can still be applied even when the display is off, including during low-power states like Doze mode. This ensures that essential operations maintain responsiveness without compromising overall energy efficiency.
-
-## 9. Crash Recovery
-In case of Server Crash, Systune ensures that all the Resource Sysfs Nodes are restored to a Sane State, i.e. they are reset to their Original Values. This is done by maintaining a List of all the Resource Sysfs Nodes and their Original Values, before any modification was made on behalf of the Clients by Systune. In the event of Server crash, this File is read and all Sysfs Nodes are reset to their Original Values.
-
-## 10. Flexible Packaging
-The Users are free to pick and Choose the Systune Modules they want for their use-case and which fit their constraints. The Syslock Module is the core (central) module, however if the Users choose they can add on top of it other Modules: SysSignals and Extensions.
-
-## 11. Pre-Allocate Capacity for efficiency
-Systune provides a MemoryPool component, which allows for pre-allocation of memory for certain commonly used type at the time of Server initialization. This is done to improve the efficiency of the system, by reducing the number of memory allocations and deallocations that are required during the processing of Requests. The allocated memory is managed as a series of blocks which can be recycled without any system call overhead. This reduces the overhead of memory allocation and deallocation, and improves the performance of the system.
-
-Further, a ThreadPool component is provided to pre-allocate processing capacity. This is done to improve the efficiency of the system, by reducing the number of thread creation and destruction required during the processing of Requests, further ThreadPool allows for the Threads to be repeatedly reused for processing different tasks.
-
-<div style="page-break-after: always;"></div>
-
 # Extension Interface
 
 The Systune framework allows business units (BUs) to extend its functionality and customize it to their use-case. Extension Interface essentially provides a series of hooks to the BUs to add their own custom behaviour.
@@ -457,7 +540,7 @@ Specifically the Extension Interface provides the following capabilities:
 ### `URM_REGISTER_RESOURCE`
 
 Registers a custom resource handler with the system. This allows the framework to invoke a user-defined callback when a specific resource opcode is encountered. A function pointer to the callback is to be registered.
-Now, instead of the normal resource handler, this callback function will be called when a syslock request for this particular resource opcode arrives.
+Now, instead of the normal resource handler, this callback function will be called when a Resource Provisioning Request for this particular resource opcode arrives.
 
 ### Usage Example
 ```cpp

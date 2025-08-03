@@ -3,24 +3,27 @@
 #include <gtest/gtest.h>
 
 #include "MemoryPool.h"
-#include "Types.h"
 #include "Request.h"
 #include "SysConfig.h"
 #include "Signal.h"
 
 // Request Cleanup Tests
 TEST(MiscTests, TestResourceStructCoreClusterSettingAndExtraction) {
-    Resource* resource = (Resource*) malloc(sizeof(Resource));
+    Resource* resource = new Resource;
     ASSERT_NE(resource, nullptr);
 
-    resource->mOpInfo = 0;
-    resource->mOpInfo = SET_RESOURCE_CORE_VALUE(resource->mOpInfo, 2);
-    resource->mOpInfo = SET_RESOURCE_CLUSTER_VALUE(resource->mOpInfo, 1);
+    resource->setCoreValue(2);
+    resource->setClusterValue(1);
 
-    ASSERT_EQ(EXTRACT_RESOURCE_CORE_VALUE(resource->mOpInfo), 2);
-    ASSERT_EQ(EXTRACT_RESOURCE_CLUSTER_VALUE(resource->mOpInfo), 1);
+    ASSERT_EQ(resource->getCoreValue(), 2);
+    ASSERT_EQ(resource->getClusterValue(), 1);
 
-    free(resource);
+    resource->setResourceID(1);
+    resource->setResourceType(1);
+
+    ASSERT_EQ(resource->getOpCode(), (uint32_t)((1 << 16) | (1 << 0)));
+
+    delete resource;
 }
 
 TEST(MiscTests, TestRequestSerializingAndDeserializing) {
@@ -51,15 +54,15 @@ TEST(MiscTests, TestRequestSerializingAndDeserializing) {
                                                             std::vector<Resource*>;
 
         Resource* res1 = (Resource*) GetBlock<Resource>();
-        res1->mOpCode = 65536;
-        res1->mNumValues = 1;
+        res1->setOpCode(65536);
+        res1->setNumValues(1);
         res1->mConfigValue.singleValue = 754;
         firstReqResourceList->push_back(res1);
         firstRequest->setResources(firstReqResourceList);
 
         Resource* resource = firstRequest->getResourceAt(0);
-        ASSERT_EQ(resource->mOpCode, 65536);
-        ASSERT_EQ(resource->mNumValues, 1);
+        ASSERT_EQ(resource->getOpCode(), 65536);
+        ASSERT_EQ(resource->getValuesCount(), 1);
         ASSERT_EQ(resource->mConfigValue.singleValue, 754);
 
         char buf[1024];
@@ -94,8 +97,8 @@ TEST(MiscTests, TestRequestSerializingAndDeserializing) {
                 FAIL();
             }
 
-            ASSERT_EQ(firstResource->mOpInfo, secondResource->mOpInfo);
-            ASSERT_EQ(firstResource->mNumValues, secondResource->mNumValues);
+            ASSERT_EQ(firstResource->getOperationalInfo(), secondResource->getOperationalInfo());
+            ASSERT_EQ(firstResource->getValuesCount(), secondResource->getValuesCount());
             ASSERT_EQ(firstResource->mConfigValue.singleValue, secondResource->mConfigValue.singleValue);
         }
 
