@@ -1,4 +1,9 @@
 file(GLOB SOURCES "*.cpp")
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(JSONCPP REQUIRED jsoncpp)
 add_library(Server ${SOURCES})
+
+target_include_directories(Server PRIVATE ${JSONCPP_INCLUDE_DIRS})
 target_include_directories(Server PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(Server Auxiliary SystuneCommunicationServer ExtAPIs ClientAPIs SysConfigProps)
+target_link_libraries(Server PRIVATE Auxiliary SystuneCommunicationServer ExtAPIs ClientAPIs SysConfigProps ${JSONCPP_LIBRARIES})
