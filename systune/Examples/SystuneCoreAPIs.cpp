@@ -7,7 +7,7 @@
  * - retuneResources
  * - untuneResources
  */
-#include <SystuneAPIs.h>
+#include <Systune/SystuneAPIs.h>
 
 // EXAMPLE #1
 // In the following Example the Client Sends:

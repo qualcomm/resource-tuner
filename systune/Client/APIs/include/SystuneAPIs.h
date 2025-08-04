@@ -41,7 +41,6 @@
 *                   - The Next 8 bits [17 - 24] represent a Boolean Flag, which indicates
 *                     if the Request should be processed in the background (in case of Display Off or Doze Mode).
 * @param numRes Number of Resources to be tuned as part of the Request
-* @param backgroundProcessing Boolean Flag to
 * @param res List of Resources to be provisioned as part of the Request
 * @return int64_t :
 *              A Positive Integer Handle which uniquely identifies the issued Request. The handle is used for future retune / untune APIs.\n
@@ -76,9 +75,6 @@ ErrCode untuneResources(int64_t handle);
 * @return std::string:
 *              A string containing the request information
 */
-//  Rename getData()
-// Make it genertic, using Enums for example
-// Pass a buffer to store the result
 std::string getrequests();
 
 /**

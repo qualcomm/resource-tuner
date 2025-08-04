@@ -362,7 +362,7 @@ int8_t CocoTable::updateRequest(Request* req, int64_t duration) {
 }
 
 // Methods for Request Cleanup
-int32_t CocoTable::removeRequest(Request* req) {
+int8_t CocoTable::removeRequest(Request* req) {
     LOGD("URM_COCO_TABLE",
          "Request cleanup for Request Handle " + std::to_string(req->getHandle()) + " initiated");
 

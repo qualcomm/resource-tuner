@@ -66,25 +66,25 @@ add_subdirectory(Provisioner)
 # Optional builds
 option(BUILD_SIGNALS "Build SysSignals" OFF)
 if(BUILD_SIGNALS)
-add_compile_definitions(SYS_SIGNALS_PLUGGED_IN=1)
-add_subdirectory(Signals)
+  add_compile_definitions(SYS_SIGNALS_PLUGGED_IN=1)
+  add_subdirectory(Signals)
 endif()
 
 option(BUILD_TESTS "Testing" OFF)
 if(BUILD_TESTS)
-enable_testing()
-add_compile_definitions(UNIT_TESTS_BUILD="TRUE")
-add_subdirectory(Tests)
+  enable_testing()
+  add_compile_definitions(UNIT_TESTS_BUILD="TRUE")
+  add_subdirectory(Tests)
 endif()
 
 option(BUILD_CLI "Build CLI" OFF)
 if(BUILD_CLI)
-add_executable(systune_cli
-  ./Client/APIs/SystuneAPIs.cpp
-  ./Client/ClientCLI.cpp
-)
-target_link_libraries(systune_cli CommunicationClient ClientAPIs)
-install(TARGETS systune_cli RUNTIME DESTINATION bin)
+  add_executable(systune_cli
+    ./Client/APIs/SystuneAPIs.cpp
+    ./Client/ClientCLI.cpp
+  )
+  target_link_libraries(systune_cli CommunicationClient ClientAPIs)
+  install(TARGETS systune_cli RUNTIME DESTINATION bin)
 endif()
 
 # Server Executable
@@ -110,8 +110,11 @@ install(TARGETS Auxiliary CommunicationClient SystuneCommunicationServer
         SysRequestReceiver SysSignals LIBRARY DESTINATION lib)
 
 #install headers
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/Client/APIs/include/ DESTINATION include)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/Extensions/include/ DESTINATION include)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/Auxiliary/Common/include/ DESTINATION include/Systune)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/Auxiliary/Components/include/ DESTINATION include/Systune)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/Client/APIs/include/ DESTINATION include/Systune)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/Client/Comm/Socket/include/ DESTINATION include/Systune)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/Extensions/include/ DESTINATION include/Systune)
 
 #install config files
 install(
@@ -121,4 +124,3 @@ install(
     PATTERN "*.json"
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
-

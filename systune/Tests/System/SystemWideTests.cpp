@@ -27,6 +27,7 @@ namespace ProvisionerRequestVerification {
     *       - Request should have a positive duration (with the exception of -1) [A]
     *       - Request should specify a non-zero number of Resources to Tune [B]
     *       - The argument numRes and the size of the Resource vector must match [C]
+    *       - Request should have a valid Priority i.e. either HIGH (0) or LOW (1) [D]
     * - Resource Level Tests
     *   - Verifier will iterate over all the Resources part of the Request, and perform the following
     *     tests on each of them. Note if any test fails for any (even one) Resource part of the Request,
@@ -140,6 +141,53 @@ namespace ProvisionerRequestVerification {
         assert(handle == RC_REQ_SUBMISSION_FAILURE);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        LOG_END
+    }
+
+   /**
+    * API under test: Tune
+    * - As part of the tune API call, the client specifies a desired priority for the Request,
+    *   which is one of the following values:
+    *    1. HIGH
+    *    2. LOW
+    * - If a Client passes a Priority Value other than these Values, then the Request will be dropped.
+    * - Verify that the Valid Resource Node's value remains unchanged.
+    * Cross-Reference id: [D]
+    */
+    static void TestClientPriorityAcquisitionVerification() {
+        LOG_START
+
+        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+        int32_t testResourceOriginalValue = 107;
+
+        std::string value;
+        int32_t originalValue, newValue;
+
+        value = readFromNode(testResourceName);
+        originalValue = C_STOI(value);
+        assert(originalValue == testResourceOriginalValue);
+
+        std::vector<Resource*>* resources = new std::vector<Resource*>;
+        Resource* resource = new Resource;
+        resource->setOpCode(GENERATE_RESOURCE_ID(1, 2));
+        resource->setNumValues(1);
+        resource->mConfigValue.singleValue = 554;
+        resources->push_back(resource);
+
+        // Invalid Priority Value = 2
+        int64_t handle = tuneResources(-1, 2, 1, resources);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        value = readFromNode(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == testResourceOriginalValue);
+
+        std::this_thread::sleep_for(std::chrono::seconds(4));
+
+        delete resource;
+        delete resources;
 
         LOG_END
     }
@@ -590,6 +638,7 @@ namespace ProvisionerRequestVerification {
         RUN_TEST(TestNullOrInvalidRequestVerification2);
         RUN_TEST(TestNullOrInvalidRequestVerification3);
         RUN_TEST(TestNullOrInvalidRequestVerification4);
+        RUN_TEST(TestClientPriorityAcquisitionVerification);
         RUN_TEST(TestClientPermissionChecksVerification);
         RUN_TEST(TestInvalidResourceTuning);
         RUN_TEST(TestNonSupportedResourceTuningVerification);

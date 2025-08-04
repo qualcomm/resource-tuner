@@ -10,7 +10,7 @@
 
 URM_REGISTER_CONFIG(PROPERTIES_CONFIG, "../Tests/Configs/testPropertiesConfig.json")
 
-#define TOTAL_SYS_CONFIGS_PROPS_COUNT 3
+#define TOTAL_SYS_CONFIGS_PROPS_COUNT 14
 
 class SysConfigProcessorTests: public::testing::Test {
 protected:

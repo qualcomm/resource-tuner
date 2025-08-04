@@ -20,19 +20,15 @@ static std::thread serverThread;
 
 ErrCode fetchProperties() {
     // Initialize SysConfigs
-    std::shared_ptr<SysConfigProcessor> sysConfigProcessor = SysConfigProcessor::getInstance();
+    std::shared_ptr<SysConfigProcessor> sysConfigProcessor =
+        SysConfigProcessor::getInstance(Extensions::getPropertiesConfigFilePath());
     ErrCode opStatus = sysConfigProcessor->parseSysConfigs();
 
-    if(RC_IS_NOTOK(opStatus)) {
-        return opStatus;
+    if(RC_IS_OK(opStatus)) {
+        opStatus = fetchMetaConfigs();
     }
 
-    opStatus = fetchMetaConfigs();
-    if(RC_IS_NOTOK(opStatus)) {
-        return opStatus;
-    }
-
-    return RC_SUCCESS;
+    return opStatus;
 }
 
 ErrCode initProvisioner() {

@@ -30,7 +30,7 @@ protected:
 };
 
 TEST_F(SysConfigAPITests, TestSysConfigPropertiesParsing) {
-    ASSERT_EQ(SysConfigPropRegistry::getInstance()->getPropertiesCount(), 3);
+    ASSERT_EQ(SysConfigPropRegistry::getInstance()->getPropertiesCount(), 14);
 }
 
 TEST_F(SysConfigAPITests, TestSysConfigGetPropSimpleRetrieval1) {

@@ -69,7 +69,7 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
                      "Thread pool not initialized, Dropping the Request");
             }
 
-            // Only in Case of Tune Requests, Write back the handle to the client.
+            // Only in Case of Tune Signals, Write back the handle to the client.
             if(requestType == SIGNAL_ACQ) {
                 if(write(clientSocket, (const void*)msgForwardInfo->handle, sizeof(int64_t)) == -1) {
                     TYPELOGV(ERRNO_LOG, "write", strerror(errno));

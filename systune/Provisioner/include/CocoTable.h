@@ -136,8 +136,13 @@ public:
     ~CocoTable();
 
     /**
-    * @brief It creates CocoNodes for each resource
-    *       and inserts them in the appropriate linked lists.
+    * @brief Insert a Request to the CocoTable for application.
+    * @details CocoNodes are created for each resource and inserted in appropriate
+    *          Resource level linked lists.
+    * @param req A pointer to the Request to be inserted
+    * @return int8_t:
+    *           1: If the Request was inserted successfully into the CocoTable
+    *           0: Otherwise
     */
     int8_t insertRequest(Request* req);
 
@@ -147,12 +152,21 @@ public:
     * @details The request object stores the pointers to its
     *        corresponding coconodes which are deleted when this
     *        routine is called.
-    *
+    * @param req A pointer to the Request to be inserted
+    * @return int8_t:
+    *           1: If the Request was inserted successfully into the CocoTable
+    *           0: Otherwise
     */
-    int32_t removeRequest(Request* req);
+    int8_t removeRequest(Request* req);
 
     /**
-    * @brief This routine updates the timer of the request with the newDuration.
+    * @brief Used to update the duration of an Active Request
+    * @details This routine is called to serve Retune Requests.
+    * @param req A pointer to the Request to be inserted
+    * @param duration The new duration of the request
+    * @return int8_t:
+    *           1: If the Request was inserted successfully into the CocoTable
+    *           0: Otherwise
     */
     int8_t updateRequest(Request* req, int64_t duration);
 
