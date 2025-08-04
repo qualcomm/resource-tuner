@@ -447,14 +447,14 @@ Examples:
 
 | Name           | ResType  |
 |----------------|----------|
-| `POWER`        |   `1`    |
-| `CPU_DCVS`     |   `2`    |
-| `CPU_SCHED`    |   `3`    |
-| `GPU`          |   `4`    |
-| `NPU`          |   `5`    |
-| `CACHES`       |   `6`    |
-| `MPAM`         |   `7`    |
-| `MISC`         |   `8`    |
+|    POWER       |   `1`    |
+|    CPU_DCVS    |   `2`    |
+|    CPU_SCHED   |   `3`    |
+|    GPU         |   `4`    |
+|    NPU         |   `5`    |
+|    CACHES      |   `6`    |
+|    MPAM        |   `7`    |
+|    MISC        |   `8`    |
 
 ---
 

@@ -42,7 +42,7 @@ typedef struct {
     int8_t mIsEnabled;
 
     /**
-     * @brief Default Signal Timeout, to be used if Client specifies aduration
+     * @brief Default Signal Timeout, to be used if Client specifies a duration
      *        of 0 in the tuneSignal API call.
      */
     int32_t mTimeout;

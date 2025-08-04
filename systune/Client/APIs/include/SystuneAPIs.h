@@ -46,7 +46,6 @@
 *              A Positive Integer Handle which uniquely identifies the issued Request. The handle is used for future retune / untune APIs.\n
 *              -1: If the Request could not be sent to the server.
 */
-
 int64_t tuneResources(int64_t duration, int32_t prop, int32_t numRes, std::vector<Resource*>* res);
 
 /**

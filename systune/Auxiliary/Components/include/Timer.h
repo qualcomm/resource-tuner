@@ -18,42 +18,32 @@
 */
 class Timer {
 private:
-    int64_t mDuration;//<! Duration of the timer.
-    int8_t mIsRecurring; //<! Flag to set a recurring timer. It is never modified. False by default.
-    std::atomic<int8_t> mStop; //<! Flag to let the timer thread know it has been killed.
-    std::condition_variable mCv; //<! Condition variable to stop the thread for the timer duration and wake up either after the duration has ended or the timer is killed.
-    std::mutex mMutex; //<!Mutex to protect the condition variable.
-    std::thread mThread; //<!Thread in which timer will run.
-    std::function<void(void*)> mCallBack; //<! Callback function to be called after timer is over.
-
-    // Create the ThreadPool instance as static so that all the Timer objects can share it.
+    int64_t mDuration;//!< Duration of the timer.
+    int8_t mIsRecurring; //!< Flag to set a recurring timer. It is never modified. False by default.
+    std::atomic<int8_t> mStop; //!< Flag to let the timer thread know it has been killed.
+    std::condition_variable mCv; //!< Condition variable to stop the thread for the timer duration and wake up either after the duration has ended or the timer is killed.
+    std::mutex mMutex; //!<Mutex to protect the condition variable.
+    std::thread mThread; //!<Thread in which timer will run.
+    std::function<void(void*)> mCallBack; //!< Callback function to be called after timer is over.
 
     void implementTimer();
 
-    public:
-    Timer(std::function<void(void*)> callBack, int8_t isRecurring=false);
-
-    ~Timer();
-
+public:
+    // Create the ThreadPool as a static member so that all the Timer objects can share it.
     static ThreadPool* mTimerThreadPool;
+
+    Timer(std::function<void(void*)> callBack, int8_t isRecurring=false);
+    ~Timer();
 
     /**
     * @brief Starts the timer for the given duration in milliseconds
     * @details It spawns an independent thread that Waits (on Condition Variable)
     *          for the given duration. When woken up, it atomically checks if the timer was
     *          updated or not. Following which it it executes a pre-registered callback function.
-    * @param duration
+    * @param duration Time Interval (in milliseconds) after which the Callback needs
+    *                 needs to be triggered.
     */
     int8_t startTimer(int64_t duration);
-
-    /**
-    * @brief Updates the same timer duration to some higher value.
-    * @details Updates the value of an atomic variable and acts the same way as
-    *          starting a new timer while invalidating the old timer
-    *
-    * @param duration Updated duration of timer.
-    */
-    int8_t updateTimer(int64_t duration);
 
     /**
     * @brief Invalidates current timer.

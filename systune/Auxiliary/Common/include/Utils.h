@@ -47,9 +47,9 @@ enum SignalRequestType {
  *        no such restrictions and can be accessed even by third party clients.
  */
 enum Permissions {
-    PERMISSION_SYSTEM, //<! Special permission level for system clients.
-    PERMISSION_THIRD_PARTY, //<! Third party clients. Default value.
-    NUMBER_PERMISSIONS //<! Trick to get total number of permissions currently supported. Value = 2 at the moment.
+    PERMISSION_SYSTEM, //!< Special permission level for system clients.
+    PERMISSION_THIRD_PARTY, //!< Third party clients. Default value.
+    NUMBER_PERMISSIONS //!< Total number of permissions currently supported.
 };
 
 enum RequestPriority {
@@ -83,9 +83,9 @@ enum PriorityLevel {
  * performed regardless of the display state, including during doze mode.
  */
 enum Modes {
-    MODE_DISPLAY_ON  = 0x001, //<! Tuning allowed when the display is on.
-    MODE_DISPLAY_OFF = 0x002, //<! Tuning allowed when the display is off.
-    MODE_DOZE        = 0x004  //<! Tuning allowed during doze (low-power idle) mode.
+    MODE_DISPLAY_ON  = 0x001, //!< Tuning allowed when the display is on.
+    MODE_DISPLAY_OFF = 0x002, //!< Tuning allowed when the display is off.
+    MODE_DOZE        = 0x004  //!< Tuning allowed during doze (low-power idle) mode.
 };
 
 /**

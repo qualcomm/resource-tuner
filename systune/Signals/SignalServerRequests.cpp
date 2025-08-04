@@ -159,6 +159,13 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
         }
     }
 
+    if(signal->getDuration() == 0) {
+        // If the Client has not specified a duration to acquire the Signal for,
+        // We use the default duration for the Signal, specified in the Signal
+        // Configs (JSON) file.
+        signal->setDuration(signalInfo->mTimeout);
+    }
+
     LOGI("URM_SIGNAL_SERVER_REQUESTS", "Request Verified");
     return true;
 }
