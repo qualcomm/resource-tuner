@@ -3,6 +3,7 @@
 
 #include <cstdint>
 
+#include "Utils.h"
 #include "TestUtils.h"
 #include "SystuneAPIs.h"
 

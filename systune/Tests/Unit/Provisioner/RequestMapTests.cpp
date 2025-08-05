@@ -15,6 +15,7 @@ protected:
         if(firstTest == true) {
             MakeAlloc<ClientInfo> (30);
             MakeAlloc<ClientTidData> (30);
+            MakeAlloc<std::vector<int32_t>> (30);
             MakeAlloc<std::unordered_set<int64_t>> (30);
             MakeAlloc<Resource> (30);
             MakeAlloc<std::vector<Resource*>> (30);
@@ -40,7 +41,7 @@ Resource* generateResourceForTesting(int32_t seed) {
 }
 
 Resource* generateResourceFromMemoryPoolForTesting(int32_t seed) {
-    Resource* resource = (Resource*)GetBlock<Resource>();
+    Resource* resource = new(GetBlock<Resource>()) Resource;
     resource->setOpCode(16 + seed);
     resource->setNumValues(1);
     resource->mConfigValue.singleValue = 2 * seed;

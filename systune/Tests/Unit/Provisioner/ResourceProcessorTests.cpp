@@ -12,7 +12,7 @@
 
 URM_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourceConfigs.json")
 
-#define TOTAL_RESOURCE_CONFIGS_COUNT 9
+#define TOTAL_RESOURCE_CONFIGS_COUNT 11
 
 #define GENERATE_RESOURCE_ID(optype, opcode) ({                                \
     uint32_t resourceBitmap = 0;                                               \
