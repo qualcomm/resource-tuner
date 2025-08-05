@@ -304,7 +304,10 @@ void submitResourceProvisioningRequest(void* msg) {
         return;
     }
 
-    request->setHandle(info->handle);
+    if(request->getRequestType() == REQ_RESOURCE_TUNING) {
+        request->setHandle(info->handle);
+    }
+
     processIncomingRequest(request);
 }
 
@@ -389,6 +392,15 @@ void RequestQueue::orderedQueueConsumerHook() {
                 // Note by this point, the Client is ascertained to be in the Client Data Manager Table
                 LOGD("URM_PROVISIONER_SERVER_REQUESTS", "Corresponding Tune Request Not Found, Dropping");
                 continue;
+            }
+
+            if(correspondingTuneRequest->getClientPID() != req->getClientPID()) {
+                LOGI("URM_PROVISIONER_SERVER_REQUESTS",
+                     "Corresponding Tune Request issued by different Client, Dropping Request.");
+
+                // Free Up the Request
+                Request::cleanUpRequest(req);
+                return;
             }
 
             if(req->getRequestType() == REQ_RESOURCE_UNTUNING) {

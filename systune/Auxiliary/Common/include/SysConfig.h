@@ -1,5 +1,8 @@
-#ifndef SYS_CONFIG_H
-#define SYS_CONFIG_H
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+
+#ifndef SYSCONFIG_H
+#define SYSCONFIG_H
 
 #include <cstdint>
 #include <string>

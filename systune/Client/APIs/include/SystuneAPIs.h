@@ -91,8 +91,9 @@ std::string getrequests();
 ErrCode getprop(const char* prop, char* buffer, size_t buffer_size, const char* def_value);
 
 /**
-* @brief Modifies an already existing property in the Config Store. // Modify: Only in the RAM (in-memory)
-* @details Use this API to to change the value of a property.
+* @brief Modifies an already existing property in the Config Store.
+* @details Use this API to change the value of a property. Note the Modification is in-memory and won't
+*          won't be reflected in the Configs JSON file.
 * @param prop Name of the Property to be modified.
 * @param value A buffer holding the new the property value.
 * @return ErrCode:

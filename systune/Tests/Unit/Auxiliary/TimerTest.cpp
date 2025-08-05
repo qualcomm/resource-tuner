@@ -1,3 +1,6 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+
 #include <gtest/gtest.h>
 #include "Timer.h"
 
@@ -8,17 +11,24 @@ protected:
     std::atomic<int8_t> isFinished;
 
     void SetUp() override {
+        static int8_t firstTest = true;
+        if(firstTest) {
+            Timer::mTimerThreadPool = new ThreadPool(4, 4, 5);
+            MakeAlloc<Timer>(10);
+            firstTest = false;
+        }
+
         isFinished.store(false);
         timer = new Timer(std::bind(&TimerTest::afterTimer, this));
         recurringTimer = new Timer(std::bind(&TimerTest::afterTimer, this), true);
     }
 
-    int32_t afterTimer(){
+    int32_t afterTimer() {
         isFinished.store(true);
         return 0;
     }
 
-    void simulateWork(){
+    void simulateWork() {
         while(!isFinished.load()){
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
@@ -27,6 +37,13 @@ protected:
     void TearDown() override {
         delete timer;
         delete recurringTimer;
+    }
+
+public:
+    ~TimerTest() {
+        if(Timer::mTimerThreadPool != nullptr) {
+            delete Timer::mTimerThreadPool;
+        }
     }
 };
 

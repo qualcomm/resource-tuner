@@ -34,10 +34,10 @@ if(BUILD_TESTS)
     target_link_libraries(RateLimiterTests GTest::gtest_main  Auxiliary Server)
 
     add_executable(ResourceProcessorTests Provisioner/ResourceProcessorTests.cpp)
-    target_link_libraries(ResourceProcessorTests GTest::gtest_main Auxiliary Server)
+    target_link_libraries(ResourceProcessorTests GTest::gtest_main Auxiliary Server ExtAPIs)
 
     add_executable(TargetConfigProcessorTests Provisioner/TargetConfigProcessorTests.cpp)
-    target_link_libraries(TargetConfigProcessorTests GTest::gtest_main Auxiliary Server)
+    target_link_libraries(TargetConfigProcessorTests GTest::gtest_main Auxiliary Server ExtAPIs)
 
     add_executable(SysConfigAPITests SysConfigs/SysConfigAPITests.cpp)
     target_link_libraries(SysConfigAPITests GTest::gtest_main Auxiliary ExtAPIs SysConfigProps)

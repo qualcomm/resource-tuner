@@ -192,13 +192,13 @@ int32_t main(int32_t argc, char *argv[]) {
             }
         }
 
-        if(RC_IS_OK(mOpStatus)) {
-            mOpStatus = startClientGarbageCollectorDaemon();
+        // if(RC_IS_OK(mOpStatus)) {
+        //     mOpStatus = startClientGarbageCollectorDaemon();
 
-            if(RC_IS_NOTOK(mOpStatus)) {
-                TYPELOGD(GARBAGE_COLLECTOR_INIT_FAILED);
-            }
-        }
+        //     if(RC_IS_NOTOK(mOpStatus)) {
+        //         TYPELOGD(GARBAGE_COLLECTOR_INIT_FAILED);
+        //     }
+        // }
     }
 
     // Create a Listener Thread
@@ -255,9 +255,10 @@ int32_t main(int32_t argc, char *argv[]) {
         delete RequestReceiver::mRequestsThreadPool;
     }
 
-    if(Timer::mTimerThreadPool != nullptr) {
-        delete Timer::mTimerThreadPool;
-    }
+    // TBF
+    // if(Timer::mTimerThreadPool != nullptr) {
+    //     delete Timer::mTimerThreadPool;
+    // }
 
     kill(childProcessID, SIGKILL);
     // Wait for the Child Process to terminate

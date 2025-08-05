@@ -35,7 +35,7 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
 
             // Only in Case of Tune Requests, Write back the handle to the client.
             if(requestType == REQ_RESOURCE_TUNING) {
-                if(write(clientSocket, (const void*)msgForwardInfo->handle, sizeof(int64_t)) == -1) {
+                if(write(clientSocket, (const void*)&msgForwardInfo->handle, sizeof(int64_t)) == -1) {
                     TYPELOGV(ERRNO_LOG, "write", strerror(errno));
                 }
             }
@@ -71,7 +71,7 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
 
             // Only in Case of Tune Signals, Write back the handle to the client.
             if(requestType == SIGNAL_ACQ) {
-                if(write(clientSocket, (const void*)msgForwardInfo->handle, sizeof(int64_t)) == -1) {
+                if(write(clientSocket, (const void*)&msgForwardInfo->handle, sizeof(int64_t)) == -1) {
                     TYPELOGV(ERRNO_LOG, "write", strerror(errno));
                 }
             }

@@ -7,13 +7,13 @@ static void writeToNode(const std::string& fName, int32_t fValue) {
     std::ofstream myFile(fName, std::ios::out | std::ios::trunc);
 
     if(!myFile.is_open()) {
-        LOGD("URM_COCO_TABLE", "Failed to open file: "+ fName + " Error: " + strerror(errno));
+        LOGD("URM_COCO_TABLE", "Failed to open file: "+ fName + " Error: " + std::strerror(errno));
         return;
     }
 
     myFile << std::to_string(fValue);
     if(myFile.fail()) {
-        LOGD("URM_COCO_TABLE", "Failed to write to file: "+ fName + " Error: " + strerror(errno));
+        LOGD("URM_COCO_TABLE", "Failed to write to file: "+ fName + " Error: " + std::strerror(errno));
     }
     myFile.flush();
     myFile.close();

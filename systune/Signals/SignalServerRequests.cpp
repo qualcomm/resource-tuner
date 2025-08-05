@@ -221,7 +221,10 @@ void submitSignalRequest(void* clientReq) {
         return;
     }
 
-    signal->setHandle(info->handle);
+    if(signal->getRequestType() == SIGNAL_ACQ) {
+        signal->setHandle(info->handle);
+    }
+
     processIncomingRequest(signal);
 }
 
