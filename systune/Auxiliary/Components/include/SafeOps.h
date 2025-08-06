@@ -118,4 +118,10 @@ T Divide(T firstArg, T secondArg, OperationStatus& status)  {
     val;                                 \
 })
 
+#define VALIDATE_GT(val, base) \
+    (val > base) ? val : throw std::invalid_argument("Invalid value: " #val " should be greater than " #base)
+
+#define VALIDATE_GE(val, base) \
+    (val >= base) ? val : throw std::invalid_argument("Invalid value: " #val " should be greater or equal to " #base)
+
 #endif

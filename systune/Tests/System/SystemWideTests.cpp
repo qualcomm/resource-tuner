@@ -25,51 +25,36 @@
 static void TestHandleGeneration() {
     LOG_START
 
-    std::vector<Resource*>* resources = new std::vector<Resource*>;
-    Resource* resource = new Resource;
-    resource->setOpCode(GENERATE_RESOURCE_ID(1, 2));
-    resource->setNumValues(1);
-    resource->mConfigValue.singleValue = 554;
-    resources->push_back(resource);
+    SysResource* resourceList = new SysResource[1];
+    resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+    resourceList[0].mNumValues = 1;
+    resourceList[0].mConfigValue.singleValue = 554;
 
-    int64_t handle = tuneResources(2000, 0, 1, resources);
+    int64_t handle = tuneResources(2000, 0, 1, resourceList);
 
     assert(handle == 1);
 
-    delete resource;
-    delete resources;
-
     std::this_thread::sleep_for(std::chrono::seconds(3));
 
-    resources = new std::vector<Resource*>;
-    resource = new Resource;
-    resource->setOpCode(GENERATE_RESOURCE_ID(1, 2));
-    resource->setNumValues(1);
-    resource->mConfigValue.singleValue = 554;
-    resources->push_back(resource);
+    resourceList = new SysResource[1];
+    resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+    resourceList[0].mNumValues = 1;
+    resourceList[0].mConfigValue.singleValue = 667;
 
-    handle = tuneResources(2000, 0, 1, resources);
+    handle = tuneResources(2000, 0, 1, resourceList);
 
     assert(handle == 2);
 
-    delete resource;
-    delete resources;
-
     std::this_thread::sleep_for(std::chrono::seconds(3));
 
-    resources = new std::vector<Resource*>;
-    resource = new Resource;
-    resource->setOpCode(GENERATE_RESOURCE_ID(1, 2));
-    resource->setNumValues(1);
-    resource->mConfigValue.singleValue = 554;
-    resources->push_back(resource);
+    resourceList = new SysResource[1];
+    resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+    resourceList[0].mNumValues = 1;
+    resourceList[0].mConfigValue.singleValue = 701;
 
-    handle = tuneResources(2000, 0, 1, resources);
+    handle = tuneResources(2000, 0, 1, resourceList);
 
     assert(handle == 3);
-
-    delete resource;
-    delete resources;
 
     LOG_END
 }
@@ -90,7 +75,6 @@ namespace ProvisionerRequestVerification {
     *   - Sanity Tests
     *       - Request should have a positive duration (with the exception of -1) [A]
     *       - Request should specify a non-zero number of Resources to Tune [B]
-    *       - The argument numRes and the size of the Resource vector must match [C]
     *       - Request should have a valid Priority i.e. either HIGH (0) or LOW (1) [D]
     * - Resource Level Tests
     *   - Verifier will iterate over all the Resources part of the Request, and perform the following
@@ -127,8 +111,6 @@ namespace ProvisionerRequestVerification {
     static void TestNullOrInvalidRequestVerification1() {
         LOG_START
 
-        std::vector<Resource*>* resources = nullptr;
-
         int64_t handle = tuneResources(0, RequestPriority::REQ_PRIORITY_HIGH, 0, nullptr);
         assert(handle == RC_REQ_SUBMISSION_FAILURE);
 
@@ -147,8 +129,6 @@ namespace ProvisionerRequestVerification {
     static void TestNullOrInvalidRequestVerification2() {
         LOG_START
 
-        std::vector<Resource*>* resources = nullptr;
-
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 0, nullptr);
         assert(handle == RC_REQ_SUBMISSION_FAILURE);
 
@@ -160,42 +140,20 @@ namespace ProvisionerRequestVerification {
     * - Resources List should be non-empty for the Request to be considered valid.
     * - Each of the Resource, part of this list should be non-null and valid as well.
     * - Here a non-null Resources List is passed to the Tune API, however the only Resource part of
-    *   the Request is null, hence the Request will fail the preliminary tests on the Client side
+    *   the Request is invalid, hence the Request will fail the preliminary tests on the Client side
     *   and won't be submitted to the Server, returning -1 to the End-Client.
+    * - For checking Resource validity, we check basic SysResource params like mOpCode, mOpInfo and verify
+        that these values are sane.
     * Cross-Reference id: [B]
     */
     static void TestNullOrInvalidRequestVerification3() {
         LOG_START
 
-        std::vector<Resource*>* resources = new std::vector<Resource*>;
-        resources->push_back(nullptr);
+        SysResource* resourceList = new SysResource[1];
+        resourceList[0].mOpCode = -1;
+        resourceList[0].mOpInfo = -1;
 
-        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
-        assert(handle == RC_REQ_SUBMISSION_FAILURE);
-
-        LOG_END
-    }
-
-    /**
-    * API under test: Tune
-    * - Resources List should be non-empty for the Request to be considered valid.
-    * - Each of the Resource, part of this list should be non-null and valid as well.
-    * - Additionally the number of Resources passed as part of the Resource List should
-    *   match the value of numRes specified in the API call. If these 2 valeus don't match
-    *   the Request will be considered invalid.
-    * - Here, a non-null Resources List is passed to the Tune API, however the number of Resources
-    *   in this list and the numRes argument don't match, this will result in the Request failing
-    *   preliminary tests on the Client side and won't be submitted to the Server,
-    *   returning -1 to the End-Client.
-    * Cross-Reference id: [C]
-    */
-    static void TestNullOrInvalidRequestVerification4() {
-        LOG_START
-
-        std::vector<Resource*>* resources = new std::vector<Resource*>;
-        resources->push_back(nullptr);
-
-        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 2, resources);
+        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
         assert(handle == RC_REQ_SUBMISSION_FAILURE);
 
         LOG_END
@@ -224,24 +182,19 @@ namespace ProvisionerRequestVerification {
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
-        std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource = new Resource;
-        resource->setOpCode(GENERATE_RESOURCE_ID(1, 2));
-        resource->setNumValues(1);
-        resource->mConfigValue.singleValue = 554;
-        resources->push_back(resource);
+        SysResource* resourceList = new SysResource[1];
+        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mConfigValue.singleValue = 554;
 
         // Invalid Priority Value = 2
-        int64_t handle = tuneResources(-1, 2, 1, resources);
+        int64_t handle = tuneResources(-1, 2, 1, resourceList);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
         value = readFromNode(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
-
-        delete resource;
-        delete resources;
 
         LOG_END
     }
@@ -271,32 +224,23 @@ namespace ProvisionerRequestVerification {
         originalValue = C_STOI(value);
         assert(originalValue == validResourceOriginalValue);
 
-        std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource1 = new Resource;
-        resource1->setOpCode(GENERATE_RESOURCE_ID(1, 2));
-        resource1->setNumValues(1);
-        resource1->mConfigValue.singleValue = 554;
+        SysResource* resourceList = new SysResource[2];
+        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mConfigValue.singleValue = 554;
 
         // No Resource with this ID exists
-        Resource* resource2 = new Resource;
-        resource2->setOpCode(12000);
-        resource2->setNumValues(1);
-        resource2->mConfigValue.singleValue = 554;
+        resourceList[1].mOpCode = 12000;
+        resourceList[1].mNumValues = 1;
+        resourceList[1].mConfigValue.singleValue = 597;
 
-        resources->push_back(resource1);
-        resources->push_back(resource2);
-
-        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 2, resources);
+        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 2, resourceList);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
         value = readFromNode(validResourceName);
         newValue = C_STOI(value);
         assert(newValue == validResourceOriginalValue);
-
-        delete resource1;
-        delete resource2;
-        delete resources;
 
         LOG_END
     }
@@ -324,22 +268,18 @@ namespace ProvisionerRequestVerification {
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
-        std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource = new Resource;
-        resource->setOpCode(GENERATE_RESOURCE_ID(1, 2));
-        resource->setNumValues(1);
-        resource->mConfigValue.singleValue = 1200;
-        resources->push_back(resource);
-        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+        SysResource* resourceList = new SysResource[1];
+        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mConfigValue.singleValue = 1200;
+
+        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
         value = readFromNode(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
-
-        delete resource;
-        delete resources;
 
         LOG_END
     }
@@ -369,24 +309,21 @@ namespace ProvisionerRequestVerification {
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
-        std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource = new Resource;
-        resource->setOpCode(GENERATE_RESOURCE_ID(1, 5));
-        resource->setNumValues(1);
-        resource->mConfigValue.singleValue = 2300;
-        resource->setClusterValue(2);
-        resource->setCoreValue(27);
-        resources->push_back(resource);
-        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+        SysResource* resourceList = new SysResource[1];
+        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 5);
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mConfigValue.singleValue = 2300;
+        resourceList[0].mOpInfo = 0;
+        resourceList[0].mOpInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mOpInfo, 2);
+        resourceList[0].mOpInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mOpInfo, 27);
+
+        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
         value = readFromNode(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
-
-        delete resource;
-        delete resources;
 
         LOG_END
     }
@@ -416,24 +353,20 @@ namespace ProvisionerRequestVerification {
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
-        std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource = new Resource;
-        resource->setOpCode(GENERATE_RESOURCE_ID(1, 5));
-        resource->setNumValues(1);
-        resource->mConfigValue.singleValue = 2300;
-        resource->setClusterValue(5);
-        resource->setCoreValue(2);
-        resources->push_back(resource);
-        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+        SysResource* resourceList = new SysResource[2];
+        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 5);
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mConfigValue.singleValue = 2300;
+        resourceList[0].mOpInfo = 0;
+        resourceList[0].mOpInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mOpInfo, 5);
+        resourceList[0].mOpInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mOpInfo, 2);
+        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
         value = readFromNode(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
-
-        delete resource;
-        delete resources;
 
         LOG_END
     }
@@ -464,15 +397,15 @@ namespace ProvisionerRequestVerification {
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
-        std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource = new Resource;
-        resource->setOpCode(GENERATE_RESOURCE_ID(1, 5));
-        resource->setNumValues(1);
-        resource->mConfigValue.singleValue = 2300;
-        resource->setClusterValue(2);
-        resource->setCoreValue(2);
-        resources->push_back(resource);
-        int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+        SysResource* resourceList = new SysResource[1];
+        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 5);
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mConfigValue.singleValue = 2300;
+        resourceList[0].mOpInfo = 0;
+        resourceList[0].mOpInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mOpInfo, 2);
+        resourceList[0].mOpInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mOpInfo, 2);
+
+        int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -485,9 +418,6 @@ namespace ProvisionerRequestVerification {
         value = readFromNode(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
-
-        delete resource;
-        delete resources;
 
         LOG_END
     }
@@ -517,24 +447,21 @@ namespace ProvisionerRequestVerification {
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
-        std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource = new Resource;
-        resource->setOpCode(GENERATE_RESOURCE_ID(1, 5));
-        resource->setNumValues(1);
-        resource->mConfigValue.singleValue = 2300;
-        resource->setClusterValue(1);
-        resource->setCoreValue(0);
-        resources->push_back(resource);
-        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+        SysResource* resourceList = new SysResource[1];
+        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 5);
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mConfigValue.singleValue = 2300;
+        resourceList[0].mOpInfo = 0;
+        resourceList[0].mOpInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mOpInfo, 1);
+        resourceList[0].mOpInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mOpInfo, 0);
+
+        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
         value = readFromNode(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
-
-        delete resource;
-        delete resources;
 
         LOG_END
     }
@@ -561,22 +488,18 @@ namespace ProvisionerRequestVerification {
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
-        std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource = new Resource;
-        resource->setOpCode(GENERATE_RESOURCE_ID(1, 7));
-        resource->setNumValues(1);
-        resource->mConfigValue.singleValue = 653;
-        resources->push_back(resource);
-        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+        SysResource* resourceList = new SysResource[1];
+        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 7);
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mConfigValue.singleValue = 653;
+
+        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
         value = readFromNode(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
-
-        delete resource;
-        delete resources;
 
         LOG_END
     }
@@ -602,22 +525,18 @@ namespace ProvisionerRequestVerification {
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
-        std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource = new Resource;
-        resource->setOpCode(GENERATE_RESOURCE_ID(1, 6));
-        resource->setNumValues(1);
-        resource->mConfigValue.singleValue = 4670;
-        resources->push_back(resource);
-        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+        SysResource* resourceList = new SysResource[1];
+        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 6);
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mConfigValue.singleValue = 4670;
+
+        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
         value = readFromNode(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
-
-        delete resource;
-        delete resources;
 
         LOG_END
     }
@@ -647,22 +566,18 @@ namespace ProvisionerRequestVerification {
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
-        std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource = new Resource;
-        resource->setOpCode(GENERATE_RESOURCE_ID(1, 4));
-        resource->setNumValues(1);
-        resource->mConfigValue.singleValue = 460;
-        resources->push_back(resource);
-        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+        SysResource* resourceList = new SysResource[1];
+        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 4);
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mConfigValue.singleValue = 460;
+
+        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
         value = readFromNode(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
-
-        delete resource;
-        delete resources;
 
         LOG_END
     }
@@ -673,7 +588,6 @@ namespace ProvisionerRequestVerification {
         RUN_TEST(TestNullOrInvalidRequestVerification1)
         RUN_TEST(TestNullOrInvalidRequestVerification2)
         RUN_TEST(TestNullOrInvalidRequestVerification3)
-        RUN_TEST(TestNullOrInvalidRequestVerification4)
         RUN_TEST(TestClientPriorityAcquisitionVerification)
         RUN_TEST(TestInvalidResourceTuning)
         RUN_TEST(TestOutOfBoundsResourceTuning)
@@ -732,12 +646,8 @@ namespace SignalRequestVerification {
     static void TestNullOrInvalidRequestVerification() {
         LOG_START
 
-        std::vector<Resource*>* resources = nullptr;
-
         int64_t handle = tuneSignal(1, -2, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
         assert(handle == RC_REQ_SUBMISSION_FAILURE);
-
-        std::this_thread::sleep_for(std::chrono::seconds(2));
 
         LOG_END
     }
@@ -775,8 +685,6 @@ namespace SignalRequestVerification {
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
 
-        std::this_thread::sleep_for(std::chrono::seconds(4));
-
         LOG_END
     }
 
@@ -810,8 +718,6 @@ namespace SignalRequestVerification {
         value = readFromNode(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
-
-        std::this_thread::sleep_for(std::chrono::seconds(4));
 
         LOG_END
     }
@@ -849,8 +755,6 @@ namespace SignalRequestVerification {
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
 
-        std::this_thread::sleep_for(std::chrono::seconds(4));
-
         LOG_END
     }
 
@@ -882,8 +786,6 @@ namespace SignalRequestVerification {
         value = readFromNode(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
-
-        std::this_thread::sleep_for(std::chrono::seconds(4));
 
         LOG_END
     }
@@ -962,16 +864,12 @@ namespace RequestApplicationTests {
         int32_t originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
-        std::vector<Resource*>* resources = new std::vector<Resource*>;
+        SysResource* resourceList = new SysResource[1];
+        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 0);
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mConfigValue.singleValue = 980;
 
-        Resource* resource = new Resource;
-        resource->setOpCode(GENERATE_RESOURCE_ID(1, 0));
-        resource->setNumValues(1);
-        resource->mConfigValue.singleValue = 980;
-
-        resources->push_back(resource);
-
-        int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+        int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -1025,28 +923,21 @@ namespace RequestApplicationTests {
         originalValue[2] = C_STOI(value);
         assert(originalValue[2] == testResourceOriginalValue3);
 
-        std::vector<Resource*>* resources = new std::vector<Resource*>;
+        SysResource* resourceList = new SysResource[3];
 
-        Resource* resource1 = new Resource;
-        resource1->setOpCode(GENERATE_RESOURCE_ID(1, 3));
-        resource1->setNumValues(1);
-        resource1->mConfigValue.singleValue = 765;
+        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mConfigValue.singleValue = 765;
 
-        Resource* resource2 = new Resource;
-        resource2->setOpCode(GENERATE_RESOURCE_ID(1, 1));
-        resource2->setNumValues(1);
-        resource2->mConfigValue.singleValue = 889;
+        resourceList[1].mOpCode = GENERATE_RESOURCE_ID(1, 1);
+        resourceList[1].mNumValues = 1;
+        resourceList[1].mConfigValue.singleValue = 889;
 
-        Resource* resource3 = new Resource;
-        resource3->setOpCode(GENERATE_RESOURCE_ID(1, 2));
-        resource3->setNumValues(1);
-        resource3->mConfigValue.singleValue = 617;
+        resourceList[2].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList[2].mNumValues = 1;
+        resourceList[2].mConfigValue.singleValue = 617;
 
-        resources->push_back(resource1);
-        resources->push_back(resource2);
-        resources->push_back(resource3);
-
-        int64_t handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 3, resources);
+        int64_t handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 3, resourceList);
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -1106,27 +997,23 @@ namespace RequestApplicationTests {
 
         int32_t rc = fork();
         if(rc == 0) {
-            std::vector<Resource*>* resources = new std::vector<Resource*>;
-            Resource* resource = new Resource;
-            resource->setOpCode(GENERATE_RESOURCE_ID(1, 3));
-            resource->setNumValues(1);
-            resource->mConfigValue.singleValue = 315;
-            resources->push_back(resource);
+            SysResource* resourceList = new SysResource[1];
+            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+            resourceList[0].mNumValues = 1;
+            resourceList[0].mConfigValue.singleValue = 315;
 
-            int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+            int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
             exit(EXIT_SUCCESS);
 
         } else if(rc > 0) {
             wait(nullptr);
 
-            std::vector<Resource*>* resources = new std::vector<Resource*>;
-            Resource* resource = new Resource;
-            resource->setOpCode(GENERATE_RESOURCE_ID(1, 3));
-            resource->setNumValues(1);
-            resource->mConfigValue.singleValue = 209;
-            resources->push_back(resource);
+            SysResource* resourceList = new SysResource[1];
+            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+            resourceList[0].mNumValues = 1;
+            resourceList[0].mConfigValue.singleValue = 209;
 
-            int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+            int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
             std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1179,27 +1066,23 @@ namespace RequestApplicationTests {
 
         int32_t rc1 = fork();
         if(rc1 == 0) {
-            std::vector<Resource*>* resources = new std::vector<Resource*>;
-            Resource* resource = new Resource;
-            resource->setOpCode(GENERATE_RESOURCE_ID(1, 3));
-            resource->setNumValues(1);
-            resource->mConfigValue.singleValue = 1176;
+            SysResource* resourceList = new SysResource[1];
+            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+            resourceList[0].mNumValues = 1;
+            resourceList[0].mConfigValue.singleValue = 1176;
 
-            resources->push_back(resource);
-            int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+            int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
             exit(EXIT_SUCCESS);
 
         } else if(rc1 > 0) {
             wait(nullptr);
-            std::vector<Resource*>* resources = new std::vector<Resource*>;
-            Resource* resource = new Resource;
-            resource->setOpCode(GENERATE_RESOURCE_ID(1, 3));
-            resource->setNumValues(1);
-            resource->mConfigValue.singleValue = 823;
+            SysResource* resourceList = new SysResource[1];
+            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+            resourceList[0].mNumValues = 1;
+            resourceList[0].mConfigValue.singleValue = 823;
 
-            resources->push_back(resource);
-            int64_t handle = tuneResources(14000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+            int64_t handle = tuneResources(14000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
             std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1261,14 +1144,12 @@ namespace RequestApplicationTests {
 
         int32_t rc1 = fork();
         if(rc1 == 0) {
-            std::vector<Resource*>* resources = new std::vector<Resource*>;
-            Resource* resource = new Resource;
-            resource->setOpCode(GENERATE_RESOURCE_ID(1, 2));
-            resource->setNumValues(1);
-            resource->mConfigValue.singleValue = 578;
+            SysResource* resourceList = new SysResource[1];
+            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+            resourceList[0].mNumValues = 1;
+            resourceList[0].mConfigValue.singleValue = 578;
 
-            resources->push_back(resource);
-            handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+            handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
             exit(EXIT_SUCCESS);
 
@@ -1282,14 +1163,12 @@ namespace RequestApplicationTests {
 
             int32_t rc2 = fork();
             if(rc2 == 0) {
-                std::vector<Resource*>* resources = new std::vector<Resource*>;
-                Resource* resource = new Resource;
-                resource->setOpCode(GENERATE_RESOURCE_ID(1, 2));
-                resource->setNumValues(1);
-                resource->mConfigValue.singleValue = 445;
-                resources->push_back(resource);
+                SysResource* resourceList = new SysResource[1];
+                resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+                resourceList[0].mNumValues = 1;
+                resourceList[0].mConfigValue.singleValue = 445;
 
-                handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+                handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
                 exit(EXIT_SUCCESS);
 
@@ -1303,14 +1182,12 @@ namespace RequestApplicationTests {
 
                 int32_t rc3 = fork();
                 if(rc3 == 0) {
-                    std::vector<Resource*>* resources = new std::vector<Resource*>;
-                    Resource* resource = new Resource;
-                    resource->setOpCode(GENERATE_RESOURCE_ID(1, 2));
-                    resource->setNumValues(1);
-                    resource->mConfigValue.singleValue = 412;
+                    SysResource* resourceList = new SysResource[1];
+                    resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+                    resourceList[0].mNumValues = 1;
+                    resourceList[0].mConfigValue.singleValue = 412;
 
-                    resources->push_back(resource);
-                    handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+                    handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
                     exit(EXIT_SUCCESS);
 
@@ -1322,14 +1199,12 @@ namespace RequestApplicationTests {
                     newValue = C_STOI(value);
                     assert(newValue == 412);
 
-                    std::vector<Resource*>* resources = new std::vector<Resource*>;
-                    Resource* resource = new Resource;
-                    resource->setOpCode(GENERATE_RESOURCE_ID(1, 2));
-                    resource->setNumValues(1);
-                    resource->mConfigValue.singleValue = 378;
-                    resources->push_back(resource);
+                    SysResource* resourceList = new SysResource[1];
+                    resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+                    resourceList[0].mNumValues = 1;
+                    resourceList[0].mConfigValue.singleValue = 378;
 
-                    handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+                    handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
                     std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -1380,14 +1255,12 @@ namespace RequestApplicationTests {
         int64_t handle;
         int32_t rc1 = fork();
         if(rc1 == 0) {
-            std::vector<Resource*>* resources = new std::vector<Resource*>;
-            Resource* resource = new Resource;
-            resource->setOpCode(GENERATE_RESOURCE_ID(1, 8));
-            resource->setNumValues(1);
-            resource->mConfigValue.singleValue = 15;
-            resources->push_back(resource);
+            SysResource* resourceList = new SysResource[1];
+            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 8);
+            resourceList[0].mNumValues = 1;
+            resourceList[0].mConfigValue.singleValue = 15;
 
-            handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+            handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
             exit(EXIT_SUCCESS);
 
@@ -1395,14 +1268,12 @@ namespace RequestApplicationTests {
             wait(nullptr);
             std::this_thread::sleep_for(std::chrono::seconds(1));
 
-            std::vector<Resource*>* resources = new std::vector<Resource*>;
-            Resource* resource = new Resource;
-            resource->setOpCode(GENERATE_RESOURCE_ID(1, 8));
-            resource->setNumValues(1);
-            resource->mConfigValue.singleValue = 18;
-            resources->push_back(resource);
+            SysResource* resourceList = new SysResource[1];
+            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 8);
+            resourceList[0].mNumValues = 1;
+            resourceList[0].mConfigValue.singleValue = 18;
 
-            handle = tuneResources(15000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+            handle = tuneResources(15000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
             std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -1468,44 +1339,34 @@ namespace RequestApplicationTests {
 
         int32_t rc1 = fork();
         if(rc1 == 0) {
-            std::vector<Resource*>* resources = new std::vector<Resource*>;
-            Resource* resource = new Resource;
-            resource->setOpCode(GENERATE_RESOURCE_ID(1, 2));
-            resource->setNumValues(1);
-            resource->mConfigValue.singleValue = 717;
-            resources->push_back(resource);
+            SysResource* resourceList = new SysResource[1];
+            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+            resourceList[0].mNumValues = 1;
+            resourceList[0].mConfigValue.singleValue = 717;
 
-            int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+            int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
-            delete resource;
-            delete resources;
             exit(EXIT_SUCCESS);
 
         } else if(rc1 > 0) {
             int32_t rc2 = fork();
             if(rc2 == 0) {
-                std::vector<Resource*>* resources = new std::vector<Resource*>;
-                Resource* resource = new Resource;
-                resource->setOpCode(GENERATE_RESOURCE_ID(1, 3));
-                resource->setNumValues(1);
-                resource->mConfigValue.singleValue = 800;
-                resources->push_back(resource);
-                int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+                SysResource* resourceList = new SysResource[1];
+                resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+                resourceList[0].mNumValues = 1;
+                resourceList[0].mConfigValue.singleValue = 800;
 
-                delete resource;
-                delete resources;
+                int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
                 exit(EXIT_SUCCESS);
 
             } else if(rc2 > 0) {
-                std::vector<Resource*>* resources = new std::vector<Resource*>;
-                Resource* resource = new Resource;
-                resource->setOpCode(GENERATE_RESOURCE_ID(1, 1));
-                resource->setNumValues(1);
-                resource->mConfigValue.singleValue = 557;
-                resources->push_back(resource);
+                SysResource* resourceList = new SysResource[1];
+                resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 1);
+                resourceList[0].mNumValues = 1;
+                resourceList[0].mConfigValue.singleValue = 557;
 
-                int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+                int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
                 std::this_thread::sleep_for(std::chrono::seconds(4));
 
@@ -1537,9 +1398,6 @@ namespace RequestApplicationTests {
                 originalValue = C_STOI(value);
                 assert(originalValue == testResourceOriginalValue3);
 
-                delete resource;
-                delete resources;
-
                 waitpid(rc1, nullptr, 0);
                 waitpid(rc2, nullptr, 0);
             }
@@ -1570,22 +1428,18 @@ namespace RequestApplicationTests {
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
-        std::vector<Resource*>* resources1 = new std::vector<Resource*>;
-        Resource* resource1 = new Resource;
-        resource1->setOpCode(GENERATE_RESOURCE_ID(1, 3));
-        resource1->setNumValues(1);
-        resource1->mConfigValue.singleValue = 889;
-        resources1->push_back(resource1);
+        SysResource* resourceList1 = new SysResource[1];
+        resourceList1[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+        resourceList1[0].mNumValues = 1;
+        resourceList1[0].mConfigValue.singleValue = 889;
 
-        std::vector<Resource*>* resources2 = new std::vector<Resource*>;
-        Resource* resource2 = new Resource;
-        resource2->setOpCode(GENERATE_RESOURCE_ID(1, 3));
-        resource2->setNumValues(1);
-        resource2->mConfigValue.singleValue = 917;
-        resources2->push_back(resource2);
+        SysResource* resourceList2 = new SysResource[1];
+        resourceList2[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+        resourceList2[0].mNumValues = 1;
+        resourceList2[0].mConfigValue.singleValue = 917;
 
-        handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources1);
-        handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources2);
+        handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList1);
+        handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList2);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1627,26 +1481,22 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         std::thread th([&]{
-            std::vector<Resource*>* resources1 = new std::vector<Resource*>;
-            Resource* resource1 = new Resource;
-            resource1->setOpCode(GENERATE_RESOURCE_ID(1, 3));
-            resource1->setOptionalInfo(0);
-            resource1->setNumValues(1);
-            resource1->mConfigValue.singleValue = 664;
-            resources1->push_back(resource1);
+            SysResource* resourceList1 = new SysResource[1];
+            resourceList1[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+            resourceList1[0].mOptionalInfo = 0;
+            resourceList1[0].mNumValues = 1;
+            resourceList1[0].mConfigValue.singleValue = 664;
 
-            handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources1);
+            handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList1);
         });
 
-        std::vector<Resource*>* resources2 = new std::vector<Resource*>;
-        Resource* resource2 = new Resource;
-        resource2->setOpCode(GENERATE_RESOURCE_ID(1, 3));
-        resource2->setOptionalInfo(0);
-        resource2->setNumValues(1);
-        resource2->mConfigValue.singleValue = 702;
-        resources2->push_back(resource2);
+        SysResource* resourceList2 = new SysResource[1];
+        resourceList2[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+        resourceList2[0].mOptionalInfo = 0;
+        resourceList2[0].mNumValues = 1;
+        resourceList2[0].mConfigValue.singleValue = 702;
 
-        handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources2);
+        handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList2);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1690,13 +1540,11 @@ namespace RequestApplicationTests {
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
-        std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource = new Resource;
-        resource->setOpCode(GENERATE_RESOURCE_ID(1, 2));
-        resource->setNumValues(1);
-        resource->mConfigValue.singleValue = 245;
-        resources->push_back(resource);
-        handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+        SysResource* resourceList = new SysResource[1];
+        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mConfigValue.singleValue = 245;
+        handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1704,16 +1552,13 @@ namespace RequestApplicationTests {
         newValue = C_STOI(value);
         assert(newValue == 245);
 
-        ErrCode rc = untuneResources(handle);
+        untuneResources(handle);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
         value = readFromNode(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
-
-        delete resource;
-        delete resources;
 
         LOG_END
     }
@@ -1745,13 +1590,12 @@ namespace RequestApplicationTests {
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
-        std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource = new Resource;
-        resource->setOpCode(GENERATE_RESOURCE_ID(1, 2));
-        resource->setNumValues(1);
-        resource->mConfigValue.singleValue = 245;
-        resources->push_back(resource);
-        handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+        SysResource* resourceList = new SysResource[1];
+        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mConfigValue.singleValue = 245;
+
+        handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1762,7 +1606,7 @@ namespace RequestApplicationTests {
         int32_t rc = fork();
         if(rc == 0) {
             // Child Process
-            ErrCode rc = untuneResources(handle);
+            untuneResources(handle);
 
             exit(EXIT_SUCCESS);
 
@@ -1776,16 +1620,13 @@ namespace RequestApplicationTests {
             newValue = C_STOI(value);
             assert(newValue == 245);
 
-            ErrCode rc = untuneResources(handle);
+            untuneResources(handle);
 
             std::this_thread::sleep_for(std::chrono::seconds(2));
 
             value = readFromNode(testResourceName);
             newValue = C_STOI(value);
             assert(newValue == testResourceOriginalValue);
-
-            delete resource;
-            delete resources;
         }
 
         LOG_END
@@ -1820,21 +1661,19 @@ namespace RequestApplicationTests {
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
-        std::vector<Resource*>* resources1 = new std::vector<Resource*>;
-        Resource* resource1 = new Resource;
-        resource1->setOpCode(GENERATE_RESOURCE_ID(1, 2));
-        resource1->setNumValues(1);
-        resource1->mConfigValue.singleValue = 515;
-        resources1->push_back(resource1);
-        handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_LOW, 1, resources1);
+        SysResource* resourceList1 = new SysResource[1];
+        resourceList1[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList1[0].mNumValues = 1;
+        resourceList1[0].mConfigValue.singleValue = 515;
 
-        std::vector<Resource*>* resources2 = new std::vector<Resource*>;
-        Resource* resource2 = new Resource;
-        resource2->setOpCode(GENERATE_RESOURCE_ID(1, 2));
-        resource2->setNumValues(1);
-        resource2->mConfigValue.singleValue = 559;
-        resources2->push_back(resource2);
-        handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources2);
+        handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_LOW, 1, resourceList1);
+
+        SysResource* resourceList2 = new SysResource[1];
+        resourceList2[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList2[0].mNumValues = 1;
+        resourceList2[0].mConfigValue.singleValue = 559;
+
+        handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList2);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1847,11 +1686,6 @@ namespace RequestApplicationTests {
         value = readFromNode(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
-
-        delete resource1;
-        delete resource2;
-        delete resources1;
-        delete resources2;
 
         LOG_END
     }
@@ -1889,13 +1723,12 @@ namespace RequestApplicationTests {
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
-        std::vector<Resource*>* resources1 = new std::vector<Resource*>;
-        Resource* resource1 = new Resource;
-        resource1->setOpCode(GENERATE_RESOURCE_ID(1, 2));
-        resource1->setNumValues(1);
-        resource1->mConfigValue.singleValue = 515;
-        resources1->push_back(resource1);
-        handle = tuneResources(12000, RequestPriority::REQ_PRIORITY_LOW, 1, resources1);
+        SysResource* resourceList1 = new SysResource[1];
+        resourceList1[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList1[0].mNumValues = 1;
+        resourceList1[0].mConfigValue.singleValue = 515;
+
+        handle = tuneResources(12000, RequestPriority::REQ_PRIORITY_LOW, 1, resourceList1);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1905,13 +1738,12 @@ namespace RequestApplicationTests {
 
         std::this_thread::sleep_for(std::chrono::seconds(3));
 
-        std::vector<Resource*>* resources2 = new std::vector<Resource*>;
-        Resource* resource2 = new Resource;
-        resource2->setOpCode(GENERATE_RESOURCE_ID(1, 2));
-        resource2->setNumValues(1);
-        resource2->mConfigValue.singleValue = 559;
-        resources2->push_back(resource2);
-        handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources2);
+        SysResource* resourceList2 = new SysResource[1];
+        resourceList2[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList2[0].mNumValues = 1;
+        resourceList2[0].mConfigValue.singleValue = 559;
+
+        handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList2);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1924,11 +1756,6 @@ namespace RequestApplicationTests {
         value = readFromNode(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
-
-        delete resource1;
-        delete resource2;
-        delete resources1;
-        delete resources2;
 
         LOG_END
     }
@@ -1965,14 +1792,13 @@ namespace RequestApplicationTests {
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
-        std::vector<Resource*>* resources1 = new std::vector<Resource*>;
-        Resource* resource1 = new Resource;
-        resource1->setOpCode(GENERATE_RESOURCE_ID(1, 3));
-        resource1->setOptionalInfo(0);
-        resource1->setNumValues(1);
-        resource1->mConfigValue.singleValue = 645;
-        resources1->push_back(resource1);
-        handle = tuneResources(10000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources1);
+        SysResource* resourceList1 = new SysResource[1];
+        resourceList1[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+        resourceList1[0].mOptionalInfo = 0;
+        resourceList1[0].mNumValues = 1;
+        resourceList1[0].mConfigValue.singleValue = 645;
+
+        handle = tuneResources(10000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList1);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1982,13 +1808,12 @@ namespace RequestApplicationTests {
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
-        std::vector<Resource*>* resources2 = new std::vector<Resource*>;
-        Resource* resource2 = new Resource;
-        resource2->setOpCode(GENERATE_RESOURCE_ID(1, 3));
-        resource2->setNumValues(1);
-        resource2->mConfigValue.singleValue = 716;
-        resources2->push_back(resource2);
-        handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_LOW, 1, resources2);
+        SysResource* resourceList2 = new SysResource[1];
+        resourceList2[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+        resourceList2[0].mNumValues = 1;
+        resourceList2[0].mConfigValue.singleValue = 716;
+
+        handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_LOW, 1, resourceList2);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -2001,11 +1826,6 @@ namespace RequestApplicationTests {
         value = readFromNode(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
-
-        delete resource1;
-        delete resource2;
-        delete resources1;
-        delete resources2;
 
         LOG_END
     }
@@ -2034,13 +1854,12 @@ namespace RequestApplicationTests {
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
-        std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource = new Resource;
-        resource->setOpCode(GENERATE_RESOURCE_ID(1, 3));
-        resource->setNumValues(1);
-        resource->mConfigValue.singleValue = 778;
-        resources->push_back(resource);
-        handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+        SysResource* resourceList = new SysResource[1];
+        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mConfigValue.singleValue = 778;
+
+        handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
         std::this_thread::sleep_for(std::chrono::seconds(4));
 
@@ -2065,9 +1884,6 @@ namespace RequestApplicationTests {
         value = readFromNode(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
-
-        delete resource;
-        delete resources;
 
         LOG_END
     }
@@ -2096,13 +1912,12 @@ namespace RequestApplicationTests {
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
-        std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource = new Resource;
-        resource->setOpCode(GENERATE_RESOURCE_ID(1, 3));
-        resource->setNumValues(1);
-        resource->mConfigValue.singleValue = 778;
-        resources->push_back(resource);
-        handle = tuneResources(12000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+        SysResource* resourceList = new SysResource[1];
+        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mConfigValue.singleValue = 778;
+
+        handle = tuneResources(12000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -2126,9 +1941,6 @@ namespace RequestApplicationTests {
         value = readFromNode(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
-
-        delete resource;
-        delete resources;
 
         LOG_END
     }
@@ -2158,13 +1970,12 @@ namespace RequestApplicationTests {
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
-        std::vector<Resource*>* resources = new std::vector<Resource*>;
-        Resource* resource = new Resource;
-        resource->setOpCode(GENERATE_RESOURCE_ID(1, 0));
-        resource->setNumValues(1);
-        resource->mConfigValue.singleValue = 597;
-        resources->push_back(resource);
-        handle = tuneResources(7000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+        SysResource* resourceList = new SysResource[1];
+        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 0);
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mConfigValue.singleValue = 597;
+
+        handle = tuneResources(7000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -2188,9 +1999,6 @@ namespace RequestApplicationTests {
             value = readFromNode(testResourceName);
             newValue = C_STOI(value);
             assert(newValue == testResourceOriginalValue);
-
-            delete resource;
-            delete resources;
         }
 
         LOG_END
@@ -2252,16 +2060,12 @@ namespace SystemSysfsNodesTests {
         int32_t originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
-        std::vector<Resource*>* resources = new std::vector<Resource*>;
+        SysResource* resourceList = new SysResource[1];
+        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(8, 0);
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mConfigValue.singleValue = 980;
 
-        Resource* resource = new Resource;
-        resource->setOpCode(GENERATE_RESOURCE_ID(8, 0));
-        resource->setNumValues(1);
-        resource->mConfigValue.singleValue = 980;
-
-        resources->push_back(resource);
-
-        int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+        int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -2304,30 +2108,22 @@ namespace SystemSysfsNodesTests {
 
         int32_t rc = fork();
         if(rc == 0) {
-            std::vector<Resource*>* resources = new std::vector<Resource*>;
+            SysResource* resourceList = new SysResource[1];
+            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(8, 0);
+            resourceList[0].mNumValues = 1;
+            resourceList[0].mConfigValue.singleValue = 887;
 
-            Resource* resource = new Resource;
-            resource->setOpCode(GENERATE_RESOURCE_ID(8, 0));
-            resource->setNumValues(1);
-            resource->mConfigValue.singleValue = 887;
-
-            resources->push_back(resource);
-
-            int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+            int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
             exit(EXIT_SUCCESS);
 
         } else if(rc > 0) {
-            std::vector<Resource*>* resources = new std::vector<Resource*>;
+            SysResource* resourceList = new SysResource[1];
+            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(8, 0);
+            resourceList[0].mNumValues = 1;
+            resourceList[0].mConfigValue.singleValue = 799;
 
-            Resource* resource = new Resource;
-            resource->setOpCode(GENERATE_RESOURCE_ID(8, 0));
-            resource->setNumValues(1);
-            resource->mConfigValue.singleValue = 799;
-
-            resources->push_back(resource);
-
-            int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+            int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
             // Verify that the higher of the two configured values, i.e. 887 takes
             // effect on the Resource Node.
@@ -2379,30 +2175,22 @@ namespace SystemSysfsNodesTests {
 
         int32_t rc = fork();
         if(rc == 0) {
-            std::vector<Resource*>* resources = new std::vector<Resource*>;
+            SysResource* resourceList = new SysResource[1];
+            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(8, 0);
+            resourceList[0].mNumValues = 1;
+            resourceList[0].mConfigValue.singleValue = 887;
 
-            Resource* resource = new Resource;
-            resource->setOpCode(GENERATE_RESOURCE_ID(8, 0));
-            resource->setNumValues(1);
-            resource->mConfigValue.singleValue = 887;
-
-            resources->push_back(resource);
-
-            int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+            int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
             exit(EXIT_SUCCESS);
 
         } else if(rc > 0) {
-            std::vector<Resource*>* resources = new std::vector<Resource*>;
+            SysResource* resourceList = new SysResource[1];
+            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(8, 0);
+            resourceList[0].mNumValues = 1;
+            resourceList[0].mConfigValue.singleValue = 799;
 
-            Resource* resource = new Resource;
-            resource->setOpCode(GENERATE_RESOURCE_ID(8, 0));
-            resource->setNumValues(1);
-            resource->mConfigValue.singleValue = 799;
-
-            resources->push_back(resource);
-
-            int64_t handle = tuneResources(15000, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+            int64_t handle = tuneResources(15000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
             // Verify that the higher of the two configured values, i.e. 887 takes
             // effect on the Resource Node.
@@ -2453,16 +2241,12 @@ namespace SystemSysfsNodesTests {
         int32_t originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
-        std::vector<Resource*>* resources = new std::vector<Resource*>;
+        SysResource* resourceList = new SysResource[1];
+        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(8, 0);
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mConfigValue.singleValue = 994;
 
-        Resource* resource = new Resource;
-        resource->setOpCode(GENERATE_RESOURCE_ID(8, 0));
-        resource->setNumValues(1);
-        resource->mConfigValue.singleValue = 994;
-
-        resources->push_back(resource);
-
-        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resources);
+        int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
 

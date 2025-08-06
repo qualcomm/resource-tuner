@@ -12,6 +12,7 @@
 #include <memory>
 #include <getopt.h>
 
+#include "Utils.h"
 #include "SystuneAPIs.h"
 
 int8_t parseResources(const std::string& resources, std::vector<std::pair<uint32_t, int32_t>>& resourcePairs) {
@@ -55,15 +56,12 @@ void sendTuneRequest(int64_t duration, int32_t priority, int32_t count, const st
         return;
     }
 
-    std::vector<Resource*>* resourceList = new std::vector<Resource*>();
+    SysResource* resourceList = new SysResource[resourcePairs.size()];
 
-    for(auto& resourcePair : resourcePairs) {
-        Resource* resource = (Resource*) malloc(sizeof(Resource));
-        resource->setOpCode(resourcePair.first);
-        resource->mNumValues = 1;
-        resource->mConfigValue.singleValue = resourcePair.second;
-
-        resourceList->push_back(resource);
+    for(int32_t i = 0; i < resourcePairs.size(); i++) {
+        resourceList[i].mOpCode = resourcePairs[i].first;
+        resourceList[i].mNumValues = 1;
+        resourceList[i].mConfigValue.singleValue = resourcePairs[i].second;
     }
 
     int64_t handle = tuneResources(duration, priority, count, resourceList);

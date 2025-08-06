@@ -28,7 +28,7 @@ public:
     ~SystuneSocketClient();
 
     virtual int32_t initiateConnection();
-    virtual int32_t sendMsg(int32_t reqType, void* msg);
+    virtual int32_t sendMsg(char* buf);
     virtual int32_t readMsg(char* buf, size_t bufSize);
     virtual int32_t closeConnection();
 };

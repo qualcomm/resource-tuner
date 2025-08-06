@@ -136,3 +136,28 @@ TEST(DivideTest, Underflow) {
     ASSERT_EQ(status, UNDERFLOW);
     ASSERT_EQ(result, std::numeric_limits<double>::lowest());
 }
+
+TEST(SafeMacroTests, TestValidationMacro1) {
+    int32_t val = -670;
+    int8_t exceptionHit = false;
+    try {
+        VALIDATE_GT(val, 0);
+    } catch(std::invalid_argument& e) {
+        std::cout<<"TestValidationMacro1 exception = "<<e.what()<<std::endl;
+        exceptionHit = true;
+    }
+
+    ASSERT_EQ(exceptionHit, true);
+}
+
+TEST(SafeMacroTests, TestValidationMacro2) {
+    int32_t val = 100;
+    int8_t exceptionHit = false;
+    try {
+        VALIDATE_GE(val, 100);
+    } catch(std::invalid_argument& e) {
+        exceptionHit = true;
+    }
+
+    ASSERT_EQ(exceptionHit, false);
+}

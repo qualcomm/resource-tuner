@@ -26,50 +26,17 @@ int32_t SystuneSocketClient::initiateConnection() {
     return RC_SUCCESS;
 }
 
-int32_t SystuneSocketClient::sendMsg(int32_t reqType, void* msg) {
-    if(msg == nullptr) return RC_BAD_ARG;
+int32_t SystuneSocketClient::sendMsg(char* buf) {
+    if(buf == nullptr) return RC_BAD_ARG;
 
     // byte Array to Store the serialized output
     // This buffer of 1KB can accomodate around 38 Resources
-    char buf[1024];
-
-    int8_t opStatus = RC_SUCCESS;
-
-    switch(reqType) {
-        case REQ_RESOURCE_TUNING:
-        case REQ_RESOURCE_RETUNING:
-        case REQ_RESOURCE_UNTUNING:
-        case REQ_CLIENT_GET_REQUESTS: {
-            Request* request = static_cast <Request*>(msg);
-            opStatus = request->serialize(buf);
-            break;
-        }
-        case REQ_SYSCONFIG_GET_PROP:
-        case REQ_SYSCONFIG_SET_PROP: {
-            SysConfig* sysConfig = static_cast <SysConfig*>(msg);
-            opStatus = sysConfig->serialize(buf);
-            break;
-        }
-        case SIGNAL_ACQ:
-        case SIGNAL_FREE:
-        case SIGNAL_RELAY: {
-            Signal* signal = static_cast <Signal*>(msg);
-            opStatus = signal->serialize(buf);
-            break;
-        }
-        default:
-            opStatus = RC_INVALID_VALUE;
-            break;
+    if(write(this->sockFd, buf, 1024) == -1) {
+        perror("write");
+        return RC_SOCKET_FD_WRITE_FAILURE;
     }
 
-    if(RC_IS_OK(opStatus)) {
-        if(write(this->sockFd, buf, sizeof(buf)) == -1) {
-            perror("write");
-            return RC_SOCKET_FD_WRITE_FAILURE;
-        }
-    }
-
-    return opStatus;
+    return RC_SUCCESS;
 }
 
 int32_t SystuneSocketClient::readMsg(char* buf, size_t bufSize) {

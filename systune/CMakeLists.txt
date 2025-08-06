@@ -115,11 +115,7 @@ install(TARGETS Auxiliary CommunicationClient SystuneCommunicationServer
         SysRequestReceiver SysSignals LIBRARY DESTINATION lib)
 
 #install headers
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/Auxiliary/Common/include/ DESTINATION include/Systune)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/Auxiliary/Components/include/ DESTINATION include/Systune)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/Client/APIs/include/ DESTINATION include/Systune)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/Client/Comm/Socket/include/ DESTINATION include/Systune)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/Extensions/include/ DESTINATION include/Systune)
 
 #install config files
 install(
