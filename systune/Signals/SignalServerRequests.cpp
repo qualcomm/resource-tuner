@@ -162,7 +162,7 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
     if(signal->getDuration() == 0) {
         // If the Client has not specified a duration to acquire the Signal for,
         // We use the default duration for the Signal, specified in the Signal
-        // Configs (JSON) file.
+        // Configs (YAML) file.
         signal->setDuration(signalInfo->mTimeout);
     }
 

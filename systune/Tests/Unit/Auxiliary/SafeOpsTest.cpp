@@ -143,7 +143,6 @@ TEST(SafeMacroTests, TestValidationMacro1) {
     try {
         VALIDATE_GT(val, 0);
     } catch(std::invalid_argument& e) {
-        std::cout<<"TestValidationMacro1 exception = "<<e.what()<<std::endl;
         exceptionHit = true;
     }
 

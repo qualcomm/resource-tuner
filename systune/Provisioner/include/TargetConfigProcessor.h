@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <memory>
 
-#include "JsonParser.h"
+#include "YamlParser.h"
 #include "Logger.h"
 #include "TargetRegistry.h"
 
@@ -22,48 +22,51 @@
 #define TARGET_CONFIGS_ID "Id"
 #define TARGET_CONFIGS_TYPE "Type"
 
-#define TARGET_CONFIGS_FILE "/etc/systune/targetConfigs.json"
+#define TARGET_CONFIGS_FILE "/etc/systune/targetConfigs.yaml"
 
 /**
  * @brief TargetConfigProcessor
- * @details Responsible for Parsing the Target Config (JSON) file.
- *          Note, this class uses the JsonParser class for actually Reading and
- *          Parsing the JSON data.
+ * @details Responsible for Parsing the Target Config (YAML) file.
+ *          Note, this class uses the YamlParser class for actually Reading and
+ *          Parsing the YAML data.
  *
  * The configuration file must follow a specific structure.
- * Example JSON configuration:
- * @code{.json}
- *{
- *  "TargetName": "<>",
- *  "ClusterInfo" : [
- *      {"Id": 0, "Type": "big"},
- *      {"Id": 1, "Type": "little"},
- *      {"Id": 2, "Type": "prime"},
- *      {"Id": 3, "Type": "titanium"}
- *  ],
- *  "ClusterSpread" : [
- *      {"Id": 0, "NumCores": 4},
- *      {"Id": 1, "NumCores": 4},
- *      {"Id": 2, "NumCores": 4},
- *      {"Id": 3, "NumCores": 4}
- *  ],
- *  "TotalCoreCount": 16
- *}
+ * Example YAML configuration:
+ * @code{.yaml}
+ * TargetConfig:
+ *   - TargetName: qli
+ *     ClusterInfo:
+ *       - Id: 0
+ *         Type: big
+ *       - Id: 1
+ *         Type: little
+ *       - Id: 2
+ *         Type: prime
+ *       - Id: 3
+ *         Type: titanium
+ *     ClusterSpread:
+ *       - Id: 0
+ *         NumCores: 4
+ *       - Id: 1
+ *         NumCores: 4
+ *       - Id: 2
+ *         NumCores: 4
+ *       - Id: 3
+ *         NumCores: 4
+ *     TotalCoreCount: 16
  * @endcode
  *
  * @example Target_Configs
- * This example shows the expected JSON format for Target configuration.
+ * This example shows the expected YAML format for Target configuration.
 */
 class TargetConfigProcessor {
 private:
-    JsonParser* mJsonParser;
-    std::string mTargetConfigJsonFilePath;
+    std::string mTargetConfigYamlFilePath;
 
-    void TargetConfigCB(const Json::Value& item);
+    void parseYamlNode(const YAML::Node& result);
 
 public:
-    TargetConfigProcessor(const std::string& jsonFile);
-    ~TargetConfigProcessor();
+    TargetConfigProcessor(const std::string& yamlFile);
 
     ErrCode parseTargetConfigs();
 };

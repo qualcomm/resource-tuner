@@ -27,7 +27,7 @@ private:
 
 public:
     Extensions(int32_t resourceOpcode, void (*resourceApplierCallback)(void*));
-    Extensions(ConfigType configType, std::string jsonFile);
+    Extensions(ConfigType configType, std::string yamlFile);
 
     static std::vector<std::pair<int32_t, ResourceApplierCallback>> getModifiedResources();
 
@@ -56,16 +56,16 @@ public:
         static Extensions CONCAT(_resource, resourceOpcode)(resourceOpcode, resourceApplierCallback);
 
 /**
- * \def URM_REGISTER_CONFIG(configType, jsonFile)
- * \brief Register custom Config (JSON) file. This Macro can be used to register
+ * \def URM_REGISTER_CONFIG(configType, yamlFile)
+ * \brief Register custom Config (YAML) file. This Macro can be used to register
  *        Resource Configs File, Signal Configs file and others with Systune.
- * \param configType The type of Config for which the Custom JSON file has to be specified.
- * \param jsonFile File Path of this Config JSON file.
+ * \param configType The type of Config for which the Custom YAML file has to be specified.
+ * \param yamlFile File Path of this Config YAML file.
  *
  * \note This macro must be used in the Global Scope.
  */
-#define URM_REGISTER_CONFIG(configType, jsonFile) \
-        static Extensions CONCAT(_regConfig, configType)(configType, jsonFile);
+#define URM_REGISTER_CONFIG(configType, yamlFile) \
+        static Extensions CONCAT(_regConfig, configType)(configType, yamlFile);
 
 #define URM_REGISTER_SIGNALS_CALLBACK(signalsInitCallback, signalsListenerCallback) \
         static Extensions _signalsConfigInit(signalsInitCallback, signalsListenerCallback);

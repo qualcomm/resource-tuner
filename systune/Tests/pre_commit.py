@@ -7,19 +7,19 @@ import time
 import sys
 
 # Unit tests
-def unit_test():
+def unit_tests():
     # os.system("./Tests/Unit/TimerTest")
-    # os.system("./Tests/Unit/SafeOpsTest")
+    os.system("./Tests/Unit/SafeOpsTest")
     os.system("./Tests/Unit/MiscTests")
     # os.system("./Tests/Unit/ThreadPoolTests")
     # os.system("./Tests/Unit/MemoryPoolTests")
     # os.system("./Tests/Unit/RequestMapTests")
-    # os.system("./Tests/Unit/ResourceProcessorTests")
+    os.system("./Tests/Unit/ResourceProcessorTests")
     os.system("./Tests/Unit/SysSignalConfigProcessorTests")
     os.system("./Tests/Unit/SysConfigAPITests")
     os.system("./Tests/Unit/SysConfigProcessorTests")
     os.system("./Tests/Unit/TargetConfigProcessorTests")
-    # os.system("./Tests/Unit/ClientDataManagerTests")
+    os.system("./Tests/Unit/ClientDataManagerTests")
     # os.system("./Tests/Unit/RateLimiterTests")
 
 # System Tests
@@ -44,6 +44,6 @@ def lifecycle_tests():
     os.system("python ../Tests/System/ServerLifecyleTests.py")
 
 if __name__ == "__main__":
-    unit_test()
+    unit_tests()
     # system_tests()
     # lifecycle_tests()

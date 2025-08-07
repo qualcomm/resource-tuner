@@ -110,7 +110,7 @@ enum Policy {
 
 /**
  * @enum ConfigType
- * @brief Different Config (via JSON) Types supported.
+ * @brief Different Config (via YAML) Types supported.
  * @details Note, the Config File corresponding to each config type
  * can be altered via the Extensions interface.
  */

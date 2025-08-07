@@ -7,10 +7,10 @@
 #include <iostream>
 #include <memory>
 
-#include "JsonParser.h"
+#include "YamlParser.h"
 #include "SignalRegistry.h"
 
-#define SIGNAL_CONFIGS_FILE  "/etc/systune/signalConfigs.json"
+#define SIGNAL_CONFIGS_FILE  "/etc/systune/signalConfigs.yaml"
 #define SIGNAL_CONFIGS_ROOT "SignalConfigs"
 
 #define SIGNAL_SIGID "SigId"
@@ -26,40 +26,44 @@
 
 /**
  * @brief SignalConfigProcessor
- * @details Responsible for Parsing the SignalConfig (JSON) file.
- *          Note, this class uses the JsonParser class for actually Reading and
- *          Parsing the JSON data.
+ * @details Responsible for Parsing the SignalConfig (YAML) file.
+ *          Note, this class uses the YamlParser class for actually Reading and
+ *          Parsing the YAML data.
  *
  * The configuration file must follow a specific structure.
- * Example JSON configuration:
- * @code{.json}
- *{
- *  "SigId": "0x0",
- *  "Category": "0x1",
- *  "Name": "INSTALL",
- *  "Enable": true,
- *  "TargetsEnabled": ["sun","moon"],
- *  "Permissions": ["system", "third_party"],
- *  "Derivatives": ["solar"],
- *  "Timeout": 4000,
- *  "Resources": [65536,700]
- *}
+ * Example YAML configuration:
+ * @code{.yaml}
+ * SignalConfigs:
+ *   - SigId: "0x0"
+ *     Category: "0x1"
+ *     Name: INSTALL
+ *     Enable: true
+ *     TargetsEnabled:
+ *       - sun
+ *       - moon
+ *     Permissions:
+ *       - system
+ *       - third_party
+ *     Derivatives:
+ *       - solar
+ *     Timeout: 4000
+ *     Resources:
+ *       - 65536
+ *       - 700
  * @endcode
  *
  * @example Signal_Configs
- * This example shows the expected JSON format for Signal configuration.
+ * This example shows the expected YAML format for Signal configuration.
 */
 class SignalConfigProcessor {
 private:
-    JsonParser* mJsonParser;
-    std::string mSignalConfigJsonFilePath;
+    std::string mSignalConfigYamlFilePath;
     int8_t mCustomSignalsFileSpecified;
 
-    void SignalConfigsParserCB(const Json::Value& item);
+    void parseYamlNode(const YAML::Node& result);
 
 public:
-    SignalConfigProcessor(const std::string& jsonFilePath);
-    ~SignalConfigProcessor();
+    SignalConfigProcessor(const std::string& yamlFilePath);
 
     ErrCode parseSignalConfigs();
 };

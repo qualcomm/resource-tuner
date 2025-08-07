@@ -12,6 +12,14 @@
  * Systune APIs like tuneResources / untuneResources, tuneSignal etc.
  * The results of these are evaluated by validating the Resource sysfs Nodes.
  * As part of these Tests Request Verification and Application are Covered.
+ * How to run:
+ * Option A)
+ * - Start a systune Server instance in test mode (sudo ./systune --test)
+ * - Run the system tests executable
+ * - Upon completion of tests, terminate the server.
+ * Option B)
+ * - Run the system tests via Script (sudo python pre_commit.py), this script will
+ *   automatically start, Run the Tests and then terminate the server.
  */
 
 /*
@@ -2037,11 +2045,12 @@ namespace SystemSysfsNodesTests {
     * Concurrent Requests with different Config Values and Same Duration [E2]
     * Concurrent Requests with different Config Values and Differrent Duration [E3]
     * Untune a Resource Provisioning Request [E4]
+    * Concurrent Requests with different Priorities [E5]
     */
 
     std::string __testGroupName = "System Sysfs Nodes Read / Writes via Systune Tests";
     /**
-    * API under test: Tune
+    * API under test: Tune / Untune
     * - Issue a Systune Resource Provisioning Request, to modify the Resource
     *   sched_util_clamp_min
     * - Verify the Resource Node is Correctly updated
@@ -2085,7 +2094,7 @@ namespace SystemSysfsNodesTests {
     }
 
     /**
-    * API under test: Tune
+    * API under test: Tune / Untune
     * - Issue 2 Concurrent Systune Resource Provisioning Requests, to modify the Resource
     *   sched_util_clamp_min
     * - Verify the Resource Node is Correctly updated to the higher of the 2 values,
@@ -2148,7 +2157,7 @@ namespace SystemSysfsNodesTests {
     }
 
     /**
-    * API under test: Tune
+    * API under test: Tune / Untune
     * - Issue 2 Concurrent Systune Resource Provisioning Requests, to modify the Resource
     *   sched_util_clamp_min
     * - Verify the Resource Node is Correctly updated to the higher of the 2 values,
@@ -2221,7 +2230,7 @@ namespace SystemSysfsNodesTests {
     }
 
   /**
-    * API under test: Tune
+    * API under test: Tune / Untune
     * - Issue a Systune Resource Provisioning Request, to modify the Resource
     *   sched_util_clamp_min for an infinite duration.
     * - Verify the Resource Node is Correctly updated
@@ -2266,6 +2275,70 @@ namespace SystemSysfsNodesTests {
         LOG_END
     }
 
+    /**
+    * API under test: Tune / Untune
+    * - Issue 2 Concurrent Systune Resource Provisioning Requests, to modify the Resource
+    *   sched_util_clamp_min from different Clients
+    * - Here the Requests are submitted with different Priorities
+    * - Verify the Resource Node is Correctly updated to the Config Value specified by
+    *   the Request with the higher priority
+    * - Verify that the Resource Node is reset once the Requests Expire (here both the Requests,
+    *   have exactly the same duration).
+    * - Note these Tests need to be run with Root Privleges (sudo)
+    * Cross-Reference id: ['E5']
+    */
+    static void TestConcurrentWriteTo_sched_util_clamp_min_Node3() {
+        LOG_START
+
+        std::string testResourceName = "/proc/sys/kernel/sched_util_clamp_min";
+        int32_t testResourceOriginalValue = 1024;
+
+        // Check the original value for the Resource
+        std::string value = readFromNode(testResourceName);
+        int32_t originalValue = C_STOI(value);
+        assert(originalValue == testResourceOriginalValue);
+
+        int32_t rc = fork();
+        if(rc == 0) {
+            SysResource* resourceList = new SysResource[1];
+            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(8, 0);
+            resourceList[0].mNumValues = 1;
+            resourceList[0].mConfigValue.singleValue = 744;
+
+            int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+            exit(EXIT_SUCCESS);
+
+        } else if(rc > 0) {
+            SysResource* resourceList = new SysResource[1];
+            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(8, 0);
+            resourceList[0].mNumValues = 1;
+            resourceList[0].mConfigValue.singleValue = 801;
+
+            int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_LOW, 1, resourceList);
+
+            // Verify that the value specified by the Request with the higher
+            // priority takes effect on the Resource Node
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+
+            // Check if the new value was successfully written to the node
+            value = readFromNode(testResourceName);
+            int32_t newValue = C_STOI(value);
+            assert(newValue == 744);
+
+            std::this_thread::sleep_for(std::chrono::seconds(6));
+
+            // Wait for the Request to expire, check if the value resets
+            value = readFromNode(testResourceName);
+            newValue = C_STOI(value);
+            assert(newValue == originalValue);
+
+            wait(nullptr);
+        }
+
+        LOG_END
+    }
+
     static void RunTestGroup() {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
@@ -2273,6 +2346,7 @@ namespace SystemSysfsNodesTests {
         RUN_TEST(TestConcurrentWriteTo_sched_util_clamp_min_Node1)
         RUN_TEST(TestConcurrentWriteTo_sched_util_clamp_min_Node2)
         RUN_TEST(TestWriteTo_sched_util_clamp_min_NodeAndUntuning)
+        RUN_TEST(TestConcurrentWriteTo_sched_util_clamp_min_Node3)
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
     }

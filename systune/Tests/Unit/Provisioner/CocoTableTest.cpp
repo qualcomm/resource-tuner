@@ -13,7 +13,7 @@
 // #include "ResourceRegistry.h"
 // #include "SyslockServerRequests.h"
 
-// URM_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourceConfigs.json")
+// URM_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourceConfigs.yaml")
 
 // class CocoTableTest : public ::testing::Test {
 // protected:

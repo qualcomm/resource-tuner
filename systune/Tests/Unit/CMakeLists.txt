@@ -15,9 +15,6 @@ if(BUILD_TESTS)
     add_executable(MiscTests Auxiliary/MiscTests.cpp)
     target_link_libraries(MiscTests GTest::gtest_main Auxiliary)
 
-    add_executable(JsonParserTest Auxiliary/JsonParserTest.cpp)
-    target_link_libraries(JsonParserTest GTest::gtest_main Auxiliary)
-
     add_executable(RequestQueueTest Provisioner/RequestQueueTest.cpp)
     target_link_libraries(RequestQueueTest GTest::gtest_main Server)
 
@@ -61,7 +58,6 @@ if(BUILD_TESTS)
     gtest_discover_tests(MiscTests)
     gtest_discover_tests(ThreadPoolTests)
     gtest_discover_tests(TimerTest)
-    gtest_discover_tests(JsonParserTest)
     gtest_discover_tests(SysConfigAPITests)
     gtest_discover_tests(ResourceProcessorTests)
     gtest_discover_tests(TargetConfigProcessorTests)

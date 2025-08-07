@@ -11,7 +11,7 @@
 #include "Extensions.h"
 #include "Utils.h"
 
-URM_REGISTER_CONFIG(TARGET_CONFIG, "../Tests/Configs/testTargetConfigs.json")
+URM_REGISTER_CONFIG(TARGET_CONFIG, "../Tests/Configs/testTargetConfigs.yaml")
 
 class TargetConfigProcessorTests: public::testing::Test {
 protected:
@@ -32,26 +32,26 @@ protected:
     }
 };
 
-TEST_F(TargetConfigProcessorTests, TestTargetConfigProcessorJSONDataIntegrity1) {
+TEST_F(TargetConfigProcessorTests, TestTargetConfigProcessorYAMLDataIntegrity1) {
     ASSERT_NE(TargetRegistry::getInstance(), nullptr);
 }
 
-TEST_F(TargetConfigProcessorTests, TestResourceConfigProcessorJSONDataIntegrity2) {
+TEST_F(TargetConfigProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity2) {
     ASSERT_EQ(SystuneSettings::targetConfigs.totalCoreCount, 16);
 }
 
-TEST_F(TargetConfigProcessorTests, TestResourceConfigProcessorJSONDataIntegrity3) {
+TEST_F(TargetConfigProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity3) {
     ASSERT_EQ(strcmp(SystuneSettings::targetConfigs.targetName.c_str(), "qli-test"), 0);
 }
 
-TEST_F(TargetConfigProcessorTests, TestResourceConfigProcessorJSONDataIntegrity4) {
+TEST_F(TargetConfigProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity4) {
     ASSERT_EQ(TargetRegistry::getInstance()->getPhysicalClusterId(BIG), 1);
     ASSERT_EQ(TargetRegistry::getInstance()->getPhysicalClusterId(LITTLE), 3);
     ASSERT_EQ(TargetRegistry::getInstance()->getPhysicalClusterId(PRIME), 0);
     ASSERT_EQ(TargetRegistry::getInstance()->getPhysicalClusterId(TITANIUM), 2);
 }
 
-TEST_F(TargetConfigProcessorTests, TestResourceConfigProcessorJSONDataIntegrity5) {
+TEST_F(TargetConfigProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity5) {
     // Distribution
     // 0: PRIME => 0, 1, 2, 3
     // 1: BIG => 4, 5, 6, 7

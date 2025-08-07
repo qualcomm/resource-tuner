@@ -13,23 +13,13 @@
 #include "Extensions.h"
 #include "RequestReceiver.h"
 
-static int8_t terminateServer = false;
-
-static void handleSIGINT(int32_t sig) {
-    terminateServer = true;
-}
-
-static void handleSIGTSTP(int32_t sig) {
-    toggleDisplayModes();
-}
-
 static void writeSysFsDefaults() {
     // Write Defaults
     std::ifstream file;
 
     file.open("../sysfsOriginalValues.txt");
     if(!file.is_open()) {
-        LOGE("URM_SYSTUNE_MAIN", "Failed to open sysfs original values file: sysfsOriginalValues.txt");
+        LOGE("URM_SYSTUNE_INIT", "Failed to open sysfs original values file: sysfsOriginalValues.txt");
         return;
     }
 
@@ -56,14 +46,14 @@ static void writeSysFsDefaults() {
             std::ofstream sysfsFile(sysfsNodePath, std::ios::out | std::ios::trunc);
 
             if(!sysfsFile.is_open()) {
-                LOGE("URM_SYSTUNE_MAIN",
+                LOGE("URM_SYSTUNE_INIT",
                      "Failed to write default value to sysfs node: " + sysfsNodePath);
                 continue;
             }
 
             sysfsFile << std::to_string(sysfsNodeDefaultValue);
             if(sysfsFile.fail()) {
-                LOGE("URM_SYSTUNE_MAIN",
+                LOGE("URM_SYSTUNE_INIT",
                      "Failed to write default value to sysfs node: " + sysfsNodePath);
                 sysfsFile.flush();
                 sysfsFile.close();
@@ -76,8 +66,50 @@ static void writeSysFsDefaults() {
     }
 }
 
+static ErrCode createSystuneDaemon(int32_t& childProcessID) {
+    // Create a Child Process to Monitor the Parent (Server) Process
+    // This is done to ensure that all the Resource sysfs Nodes are in a consistent state
+    // If the Server Crashes or Terminates Abnormally.
+    childProcessID = fork();
+    if(childProcessID < 0) {
+        TYPELOGV(ERRNO_LOG, "fork", strerror(errno));
+        return RC_MODULE_INIT_FAILURE;
+
+    } else if(childProcessID == 0) {
+        while(true) {
+            // Every Second, Check the Parent-PID for the Child Process
+            // If at any point this value becomes 1, which means that the Parent
+            // has terminated and the Child Process has been adopted by the init
+            // Process, which has a PID of 1.
+            // In such a scenario, the Child Process should proceed with restoring
+            // all the Sysfs Nodes to a Sane State.
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            if(getppid() == 1) {
+                writeSysFsDefaults();
+                break;
+            }
+        }
+
+        // Delete the Sysfs Persistent File
+        remove("../sysfsOriginalValues.txt");
+        exit(EXIT_SUCCESS);
+    }
+
+    return RC_SUCCESS;
+}
+
+static int8_t terminateServer = false;
+
+static void handleSIGINT(int32_t sig) {
+    terminateServer = true;
+}
+
+static void handleSIGTSTP(int32_t sig) {
+    toggleDisplayModes();
+}
+
 static void serverCleanup() {
-    LOGE("URM_SYSTUNE_MAIN", "Server Stopped, Cleanup Initiated");
+    LOGE("URM_SYSTUNE_INIT", "Server Stopped, Cleanup Initiated");
     SystuneSettings::setServerOnlineStatus(false);
 }
 
@@ -86,8 +118,10 @@ static void serverCleanup() {
  * @details The parsing occurs in this stage.
  */
 int32_t main(int32_t argc, char *argv[]) {
+    int32_t childProcessID = -1;
+
     if(argc != 2) {
-        std::cout << "Usage: " << argv[0] << " <start|stop>" << std::endl;
+        std::cout << "Usage: " << argv[0] << " <start|stop|test>" << std::endl;
         return -1;
     }
 
@@ -110,10 +144,10 @@ int32_t main(int32_t argc, char *argv[]) {
                 break;
             case 't':
                 SystuneSettings::serverInTestMode = true;
-                URM_REGISTER_CONFIG(PROPERTIES_CONFIG, "../Tests/Configs/testPropertiesConfig.json")
-                URM_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourceConfigs.json")
-                URM_REGISTER_CONFIG(SIGNALS_CONFIG, "../Tests/Configs/testSignalConfigs.json")
-                URM_REGISTER_CONFIG(TARGET_CONFIG, "../Tests/Configs/testTargetConfigs.json")
+                URM_REGISTER_CONFIG(PROPERTIES_CONFIG, "../Tests/Configs/testPropertiesConfig.yaml")
+                URM_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourceConfigs.yaml")
+                URM_REGISTER_CONFIG(SIGNALS_CONFIG, "../Tests/Configs/testSignalConfigs.yaml")
+                URM_REGISTER_CONFIG(TARGET_CONFIG, "../Tests/Configs/testTargetConfigs.yaml")
                 break;
             case 'h':
                 std::cout<<"Help Options"<<std::endl;
@@ -124,44 +158,40 @@ int32_t main(int32_t argc, char *argv[]) {
         }
     }
 
-    // Create a Child Process to Monitor the Parent (Server) Process
-    // This is done to ensure that all the Resource sysfs Nodes are in a consistent state
-    // If the Server Crashes or Terminates Abnormally.
-    int32_t childProcessID = fork();
-    if(childProcessID < 0) {
-        TYPELOGV(ERRNO_LOG, "fork", strerror(errno));
-        LOGE("URM_SYSTUNE_MAIN", "Failed to create Daemon, Terminating");
-        return -1;
+    TYPELOGD(NOTIFY_SYSTUNE_INIT_START);
 
-    } else if(childProcessID == 0) {
-        while(true) {
-            // Every Second, Check the Parent-PID for the Child Process
-            // If at any point this value becomes 1, which means that the Parent
-            // has terminated and the Child Process has been adopted by the init
-            // Process, which has a PID of 1.
-            // In such a scenario, the Child Process should proceed with restoring
-            // all the Sysfs Nodes to a Sane State.
-            std::this_thread::sleep_for(std::chrono::seconds(1));
-            if(getppid() == 1) {
-                writeSysFsDefaults();
-                break;
-            }
+    // Start Systune Server Initialization
+    // As part of Server Initialization the Configs (Resource / Signals etc.) will be parsed
+    // If any of mandatory Configs cannot be parsed then initialization will fail.
+    // Mandatory Configs include: Properties Configs, Resource Configs and Signal Configs (if Signal
+    // module is plugged in)
+    ErrCode mOpStatus = RC_SUCCESS;
+    if(RC_IS_OK(mOpStatus)) {
+        mOpStatus = createSystuneDaemon(childProcessID);
+        if(RC_IS_NOTOK(mOpStatus)) {
+            TYPELOGD(SYSTUNE_DAEMON_CREATION_FAILURE);
         }
-
-        // Delete the Sysfs Persistent File
-        remove("../sysfsOriginalValues.txt");
-        exit(EXIT_SUCCESS);
     }
 
-    ErrCode mOpStatus = RC_SUCCESS;
-    SystuneSettings::setServerOnlineStatus(true);
-    SystuneSettings::targetConfigs.currMode = MODE_DISPLAY_ON;
-    RequestReceiver::mRequestsThreadPool = new ThreadPool(4, 4, 6);
-    Timer::mTimerThreadPool = new ThreadPool(4, 4, 6);
+    if(RC_IS_OK(mOpStatus)) {
+        SystuneSettings::setServerOnlineStatus(true);
+        SystuneSettings::targetConfigs.currMode = MODE_DISPLAY_ON;
 
-    mOpStatus = fetchProperties();
-    if(RC_IS_NOTOK(mOpStatus)) {
-        TYPELOGD(PROPERTY_RETRIEVAL_FAILED);
+        try {
+            RequestReceiver::mRequestsThreadPool = new ThreadPool(4, 4, 6);
+            Timer::mTimerThreadPool = new ThreadPool(4, 4, 6);
+
+        } catch(const std::bad_alloc& e) {
+            TYPELOGV(THREAD_POOL_CREATION_FAILURE, e.what());
+            mOpStatus = RC_MODULE_INIT_FAILURE;
+        }
+    }
+
+    if(RC_IS_OK(mOpStatus)) {
+        mOpStatus = fetchProperties();
+        if(RC_IS_NOTOK(mOpStatus)) {
+            TYPELOGD(PROPERTY_RETRIEVAL_FAILED);
+        }
     }
 
     // Check which modules are plugged In and Initialize them
@@ -172,12 +202,14 @@ int32_t main(int32_t argc, char *argv[]) {
         }
     }
 
-    if(ComponentRegistry::isModuleEnabled(MOD_SYSSIGNAL)) {
-        TYPELOGV(NOTIFY_MODULE_ENABLED, SYSSIGNAL);
-        if(RC_IS_OK(mOpStatus)) {
-            mOpStatus = ComponentRegistry::getModuleRegistrationCallback(MOD_SYSSIGNAL)();
-            if(RC_IS_NOTOK(mOpStatus)) {
-                TYPELOGV(MODULE_INIT_FAILED, SYSSIGNAL);
+    if(RC_IS_OK(mOpStatus)) {
+        if(ComponentRegistry::isModuleEnabled(MOD_SYSSIGNAL)) {
+            TYPELOGV(NOTIFY_MODULE_ENABLED, SYSSIGNAL);
+            if(RC_IS_OK(mOpStatus)) {
+                mOpStatus = ComponentRegistry::getModuleRegistrationCallback(MOD_SYSSIGNAL)();
+                if(RC_IS_NOTOK(mOpStatus)) {
+                    TYPELOGV(MODULE_INIT_FAILED, SYSSIGNAL);
+                }
             }
         }
     }
@@ -192,19 +224,19 @@ int32_t main(int32_t argc, char *argv[]) {
             }
         }
 
-        // if(RC_IS_OK(mOpStatus)) {
-        //     mOpStatus = startClientGarbageCollectorDaemon();
+        if(RC_IS_OK(mOpStatus)) {
+            mOpStatus = startClientGarbageCollectorDaemon();
 
-        //     if(RC_IS_NOTOK(mOpStatus)) {
-        //         TYPELOGD(GARBAGE_COLLECTOR_INIT_FAILED);
-        //     }
-        // }
+            if(RC_IS_NOTOK(mOpStatus)) {
+                TYPELOGD(GARBAGE_COLLECTOR_INIT_FAILED);
+            }
+        }
     }
 
     // Create a Listener Thread
     std::thread systuneListener;
     if(RC_IS_OK(mOpStatus)) {
-        LOGI("URM_SYSTUNE_MAIN",
+        LOGI("URM_SYSTUNE_INIT",
              "Starting Systune Listener Thread");
         systuneListener = std::thread(listenerThreadStartRoutine);
     }
@@ -260,9 +292,11 @@ int32_t main(int32_t argc, char *argv[]) {
     //     delete Timer::mTimerThreadPool;
     // }
 
-    kill(childProcessID, SIGKILL);
-    // Wait for the Child Process to terminate
-    waitpid(childProcessID, nullptr, 0);
+    if(childProcessID != -1) {
+        kill(childProcessID, SIGKILL);
+        // Wait for the Child Process to terminate
+        waitpid(childProcessID, nullptr, 0);
+    }
 
     // Delete the Sysfs Persistent File
     remove("../sysfsOriginalValues.txt");

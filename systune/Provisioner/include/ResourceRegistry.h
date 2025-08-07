@@ -72,7 +72,7 @@ typedef struct {
 /**
 * @brief ResourceRegistry
 * @details Stores information Relating to all the Resources available for Tuning.
-*          Note: This information is extracted from Config JSON files.
+*          Note: This information is extracted from Config YAML files.
 */
 class ResourceRegistry {
 private:

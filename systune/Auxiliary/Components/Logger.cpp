@@ -86,7 +86,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             break;
 
         case CommonMessageTypes::PROPERTY_RETRIEVAL_FAILED:
-            Logger::log(ERROR, "URM_SYSTUNE_MAIN", funcName,
+            Logger::log(ERROR, "URM_SYSTUNE_INIT", funcName,
                         "Failed to Fetch Properties, " \
                         "Boot Configs, Systune Server Initialization Failed.");
             break;
@@ -95,7 +95,14 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             vsnprintf(buffer, sizeof(buffer),
                      "Fetch Meta Configs failed, with error %s", args);
 
-            Logger::log(ERROR, "URM_SYSTUNE_MAIN", funcName, std::string(buffer));
+            Logger::log(ERROR, "URM_SYSTUNE_INIT", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::THREAD_POOL_CREATION_FAILURE:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Failed to create Thread Pool. Error: %s", args);
+
+            Logger::log(ERROR, "URM_SYSTUNE_INIT", funcName, std::string(buffer));
             break;
 
         case CommonMessageTypes::THREAD_POOL_INIT_FAILURE:
@@ -136,17 +143,31 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             break;
 
         case CommonMessageTypes::THREAD_POOL_FULL_ALERT:
-            LOGE("URM_THREAD_POOL",
-                 "ThreadPool is full, Task Submission Failed");
+            Logger::log(ERROR, "URM_THREAD_POOL", funcName,
+                        "ThreadPool is full, Task Submission Failed");
+
+            break;
+
+        case CommonMessageTypes::NOTIFY_SYSTUNE_INIT_START:
+            Logger::log(INFO, "URM_SYSTUNE_INIT", funcName,
+                        "Starting Systune Server initialization");
+
+            break;
+
+        case CommonMessageTypes::SYSTUNE_DAEMON_CREATION_FAILURE:
+            Logger::log(ERROR, "URM_SYSTUNE_INIT", funcName,
+                        "Failed to create Systune Daemon, " \
+                        "Aborting Initialization.");
+            break;
 
         case CommonMessageTypes::PULSE_MONITOR_INIT_FAILED:
-            Logger::log(ERROR, "URM_SYSTUNE_MAIN", funcName,
+            Logger::log(ERROR, "URM_SYSTUNE_INIT", funcName,
                         "Pulse Monitor Could not be started, " \
                         "Aborting Initialization.");
             break;
 
         case CommonMessageTypes::GARBAGE_COLLECTOR_INIT_FAILED:
-            Logger::log(ERROR, "URM_SYSTUNE_MAIN", funcName,
+            Logger::log(ERROR, "URM_SYSTUNE_INIT", funcName,
                         "Client Garbage Collector Could not be started, " \
                         "Aborting Initialization.");
             break;
@@ -181,7 +202,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
                       "Failed to Initialize Module: %s, " \
                       "Aborting Server Startup.", args);
 
-            Logger::log(ERROR, "URM_SYSTUNE_MAIN", funcName, std::string(buffer));
+            Logger::log(ERROR, "URM_SYSTUNE_INIT", funcName, std::string(buffer));
             break;
 
         case CommonMessageTypes::REQUEST_MEMORY_ALLOCATION_FAILURE:
@@ -267,6 +288,13 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
                       "Verification Failed for Request [%lld], Dropping Request.", args);
 
             Logger::log(ERROR, "URM_REQUEST_VERIFIER", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::YAML_PARSE_ERROR:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Failed to parse file: %s, Error: %s", args);
+
+            Logger::log(ERROR, "URM_YAML_PARSER", funcName, std::string(buffer));
             break;
 
         default:

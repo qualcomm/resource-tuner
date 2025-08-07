@@ -1,50 +1,37 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include "ResourceProcessor.h"
-#include "Logger.h"
-
 #include <iostream>
 
-ResourceProcessor::ResourceProcessor(const std::string& jsonFilePath) {
-    this->mJsonParser = new (std::nothrow) JsonParser();
-    if(this->mJsonParser == nullptr) {
-        LOGE("URM_RESOURCE_PROCESSOR", "SysConfig Properties Parsing Failed");
-    }
+#include "ResourceProcessor.h"
+#include <cstring>
 
-    if(jsonFilePath.length() == 0) {
+
+ResourceProcessor::ResourceProcessor(const std::string& yamlFilePath) {
+    if(yamlFilePath.length() == 0) {
         // No Custom Resources File Specified
         this->mCustomResourceFileSpecified = false;
-        mResourceConfigJsonFilePath = RESOURCE_CONFIGS_FILE;
+        mResourceConfigYamlFilePath = RESOURCE_CONFIGS_FILE;
     } else {
         this->mCustomResourceFileSpecified = true;
-        mResourceConfigJsonFilePath = jsonFilePath;
+        mResourceConfigYamlFilePath = yamlFilePath;
     }
 }
 
 ErrCode ResourceProcessor::parseResourceConfigs() {
-    if(this->mJsonParser == nullptr) {
-        return RC_JSON_PARSING_ERROR;
-    }
+    const std::string fTargetResourcesName(mResourceConfigYamlFilePath);
 
-    const std::string fTargetResourcesName(mResourceConfigJsonFilePath);
-    const std::string jsonResourceConfigRoot(RESOURCE_CONFIGS_ROOT);
-
-    int32_t size;
-    ErrCode rc = this->mJsonParser->verifyAndGetSize(fTargetResourcesName, jsonResourceConfigRoot, size);
+    YAML::Node result;
+    ErrCode rc = YamlParser::parse(fTargetResourcesName, result);
 
     if(RC_IS_OK(rc)) {
-        ResourceRegistry::getInstance()->initRegistry(size, this->mCustomResourceFileSpecified);
-        this->mJsonParser->parse(std::bind(&ResourceProcessor::TargetResourcesCB, this, std::placeholders::_1));
-    } else {
-        LOGE("URM_RESOURCE_PROCESSOR", "Couldn't parse" + fTargetResourcesName);
-    }
+        if(result[RESOURCE_CONFIGS_ROOT] && result[RESOURCE_CONFIGS_ROOT].IsSequence()) {
+            int32_t resourceCount = result[RESOURCE_CONFIGS_ROOT].size();
+            ResourceRegistry::getInstance()->initRegistry(resourceCount, this->mCustomResourceFileSpecified);
 
-    if(RC_IS_OK(rc)) {
-        int32_t resourcesAllocatedCount = ResourceRegistry::getInstance()->getTotalResourcesCount();
-        if(resourcesAllocatedCount != size) {
-            LOGE("URM_RESOURCE_CONFIG_PROCESSOR", "Couldn't allocate Memory for all the Resource Configs");
-            return RC_MEMORY_ALLOCATION_FAILURE;
+            for(const auto& resourceConfig : result[RESOURCE_CONFIGS_ROOT]) {
+                parseYamlNode(resourceConfig);
+            }
         }
     }
 
@@ -56,7 +43,7 @@ int32_t readFromNode(const std::string& fName) {
     std::string value;
 
     if(!myFile.is_open()) {
-        LOGE("URM_RESOURCE_PROCESSOR", "Failed to open file: " + fName + " Error: " + strerror(errno));
+        LOGE("URM_RESOURCE_PROCESSOR", "Failed to open file: " + fName + " Error: " + std::strerror(errno));
         return 0;
     }
 
@@ -80,60 +67,56 @@ int32_t readFromNode(const std::string& fName) {
     return 0;
 }
 
-void ResourceProcessor::TargetResourcesCB(const Json::Value& item) {
+void ResourceProcessor::parseYamlNode(const YAML::Node& item) {
     ResourceConfigInfoBuilder resourceConfigInfoBuilder;
 
-    if(item[RESOURCE_CONFIGS_ELEM_RESOURCE_TYPE].isString()) {
-        resourceConfigInfoBuilder.setOptype(item[RESOURCE_CONFIGS_ELEM_RESOURCE_TYPE].asString());
-    }
+    resourceConfigInfoBuilder.setOptype(
+        safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCE_TYPE])
+    );
 
-    if(item[RESOURCE_CONFIGS_ELEM_RESOURCE_ID].isString()) {
-        resourceConfigInfoBuilder.setOpcode(item[RESOURCE_CONFIGS_ELEM_RESOURCE_ID].asString());
-    }
+    resourceConfigInfoBuilder.setOpcode(
+        safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCE_ID])
+    );
 
-    if(item[RESOURCE_CONFIGS_ELEM_SUPPORTED].isBool()) {
-        resourceConfigInfoBuilder.setSupported(item[RESOURCE_CONFIGS_ELEM_SUPPORTED].asBool());
-    }
+    resourceConfigInfoBuilder.setSupported(
+        safeExtract<bool>(item[RESOURCE_CONFIGS_ELEM_SUPPORTED])
+    );
 
-    if(item[RESOURCE_CONFIGS_ELEM_RESOURCENAME].isString()) {
-        resourceConfigInfoBuilder.setName(item[RESOURCE_CONFIGS_ELEM_RESOURCENAME].asString());
-        resourceConfigInfoBuilder.setDefaultValue(readFromNode(item[RESOURCE_CONFIGS_ELEM_RESOURCENAME].asString()));
-    }
+    resourceConfigInfoBuilder.setName(
+        safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCENAME])
+    );
 
-    if(item[RESOURCE_CONFIGS_ELEM_HIGHTHRESHOLD].isInt()) {
-        resourceConfigInfoBuilder.setHighThreshold(item[RESOURCE_CONFIGS_ELEM_HIGHTHRESHOLD].asInt());
-    }
+    int32_t defaultValue = readFromNode(
+        safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCENAME])
+    );
 
-    if(item[RESOURCE_CONFIGS_ELEM_LOWTHRESHOLD].isInt()) {
-        resourceConfigInfoBuilder.setLowThreshold(item[RESOURCE_CONFIGS_ELEM_LOWTHRESHOLD].asInt());
-    }
+    resourceConfigInfoBuilder.setDefaultValue(defaultValue);
 
-    if(item[RESOURCE_CONFIGS_ELEM_PERMISSIONS].isString()) {
-        resourceConfigInfoBuilder.setPermissions(item[RESOURCE_CONFIGS_ELEM_PERMISSIONS].asString());
-    }
+    resourceConfigInfoBuilder.setHighThreshold(
+        safeExtract<int32_t>(item[RESOURCE_CONFIGS_ELEM_HIGHTHRESHOLD])
+    );
 
-    if(item[RESOURCE_CONFIGS_ELEM_MODES].isArray()) {
+    resourceConfigInfoBuilder.setLowThreshold(
+        safeExtract<int32_t>(item[RESOURCE_CONFIGS_ELEM_LOWTHRESHOLD])
+    );
+
+    resourceConfigInfoBuilder.setPermissions(
+        safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_PERMISSIONS])
+    );
+
+    if(item[RESOURCE_CONFIGS_ELEM_MODES].IsSequence()) {
         for(const auto& mode : item[RESOURCE_CONFIGS_ELEM_MODES]) {
-            if(mode.isString()) {
-                resourceConfigInfoBuilder.setModes(mode.asString());
-            }
+            resourceConfigInfoBuilder.setModes(safeExtract<std::string>(mode));
         }
     }
 
-    if(item[RESOURCE_CONFIGS_ELEM_POLICY].isString()) {
-        resourceConfigInfoBuilder.setPolicy(item[RESOURCE_CONFIGS_ELEM_POLICY].asString());
-    }
+    resourceConfigInfoBuilder.setPolicy(
+        safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_POLICY])
+    );
 
-    if(item[RESOURCE_CONFIGS_ELEM_CORE_LEVEL_CONFLICT].isBool()) {
-        resourceConfigInfoBuilder.setCoreLevelConflict(item[RESOURCE_CONFIGS_ELEM_CORE_LEVEL_CONFLICT].asBool());
-    }
+    resourceConfigInfoBuilder.setCoreLevelConflict(
+        safeExtract<bool>(item[RESOURCE_CONFIGS_ELEM_CORE_LEVEL_CONFLICT])
+    );
 
     ResourceRegistry::getInstance()->registerResource(resourceConfigInfoBuilder.build());
-}
-
-ResourceProcessor::~ResourceProcessor() {
-    if(this->mJsonParser != nullptr) {
-        delete this->mJsonParser;
-        this->mJsonParser = nullptr;
-    }
 }

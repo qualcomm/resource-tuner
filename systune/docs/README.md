@@ -21,7 +21,7 @@ Gaining control over system resources such as the CPU, caches, and GPU is a powe
 
 For example, increasing the CPU's Dynamic Clock and Voltage Scaling (DCVS) minimum frequency to 1 GHz can boost performance during demanding tasks. Conversely, capping the maximum frequency at 1.5 GHz can help conserve power during less intensive operations.
 
-The Systune framework supports `Signals` which is dynamic provisioning of system resources in response to specific signals—such as app launches or installations—based on configurations defined in JSON. It allows business units (BUs) to register extensions and add custom functionality tailored to their specific needs.
+The Systune framework supports `Signals` which is dynamic provisioning of system resources in response to specific signals—such as app launches or installations—based on configurations defined in YAML. It allows business units (BUs) to register extensions and add custom functionality tailored to their specific needs.
 
 ---
 
@@ -38,7 +38,7 @@ The Systune framework supports `Signals` which is dynamic provisioning of system
 - Systune also provides a Signal Framework which is useful for identifying Use Cases and Provisioning according to the Use Case.
 - The Client is returned a Handle, a 64-bit Integer, which uniquely Identifies the Request.
 - The Extension Interface Provides a way to Customize Systune Behaviour, by Specifying Custom Resources, Custom Signals and Features.
-- Systune uses JSON based Config files, for fetching Information relating to Resources / Signals and Properties.
+- Systune uses YAML based Config files, for fetching Information relating to Resources / Signals and Properties.
 
 <div style="page-break-after: always;"></div>
 
@@ -48,8 +48,8 @@ The Systune framework supports `Signals` which is dynamic provisioning of system
 
 Systune Architecture is captured above.
 ## Initialization
-- During the Server Initialization Phase, the JSON Config Files are Read to build up the Resource Registry, Property Store etc.
-- If the BU has Registered any Custom Resources, Signals or Custom JSON files via the Extension Interface, then these changes are detected during this Phase itself to build up a Consolidated System view, before it can start serving Requests.
+- During the Server Initialization Phase, the YAML Config Files are Read to build up the Resource Registry, Property Store etc.
+- If the BU has Registered any Custom Resources, Signals or Custom YAML files via the Extension Interface, then these changes are detected during this Phase itself to build up a Consolidated System view, before it can start serving Requests.
 - During the Initialization Phase, Memory is Pre-Allocated for Commonly used types (via Memory Pool), and Worker (Thread) capacity is reserved in advance via the ThreadPool, to avoid any delays during the Request Processing Phase.
 - Systune will also Fetch the Target Details, like target Name, total Number of Cores, Logical to Physical Cluster / Core Mapping in this phase.
 - If the Signals Module is Plugged In, it will be initialized as well and the Signal Configs will be Parsed similarly to Resource Configs.
@@ -139,10 +139,10 @@ Further, a ThreadPool component is provided to pre-allocate processing capacity.
 <div style="page-break-after: always;"></div>
 
 # Config Files Format
-Systune utilises JSON files for configuration. This includes the Resources, Signal Config Files. The BUs can provide their own Config Files, which are specific to their use-case through the Extension Interface
+Systune utilises YAML files for configuration. This includes the Resources, Signal Config Files. The BUs can provide their own Config Files, which are specific to their use-case through the Extension Interface
 
 ## 1. Resource Configs
-These file resourceConfigs.json stores resource-specific information. The Resources are Defined as a JSON-array.
+These file resourceConfigs.yaml stores resource-specific information. The Resources are Defined as an array.
 
 #### Field Descriptions
 
@@ -162,7 +162,7 @@ These file resourceConfigs.json stores resource-specific information. The Resour
 
 #### Example
 
-```json
+```yaml
 "ResourceConfigs": [
   {
     "ResType": "0x1",
@@ -195,7 +195,7 @@ These file resourceConfigs.json stores resource-specific information. The Resour
 <div style="page-break-after: always;"></div>
 
 ## 2. Properties Config
-This targetPropertiesConfigs.json file stores various properties which are used by the Systune Modules internally (for example, to allocate sufficient amount of Memory for different Types, or to determine the Pulse Monitor Duration) as well as by the End Client.
+This targetPropertiesConfigs.yaml file stores various properties which are used by the Systune Modules internally (for example, to allocate sufficient amount of Memory for different Types, or to determine the Pulse Monitor Duration) as well as by the End Client.
 
 #### Field Descriptions
 
@@ -207,7 +207,7 @@ This targetPropertiesConfigs.json file stores various properties which are used 
 
 #### Example
 
-```json
+```yaml
 {
   "PropertyConfigs": [
     {"Name": "systune.maximum.concurrent.requests", "Value" : "130"},
@@ -218,7 +218,7 @@ This targetPropertiesConfigs.json file stores various properties which are used 
 <div style="page-break-after: always;"></div>
 
 ## 3. Signal Configs
-The file signalConfigs.json defines the Signal Configs.
+The file signalConfigs.yaml defines the Signal Configs.
 
 #### Field Descriptions
 
@@ -236,7 +236,7 @@ The file signalConfigs.json defines the Signal Configs.
 
 #### Example
 
-```json
+```yaml
 {
       "SignalConfigs": [
         {
@@ -430,7 +430,7 @@ typedef struct Resource {
 ## Notes on Resource Opcode
 
 As mentioned above, the Resource OpCode is an unsigned 32 bit integer. This section describes how this OpCode can be generated.
-Systune implements a System Independent Layer (SIL) which Provides a Transparent and Consistent way for Indexing Resources. This makes it easy for the Clients to Identify the Resource they want to provision, without needing to worry about Compatability Issues across Targets or about the Order in which the Resources are defined in the JSON files.
+Systune implements a System Independent Layer (SIL) which Provides a Transparent and Consistent way for Indexing Resources. This makes it easy for the Clients to Identify the Resource they want to provision, without needing to worry about Compatability Issues across Targets or about the Order in which the Resources are defined in the YAML files.
 
 Essentially, the Resource Opcode (unsigned 32 bit) is composed of two fields:
 - ResID (last 16 bits, 17 - 32)
@@ -556,19 +556,19 @@ URM_REGISTER_RESOURCE(0x00010001, applyCustomCpuFreqCustom);
 
 ### `URM_REGISTER_CONFIG`
 
-Registers a custom configuration JSON file. This enables the BU to provide their own Config Files, i.e. allowing them to provide their Own Custom Resources for Example.
+Registers a custom configuration YAML file. This enables the BU to provide their own Config Files, i.e. allowing them to provide their Own Custom Resources for Example.
 
 ### Usage Example
 ```cpp
-URM_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/bin/targetResourceConfigCustom.json");
+URM_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/bin/targetResourceConfigCustom.yaml");
 ```
 The above line of code, will indicate to Systune to Read the Resource Configs from the file
-"/etc/bin/targetResourceConfigCustom.json" instead of the Default File. Note, the BUs must honour the structure of the JSON files, for them to be read and registered successfully.
+"/etc/bin/targetResourceConfigCustom.yaml" instead of the Default File. Note, the BUs must honour the structure of the YAML files, for them to be read and registered successfully.
 
 Custom Signal Config File can be specified similarly:
 ### Usage Example
 ```cpp
-URM_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/bin/targetSignalConfigCustom.json");
+URM_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/bin/targetSignalConfigCustom.yaml");
 ```
 
 <div style="page-break-after: always;"></div>
@@ -592,11 +592,11 @@ The **Systune Client** sends tuning-related requests to the server via command-l
 
 ## Usage Examples
 
-### 1. Send Tune Requests from JSON File
+### 1. Send Tune Requests from YAML File
 ```bash
 ./client_ex -j
 ```
-- Reads requests from `SampleRequests.json`. TODO:show example.
+- Reads requests from `SampleRequests.yaml`. TODO:show example.
 
 ### 2. Send Tune Request via CLI
 ```bash

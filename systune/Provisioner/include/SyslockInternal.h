@@ -11,7 +11,7 @@
 
 /**
 * @brief Initializes the SysConfig module.
-* @details This function will read and Parse the Property Config JSON file.
+* @details This function will read and Parse the Property Config YAML file.
 * @return int8_t:
 *              RC_SUCCESS: If the module was correct initialized.
 *              Non-Zero Status Code indicating an Error: If initialization failed

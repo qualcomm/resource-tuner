@@ -10,7 +10,7 @@
 #include "Extensions.h"
 #include "Utils.h"
 
-URM_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourceConfigs.json")
+URM_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourceConfigs.yaml")
 
 #define TOTAL_RESOURCE_CONFIGS_COUNT 11
 
@@ -38,15 +38,15 @@ protected:
     }
 };
 
-TEST_F(ResourceProcessorTests, TestResourceConfigProcessorJSONDataIntegrity1) {
+TEST_F(ResourceProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity1) {
     ASSERT_NE(ResourceRegistry::getInstance(), nullptr);
 }
 
-TEST_F(ResourceProcessorTests, TestResourceConfigProcessorJSONDataIntegrity2) {
+TEST_F(ResourceProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity2) {
     ASSERT_EQ(ResourceRegistry::getInstance()->getTotalResourcesCount(), TOTAL_RESOURCE_CONFIGS_COUNT);
 }
 
-TEST_F(ResourceProcessorTests, TestResourceConfigProcessorJSONDataIntegrity3_1) {
+TEST_F(ResourceProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity3_1) {
     ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(GENERATE_RESOURCE_ID(1, 0));
 
     ASSERT_NE(resourceConfigInfo, nullptr);
@@ -62,7 +62,7 @@ TEST_F(ResourceProcessorTests, TestResourceConfigProcessorJSONDataIntegrity3_1) 
     ASSERT_EQ(resourceConfigInfo->mModes, MODE_DISPLAY_ON | MODE_DOZE);
 }
 
-TEST_F(ResourceProcessorTests, TestResourceConfigProcessorJSONDataIntegrity3_2) {
+TEST_F(ResourceProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity3_2) {
     ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(GENERATE_RESOURCE_ID(1, 1));
 
     ASSERT_NE(resourceConfigInfo, nullptr);
@@ -78,7 +78,7 @@ TEST_F(ResourceProcessorTests, TestResourceConfigProcessorJSONDataIntegrity3_2) 
     ASSERT_EQ(resourceConfigInfo->mModes, MODE_DISPLAY_ON | MODE_DOZE);
 }
 
-TEST_F(ResourceProcessorTests, TestResourceConfigProcessorJSONDataIntegrity3_3) {
+TEST_F(ResourceProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity3_3) {
     ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(GENERATE_RESOURCE_ID(1, 5));
 
     ASSERT_NE(resourceConfigInfo, nullptr);

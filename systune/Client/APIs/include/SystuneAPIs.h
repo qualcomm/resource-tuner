@@ -124,7 +124,7 @@ int8_t getprop(const char* prop, char* buffer, size_t buffer_size, const char* d
 /**
 * @brief Modifies an already existing property in the Config Store.
 * @details Use this API to change the value of a property. Note the Modification is in-memory and won't
-*          won't be reflected in the Configs JSON file.
+*          won't be reflected in the Configs YAML file.
 * @param prop Name of the Property to be modified.
 * @param value A buffer holding the new the property value.
 * @return int8_t:

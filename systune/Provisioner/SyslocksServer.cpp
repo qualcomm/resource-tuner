@@ -35,28 +35,27 @@ ErrCode initProvisioner() {
     ErrCode opStatus = RC_SUCCESS;
     preAllocateMemory();
 
-    // Read Resource Configs
+    LOGI("URM_SYSTUNE_INIT", "Parsing Resource Configs");
     ResourceProcessor resourceProcessor(Extensions::getResourceConfigFilePath());
-
     opStatus = resourceProcessor.parseResourceConfigs();
     if(RC_IS_NOTOK(opStatus)) {
-        LOGE("URM_PROVISIONER_SERVER", "Resource Config Parsing Failed, Server Init Failed");
+        LOGE("URM_SYSTUNE_INIT", "Resource Config Parsing Failed, Server Init Failed");
         return opStatus;
     }
+    LOGI("URM_SYSTUNE_INIT", "Resource Configs Successfully Parsed");
 
+    // Target Configs is optional, i.e. file targetConfigs.yaml need not be provided.
+    // Systune will dynamically fetch mapping data in such cases
+    // Hence, no need to error check for TargetConfigProcessor parsing status.
     TargetConfigProcessor targetConfigProcessor(Extensions::getTargetConfigFilePath());
-
-    opStatus = targetConfigProcessor.parseTargetConfigs();
-    if(RC_IS_NOTOK(opStatus)) {
-        LOGE("URM_PROVISIONER_SERVER", "Target Config Parsing Failed, Server Init Failed");
-        return opStatus;
-    }
+    targetConfigProcessor.parseTargetConfigs();
 
     opStatus = TargetRegistry::getInstance()->readPhysicalCoreClusterInfo();
     if(RC_IS_NOTOK(opStatus)) {
-        LOGE("URM_PROVISIONER_SERVER", "Reading Physical Core, Cluster Info Failed, Server Init Failed");
+        LOGE("URM_SYSTUNE_INIT", "Reading Physical Core, Cluster Info Failed, Server Init Failed");
         return opStatus;
     }
+    LOGI("URM_SYSTUNE_INIT", "Logical to Physical Core / Cluster mapping successfully created");
 
     // By this point, all the Extension Appliers / Resources should be registered.
     ResourceRegistry::getInstance()->pluginModifications(Extensions::getModifiedResources());
@@ -75,7 +74,7 @@ ErrCode terminateProvisioner() {
         RequestQueue::getInstance()->forcefulAwake();
         serverThread.join();
     } else {
-        LOGE("URM_PROVISIONER_SERVER", "Provisioner thread is not joinable");
+        LOGE("URM_SYSTUNE_TERMINATION", "Provisioner thread is not joinable");
     }
     return RC_SUCCESS;
 }

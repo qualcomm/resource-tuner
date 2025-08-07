@@ -21,15 +21,18 @@ ErrCode initSysSignals() {
     MakeAlloc<std::vector<Resource*>> (concurrentRequestsUB * resourcesPerRequestUB);
     MakeAlloc<std::vector<uint32_t>> (concurrentRequestsUB * resourcesPerRequestUB);
 
+    LOGI("URM_SYSTUNE_INIT", "Parsing Signal Configs");
     SignalConfigProcessor signalConfigProcessor(Extensions::getSignalsConfigFilePath());
-
     opStatus = signalConfigProcessor.parseSignalConfigs();
     if(RC_IS_NOTOK(opStatus)) {
-        LOGE("URM_SIGNALS_SERVER", "Signal Configs Parsing Failed");
+        LOGE("URM_SYSTUNE_INIT", "Signal Configs Parsing Failed");
         return opStatus;
     }
+    LOGI("URM_SYSTUNE_INIT", "Signal Configs Successfully Parsed");
 
     SignalRegistry::getInstance()->displaySignals();
+
+    // Later: Parse Extension Features Configs here
 
     // Create one thread:
     // - Signal Server thread
@@ -48,7 +51,7 @@ ErrCode terminateSysSignals() {
         SignalQueue::getInstance()->forcefulAwake();
         signalServerProcessorThread.join();
     } else {
-        LOGE("URM_SYSSIGNA_SERVER", "Signal server thread is not joinable");
+        LOGE("URM_SYSTUNE_TERMINATION", "Signal server thread is not joinable");
     }
     return RC_SUCCESS;
 }

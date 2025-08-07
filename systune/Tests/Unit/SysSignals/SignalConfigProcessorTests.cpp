@@ -10,7 +10,7 @@
 #include "Extensions.h"
 #include "Utils.h"
 
-URM_REGISTER_CONFIG(SIGNALS_CONFIG, "../Tests/Configs/testSignalConfigs.json")
+URM_REGISTER_CONFIG(SIGNALS_CONFIG, "../Tests/Configs/testSignalConfigs.yaml")
 
 #define TOTAL_SIGNAL_CONFIGS_COUNT 4
 
@@ -29,15 +29,15 @@ protected:
     }
 };
 
-TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorJSONDataIntegrity1) {
+TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorYAMLDataIntegrity1) {
     ASSERT_NE(SignalRegistry::getInstance(), nullptr);
 }
 
-TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorJSONDataIntegrity2) {
+TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorYAMLDataIntegrity2) {
     ASSERT_EQ(SignalRegistry::getInstance()->getSignalsConfigCount(), TOTAL_SIGNAL_CONFIGS_COUNT);
 }
 
-TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorJSONDataIntegrity3_1) {
+TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorYAMLDataIntegrity3_1) {
     SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(2147549184);
 
     ASSERT_NE(signalInfo, nullptr);
@@ -70,7 +70,7 @@ TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorJSONDataIntegrity3_1
     ASSERT_EQ(signalInfo->mLocks->at(1), 700);
 }
 
-TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorJSONDataIntegrity3_2) {
+TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorYAMLDataIntegrity3_2) {
     SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(2147549185);
 
     ASSERT_NE(signalInfo, nullptr);
@@ -102,7 +102,7 @@ TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorJSONDataIntegrity3_2
     ASSERT_EQ(signalInfo->mLocks->at(1), 814);
 }
 
-TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorJSONDataIntegrity3_3) {
+TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorYAMLDataIntegrity3_3) {
     SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(2147549187);
 
     ASSERT_NE(signalInfo, nullptr);
@@ -139,7 +139,7 @@ TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorJSONDataIntegrity3_3
     ASSERT_EQ(signalInfo->mLocks->at(1), 800);
 }
 
-TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorJSONDataIntegrity4) {
+TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorYAMLDataIntegrity4) {
     std::vector<SignalInfo*> signalConfigs = SignalRegistry::getInstance()->getSignalConfigs();
     ASSERT_EQ(signalConfigs.size(), TOTAL_SIGNAL_CONFIGS_COUNT);
 

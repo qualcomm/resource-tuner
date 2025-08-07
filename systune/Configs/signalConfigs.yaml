@@ -1,0 +1,32 @@
+SignalConfigs:
+  - SigId: "0x0"
+    Category: "0x1"
+    Name: INSTALL
+    Enable: true
+    TargetsEnabled:
+      - sun
+      - moon
+    Permissions:
+      - system
+      - third_party
+    Derivatives:
+      - solar
+    Timeout: 4000
+    Resources:
+      - 65536
+      - 700
+
+  - SigId: "0x1"
+    Category: "0x1"
+    Name: EARLY_WAKEUP
+    Enable: true
+    TargetsDisabled:
+      - sun
+    Permissions:
+      - system
+    Derivatives:
+      - solar
+    Timeout: 5000
+    Resources:
+      - 0
+      - 506

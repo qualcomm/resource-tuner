@@ -1,0 +1,121 @@
+ResourceConfigs:
+  - ResType: "0x1"
+    ResID: "0x0"
+    Name: "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min"
+    Supported: true
+    HighThreshold: 1024
+    LowThreshold: 0
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: "higher_is_better"
+    CoreLevelConflict: false
+
+  - ResType: "0x1"
+    ResID: "0x1"
+    Name: "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_max"
+    Supported: true
+    HighThreshold: 1024
+    LowThreshold: 512
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: "higher_is_better"
+    CoreLevelConflict: false
+
+  - ResType: "0x1"
+    ResID: "0x2"
+    Name: "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq"
+    Supported: true
+    HighThreshold: 1024
+    LowThreshold: 0
+    Permissions: "third_party"
+    Modes: ["display_on", "display_off"]
+    Policy: "lower_is_better"
+    CoreLevelConflict: false
+
+  - ResType: "0x1"
+    ResID: "0x3"
+    Name: "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq"
+    Supported: true
+    HighThreshold: 2048
+    LowThreshold: 0
+    Permissions: "third_party"
+    Modes: ["display_on", "display_off"]
+    Policy: "higher_is_better"
+    CoreLevelConflict: false
+
+  - ResType: "0x1"
+    ResID: "0x4"
+    Name: "../Tests/Configs/ResourceSysFsNodes/target_test_resource1"
+    Supported: true
+    HighThreshold: 400
+    LowThreshold: 0
+    Permissions: "system"
+    Modes: ["display_on", "display_off"]
+    Policy: "higher_is_better"
+    CoreLevelConflict: false
+
+  - ResType: "0x1"
+    ResID: "0x5"
+    Name: "../Tests/Configs/ResourceSysFsNodes/target_test_resource2"
+    Supported: true
+    HighThreshold: 6500
+    LowThreshold: 50
+    Permissions: "third_party"
+    Modes: ["display_on"]
+    Policy: "higher_is_better"
+    CoreLevelConflict: true
+
+  - ResType: "0x1"
+    ResID: "0x6"
+    Name: "../Tests/Configs/ResourceSysFsNodes/target_test_resource3"
+    Supported: true
+    HighThreshold: 5511
+    LowThreshold: 4000
+    Permissions: "third_party"
+    Modes: ["display_off"]
+    Policy: "higher_is_better"
+    CoreLevelConflict: false
+
+  - ResType: "0x1"
+    ResID: "0x7"
+    Name: "../Tests/Configs/ResourceSysFsNodes/target_test_resource4"
+    Supported: false
+    HighThreshold: 900
+    LowThreshold: 300
+    Permissions: "third_party"
+    Modes: ["display_on"]
+    Policy: "higher_is_better"
+    CoreLevelConflict: false
+
+  - ResType: "0x1"
+    ResID: "0x8"
+    Name: "../Tests/Configs/ResourceSysFsNodes/target_test_resource5"
+    Supported: true
+    HighThreshold: 20
+    LowThreshold: 0
+    Permissions: "third_party"
+    Modes: ["display_on"]
+    Policy: "lazy_apply"
+    CoreLevelConflict: false
+
+  - ResType: "0x8"
+    ResID: "0x0"
+    Name: "/proc/sys/kernel/sched_util_clamp_min"
+    Supported: true
+    HighThreshold: 1024
+    LowThreshold: 0
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: "higher_is_better"
+    CoreLevelConflict: false
+
+  - ResType: "0x8"
+    ResID: "0x1"
+    Name: "/proc/sys/kernel/sched_util_clamp_max"
+    Supported: true
+    HighThreshold: 1024
+    LowThreshold: 0
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: "lower_is_better"
+    CoreLevelConflict: false

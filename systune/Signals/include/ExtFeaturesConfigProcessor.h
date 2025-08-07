@@ -7,13 +7,13 @@
 #include <iostream>
 #include <memory>
 
-#include "JsonParser.h"
+#include "YamlParser.h"
 #include "ExtFeaturesRegistry.h"
 #include "ComponentRegistry.h"
 
-#define EXT_FEATURES_CONFIGS_FILE  "../Configs/Signals/extFeaturesConfigs.json"
-#define EXT_FEATURES_CONFIGS_ROOT "ExtFeaturesConfigs"
+#define EXT_FEATURES_CONFIGS_FILE  "../Configs/Signals/extFeaturesConfigs.yaml"
 
+#define EXT_FEATURES_CONFIGS_ROOT "ExtFeaturesConfigs"
 #define EXT_FEATURE_ID "FeatureId"
 #define EXT_FEATURE_LIB "Lib"
 #define EXT_FEATURE_SIGNAL_RANGE "Range"
@@ -21,16 +21,13 @@
 
 class ExtFeaturesConfigProcessor {
 private:
-    static std::shared_ptr<ExtFeaturesConfigProcessor> extFeaturesConfigProcessorInstance;
-    JsonParser* mJsonParser;
-    std::string mExtFeaturesConfigsJsonFilePath;
+    std::string mExtFeaturesConfigsYamlFilePath;
     int8_t mCustomExtFeaturesFileSpecified;
 
-    void ExtFeaturesConfigsParserCB(const Json::Value& item);
+    void parseYamlNode(const YAML::Node& result);
 
 public:
-    ExtFeaturesConfigProcessor(const std::string& jsonFilePath);
-    ~ExtFeaturesConfigProcessor();
+    ExtFeaturesConfigProcessor(const std::string& yamlFilePath);
 
     ErrCode parseExtFeaturesConfigs();
 };

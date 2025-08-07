@@ -10,9 +10,9 @@ Extensions::Extensions(int32_t resourceOpcode, ResourceApplierCallback resourceA
     this->mModifiedResourceConfigs[resourceOpcode] = resourceApplierCallback;
 }
 
-Extensions::Extensions(ConfigType configType, std::string jsonFile) {
+Extensions::Extensions(ConfigType configType, std::string yamlFile) {
     if(configType < 0 || configType >= mModifiedConfigFiles.size()) return;
-    mModifiedConfigFiles[configType] = jsonFile;
+    mModifiedConfigFiles[configType] = yamlFile;
 }
 
 std::vector<std::pair<int32_t, ResourceApplierCallback>> Extensions::getModifiedResources() {

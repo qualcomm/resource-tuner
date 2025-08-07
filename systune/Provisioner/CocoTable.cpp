@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include "CocoTable.h"
+#include <cstring>
+
 
 static void writeToNode(const std::string& fName, int32_t fValue) {
     std::ofstream myFile(fName, std::ios::out | std::ios::trunc);

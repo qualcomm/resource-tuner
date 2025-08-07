@@ -16,7 +16,7 @@
 // In the following Example the Client Sends:
 // - A Resource Provisioning (Tune) Request to Tune 1 Resource
 //   i.e. We try to Provision a Single Resource as part of this Request,
-//   The Resource Config for this Resource is as follows (note Configs are specified as JSON files):
+//   The Resource Config for this Resource is as follows (note, Configs are specified via YAML files):
 
 /*
 Resource:
