@@ -21,12 +21,16 @@ ErrCode ExtFeaturesConfigProcessor::parseExtFeaturesConfigs() {
     ErrCode rc = YamlParser::parse(fExtFeaturesConfigFileName, result);
 
     if(RC_IS_OK(rc)) {
-        if(result[EXT_FEATURES_CONFIGS_ROOT] && result[EXT_FEATURES_CONFIGS_ROOT].IsSequence()) {
+        if(result[EXT_FEATURES_CONFIGS_ROOT].IsDefined() && result[EXT_FEATURES_CONFIGS_ROOT].IsSequence()) {
             int32_t featuresCount = result[EXT_FEATURES_CONFIGS_ROOT].size();
             ExtFeaturesRegistry::getInstance()->initRegistry(featuresCount);
 
             for(const auto& featureConfig : result[EXT_FEATURES_CONFIGS_ROOT]) {
-                parseYamlNode(featureConfig);
+                try {
+                    parseYamlNode(featureConfig);
+                } catch(const std::invalid_argument& e) {
+                    LOGE("URM_EXT_FEATURE_PROCESSOR", "Error parsing Ext Feature Config: " + std::string(e.what()));
+                }
             }
         }
     }
@@ -45,7 +49,7 @@ void ExtFeaturesConfigProcessor::parseYamlNode(const YAML::Node& item) {
         safeExtract<std::string>(item[EXT_FEATURE_LIB])
     );
 
-    if(item[EXT_FEATURE_SIGNAL_RANGE].IsDefined() && item[EXT_FEATURE_SIGNAL_RANGE].IsSequence()) {
+    if(isList(item[EXT_FEATURE_SIGNAL_RANGE])) {
         uint32_t lowerBound = (uint32_t)safeExtract<uint32_t>(item[EXT_FEATURE_SIGNAL_RANGE][0]);
         uint32_t upperBound = (uint32_t)safeExtract<uint32_t>(item[EXT_FEATURE_SIGNAL_RANGE][1]);
 
@@ -54,7 +58,7 @@ void ExtFeaturesConfigProcessor::parseYamlNode(const YAML::Node& item) {
         }
     }
 
-    if(item[EXT_FEATURE_SIGNAL_INDIVIDUAL].IsDefined() && item[EXT_FEATURE_SIGNAL_INDIVIDUAL].IsSequence()) {
+    if(isList(item[EXT_FEATURE_SIGNAL_INDIVIDUAL])) {
         for(int32_t i = 0; i < item[EXT_FEATURE_SIGNAL_INDIVIDUAL].size(); i++) {
             extFeatureInfoBuilder.addSignalsSubscribedTo(
                 (uint32_t)(safeExtract<uint32_t>(item[EXT_FEATURE_SIGNAL_INDIVIDUAL][i]))

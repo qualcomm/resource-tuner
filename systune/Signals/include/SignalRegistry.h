@@ -12,6 +12,7 @@
 
 #include "Utils.h"
 #include "Logger.h"
+#include "Resource.h"
 #include "MemoryPool.h"
 
 /**
@@ -71,7 +72,7 @@ typedef struct {
      * @brief List of Actual Resource Opcodes (which will be Provisioned) and the
      *        Values to be configured for the Resources.
      */
-    std::vector<uint32_t>* mLocks;
+    std::vector<Resource*>* mSignalResources;
 
 } SignalInfo;
 
@@ -105,7 +106,7 @@ public:
         if(signalRegistryInstance == nullptr) {
             try {
                 signalRegistryInstance = std::shared_ptr<SignalRegistry>(new SignalRegistry());
-            } catch (const std::bad_alloc& e) {
+            } catch(const std::bad_alloc& e) {
                 LOGE("URM_SIGNAL_REGISTRY",
                      "Failed to allocate memory for SignalRegistry instance: " + std::string(e.what()));
                 return nullptr;
@@ -130,9 +131,25 @@ public:
     SignalInfoBuilder* addTarget(int8_t isEnabled, const std::string& target);
     SignalInfoBuilder* addPermission(const std::string& permissionString);
     SignalInfoBuilder* addDerivative(const std::string& derivative);
-    SignalInfoBuilder* addLock(uint32_t lockId);
+    SignalInfoBuilder* addResource(Resource* resource);
 
     SignalInfo* build();
+};
+
+class ResourceBuilder {
+private:
+    Resource* mResource;
+
+public:
+    ResourceBuilder();
+
+    ResourceBuilder* setResType(const std::string& resTypeString);
+    ResourceBuilder* setResId(const std::string& resIdString);
+    ResourceBuilder* setOpInfo(int32_t opInfo);
+    ResourceBuilder* setNumValues(int32_t valuesCount);
+    ResourceBuilder* addValue(int32_t value);
+
+    Resource* build();
 };
 
 #endif

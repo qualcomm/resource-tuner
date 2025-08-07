@@ -24,7 +24,7 @@ void Timer::implementTimer() {
                 }
             }
         } while(mIsRecurring && !mStop.load());
-    } catch(std::exception& e) {
+    } catch(const std::exception& e) {
         LOGE("URM_TIMER", "Timer Could not be started, Error: " + std::string(e.what()));
     }
 }

@@ -25,12 +25,16 @@ ErrCode ResourceProcessor::parseResourceConfigs() {
     ErrCode rc = YamlParser::parse(fTargetResourcesName, result);
 
     if(RC_IS_OK(rc)) {
-        if(result[RESOURCE_CONFIGS_ROOT] && result[RESOURCE_CONFIGS_ROOT].IsSequence()) {
+        if(result[RESOURCE_CONFIGS_ROOT].IsDefined() && result[RESOURCE_CONFIGS_ROOT].IsSequence()) {
             int32_t resourceCount = result[RESOURCE_CONFIGS_ROOT].size();
             ResourceRegistry::getInstance()->initRegistry(resourceCount, this->mCustomResourceFileSpecified);
 
             for(const auto& resourceConfig : result[RESOURCE_CONFIGS_ROOT]) {
-                parseYamlNode(resourceConfig);
+                try {
+                    parseYamlNode(resourceConfig);
+                } catch(const std::invalid_argument& e) {
+                    LOGE("URM_RESOURCE_PROCESSOR", "Error parsing Resource Config: " + std::string(e.what()));
+                }
             }
         }
     }
@@ -58,9 +62,9 @@ int32_t readFromNode(const std::string& fName) {
         int32_t result = stoi(value);
         LOGD("URM_RESOURCE_PROCESSOR", "Read value " + std::to_string(result) + " from file: " + fName);
         return result;
-    } catch (const std::invalid_argument& e) {
+    } catch(const std::invalid_argument& e) {
         LOGE("URM_RESOURCE_PROCESSOR", "Invalid integer in file: " + fName + " Content: " + value);
-    } catch (const std::out_of_range& e) {
+    } catch(const std::out_of_range& e) {
         LOGE("URM_RESOURCE_PROCESSOR", "Integer out of range in file: " + fName + " Content: " + value);
     }
 
@@ -104,7 +108,7 @@ void ResourceProcessor::parseYamlNode(const YAML::Node& item) {
         safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_PERMISSIONS])
     );
 
-    if(item[RESOURCE_CONFIGS_ELEM_MODES].IsSequence()) {
+    if(isList(item[RESOURCE_CONFIGS_ELEM_MODES])) {
         for(const auto& mode : item[RESOURCE_CONFIGS_ELEM_MODES]) {
             resourceConfigInfoBuilder.setModes(safeExtract<std::string>(mode));
         }

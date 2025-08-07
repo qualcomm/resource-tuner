@@ -88,7 +88,7 @@ int32_t ResourceRegistry::getResourceTableIndex(uint32_t resourceId) {
         if(this->mSystemIndependentLayerMappings.find(resourceId) == this->mSystemIndependentLayerMappings.end()) {
             throw std::out_of_range("Index out of bounds");
         }
-    } catch (const std::exception& e) {
+    } catch(const std::exception& e) {
         LOGE("URM_RESOURCE_PROCESSOR",
              "Resource ID not found in the registry");
         return -1;

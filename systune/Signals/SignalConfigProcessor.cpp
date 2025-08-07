@@ -21,12 +21,16 @@ ErrCode SignalConfigProcessor::parseSignalConfigs() {
     ErrCode rc = YamlParser::parse(fSignalConfigFileName, result);
 
     if(RC_IS_OK(rc)) {
-        if(result[SIGNAL_CONFIGS_ROOT] && result[SIGNAL_CONFIGS_ROOT].IsSequence()) {
+        if(result[SIGNAL_CONFIGS_ROOT].IsDefined() && result[SIGNAL_CONFIGS_ROOT].IsSequence()) {
             int32_t signalCount = result[SIGNAL_CONFIGS_ROOT].size();
             SignalRegistry::getInstance()->initRegistry(signalCount, this->mCustomSignalsFileSpecified);
 
             for(const auto& signalConfig : result[SIGNAL_CONFIGS_ROOT]) {
-                parseYamlNode(signalConfig);
+                try {
+                    parseYamlNode(signalConfig);
+                } catch(const std::invalid_argument& e) {
+                    LOGE("URM_SIGNAL_PROCESSOR", "Error parsing Signal Config: " + std::string(e.what()));
+                }
             }
         }
     }
@@ -57,7 +61,7 @@ void SignalConfigProcessor::parseYamlNode(const YAML::Node& item) {
         safeExtract<bool>(item[SIGNAL_ENABLE])
     );
 
-    if(item[SIGNAL_PERMISSIONS].IsSequence()) {
+    if(isList(item[SIGNAL_PERMISSIONS])) {
         for(int32_t i = 0; i < item[SIGNAL_PERMISSIONS].size(); i++) {
             signalInfoBuilder.addPermission(
                 safeExtract<std::string>(item[SIGNAL_PERMISSIONS][i])
@@ -65,7 +69,7 @@ void SignalConfigProcessor::parseYamlNode(const YAML::Node& item) {
         }
     }
 
-    if(item[SIGNAL_TARGETS_ENABLED].IsDefined() && item[SIGNAL_TARGETS_ENABLED].IsSequence()) {
+    if(isList(item[SIGNAL_TARGETS_ENABLED])) {
         for(int32_t i = 0; i < item[SIGNAL_TARGETS_ENABLED].size(); i++) {
             signalInfoBuilder.addTarget(true,
                 safeExtract<std::string>(item[SIGNAL_TARGETS_ENABLED][i])
@@ -73,7 +77,7 @@ void SignalConfigProcessor::parseYamlNode(const YAML::Node& item) {
         }
     }
 
-    if(item[SIGNAL_TARGETS_DISABLED].IsDefined() && item[SIGNAL_TARGETS_DISABLED].IsSequence()) {
+    if(isList(item[SIGNAL_TARGETS_DISABLED])) {
         for(int32_t i = 0; i < item[SIGNAL_TARGETS_DISABLED].size(); i++) {
             signalInfoBuilder.addTarget(false,
                 safeExtract<std::string>(item[SIGNAL_TARGETS_DISABLED][i])
@@ -81,7 +85,7 @@ void SignalConfigProcessor::parseYamlNode(const YAML::Node& item) {
         }
     }
 
-    if(item[SIGNAL_DERIVATIVES].IsSequence()) {
+    if(isList(item[SIGNAL_DERIVATIVES])) {
         for(int32_t i = 0; i < item[SIGNAL_DERIVATIVES].size(); i++) {
             signalInfoBuilder.addDerivative(
                 safeExtract<std::string>(item[SIGNAL_DERIVATIVES][i])
@@ -89,11 +93,33 @@ void SignalConfigProcessor::parseYamlNode(const YAML::Node& item) {
         }
     }
 
-    if(item[SIGNAL_RESOURCES].IsSequence()) {
-        for(int32_t i = 0; i < item[SIGNAL_RESOURCES].size(); i++) {
-            signalInfoBuilder.addLock(
-                safeExtract<uint32_t>(item[SIGNAL_RESOURCES][i])
+    if(item[SIGNAL_RESOURCES].IsDefined() && item[SIGNAL_RESOURCES].IsSequence()) {
+        for(const auto& resourceConfig: item[SIGNAL_RESOURCES]) {
+            ResourceBuilder resourceBuilder;
+            resourceBuilder.setResId(
+                safeExtract<std::string>(resourceConfig[SIGNAL_RESOURCE_ID])
             );
+
+            resourceBuilder.setResType(
+                safeExtract<std::string>(resourceConfig[SIGNAL_RESOURCE_TYPE])
+            );
+
+            resourceBuilder.setOpInfo(
+                safeExtract<int32_t>(resourceConfig[SIGNAL_OPINFO])
+            );
+
+            if(isList(resourceConfig[SIGNAL_VALUES])) {
+                int32_t valuesCount = resourceConfig[SIGNAL_VALUES].size();
+                resourceBuilder.setNumValues(valuesCount);
+                std::cout<<"Value Count = "<<valuesCount<<std::endl;
+
+                for(int32_t i = 0; i < valuesCount; i++) {
+                    resourceBuilder.addValue(
+                        safeExtract<int32_t>(resourceConfig[SIGNAL_VALUES][i])
+                    );
+                }
+            }
+            signalInfoBuilder.addResource(resourceBuilder.build());
         }
     }
 

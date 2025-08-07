@@ -36,7 +36,10 @@ public:
         std::vector<int32_t>* valueArray; //!< Use this field for Multi Valued Resources
     } mConfigValue; //!< The value to be Configured for this Resource Node.
 
-    Resource() : mOpCode(0), mOpInfo(0), mOptionalInfo(0), mNumValues(0) {}
+    Resource() : mOpCode(0), mOpInfo(0), mOptionalInfo(0), mNumValues(0) {
+        mConfigValue.singleValue = 0;
+        mConfigValue.valueArray = nullptr;
+    }
     ~Resource() {}
 
     int32_t getCoreValue();

@@ -12,7 +12,7 @@ int8_t RequestManager::isSane(Request* request) {
         if(request == nullptr) {
             throw std::invalid_argument("Request is nullptr");
         }
-    } catch (const std::exception& e) {
+    } catch(const std::exception& e) {
         LOGE("URM_REQUEST_MANAGER",
             "Cannot Check Request Sanity: " +  std::string(e.what()));
         return false;

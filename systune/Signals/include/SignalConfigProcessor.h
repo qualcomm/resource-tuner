@@ -24,6 +24,11 @@
 #define SIGNAL_DERIVATIVES "Derivatives"
 #define SIGNAL_RESOURCES "Resources"
 
+#define SIGNAL_RESOURCE_ID "ResId"
+#define SIGNAL_RESOURCE_TYPE "ResType"
+#define SIGNAL_OPINFO "OpInfo"
+#define SIGNAL_VALUES "Values"
+
 /**
  * @brief SignalConfigProcessor
  * @details Responsible for Parsing the SignalConfig (YAML) file.

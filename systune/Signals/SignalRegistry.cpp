@@ -101,7 +101,7 @@ SignalInfoBuilder::SignalInfoBuilder() {
         this->mSignalInfo->mTargetsDisabled = nullptr;
         this->mSignalInfo->mDerivatives = nullptr;
         this->mSignalInfo->mPermissions = nullptr;
-        this->mSignalInfo->mLocks = nullptr;
+        this->mSignalInfo->mSignalResources = nullptr;
     }
 }
 
@@ -113,10 +113,10 @@ SignalInfoBuilder* SignalInfoBuilder::setOpID(const std::string& signalOpIdStrin
     this->mSignalInfo->mSignalOpId = -1;
     try {
         this->mSignalInfo->mSignalOpId = (int16_t)stoi(signalOpIdString, nullptr, 0);
-    } catch(std::invalid_argument const& ex) {
+    } catch(const std::invalid_argument& ex) {
         LOGE("URM_SIGNAL_REGISTRY",
              "Signal Parsing Failed with error: " + std::string(ex.what()));
-    } catch(std::out_of_range const& ex) {
+    } catch(const std::out_of_range& ex) {
         LOGE("URM_SIGNAL_REGISTRY",
              "Signal Parsing Failed with error: " + std::string(ex.what()));
     }
@@ -131,10 +131,10 @@ SignalInfoBuilder* SignalInfoBuilder::setCategory(const std::string& categoryStr
     this->mSignalInfo->mSignalCategory = -1;
     try {
         this->mSignalInfo->mSignalCategory = (int8_t)stoi(categoryString, nullptr, 0);
-    } catch(std::invalid_argument const& ex) {
+    } catch(const std::invalid_argument& ex) {
         LOGE("URM_SIGNAL_REGISTRY",
              "Signal Parsing Failed with error: " + std::string(ex.what()));
-    } catch(std::out_of_range const& ex) {
+    } catch(const std::out_of_range& ex) {
         LOGE("URM_SIGNAL_REGISTRY",
              "Signal Parsing Failed with error: " + std::string(ex.what()));
     }
@@ -238,17 +238,17 @@ SignalInfoBuilder* SignalInfoBuilder::addDerivative(const std::string& derivativ
     return this;
 }
 
-SignalInfoBuilder* SignalInfoBuilder::addLock(uint32_t lockId) {
+SignalInfoBuilder* SignalInfoBuilder::addResource(Resource* resource) {
     if(this->mSignalInfo == nullptr) {
         return this;
     }
 
-    if(this->mSignalInfo->mLocks == nullptr) {
-        this->mSignalInfo->mLocks = new(std::nothrow) std::vector<uint32_t>();
+    if(this->mSignalInfo->mSignalResources == nullptr) {
+        this->mSignalInfo->mSignalResources = new(std::nothrow) std::vector<Resource*>();
     }
 
-    if(this->mSignalInfo->mLocks != nullptr) {
-        this->mSignalInfo->mLocks->push_back(lockId);
+    if(this->mSignalInfo->mSignalResources != nullptr) {
+        this->mSignalInfo->mSignalResources->push_back(resource);
     }
 
     return this;
@@ -256,4 +256,82 @@ SignalInfoBuilder* SignalInfoBuilder::addLock(uint32_t lockId) {
 
 SignalInfo* SignalInfoBuilder::build() {
     return this->mSignalInfo;
+}
+
+ResourceBuilder::ResourceBuilder() {
+    this->mResource = new Resource;
+}
+
+ResourceBuilder* ResourceBuilder::setResType(const std::string& resTypeString) {
+    if(this->mResource == nullptr) return this;
+
+    int8_t resourceType = -1;
+    try {
+        resourceType = (int8_t)stoi(resTypeString, nullptr, 0);
+        this->mResource->setResourceType(resourceType);
+    } catch(const std::invalid_argument& ex) {
+
+    } catch(const std::out_of_range& ex) {
+
+    }
+
+    return this;
+}
+
+ResourceBuilder* ResourceBuilder::setResId(const std::string& resIdString) {
+    if(this->mResource == nullptr) return this;
+
+    int16_t resourceId = -1;
+    try {
+        resourceId = (int16_t)stoi(resIdString, nullptr, 0);
+        this->mResource->setResourceID(resourceId);
+
+    } catch(const std::invalid_argument& ex) {
+
+    } catch(const std::out_of_range& ex) {
+
+    }
+
+    return this;
+}
+
+ResourceBuilder* ResourceBuilder::setOpInfo(int32_t opInfo) {
+    if(this->mResource == nullptr) return this;
+
+    this->mResource->setOperationalInfo(opInfo);
+
+    return this;
+}
+
+ResourceBuilder* ResourceBuilder::setNumValues(int32_t valuesCount) {
+    if(this->mResource == nullptr) return this;
+
+    this->mResource->setNumValues(valuesCount);
+
+    return this;
+}
+
+ResourceBuilder* ResourceBuilder::addValue(int32_t value) {
+    if(this->mResource == nullptr) return this;
+
+    std::cout<<"ADDvALUE CALLED"<<std::endl;
+
+    if(this->mResource->getValuesCount() == 1) {
+        this->mResource->mConfigValue.singleValue = value;
+    } else {
+        std::cout<<"ping ping pm om"<<std::endl;
+        if(this->mResource->mConfigValue.valueArray == nullptr) {
+            std::cout<<"ping ping pm om 2"<<std::endl;
+            this->mResource->mConfigValue.valueArray = new std::vector<int32_t>;
+        }
+        std::cout<<"ping ping pm om 3"<<std::endl;
+        this->mResource->mConfigValue.valueArray->push_back(value);
+        std::cout<<"ping ping pm om 4"<<std::endl;
+    }
+
+    return this;
+}
+
+Resource* ResourceBuilder::build() {
+    return this->mResource;
 }

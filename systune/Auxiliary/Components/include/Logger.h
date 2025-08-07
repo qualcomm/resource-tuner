@@ -82,10 +82,10 @@ public:
     /**
      * @brief Configure the Logger
      * @details The logger is designed to be Customizable. Among the knobs which can be configured are:
-                1) What levels to Log, (User can specify an exact value say ERROR, or a Lower Bound say INFO).
-                   In case of Lower Bound Config for Logging, any Message with Log Level higher than the
-                   specified Level will be logged.
-                2) Output Redirection: Output can be captured in a File or directly in ftrace
+     *          1) What levels to Log, (User can specify an exact value say ERROR, or a Lower Bound say INFO).
+     *             In case of Lower Bound Config for Logging, any Message with Log Level higher than the
+     *             specified Level will be logged.
+     *          2) Output Redirection: Output can be captured in a File or directly in ftrace
      * @param level The exact level to Log or the Lower Bound Logging level.
      * @param levelSpecificLogging Indicates whether Exact Level Logging is needed, default behaviour is
      *                             Lower Bound Logging.

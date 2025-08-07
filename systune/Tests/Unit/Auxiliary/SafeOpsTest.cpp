@@ -142,7 +142,7 @@ TEST(SafeMacroTests, TestValidationMacro1) {
     int8_t exceptionHit = false;
     try {
         VALIDATE_GT(val, 0);
-    } catch(std::invalid_argument& e) {
+    } catch(const std::invalid_argument& e) {
         exceptionHit = true;
     }
 
@@ -154,7 +154,7 @@ TEST(SafeMacroTests, TestValidationMacro2) {
     int8_t exceptionHit = false;
     try {
         VALIDATE_GE(val, 100);
-    } catch(std::invalid_argument& e) {
+    } catch(const std::invalid_argument& e) {
         exceptionHit = true;
     }
 

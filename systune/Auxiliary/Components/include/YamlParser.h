@@ -21,14 +21,20 @@ public:
 };
 
 template <typename T>
-inline T safeExtract(const YAML::Node& item) {
+inline T safeExtract(const YAML::Node& node) {
     try {
-        if(item.IsDefined() && item.IsScalar()) {
-            return item.as<T>();
+        if(node.IsDefined() && node.IsScalar()) {
+            return node.as<T>();
         }
-    } catch (YAML::TypedBadConversion<T>& e) {}
+    } catch(const YAML::TypedBadConversion<T>& e) {
+        throw std::invalid_argument("Could not parse Yaml Node, Error: " + std::string(e.what()));
+    }
 
-    throw std::invalid_argument("Could not parse Yaml Node");
+    throw std::invalid_argument("Could not parse Yaml Node as it is Null or Not a Scalar");
+}
+
+inline int8_t isList(const YAML::Node& node) {
+    return node.IsDefined() && node.IsSequence();
 }
 
 #endif

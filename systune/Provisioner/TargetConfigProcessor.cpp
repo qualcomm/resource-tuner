@@ -19,9 +19,13 @@ ErrCode TargetConfigProcessor::parseTargetConfigs() {
     ErrCode rc = YamlParser::parse(fTargetConfigFileName, result);
 
     if(RC_IS_OK(rc)) {
-        if(result[TARGET_CONFIGS_ROOT] && result[TARGET_CONFIGS_ROOT].IsSequence()) {
+        if(result[TARGET_CONFIGS_ROOT].IsDefined() && result[TARGET_CONFIGS_ROOT].IsSequence()) {
             for(const auto& targetConfig : result[TARGET_CONFIGS_ROOT]) {
-                parseYamlNode(targetConfig);
+                try {
+                    parseYamlNode(targetConfig);
+                } catch(const std::invalid_argument& e) {
+                    LOGE("URM_TARGET_PROCESSOR", "Error parsing Target Config: " + std::string(e.what()));
+                }
             }
         }
     }
@@ -38,7 +42,7 @@ void TargetConfigProcessor::parseYamlNode(const YAML::Node& item) {
         (uint8_t)(safeExtract<uint8_t>(item[TARGET_TOTAL_CORE_COUNT]))
     );
 
-    if(item[TARGET_CLUSTER_INFO].IsDefined() && item[TARGET_CLUSTER_INFO].IsSequence()) {
+    if(isList(item[TARGET_CLUSTER_INFO])) {
         for(const auto& clusterInfo : item[TARGET_CLUSTER_INFO]) {
             int8_t id;
             std::string clusterType;
@@ -50,7 +54,7 @@ void TargetConfigProcessor::parseYamlNode(const YAML::Node& item) {
         }
     }
 
-    if(item[TARGET_CLUSTER_SPREAD].IsDefined() && item[TARGET_CLUSTER_SPREAD].IsSequence()) {
+    if(isList(item[TARGET_CLUSTER_SPREAD])) {
         for(const auto& clusterSpread : item[TARGET_CLUSTER_SPREAD]) {
             int8_t id;
             int32_t numCores;
@@ -62,5 +66,3 @@ void TargetConfigProcessor::parseYamlNode(const YAML::Node& item) {
         }
     }
 }
-
-

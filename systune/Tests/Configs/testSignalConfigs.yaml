@@ -12,8 +12,7 @@ SignalConfigs:
       - solar
     Timeout: 4000
     Resources:
-      - 2147549184
-      - 700
+    - {ResId: "0x0", ResType: "0x1", OpInfo: 0, Values: [700]}
 
   - SigId: "0x1"
     Category: "0x1"
@@ -27,8 +26,8 @@ SignalConfigs:
       - derivative_v2
     Timeout: 5000
     Resources:
-      - 2147549185
-      - 814
+      - {ResId: "0x1",ResType: "0x1", OpInfo: 0, Values: [814]}
+      - {ResId: "0x3", ResType: "0x1", OpInfo: 256, Values: [23, 90]}
 
   - SigId: "0x2"
     Category: "0x1"
@@ -43,8 +42,7 @@ SignalConfigs:
       - solar
     Timeout: 4000
     Resources:
-      - 2147549184
-      - 1200
+      - {ResId: "0x0", ResType: "0x1", OpInfo: 0, Values: [700]}
 
   - SigId: "0x3"
     Category: "0x1"
@@ -59,5 +57,7 @@ SignalConfigs:
       - solar
     Timeout: 4000
     Resources:
-      - 2147549184
-      - 800
+      - {ResId: "0x0", ResType: "0x1", OpInfo: 0, Values: [300, 400]}
+      - {ResId: "0x1", ResType: "0x1", OpInfo: 1024, Values: [12, 45, 67]}
+      - {ResId: "0x2", ResType: "0x1", OpInfo: 32, Values: [5]}
+      - {ResId: "0x4", ResType: "0x1", OpInfo: 512, Values: [87]}

@@ -136,7 +136,7 @@ TEST(MemoryPoolAllocationTests, TestMemoryPoolBasicAllocation6) {
     try {
         block = GetBlock<char[120]>();
 
-    } catch(std::bad_alloc& e) {
+    } catch(const std::bad_alloc& e) {
         allocationFailed = true;
     }
 
@@ -153,7 +153,7 @@ TEST(MemoryPoolAllocationTests, TestMemoryPoolBasicAllocation7) {
     try {
         block = GetBlock<int64_t>();
 
-    } catch(std::bad_alloc& e) {
+    } catch(const std::bad_alloc& e) {
         FAIL();
     }
 
@@ -163,7 +163,7 @@ TEST(MemoryPoolAllocationTests, TestMemoryPoolBasicAllocation7) {
     try {
         block = GetBlock<char[8]>();
 
-    } catch(std::bad_alloc& e) {}
+    } catch(const std::bad_alloc& e) {}
 
     ASSERT_EQ(block, nullptr);
 }
@@ -202,7 +202,7 @@ TEST(MemoryPoolFreeTests, TestMemoryPoolFreeingMemory2) {
 
         try {
             block = GetBlock<char[200]>();
-        } catch(std::bad_alloc& e) {
+        } catch(const std::bad_alloc& e) {
             allocationFailed = true;
         }
 

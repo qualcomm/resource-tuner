@@ -40,7 +40,7 @@ int8_t parseResources(const std::string& resources, std::vector<std::pair<uint32
                 index++;
             }
 
-        } catch(std::exception const& ex) {
+        } catch(const std::exception const& ex) {
             return -1;
         }
 

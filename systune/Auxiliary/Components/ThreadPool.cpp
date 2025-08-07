@@ -210,7 +210,7 @@ ThreadPool::ThreadPool(int32_t desiredCapacity, int32_t maxPending, int32_t maxC
         this->mCurrentTasks = new TaskQueue;
         this->mWaitingList = new TaskQueue;
 
-    } catch (const std::bad_alloc& e) {
+    } catch(const std::bad_alloc& e) {
         TYPELOGV(THREAD_POOL_INIT_FAILURE, e.what());
 
         if(this->mCurrentTasks != nullptr) {
@@ -325,11 +325,11 @@ int8_t ThreadPool::enqueueTask(std::function<void(void*)> taskCallback, void* ar
         TYPELOGD(THREAD_POOL_FULL_ALERT);
         return false;
 
-    } catch(std::bad_alloc& e) {
+    } catch(const std::bad_alloc& e) {
         TYPELOGV(THREAD_POOL_ENQUEUE_TASK_FAILURE, e.what());
         return false;
 
-    } catch(std::system_error& e) {
+    } catch(const std::system_error& e) {
         TYPELOGV(THREAD_POOL_ENQUEUE_TASK_FAILURE, e.what());
         return false;
     }
@@ -354,7 +354,7 @@ ThreadPool::~ThreadPool() {
                 if(thNode->th != nullptr && thNode->th->joinable()) {
                     thNode->th->join();
                 }
-            } catch (const std::exception& e) {}
+            } catch(const std::exception& e) {}
 
             if(thNode->th != nullptr) {
                 delete thNode->th;
@@ -373,5 +373,5 @@ ThreadPool::~ThreadPool() {
 
         delete this->mCurrentTasks;
 
-    } catch (const std::exception& e) {}
+    } catch(const std::exception& e) {}
 }

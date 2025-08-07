@@ -80,9 +80,9 @@ do {                    \
     int32_t parsedValue = -1;                                                   \
     try {                                                                       \
         parsedValue = (int32_t)std::stoi(value);                                \
-    } catch(std::invalid_argument const& ex) {                                  \
+    } catch(const std::invalid_argument& ex) {                                  \
         std::cerr<<"std::invalid_argument::what(): " << ex.what()<<std::endl;   \
-    } catch(std::out_of_range const& ex) {                                      \
+    } catch(const std::out_of_range& ex) {                                      \
         std::cerr<<"std::out_of_range::what(): " << ex.what()<<std::endl;       \
     }                                                                           \
     parsedValue;                                                                \

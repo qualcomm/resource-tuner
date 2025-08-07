@@ -123,41 +123,41 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
     }
 
     // Perform Resource Level Checking, using the ResourceRegistry
-    for(int32_t i = 0; i < signalInfo->mLocks->size(); i++) {
-        if(i % 2 == 0) {
-            // Even index, denotes Resource Opcode
-            ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById((*signalInfo->mLocks)[i]);
+    // for(int32_t i = 0; i < signalInfo->mSignalResources->size(); i++) {
+    //     if(i % 2 == 0) {
+    //         // Even index, denotes Resource Opcode
+    //         ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById((*signalInfo->mSignalResources)[i]);
 
-            // Basic sanity: Invalid resource Opcode
-            if(resourceConfig == nullptr) {
-                LOGE("URM_SYSSIGNAL_SERVER_REQUESTS","Invalid Opcode, Dropping Request");
-                return false;
-            }
+    //         // Basic sanity: Invalid resource Opcode
+    //         if(resourceConfig == nullptr) {
+    //             LOGE("URM_SYSSIGNAL_SERVER_REQUESTS","Invalid Opcode, Dropping Request");
+    //             return false;
+    //         }
 
-            // Verify value is in the range [LT, HT]
-            if(i + 1 >= signalInfo->mLocks->size()) {
-                return false;
-            }
+    //         // Verify value is in the range [LT, HT]
+    //         if(i + 1 >= signalInfo->mSignalResources->size()) {
+    //             return false;
+    //         }
 
-            int32_t configValue = (*signalInfo->mLocks)[i + 1];
-            int32_t lowThreshold = resourceConfig->mLowThreshold;
-            int32_t highThreshold = resourceConfig->mHighThreshold;
+    //         int32_t configValue = (*signalInfo->mSignalResources)[i + 1];
+    //         int32_t lowThreshold = resourceConfig->mLowThreshold;
+    //         int32_t highThreshold = resourceConfig->mHighThreshold;
 
-            if(configValue < lowThreshold || configValue > highThreshold) {
-                LOGE("URM_SYSSIGNAL_SERVER_REQUESTS", "Range Checking Failed, Dropping Request");
-                return false;
-            }
+    //         if(configValue < lowThreshold || configValue > highThreshold) {
+    //             LOGE("URM_SYSSIGNAL_SERVER_REQUESTS", "Range Checking Failed, Dropping Request");
+    //             return false;
+    //         }
 
-            // Verify tuning is supported for the resource in question
-            if(!resourceConfig->mSupported) return false;
+    //         // Verify tuning is supported for the resource in question
+    //         if(!resourceConfig->mSupported) return false;
 
-            // Check for Client permissions
-            if(resourceConfig->mPermissions == PERMISSION_SYSTEM && clientPermissions == PERMISSION_THIRD_PARTY) {
-                LOGI("URM_SYSSIGNAL_SERVER_REQUESTS", "Permission Check Failed, Dropping Request");
-                return false;
-            }
-        }
-    }
+    //         // Check for Client permissions
+    //         if(resourceConfig->mPermissions == PERMISSION_SYSTEM && clientPermissions == PERMISSION_THIRD_PARTY) {
+    //             LOGI("URM_SYSSIGNAL_SERVER_REQUESTS", "Permission Check Failed, Dropping Request");
+    //             return false;
+    //         }
+    //     }
+    // }
 
     if(signal->getDuration() == 0) {
         // If the Client has not specified a duration to acquire the Signal for,
@@ -249,43 +249,43 @@ static Request* createResourceTuningRequest(Signal* signal) {
     request->setClientPID(signal->getClientPID());
     request->setClientTID(signal->getClientTID());
 
-    SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(signal->getSignalID());
+    // SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(signal->getSignalID());
 
-    if(signalInfo == nullptr) {
-        FreeBlock<Request>(static_cast<void*>(request));
-        return nullptr;
-    }
+    // if(signalInfo == nullptr) {
+    //     FreeBlock<Request>(static_cast<void*>(request));
+    //     return nullptr;
+    // }
 
-    std::vector<uint32_t>* signalLocks = signalInfo->mLocks;
-    request->setNumResources(signalLocks->size() / 2);
+    // std::vector<Resource*>* signalLocks = signalInfo->mSignalResources;
+    // request->setNumResources(signalLocks->size() / 2);
 
-    std::vector<Resource*>* resourceList =
-        new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
-    resourceList->resize(request->getResourcesCount());
+    // std::vector<Resource*>* resourceList =
+    //     new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
+    // resourceList->resize(request->getResourcesCount());
 
-    Resource* resource = nullptr;
-    for(int32_t i = 0; i < signalLocks->size(); i++) {
-        if(i % 2 == 0) {
-            try {
-                resource = (Resource*) (GetBlock<Resource>());
-                resource->setOpCode((*signalLocks)[i]);
+    // Resource* resource = nullptr;
+    // for(int32_t i = 0; i < signalLocks->size(); i++) {
+    //     if(i % 2 == 0) {
+    //         try {
+    //             resource = (Resource*) (GetBlock<Resource>());
+    //             resource->setOpCode((*signalLocks)[i]);
 
-            } catch(const std::bad_alloc& e) {
-                LOGE("URM_SIGNAL_SERVER",
-                     "Memory allocation for Request struct corresponding to Signal Req with handle: " +
-                     std::to_string(signal->getHandle()) +
-                     " failed with error: " + std::string(e.what()) + ". Dropping this Request");
-                return nullptr;
-            }
+    //         } catch(const std::bad_alloc& e) {
+    //             LOGE("URM_SIGNAL_SERVER",
+    //                  "Memory allocation for Request struct corresponding to Signal Req with handle: " +
+    //                  std::to_string(signal->getHandle()) +
+    //                  " failed with error: " + std::string(e.what()) + ". Dropping this Request");
+    //             return nullptr;
+    //         }
 
-        } else {
-            resource->setNumValues(1);
-            resource->mConfigValue.singleValue = (*signalLocks)[i];
-            (*resourceList)[i - 1] = resource;
-        }
-    }
+    //     } else {
+    //         resource->setNumValues(1);
+    //         resource->mConfigValue.singleValue = (*signalLocks)[i];
+    //         (*resourceList)[i - 1] = resource;
+    //     }
+    // }
 
-    request->setResources(resourceList);
+    // request->setResources(resourceList);
 
     return request;
 }

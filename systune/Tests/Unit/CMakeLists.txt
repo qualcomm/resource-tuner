@@ -1,4 +1,6 @@
 if(BUILD_TESTS)
+    add_executable(YamlParserTests Auxiliary/YamlParserTests.cpp)
+    target_link_libraries(YamlParserTests GTest::gtest_main Auxiliary)
 
     add_executable(MemoryPoolTests ./Auxiliary/MemoryPoolTests.cpp)
     target_link_libraries(MemoryPoolTests GTest::gtest_main Auxiliary)
@@ -48,6 +50,7 @@ if(BUILD_TESTS)
     endif()
 
     include(GoogleTest)
+    gtest_discover_tests(YamlParserTests)
     gtest_discover_tests(RequestQueueTest)
     gtest_discover_tests(CocoTableTest)
     gtest_discover_tests(ClientDataManagerTests)

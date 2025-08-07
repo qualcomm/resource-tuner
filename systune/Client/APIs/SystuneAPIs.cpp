@@ -99,7 +99,7 @@ int64_t tuneResources(int64_t duration, int32_t properties, int32_t numRes, SysR
         int64_t handleReceived = -1;
         try {
             handleReceived = (int64_t)(SafeDeref(resultBuf));
-        } catch(std::invalid_argument& e) {
+        } catch(const std::invalid_argument& e) {
             std::cerr<<"Failed to read Handle, Error: "<<e.what()<<std::endl;
         }
 
@@ -430,7 +430,7 @@ int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t properties,
         try {
             handleReceived = (int64_t)(SafeDeref(resultBuffer));
 
-        } catch(std::invalid_argument& e) {}
+        } catch(const std::invalid_argument& e) {}
 
         if(list != nullptr) {
             delete list;
