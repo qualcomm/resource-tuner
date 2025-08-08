@@ -3,13 +3,9 @@ SignalConfigs:
     Category: "0x1"
     Name: "INSTALL"
     Enable: true
-    TargetsEnabled:
-      - sun
-      - moon
-    Permissions:
-      - third_party
-    Derivatives:
-      - solar
+    TargetsEnabled: ["sun", "moon"]
+    Permissions: ["third_party"]
+    Derivatives: ["solar"]
     Timeout: 4000
     Resources:
     - {ResId: "0x0", ResType: "0x1", OpInfo: 0, Values: [700]}
@@ -18,12 +14,9 @@ SignalConfigs:
     Category: "0x1"
     Name: "EARLY_WAKEUP"
     Enable: true
-    TargetsDisabled:
-      - sun
-    Permissions:
-      - system
-    Derivatives:
-      - derivative_v2
+    TargetsDisabled: ["sun"]
+    Permissions: ["system"]
+    Derivatives: ["derivative_v2"]
     Timeout: 5000
     Resources:
       - {ResId: "0x1",ResType: "0x1", OpInfo: 0, Values: [814]}
@@ -33,13 +26,9 @@ SignalConfigs:
     Category: "0x1"
     Name: "LIGHTNING_LAUNCHES"
     Enable: true
-    TargetsEnabled:
-      - sun
-      - moon
-    Permissions:
-      - third_party
-    Derivatives:
-      - solar
+    TargetsEnabled: ["sun", "moon"]
+    Permissions: ["third_party"]
+    Derivatives: ["solar"]
     Timeout: 4000
     Resources:
       - {ResId: "0x0", ResType: "0x1", OpInfo: 0, Values: [700]}
@@ -48,13 +37,9 @@ SignalConfigs:
     Category: "0x1"
     Name: "SMOOTH_SCROLL"
     Enable: false
-    TargetsEnabled:
-      - SUN
-      - QLI
-    Permissions:
-      - third_party
-    Derivatives:
-      - solar
+    TargetsEnabled: ["SUN", "QLI"]
+    Permissions: ["third_party"]
+    Derivatives: ["solar"]
     Timeout: 4000
     Resources:
       - {ResId: "0x0", ResType: "0x1", OpInfo: 0, Values: [300, 400]}

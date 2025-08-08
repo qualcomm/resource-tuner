@@ -314,19 +314,13 @@ ResourceBuilder* ResourceBuilder::setNumValues(int32_t valuesCount) {
 ResourceBuilder* ResourceBuilder::addValue(int32_t value) {
     if(this->mResource == nullptr) return this;
 
-    std::cout<<"ADDvALUE CALLED"<<std::endl;
-
     if(this->mResource->getValuesCount() == 1) {
         this->mResource->mConfigValue.singleValue = value;
     } else {
-        std::cout<<"ping ping pm om"<<std::endl;
         if(this->mResource->mConfigValue.valueArray == nullptr) {
-            std::cout<<"ping ping pm om 2"<<std::endl;
             this->mResource->mConfigValue.valueArray = new std::vector<int32_t>;
         }
-        std::cout<<"ping ping pm om 3"<<std::endl;
         this->mResource->mConfigValue.valueArray->push_back(value);
-        std::cout<<"ping ping pm om 4"<<std::endl;
     }
 
     return this;

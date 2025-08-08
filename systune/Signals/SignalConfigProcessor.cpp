@@ -111,7 +111,6 @@ void SignalConfigProcessor::parseYamlNode(const YAML::Node& item) {
             if(isList(resourceConfig[SIGNAL_VALUES])) {
                 int32_t valuesCount = resourceConfig[SIGNAL_VALUES].size();
                 resourceBuilder.setNumValues(valuesCount);
-                std::cout<<"Value Count = "<<valuesCount<<std::endl;
 
                 for(int32_t i = 0; i < valuesCount; i++) {
                     resourceBuilder.addValue(

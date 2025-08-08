@@ -25,30 +25,29 @@ def unit_tests():
     os.system("./Tests/Unit/ClientDataManagerTests")
     # os.system("./Tests/Unit/RateLimiterTests")
 
-# # System Tests
-# def system_tests():
-#     pid = os.fork()
-#     if pid == 0:
-#         # Start the Server
-#         os.execvp("./systune", ["./systune", "--test"])
-#     elif pid > 0:
-#         time.sleep(4)
-#         os.system("./sys_tests_ex")
-#     else:
-#         print("System Wide Tests cannot be run as Server startup failed")
+# System Tests
+def system_tests():
+    pid = os.fork()
+    if pid == 0:
+        # Start the Server
+        os.execvp("./systune", ["./systune", "--test"])
+    elif pid > 0:
+        time.sleep(4)
+        os.system("./sys_tests_ex")
+    else:
+        print("System Wide Tests cannot be run as Server startup failed")
 
-#     # Terminate the Server
-#     time.sleep(2)
-#     os.kill(pid, signal.SIGINT)
-#     time.sleep(2)
+    # Terminate the Server
+    time.sleep(2)
+    os.kill(pid, signal.SIGINT)
+    time.sleep(2)
 
-# # Server Lifecycle Tests
-# def lifecycle_tests():
-#     os.system("python ../Tests/System/ServerLifecyleTests.py")
+# Server Lifecycle Tests
+def lifecycle_tests():
+    os.system("python ../Tests/System/ServerLifecyleTests.py")
 
 if __name__ == "__main__":
     # Setup
-
     configFilesToCopy = ["testYamlInvalidSyntax.yaml",
                          "testPropertiesConfig.yaml",
                          "testResourceConfigs.yaml",
@@ -64,12 +63,13 @@ if __name__ == "__main__":
 
     time.sleep(10)
 
-    # unit_tests()
-    # system_tests()
-    # lifecycle_tests()
+    unit_tests()
+    system_tests()
+    lifecycle_tests()
 
-    # time.sleep(10)
+    time.sleep(10)
 
+    # Cleanup
     for fileName in configFilesToCopy:
         # Copy files to current directory
         os.system("rm " + fileName)
