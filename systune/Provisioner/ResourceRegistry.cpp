@@ -11,14 +11,24 @@ ResourceRegistry::ResourceRegistry() {
     this->mTotalResources = 0;
 }
 
-void ResourceRegistry::initRegistry(int32_t size, int8_t customerBit) {
-    if(mResourceConfig.size() == 0 && size > 0) {
-        this->mResourceConfig.resize(size);
-        this->customerBit = customerBit;
-    }
+void ResourceRegistry::initRegistry(int8_t customerBit) {
+    this->customerBit = customerBit;
+}
+
+int8_t ResourceRegistry::isResourceConfigMalformed(ResourceConfigInfo* rConf) {
+    if(rConf == nullptr) return true;
+    if(rConf->mResourceOptype < 0 || rConf->mResourceOpcode < 0) return true;
+    if(rConf->mHighThreshold < 0 || rConf->mLowThreshold < 0) return true;
+    return false;
 }
 
 void ResourceRegistry::registerResource(ResourceConfigInfo* resourceConfigInfo) {
+    // Invalid Resource, skip.
+    if(this->isResourceConfigMalformed(resourceConfigInfo)) {
+        delete resourceConfigInfo;
+        return;
+    }
+
     // Persist the Default Values of the Resources in a File.
     // These values will be used to restore the Sysfs nodes in case the Server Process crashes.
     std::fstream sysfsPersistenceFile("../sysfsOriginalValues.txt", std::ios::out | std::ios::app);
@@ -27,12 +37,6 @@ void ResourceRegistry::registerResource(ResourceConfigInfo* resourceConfigInfo) 
     resourceData.append(std::to_string(resourceConfigInfo->mDefaultValue));
     resourceData.push_back('\n');
     sysfsPersistenceFile << resourceData;
-
-    // Invalid Resource, skip.
-    if(resourceConfigInfo->mResourceOpcode == -1 ||
-       resourceConfigInfo->mResourceOptype == -1) {
-        return;
-    }
 
     // Create the OpID Bitmap, this will serve as the key for the entry in mSystemIndependentLayerMappings.
     uint32_t resourceBitmap = 0;
@@ -44,7 +48,7 @@ void ResourceRegistry::registerResource(ResourceConfigInfo* resourceConfigInfo) 
     resourceBitmap |= ((uint32_t)resourceConfigInfo->mResourceOptype << 16);
 
     this->mSystemIndependentLayerMappings[resourceBitmap] = this->mTotalResources;
-    this->mResourceConfig[this->mTotalResources] = resourceConfigInfo;
+    this->mResourceConfig.push_back(resourceConfigInfo);
 
     this->mTotalResources++;
 }
@@ -239,7 +243,7 @@ ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setSupported(int8_t suppor
 ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setPolicy(const std::string& policyString) {
     if(this->mResourceConfigInfo == nullptr) return this;
 
-    enum Policy policy = INSTANT_APPLY;
+    enum Policy policy = LAZY_APPLY;
     if(policyString == "higher_is_better") {
         policy = HIGHER_BETTER;
     } else if(policyString == "lower_is_better") {

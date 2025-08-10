@@ -30,6 +30,8 @@ ErrCode SignalConfigProcessor::parseSignalConfigs() {
                     parseYamlNode(signalConfig);
                 } catch(const std::invalid_argument& e) {
                     LOGE("URM_SIGNAL_PROCESSOR", "Error parsing Signal Config: " + std::string(e.what()));
+                } catch(const std::bad_alloc& e) {
+
                 }
             }
         }
@@ -95,6 +97,8 @@ void SignalConfigProcessor::parseYamlNode(const YAML::Node& item) {
 
     if(item[SIGNAL_RESOURCES].IsDefined() && item[SIGNAL_RESOURCES].IsSequence()) {
         for(const auto& resourceConfig: item[SIGNAL_RESOURCES]) {
+            if(!resourceConfig.IsMap()) break;
+
             ResourceBuilder resourceBuilder;
             resourceBuilder.setResId(
                 safeExtract<std::string>(resourceConfig[SIGNAL_RESOURCE_ID])

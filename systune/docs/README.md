@@ -142,53 +142,50 @@ Further, a ThreadPool component is provided to pre-allocate processing capacity.
 Systune utilises YAML files for configuration. This includes the Resources, Signal Config Files. The BUs can provide their own Config Files, which are specific to their use-case through the Extension Interface
 
 ## 1. Resource Configs
-These file resourceConfigs.yaml stores resource-specific information. The Resources are Defined as an array.
+Tunable Resources are specified via the resourceConfigs.yaml file. Each Resource is defined with the following fields:
 
-#### Field Descriptions
+#### Fields Description
 
-| Field           | Type       | Description |
-|----------------|------------|-------------|
-| `ResID`        | `string`   | 16-bit Resource Identifier, unique within the Resource Type. |
-| `ResType`       | `integer`  | 8-bit Type of the Resource, for example: cpu / dcvs
-| `Name`          | `string`   | Path to the system sysfs node. |
-| `Supported`     | `boolean`  | Indicates if the Resource is Eligible for Provisioning. |
-| `HighThreshold` | `integer`   | Upper threshold value for the resource. |
-| `LowThreshold`  | `integer`   | Lower threshold value for the resource. |
-| `Permissions`   | `string`   | Type of client allowed to Provision this Resource (`system` or `third_party`). |
-| `Modes`         | `array`    | Display modes applicable (`"display_on"`, `"display_off"`, `"doze"`). |
-| `Policy`        | `string`   | Concurrency policy (`"higher_is_better"`, `"lower_is_better"`, `"instant_apply"`, `"lazy_apply"`). |
-| `CoreLevelConflict` | `boolean`  | Indicates if the resource can have different values, across different cores. |
+| Field           | Type       | Description | Default Value |
+|----------------|------------|-------------|-----------------|
+| `ResID`        | `string` (Mandatory)   | 16-bit Resource Identifier, unique within the Resource Type. | Not Applicable |
+| `ResType`       | `string` (Mandatory)  | 8-bit Type of the Resource, for example: cpu / dcvs | Not Applicable |
+| `Name`          | `string` (Optional)   | Path to the system sysfs node. | `Empty String` |
+| `Supported`     | `boolean` (Optional)  | Indicates if the Resource is Eligible for Provisioning. | `False` |
+| `HighThreshold` | `integer (int32_t)` (Mandatory)   | Upper threshold value for the resource. | Not Applicable |
+| `LowThreshold`  | `integer (int32_t)` (Mandatory)   | Lower threshold value for the resource. | Not Applicable |
+| `Permissions`   | `string` (Optional)   | Type of client allowed to Provision this Resource (`system` or `third_party`). | `third_party` |
+| `Modes`         | `array` (Optional)    | Display modes applicable (`"display_on"`, `"display_off"`, `"doze"`). | `display_on` |
+| `Policy`        | `string`(Optional)   | Concurrency policy (`"higher_is_better"`, `"lower_is_better"`, `"instant_apply"`, `"lazy_apply"`). | `lazy_apply` |
+| `CoreLevelConflict` | `boolean` (Optional)  | Indicates if the resource can have different values, across different cores. | `False` |
 
+<div style="page-break-after: always;"></div>
 
 #### Example
 
 ```yaml
-"ResourceConfigs": [
-  {
-    "ResType": "0x1",
-    "ResID":"0x0",
-    "Name":"/proc/sys/kernel/sched_util_clamp_min",
-    "Supported":true,
-    "HighThreshold": 1024,
-    "LowThreshold": 0,
-    "Permissions": "third_party",
-    "Modes": ["display_on", "doze"],
-    "Policy": "higher_is_better",
-    "CoreLevelConflict": false
-  },
-  {
-    "ResType": "0x1",
-    "ResID":"0x1",
-    "Name":"/proc/sys/kernel/sched_util_clamp_max",
-    "Supported":true,
-    "HighThreshold": 1024,
-    "LowThreshold": 0,
-    "Permissions": "third_party",
-    "Modes": ["display_on", "doze"],
-    "Policy": "lower_is_better",
-    "CoreLevelConflict": false
-  }
-]
+ResourceConfigs:
+  - ResType: "0x1"
+    ResID: "0x0"
+    Name: "/proc/sys/kernel/sched_util_clamp_min"
+    Supported: true
+    HighThreshold: 1024
+    LowThreshold: 0
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: "higher_is_better"
+    CoreLevelConflict: false
+
+  - ResType: "0x1"
+    ResID: "0x1"
+    Name: "/proc/sys/kernel/sched_util_clamp_max"
+    Supported: true
+    HighThreshold: 1024
+    LowThreshold: 0
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: "lower_is_better"
+    CoreLevelConflict: false
 ```
 
 ---
@@ -199,21 +196,24 @@ This targetPropertiesConfigs.yaml file stores various properties which are used 
 
 #### Field Descriptions
 
-| Field           | Type       | Description |
-|----------------|------------|-------------|
-| `Name`          | `string`   | Unique name of the parameter |
-| `Value`          | `integer`   | The value for the parameter. |
+| Field           | Type       | Description | Default Value  |
+|----------------|------------|-------------|----------------|
+| `Name`          | `string` (Mandatory)   | Unique name of the parameter | Not Applicable
+| `Value`          | `integer` (Mandatory)   | The value for the parameter. | Not Applicable
 
 
 #### Example
 
 ```yaml
-{
-  "PropertyConfigs": [
-    {"Name": "systune.maximum.concurrent.requests", "Value" : "130"},
-    {"Name": "systune.maximum.resources.per.request", "Value" :"5"},
-  ]
-}
+PropertyConfigs:
+  - Name: systune.maximum.concurrent.requests
+    Value: "60"
+  - Name: systune.maximum.resources.per.request
+    Value: "64"
+  - Name: systune.listening.port
+    Value: "12000"
+  - Name: systune.pulse.duration
+    Value: "60000"
 ```
 <div style="page-break-after: always;"></div>
 
@@ -222,39 +222,98 @@ The file signalConfigs.yaml defines the Signal Configs.
 
 #### Field Descriptions
 
-| Field           | Type       | Description |
-|----------------|------------|-------------|
-| `SigId`          | `integer`   | Signal Identifier |
-| `Category`          | `integer`   | Category of the Signal, for example: Generic, App Lifecycle. |
-| `Name`          | `string`   |
-| `Enable`          | `boolean`   | Indicates if the Signal is Eligible for Provisioning. |
-| `TargetsEnabled`          | `array`   | List of Targets on which this Signal can be Acquired |
-| `TargetsEnabled`          | `array`   | List of Targets on which this Signal cannot be Acquired |
-| `Permissions`          | `array`   | List of acceptable Client Level Permissions for tuning this |
-|`Timeout`              | `integer` | Default Signal Acquire Duration to be used in case the Client specifies a value of 0 for duration in the tuneSignal API call. |
-| `Resources` | `array` | List of Resource OpCode / Value pairs. |
+| Field           | Type       | Description | Default Value |
+|----------------|------------|-------------|---------------|
+| `SigId`          | `string` (Mandatory)   | Signal Identifier | Not Applicable |
+| `Category`          | `string` (Mandatory)   | Category of the Signal, for example: Generic, App Lifecycle. | Not Applicable |
+| `Name`          | `string` (Optional)  | |`Empty String` |
+| `Enable`          | `boolean` (Optional)   | Indicates if the Signal is Eligible for Provisioning. | `False` |
+| `TargetsEnabled`          | `array` (Optional)   | List of Targets on which this Signal can be Acquired | `Empty List` |
+| `TargetsEnabled`          | `array` (Optional)   | List of Targets on which this Signal cannot be Acquired | `Empty List` |
+| `Permissions`          | `array` (Optional)   | List of acceptable Client Level Permissions for tuning this Signal | `third_party` |
+|`Timeout`              | `integer` (Optional) | Default Signal Acquire Duration to be used in case the Client specifies a value of 0 for duration in the tuneSignal API call. | `1000` |
+| `Resources` | `array` (Mandatory) | List of Resources. | Not Applicable |
+
+<div style="page-break-after: always;"></div>
 
 #### Example
 
 ```yaml
-{
-      "SignalConfigs": [
-        {
-            "SigId": "0x0",
-            "Category": "0x1",
-            "Name": "INSTALL",
-            "Enable": true,
-            "TargetsEnabled": ["sun","moon"],
-            "Permissions": ["system", "third_party"],
-            "Derivatives": ["solar"],
-            "Timeout": 4000,
-            "Resources": [65536,700]
-        }
-      ]
-}
+SignalConfigs:
+  - SigId: "0x0"
+    Category: "0x1"
+    Name: INSTALL
+    Enable: true
+    TargetsEnabled: ["sun", "moon"]
+    Permissions: ["system", "third_party"]
+    Derivatives: ["solar"]
+    Timeout: 4000
+    Resources:
+      - {ResId: "0x0", ResType: "0x1", OpInfo: 0, Values: [700]}
+
+  - SigId: "0x1"
+    Category: "0x1"
+    Name: EARLY_WAKEUP
+    Enable: true
+    TargetsDisabled: ["sun"]
+    Permissions: ["system"]
+    Derivatives: ["solar"]
+    Timeout: 5000
+    Resources:
+      - {ResId: "0", ResType: "0x1", OpInfo: 0, Values: [300, 400]}
+      - {ResId: "1", ResType: "0x1", OpInfo: 1024, Values: [12, 45]}
+      - {ResId: "2", ResType: "0x2", OpInfo: 32, Values: [5]}
+      - {ResId: "3", ResType: "0x4", OpInfo: 256, Values: [23, 90]}
+      - {ResId: "4", ResType: "0x1", OpInfo: 512, Values: [87]}
 ```
 <div style="page-break-after: always;"></div>
 
+
+## 4. (Optional) Target Configs
+The file targetConfigs.yaml defines the Target Configs, not this an Optional Config, i.e. this
+file need not necessarily be provided. Systune can dynamically fetch system info, like Target Name,
+Logical to Physical Core / Cluster Mapping, number of cores etc. Use this file, if you want to
+provide this information explicitly. If the targetConfigs.yaml is provided, Systune will always
+Prioritize and use it. Also note, there are no field-level default values available if the targetConfigs.yaml is provided. Hence if you wish to provide this file, then you'll need to exhaustivly provide
+all the required information.
+
+#### Field Descriptions
+
+| Field           | Type       | Description | Default Value |
+|----------------|------------|-------------|---------------|
+| `TargetName`          | `string` (Mandatory)   | Target Identifier | Not Applicable |
+| `ClusterInfo`          | `array` (Mandatory)   | Cluster ID to Type Mapping | Not Applicable |
+| `ClusterSpread`          | `array` (Mandatory)  |  Cluster ID to Per Cluster Core Count Mapping | Not Applicable |
+| `TotalCoreCount`          | `integer` (Mandatory)   | Total Number of Cores available. | Not Applicable |
+
+<div style="page-break-after: always;"></div>
+
+#### Example
+
+```yaml
+TargetConfig:
+  - TargetName: qli
+    ClusterInfo:
+      - Id: 0
+        Type: big
+      - Id: 1
+        Type: little
+      - Id: 2
+        Type: prime
+      - Id: 3
+        Type: titanium
+    ClusterSpread:
+      - Id: 0
+        NumCores: 4
+      - Id: 1
+        NumCores: 4
+      - Id: 2
+        NumCores: 4
+      - Id: 3
+        NumCores: 4
+    TotalCoreCount: 16
+```
+<div style="page-break-after: always;"></div>
 
 # Systune APIs
 This API suite allows you to manage system resource provisioning through tuning requests. You can issue, modify, or withdraw resource tuning requests with specified durations and priorities.
@@ -443,18 +502,19 @@ Examples:
 - The Resource OpCode: 65536 [00000000 00000001 00000000 00000000], Refers to the Default Resource with ResID 0 and ResType 1.
 - The Resource OpCode: 2147549185 [10000000 00000001 00000000 00000001], Refers to the Custom Resource with ResID 1 and ResType 1.
 
-#### List Of Resource Types
+#### List Of Resource Types (Use this table to get the value of ResType for a Resource)
 
-| Name           | ResType  |
-|----------------|----------|
-|    POWER       |   `1`    |
-|    CPU_DCVS    |   `2`    |
-|    CPU_SCHED   |   `3`    |
-|    GPU         |   `4`    |
-|    NPU         |   `5`    |
-|    CACHES      |   `6`    |
-|    MPAM        |   `7`    |
-|    MISC        |   `8`    |
+| Name           | ResType  | Examples |
+|----------------|----------|----------|
+|    POWER       |    `1`   | |
+|    CPU_DCVS    |    `2`   | |
+|    CPU_SCHED   |    `3`   | `/proc/sys/kernel/sched_util_clamp_min` `/proc/sys/kernel/sched_util_clamp_max` |
+|    CPU_FREQ    |    `4`   | `/sys/devices/system/cpu/cpufreq/policy<>/scaling_min_freq` `/sys/devices/system/cpu/cpufreq/policy<>/scaling_max_freq` |
+|    GPU         |    `5`   | |
+|    NPU         |    `6`   | |
+|    CACHES      |    `7`   | |
+|    MPAM        |    `8`   | |
+|    MISC        |    `9`   | |
 
 ---
 
@@ -464,35 +524,34 @@ Examples:
 
 ## tuneResources
 
-The below example demonstrates the use of the tuneResources API for Resource Provisioning.
+Note the following code snippets showcase the use of Systune APIs. For more in-depth examples
+refer "link to Examples dir"
+
+This example demonstrates the use of tuneResources API for Resource Provisioning.
 ```cpp
+#include <iostream>
+#include <Systune/SystuneAPIs.h>
+
 void sendRequest() {
     // Define resources
-    Resource cpuFreq;
-    cpuFreq.OpId = 0x00010001;         // Example OpId for CPU frequency
-    cpuFreq.OpInfo = 0x00000001;       // Example: target cluster/core
-    cpuFreq.OptionalInfo = 0;          // No optional info
-    cpuFreq.NumValues = 1;
-    cpuFreq.Value = 1500000;           // 1.5 GHz
+    SysResource* resourceList = new SysResource[1];
+    resourceList[0].mOpCode = 65536;
+    resourceList[0].mNumValues = 1;
+    resourceList[0].mConfigValue.singleValue = 980;
 
-    Resource gpuFreq;
-    gpuFreq.OpId = 0x00020001;         // Example OpId for GPU frequency
-    gpuFreq.OpInfo = 0x00000001;       // Example: target GPU unit
-    gpuFreq.OptionalInfo = 0;
-    gpuFreq.NumValues = 1;
-    gpuFreq.Value = 600000;            // 600 MHz
+    // Issue the Tune Request
+    int64_t handle = tuneResources(5000, 0, 1, resourceList);
 
-    std::vector<Resource*> resources = { &cpuFreq, &gpuFreq };
-
-    // Issue a tuning request for 10 seconds with priority 1
-    int64_t handle = tuneResources(10000, 1, resources.size(), &resources);
-    if (handle < 0) {
-        std::cerr << "Failed to issue tuning request." << std::endl;
-        return -1;
+    if(handle < 0) {
+        std::cerr<<"Failed to issue tuning request."<<std::endl;
+    } else {
+        std::cout<<"Tuning request issued. Handle: "<<handle<<std::endl;
     }
-    std::cout << "Tuning request issued. Handle: " << handle << std::endl;
 }
 ```
+
+The memory allocated for the resourceList will be freed by the tuneResources API. The user of
+this API should not free this memory.
 
 <div style="page-break-after: always;"></div>
 
@@ -501,28 +560,30 @@ void sendRequest() {
 The below example demonstrates the use of the retuneResources API for modifying a Request's duration.
 ```cpp
 void sendRequest() {
-    // Modify the duration to 20 seconds
-    if (retuneResources(20000, handle) == 0) {
-        std::cout << "Tuning request updated to 20 seconds." << std::endl;
-    } else {
-        std::cerr << "Failed to retune request." << std::endl;
+    // Modify the duration of a previously issued Tune Request to 20 seconds
+    // Let's say we stored the handle returned by the tuneResources API in
+    // a variable called "handle". Then the retuneResources API can be simply called like:
+    if(retuneResources(20000, handle) < 0) {
+      std::cerr<<"Failed to Send retune request to Systune Server"<<std::endl;
     }
 }
 ```
+
+<div style="page-brea k-after: always;"></div>
 
 ## untuneResources
 
-The below example demonstrates the use of the untuneResources API for untuning a previously issued Request.
+The below example demonstrates the use of the untuneResources API for untuning a previously issued Tune Request.
 ```cpp
 void sendRequest() {
-    // Withdraw the tuning request
-    if (untuneResources(handle) == 0) {
-        std::cout << "Tuning request successfully withdrawn." << std::endl;
-    } else {
-        std::cerr << "Failed to untune request." << std::endl;
+    // Withdraw a Previously issued tuning request
+    if(untuneResources(handle) == -1) {
+		std::cerr<<"Failed to Send untune request to Systune Server"<<std::endl;
     }
 }
 ```
+
+<div style="page-break-after: always;"></div>
 
 # Extension Interface
 

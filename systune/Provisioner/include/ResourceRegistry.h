@@ -86,11 +86,24 @@ private:
 
     ResourceRegistry();
 
+    /**
+     * @brief Checks if a ResourceConfig is malformed
+     * @details Validates all the mandatory fields form the ResourceConfig and
+     *          checks if they have sane values.
+     */
+    int8_t isResourceConfigMalformed(ResourceConfigInfo* resourceConfigInfo);
+
 public:
     ~ResourceRegistry();
 
-    void initRegistry(int32_t size, int8_t customerBit);
+    void initRegistry(int8_t customerBit);
 
+    /**
+     * @brief Used to register a Config specified (through YAML) Resource with Systune
+     * @details The Resource Info is parsed from YAML files. If the ResourceConfig provided is
+     *          Malformed, then it will be freed as part of this routine, else it will
+     *          be added to the "mResourceConfig" vector.
+     */
     void registerResource(ResourceConfigInfo* resourceConfigInfo);
 
     std::vector<ResourceConfigInfo*> getRegisteredResources();

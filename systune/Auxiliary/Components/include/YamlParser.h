@@ -33,6 +33,25 @@ inline T safeExtract(const YAML::Node& node) {
     throw std::invalid_argument("Could not parse Yaml Node as it is Null or Not a Scalar");
 }
 
+template <typename T>
+inline T safeExtract(const YAML::Node& node, T defaultValue) {
+    try {
+        if(node.IsDefined() && node.IsScalar()) {
+            return node.as<T>();
+        }
+    } catch(const YAML::TypedBadConversion<T>& e) {
+        LOGE("URM_YAML_PARSER",
+             "Failed to parse Node to Yaml, Error: " + std::string(e.what()) + " " +
+             "returning specified default Value");
+        return defaultValue;
+    }
+
+    LOGE("URM_YAML_PARSER",
+         "Could not parse Yaml Node as it is Null or Not a Scalar " \
+         "returning specified default Value");
+    return defaultValue;
+}
+
 inline int8_t isList(const YAML::Node& node) {
     return node.IsDefined() && node.IsSequence();
 }

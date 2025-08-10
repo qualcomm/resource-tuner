@@ -98,6 +98,28 @@ ResourceConfigs:
     Policy: "lazy_apply"
     CoreLevelConflict: false
 
+  - ResType: "yx1"
+    ResID: "zzo"
+    Name: "../Tests/Configs/ResourceSysFsNodes/invalidResource"
+    Supported: true
+    HighThreshold: y
+    LowThreshold: "vb"
+    Permissions: 2
+    Modes: {"display_on"}
+    Policy: "lazy_apply"
+    CoreLevelConflict: 78
+
+  - ResType: -1
+    ResID: "index"
+    Name: "../Tests/Configs/ResourceSysFsNodes/invalidResource"
+    Supported: 6.65
+    HighThreshold: "X"
+    LowThreshold: "vb"
+    Permissions: -5
+    Modes: -3
+    Policy: false
+    CoreLevelConflict: b
+
   - ResType: "0x8"
     ResID: "0x0"
     Name: "/proc/sys/kernel/sched_util_clamp_min"

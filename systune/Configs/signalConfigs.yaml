@@ -19,8 +19,8 @@ SignalConfigs:
     Derivatives: ["solar"]
     Timeout: 5000
     Resources:
-      - {ResId: "0", ResType: "1", OpInfo: 0, Values: [300, 400]}
-      - {ResId: "1", ResType: "1", OpInfo: 1024, Values: [12, 45]}
-      - {ResId: "2", ResType: "1", OpInfo: 32, Values: [5]}
-      - {ResId: "3", ResType: "1", OpInfo: 256, Values: [23, 90]}
-      - {ResId: "4", ResType: "1", OpInfo: 512, Values: [87]}
+      - {ResId: "0", ResType: "0x1", OpInfo: 0, Values: [300, 400]}
+      - {ResId: "1", ResType: "0x1", OpInfo: 1024, Values: [12, 45]}
+      - {ResId: "2", ResType: "0x2", OpInfo: 32, Values: [5]}
+      - {ResId: "3", ResType: "0x4", OpInfo: 256, Values: [23, 90]}
+      - {ResId: "4", ResType: "0x1", OpInfo: 512, Values: [87]}

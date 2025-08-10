@@ -27,12 +27,16 @@ ErrCode ResourceProcessor::parseResourceConfigs() {
     if(RC_IS_OK(rc)) {
         if(result[RESOURCE_CONFIGS_ROOT].IsDefined() && result[RESOURCE_CONFIGS_ROOT].IsSequence()) {
             int32_t resourceCount = result[RESOURCE_CONFIGS_ROOT].size();
-            ResourceRegistry::getInstance()->initRegistry(resourceCount, this->mCustomResourceFileSpecified);
+            ResourceRegistry::getInstance()->initRegistry(this->mCustomResourceFileSpecified);
 
-            for(const auto& resourceConfig : result[RESOURCE_CONFIGS_ROOT]) {
+            for(int32_t i = 0; i < result[RESOURCE_CONFIGS_ROOT].size(); i++) {
+                YAML::Node resourceConfig = result[RESOURCE_CONFIGS_ROOT][i];
                 try {
+                    LOGI("URM_RESOURCE_PROCESSOR", "Parsing resource at index = " + std::to_string(i));
                     parseYamlNode(resourceConfig);
                 } catch(const std::invalid_argument& e) {
+                    LOGE("URM_RESOURCE_PROCESSOR", "Error parsing Resource Config: " + std::string(e.what()));
+                } catch(const std::bad_alloc& e) {
                     LOGE("URM_RESOURCE_PROCESSOR", "Error parsing Resource Config: " + std::string(e.what()));
                 }
             }
@@ -74,52 +78,65 @@ int32_t readFromNode(const std::string& fName) {
 void ResourceProcessor::parseYamlNode(const YAML::Node& item) {
     ResourceConfigInfoBuilder resourceConfigInfoBuilder;
 
+    // No Defaults Available, a Resource with Invalid OpType is considered Malformed
     resourceConfigInfoBuilder.setOptype(
-        safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCE_TYPE])
+        safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCE_TYPE], "-1")
     );
 
+    // No Defaults Available, a Resource with Invalid OpId is considered Malformed
     resourceConfigInfoBuilder.setOpcode(
-        safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCE_ID])
+        safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCE_ID], "-1")
     );
 
+    // Defaults to false
     resourceConfigInfoBuilder.setSupported(
-        safeExtract<bool>(item[RESOURCE_CONFIGS_ELEM_SUPPORTED])
+        safeExtract<bool>(item[RESOURCE_CONFIGS_ELEM_SUPPORTED], false)
     );
 
+    // Defaults to an empty string
     resourceConfigInfoBuilder.setName(
-        safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCENAME])
+        safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCENAME], "")
     );
 
     int32_t defaultValue = readFromNode(
-        safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCENAME])
+        safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCENAME], "")
     );
 
+    // Defaults to 0
     resourceConfigInfoBuilder.setDefaultValue(defaultValue);
 
+    // No Defaults Available, a Resource with Invalid HT is considered Malformed
     resourceConfigInfoBuilder.setHighThreshold(
-        safeExtract<int32_t>(item[RESOURCE_CONFIGS_ELEM_HIGHTHRESHOLD])
+        safeExtract<int32_t>(item[RESOURCE_CONFIGS_ELEM_HIGHTHRESHOLD], -1)
     );
 
+    // No Defaults Available, a Resource with Invalid LT is considered Malformed
     resourceConfigInfoBuilder.setLowThreshold(
-        safeExtract<int32_t>(item[RESOURCE_CONFIGS_ELEM_LOWTHRESHOLD])
+        safeExtract<int32_t>(item[RESOURCE_CONFIGS_ELEM_LOWTHRESHOLD], -1)
     );
 
+    // Default to a Value of Third Party
     resourceConfigInfoBuilder.setPermissions(
-        safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_PERMISSIONS])
+        safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_PERMISSIONS], "")
     );
 
+    // Defaults to a Value of DISPLAY_ON
     if(isList(item[RESOURCE_CONFIGS_ELEM_MODES])) {
         for(const auto& mode : item[RESOURCE_CONFIGS_ELEM_MODES]) {
-            resourceConfigInfoBuilder.setModes(safeExtract<std::string>(mode));
+            resourceConfigInfoBuilder.setModes(safeExtract<std::string>(mode, ""));
         }
+    } else {
+        resourceConfigInfoBuilder.setModes("");
     }
 
+    // Defaults to LAZY_APPLY
     resourceConfigInfoBuilder.setPolicy(
-        safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_POLICY])
+        safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_POLICY], "")
     );
 
+    // Defaults to false
     resourceConfigInfoBuilder.setCoreLevelConflict(
-        safeExtract<bool>(item[RESOURCE_CONFIGS_ELEM_CORE_LEVEL_CONFLICT])
+        safeExtract<bool>(item[RESOURCE_CONFIGS_ELEM_CORE_LEVEL_CONFLICT], false)
     );
 
     ResourceRegistry::getInstance()->registerResource(resourceConfigInfoBuilder.build());

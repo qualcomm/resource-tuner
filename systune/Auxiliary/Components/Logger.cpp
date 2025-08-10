@@ -3,7 +3,7 @@
 
 #include "Logger.h"
 
-int8_t Logger::mCurrentLevel = ERROR;
+int8_t Logger::mCurrentLevel = DEBUG;
 int8_t Logger::mLevelSpecificLogging = false;
 RedirectOptions Logger::mRedirectOutputTo = LOG_FILE;
 
