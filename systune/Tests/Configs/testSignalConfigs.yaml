@@ -1,3 +1,6 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause-Clear
+
 SignalConfigs:
   - SigId: "0x0"
     Category: "0x1"
@@ -8,7 +11,7 @@ SignalConfigs:
     Derivatives: ["solar"]
     Timeout: 4000
     Resources:
-    - {ResId: "0x0", ResType: "0x1", OpInfo: 0, Values: [700]}
+    - {ResCode: "0x80010000", OpInfo: "0x00000000", Values: [700]}
 
   - SigId: "0x1"
     Category: "0x1"
@@ -19,8 +22,8 @@ SignalConfigs:
     Derivatives: ["derivative_v2"]
     Timeout: 5000
     Resources:
-      - {ResId: "0x1",ResType: "0x1", OpInfo: 0, Values: [814]}
-      - {ResId: "0x3", ResType: "0x1", OpInfo: 256, Values: [23, 90]}
+      - {ResCode: "0x00000008", OpInfo: "0x00000000", Values: [814]}
+      - {ResCode: "0x0000000f", OpInfo: "0x00000100", Values: [23, 90]}
 
   - SigId: "0x2"
     Category: "0x1"
@@ -31,7 +34,7 @@ SignalConfigs:
     Derivatives: ["solar"]
     Timeout: 4000
     Resources:
-      - {ResId: "0x0", ResType: "0x1", OpInfo: 0, Values: [700]}
+      - {ResCode: "0x8", OpInfo: "0x00000003", Values: [700]}
 
   - SigId: "0x3"
     Category: "0x1"
@@ -42,7 +45,7 @@ SignalConfigs:
     Derivatives: ["solar"]
     Timeout: 4000
     Resources:
-      - {ResId: "0x0", ResType: "0x1", OpInfo: 0, Values: [300, 400]}
-      - {ResId: "0x1", ResType: "0x1", OpInfo: 1024, Values: [12, 45, 67]}
-      - {ResId: "0x2", ResType: "0x1", OpInfo: 32, Values: [5]}
-      - {ResId: "0x4", ResType: "0x1", OpInfo: 512, Values: [87]}
+      - {ResCode: "0x00000008", OpInfo: "0x00000000", Values: [300, 400]}
+      - {ResCode: "0x000000f1", OpInfo: "0x00000400", Values: [12, 45, 67]}
+      - {ResCode: "0x0000abcd", OpInfo: "0x00000020", Values: [5]}
+      - {ResCode: "0x0000ea0d", OpInfo: "0x00000200", Values: [87]}

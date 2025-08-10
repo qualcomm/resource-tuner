@@ -20,18 +20,16 @@
 
 /*
 Resource:
-    {
-        "ResType": "0x1",
-        "ResID":"0x0",
-        "Name":"/proc/sys/kernel/sched_util_clamp_min",
-        "Supported":true,
-        "HighThreshold": 1024,
-        "LowThreshold": 0,
-        "Permissions": "third_party",
-        "Modes": ["display_on", "doze"],
-        "Policy": "higher_is_better",
-        "CoreLevelConflict": false
-    }
+  - ResType: "0x03"
+    ResID: "0x0000"
+    Name: "/proc/sys/kernel/sched_util_clamp_min"
+    Supported: true
+    HighThreshold: 1024
+    LowThreshold: 0
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: "higher_is_better"
+    CoreLevelConflict: false
 */
 void func1() {
     // First Create a List of Resources to be Provisioned as part of this Request

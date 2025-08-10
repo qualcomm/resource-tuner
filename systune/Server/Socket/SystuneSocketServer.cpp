@@ -5,13 +5,11 @@
 
 SystuneSocketServer::SystuneSocketServer(uint32_t mListeningPort,
                                          ServerOnlineCheckCallback mServerOnlineCheckCb,
-                                         SystuneMessageAsyncCallback mSystuneMessageAsyncCb,
-                                         SystuneMessageSyncCallback mSystuneMessageSyncCb) {
+                                         SystuneMessageReceivedCallback mSystuneMessageRecvCb) {
 
     this->mListeningPort = mListeningPort;
     this->mServerOnlineCheckCb = mServerOnlineCheckCb;
-    this->mSystuneMessageAsyncCb = mSystuneMessageAsyncCb;
-    this->mSystuneMessageSyncCb = mSystuneMessageSyncCb;
+    this->mSystuneMessageRecvCb = mSystuneMessageRecvCb;
 }
 
 // Called by server, this will put the server in listening mode
@@ -64,8 +62,8 @@ int32_t SystuneSocketServer::ListenForClientRequests() {
 
         if(clientSocket >= 0) {
             MsgForwardInfo* info = new MsgForwardInfo;
-            info->buffer = new char[1024];
-            info->bufferSize = 1024;
+            info->buffer = new char[requestBufferSize];
+            info->bufferSize = requestBufferSize;
 
             int32_t bytesRead;
             if((bytesRead = recv(clientSocket, info->buffer, info->bufferSize, 0)) < 0) {
@@ -77,7 +75,7 @@ int32_t SystuneSocketServer::ListenForClientRequests() {
             }
 
             if(bytesRead > 0) {
-                this->mSystuneMessageAsyncCb(clientSocket, info);
+                this->mSystuneMessageRecvCb(clientSocket, info);
             }
             close(clientSocket);
         }

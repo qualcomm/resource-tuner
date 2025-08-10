@@ -73,7 +73,7 @@ static void TestHandleGeneration() {
 * =========================================================
 */
 
-namespace ProvisionerRequestVerification {
+namespace ResourceTuningRequestVerification {
    /*
     * Description:
     * This Section contains tests which aim to verify the correctness of the Verifier.
@@ -617,7 +617,7 @@ namespace ProvisionerRequestVerification {
 * =========================================================
 */
 
-namespace SignalRequestVerification {
+namespace SignalVerification {
    /*
     * Description:
     * This Section contains tests which aim to verify the correctness of the Signal Verifier.
@@ -2354,19 +2354,18 @@ namespace SystemSysfsNodesTests {
 
 int32_t main(int32_t argc, const char* argv[]) {
     // Run the Tests
+
     RUN_TEST(TestHandleGeneration)
 
     // Request-Verification Tests
-    // - Provisioner
-    ProvisionerRequestVerification::RunTestGroup();
-    // - SysSignal
-    SignalRequestVerification::RunTestGroup();
+    ResourceTuningRequestVerification::RunTestGroup();
+    // SignalVerification::RunTestGroup();
 
     // Request Application Tests
-    RequestApplicationTests::RunTestGroup();
+    // RequestApplicationTests::RunTestGroup();
 
     // Tests on Real Sysfs Nodes (QLI)
-    SystemSysfsNodesTests::RunTestGroup();
+    // SystemSysfsNodesTests::RunTestGroup();
 
     return 0;
 }

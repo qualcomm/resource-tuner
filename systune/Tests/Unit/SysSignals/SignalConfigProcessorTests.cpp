@@ -68,6 +68,7 @@ TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorYAMLDataIntegrity3_1
 
     Resource* resource1 = signalInfo->mSignalResources->at(0);
     ASSERT_NE(resource1, nullptr);
+    ASSERT_EQ(resource1->getOpCode(), 2147549184);
     ASSERT_EQ(resource1->getValuesCount(), 1);
     ASSERT_EQ(resource1->mConfigValue.singleValue, 700);
     ASSERT_EQ(resource1->getOperationalInfo(), 0);
@@ -102,11 +103,13 @@ TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorYAMLDataIntegrity3_2
     ASSERT_EQ(strcmp((const char*)signalInfo->mDerivatives->at(0).data(), "derivative_v2"), 0);
 
     Resource* resource1 = signalInfo->mSignalResources->at(0);
+    ASSERT_EQ(resource1->getOpCode(), 8);
     ASSERT_EQ(resource1->getValuesCount(), 1);
     ASSERT_EQ(resource1->mConfigValue.singleValue, 814);
     ASSERT_EQ(resource1->getOperationalInfo(), 0);
 
     Resource* resource2 = signalInfo->mSignalResources->at(1);
+    ASSERT_EQ(resource2->getOpCode(), 15);
     ASSERT_EQ(resource2->getValuesCount(), 2);
     ASSERT_EQ((*resource2->mConfigValue.valueArray)[0], 23);
     ASSERT_EQ((*resource2->mConfigValue.valueArray)[1], 90);
@@ -147,12 +150,14 @@ TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorYAMLDataIntegrity3_3
     ASSERT_EQ(strcmp((const char*)signalInfo->mDerivatives->at(0).data(), "solar"), 0);
 
     Resource* resource1 = signalInfo->mSignalResources->at(0);
+    ASSERT_EQ(resource1->getOpCode(), 8);
     ASSERT_EQ(resource1->getValuesCount(), 2);
     ASSERT_EQ((*resource1->mConfigValue.valueArray)[0], 300);
     ASSERT_EQ((*resource1->mConfigValue.valueArray)[1], 400);
     ASSERT_EQ(resource1->getOperationalInfo(), 0);
 
     Resource* resource2 = signalInfo->mSignalResources->at(1);
+    ASSERT_EQ(resource2->getOpCode(), 241);
     ASSERT_EQ(resource2->getValuesCount(), 3);
     ASSERT_EQ((*resource2->mConfigValue.valueArray)[0], 12);
     ASSERT_EQ((*resource2->mConfigValue.valueArray)[1], 45);
@@ -160,11 +165,13 @@ TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorYAMLDataIntegrity3_3
     ASSERT_EQ(resource2->getOperationalInfo(), 1024);
 
     Resource* resource3 = signalInfo->mSignalResources->at(2);
+    ASSERT_EQ(resource3->getOpCode(), 43981);
     ASSERT_EQ(resource3->getValuesCount(), 1);
     ASSERT_EQ(resource3->mConfigValue.singleValue, 5);
     ASSERT_EQ(resource3->getOperationalInfo(), 32);
 
     Resource* resource4 = signalInfo->mSignalResources->at(3);
+    ASSERT_EQ(resource4->getOpCode(), 59917);
     ASSERT_EQ(resource4->getValuesCount(), 1);
     ASSERT_EQ(resource4->mConfigValue.singleValue, 87);
     ASSERT_EQ(resource4->getOperationalInfo(), 512);

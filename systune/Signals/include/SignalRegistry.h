@@ -143,9 +143,8 @@ private:
 public:
     ResourceBuilder();
 
-    ResourceBuilder* setResType(const std::string& resTypeString);
-    ResourceBuilder* setResId(const std::string& resIdString);
-    ResourceBuilder* setOpInfo(int32_t opInfo);
+    ResourceBuilder* setResCode(const std::string& resCodeString);
+    ResourceBuilder* setOpInfo(const std::string& opInfoString);
     ResourceBuilder* setNumValues(int32_t valuesCount);
     ResourceBuilder* addValue(int32_t value);
 

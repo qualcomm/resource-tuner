@@ -22,19 +22,19 @@
 #include "ErrCodes.h"
 #include "Logger.h"
 
+static const int32_t requestBufferSize = 1024;
+
 class SystuneSocketServer : public ServerEndpoint {
 private:
     int32_t sockFd;
     uint32_t mListeningPort;
     ServerOnlineCheckCallback mServerOnlineCheckCb;
-    SystuneMessageAsyncCallback mSystuneMessageAsyncCb;
-    SystuneMessageSyncCallback mSystuneMessageSyncCb;
+    SystuneMessageReceivedCallback mSystuneMessageRecvCb;
 
 public:
     SystuneSocketServer(uint32_t mListeningPort,
                         ServerOnlineCheckCallback mServerOnlineCheckCb,
-                        SystuneMessageAsyncCallback mSystuneMessageAsyncCb,
-                        SystuneMessageSyncCallback mSystuneMessageSyncCb);
+                        SystuneMessageReceivedCallback mSystuneMessageRecvCb);
 
     ~SystuneSocketServer();
 

@@ -1,6 +1,9 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause-Clear
+
 ResourceConfigs:
-  - ResType: "0x1"
-    ResID: "0x0"
+  - ResType: "0x03"
+    ResID: "0x0000"
     Name: "/proc/sys/kernel/sched_util_clamp_min"
     Supported: true
     HighThreshold: 1024
@@ -10,8 +13,8 @@ ResourceConfigs:
     Policy: "higher_is_better"
     CoreLevelConflict: false
 
-  - ResType: "0x1"
-    ResID: "0x1"
+  - ResType: "0x03"
+    ResID: "0x0001"
     Name: "/proc/sys/kernel/sched_util_clamp_max"
     Supported: true
     HighThreshold: 1024
@@ -21,8 +24,8 @@ ResourceConfigs:
     Policy: "lower_is_better"
     CoreLevelConflict: false
 
-  - ResType: "0x1"
-    ResID: "0x2"
+  - ResType: "0x04"
+    ResID: "0x0000"
     Name: "/sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq"
     Supported: true
     HighThreshold: 1939200
@@ -32,8 +35,8 @@ ResourceConfigs:
     Policy: lower_is_better
     CoreLevelConflict: true
 
-  - ResType: "0x1"
-    ResID: "0x3"
+  - ResType: "0x04"
+    ResID: "0x0001"
     Name: "/sys/devices/system/cpu/cpufreq/policy1/scaling_min_freq"
     Supported: true
     HighThreshold: 1939200
@@ -43,8 +46,8 @@ ResourceConfigs:
     Policy: instant_apply
     CoreLevelConflict: true
 
-  - ResType: "0x1"
-    ResID: "0x4"
+  - ResType: "0x04"
+    ResID: "0x0002"
     Name: "/sys/devices/system/cpu/cpufreq/policy2/scaling_min_freq"
     Supported: true
     HighThreshold: 1939200
@@ -54,8 +57,8 @@ ResourceConfigs:
     Policy: lazy_apply
     CoreLevelConflict: false
 
-  - ResType: "0x1"
-    ResID: "0x5"
+  - ResType: "0x04"
+    ResID: "0x0003"
     Name: "/sys/devices/system/cpu/cpufreq/policy3/scaling_min_freq"
     Supported: true
     HighThreshold: 1939200
@@ -65,8 +68,8 @@ ResourceConfigs:
     Policy: lower_is_better
     CoreLevelConflict: true
 
-  - ResType: "0x1"
-    ResID: "0x6"
+  - ResType: "0x04"
+    ResID: "0x0100"
     Name: "/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq"
     Supported: true
     HighThreshold: 1939200
@@ -76,8 +79,8 @@ ResourceConfigs:
     Policy: higher_is_better
     CoreLevelConflict: false
 
-  - ResType: "0x1"
-    ResID: "0x7"
+  - ResType: "0x04"
+    ResID: "0x0101"
     Name: "/sys/devices/system/cpu/cpufreq/policy1/scaling_max_freq"
     Supported: true
     HighThreshold: 1939200
@@ -87,8 +90,8 @@ ResourceConfigs:
     Policy: higher_is_better
     CoreLevelConflict: true
 
-  - ResType: "0x1"
-    ResID: "0x8"
+  - ResType: "0x04"
+    ResID: "0x0102"
     Name: "/sys/devices/system/cpu/cpufreq/policy2/scaling_max_freq"
     Supported: true
     HighThreshold: 1939200
@@ -98,8 +101,8 @@ ResourceConfigs:
     Policy: higher_is_better
     CoreLevelConflict: false
 
-  - ResType: "0x1"
-    ResID: "0x9"
+  - ResType: "0x04"
+    ResID: "0x0103"
     Name: "/sys/devices/system/cpu/cpufreq/policy3/scaling_max_freq"
     Supported: true
     HighThreshold: 1939200

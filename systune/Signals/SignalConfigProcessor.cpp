@@ -100,16 +100,12 @@ void SignalConfigProcessor::parseYamlNode(const YAML::Node& item) {
             if(!resourceConfig.IsMap()) break;
 
             ResourceBuilder resourceBuilder;
-            resourceBuilder.setResId(
-                safeExtract<std::string>(resourceConfig[SIGNAL_RESOURCE_ID])
-            );
-
-            resourceBuilder.setResType(
-                safeExtract<std::string>(resourceConfig[SIGNAL_RESOURCE_TYPE])
+            resourceBuilder.setResCode(
+                safeExtract<std::string>(resourceConfig[SIGNAL_RESOURCE_CODE])
             );
 
             resourceBuilder.setOpInfo(
-                safeExtract<int32_t>(resourceConfig[SIGNAL_OPINFO])
+                safeExtract<std::string>(resourceConfig[SIGNAL_OPINFO])
             );
 
             if(isList(resourceConfig[SIGNAL_VALUES])) {

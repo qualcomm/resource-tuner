@@ -141,14 +141,7 @@ typedef struct {
 typedef ErrCode (*ModuleCallback)();
 typedef void (*ModuleMessageHandlerCallback)(void*);
 typedef int8_t (*ServerOnlineCheckCallback)();
-typedef int64_t (*SystuneMessageAsyncCallback)(int32_t, MsgForwardInfo*);
-typedef int8_t (*SystuneMessageSyncCallback)(int8_t, void*, char*, uint64_t);
+typedef void (*SystuneMessageReceivedCallback)(int32_t, MsgForwardInfo*);
 typedef void (*ResourceApplierCallback)(void*);
-
-#define SERVER_ONLINE_CHECK_CALLBACK 150
-#define PROVISIONER_MESSAGE_RECEIVER_CALLBACK 180
-#define SYSCONFIG_MESSAGE_RECEIVER_CALLBACK 181
-#define PROVISIONER_SEND_DATA_TO_BUFFER_CALLBACK 182
-#define SIGNAL_MESSAGE_RECEIVER_CALLBACK 200
 
 #endif

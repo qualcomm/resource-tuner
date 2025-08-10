@@ -26,12 +26,12 @@ int32_t SystuneSocketClient::initiateConnection() {
     return RC_SUCCESS;
 }
 
-int32_t SystuneSocketClient::sendMsg(char* buf) {
+int32_t SystuneSocketClient::sendMsg(char* buf, size_t bufSize) {
     if(buf == nullptr) return RC_BAD_ARG;
 
     // byte Array to Store the serialized output
     // This buffer of 1KB can accomodate around 38 Resources
-    if(write(this->sockFd, buf, 1024) == -1) {
+    if(write(this->sockFd, buf, bufSize) == -1) {
         perror("write");
         return RC_SOCKET_FD_WRITE_FAILURE;
     }

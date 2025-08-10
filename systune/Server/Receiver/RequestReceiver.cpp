@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include "RequestReceiver.h"
+#include "SysConfigInternal.h"
 
 std::shared_ptr<RequestReceiver> RequestReceiver::mRequestReceiverInstance = nullptr;
 ThreadPool* RequestReceiver::mRequestsThreadPool = nullptr;
@@ -45,7 +46,31 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
         case REQ_CLIENT_GET_REQUESTS:
         case REQ_SYSCONFIG_GET_PROP:
         case REQ_SYSCONFIG_SET_PROP: {
-            break;
+            // Deserialize to SysConfig Request
+            SysConfig* sysConfig = nullptr;
+            try {
+                sysConfig = new (GetBlock<SysConfig>()) SysConfig();
+
+            } catch(const std::bad_alloc& e) {
+                TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE, e.what());
+                return;
+            }
+
+            if(RC_IS_NOTOK(sysConfig->deserialize(msgForwardInfo->buffer))) {
+                FreeBlock<SysConfig>(sysConfig);
+                return;
+            }
+
+            std::string result;
+            int8_t status = submitSysConfigRequest(result, sysConfig);
+
+            if(requestType == REQ_SYSCONFIG_GET_PROP) {
+                if(write(clientSocket, (const void*)result.c_str(), sizeof(sysConfig->getBufferSize())) == -1) {
+                    TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+                }
+            }
+
+            FreeBlock<SysConfig>(sysConfig);
         }
         // SysSignal Requests
         case SIGNAL_ACQ: {
@@ -87,15 +112,9 @@ int8_t CheckServerOnlineStatus() {
     return SystuneSettings::isServerOnline();
 }
 
-int64_t OnSysTuneMessageAsyncCallback(int32_t clientSocket, MsgForwardInfo* msgForwardInfo) {
+void OnSysTuneMessageAsyncCallback(int32_t clientSocket, MsgForwardInfo* msgForwardInfo) {
     std::shared_ptr<RequestReceiver> requestReceiver = RequestReceiver::getInstance();
     requestReceiver->forwardMessage(clientSocket, msgForwardInfo);
-
-    return 0;
-}
-
-int8_t OnSystuneMessageSyncCallback(int8_t a, void* b, char* c, uint64_t d) {
-    return 0;
 }
 
 void listenerThreadStartRoutine() {
@@ -103,8 +122,7 @@ void listenerThreadStartRoutine() {
     try {
         connection = new SystuneSocketServer(12000,
                                              CheckServerOnlineStatus,
-                                             OnSysTuneMessageAsyncCallback,
-                                             OnSystuneMessageSyncCallback);
+                                             OnSysTuneMessageAsyncCallback);
     } catch(const std::bad_alloc& e) {
         LOGE("URM_REQUEST_RECEIVER",
              "Failed to allocate memory for Systune Socket Server-Endpoint, Systune\

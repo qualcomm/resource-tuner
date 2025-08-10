@@ -84,7 +84,7 @@ int64_t tuneResources(int64_t duration, int32_t properties, int32_t numRes, SysR
         }
 
         // Send the request to Systune Server
-        if(RC_IS_NOTOK(conn->sendMsg(buf))) {
+        if(RC_IS_NOTOK(conn->sendMsg(buf, sizeof(buf)))) {
             delete resourceList;
             return -1;
         }
@@ -147,7 +147,7 @@ int8_t retuneResources(int64_t handle, int64_t duration) {
             return -1;
         }
 
-        if(RC_IS_NOTOK(conn->sendMsg(buf))) {
+        if(RC_IS_NOTOK(conn->sendMsg(buf, sizeof(buf)))) {
             return -1;
         }
 
@@ -188,7 +188,7 @@ int8_t untuneResources(int64_t handle) {
             return -1;
         }
 
-        if(RC_IS_NOTOK(conn->sendMsg(buf))) {
+        if(RC_IS_NOTOK(conn->sendMsg(buf, sizeof(buf)))) {
             return -1;
         }
 
@@ -254,7 +254,7 @@ int8_t getprop(const char* prop, char* buffer, size_t bufferSize, const char* de
             return -1;
         }
 
-        if(RC_IS_NOTOK(conn->sendMsg(buf))) {
+        if(RC_IS_NOTOK(conn->sendMsg(buf, sizeof(buf)))) {
             return -1;
         }
 
@@ -328,7 +328,7 @@ int8_t setprop(const char* prop, const char* value) {
             return -1;
         }
 
-        if(RC_IS_NOTOK(conn->sendMsg(buf))) {
+        if(RC_IS_NOTOK(conn->sendMsg(buf, sizeof(buf)))) {
             return -1;
         }
 
@@ -410,7 +410,7 @@ int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t properties,
         }
 
         // Send the request to Systune Server
-        if(RC_IS_NOTOK(conn->sendMsg(buf))) {
+        if(RC_IS_NOTOK(conn->sendMsg(buf, sizeof(buf)))) {
             if(list != nullptr) {
                 delete list;
             }
@@ -501,7 +501,7 @@ int8_t untuneSignal(int64_t handle) {
         }
 
         // Send the request to Systune Server
-        if(RC_IS_NOTOK(conn->sendMsg(buf))) {
+        if(RC_IS_NOTOK(conn->sendMsg(buf, sizeof(buf)))) {
             return -1;
         }
 

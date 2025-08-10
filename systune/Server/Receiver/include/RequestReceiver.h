@@ -36,7 +36,7 @@ public:
     }
 };
 
-int64_t OnSysTuneMessageAsyncCallback(int32_t callbackID, char* message, uint64_t bufferSize);
+void OnSysTuneMessageAsyncCallback(int32_t callbackID, char* message, uint64_t bufferSize);
 
 void listenerThreadStartRoutine();
 

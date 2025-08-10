@@ -12,7 +12,7 @@
 class ClientEndpoint {
 public:
     virtual int32_t initiateConnection() = 0;
-    virtual int32_t sendMsg(char* buf) = 0;
+    virtual int32_t sendMsg(char* buf, size_t bufSize) = 0;
     virtual int32_t readMsg(char* buf, size_t bufSize) = 0;
     virtual int32_t closeConnection() = 0;
 };

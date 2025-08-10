@@ -262,13 +262,13 @@ ResourceBuilder::ResourceBuilder() {
     this->mResource = new Resource;
 }
 
-ResourceBuilder* ResourceBuilder::setResType(const std::string& resTypeString) {
+ResourceBuilder* ResourceBuilder::setResCode(const std::string& resCodeString) {
     if(this->mResource == nullptr) return this;
 
-    int8_t resourceType = -1;
+    uint32_t resourceOpCode = 0;
     try {
-        resourceType = (int8_t)stoi(resTypeString, nullptr, 0);
-        this->mResource->setResourceType(resourceType);
+        resourceOpCode = (uint32_t)stol(resCodeString, nullptr, 0);
+        this->mResource->setOpCode(resourceOpCode);
     } catch(const std::invalid_argument& ex) {
 
     } catch(const std::out_of_range& ex) {
@@ -278,27 +278,18 @@ ResourceBuilder* ResourceBuilder::setResType(const std::string& resTypeString) {
     return this;
 }
 
-ResourceBuilder* ResourceBuilder::setResId(const std::string& resIdString) {
+ResourceBuilder* ResourceBuilder::setOpInfo(const std::string& opInfoString) {
     if(this->mResource == nullptr) return this;
 
-    int16_t resourceId = -1;
+    int32_t resourceOpInfo = 0;
     try {
-        resourceId = (int16_t)stoi(resIdString, nullptr, 0);
-        this->mResource->setResourceID(resourceId);
-
+        resourceOpInfo = (int32_t)stoi(opInfoString, nullptr, 0);
+        this->mResource->setOperationalInfo(resourceOpInfo);
     } catch(const std::invalid_argument& ex) {
 
     } catch(const std::out_of_range& ex) {
 
     }
-
-    return this;
-}
-
-ResourceBuilder* ResourceBuilder::setOpInfo(int32_t opInfo) {
-    if(this->mResource == nullptr) return this;
-
-    this->mResource->setOperationalInfo(opInfo);
 
     return this;
 }
