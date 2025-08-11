@@ -56,22 +56,20 @@ option(BUILD_SHARED_LIBS "Build shared libraries instead of static ones" ON)
 
 # Mandatory Builds
 add_subdirectory(Auxiliary)
-add_subdirectory(Client)
-add_subdirectory(Server)
+add_subdirectory(Core/Client)
+add_subdirectory(Core/Server)
+add_subdirectory(Core/Framework)
 add_subdirectory(Extensions)
-add_subdirectory(Provisioner)
 
 # Optional builds
 option(BUILD_SIGNALS "Build SysSignals" OFF)
 if(BUILD_SIGNALS)
-  add_compile_definitions(SYS_SIGNALS_PLUGGED_IN=1)
   add_subdirectory(Signals)
 endif()
 
 option(BUILD_TESTS "Testing" OFF)
 if(BUILD_TESTS)
   enable_testing()
-  add_compile_definitions(UNIT_TESTS_BUILD="TRUE")
   add_subdirectory(Tests)
 endif()
 
