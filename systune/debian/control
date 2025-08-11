@@ -3,7 +3,7 @@ Section: libs
 Priority: optional
 Maintainer: Jagadeesh Pagadala <jpagadal@qti.qualcomm.com>
 Build-Depends: debhelper-compat (= 13), dh-sequence-cmake, cmake, pkgconf,
- libglib2.0-dev, libjsoncpp-dev
+ libglib2.0-dev, libyaml-cpp-dev
 Standards-Version: 1.0
 Homepage:
 

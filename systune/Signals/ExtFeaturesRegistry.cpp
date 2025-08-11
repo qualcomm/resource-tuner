@@ -70,7 +70,7 @@ ExtFeatureInfoBuilder* ExtFeatureInfoBuilder::setId(int32_t mFeatureId) {
     return this;
 }
 
-ExtFeatureInfoBuilder* ExtFeatureInfoBuilder::setLib(std::string featureLib) {
+ExtFeatureInfoBuilder* ExtFeatureInfoBuilder::setLib(const std::string& featureLib) {
     this->mFeatureInfo->mFeatureLib = featureLib;
     return this;
 }

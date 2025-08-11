@@ -1,3 +1,6 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+
 #include <gtest/gtest.h>
 #include <thread>
 
@@ -12,6 +15,7 @@ protected:
         if(firstTest == true) {
             MakeAlloc<ClientInfo> (30);
             MakeAlloc<ClientTidData> (30);
+            MakeAlloc<std::vector<int32_t>> (30);
             MakeAlloc<std::unordered_set<int64_t>> (30);
             MakeAlloc<Resource> (30);
             MakeAlloc<std::vector<Resource*>> (30);
@@ -26,10 +30,8 @@ Resource* generateResourceForTesting(int32_t seed) {
     Resource* resource = nullptr;
     try {
         resource = (Resource*) GetBlock<Resource>();
-        resource->mOpId = 16 + seed;
-        resource->mOpInfo = 27 + 3 * seed;
-        resource->mOptionalInfo = 1445 + 8 * seed;
-        resource->mNumValues = 1;
+        resource->setOpCode(16 + seed);
+        resource->setNumValues(1);
         resource->mConfigValue.singleValue = 2 * seed;
     } catch(const std::bad_alloc& e) {
         throw std::bad_alloc();
@@ -39,11 +41,9 @@ Resource* generateResourceForTesting(int32_t seed) {
 }
 
 Resource* generateResourceFromMemoryPoolForTesting(int32_t seed) {
-    Resource* resource = (Resource*)GetBlock<Resource>();
-    resource->mOpId = 16 + seed;
-    resource->mOpInfo = 27 + 3 * seed;
-    resource->mOptionalInfo = 1445 + 8 * seed;
-    resource->mNumValues = 1;
+    Resource* resource = new(GetBlock<Resource>()) Resource;
+    resource->setOpCode(16 + seed);
+    resource->setNumValues(1);
     resource->mConfigValue.singleValue = 2 * seed;
 
     return resource;
@@ -57,10 +57,8 @@ TEST_F(RequestMapTests, TestSingleRequestScenario) {
 
     Resource* resource = (Resource*) GetBlock<Resource>();
 
-    resource->mOpId = 16;
-    resource->mOpInfo = 27;
-    resource->mOptionalInfo = 1480;
-    resource->mNumValues = 1;
+    resource->setOpCode(16);
+    resource->setNumValues(1);
     resource->mConfigValue.singleValue = 8;
 
     std::vector<Resource*>* resources =
@@ -71,7 +69,7 @@ TEST_F(RequestMapTests, TestSingleRequestScenario) {
     request->setRequestType(REQ_RESOURCE_TUNING);
     request->setHandle(25);
     request->setDuration(-1);
-    request->setPriority(1);
+    request->setPriority(REQ_PRIORITY_HIGH);
     request->setNumResources(1);
     request->setClientPID(321);
     request->setClientTID(321);
@@ -112,7 +110,7 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario1) {
     firstRequest->setRequestType(REQ_RESOURCE_TUNING);
     firstRequest->setHandle(20);
     firstRequest->setDuration(-1);
-    firstRequest->setPriority(1);
+    firstRequest->setPriority(REQ_PRIORITY_HIGH);
     firstRequest->setNumResources(1);
     firstRequest->setClientPID(321);
     firstRequest->setClientTID(321);
@@ -123,7 +121,7 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario1) {
     secondRequest->setRequestType(REQ_RESOURCE_TUNING);
     secondRequest->setHandle(21);
     secondRequest->setDuration(-1);
-    secondRequest->setPriority(1);
+    secondRequest->setPriority(REQ_PRIORITY_HIGH);
     secondRequest->setNumResources(1);
     secondRequest->setClientPID(321);
     secondRequest->setClientTID(321);
@@ -182,7 +180,7 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario2) {
     firstRequest->setRequestType(REQ_RESOURCE_TUNING);
     firstRequest->setHandle(103);
     firstRequest->setDuration(-1);
-    firstRequest->setPriority(1);
+    firstRequest->setPriority(REQ_PRIORITY_HIGH);
     firstRequest->setNumResources(1);
     firstRequest->setClientPID(321);
     firstRequest->setClientTID(321);
@@ -193,7 +191,7 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario2) {
     secondRequest->setRequestType(REQ_RESOURCE_TUNING);
     secondRequest->setHandle(108);
     secondRequest->setDuration(-1);
-    secondRequest->setPriority(1);
+    secondRequest->setPriority(REQ_PRIORITY_HIGH);
     secondRequest->setNumResources(1);
     secondRequest->setClientPID(321);
     secondRequest->setClientTID(321);
@@ -251,7 +249,7 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario3_1) {
         request->setHandle(112 + index);
         request->setDuration(-1);
         request->setNumResources(1);
-        request->setPriority(1);
+        request->setPriority(REQ_PRIORITY_HIGH);
         request->setClientPID(321);
         request->setClientTID(321);
         request->setResources(resources);
@@ -321,7 +319,7 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario3_2) {
     firstRequest->setRequestType(REQ_RESOURCE_TUNING);
     firstRequest->setHandle(245);
     firstRequest->setDuration(-1);
-    firstRequest->setPriority(1);
+    firstRequest->setPriority(REQ_PRIORITY_HIGH);
     firstRequest->setNumResources(1);
     firstRequest->setClientPID(321);
     firstRequest->setClientTID(321);
@@ -349,7 +347,7 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario3_2) {
     secondRequest->setRequestType(REQ_RESOURCE_TUNING);
     secondRequest->setHandle(300);
     secondRequest->setDuration(-1);
-    secondRequest->setPriority(1);
+    secondRequest->setPriority(REQ_PRIORITY_HIGH);
     secondRequest->setNumResources(2);
     secondRequest->setClientPID(321);
     secondRequest->setClientTID(321);
@@ -432,7 +430,7 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario4) {
     firstRequest->setHandle(320);
     firstRequest->setDuration(-1);
     firstRequest->setNumResources(2);
-    firstRequest->setPriority(1);
+    firstRequest->setPriority(REQ_PRIORITY_HIGH);
     firstRequest->setClientPID(321);
     firstRequest->setClientTID(321);
     firstRequest->setResources(resources1);
@@ -460,7 +458,7 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario4) {
     secondRequest->setHandle(334);
     secondRequest->setDuration(-1);
     secondRequest->setNumResources(2);
-    secondRequest->setPriority(1);
+    secondRequest->setPriority(REQ_PRIORITY_HIGH);
     secondRequest->setClientPID(321);
     secondRequest->setClientTID(321);
     secondRequest->setResources(resources2);
@@ -559,7 +557,7 @@ TEST_F(RequestMapTests, TestMultipleClientsScenario5) {
     firstRequest->setRequestType(REQ_RESOURCE_TUNING);
     firstRequest->setHandle(133);
     firstRequest->setDuration(-1);
-    firstRequest->setPriority(1);
+    firstRequest->setPriority(REQ_PRIORITY_HIGH);
     firstRequest->setNumResources(1);
     firstRequest->setClientPID(321);
     firstRequest->setClientTID(321);
@@ -569,7 +567,7 @@ TEST_F(RequestMapTests, TestMultipleClientsScenario5) {
     secondRequest->setRequestType(REQ_RESOURCE_TUNING);
     secondRequest->setHandle(144);
     secondRequest->setDuration(-1);
-    secondRequest->setPriority(1);
+    secondRequest->setPriority(REQ_PRIORITY_HIGH);
     secondRequest->setNumResources(1);
     secondRequest->setClientPID(354);
     secondRequest->setClientTID(354);
@@ -579,7 +577,7 @@ TEST_F(RequestMapTests, TestMultipleClientsScenario5) {
     thirdRequest->setRequestType(REQ_RESOURCE_TUNING);
     thirdRequest->setHandle(155);
     thirdRequest->setDuration(-1);
-    thirdRequest->setPriority(1);
+    thirdRequest->setPriority(REQ_PRIORITY_HIGH);
     thirdRequest->setNumResources(1);
     thirdRequest->setClientPID(100);
     thirdRequest->setClientTID(127);
@@ -671,7 +669,7 @@ TEST_F(RequestMapTests, TestRequestWithHandleExists1) {
     request->setHandle(20);
     request->setDuration(-1);
     request->setNumResources(1);
-    request->setPriority(1);
+    request->setPriority(REQ_PRIORITY_HIGH);
     request->setClientTID(321);
     request->setClientTID(321);
     request->setResources(resources);
@@ -730,7 +728,7 @@ TEST_F(RequestMapTests, TestRequestWithHandleExists2) {
     request->setHandle(20);
     request->setDuration(-1);
     request->setNumResources(1);
-    request->setPriority(1);
+    request->setPriority(REQ_PRIORITY_HIGH);
     request->setClientTID(321);
     request->setClientTID(321);
     request->setResources(resources);
@@ -798,7 +796,7 @@ TEST_F(RequestMapTests, TestRequestDeletion1) {
     request->setRequestType(REQ_RESOURCE_TUNING);
     request->setHandle(25);
     request->setDuration(-1);
-    request->setPriority(1);
+    request->setPriority(REQ_PRIORITY_HIGH);
     request->setNumResources(1);
     request->setClientPID(testClientPID);
     request->setClientTID(testClientTID);
@@ -872,7 +870,7 @@ TEST_F(RequestMapTests, TestRequestDeletion2) {
     request->setRequestType(REQ_RESOURCE_TUNING);
     request->setHandle(25);
     request->setDuration(-1);
-    request->setPriority(1);
+    request->setPriority(REQ_PRIORITY_HIGH);
     request->setNumResources(1);
     request->setClientPID(testClientPID);
     request->setClientTID(testClientTID);
@@ -882,7 +880,7 @@ TEST_F(RequestMapTests, TestRequestDeletion2) {
     duplicateRequest->setRequestType(REQ_RESOURCE_TUNING);
     duplicateRequest->setHandle(25);
     duplicateRequest->setDuration(-1);
-    duplicateRequest->setPriority(1);
+    duplicateRequest->setPriority(REQ_PRIORITY_HIGH);
     duplicateRequest->setNumResources(1);
     duplicateRequest->setClientPID(testClientPID);
     duplicateRequest->setClientTID(testClientTID);
@@ -962,7 +960,7 @@ TEST_F(RequestMapTests, TestRequestWithNullResourcesAddition) {
     request->setHandle(25);
     request->setDuration(-1);
     request->setNumResources(1);
-    request->setPriority(1);
+    request->setPriority(REQ_PRIORITY_HIGH);
     request->setClientPID(321);
     request->setClientTID(321);
     request->setResources(resources);
@@ -1001,10 +999,9 @@ TEST_F(RequestMapTests, TestGetRequestFromMap) {
         FAIL();
     }
 
-    resource->mOpId = 15564;
-    resource->mOpInfo = 58;
-    resource->mOptionalInfo = 4445;
-    resource->mNumValues = 1;
+    resource->setOpCode(15564);
+    resource->setOptionalInfo(4445);
+    resource->setNumValues(1);
     resource->mConfigValue.singleValue = 42;
 
     std::vector<Resource*>* resources;
@@ -1028,7 +1025,7 @@ TEST_F(RequestMapTests, TestGetRequestFromMap) {
     request->setHandle(325);
     request->setDuration(-1);
     request->setNumResources(1);
-    request->setPriority(1);
+    request->setPriority(REQ_PRIORITY_HIGH);
     request->setClientPID(testClientPID);
     request->setClientTID(testClientTID);
     request->setResources(resources);

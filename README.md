@@ -18,14 +18,14 @@ It leverages kernel interfaces like procfs, sysfs and cgroups to enforce runtime
 ## Requirements
 
 This project depends on the following external libraries:
-    jsoncpp – Used for parsing and handling JSON configuration files.
-    Installing jsoncpp:
+    yaml-cpp: Used for parsing and handling YAML configuration files.
+    Installing yaml-cpp:
         1. Debian/Ubuntu
-            sudo apt-get install libjsoncpp-dev
+            sudo apt-get install libyaml-cpp-dev
         2. Fedora/OpenSure
-            sudo dnf install jsoncpp-devel
+            sudo dnf install yaml-cpp yaml-cpp-devel
         3. Yocto: Add the following to your recipe or image
-            DEPENDS += "jsoncpp"
+            DEPENDS += "yaml-cpp"
 
 ## Installation Instructions
 

@@ -11,14 +11,24 @@ ResourceRegistry::ResourceRegistry() {
     this->mTotalResources = 0;
 }
 
-void ResourceRegistry::initRegistry(int32_t size, int8_t customerBit) {
-    if(mResourceConfig.size() == 0 && size > 0) {
-        this->mResourceConfig.resize(size);
-        this->customerBit = customerBit;
-    }
+void ResourceRegistry::initRegistry(int8_t customerBit) {
+    this->customerBit = customerBit;
+}
+
+int8_t ResourceRegistry::isResourceConfigMalformed(ResourceConfigInfo* rConf) {
+    if(rConf == nullptr) return true;
+    if(rConf->mResourceOptype < 0 || rConf->mResourceOpcode < 0) return true;
+    if(rConf->mHighThreshold < 0 || rConf->mLowThreshold < 0) return true;
+    return false;
 }
 
 void ResourceRegistry::registerResource(ResourceConfigInfo* resourceConfigInfo) {
+    // Invalid Resource, skip.
+    if(this->isResourceConfigMalformed(resourceConfigInfo)) {
+        delete resourceConfigInfo;
+        return;
+    }
+
     // Persist the Default Values of the Resources in a File.
     // These values will be used to restore the Sysfs nodes in case the Server Process crashes.
     std::fstream sysfsPersistenceFile("../sysfsOriginalValues.txt", std::ios::out | std::ios::app);
@@ -27,12 +37,6 @@ void ResourceRegistry::registerResource(ResourceConfigInfo* resourceConfigInfo) 
     resourceData.append(std::to_string(resourceConfigInfo->mDefaultValue));
     resourceData.push_back('\n');
     sysfsPersistenceFile << resourceData;
-
-    // Invalid Resource, skip.
-    if(resourceConfigInfo->mResourceOpcode == -1 ||
-       resourceConfigInfo->mResourceOptype == -1) {
-        return;
-    }
 
     // Create the OpID Bitmap, this will serve as the key for the entry in mSystemIndependentLayerMappings.
     uint32_t resourceBitmap = 0;
@@ -44,7 +48,7 @@ void ResourceRegistry::registerResource(ResourceConfigInfo* resourceConfigInfo) 
     resourceBitmap |= ((uint32_t)resourceConfigInfo->mResourceOptype << 16);
 
     this->mSystemIndependentLayerMappings[resourceBitmap] = this->mTotalResources;
-    this->mResourceConfig[this->mTotalResources] = resourceConfigInfo;
+    this->mResourceConfig.push_back(resourceConfigInfo);
 
     this->mTotalResources++;
 }
@@ -88,7 +92,7 @@ int32_t ResourceRegistry::getResourceTableIndex(uint32_t resourceId) {
         if(this->mSystemIndependentLayerMappings.find(resourceId) == this->mSystemIndependentLayerMappings.end()) {
             throw std::out_of_range("Index out of bounds");
         }
-    } catch (const std::exception& e) {
+    } catch(const std::exception& e) {
         LOGE("URM_RESOURCE_PROCESSOR",
              "Resource ID not found in the registry");
         return -1;
@@ -149,14 +153,14 @@ ResourceConfigInfoBuilder::ResourceConfigInfoBuilder() {
     this->mResourceConfigInfo->mModes = 0;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setName(std::string name) {
+ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setName(const std::string& name) {
     if(this->mResourceConfigInfo == nullptr) return this;
 
     this->mResourceConfigInfo->mResourceName = name;
     return this;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setOptype(std::string opTypeString) {
+ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setOptype(const std::string& opTypeString) {
     if(this->mResourceConfigInfo == nullptr) return this;
 
     this->mResourceConfigInfo->mResourceOptype = -1;
@@ -172,7 +176,7 @@ ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setOptype(std::string opTy
     return this;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setOpcode(std::string opCodeString) {
+ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setOpcode(const std::string& opCodeString) {
     if(this->mResourceConfigInfo == nullptr) return this;
 
     this->mResourceConfigInfo->mResourceOpcode = -1;
@@ -202,7 +206,7 @@ ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setLowThreshold(int32_t lo
     return this;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setPermissions(std::string permissionString) {
+ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setPermissions(const std::string& permissionString) {
     if(this->mResourceConfigInfo == nullptr) return this;
 
     enum Permissions permissions = PERMISSION_THIRD_PARTY;
@@ -216,7 +220,7 @@ ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setPermissions(std::string
     return this;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setModes(std::string modeString) {
+ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setModes(const std::string& modeString) {
     if(this->mResourceConfigInfo == nullptr) return this;
 
     if(modeString == "display_on") {
@@ -236,10 +240,10 @@ ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setSupported(int8_t suppor
     return this;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setPolicy(std::string policyString) {
+ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setPolicy(const std::string& policyString) {
     if(this->mResourceConfigInfo == nullptr) return this;
 
-    enum Policy policy = INSTANT_APPLY;
+    enum Policy policy = LAZY_APPLY;
     if(policyString == "higher_is_better") {
         policy = HIGHER_BETTER;
     } else if(policyString == "lower_is_better") {

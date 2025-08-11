@@ -5,58 +5,46 @@
 
 std::shared_ptr<SysConfigProcessor> SysConfigProcessor::sysConfigProcessorInstance = nullptr;
 
-SysConfigProcessor::SysConfigProcessor(std::string jsonFilePath) {
-    this->mJsonParser = new (std::nothrow) JsonParser();
-    if(this->mJsonParser == nullptr) {
-        LOGE("URM_SYSCONFIG_PROCESSOR", "SysConfig Properties Parsing Failed");
-    }
-
-    if(jsonFilePath.length() == 0) {
+SysConfigProcessor::SysConfigProcessor(const std::string& yamlFilePath) {
+    if(yamlFilePath.length() == 0) {
         // No Custom Properties File Specified
-        mPropertiesConfigJsonFilePath = SYS_CONFIGS_PROPS_FILE;
+        mPropertiesConfigYamlFilePath = SYS_CONFIGS_PROPS_FILE;
     } else {
-        mPropertiesConfigJsonFilePath = jsonFilePath;
+        mPropertiesConfigYamlFilePath = yamlFilePath;
     }
 }
 
 ErrCode SysConfigProcessor::parseSysConfigs() {
-    if(this->mJsonParser == nullptr) {
-        return RC_JSON_PARSING_ERROR;
-    }
+    const std::string fSysConfigPropsFileName(mPropertiesConfigYamlFilePath);
 
-    const std::string fSysConfigPropsFileName(mPropertiesConfigJsonFilePath);
-    const std::string jsonSysConfigPropsRoot(SYS_CONFIGS_ROOT);
-
-    int32_t size;
-    ErrCode rc = this->mJsonParser->verifyAndGetSize(fSysConfigPropsFileName, jsonSysConfigPropsRoot, size);
+    YAML::Node result;
+    ErrCode rc = YamlParser::parse(fSysConfigPropsFileName, result);
 
     if(RC_IS_OK(rc)) {
-        this->mJsonParser->parse(std::bind(&SysConfigProcessor::SysConfigsParserCB, this, std::placeholders::_1));
-    } else {
-        LOGE("URM_SYSCONFIG_PROCESSOR", "Couldn't parse: " + fSysConfigPropsFileName);
+        if(result[SYS_CONFIGS_ROOT].IsDefined() && result[SYS_CONFIGS_ROOT].IsSequence()) {
+            for(const auto& sysConfigElement : result[SYS_CONFIGS_ROOT]) {
+                try {
+                    parseYamlNode(sysConfigElement);
+                } catch(const std::invalid_argument& e) {
+                    LOGE("URM_SYSCONFIG_PROCESSOR", "Error parsing Property Config: " + std::string(e.what()));
+                }
+            }
+        }
     }
 
     return rc;
 }
 
-void SysConfigProcessor::SysConfigsParserCB(const Json::Value& item) {
+void SysConfigProcessor::parseYamlNode(const YAML::Node& item) {
     std::string propKey;
     std::string propVal;
 
-    if(item[PROP_NAME].isString()) {
-        propKey = item[PROP_NAME].asString();
-    }
-
-    if(item[PROP_VALUE].isString()) {
-        propVal = item[PROP_VALUE].asString();
-    }
+    propKey = safeExtract<std::string>(item[PROP_NAME]);
+    propVal = safeExtract<std::string>(item[PROP_VALUE]);
 
     if(!SysConfigPropRegistry::getInstance()->createProperty(propKey, propVal)) {
-        LOGE("URM_SYSCONFIG_PROCESSOR", "Property is malformed or Property with name = " + propKey + " already exists in the Registry");
+        LOGE("URM_SYSCONFIG_PROCESSOR",
+             "Detected Malformed Property [Name = " + propKey + "] Or Prop with " \
+             "this name already exists in the Registry");
     }
-}
-
-SysConfigProcessor::~SysConfigProcessor() {
-    delete this->mJsonParser;
-    this->mJsonParser = nullptr;
 }

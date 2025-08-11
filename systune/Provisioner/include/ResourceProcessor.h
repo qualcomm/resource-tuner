@@ -12,11 +12,12 @@
 #include <cerrno>
 #include <stdexcept>
 
-#include "JsonParser.h"
+#include "YamlParser.h"
+#include "Logger.h"
 #include "ResourceRegistry.h"
 #include "Utils.h"
 
-#define RESOURCE_CONFIGS_FILE "/etc/systune/resourceConfigs.json"
+#define RESOURCE_CONFIGS_FILE "/etc/systune/resourceConfigs.yaml"
 
 #define RESOURCE_CONFIGS_ROOT "ResourceConfigs"
 #define RESOURCE_CONFIGS_ELEM_RESOURCE_TYPE "ResType"
@@ -31,24 +32,41 @@
 #define RESOURCE_CONFIGS_ELEM_CORE_LEVEL_CONFLICT "CoreLevelConflict"
 
 /**
- * @brief Handles processing of the resource config files. It stores them in a vector where
- *        each config is represented by a struct ResourceConfigInfo.
+ * @brief ResourceProcessor
+ * @details Responsible for Parsing the ResourceConfig (YAML) file.
+ *          Note, this class uses the YamlParser class for actually Reading and
+ *          Parsing the YAML data.
  *
- */
+ * The configuration file must follow a specific structure.
+ * Example YAML configuration:
+ * @code{.yaml}
+ * ResourceConfigs:
+ *   - ResType: "0x1"
+ *     ResID: "0x0"
+ *     Name: "/proc/sys/kernel/sched_util_clamp_min"
+ *     Supported: true
+ *     HighThreshold: 1024,
+ *     LowThreshold: 0
+ *     Permissions: "third_party"
+ *     Modes:
+ *     - "display_on"
+ *     - "doze"
+ *     Policy: "higher_is_better"
+ *     CoreLevelConflict: false
+ * @endcode
+ *
+ * @example Resource_Configs
+ * This example shows the expected YAML format for Resource configuration.
+*/
 class ResourceProcessor {
 private:
-    std::string mResourceConfigJsonFilePath;
-    JsonParser* mJsonParser;
+    std::string mResourceConfigYamlFilePath;
     int8_t mCustomResourceFileSpecified;
 
-    /**
-     * @brief callback function for processing json file targetResourceConfig.
-     */
-    void TargetResourcesCB(const Json::Value& item);
+    void parseYamlNode(const YAML::Node& result);
 
 public:
-    ResourceProcessor(std::string jsonFilePath);
-    ~ResourceProcessor();
+    ResourceProcessor(const std::string& yamlFilePath);
 
     ErrCode parseResourceConfigs();
 };

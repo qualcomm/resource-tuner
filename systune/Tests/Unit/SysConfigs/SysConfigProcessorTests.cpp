@@ -1,3 +1,6 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+
 #include <thread>
 #include <cstdint>
 #include <gtest/gtest.h>
@@ -8,9 +11,9 @@
 #include "Utils.h"
 #include "Logger.h"
 
-URM_REGISTER_CONFIG(PROPERTIES_CONFIG, "../Tests/Configs/testPropertiesConfig.json")
+URM_REGISTER_CONFIG(PROPERTIES_CONFIG, "../Tests/Configs/testPropertiesConfig.yaml")
 
-#define TOTAL_SYS_CONFIGS_PROPS_COUNT 3
+#define TOTAL_SYS_CONFIGS_PROPS_COUNT 14
 
 class SysConfigProcessorTests: public::testing::Test {
 protected:
@@ -29,10 +32,10 @@ protected:
     }
 };
 
-TEST_F(SysConfigProcessorTests, TestSysConfigProcessorJSONDataIntegrity1) {
+TEST_F(SysConfigProcessorTests, TestSysConfigProcessorYAMLDataIntegrity1) {
     ASSERT_NE(SysConfigPropRegistry::getInstance(), nullptr);
 }
 
-TEST_F(SysConfigProcessorTests, TestSignalConfigProcessorJSONDataIntegrity2) {
+TEST_F(SysConfigProcessorTests, TestSignalConfigProcessorYAMLDataIntegrity2) {
     ASSERT_EQ(SysConfigPropRegistry::getInstance()->getPropertiesCount(), TOTAL_SYS_CONFIGS_PROPS_COUNT);
 }

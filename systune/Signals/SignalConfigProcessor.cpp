@@ -3,108 +3,124 @@
 
 #include "SignalConfigProcessor.h"
 
-SignalConfigProcessor::SignalConfigProcessor(std::string jsonFilePath) {
-    this->mJsonParser = new (std::nothrow) JsonParser();
-    if(this->mJsonParser == nullptr) {
-        LOGE("URM_SIGNAL_CONFIG_PROCESSOR", "SignalConfig Parsing Failed");
-    }
-
-    if(jsonFilePath.length() == 0) {
+SignalConfigProcessor::SignalConfigProcessor(const std::string& yamlFilePath) {
+    if(yamlFilePath.length() == 0) {
         // No Custom Signal Config File Specified
         this->mCustomSignalsFileSpecified = false;
-        this->mSignalConfigJsonFilePath = SIGNAL_CONFIGS_FILE;
+        this->mSignalConfigYamlFilePath = SIGNAL_CONFIGS_FILE;
     } else {
         this->mCustomSignalsFileSpecified = true;
-        this->mSignalConfigJsonFilePath = jsonFilePath;
+        this->mSignalConfigYamlFilePath = yamlFilePath;
     }
 }
 
 ErrCode SignalConfigProcessor::parseSignalConfigs() {
-    if(this->mJsonParser == nullptr) {
-        return RC_JSON_PARSING_ERROR;
-    }
+    const std::string fSignalConfigFileName(mSignalConfigYamlFilePath);
 
-    const std::string fSignalConfigFileName(mSignalConfigJsonFilePath);
-    const std::string jsonSignalConfigRoot(SIGNAL_CONFIGS_ROOT);
-
-    int32_t size;
-    ErrCode rc = this->mJsonParser->verifyAndGetSize(fSignalConfigFileName, jsonSignalConfigRoot, size);
+    YAML::Node result;
+    ErrCode rc = YamlParser::parse(fSignalConfigFileName, result);
 
     if(RC_IS_OK(rc)) {
-        SignalRegistry::getInstance()->initRegistry(size, this->mCustomSignalsFileSpecified);
-        this->mJsonParser->parse(std::bind(&SignalConfigProcessor::SignalConfigsParserCB, this, std::placeholders::_1));
-    } else {
-        LOGE("URM_SIGNAL_CONFIG_PROCESSOR", "Couldn't parse: " + fSignalConfigFileName);
-    }
+        if(result[SIGNAL_CONFIGS_ROOT].IsDefined() && result[SIGNAL_CONFIGS_ROOT].IsSequence()) {
+            int32_t signalCount = result[SIGNAL_CONFIGS_ROOT].size();
+            SignalRegistry::getInstance()->initRegistry(signalCount, this->mCustomSignalsFileSpecified);
 
-    int32_t resourcesAllocatedCount = SignalRegistry::getInstance()->getSignalsConfigCount();
-    if(resourcesAllocatedCount != size) {
-        LOGE("URM_SIGNAL_CONFIG_PROCESSOR", "Couldn't allocate Memory for all the Signal Configs");
-        return RC_MEMORY_ALLOCATION_FAILURE;
+            for(const auto& signalConfig : result[SIGNAL_CONFIGS_ROOT]) {
+                try {
+                    parseYamlNode(signalConfig);
+                } catch(const std::invalid_argument& e) {
+                    LOGE("URM_SIGNAL_PROCESSOR", "Error parsing Signal Config: " + std::string(e.what()));
+                } catch(const std::bad_alloc& e) {
+
+                }
+            }
+        }
     }
 
     return rc;
 }
 
-void SignalConfigProcessor::SignalConfigsParserCB(const Json::Value& item) {
+void SignalConfigProcessor::parseYamlNode(const YAML::Node& item) {
     SignalInfoBuilder signalInfoBuilder;
 
-    if(item[SIGNAL_SIGID].isString()) {
-        signalInfoBuilder.setOpID(item[SIGNAL_SIGID].asString());
-    }
+    signalInfoBuilder.setOpID(
+        safeExtract<std::string>(item[SIGNAL_SIGID])
+    );
 
-    if(item[SIGNAL_CATEGORY].isString()) {
-        signalInfoBuilder.setCategory(item[SIGNAL_CATEGORY].asString());
-    }
+    signalInfoBuilder.setCategory(
+        safeExtract<std::string>(item[SIGNAL_CATEGORY])
+    );
 
-    if(item[SIGNAL_NAME].isString()) {
-        signalInfoBuilder.setName(item[SIGNAL_NAME].asString());
-    }
+    signalInfoBuilder.setName(
+        safeExtract<std::string>(item[SIGNAL_NAME])
+    );
 
-    if(item[SIGNAL_TIMEOUT].isInt()) {
-        signalInfoBuilder.setTimeout(item[SIGNAL_TIMEOUT].asInt());
-    }
+    signalInfoBuilder.setTimeout(
+        safeExtract<int32_t>(item[SIGNAL_TIMEOUT])
+    );
 
-    if(item[SIGNAL_ENABLE].isBool()) {
-        signalInfoBuilder.setIsEnabled(item[SIGNAL_ENABLE].asBool());
-    }
+    signalInfoBuilder.setIsEnabled(
+        safeExtract<bool>(item[SIGNAL_ENABLE])
+    );
 
-    if(item[SIGNAL_PERMISSIONS].isArray()) {
+    if(isList(item[SIGNAL_PERMISSIONS])) {
         for(int32_t i = 0; i < item[SIGNAL_PERMISSIONS].size(); i++) {
-            signalInfoBuilder.addPermission(item[SIGNAL_PERMISSIONS][i].asString());
+            signalInfoBuilder.addPermission(
+                safeExtract<std::string>(item[SIGNAL_PERMISSIONS][i])
+            );
         }
     }
 
-    if(item[SIGNAL_TARGETS_ENABLED].isArray()) {
+    if(isList(item[SIGNAL_TARGETS_ENABLED])) {
         for(int32_t i = 0; i < item[SIGNAL_TARGETS_ENABLED].size(); i++) {
-            signalInfoBuilder.addTarget(true, item[SIGNAL_TARGETS_ENABLED][i].asString());
+            signalInfoBuilder.addTarget(true,
+                safeExtract<std::string>(item[SIGNAL_TARGETS_ENABLED][i])
+            );
         }
     }
 
-    if(item[SIGNAL_TARGETS_DISABLED].isArray()) {
+    if(isList(item[SIGNAL_TARGETS_DISABLED])) {
         for(int32_t i = 0; i < item[SIGNAL_TARGETS_DISABLED].size(); i++) {
-            signalInfoBuilder.addTarget(false, item[SIGNAL_TARGETS_DISABLED][i].asString());
+            signalInfoBuilder.addTarget(false,
+                safeExtract<std::string>(item[SIGNAL_TARGETS_DISABLED][i])
+            );
         }
     }
 
-    if(item[SIGNAL_DERIVATIVES].isArray()) {
+    if(isList(item[SIGNAL_DERIVATIVES])) {
         for(int32_t i = 0; i < item[SIGNAL_DERIVATIVES].size(); i++) {
-            signalInfoBuilder.addDerivative(item[SIGNAL_DERIVATIVES][i].asString());
+            signalInfoBuilder.addDerivative(
+                safeExtract<std::string>(item[SIGNAL_DERIVATIVES][i])
+            );
         }
     }
 
-    if(item[SIGNAL_RESOURCES].isArray()) {
-        for(int32_t i = 0; i < item[SIGNAL_RESOURCES].size(); i++) {
-            signalInfoBuilder.addLock(item[SIGNAL_RESOURCES][i].asUInt());
+    if(item[SIGNAL_RESOURCES].IsDefined() && item[SIGNAL_RESOURCES].IsSequence()) {
+        for(const auto& resourceConfig: item[SIGNAL_RESOURCES]) {
+            if(!resourceConfig.IsMap()) break;
+
+            ResourceBuilder resourceBuilder;
+            resourceBuilder.setResCode(
+                safeExtract<std::string>(resourceConfig[SIGNAL_RESOURCE_CODE])
+            );
+
+            resourceBuilder.setOpInfo(
+                safeExtract<std::string>(resourceConfig[SIGNAL_OPINFO])
+            );
+
+            if(isList(resourceConfig[SIGNAL_VALUES])) {
+                int32_t valuesCount = resourceConfig[SIGNAL_VALUES].size();
+                resourceBuilder.setNumValues(valuesCount);
+
+                for(int32_t i = 0; i < valuesCount; i++) {
+                    resourceBuilder.addValue(
+                        safeExtract<int32_t>(resourceConfig[SIGNAL_VALUES][i])
+                    );
+                }
+            }
+            signalInfoBuilder.addResource(resourceBuilder.build());
         }
     }
 
     SignalRegistry::getInstance()->registerSignal(signalInfoBuilder.build());
-}
-
-SignalConfigProcessor::~SignalConfigProcessor() {
-    if(this->mJsonParser != nullptr) {
-        delete this->mJsonParser;
-        this->mJsonParser = nullptr;
-    }
 }

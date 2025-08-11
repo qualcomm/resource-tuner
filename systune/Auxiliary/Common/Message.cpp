@@ -19,12 +19,20 @@ int32_t Message::getClientTID() {
     return this->mClientTID;
 }
 
-int32_t Message::getPriority() {
-    return this->mPriority;
+int8_t Message::getPriority() {
+    return (int8_t)(this->mProperties & (((int32_t) 1 << 8)) - 1);
 }
 
 int64_t Message::getDuration() {
     return this->mDuration;
+}
+
+int32_t Message::getProperties() {
+    return this->mProperties;
+}
+
+int8_t Message::isBackgroundProcessingEnabled() {
+    return ((this->mProperties >> 8) & (((int32_t) 1 << 8)) - 1);
 }
 
 void Message::setRequestType(int8_t reqType) {
@@ -47,6 +55,14 @@ void Message::setClientTID(int32_t clientTid) {
     this->mClientTID = clientTid;
 }
 
-void Message::setPriority(int32_t priority) {
-    this->mPriority = priority;
+void Message::setProperties(int32_t properties) {
+    this->mProperties = properties;
+}
+
+void Message::setPriority(int8_t priority) {
+    this->mProperties |= (int8_t) priority;
+}
+
+void Message::setBackgroundProcessing(int8_t backgroundProcessing) {
+    this->mProperties |= ((int32_t) backgroundProcessing << 8);
 }

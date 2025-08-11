@@ -11,6 +11,7 @@ OrderedQueue::OrderedQueue() {
 void OrderedQueue::addAndWakeup(Message* queueItem) {
     try {
         const std::unique_lock<std::mutex> lock(this->mOrderedQueueMutex);
+
         if(queueItem == nullptr) return;
         if(queueItem->getPriority() < SERVER_CLEANUP_TRIGGER_PRIORITY) return;
 
@@ -22,7 +23,7 @@ void OrderedQueue::addAndWakeup(Message* queueItem) {
     } catch(const std::system_error& e) {
         LOGE("URM_ORDERED_QUEUE",
              "Call to addAndWakeup failed, error: " + std::string(e.what()));
-    } catch(std::exception& e) {
+    } catch(const std::exception& e) {
         LOGE("URM_ORDERED_QUEUE",
              "Call to addAndWakeup failed, error: " + std::string(e.what()));
     }
@@ -42,7 +43,8 @@ void OrderedQueue::wait() {
     } catch(const std::system_error& e) {
         LOGE("URM_ORDERED_QUEUE",
              "Cannot wait on Ordered Queue, error: " + std::string(e.what()));
-    } catch(std::exception& e) {
+
+    } catch(const std::exception& e) {
         LOGE("URM_ORDERED_QUEUE",
              "Cannot wait on Ordered Queue, error: " + std::string(e.what()));
     }
@@ -57,8 +59,7 @@ Message* OrderedQueue::pop() {
         if(this->mElementCount == 0) {
             throw std::range_error("Request Queue is empty");
         }
-    } catch (const std::exception& e) {
-        std::cerr << "Cannot Pop Element from the OrderedQueue: " << e.what() << std::endl;
+    } catch(const std::exception& e) {
         return nullptr;
     }
 

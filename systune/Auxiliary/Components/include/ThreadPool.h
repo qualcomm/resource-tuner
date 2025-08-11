@@ -4,6 +4,35 @@
 #ifndef THREAD_POOL_H
 #define THREAD_POOL_H
 
+/*!
+ * \file  ThreadPool.h
+ */
+
+/*!
+ * \ingroup THREAD_POOL
+ * \defgroup THREAD_POOL Thread Pool
+ * \details Used to Pre-Allocate Worker Capacity. As part of the ThreadPool instance creation,
+ *          User needs to specify 2 parameters:
+ *          1. Desired Capacity: Number of threads to be created as part of the Pool.\n
+ *          2. Max Pending Queue Size: The size upto which the Pending Queue can grow.
+ *
+ *          - When a task is submitted (via the enqueueTask API), first we check if there
+ *          any spare or free threads in the Pool, if there are we assign the task to one
+ *          of those threads.\n\n
+ *          - However if no threads are currently free, we check the size of the Waiting Queue,
+ *          If the size is less than the Max Threshold then we add the task to the Waiting Queue.
+ *          As soon as any of the threads is available, it will Poll this task from the Queue and
+ *          Process it.\n\n
+ *          - If even the Pending Queue is full, then the task is Dropped.\n\n
+ *
+ *          Internally the ThreadPool implementation makes use of Condition Variables. Initially
+ *          when the pool is created, the threads put themselves to sleep by calling wait on this
+ *          Condition Variable. Whenever a task comes in, One of these threads (considering there
+ *          are threads available in the pool), will be woken up and it will pick up the new task.
+ *
+ * @{
+ */
+
 #include <assert.h>
 #include <iostream>
 #include <thread>
@@ -18,45 +47,70 @@
 #include "Utils.h"
 #include "Logger.h"
 #include "MemoryPool.h"
+#include "SafeOps.h"
 
-struct TaskNode {
+class TaskNode {
+public:
     std::function<void(void*)>* taskCallback;
     void* args;
     TaskNode* next;
+
+    TaskNode();
+    ~TaskNode();
 };
 
 struct ThreadNode {
     std::thread* th;
-    struct ThreadNode* next;
+    ThreadNode* next;
+};
+
+class TaskQueue {
+private:
+    int32_t size;
+    TaskNode* head;
+    TaskNode* tail;
+
+public:
+    TaskQueue();
+
+    void add(TaskNode* taskNode);
+    TaskNode* poll();
+    int8_t isEmpty();
+    int32_t getSize();
+
+    ~TaskQueue();
 };
 
 /**
 * @brief ThreadPool
-* @details Pre-Allocate thread capacity for future use, so as to prevent repeated Thread creation / destruction costs.
+* @details Pre-Allocate thread (Workers) capacity for future use, so as to prevent repeated Thread creation / destruction costs.
 */
 class ThreadPool {
 private:
-    int32_t mMaxPending;
-    int32_t mDesiredCapacity;
+    int32_t mMaxWaitingListCapacity;
+    int32_t mDesiredPoolCapacity;
+    int32_t mMaxPoolCapacity;
 
+    int32_t mCoreThreadsInUse;
+    int32_t mCurrentThreadsCount;
+    int32_t mTotalTasksCount;
     int8_t mTerminatePool;
+
+    TaskQueue* mCurrentTasks;
+    TaskQueue* mWaitingList;
 
     ThreadNode* mThreadQueueHead;
     ThreadNode* mThreadQueueTail;
 
-    // Pending WAIT queue List: RENAME
-    TaskNode* mTasksQueueHead;
-    TaskNode* mTasksQueueTail;
-    int32_t mTasksQueueSize;
-
     std::mutex mThreadPoolMutex;
     std::condition_variable mThreadPoolCond;
 
-    void addNewThreads(int32_t mThreadCount);
-    int8_t threadRoutineHelper();
+    TaskNode* createTaskNode(std::function<void(void*)> taskCallback, void* args);
+    int8_t addNewThread(int8_t isCoreThread);
+    int8_t threadRoutineHelper(int8_t isCoreThread, int8_t firstTask);
 
 public:
-    ThreadPool(int32_t mDesiredCapacity, int32_t mMaxPending);
+    ThreadPool(int32_t desiredCapacity, int32_t maxPending, int32_t maxCapacity);
     ~ThreadPool();
 
     /**
@@ -71,3 +125,5 @@ public:
 };
 
 #endif
+
+/*! @} */

@@ -3,8 +3,6 @@
 
 #include "MemoryPool.h"
 
-std::shared_ptr<PoolWrapper> PoolWrapper::mPoolWrapperInstance = nullptr;
-
 MemoryPool::MemoryPool(int32_t blockSize) {
     this->mFreeListHead = this->mFreeListTail = nullptr;
     this->mAllocatedListHead = nullptr;
@@ -54,8 +52,7 @@ int32_t MemoryPool::makeAllocation(int32_t blockCount) {
         TYPELOGV(MEMORY_POOL_ALLOCATION_FAILURE, this->mBlockSize, blockCount, blocksAllocated);
 
         return 0;
-    }
-    catch (const std::exception& e) {
+    } catch(const std::exception& e) {
         TYPELOGV(MEMORY_POOL_ALLOCATION_FAILURE, this->mBlockSize,
                  blockCount, blocksAllocated);
 
@@ -192,7 +189,7 @@ int32_t PoolWrapper::makeAllocation(int32_t blockCount, int32_t blockSize, std::
             this->mMemoryPoolRefs[typeIndex] = memoryPool;
         }
 
-    } catch(std::bad_alloc& e) {
+    } catch(const std::bad_alloc& e) {
         TYPELOGV(MEMORY_POOL_ALLOCATION_FAILURE, blockSize, blockCount, 0);
         return 0;
 
@@ -252,4 +249,10 @@ void PoolWrapper::freeBlock(std::type_index typeIndex, void* block) {
     if(memoryPool != nullptr) {
         memoryPool->freeBlock(block);
     }
+}
+
+static std::shared_ptr<PoolWrapper> poolWrapperInstance(new PoolWrapper());
+
+std::shared_ptr<PoolWrapper> getPoolWrapper() {
+    return poolWrapperInstance;
 }

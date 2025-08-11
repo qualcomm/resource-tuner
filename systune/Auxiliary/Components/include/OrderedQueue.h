@@ -15,6 +15,11 @@
 #include "MemoryPool.h"
 #include "Utils.h"
 
+/**
+ * @brief This class represents a mutex-protected multiple producer, single consumer priority queue.
+ * @details The Queue items are ordered by their Priority, so that the Queue Item with the highest
+ *          Priority is always served first.
+ */
 class OrderedQueue {
 protected:
     int32_t mElementCount;
@@ -41,7 +46,6 @@ public:
     /**
     * @brief Used by the producers to add a new request to the OrderedQueue.
     * @details This routine will wake up the consumer end to process the task.
-    * @param priority Client specified request priority
     * @param req Pointer to the Request
     */
     void addAndWakeup(Message* req);

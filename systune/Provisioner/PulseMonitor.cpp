@@ -81,7 +81,7 @@ ErrCode PulseMonitor::startPulseMonitorDaemon() {
 
 PulseMonitor::~PulseMonitor() {
     if(this->mTimer != nullptr) {
-        // delete this->mTimer;
+        delete this->mTimer;
         this->mTimer = nullptr;
     }
 }

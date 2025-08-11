@@ -12,7 +12,7 @@ int8_t RequestManager::isSane(Request* request) {
         if(request == nullptr) {
             throw std::invalid_argument("Request is nullptr");
         }
-    } catch (const std::exception& e) {
+    } catch(const std::exception& e) {
         LOGE("URM_REQUEST_MANAGER",
             "Cannot Check Request Sanity: " +  std::string(e.what()));
         return false;
@@ -63,17 +63,17 @@ int8_t RequestManager::requestMatch(Request* request) {
             Resource* res1 = request->getResourceAt(i);
             Resource* res2 = targetRequest->getResourceAt(i);
 
-            if(res1->mOpId != res2->mOpId) return false;
-            if(res1->mOpInfo != res2->mOpInfo) return false;
-            if(res1->mOptionalInfo != res2->mOptionalInfo) return false;
-            if(res1->mNumValues != res2->mNumValues) return false;
+            if(res1->getOpCode() != res2->getOpCode()) return false;
+            if(res1->getOperationalInfo() != res2->getOperationalInfo()) return false;
+            if(res1->getOptionalInfo() != res2->getOptionalInfo()) return false;
+            if(res1->getValuesCount() != res2->getValuesCount()) return false;
 
-            if(res1->mNumValues == 1) {
+            if(res1->getValuesCount() == 1) {
                 if(res1->mConfigValue.singleValue != res2->mConfigValue.singleValue) {
                     return false;
                 }
             } else {
-                for(int32_t i = 0; i < res1->mNumValues; i++) {
+                for(int32_t i = 0; i < res1->getValuesCount(); i++) {
                     if(res1->mConfigValue.valueArray[i] != res2->mConfigValue.valueArray[i]) return false;
                 }
             }
@@ -171,11 +171,11 @@ std::unordered_map<int64_t, Request*> RequestManager::getActiveRequests() {
 }
 
 void RequestManager::disableRequestProcessing(int64_t handle) {
-    this->mRequestProcessingStatus[handle] = REQ_UNTUNED;
+    this->mRequestProcessingStatus[handle] = REQ_CANCELLED;
 }
 
 void RequestManager::modifyRequestDuration(int64_t handle, int64_t duration) {
-    if(this->mRequestProcessingStatus[handle] != REQ_UNTUNED) {
+    if(this->mRequestProcessingStatus[handle] != REQ_CANCELLED) {
         this->mRequestProcessingStatus[handle] = duration;
     }
 }
@@ -223,12 +223,12 @@ void RequestManager::triggerDisplayOffOrDozeMode() {
         if(request->isBackgroundProcessingEnabled() == false) {
             // If the Request is not a background Request, then add it to the Pending List
             // and remove it from the activeRequestsList
-            if(getRequestProcessingStatus(request->getHandle()) != REQ_UNTUNED) {
+            if(getRequestProcessingStatus(request->getHandle()) != REQ_CANCELLED) {
                 this->mRequestsList[PENDING_TUNE].insert(request);
                 requestsToBeRemoved.push_back(request);
             }
         } else {
-            if(getRequestProcessingStatus(request->getHandle()) == REQ_UNTUNED) {
+            if(getRequestProcessingStatus(request->getHandle()) == REQ_CANCELLED) {
                 requestsToBeRemoved.push_back(request);
             }
         }
@@ -264,7 +264,7 @@ void RequestManager::triggerDisplayOnMode() {
             RequestQueue::getInstance()->addAndWakeup(untuneRequest);
         }
 
-        if(getRequestProcessingStatus(request->getHandle()) == REQ_UNTUNED) {
+        if(getRequestProcessingStatus(request->getHandle()) == REQ_CANCELLED) {
             untunedRequests.push_back(request);
         }
     }

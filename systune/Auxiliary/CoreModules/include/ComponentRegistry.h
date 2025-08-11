@@ -7,12 +7,11 @@
 #include <cstdint>
 #include <unordered_map>
 
-#include "Types.h"
+#include "Utils.h"
 
 enum ModuleIdentifier {
     MOD_PROVISIONER,
     MOD_SYSSIGNAL,
-    MOD_SYS_CONFIG // Remove
 };
 
 typedef struct {

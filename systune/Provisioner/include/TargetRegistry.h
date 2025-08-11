@@ -52,7 +52,7 @@ public:
 
     int8_t addClusterSpreadInfo(int8_t physicalClusterId, int32_t coreCount);
 
-    void setTargetName(const std::string targetName);
+    void setTargetName(const std::string& targetName);
 
     void setTotalCoreCount(uint8_t totalCoreCount);
 

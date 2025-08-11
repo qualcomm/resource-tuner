@@ -8,11 +8,6 @@
 #include "Request.h"
 #include "OrderedQueue.h"
 
-/**
- * @brief This class represents a mutex-protected multiple producer, single consumer priority queue.
- * @details It stores the pointer to the request and compares their priorities. A server thread picks up
- *          these requests sequentially and processes them as appropriate.
- */
 class RequestQueue : public OrderedQueue {
 private:
     static std::shared_ptr<RequestQueue> mRequestQueueInstance;

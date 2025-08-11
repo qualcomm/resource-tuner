@@ -2,124 +2,127 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include "RequestReceiver.h"
+#include "SysConfigInternal.h"
 
 std::shared_ptr<RequestReceiver> RequestReceiver::mRequestReceiverInstance = nullptr;
 ThreadPool* RequestReceiver::mRequestsThreadPool = nullptr;
 RequestReceiver::RequestReceiver() {}
 
-int64_t RequestReceiver::forwardToProvisionerServer(Message* message) {
-    if(!ComponentRegistry::isModuleEnabled(MOD_PROVISIONER)) return -1;
+void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgForwardInfo) {
+    int8_t requestType = *(int8_t*) msgForwardInfo->buffer;
 
-    int64_t handle = message->getHandle();
-
-    // Generate and return Handle straightaway
-    if(message->getRequestType() == REQ_RESOURCE_TUNING) {
-        handle = SystuneSettings::generateUniqueHandle();
-        if(handle < 0) {
-            // Handle Generation Failure, indicating an Overflow
-            Request::cleanUpRequest((Request*)message);
-            return -1;
+    switch(requestType) {
+        // Resource Provisioning Requests
+        case REQ_RESOURCE_TUNING: {
+            msgForwardInfo->handle = SystuneSettings::generateUniqueHandle();
+            if(msgForwardInfo->handle < 0) {
+                // Handle Generation Failure
+                return;
+            }
         }
-        message->setHandle(handle);
-    }
+        case REQ_RESOURCE_RETUNING:
+        case REQ_RESOURCE_UNTUNING: {
+            // Enqueue the Request to the Thread Pool for async processing.
+            if(this->mRequestsThreadPool != nullptr) {
+                if(!this->mRequestsThreadPool->
+                    enqueueTask(ComponentRegistry::getModuleMessageHandlerCallback(MOD_PROVISIONER), msgForwardInfo)) {
+                    LOGE("URM_REQUEST_RECEIVER",
+                         "Failed to enqueue the Request to the Thread Pool");
+                }
+            } else {
+                LOGE("URM_REQUEST_RECEIVER",
+                     "Thread pool not initialized, Dropping the Request");
+            }
 
-    // Enqueue the Request to the Thread Pool for async processing.
-    if(this->mRequestsThreadPool != nullptr) {
-        if(!this->mRequestsThreadPool->
-            enqueueTask(ComponentRegistry::getModuleMessageHandlerCallback(MOD_PROVISIONER), message)) {
-            LOGE("URM_REQUEST_RECEIVER",
-                 "Failed to enqueue the Request to the Thread Pool");
-            Request::cleanUpRequest((Request*)message);
-        }
-    } else {
-        LOGE("URM_REQUEST_RECEIVER",
-             "Thread pool not initialized, Dropping the Request");
-        Request::cleanUpRequest((Request*)message);
-    }
-
-    return handle;
-}
-
-int64_t RequestReceiver::forwardToSysSignalServer(Message* message) {
-    if(!ComponentRegistry::isModuleEnabled(MOD_SYSSIGNAL)) return -1;
-
-    int64_t handle = message->getHandle();
-
-    // Generate and return Handle straightaway
-    if(message->getRequestType() == SIGNAL_ACQ) {
-        handle = SystuneSettings::generateUniqueHandle();
-        if(handle < 0) {
-            // Handle Generation Failure, indicating an Overflow
-            FreeBlock<Signal>(static_cast<void*>(message));
-            return -1;
-        }
-        message->setHandle(handle);
-    }
-
-    // Enqueue the Request to the Thread Pool for async processing.
-    if(this->mRequestsThreadPool != nullptr) {
-        if(!this->mRequestsThreadPool->
-            enqueueTask(ComponentRegistry::getModuleMessageHandlerCallback(MOD_SYSSIGNAL), message)) {
-            LOGE("URM_REQUEST_RECEIVER",
-                 "Failed to enqueue the Request to the Thread Pool");
-            FreeBlock<Signal>(static_cast<void*>(message));
-        }
-    } else {
-        LOGE("URM_REQUEST_RECEIVER",
-                "Thread pool not initialized, Dropping the Request");
-        FreeBlock<Signal>(static_cast<void*>(message));
-    }
-
-    return handle;
-}
-
-int64_t RequestReceiver::forwardMessage(int32_t callbackID, Message* message) {
-    switch(callbackID) {
-        case SERVER_ONLINE_CHECK_CALLBACK:
-            return SystuneSettings::isServerOnline();
-        case PROVISIONER_MESSAGE_RECEIVER_CALLBACK:
-            return this->forwardToProvisionerServer(message);
-        case SIGNAL_MESSAGE_RECEIVER_CALLBACK:
-            return this->forwardToSysSignalServer(message);
-        default:
-            LOGE("URM_REQUEST_RECEIVER", "Invalid Callback Type = " +
-                 std::to_string(callbackID));
+            // Only in Case of Tune Requests, Write back the handle to the client.
+            if(requestType == REQ_RESOURCE_TUNING) {
+                if(write(clientSocket, (const void*)&msgForwardInfo->handle, sizeof(int64_t)) == -1) {
+                    TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+                }
+            }
             break;
-    }
-
-    return 0;
-}
-
-int64_t OnSysTuneMessageAsyncCallback(int32_t callbackID, Message* message) {
-    std::shared_ptr<RequestReceiver> requestReceiver = RequestReceiver::getInstance();
-    return requestReceiver->forwardMessage(callbackID, message);
-}
-
-int8_t OnSysTuneMessageSyncCallback(int8_t reqType, void* reqMsg, char* resultBuf, uint64_t bufferSize) {
-    switch(reqType) {
+        }
+        // SysConfig Requests
+        case REQ_CLIENT_GET_REQUESTS:
         case REQ_SYSCONFIG_GET_PROP:
         case REQ_SYSCONFIG_SET_PROP: {
-            SysConfig* config = (SysConfig*) reqMsg;
-            if(ComponentRegistry::getModuleMessageHandlerCallback(MOD_SYS_CONFIG) != nullptr) {
-                // return ComponentRegistry::getModuleMessageHandlerCallback(MOD_SYS_CONFIG)(reqMsg);
+            // Deserialize to SysConfig Request
+            SysConfig* sysConfig = nullptr;
+            try {
+                sysConfig = new (GetBlock<SysConfig>()) SysConfig();
+
+            } catch(const std::bad_alloc& e) {
+                TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE, e.what());
+                return;
+            }
+
+            if(RC_IS_NOTOK(sysConfig->deserialize(msgForwardInfo->buffer))) {
+                FreeBlock<SysConfig>(sysConfig);
+                return;
+            }
+
+            std::string result;
+            int8_t status = submitSysConfigRequest(result, sysConfig);
+
+            if(requestType == REQ_SYSCONFIG_GET_PROP) {
+                if(write(clientSocket, (const void*)result.c_str(), sizeof(sysConfig->getBufferSize())) == -1) {
+                    TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+                }
+            }
+
+            FreeBlock<SysConfig>(sysConfig);
+        }
+        // SysSignal Requests
+        case SIGNAL_ACQ: {
+            msgForwardInfo->handle = SystuneSettings::generateUniqueHandle();
+            if(msgForwardInfo->handle < 0) {
+                // Handle Generation Failure
+                return;
+            }
+        }
+        case SIGNAL_FREE:
+        case SIGNAL_RELAY: {
+            // Enqueue the Request to the Thread Pool for async processing.
+            if(this->mRequestsThreadPool != nullptr) {
+                if(!this->mRequestsThreadPool->
+                    enqueueTask(ComponentRegistry::getModuleMessageHandlerCallback(MOD_PROVISIONER), msgForwardInfo)) {
+                    LOGE("URM_REQUEST_RECEIVER",
+                         "Failed to enqueue the Request to the Thread Pool");
+                }
             } else {
-                LOGE("URM_REQUEST_RECEIVER", "No Callback registered for SysConfig");
+                LOGE("URM_REQUEST_RECEIVER",
+                     "Thread pool not initialized, Dropping the Request");
+            }
+
+            // Only in Case of Tune Signals, Write back the handle to the client.
+            if(requestType == SIGNAL_ACQ) {
+                if(write(clientSocket, (const void*)&msgForwardInfo->handle, sizeof(int64_t)) == -1) {
+                    TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+                }
             }
             break;
         }
         default:
+            LOGE("URM_SOCKET_SERVER", "Invalid Request Type");
             break;
     }
+}
 
-    return -1;
+int8_t CheckServerOnlineStatus() {
+    return SystuneSettings::isServerOnline();
+}
+
+void OnSysTuneMessageAsyncCallback(int32_t clientSocket, MsgForwardInfo* msgForwardInfo) {
+    std::shared_ptr<RequestReceiver> requestReceiver = RequestReceiver::getInstance();
+    requestReceiver->forwardMessage(clientSocket, msgForwardInfo);
 }
 
 void listenerThreadStartRoutine() {
     SystuneSocketServer* connection;
     try {
         connection = new SystuneSocketServer(12000,
-                                             OnSysTuneMessageAsyncCallback,
-                                             OnSysTuneMessageSyncCallback);
+                                             CheckServerOnlineStatus,
+                                             OnSysTuneMessageAsyncCallback);
     } catch(const std::bad_alloc& e) {
         LOGE("URM_REQUEST_RECEIVER",
              "Failed to allocate memory for Systune Socket Server-Endpoint, Systune\

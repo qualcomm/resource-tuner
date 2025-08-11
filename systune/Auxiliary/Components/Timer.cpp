@@ -7,26 +7,34 @@
 ThreadPool* Timer::mTimerThreadPool = nullptr;
 
 Timer::Timer(std::function<void(void*)>callBack, int8_t isRecurring) {
-    mStop.store(false);
-    mIsRecurring = isRecurring;
+    this->mStop.store(false);
+    this->mIsRecurring = isRecurring;
     this->mCallBack = callBack;
 }
 
 void Timer::implementTimer() {
-    do {
-        std::unique_lock<std::mutex> lock(mMutex);
-        mCv.wait_for(lock, std::chrono::milliseconds(this->mDuration), [this]{return mStop.load();});
-        lock.unlock();
-        if(!mStop.load()) {
-            if(this->mCallBack) {
-                this->mCallBack(nullptr);
+    try {
+        do {
+            std::unique_lock<std::mutex> lock(mMutex);
+            mCv.wait_for(lock, std::chrono::milliseconds(this->mDuration), [this]{return mStop.load();});
+            lock.unlock();
+            if(!mStop.load()) {
+                if(this->mCallBack) {
+                    this->mCallBack(nullptr);
+                }
             }
-        }
-    } while(mIsRecurring && !mStop.load());
+        } while(mIsRecurring && !mStop.load());
+    } catch(const std::exception& e) {
+        LOGE("URM_TIMER", "Timer Could not be started, Error: " + std::string(e.what()));
+    }
 }
 
 int8_t Timer::startTimer(int64_t duration) {
-    if(duration <= 0) {
+    if(duration == -1) {
+        return true;
+    }
+
+    if(duration == 0 || duration < -1) {
         return false;
     }
 
@@ -41,33 +49,6 @@ int8_t Timer::startTimer(int64_t duration) {
     }
 
     LOGD("URM_TIMER", "Timer started with " + std::to_string(duration));
-    return true;
-}
-
-int8_t Timer::updateTimer(int64_t duration) {
-    if(duration != - 1 && (duration < this->mDuration)) {
-        return false;
-    }
-
-    LOGD("URM_TIMER", "Timer updated to: " + std::to_string(duration));
-    killTimer();
-
-    if(duration != -1) {
-        // Re-Trigger the Timer
-        this->mDuration = duration;
-        mStop.store(false);
-
-        if(mTimerThreadPool == nullptr) {
-            return false;
-        }
-
-        if(!mTimerThreadPool->enqueueTask(std::bind(&Timer::implementTimer, this), nullptr)) {
-            return false;
-        }
-
-        LOGD("URM_TIMER", "Timer started with " + std::to_string(duration));
-    }
-
     return true;
 }
 

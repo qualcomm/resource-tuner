@@ -82,7 +82,7 @@ ErrCode ClientGarbageCollector::startClientGarbageCollectorDaemon() {
 
 ClientGarbageCollector::~ClientGarbageCollector() {
     if(this->mTimer != nullptr) {
-        // delete this->mTimer;
+        delete this->mTimer;
         this->mTimer = nullptr;
     }
 }

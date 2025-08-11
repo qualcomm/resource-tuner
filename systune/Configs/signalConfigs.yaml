@@ -1,0 +1,27 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause-Clear
+
+SignalConfigs:
+  - SigId: "0x0000"
+    Category: "0x01"
+    Name: INSTALL
+    Enable: true
+    TargetsEnabled: ["sun", "moon"]
+    Permissions: ["system", "third_party"]
+    Derivatives: ["solar"]
+    Timeout: 4000
+    Resources:
+      - {ResCode: "0x80030000", OpInfo: "0x00000000", Values: [700]}
+
+  - SigId: "0x0001"
+    Category: "0x01"
+    Name: EARLY_WAKEUP
+    Enable: true
+    TargetsDisabled: ["sun"]
+    Permissions: ["system"]
+    Derivatives: ["solar"]
+    Timeout: 5000
+    Resources:
+      - {ResCode: "0x80030000", OpInfo: "0x00000000", Values: [991]}
+      - {ResCode: "0x80040001", OpInfo: "0x00000702", Values: [1388256]}
+      - {ResCode: "0x80040102", OpInfo: "0x00000104", Values: [1344100, 1590871]}

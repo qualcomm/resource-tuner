@@ -3,73 +3,68 @@
 
 #include "ExtFeaturesConfigProcessor.h"
 
-ExtFeaturesConfigProcessor::ExtFeaturesConfigProcessor(std::string jsonFilePath) {
-    this->mJsonParser = new (std::nothrow) JsonParser();
-    if(this->mJsonParser == nullptr) {
-        LOGE("URM_EXT_FEATURES_CONFIG_PROCESSOR", "ExtFeatureConfig Parsing Failed");
-    }
-
-    if(jsonFilePath.length() == 0) {
+ExtFeaturesConfigProcessor::ExtFeaturesConfigProcessor(const std::string& yamlFilePath) {
+    if(yamlFilePath.length() == 0) {
         // No Custom ExtFeature Config File Specified
         this->mCustomExtFeaturesFileSpecified = false;
-        this->mExtFeaturesConfigsJsonFilePath = EXT_FEATURES_CONFIGS_FILE;
+        this->mExtFeaturesConfigsYamlFilePath = EXT_FEATURES_CONFIGS_FILE;
     } else {
         this->mCustomExtFeaturesFileSpecified = true;
-        this->mExtFeaturesConfigsJsonFilePath = jsonFilePath;
+        this->mExtFeaturesConfigsYamlFilePath = yamlFilePath;
     }
 }
 
 ErrCode ExtFeaturesConfigProcessor::parseExtFeaturesConfigs() {
-    if(this->mJsonParser == nullptr) {
-        return RC_JSON_PARSING_ERROR;
-    }
+    const std::string fExtFeaturesConfigFileName(mExtFeaturesConfigsYamlFilePath);
 
-    const std::string fExtFeaturesConfigFileName(mExtFeaturesConfigsJsonFilePath);
-    const std::string jsonExtFeaturesConfigRoot(EXT_FEATURES_CONFIGS_ROOT);
-
-    int32_t size;
-    ErrCode rc = this->mJsonParser->verifyAndGetSize(fExtFeaturesConfigFileName, jsonExtFeaturesConfigRoot, size);
+    YAML::Node result;
+    ErrCode rc = YamlParser::parse(fExtFeaturesConfigFileName, result);
 
     if(RC_IS_OK(rc)) {
-        ExtFeaturesRegistry::getInstance()->initRegistry(size);
-        this->mJsonParser->parse(std::bind(&ExtFeaturesConfigProcessor::ExtFeaturesConfigsParserCB, this, std::placeholders::_1));
-    } else {
-        LOGE("URM_EXT_FEATURES_CONFIG_PROCESSOR", "Couldn't parse: " + fExtFeaturesConfigFileName);
+        if(result[EXT_FEATURES_CONFIGS_ROOT].IsDefined() && result[EXT_FEATURES_CONFIGS_ROOT].IsSequence()) {
+            int32_t featuresCount = result[EXT_FEATURES_CONFIGS_ROOT].size();
+            ExtFeaturesRegistry::getInstance()->initRegistry(featuresCount);
+
+            for(const auto& featureConfig : result[EXT_FEATURES_CONFIGS_ROOT]) {
+                try {
+                    parseYamlNode(featureConfig);
+                } catch(const std::invalid_argument& e) {
+                    LOGE("URM_EXT_FEATURE_PROCESSOR", "Error parsing Ext Feature Config: " + std::string(e.what()));
+                }
+            }
+        }
     }
 
     return rc;
 }
 
-void ExtFeaturesConfigProcessor::ExtFeaturesConfigsParserCB(const Json::Value& item) {
+void ExtFeaturesConfigProcessor::parseYamlNode(const YAML::Node& item) {
     ExtFeatureInfoBuilder extFeatureInfoBuilder;
 
-    if(item[EXT_FEATURE_ID].isInt()) {
-        extFeatureInfoBuilder.setId(item[EXT_FEATURE_ID].asInt());
-    }
+    extFeatureInfoBuilder.setId(
+        safeExtract<int32_t>(item[EXT_FEATURE_ID])
+    );
 
-    if(item[EXT_FEATURE_LIB].isString()) {
-        extFeatureInfoBuilder.setLib(item[EXT_FEATURE_LIB].asString());
-    }
+    extFeatureInfoBuilder.setLib(
+        safeExtract<std::string>(item[EXT_FEATURE_LIB])
+    );
 
-    if(item[EXT_FEATURE_SIGNAL_RANGE].isArray()) {
-        uint32_t lowerBound = (uint32_t)item[EXT_FEATURE_SIGNAL_RANGE][0].asInt();
-        uint32_t upperBound = (uint32_t)item[EXT_FEATURE_SIGNAL_RANGE][1].asInt();
+    if(isList(item[EXT_FEATURE_SIGNAL_RANGE])) {
+        uint32_t lowerBound = (uint32_t)safeExtract<uint32_t>(item[EXT_FEATURE_SIGNAL_RANGE][0]);
+        uint32_t upperBound = (uint32_t)safeExtract<uint32_t>(item[EXT_FEATURE_SIGNAL_RANGE][1]);
 
         for(uint32_t i = lowerBound; i <= upperBound; i++) {
             extFeatureInfoBuilder.addSignalsSubscribedTo(i);
         }
     }
 
-    if(item[EXT_FEATURE_SIGNAL_INDIVIDUAL].isArray()) {
+    if(isList(item[EXT_FEATURE_SIGNAL_INDIVIDUAL])) {
         for(int32_t i = 0; i < item[EXT_FEATURE_SIGNAL_INDIVIDUAL].size(); i++) {
-            extFeatureInfoBuilder.addSignalsSubscribedTo((uint32_t)item[EXT_FEATURE_SIGNAL_INDIVIDUAL][i].asInt());
+            extFeatureInfoBuilder.addSignalsSubscribedTo(
+                (uint32_t)(safeExtract<uint32_t>(item[EXT_FEATURE_SIGNAL_INDIVIDUAL][i]))
+            );
         }
     }
 
-    ExtFeaturesRegistry::getInstance()->registerExtFeature(extFeatureInfoBuilder.build()); 
-}
-
-ExtFeaturesConfigProcessor::~ExtFeaturesConfigProcessor() {
-    delete this->mJsonParser;
-    this->mJsonParser = nullptr;
+    ExtFeaturesRegistry::getInstance()->registerExtFeature(extFeatureInfoBuilder.build());
 }

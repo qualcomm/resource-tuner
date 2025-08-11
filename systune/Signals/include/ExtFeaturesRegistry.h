@@ -59,7 +59,7 @@ public:
     ExtFeatureInfoBuilder();
 
     ExtFeatureInfoBuilder* setId(int32_t featureId);
-    ExtFeatureInfoBuilder* setLib(std::string featureLib);
+    ExtFeatureInfoBuilder* setLib(const std::string& featureLib);
     ExtFeatureInfoBuilder* addSignalsSubscribedTo(uint32_t signalId);
 
     ExtFeatureInfo* build();

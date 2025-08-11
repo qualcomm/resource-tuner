@@ -1,3 +1,6 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+
 #include <thread>
 #include <cstdint>
 #include <gtest/gtest.h>
@@ -7,7 +10,7 @@
 #include "Extensions.h"
 #include "Utils.h"
 
-URM_REGISTER_CONFIG(SIGNALS_CONFIG, "../Tests/Configs/testSignalConfigs.json")
+URM_REGISTER_CONFIG(SIGNALS_CONFIG, "../Tests/Configs/testSignalConfigs.yaml")
 
 #define TOTAL_SIGNAL_CONFIGS_COUNT 4
 
@@ -26,15 +29,15 @@ protected:
     }
 };
 
-TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorJSONDataIntegrity1) {
+TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorYAMLDataIntegrity1) {
     ASSERT_NE(SignalRegistry::getInstance(), nullptr);
 }
 
-TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorJSONDataIntegrity2) {
+TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorYAMLDataIntegrity2) {
     ASSERT_EQ(SignalRegistry::getInstance()->getSignalsConfigCount(), TOTAL_SIGNAL_CONFIGS_COUNT);
 }
 
-TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorJSONDataIntegrity3_1) {
+TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorYAMLDataIntegrity3_1) {
     SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(2147549184);
 
     ASSERT_NE(signalInfo, nullptr);
@@ -48,12 +51,12 @@ TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorJSONDataIntegrity3_1
     ASSERT_EQ(signalInfo->mTargetsDisabled, nullptr);
     ASSERT_NE(signalInfo->mPermissions, nullptr);
     ASSERT_NE(signalInfo->mDerivatives, nullptr);
-    ASSERT_NE(signalInfo->mLocks, nullptr);
+    ASSERT_NE(signalInfo->mSignalResources, nullptr);
 
     ASSERT_EQ(signalInfo->mTargetsEnabled->size(), 2);
     ASSERT_EQ(signalInfo->mPermissions->size(), 1);
     ASSERT_EQ(signalInfo->mDerivatives->size(), 1);
-    ASSERT_EQ(signalInfo->mLocks->size(), 2);
+    ASSERT_EQ(signalInfo->mSignalResources->size(), 1);
 
     // Note the target values are converted to LowerCase before inserting into the map
     ASSERT_EQ(signalInfo->mTargetsEnabled->count("sun"), 1);
@@ -63,11 +66,15 @@ TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorJSONDataIntegrity3_1
 
     ASSERT_EQ(strcmp((const char*)signalInfo->mDerivatives->at(0).data(), "solar"), 0);
 
-    ASSERT_EQ(signalInfo->mLocks->at(0), 2147549184);
-    ASSERT_EQ(signalInfo->mLocks->at(1), 700);
+    Resource* resource1 = signalInfo->mSignalResources->at(0);
+    ASSERT_NE(resource1, nullptr);
+    ASSERT_EQ(resource1->getOpCode(), 2147549184);
+    ASSERT_EQ(resource1->getValuesCount(), 1);
+    ASSERT_EQ(resource1->mConfigValue.singleValue, 700);
+    ASSERT_EQ(resource1->getOperationalInfo(), 0);
 }
 
-TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorJSONDataIntegrity3_2) {
+TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorYAMLDataIntegrity3_2) {
     SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(2147549185);
 
     ASSERT_NE(signalInfo, nullptr);
@@ -81,12 +88,12 @@ TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorJSONDataIntegrity3_2
     ASSERT_EQ(signalInfo->mTargetsEnabled, nullptr);
     ASSERT_NE(signalInfo->mPermissions, nullptr);
     ASSERT_NE(signalInfo->mDerivatives, nullptr);
-    ASSERT_NE(signalInfo->mLocks, nullptr);
+    ASSERT_NE(signalInfo->mSignalResources, nullptr);
 
     ASSERT_EQ(signalInfo->mTargetsDisabled->size(), 1);
     ASSERT_EQ(signalInfo->mPermissions->size(), 1);
     ASSERT_EQ(signalInfo->mDerivatives->size(), 1);
-    ASSERT_EQ(signalInfo->mLocks->size(), 2);
+    ASSERT_EQ(signalInfo->mSignalResources->size(), 2);
 
     // Note the target values are converted to LowerCase before inserting into the map
     ASSERT_EQ(signalInfo->mTargetsDisabled->count("sun"), 1);
@@ -95,11 +102,21 @@ TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorJSONDataIntegrity3_2
 
     ASSERT_EQ(strcmp((const char*)signalInfo->mDerivatives->at(0).data(), "derivative_v2"), 0);
 
-    ASSERT_EQ(signalInfo->mLocks->at(0), 2147549185);
-    ASSERT_EQ(signalInfo->mLocks->at(1), 814);
+    Resource* resource1 = signalInfo->mSignalResources->at(0);
+    ASSERT_EQ(resource1->getOpCode(), 8);
+    ASSERT_EQ(resource1->getValuesCount(), 1);
+    ASSERT_EQ(resource1->mConfigValue.singleValue, 814);
+    ASSERT_EQ(resource1->getOperationalInfo(), 0);
+
+    Resource* resource2 = signalInfo->mSignalResources->at(1);
+    ASSERT_EQ(resource2->getOpCode(), 15);
+    ASSERT_EQ(resource2->getValuesCount(), 2);
+    ASSERT_EQ((*resource2->mConfigValue.valueArray)[0], 23);
+    ASSERT_EQ((*resource2->mConfigValue.valueArray)[1], 90);
+    ASSERT_EQ(resource2->getOperationalInfo(), 256);
 }
 
-TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorJSONDataIntegrity3_3) {
+TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorYAMLDataIntegrity3_3) {
     SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(2147549187);
 
     ASSERT_NE(signalInfo, nullptr);
@@ -113,12 +130,12 @@ TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorJSONDataIntegrity3_3
     ASSERT_EQ(signalInfo->mTargetsDisabled, nullptr);
     ASSERT_NE(signalInfo->mPermissions, nullptr);
     ASSERT_NE(signalInfo->mDerivatives, nullptr);
-    ASSERT_NE(signalInfo->mLocks, nullptr);
+    ASSERT_NE(signalInfo->mSignalResources, nullptr);
 
     ASSERT_EQ(signalInfo->mTargetsEnabled->size(), 2);
     ASSERT_EQ(signalInfo->mPermissions->size(), 1);
     ASSERT_EQ(signalInfo->mDerivatives->size(), 1);
-    ASSERT_EQ(signalInfo->mLocks->size(), 2);
+    ASSERT_EQ(signalInfo->mSignalResources->size(), 4);
 
     // Note the target values are converted to LowerCase before inserting into the map
     // Verify that the Lower case translation Correctly Happens
@@ -132,11 +149,35 @@ TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorJSONDataIntegrity3_3
 
     ASSERT_EQ(strcmp((const char*)signalInfo->mDerivatives->at(0).data(), "solar"), 0);
 
-    ASSERT_EQ(signalInfo->mLocks->at(0), 2147549184);
-    ASSERT_EQ(signalInfo->mLocks->at(1), 800);
+    Resource* resource1 = signalInfo->mSignalResources->at(0);
+    ASSERT_EQ(resource1->getOpCode(), 8);
+    ASSERT_EQ(resource1->getValuesCount(), 2);
+    ASSERT_EQ((*resource1->mConfigValue.valueArray)[0], 300);
+    ASSERT_EQ((*resource1->mConfigValue.valueArray)[1], 400);
+    ASSERT_EQ(resource1->getOperationalInfo(), 0);
+
+    Resource* resource2 = signalInfo->mSignalResources->at(1);
+    ASSERT_EQ(resource2->getOpCode(), 241);
+    ASSERT_EQ(resource2->getValuesCount(), 3);
+    ASSERT_EQ((*resource2->mConfigValue.valueArray)[0], 12);
+    ASSERT_EQ((*resource2->mConfigValue.valueArray)[1], 45);
+    ASSERT_EQ((*resource2->mConfigValue.valueArray)[2], 67);
+    ASSERT_EQ(resource2->getOperationalInfo(), 1024);
+
+    Resource* resource3 = signalInfo->mSignalResources->at(2);
+    ASSERT_EQ(resource3->getOpCode(), 43981);
+    ASSERT_EQ(resource3->getValuesCount(), 1);
+    ASSERT_EQ(resource3->mConfigValue.singleValue, 5);
+    ASSERT_EQ(resource3->getOperationalInfo(), 32);
+
+    Resource* resource4 = signalInfo->mSignalResources->at(3);
+    ASSERT_EQ(resource4->getOpCode(), 59917);
+    ASSERT_EQ(resource4->getValuesCount(), 1);
+    ASSERT_EQ(resource4->mConfigValue.singleValue, 87);
+    ASSERT_EQ(resource4->getOperationalInfo(), 512);
 }
 
-TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorJSONDataIntegrity4) {
+TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorYAMLDataIntegrity4) {
     std::vector<SignalInfo*> signalConfigs = SignalRegistry::getInstance()->getSignalConfigs();
     ASSERT_EQ(signalConfigs.size(), TOTAL_SIGNAL_CONFIGS_COUNT);
 

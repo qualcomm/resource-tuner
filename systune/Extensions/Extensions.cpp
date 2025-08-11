@@ -1,4 +1,3 @@
-
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
@@ -11,9 +10,9 @@ Extensions::Extensions(int32_t resourceOpcode, ResourceApplierCallback resourceA
     this->mModifiedResourceConfigs[resourceOpcode] = resourceApplierCallback;
 }
 
-Extensions::Extensions(ConfigType configType, std::string jsonFile) {
+Extensions::Extensions(ConfigType configType, std::string yamlFile) {
     if(configType < 0 || configType >= mModifiedConfigFiles.size()) return;
-    mModifiedConfigFiles[configType] = jsonFile;
+    mModifiedConfigFiles[configType] = yamlFile;
 }
 
 std::vector<std::pair<int32_t, ResourceApplierCallback>> Extensions::getModifiedResources() {

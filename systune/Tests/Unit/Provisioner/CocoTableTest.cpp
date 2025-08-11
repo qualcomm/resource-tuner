@@ -1,79 +1,82 @@
-#include <gtest/gtest.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include <memory>
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include "Extensions.h"
-#include "CocoTable.h"
-#include "ResourceRegistry.h"
-#include "SyslockServerRequests.h"
+// #include <gtest/gtest.h>
+// #include <stdio.h>
+// #include <stdlib.h>
+// #include <unistd.h>
+// #include <limits.h>
+// #include <memory>
 
-URM_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourceConfigs.json")
+// #include "Extensions.h"
+// #include "CocoTable.h"
+// #include "ResourceRegistry.h"
+// #include "SyslockServerRequests.h"
 
-class CocoTableTest : public ::testing::Test {
-protected:
-    void SetUp() override {
-        static int8_t firstTest = true;
+// URM_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourceConfigs.yaml")
 
-        if(firstTest == true) {
-            firstTest = false;
-            ResourceProcessor resourceProcessor(Extensions::getResourceConfigFilePath());
+// class CocoTableTest : public ::testing::Test {
+// protected:
+//     void SetUp() override {
+//         static int8_t firstTest = true;
 
-            if(RC_IS_NOTOK(resourceProcessor.parseResourceConfigs())) {
-                return;
-            }
+//         if(firstTest == true) {
+//             firstTest = false;
+//             ResourceProcessor resourceProcessor(Extensions::getResourceConfigFilePath());
 
-            MakeAlloc<ClientInfo> (120);
-            MakeAlloc<ClientTidData> (120);
-            MakeAlloc<std::unordered_set<int64_t>> (120);
-            MakeAlloc<Resource> (120);
-            MakeAlloc<std::vector<Resource*>> (120);
-            MakeAlloc<Request> (120);
-            MakeAlloc<CocoNode>(120);
-        }
-    }
+//             if(RC_IS_NOTOK(resourceProcessor.parseResourceConfigs())) {
+//                 return;
+//             }
 
-    std::vector<std::vector<std::pair<CocoNode*, CocoNode*>>> getCocoTableInternal() {
-        return CocoTable::getInstance()->mCocoTable;
-    }
+//             MakeAlloc<ClientInfo> (120);
+//             MakeAlloc<ClientTidData> (120);
+//             MakeAlloc<std::unordered_set<int64_t>> (120);
+//             MakeAlloc<Resource> (120);
+//             MakeAlloc<std::vector<Resource*>> (120);
+//             MakeAlloc<Request> (120);
+//             MakeAlloc<CocoNode>(120);
+//         }
+//     }
 
-    Resource* getCocoNodeResource(CocoNode* cocoNode) {
-        return cocoNode->mResource;
-    }
+//     std::vector<std::vector<std::pair<CocoNode*, CocoNode*>>> getCocoTableInternal() {
+//         return CocoTable::getInstance()->mCocoTable;
+//     }
 
-    int32_t getCocoTablePrimaryIndex(uint32_t opId) {
-       return CocoTable::getInstance()->getCocoTablePrimaryIndex(opId);
-    }
+//     Resource* getCocoNodeResource(CocoNode* cocoNode) {
+//         return cocoNode->mResource;
+//     }
 
-    int32_t getCocoTableSecondaryIndex(uint32_t opId, int32_t mOpInfo, int32_t priority) {
-        return CocoTable::getInstance()->getCocoTableSecondaryIndex(opId, mOpInfo, priority);
-    }
+//     int32_t getCocoTablePrimaryIndex(uint32_t opId) {
+//        return CocoTable::getInstance()->getCocoTablePrimaryIndex(opId);
+//     }
 
-    CocoNode* getNext(CocoNode* cocoTableNode) {
-        return cocoTableNode->next;
-    }
+//     int32_t getCocoTableSecondaryIndex(uint32_t opId, int32_t mOpInfo, int32_t priority) {
+//         return CocoTable::getInstance()->getCocoTableSecondaryIndex(opId, mOpInfo, priority);
+//     }
 
-    int32_t getCurrentlyAppliedPriorityAtIndex(int32_t index) {
-        return CocoTable::getInstance()-> mCurrentlyAppliedPriority[index];
-    }
+//     CocoNode* getNext(CocoNode* cocoTableNode) {
+//         return cocoTableNode->next;
+//     }
 
-    std::string readFromNode(const std::string& fName) {
-        std::fstream myFile(fName, std::ios::in | std::ios::out | std::ios::app);
-        std::string value;
+//     int32_t getCurrentlyAppliedPriorityAtIndex(int32_t index) {
+//         return CocoTable::getInstance()-> mCurrentlyAppliedPriority[index];
+//     }
 
-        if(myFile.is_open()) {
-            getline(myFile, value);
-            myFile.close();
-        } else {
-            LOGE("URM_COCO_TABLE",
-                 "Failed to open the file: " + fName);
-            return "";
-        }
-        return value;
-    }
-};
+//     std::string readFromNode(const std::string& fName) {
+//         std::fstream myFile(fName, std::ios::in | std::ios::out | std::ios::app);
+//         std::string value;
+
+//         if(myFile.is_open()) {
+//             getline(myFile, value);
+//             myFile.close();
+//         } else {
+//             LOGE("URM_COCO_TABLE",
+//                  "Failed to open the file: " + fName);
+//             return "";
+//         }
+//         return value;
+//     }
+// };
 
 // TEST_F(CocoTableTest, ConstructorInitializesFields) {
 //     int32_t totalResources = ResourceRegistry::getInstance()->getTotalResourcesCount();
@@ -90,8 +93,7 @@ protected:
 //     int32_t valueToBeWritten = 100;
 
 //     Resource* resource = (Resource*) (GetBlock<Resource>());
-//     resource->mOpId = (1 << 31) | (1 << 16);
-//     resource->mOpInfo = 0;
+//     resource->mOpCode = (1 << 31) | (1 << 16);
 //     resource->mOptionalInfo = 0;
 //     resource->mNumValues = 1;
 //     resource->mConfigValue.singleValue = valueToBeWritten;
@@ -124,8 +126,7 @@ protected:
 //             new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
-//         resource->mOpId = testOpId;
-//         resource->mOpInfo = 0;
+//         resource->mOpCode = testOpId;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
 //         resource->mConfigValue.singleValue = values[i];
@@ -174,8 +175,7 @@ protected:
 //             new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
-//         resource->mOpId = testOpId;
-//         resource->mOpInfo = 0;
+//         resource->mOpCode = testOpId;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
 //         resource->mConfigValue.singleValue = values[i];
@@ -224,8 +224,7 @@ protected:
 //             new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
-//         resource->mOpId = testOpId;
-//         resource->mOpInfo = 0;
+//         resource->mOpCode = testOpId;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
 //         resource->mConfigValue.singleValue = values[i];
@@ -272,8 +271,7 @@ protected:
 //             new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
-//         resource->mOpId = testOpId;
-//         resource->mOpInfo = 0;
+//         resource->mOpCode = testOpId;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
 //         resource->mConfigValue.singleValue = values[i];
@@ -324,8 +322,7 @@ protected:
 //         values.push_back(rand() % 1000);
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
-//         resource->mOpId = testOpId;
-//         resource->mOpInfo = 0;
+//         resource->mOpCode = testOpId;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
 //         resource->mConfigValue.singleValue = values.back();
@@ -375,8 +372,7 @@ protected:
 //         values.push_back(rand() % 1000);
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
-//         resource->mOpId = testOpId;
-//         resource->mOpInfo = 0;
+//         resource->mOpCode = testOpId;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
 //         resource->mConfigValue.singleValue = values.back();
@@ -426,8 +422,7 @@ protected:
 //         values.push_back(rand() % 1000);
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
-//         resource->mOpId = testOpId;
-//         resource->mOpInfo = 0;
+//         resource->mOpCode = testOpId;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
 //         resource->mConfigValue.singleValue = values.back();
@@ -475,8 +470,7 @@ protected:
 //         values.push_back(rand() % 1000);
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
-//         resource->mOpId = testOpId;
-//         resource->mOpInfo = 0;
+//         resource->mOpCode = testOpId;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
 //         resource->mConfigValue.singleValue = values.back();
@@ -525,8 +519,7 @@ protected:
 //             new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
-//         resource->mOpId = testOpId;
-//         resource->mOpInfo = 0;
+//         resource->mOpCode = testOpId;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
 //         resource->mConfigValue.singleValue = values[i];
@@ -596,8 +589,7 @@ protected:
 // //             int32_t val = rand() % 100;
 
 // //             Resource* resource = (Resource*) (GetBlock<Resource>());
-// //             resource->mOpId = testOpId;
-// //             resource->mOpInfo = 0;
+// //             resource->mOpCode = testOpId;
 // //             resource->mOptionalInfo = 0;
 // //             resource->mNumValues = 1;
 // //             resource->mConfigValue.singleValue = val;
@@ -650,8 +642,7 @@ protected:
 //         new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
 
 //     Resource* resource = (Resource*) (GetBlock<Resource>());
-//     resource->mOpId = testOpId;
-//     resource->mOpInfo = 0;
+//     resource->mOpCode = testOpId;
 //     resource->mOptionalInfo = 0;
 //     resource->mNumValues = 1;
 //     resource->mConfigValue.singleValue = 111;
@@ -691,9 +682,7 @@ protected:
 // //         vector<Resource*> resources;
 
 // //         Resource* resource = (Resource*) (GetBlock<Resource>());
-// //         resource->mOpId = 0;
-// //         resource->mOpInfo = 0;
-// //         resource->mOptionalInfo = 0;
+// //         resource->mOpCode = 0;
 // //         resource->mNumValues = 1;
 // //         resource->mConfigValue.singleValue = values[i];
 
@@ -781,9 +770,7 @@ protected:
 // // //     for(int32_t i = 0; i < values.size(); i++) {
 // // //         vector<Resource*> resource;
 // // //         Resource* r = (Resource*) (GetBlock<Resource>());
-// // //         r->mOpId = 0;
-// // //         r->mOpInfo = 0;
-// // //         r->mOptionalInfo = 0;
+// // //         r->mOpCode = 0;
 // // //         r->mNumValues = 1;
 // // //         r->mConfigValue.singleValue = values[i];
 
@@ -873,9 +860,7 @@ protected:
    
 // // //     vector<Resource*> resource;
 // // //     Resource* r = (Resource*) (GetBlock<Resource>());
-// // //     r->mOpId = 0;
-// // //     r->mOpInfo = 0;
-// // //     r->mOptionalInfo = 0;
+// // //     r->mOpCode = 0;
 // // //     r->mNumValues = 1;
 // // //     r->mConfigValue.singleValue = 300;
  

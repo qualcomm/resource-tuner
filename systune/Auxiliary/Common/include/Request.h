@@ -8,37 +8,52 @@
 #include <vector>
 
 #include "Timer.h"
+#include "SafeOps.h"
 #include "Utils.h"
-#include "Types.h"
+#include "Resource.h"
 
+class CocoNode {
+public:
+    Resource* mResource;
+    CocoNode* next;
+    CocoNode* prev;
+
+    CocoNode() : mResource(nullptr), next(nullptr), prev(nullptr) {}
+};
+
+/**
+* @brief Encapsulation type for a Resource Provisioning Request.
+*/
 class Request : public Message {
 private:
-    int32_t mNumResources; //!< Number of resources requested.
-    int32_t mNumCocoNodes; //!< Number of coco nodes Allocated.
-    std::vector<Resource*>* mResources; //!< List of pointers to the requested Resource objects.
-    std::vector<CocoNode*>* mCocoNodes; //!< List of pointers to CocoNode objects associated with this request.
-    Timer* mTimer; //<! Timer associated with the request.
-    int8_t mBackgroundProcessing;
+    int32_t mNumResources; //!< Number of resources to be tuned as Part of the Request.
+    int32_t mNumCocoNodes; //!< Number of coco nodes Allocated for the Request.
+    std::vector<Resource*>* mResources; //!< Pointer to a vector, storing all the Resources to be tuned.
+    std::vector<CocoNode*>* mCocoNodes; //!< Pointer to a vector, storing all the CocoNodes for the Request.
+    Timer* mTimer; //!< Timer associated with the request.
 
 public:
-    Request();
+    Request() : mNumResources(0), mNumCocoNodes(0), mResources(nullptr),
+                mCocoNodes(nullptr), mTimer(nullptr) {}
     ~Request();
 
     int32_t getResourcesCount();
     int32_t getCocoNodesCount();
-    int8_t isBackgroundProcessingEnabled();
     std::vector<Resource*>* getResources();
     Resource* getResourceAt(int32_t index);
     std::vector<CocoNode*>* getCocoNodes();
     CocoNode* getCocoNodeAt(int32_t index);
+    Timer* getTimer();
 
     void setNumResources(int32_t numResources);
     void setNumCocoNodes(int32_t numCocoNodes);
     void setTimer(Timer* timer);
-    void updateTimer(int64_t newDuration);
+    void unsetTimer();
     void setResources(std::vector<Resource*>* resources);
     void setCocoNodes(std::vector<CocoNode*>* cocoNodes);
-    void setBackgroundProcessing(int8_t isBackgroundProcessingEnabled);
+
+    ErrCode serialize(char* buf);
+    ErrCode deserialize(char* buf);
 
     void populateUntuneRequest(Request* request);
     void populateRetuneRequest(Request* request, int64_t duration);

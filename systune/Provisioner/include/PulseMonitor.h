@@ -1,6 +1,28 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
+/*!
+ * \file  PulseMonitor.h
+ */
+
+/*!
+ * \ingroup  PULSE_MONITOR
+ * \defgroup PULSE_MONITOR Pulse Monitor
+ * \details Runs as a Daemon Thread and Periodically (Every 60 seconds) checks if any of the Clients with
+ *          Active or Pending Requests with the Systune Server have died or terminated.
+ *          When such a Client is Found it is added to the Garbage Collector Queue, so that it
+ *          can be cleaned up.\n\n
+ *          Pulse Monitor Flow:\n\n
+ *          1) The Pulse Monitor, retrieves the list of Clients (i.e. clients with Outstanding Requests)
+ *             from the ClientDataManager.\n\n
+ *          2) Next, it checks if the /proc/<pid>/status file exists for this Process or not. If it does
+ *             not exist, it indicates that the Process has been terminated.\n\n
+ *          3) If it detects a Dead Client, the Pulse Monitor adds it to the Garbage Collector Queue,
+ *             for further cleanup (Refer ClientGarbageCollector for more details regarding Cleanup).\n\n
+ *
+ * @{
+ */
+
 #ifndef PULSE_MONITOR_H
 #define PULSE_MONITOR_H
 
@@ -47,3 +69,5 @@ public:
 ErrCode startPulseMonitorDaemon();
 
 #endif
+
+/*! @} */

@@ -6,6 +6,7 @@
 
 #include <climits>
 #include <limits>
+#include <stdexcept>
 
 /*******************************************
 Note: Arguments must be of the same types,
@@ -106,5 +107,24 @@ T Divide(T firstArg, T secondArg, OperationStatus& status)  {
 
 #define SafeAssignment(ptr, val) \
     (ptr == nullptr) ? throw std::invalid_argument("Null Pointer Assignment") : *ptr = val
+
+#define SafeStaticCast(ptr, to) \
+    (ptr == nullptr) ? throw std::invalid_argument("Null Pointer Casting") : static_cast<to>(ptr)
+
+#define ASSIGN_AND_INCR(ptr, val)        \
+    SafeAssignment(ptr, val);            \
+    ptr++;                               \
+
+#define DEREF_AND_INCR(ptr, type) ({     \
+    type val = (type)(SafeDeref(ptr));   \
+    ptr++;                               \
+    val;                                 \
+})
+
+#define VALIDATE_GT(val, base) \
+    (val > base) ? val : throw std::invalid_argument("Invalid value: " #val " should be greater than " #base)
+
+#define VALIDATE_GE(val, base) \
+    (val >= base) ? val : throw std::invalid_argument("Invalid value: " #val " should be greater or equal to " #base)
 
 #endif

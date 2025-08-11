@@ -20,15 +20,13 @@
 class RequestReceiver {
 private:
     static std::shared_ptr<RequestReceiver> mRequestReceiverInstance;
-    int64_t forwardToProvisionerServer(Message* message);
-    int64_t forwardToSysSignalServer(Message* message);
 
     RequestReceiver();
 
 public:
     static ThreadPool* mRequestsThreadPool;
 
-    int64_t forwardMessage(int32_t callbackID, Message* message);
+    void forwardMessage(int32_t clientSocket, MsgForwardInfo* msgForwardInfo);
 
     static std::shared_ptr<RequestReceiver> getInstance() {
         if(mRequestReceiverInstance == nullptr) {
@@ -38,7 +36,7 @@ public:
     }
 };
 
-int64_t OnSysTuneMessageReceiveCallback(int32_t callbackID, Message* reqMsg, char* resultBuf);
+void OnSysTuneMessageAsyncCallback(int32_t callbackID, char* message, uint64_t bufferSize);
 
 void listenerThreadStartRoutine();
 

@@ -1,3 +1,6 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+
 #include <gtest/gtest.h>
 #include "SafeOps.h"
 
@@ -132,4 +135,64 @@ TEST(DivideTest, Underflow) {
     double result = Divide(std::numeric_limits<double>::max(), -0.5, status);
     ASSERT_EQ(status, UNDERFLOW);
     ASSERT_EQ(result, std::numeric_limits<double>::lowest());
+}
+
+TEST(SafeDerefTests, TestSafeDerefMacro) {
+    int32_t* int_ptr = nullptr;
+    int8_t exceptionHit = false;
+    try {
+        SafeDeref(int_ptr);
+    } catch(const std::invalid_argument& e) {
+        exceptionHit = true;
+    }
+
+    ASSERT_EQ(exceptionHit, true);
+}
+
+TEST(SafeAssignmentTests, TestSafeAssignmentMacro) {
+    int32_t* int_ptr = nullptr;
+    int8_t exceptionHit = false;
+    try {
+        SafeAssignment(int_ptr, 57);
+    } catch(const std::invalid_argument& e) {
+        exceptionHit = true;
+    }
+
+    ASSERT_EQ(exceptionHit, true);
+}
+
+TEST(SafeStaticCastTests, TestSafeStaticCastMacro) {
+    int32_t* int_ptr = nullptr;
+    int8_t exceptionHit = false;
+    try {
+        SafeStaticCast(int_ptr, void*);
+    } catch(const std::invalid_argument& e) {
+        exceptionHit = true;
+    }
+
+    ASSERT_EQ(exceptionHit, true);
+}
+
+TEST(SafeMacroTests, TestValidationMacro1) {
+    int32_t val = -670;
+    int8_t exceptionHit = false;
+    try {
+        VALIDATE_GT(val, 0);
+    } catch(const std::invalid_argument& e) {
+        exceptionHit = true;
+    }
+
+    ASSERT_EQ(exceptionHit, true);
+}
+
+TEST(SafeMacroTests, TestValidationMacro2) {
+    int32_t val = 100;
+    int8_t exceptionHit = false;
+    try {
+        VALIDATE_GE(val, 100);
+    } catch(const std::invalid_argument& e) {
+        exceptionHit = true;
+    }
+
+    ASSERT_EQ(exceptionHit, false);
 }

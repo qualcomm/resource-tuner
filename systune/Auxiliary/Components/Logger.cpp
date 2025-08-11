@@ -3,7 +3,7 @@
 
 #include "Logger.h"
 
-int8_t Logger::mCurrentLevel = ERROR;
+int8_t Logger::mCurrentLevel = DEBUG;
 int8_t Logger::mLevelSpecificLogging = false;
 RedirectOptions Logger::mRedirectOutputTo = LOG_FILE;
 
@@ -47,8 +47,6 @@ void Logger::log(LogLevel level, const std::string& tag, const std::string& func
     std::string timestamp = getTimestamp();
     std::string levelStr = levelToString(level);
 
-    // Add a property, to log to file OR Ftrace
-    // Default: log to ftrace
     if(mRedirectOutputTo == RedirectOptions::LOG_FILE) {
         std::ofstream logFile("log.txt", std::ios::app); //TODO: FIXME
         if(logFile.is_open()) {
@@ -88,7 +86,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             break;
 
         case CommonMessageTypes::PROPERTY_RETRIEVAL_FAILED:
-            Logger::log(ERROR, "URM_SYSTUNE_MAIN", funcName,
+            Logger::log(ERROR, "URM_SYSTUNE_INIT", funcName,
                         "Failed to Fetch Properties, " \
                         "Boot Configs, Systune Server Initialization Failed.");
             break;
@@ -97,7 +95,14 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             vsnprintf(buffer, sizeof(buffer),
                      "Fetch Meta Configs failed, with error %s", args);
 
-            Logger::log(ERROR, "URM_SYSTUNE_MAIN", funcName, std::string(buffer));
+            Logger::log(ERROR, "URM_SYSTUNE_INIT", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::THREAD_POOL_CREATION_FAILURE:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Failed to create Thread Pool. Error: %s", args);
+
+            Logger::log(ERROR, "URM_SYSTUNE_INIT", funcName, std::string(buffer));
             break;
 
         case CommonMessageTypes::THREAD_POOL_INIT_FAILURE:
@@ -138,17 +143,31 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             break;
 
         case CommonMessageTypes::THREAD_POOL_FULL_ALERT:
-            LOGE("URM_THREAD_POOL",
-                 "ThreadPool is full, Task Submission Failed");
+            Logger::log(ERROR, "URM_THREAD_POOL", funcName,
+                        "ThreadPool is full, Task Submission Failed");
+
+            break;
+
+        case CommonMessageTypes::NOTIFY_SYSTUNE_INIT_START:
+            Logger::log(INFO, "URM_SYSTUNE_INIT", funcName,
+                        "Starting Systune Server initialization");
+
+            break;
+
+        case CommonMessageTypes::SYSTUNE_DAEMON_CREATION_FAILURE:
+            Logger::log(ERROR, "URM_SYSTUNE_INIT", funcName,
+                        "Failed to create Systune Daemon, " \
+                        "Aborting Initialization.");
+            break;
 
         case CommonMessageTypes::PULSE_MONITOR_INIT_FAILED:
-            Logger::log(ERROR, "URM_SYSTUNE_MAIN", funcName,
+            Logger::log(ERROR, "URM_SYSTUNE_INIT", funcName,
                         "Pulse Monitor Could not be started, " \
                         "Aborting Initialization.");
             break;
 
         case CommonMessageTypes::GARBAGE_COLLECTOR_INIT_FAILED:
-            Logger::log(ERROR, "URM_SYSTUNE_MAIN", funcName,
+            Logger::log(ERROR, "URM_SYSTUNE_INIT", funcName,
                         "Client Garbage Collector Could not be started, " \
                         "Aborting Initialization.");
             break;
@@ -183,13 +202,13 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
                       "Failed to Initialize Module: %s, " \
                       "Aborting Server Startup.", args);
 
-            Logger::log(ERROR, "URM_SYSTUNE_MAIN", funcName, std::string(buffer));
+            Logger::log(ERROR, "URM_SYSTUNE_INIT", funcName, std::string(buffer));
             break;
 
         case CommonMessageTypes::REQUEST_MEMORY_ALLOCATION_FAILURE:
             vsnprintf(buffer, sizeof(buffer),
-                      "Memory allocation for Incoming Request: " \
-                      "[TYPE: %s], Failed with Error: %s", args);
+                      "Memory allocation for Incoming Request. " \
+                      "Failed with Error: %s", args);
 
             Logger::log(ERROR, "URM_REQUEST_ALLOCATION_FAILURE",
                         funcName, std::string(buffer));
@@ -197,8 +216,8 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
 
         case CommonMessageTypes::REQUEST_PARSING_FAILURE:
             vsnprintf(buffer, sizeof(buffer),
-                      "Request Parsing Failed, Request is Malformed: " \
-                      "[TYPE: %s ]. Error:  %s", args);
+                      "Request Parsing Failed, Request is Malformed. " \
+                      "Error: %s", args);
 
             Logger::log(ERROR, "URM_REQUEST_PARSING_FAILURE",
                         funcName, std::string(buffer));
@@ -209,6 +228,73 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
                       "Call to %s, Failed with Error: %s", args);
 
             Logger::log(ERROR, "URM_SYSCALL_FAILURE", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::VERIFIER_INVALID_OPCODE:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Invalid Opcode [%u], Dropping Request.", args);
+
+            Logger::log(ERROR, "URM_REQUEST_VERIFIER", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::VERIFIER_INVALID_PERMISSION:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Permissions for Client [PID: %d, TID: %d] Could not be Fetched, " \
+                      "Dropping Request.", args);
+
+            Logger::log(ERROR, "URM_REQUEST_VERIFIER", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::VERIFIER_INVALID_PRIORITY:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Invalid Priority [%d], Dropping Request.", args);
+
+            Logger::log(ERROR, "URM_REQUEST_VERIFIER", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::VERIFIER_VALUE_OUT_OF_BOUNDS:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Config Value [%d] does not fall in the Allowed Range" \
+                      "for the Resource [%u], Dropping Request.", args);
+
+            Logger::log(ERROR, "URM_REQUEST_VERIFIER", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::VERIFIER_NOT_SUFFICIENT_PERMISSION:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Permission Check Failed for Resource [%u], "  \
+                      "Dropping Request", args);
+
+            Logger::log(ERROR, "URM_REQUEST_VERIFIER", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::VERIFIER_LOGICAL_TO_PHYSICAL_MAPPING_FAILED:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Logical to Physical Core / Cluster Mapping for the "  \
+                      "Resource [%u], Failed. Dropping Request", args);
+
+            Logger::log(ERROR, "URM_REQUEST_VERIFIER", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::VERIFIER_REQUEST_VALIDATED:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Request with handle: %lld, Successfully Validated.", args);
+
+            Logger::log(INFO, "URM_REQUEST_VERIFIER", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::VERIFIER_STATUS_FAILURE:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Verification Failed for Request [%lld], Dropping Request.", args);
+
+            Logger::log(ERROR, "URM_REQUEST_VERIFIER", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::YAML_PARSE_ERROR:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Failed to parse file: %s, Error: %s", args);
+
+            Logger::log(ERROR, "URM_YAML_PARSER", funcName, std::string(buffer));
             break;
 
         default:

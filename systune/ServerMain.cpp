@@ -13,23 +13,13 @@
 #include "Extensions.h"
 #include "RequestReceiver.h"
 
-static int8_t terminateServer = false;
-
-static void handleSIGINT(int32_t sig) {
-    terminateServer = true;
-}
-
-static void handleSIGTSTP(int32_t sig) {
-    toggleDisplayModes();
-}
-
 static void writeSysFsDefaults() {
     // Write Defaults
     std::ifstream file;
 
     file.open("../sysfsOriginalValues.txt");
     if(!file.is_open()) {
-        LOGE("URM_SYSTUNE_MAIN", "Failed to open sysfs original values file: sysfsOriginalValues.txt");
+        LOGE("URM_SYSTUNE_INIT", "Failed to open sysfs original values file: sysfsOriginalValues.txt");
         return;
     }
 
@@ -56,14 +46,14 @@ static void writeSysFsDefaults() {
             std::ofstream sysfsFile(sysfsNodePath, std::ios::out | std::ios::trunc);
 
             if(!sysfsFile.is_open()) {
-                LOGE("URM_SYSTUNE_MAIN",
+                LOGE("URM_SYSTUNE_INIT",
                      "Failed to write default value to sysfs node: " + sysfsNodePath);
                 continue;
             }
 
             sysfsFile << std::to_string(sysfsNodeDefaultValue);
             if(sysfsFile.fail()) {
-                LOGE("URM_SYSTUNE_MAIN",
+                LOGE("URM_SYSTUNE_INIT",
                      "Failed to write default value to sysfs node: " + sysfsNodePath);
                 sysfsFile.flush();
                 sysfsFile.close();
@@ -76,60 +66,14 @@ static void writeSysFsDefaults() {
     }
 }
 
-static void serverCleanup() {
-    LOGE("URM_SYSTUNE_MAIN", "Server Stopped, Cleanup Initiated");
-    SystuneSettings::setServerOnlineStatus(false);
-}
-
-/**
- * @brief The main function representing the initialisation of the server.
- * @details The parsing occurs in this stage.
- */
-int32_t main(int32_t argc, char *argv[]) {
-    std::signal(SIGINT, handleSIGINT);
-    std::signal(SIGTSTP, handleSIGTSTP);
-
-    if(argc != 2) {
-        std::cout << "Usage: " << argv[0] << " <start|stop>" << std::endl;
-        return -1;
-    }
-
-    const char* shortPrompts = "sth";
-    const struct option longPrompts[] = {
-        {"start", no_argument, nullptr, 's'},
-        {"test", no_argument, nullptr, 't'},
-        {"help", no_argument, nullptr, 'h'},
-        {nullptr, no_argument, nullptr, 0}
-    };
-
-    int32_t c;
-    while ((c = getopt_long(argc, argv, shortPrompts, longPrompts, nullptr)) != -1) {
-        switch (c) {
-            case 's':
-                SystuneSettings::serverInTestMode = false;
-                break;
-            case 't':
-                SystuneSettings::serverInTestMode = true;
-                URM_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/systune/testResourceConfigs.json")
-                URM_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/systune/testSignalConfigs.json")
-                break;
-            case 'h':
-                std::cout<<"Help Options"<<std::endl;
-                return 0;
-            default:
-                std::cout<<"Invalid CLI Option specified"<<std::endl;
-                return 0;
-        }
-    }
-
+static ErrCode createSystuneDaemon(int32_t& childProcessID) {
     // Create a Child Process to Monitor the Parent (Server) Process
     // This is done to ensure that all the Resource sysfs Nodes are in a consistent state
     // If the Server Crashes or Terminates Abnormally.
-    int32_t childProcessID = fork();
+    childProcessID = fork();
     if(childProcessID < 0) {
         TYPELOGV(ERRNO_LOG, "fork", strerror(errno));
-        LOGE("URM_SYSTUNE_MAIN", "Failed to create Daemon, Terminating");
-        return -1;
+        return RC_MODULE_INIT_FAILURE;
 
     } else if(childProcessID == 0) {
         while(true) {
@@ -151,15 +95,103 @@ int32_t main(int32_t argc, char *argv[]) {
         exit(EXIT_SUCCESS);
     }
 
-    ErrCode mOpStatus = RC_SUCCESS;
-    SystuneSettings::setServerOnlineStatus(true);
-    SystuneSettings::targetConfigs.currMode = MODE_DISPLAY_ON;
-    RequestReceiver::mRequestsThreadPool = new ThreadPool(4, 4);
-    Timer::mTimerThreadPool = new ThreadPool(4, 4);
+    return RC_SUCCESS;
+}
 
-    mOpStatus = fetchProperties();
-    if(RC_IS_NOTOK(mOpStatus)) {
-        TYPELOGD(PROPERTY_RETRIEVAL_FAILED);
+static int8_t terminateServer = false;
+
+static void handleSIGINT(int32_t sig) {
+    terminateServer = true;
+}
+
+static void handleSIGTSTP(int32_t sig) {
+    toggleDisplayModes();
+}
+
+static void serverCleanup() {
+    LOGE("URM_SYSTUNE_INIT", "Server Stopped, Cleanup Initiated");
+    SystuneSettings::setServerOnlineStatus(false);
+}
+
+/**
+ * @brief The main function representing the initialisation of the server.
+ * @details The parsing occurs in this stage.
+ */
+int32_t main(int32_t argc, char *argv[]) {
+    int32_t childProcessID = -1;
+
+    if(argc != 2) {
+        std::cout << "Usage: " << argv[0] << " <start|stop|test>" << std::endl;
+        return -1;
+    }
+
+    std::signal(SIGINT, handleSIGINT);
+    std::signal(SIGTSTP, handleSIGTSTP);
+
+    const char* shortPrompts = "sth";
+    const struct option longPrompts[] = {
+        {"start", no_argument, nullptr, 's'},
+        {"test", no_argument, nullptr, 't'},
+        {"help", no_argument, nullptr, 'h'},
+        {nullptr, no_argument, nullptr, 0}
+    };
+
+    int32_t c;
+    while ((c = getopt_long(argc, argv, shortPrompts, longPrompts, nullptr)) != -1) {
+        switch (c) {
+            case 's':
+                SystuneSettings::serverInTestMode = false;
+                break;
+            case 't':
+                SystuneSettings::serverInTestMode = true;
+                URM_REGISTER_CONFIG(PROPERTIES_CONFIG, "../Tests/Configs/testPropertiesConfig.yaml")
+                URM_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourceConfigs.yaml")
+                URM_REGISTER_CONFIG(SIGNALS_CONFIG, "../Tests/Configs/testSignalConfigs.yaml")
+                URM_REGISTER_CONFIG(TARGET_CONFIG, "../Tests/Configs/testTargetConfigs.yaml")
+                break;
+            case 'h':
+                std::cout<<"Help Options"<<std::endl;
+                return 0;
+            default:
+                std::cout<<"Invalid CLI Option specified"<<std::endl;
+                return 0;
+        }
+    }
+
+    TYPELOGD(NOTIFY_SYSTUNE_INIT_START);
+
+    // Start Systune Server Initialization
+    // As part of Server Initialization the Configs (Resource / Signals etc.) will be parsed
+    // If any of mandatory Configs cannot be parsed then initialization will fail.
+    // Mandatory Configs include: Properties Configs, Resource Configs and Signal Configs (if Signal
+    // module is plugged in)
+    ErrCode mOpStatus = RC_SUCCESS;
+    if(RC_IS_OK(mOpStatus)) {
+        mOpStatus = createSystuneDaemon(childProcessID);
+        if(RC_IS_NOTOK(mOpStatus)) {
+            TYPELOGD(SYSTUNE_DAEMON_CREATION_FAILURE);
+        }
+    }
+
+    if(RC_IS_OK(mOpStatus)) {
+        SystuneSettings::setServerOnlineStatus(true);
+        SystuneSettings::targetConfigs.currMode = MODE_DISPLAY_ON;
+
+        try {
+            RequestReceiver::mRequestsThreadPool = new ThreadPool(4, 4, 6);
+            Timer::mTimerThreadPool = new ThreadPool(4, 4, 6);
+
+        } catch(const std::bad_alloc& e) {
+            TYPELOGV(THREAD_POOL_CREATION_FAILURE, e.what());
+            mOpStatus = RC_MODULE_INIT_FAILURE;
+        }
+    }
+
+    if(RC_IS_OK(mOpStatus)) {
+        mOpStatus = fetchProperties();
+        if(RC_IS_NOTOK(mOpStatus)) {
+            TYPELOGD(PROPERTY_RETRIEVAL_FAILED);
+        }
     }
 
     // Check which modules are plugged In and Initialize them
@@ -170,12 +202,14 @@ int32_t main(int32_t argc, char *argv[]) {
         }
     }
 
-    if(ComponentRegistry::isModuleEnabled(MOD_SYSSIGNAL)) {
-        TYPELOGV(NOTIFY_MODULE_ENABLED, SYSSIGNAL);
-        if(RC_IS_OK(mOpStatus)) {
-            mOpStatus = ComponentRegistry::getModuleRegistrationCallback(MOD_SYSSIGNAL)();
-            if(RC_IS_NOTOK(mOpStatus)) {
-                TYPELOGV(MODULE_INIT_FAILED, SYSSIGNAL);
+    if(RC_IS_OK(mOpStatus)) {
+        if(ComponentRegistry::isModuleEnabled(MOD_SYSSIGNAL)) {
+            TYPELOGV(NOTIFY_MODULE_ENABLED, SYSSIGNAL);
+            if(RC_IS_OK(mOpStatus)) {
+                mOpStatus = ComponentRegistry::getModuleRegistrationCallback(MOD_SYSSIGNAL)();
+                if(RC_IS_NOTOK(mOpStatus)) {
+                    TYPELOGV(MODULE_INIT_FAILED, SYSSIGNAL);
+                }
             }
         }
     }
@@ -202,7 +236,7 @@ int32_t main(int32_t argc, char *argv[]) {
     // Create a Listener Thread
     std::thread systuneListener;
     if(RC_IS_OK(mOpStatus)) {
-        LOGI("URM_SYSTUNE_MAIN",
+        LOGI("URM_SYSTUNE_INIT",
              "Starting Systune Listener Thread");
         systuneListener = std::thread(listenerThreadStartRoutine);
     }
@@ -249,9 +283,20 @@ int32_t main(int32_t argc, char *argv[]) {
     // Restore all the Resources to Original Values
     ResourceRegistry::getInstance()->restoreResourcesToDefaultValues();
 
-    kill(childProcessID, SIGKILL);
-    // Wait for the Child Process to terminate
-    waitpid(childProcessID, nullptr, 0);
+    if(RequestReceiver::mRequestsThreadPool != nullptr) {
+        delete RequestReceiver::mRequestsThreadPool;
+    }
+
+    // TBF
+    // if(Timer::mTimerThreadPool != nullptr) {
+    //     delete Timer::mTimerThreadPool;
+    // }
+
+    if(childProcessID != -1) {
+        kill(childProcessID, SIGKILL);
+        // Wait for the Child Process to terminate
+        waitpid(childProcessID, nullptr, 0);
+    }
 
     // Delete the Sysfs Persistent File
     remove("../sysfsOriginalValues.txt");

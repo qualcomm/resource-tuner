@@ -9,27 +9,71 @@
 #include <unordered_map>
 
 #include "Utils.h"
-#include "Types.h"
 #include "Logger.h"
 
 /**
+ * @struct ResourceConfigInfo
  * @brief Representation of a single Resource Configuration
+ * @details This information is read from the Config files.\n
+ *          Note this (ResourceConfigInfo) struct is separate from the Resource struct.
  */
 typedef struct {
-    std::string mResourceName; //<! Name of the sysfs node.
-    int8_t mResourceOptype; //<! Type of the Resource, for example: POWER, CPU_DCVS, GPU etc.
-    int16_t mResourceOpcode; //<! Unique opcode associated with the resource.
-    int32_t mHighThreshold; //<! Upper limit of the value that is allowed/
-    int32_t mLowThreshold; //<! Lower limit of the value that is allowed.
-    enum Permissions mPermissions; //<! Either third party or system.
-    uint8_t mModes; //<! Supported modes: Display on, display off, doze.
-    int8_t mSupported; //<! boolean flag which is set if node supported in that target.
-    int8_t mCoreLevelConflict; //<! boolean flag which is set if different values for different cores.
-    enum Policy mPolicy; //<! Policy by which the resource is governed.
-    int32_t mDefaultValue; //<! Original value of the node which should be restored if all requests are untuned.
-    void (*resourceApplierCallback)(void*); //<! Optional Custom Resource Applier Callback, needs to be supplied by the BU.
+    /**
+     * @brief Name of the sysfs node.
+     */
+    std::string mResourceName;
+    /**
+     * @brief Type of the Resource, for example: POWER, CPU_DCVS, GPU etc.
+     */
+    int8_t mResourceOptype;
+    /**
+     * @brief Unique opcode associated with the resource.
+     */
+    int16_t mResourceOpcode;
+    /**
+     * @brief Max Possible Value which can be configured for this Resource.
+     */
+    int32_t mHighThreshold;
+    /**
+     * @brief Min Possible Value which can be configured for this Resource.
+     */
+    int32_t mLowThreshold;
+    /**
+     * @brief The Permission Level needed by a client in order to tune this Resource
+     */
+    enum Permissions mPermissions;
+    /**
+     * @brief Specify the mode (ex: Display on, display off, doze) under which the Resource can be provisioned
+     */
+    uint8_t mModes;
+    /**
+     * @brief boolean flag which is set if node is available for Tuning.
+     */
+    int8_t mSupported;
+    /**
+     * @brief boolean flag which is set if the Resource can have different values on different cores.
+     */
+    int8_t mCoreLevelConflict;
+    /**
+     * @brief Policy by which the resource is governed, for example Higher is Better.
+     */
+    enum Policy mPolicy;
+    /**
+     * @brief Original value of the Resource node, i.e. the value before any Tuning.
+     */
+    int32_t mDefaultValue;
+    /**
+     * @brief Optional Custom Resource Applier Callback, it needs to be supplied by
+     *        the BU via the Extension Interface.
+     */
+    void (*resourceApplierCallback)(void*);
 } ResourceConfigInfo;
 
+/**
+* @brief ResourceRegistry
+* @details Stores information Relating to all the Resources available for Tuning.
+*          Note: This information is extracted from Config YAML files.
+*/
 class ResourceRegistry {
 private:
     static std::shared_ptr<ResourceRegistry> resourceRegistryInstance;
@@ -42,11 +86,24 @@ private:
 
     ResourceRegistry();
 
+    /**
+     * @brief Checks if a ResourceConfig is malformed
+     * @details Validates all the mandatory fields form the ResourceConfig and
+     *          checks if they have sane values.
+     */
+    int8_t isResourceConfigMalformed(ResourceConfigInfo* resourceConfigInfo);
+
 public:
     ~ResourceRegistry();
 
-    void initRegistry(int32_t size, int8_t customerBit);
+    void initRegistry(int8_t customerBit);
 
+    /**
+     * @brief Used to register a Config specified (through YAML) Resource with Systune
+     * @details The Resource Info is parsed from YAML files. If the ResourceConfig provided is
+     *          Malformed, then it will be freed as part of this routine, else it will
+     *          be added to the "mResourceConfig" vector.
+     */
     void registerResource(ResourceConfigInfo* resourceConfigInfo);
 
     std::vector<ResourceConfigInfo*> getRegisteredResources();
@@ -86,15 +143,15 @@ private:
 public:
     ResourceConfigInfoBuilder();
 
-    ResourceConfigInfoBuilder* setName(std::string resourceName);
-    ResourceConfigInfoBuilder* setOptype(std::string opTypeString);
-    ResourceConfigInfoBuilder* setOpcode(std::string opCodeString);
+    ResourceConfigInfoBuilder* setName(const std::string& resourceName);
+    ResourceConfigInfoBuilder* setOptype(const std::string& opTypeString);
+    ResourceConfigInfoBuilder* setOpcode(const std::string& opCodeString);
     ResourceConfigInfoBuilder* setHighThreshold(int32_t highThreshold);
     ResourceConfigInfoBuilder* setLowThreshold(int32_t lowThreshold);
-    ResourceConfigInfoBuilder* setPermissions(std::string permissionString);
-    ResourceConfigInfoBuilder* setModes(std::string modeString);
+    ResourceConfigInfoBuilder* setPermissions(const std::string& permissionString);
+    ResourceConfigInfoBuilder* setModes(const std::string& modeString);
     ResourceConfigInfoBuilder* setSupported(int8_t supported);
-    ResourceConfigInfoBuilder* setPolicy(std::string policyString);
+    ResourceConfigInfoBuilder* setPolicy(const std::string& policyString);
     ResourceConfigInfoBuilder* setCoreLevelConflict(int8_t coreLevelConflict);
     ResourceConfigInfoBuilder* setDefaultValue(int32_t defaultValue);
 

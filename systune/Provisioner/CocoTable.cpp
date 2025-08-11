@@ -7,13 +7,13 @@ static void writeToNode(const std::string& fName, int32_t fValue) {
     std::ofstream myFile(fName, std::ios::out | std::ios::trunc);
 
     if(!myFile.is_open()) {
-        LOGD("URM_COCO_TABLE", "Failed to open file: "+ fName + " Error: " + strerror(errno));
+        LOGD("URM_COCO_TABLE", "Failed to open file: "+ fName + " Error: " + std::strerror(errno));
         return;
     }
 
     myFile << std::to_string(fValue);
     if(myFile.fail()) {
-        LOGD("URM_COCO_TABLE", "Failed to write to file: "+ fName + " Error: " + strerror(errno));
+        LOGD("URM_COCO_TABLE", "Failed to write to file: "+ fName + " Error: " + std::strerror(errno));
     }
     myFile.flush();
     myFile.close();
@@ -51,14 +51,14 @@ CocoTable::CocoTable() {
     }
 }
 
-void CocoTable::applyAction(CocoNode* currNode, int32_t index, int32_t priority) {
+void CocoTable::applyAction(CocoNode* currNode, int32_t index, int8_t priority) {
     if(!currNode) return;
 
     Resource* resource = currNode->mResource;
 
     if(mCurrentlyAppliedPriority[index] >= priority ||
        mCurrentlyAppliedPriority[index] == -1) {
-        ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->mOpId);
+        ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
         if(resourceConfig->mModes & SystuneSettings::targetConfigs.currMode) {
             // Check if a custom Applier (Callback) has been provided for this Resource, if yes, then call it
             // Note for resources with multiple values, the BU will need to provide a custom applier, which provides
@@ -78,12 +78,12 @@ void CocoTable::applyAction(CocoNode* currNode, int32_t index, int32_t priority)
 
 void CocoTable::applyDefaultAction(int32_t index, Resource* resource) {
     if(!resource) return;
-    writeToNode(ResourceRegistry::getInstance()->getResourceById(resource->mOpId)->mResourceName, ResourceRegistry::getInstance()->getResourceById(resource->mOpId)->mDefaultValue);
-    LOGI("URM_COCO_TABLE" , "Value "+ std::to_string(ResourceRegistry::getInstance()->getResourceById(resource->mOpId)->mDefaultValue) + " written in " + ResourceRegistry::getInstance()->getResourceById(resource->mOpId)->mResourceName);
+    writeToNode(ResourceRegistry::getInstance()->getResourceById(resource->getOpCode())->mResourceName, ResourceRegistry::getInstance()->getResourceById(resource->getOpCode())->mDefaultValue);
+    LOGI("URM_COCO_TABLE" , "Value "+ std::to_string(ResourceRegistry::getInstance()->getResourceById(resource->getOpCode())->mDefaultValue) + " written in " + ResourceRegistry::getInstance()->getResourceById(resource->getOpCode())->mResourceName);
     mCurrentlyAppliedPriority[index] = -1;
 }
 
-void CocoTable::deleteNode(CocoNode* node, int32_t primaryIndex, int32_t secondaryIndex, int32_t priority) {
+void CocoTable::deleteNode(CocoNode* node, int32_t primaryIndex, int32_t secondaryIndex, int8_t priority) {
     if(node->prev) {
         node->prev->next = node->next;
     } else {
@@ -104,7 +104,7 @@ void CocoTable::deleteNode(CocoNode* node, int32_t primaryIndex, int32_t seconda
 }
 
 void CocoTable::insertInCocoTableHigherLower(CocoNode* newNode, int32_t primaryIndex, int32_t secondaryIndex,
-                                             int32_t policy, int32_t priority) {
+                                             int32_t policy, int8_t priority) {
     if(newNode == nullptr) return;
 
     CocoNode* currNode = mCocoTable[primaryIndex][secondaryIndex].second;
@@ -149,7 +149,7 @@ void CocoTable::insertInCocoTableHigherLower(CocoNode* newNode, int32_t primaryI
 }
 
 void CocoTable::insertInCocoTableLazyApply(CocoNode* newNode, int32_t primaryIndex,
-                                           int32_t secondaryIndex, int32_t priority) {
+                                           int32_t secondaryIndex, int8_t priority) {
     if(newNode == nullptr) return;
 
     CocoNode* head = mCocoTable[primaryIndex][secondaryIndex].second;
@@ -171,7 +171,7 @@ void CocoTable::insertInCocoTableLazyApply(CocoNode* newNode, int32_t primaryInd
 }
 
 void CocoTable::insertInCocoTableInstantApply(CocoNode* newNode, int32_t primaryIndex,
-                                              int32_t secondaryIndex, int32_t priority) {
+                                              int32_t secondaryIndex, int8_t priority) {
     if(newNode == nullptr) return;
 
     CocoNode* head = mCocoTable[primaryIndex][secondaryIndex].second;
@@ -199,29 +199,29 @@ int32_t CocoTable::getCocoTablePrimaryIndex(uint32_t opId) {
     return ResourceRegistry::getInstance()->getResourceTableIndex(opId);
 }
 
-int32_t CocoTable::getCocoTableSecondaryIndex(uint32_t opId, int32_t mOpInfo, int32_t priority) {
-    if(ResourceRegistry::getInstance()->getResourceById(opId) == nullptr) {
+int32_t CocoTable::getCocoTableSecondaryIndex(Resource* resource, int8_t priority) {
+    if(ResourceRegistry::getInstance()->getResourceById(resource->getOpCode()) == nullptr) {
         return -1;
     }
 
-    if(ResourceRegistry::getInstance()->getResourceById(opId)->mCoreLevelConflict) {
-        int32_t physicalCore = EXTRACT_RESOURCE_CORE_VALUE(mOpInfo);
+    if(ResourceRegistry::getInstance()->getResourceById(resource->getOpCode())->mCoreLevelConflict) {
+        int32_t physicalCore = resource->getCoreValue();
         return physicalCore * TOTAL_PRIORITIES + priority;
     }
 
     return priority;
 }
 
-int8_t CocoTable::insertInCocoTable(CocoNode* currNode, Resource* resource, int32_t priority) {
-    int32_t primaryIndex = getCocoTablePrimaryIndex(resource->mOpId);
-    int32_t secondaryIndex = getCocoTableSecondaryIndex(resource->mOpId, resource->mOpInfo, priority);
+int8_t CocoTable::insertInCocoTable(CocoNode* currNode, Resource* resource, int8_t priority) {
+    int32_t primaryIndex = getCocoTablePrimaryIndex(resource->getOpCode());
+    int32_t secondaryIndex = getCocoTableSecondaryIndex(resource, priority);
 
     if(primaryIndex < 0 || secondaryIndex < 0 ||
        primaryIndex >= mCocoTable.size() || secondaryIndex >= mCocoTable[primaryIndex].size()) {
         return false;
     }
 
-    enum Policy policy = ResourceRegistry::getInstance()->getResourceById(resource->mOpId)->mPolicy;
+    enum Policy policy = ResourceRegistry::getInstance()->getResourceById(resource->getOpCode())->mPolicy;
 
     switch(policy) {
         case INSTANT_APPLY:
@@ -249,6 +249,8 @@ int8_t CocoTable::insertInCocoTable(CocoNode* currNode, Resource* resource, int3
 // Memory allocation failures, hence we resort to a best-effort approach, where in
 // We allocate as many CocoNodes as possible for the Request.
 int8_t CocoTable::insertRequest(Request* req) {
+    if(req == nullptr) return false;
+
     LOGD("URM_COCO_TABLE","Inserting in CocoTable: Request Handle " + std::to_string(req->getHandle()));
 
     // Create a List to Hold all the CocoNodes for the Request
@@ -332,21 +334,44 @@ int8_t CocoTable::updateRequest(Request* req, int64_t duration) {
     if(req == nullptr || duration < -1 || (duration > 0 && (duration < req->getDuration()))) return false;
 
     // Update the duration of the request, and the corresponding timer interval.
-    req->updateTimer(duration);
+    Timer* currTimer = req->getTimer();
+    req->unsetTimer();
+    currTimer->killTimer();
+    FreeBlock<Timer>(static_cast<void*>(currTimer));
+
+    req->setDuration(duration);
+     // Create a time to associate with the request
+    Timer* requestTimer = nullptr;
+    try {
+        requestTimer = new (GetBlock<Timer>())
+                            Timer(std::bind(&CocoTable::timerOver, this, req));
+    } catch(const std::bad_alloc& e) {
+        LOGE("URM_COCO_TABLE",
+             "Timer allocation Failed for Request: " + std::to_string(req->getHandle()));
+        return false;
+    }
+
+    req->setTimer(requestTimer);
+
+    // Start the timer for this request
+    if(!requestTimer->startTimer(req->getDuration())) {
+        return false;
+    }
+
     return true;
 }
 
 // Methods for Request Cleanup
-int32_t CocoTable::removeRequest(Request* req) {
+int8_t CocoTable::removeRequest(Request* req) {
     LOGD("URM_COCO_TABLE",
          "Request cleanup for Request Handle " + std::to_string(req->getHandle()) + " initiated");
 
     for(int32_t i = 0; i < req->getResourcesCount(); i++) {
         Resource* resource = req->getResourceAt(i);
 
-        int32_t priority = req->getPriority();
-        int32_t primaryIndex = getCocoTablePrimaryIndex(resource->mOpId);
-        int32_t secondaryIndex = getCocoTableSecondaryIndex(resource->mOpId, resource->mOpInfo, priority);
+        int8_t priority = req->getPriority();
+        int32_t primaryIndex = getCocoTablePrimaryIndex(resource->getOpCode());
+        int32_t secondaryIndex = getCocoTableSecondaryIndex(resource, priority);
 
         // Proceed with CocoNode cleanup,
         // Note the actual allocated CocoNode count might be smaller than the Number of Resources.
@@ -364,10 +389,10 @@ int32_t CocoTable::removeRequest(Request* req) {
         if(mCocoTable[primaryIndex][secondaryIndex].second == nullptr) {
             int8_t allListsEmpty = true;
             int32_t reIndexIncrement = 0;
-            ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->mOpId);
+            ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
 
             if(resourceConfig->mCoreLevelConflict) {
-                reIndexIncrement = getCocoTableSecondaryIndex(resource->mOpId, resource->mOpInfo, SYSTEM_HIGH);
+                reIndexIncrement = getCocoTableSecondaryIndex(resource, SYSTEM_HIGH);
             }
 
             for(int32_t p = 0; p < TOTAL_PRIORITIES; p++) {

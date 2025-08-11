@@ -1,0 +1,113 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause-Clear
+
+ResourceConfigs:
+  - ResType: "0x03"
+    ResID: "0x0000"
+    Name: "/proc/sys/kernel/sched_util_clamp_min"
+    Supported: true
+    HighThreshold: 1024
+    LowThreshold: 0
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: "higher_is_better"
+    CoreLevelConflict: false
+
+  - ResType: "0x03"
+    ResID: "0x0001"
+    Name: "/proc/sys/kernel/sched_util_clamp_max"
+    Supported: true
+    HighThreshold: 1024
+    LowThreshold: 0
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: "lower_is_better"
+    CoreLevelConflict: false
+
+  - ResType: "0x04"
+    ResID: "0x0000"
+    Name: "/sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq"
+    Supported: true
+    HighThreshold: 1939200
+    LowThreshold: 1267200
+    Permissions: third_party
+    Modes: ["display_on", "display_off"]
+    Policy: lower_is_better
+    CoreLevelConflict: true
+
+  - ResType: "0x04"
+    ResID: "0x0001"
+    Name: "/sys/devices/system/cpu/cpufreq/policy1/scaling_min_freq"
+    Supported: true
+    HighThreshold: 1939200
+    LowThreshold: 1267200
+    Permissions: third_party
+    Modes: ["display_on", "display_off"]
+    Policy: instant_apply
+    CoreLevelConflict: true
+
+  - ResType: "0x04"
+    ResID: "0x0002"
+    Name: "/sys/devices/system/cpu/cpufreq/policy2/scaling_min_freq"
+    Supported: true
+    HighThreshold: 1939200
+    LowThreshold: 1267200
+    Permissions: third_party
+    Modes: ["display_on", "display_off"]
+    Policy: lazy_apply
+    CoreLevelConflict: false
+
+  - ResType: "0x04"
+    ResID: "0x0003"
+    Name: "/sys/devices/system/cpu/cpufreq/policy3/scaling_min_freq"
+    Supported: true
+    HighThreshold: 1939200
+    LowThreshold: 1267200
+    Permissions: third_party
+    Modes: ["display_on", "display_off"]
+    Policy: lower_is_better
+    CoreLevelConflict: true
+
+  - ResType: "0x04"
+    ResID: "0x0100"
+    Name: "/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq"
+    Supported: true
+    HighThreshold: 1939200
+    LowThreshold: 1267200
+    Permissions: third_party
+    Modes: ["display_on", "display_off"]
+    Policy: higher_is_better
+    CoreLevelConflict: false
+
+  - ResType: "0x04"
+    ResID: "0x0101"
+    Name: "/sys/devices/system/cpu/cpufreq/policy1/scaling_max_freq"
+    Supported: true
+    HighThreshold: 1939200
+    LowThreshold: 1267200
+    Permissions: third_party
+    Modes: ["display_on", "display_off"]
+    Policy: higher_is_better
+    CoreLevelConflict: true
+
+  - ResType: "0x04"
+    ResID: "0x0102"
+    Name: "/sys/devices/system/cpu/cpufreq/policy2/scaling_max_freq"
+    Supported: true
+    HighThreshold: 1939200
+    LowThreshold: 1267200
+    Permissions: third_party
+    Modes: ["display_on", "display_off"]
+    Policy: higher_is_better
+    CoreLevelConflict: false
+
+  - ResType: "0x04"
+    ResID: "0x0103"
+    Name: "/sys/devices/system/cpu/cpufreq/policy3/scaling_max_freq"
+    Supported: true
+    HighThreshold: 1939200
+    LowThreshold: 1267200
+    Permissions: third_party
+    Modes: ["display_on", "display_off"]
+    Policy: higher_is_better
+    CoreLevelConflict: true

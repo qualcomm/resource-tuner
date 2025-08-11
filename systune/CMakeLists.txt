@@ -4,8 +4,6 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_STANDARD_REQUIRED True)
 # for gdb. can be removed in production.
 set(CMAKE_BUILD_TYPE Debug)
-# no need to run tests for external library jsoncpp.
-set(JSONCPP_WITH_TESTS OFF)
 
 project(Systune)
 
@@ -20,12 +18,12 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 FetchContent_Declare(
-  jsoncpp
-  GIT_REPOSITORY https://github.com/open-source-parsers/jsoncpp.git
+  yaml-cpp
+  GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
   GIT_TAG        master
 )
 
-FetchContent_MakeAvailable(jsoncpp)
+FetchContent_MakeAvailable(yaml-cpp)
 
 # Enable Doxygen documentation build
 # first we can indicate the documentation build as an option and set it to OFF by default
@@ -66,38 +64,41 @@ add_subdirectory(Provisioner)
 # Optional builds
 option(BUILD_SIGNALS "Build SysSignals" OFF)
 if(BUILD_SIGNALS)
-add_compile_definitions(SYS_SIGNALS_PLUGGED_IN=1)
-add_subdirectory(Signals)
+  add_compile_definitions(SYS_SIGNALS_PLUGGED_IN=1)
+  add_subdirectory(Signals)
 endif()
 
 option(BUILD_TESTS "Testing" OFF)
 if(BUILD_TESTS)
-enable_testing()
-add_compile_definitions(UNIT_TESTS_BUILD="TRUE")
-add_subdirectory(Tests)
+  enable_testing()
+  add_compile_definitions(UNIT_TESTS_BUILD="TRUE")
+  add_subdirectory(Tests)
 endif()
 
 option(BUILD_CLI "Build CLI" OFF)
 if(BUILD_CLI)
-add_executable(systune_cli
-  ./Client/APIs/SystuneAPIs.cpp
-  ./Client/ClientCLI.cpp
-)
-target_link_libraries(systune_cli CommunicationClient ClientAPIs)
-install(TARGETS systune_cli RUNTIME DESTINATION bin)
+  add_executable(systune_cli
+    ./Client/APIs/SystuneAPIs.cpp
+    ./Client/ClientCLI.cpp
+  )
+  target_link_libraries(systune_cli CommunicationClient ClientAPIs)
+  install(TARGETS systune_cli RUNTIME DESTINATION bin)
 endif()
 
 # Server Executable
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(JSONCPP REQUIRED jsoncpp)
+pkg_check_modules(YAMLCPP REQUIRED yaml-cpp)
 if(BUILD_SIGNALS)
   add_executable(systune ./ServerMain.cpp ./Signals/SignalServer.cpp)
-  target_include_directories(systune PRIVATE ${JSONCPP_INCLUDE_DIRS})
+  target_include_directories(systune PRIVATE ${YAMLCPP_INCLUDE_DIRS})
   target_include_directories(systune PRIVATE ${CMAKE_SOURCE_DIR}/Extensions/include)
   target_link_libraries(systune PUBLIC SysSignals)
   target_link_libraries(systune PUBLIC ExtAPIs)
 else()
   add_executable(systune ./ServerMain.cpp)
+  target_include_directories(systune PRIVATE ${YAMLCPP_INCLUDE_DIRS})
+  target_include_directories(systune PRIVATE ${CMAKE_SOURCE_DIR}/Extensions/include)
+  target_link_libraries(systune PUBLIC ExtAPIs)
 endif()
 
 target_link_libraries(systune PUBLIC Server Auxiliary SysRequestReceiver)
@@ -112,18 +113,19 @@ endif()
 install(TARGETS systune RUNTIME DESTINATION bin)
 install(TARGETS Auxiliary CommunicationClient SystuneCommunicationServer
         ClientAPIs SysConfigProps Server ExtAPIs
-        SysRequestReceiver SysSignals LIBRARY DESTINATION lib)
+        SysRequestReceiver LIBRARY DESTINATION lib)
+if(BUILD_SIGNALS)
+install(TARGETS SysSignals DESTINATION lib)
+endif()
 
 #install headers
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/Client/APIs/include/ DESTINATION include)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/Extensions/include/ DESTINATION include)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/Client/APIs/include/ DESTINATION include/Systune)
 
 #install config files
 install(
     DIRECTORY ${CMAKE_SOURCE_DIR}/Configs/
     DESTINATION /etc/systune/
     FILES_MATCHING
-    PATTERN "*.json"
+    PATTERN "*.yaml"
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
-

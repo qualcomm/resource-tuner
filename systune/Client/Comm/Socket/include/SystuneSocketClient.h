@@ -12,11 +12,12 @@
 #include "Request.h"
 #include "Signal.h"
 #include "SysConfig.h"
-#include "Types.h"
 #include "SafeOps.h"
 #include "Utils.h"
 #include "ClientEndpoint.h"
 #include "ErrCodes.h"
+
+static const int32_t socketConnPort = 12000;
 
 class SystuneSocketClient : public ClientEndpoint {
 private:
@@ -27,7 +28,7 @@ public:
     ~SystuneSocketClient();
 
     virtual int32_t initiateConnection();
-    virtual int32_t sendMsg(int32_t reqType, void* msg);
+    virtual int32_t sendMsg(char* buf, size_t bufSize);
     virtual int32_t readMsg(char* buf, size_t bufSize);
     virtual int32_t closeConnection();
 };

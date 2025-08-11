@@ -17,14 +17,25 @@ static void dumpRequest(Signal* clientReq) {
     LOGD(LOG_TAG, "Priority: " + std::to_string(clientReq->getPriority()));
 }
 
-static int32_t getRequestPriority(int8_t clientPermissions, int8_t reqSpecifiedPriority) {
+static int8_t getRequestPriority(int8_t clientPermissions, int8_t reqSpecifiedPriority) {
     if(clientPermissions == PERMISSION_SYSTEM) {
-        return reqSpecifiedPriority;
+        switch(reqSpecifiedPriority) {
+            case RequestPriority::REQ_PRIORITY_HIGH:
+                return SYSTEM_HIGH;
+            case RequestPriority::REQ_PRIORITY_LOW:
+                return SYSTEM_LOW;
+            default:
+                return -1;
+        }
+
     } else if(clientPermissions == PERMISSION_THIRD_PARTY) {
-        if(reqSpecifiedPriority == SYSTEM_HIGH || reqSpecifiedPriority == SYSTEM_LOW) {
-            return -1;
-        } else {
-            return reqSpecifiedPriority;
+        switch(reqSpecifiedPriority) {
+            case RequestPriority::REQ_PRIORITY_HIGH:
+                return THIRD_PARTY_HIGH;
+            case RequestPriority::REQ_PRIORITY_LOW:
+                return THIRD_PARTY_LOW;
+            default:
+                return -1;
         }
     }
 
@@ -58,20 +69,16 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
         return false;
     }
 
-    int32_t reqSpecifiedPriority = signal->getPriority();
-    if(reqSpecifiedPriority >= TOTAL_PRIORITIES || reqSpecifiedPriority < -1) {
+    int8_t reqSpecifiedPriority = signal->getPriority();
+    if(reqSpecifiedPriority > RequestPriority::REQ_PRIORITY_LOW ||
+       reqSpecifiedPriority < RequestPriority::REQ_PRIORITY_HIGH) {
         LOGI("URM_SIGNAL_SERVER_REQUESTS", "Priority Level = " +
              std::to_string(reqSpecifiedPriority) + "is not a valid value");
         return false;
     }
 
-    int32_t allowedPriority = getRequestPriority(clientPermissions, signal->getPriority());
-    if(allowedPriority == -1 || reqSpecifiedPriority > allowedPriority) {
-        LOGI("URM_SIGNAL_SERVER_REQUESTS",
-             "Client does not have sufficient Permissions to acquire the specified Priority Level");
-        return false;
-    }
-
+    int8_t allowedPriority = getRequestPriority(clientPermissions, reqSpecifiedPriority);
+    if(allowedPriority == -1) return false;
     signal->setPriority(allowedPriority);
 
     // Check if the Signal is enabled for provisioning
@@ -116,23 +123,19 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
     }
 
     // Perform Resource Level Checking, using the ResourceRegistry
-    for(int32_t i = 0; i < signalInfo->mLocks->size(); i++) {
-        if(i % 2 == 0) {
-            // Even index, denotes Resource Opcode
-            ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById((*signalInfo->mLocks)[i]);
+    for(int32_t i = 0; i < signalInfo->mSignalResources->size(); i++) {
+        Resource* resource = signalInfo->mSignalResources->at(i);
+        ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
 
-            // Basic sanity: Invalid resource Opcode
-            if(resourceConfig == nullptr) {
-                LOGE("URM_SYSSIGNAL_SERVER_REQUESTS","Invalid Opcode, Dropping Request");
-                return false;
-            }
+        // Basic sanity: Invalid resource Opcode
+        if(resourceConfig == nullptr) {
+            LOGE("URM_SYSSIGNAL_SERVER_REQUESTS","Invalid Opcode, Dropping Request");
+            return false;
+        }
 
-            // Verify value is in the range [LT, HT]
-            if(i + 1 >= signalInfo->mLocks->size()) {
-                return false;
-            }
-
-            int32_t configValue = (*signalInfo->mLocks)[i + 1];
+        // Verify value is in the range [LT, HT]
+        if(resource->getValuesCount() == 1) {
+            int32_t configValue = resource->mConfigValue.singleValue;
             int32_t lowThreshold = resourceConfig->mLowThreshold;
             int32_t highThreshold = resourceConfig->mHighThreshold;
 
@@ -140,16 +143,25 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
                 LOGE("URM_SYSSIGNAL_SERVER_REQUESTS", "Range Checking Failed, Dropping Request");
                 return false;
             }
-
-            // Verify tuning is supported for the resource in question
-            if(!resourceConfig->mSupported) return false;
-
-            // Check for Client permissions
-            if(resourceConfig->mPermissions == PERMISSION_SYSTEM && clientPermissions == PERMISSION_THIRD_PARTY) {
-                LOGI("URM_SYSSIGNAL_SERVER_REQUESTS", "Permission Check Failed, Dropping Request");
-                return false;
-            }
+        } else {
+            // Note: Extend this verification for multiple values
         }
+
+        // Verify tuning is supported for the resource in question
+        if(!resourceConfig->mSupported) return false;
+
+        // Check for Client permissions
+        if(resourceConfig->mPermissions == PERMISSION_SYSTEM && clientPermissions == PERMISSION_THIRD_PARTY) {
+            LOGI("URM_SYSSIGNAL_SERVER_REQUESTS", "Permission Check Failed, Dropping Request");
+            return false;
+        }
+    }
+
+    if(signal->getDuration() == 0) {
+        // If the Client has not specified a duration to acquire the Signal for,
+        // We use the default duration for the Signal, specified in the Signal
+        // Configs (YAML) file.
+        signal->setDuration(signalInfo->mTimeout);
     }
 
     LOGI("URM_SIGNAL_SERVER_REQUESTS", "Request Verified");
@@ -157,8 +169,6 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
 }
 
 static void processIncomingRequest(Signal* signal) {
-    // dumpRequest(clientMsg);
-
     if(signal->getRequestType() == SIGNAL_RELAY || signal->getRequestType() == SIGNAL_ACQ) {
         // Check if the client exists, if not create a new client tracking entry
         if(!ClientDataManager::getInstance()->clientExists(signal->getClientPID(), signal->getClientTID())) {
@@ -192,7 +202,28 @@ static void processIncomingRequest(Signal* signal) {
 }
 
 void submitSignalRequest(void* clientReq) {
-    processIncomingRequest((Signal*)clientReq);
+    MsgForwardInfo* info = (MsgForwardInfo*) clientReq;
+    if(info == nullptr) return;
+
+    Signal* signal = nullptr;
+    try {
+        signal = new (GetBlock<Signal>()) Signal();
+
+    } catch(const std::bad_alloc& e) {
+        TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE, e.what());
+        return;
+    }
+
+    if(RC_IS_NOTOK(signal->deserialize(info->buffer))) {
+        Signal::cleanUpSignal(signal);
+        return;
+    }
+
+    if(signal->getRequestType() == SIGNAL_ACQ) {
+        signal->setHandle(info->handle);
+    }
+
+    processIncomingRequest(signal);
 }
 
 static Request* createResourceTuningRequest(Signal* signal) {
@@ -212,7 +243,7 @@ static Request* createResourceTuningRequest(Signal* signal) {
     request->setRequestType(REQ_RESOURCE_TUNING);
     request->setHandle(signal->getHandle());
     request->setDuration(signal->getDuration());
-    request->setPriority(signal->getPriority());
+    request->setProperties(signal->getProperties());
     request->setClientPID(signal->getClientPID());
     request->setClientTID(signal->getClientTID());
 
@@ -223,33 +254,16 @@ static Request* createResourceTuningRequest(Signal* signal) {
         return nullptr;
     }
 
-    std::vector<uint32_t>* signalLocks = signalInfo->mLocks;
+    std::vector<Resource*>* signalLocks = signalInfo->mSignalResources;
     request->setNumResources(signalLocks->size() / 2);
 
     std::vector<Resource*>* resourceList =
         new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
     resourceList->resize(request->getResourcesCount());
 
-    Resource* resource = nullptr;
     for(int32_t i = 0; i < signalLocks->size(); i++) {
-        if(i % 2 == 0) {
-            try {
-                resource = (Resource*) (GetBlock<Resource>());
-                resource->mOpId = (*signalLocks)[i];
-
-            } catch(const std::bad_alloc& e) {
-                LOGE("URM_SIGNAL_SERVER",
-                     "Memory allocation for Request struct corresponding to Signal Req with handle: " +
-                     std::to_string(signal->getHandle()) +
-                     " failed with error: " + std::string(e.what()) + ". Dropping this Request");
-                return nullptr;
-            }
-
-        } else {
-            resource->mNumValues = 1;
-            resource->mConfigValue.singleValue = (*signalLocks)[i];
-            (*resourceList)[i - 1] = resource;
-        }
+        Resource* resource = (*signalLocks)[i];
+        resourceList->push_back(resource);
     }
 
     request->setResources(resourceList);
@@ -274,7 +288,7 @@ static Request* createResourceUntuneRequest(Signal* signal) {
     request->setRequestType(REQ_RESOURCE_UNTUNING);
     request->setHandle(signal->getHandle());
     request->setDuration(-1);
-    request->setPriority(signal->getPriority());
+    request->setProperties(signal->getProperties());
     request->setClientPID(signal->getClientPID());
     request->setClientTID(signal->getClientTID());
     request->setNumResources(0);

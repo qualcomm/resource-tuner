@@ -1,12 +1,18 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
+/*!
+ * \file  Utils.h
+ */
+
 #ifndef UTILS_H
 #define UTILS_H
 
 #include <cstdint>
 #include <vector>
 
+#include "ErrCodes.h"
+#include "Message.h"
 #include "Logger.h"
 
 #define PROVISIONER "Provisioner"
@@ -41,15 +47,26 @@ enum SignalRequestType {
  *        no such restrictions and can be accessed even by third party clients.
  */
 enum Permissions {
-    PERMISSION_SYSTEM, //<! Special permission level for system clients.
-    PERMISSION_THIRD_PARTY, //<! Third party clients. Default value.
-    NUMBER_OF_PERMISSIONS //<! Trick to get total number of permissions currently supported. Value = 2 at the moment.
+    PERMISSION_SYSTEM, //!< Special permission level for system clients.
+    PERMISSION_THIRD_PARTY, //!< Third party clients. Default value.
+    NUMBER_PERMISSIONS //!< Total number of permissions currently supported.
+};
+
+/**
+ * @enum RequestPriority
+ * @brief Requests can have 2 levels of Priorities, HIGH or LOW.
+ */
+enum RequestPriority {
+    REQ_PRIORITY_HIGH = 0,
+    REQ_PRIORITY_LOW,
+    NUMBER_REQUEST_PRIORITIES
 };
 
 /**
  * @enum PriorityLevel
- * @brief Each Request will have a priority level. This is used to determine the order in which
- *        requests are processed for a specific Resource. The Requests with higher Priority will be prioritized.
+ * @brief Systune Priority Levels
+ * @details Each Request will have a priority level. This is used to determine the order in which
+ * requests are processed for a specific Resource. The Requests with higher Priority will be prioritized.
  */
 enum PriorityLevel {
     SYSTEM_HIGH, // Highest Level of Priority
@@ -65,27 +82,28 @@ enum PriorityLevel {
 /**
  * @enum Modes
  * @brief Represents the operational modes based on the device's display state.
- *
- * Certain system resources are optimized only when the device display is active,
+ * @details Certain system resources are optimized only when the device display is active,
  * primarily to conserve power. However, for critical components, tuning may be
  * performed regardless of the display state, including during doze mode.
  */
 enum Modes {
-    MODE_DISPLAY_ON  = 0x001, //<! Tuning allowed when the display is on.
-    MODE_DISPLAY_OFF = 0x002, //<! Tuning allowed when the display is off.
-    MODE_DOZE        = 0x004  //<! Tuning allowed during doze (low-power idle) mode.
+    MODE_DISPLAY_ON  = 0x001, //!< Tuning allowed when the display is on.
+    MODE_DISPLAY_OFF = 0x002, //!< Tuning allowed when the display is off.
+    MODE_DOZE        = 0x004  //!< Tuning allowed during doze (low-power idle) mode.
 };
 
 /**
- * - Resource Policies determine the order in which the Tuning Requests will be processed for
+ * @enum Policy
+ * @brief Different Resource Policies supported by Systune
+ * @details Resource Policies determine the order in which the Tuning Requests will be processed for
  *   particular resource. Currently 4 types of Policies are supported:
- * - 1) Instant Apply (or Always Apply): This policy is for resources where the latest request needs to be honored.
+ * - Instant Apply (or Always Apply): This policy is for resources where the latest request needs to be honored.
  *   This is kept as the default policy.
- * - 2) Higher is better: This policy honors the request writing the highest value to the node.
+ * - Higher is better: This policy honors the request writing the highest value to the node.
  *   One of the cases where this makes sense is for resources that describe the upper bound value.
  *   By applying the higher-valued request, the lower-valued request is implicitly honored.
- * - 3) Lower is better: Self-explanatory. Works exactly opposite of the higher is better policy.
- * - 4) Lazy Apply: Sometimes, you want the resources to apply requests in a first-in-first-out manner.
+ * - Lower is better: Self-explanatory. Works exactly opposite of the higher is better policy.
+ * - Lazy Apply: Sometimes, you want the resources to apply requests in a first-in-first-out manner.
  */
 enum Policy {
     INSTANT_APPLY,
@@ -96,8 +114,9 @@ enum Policy {
 
 /**
  * @enum ConfigType
- * @brief Different Config (via JSON) types supported. Note, the Config File corresponding to each config type
- *        can be altered via the Extensions interface.
+ * @brief Different Config (via YAML) Types supported.
+ * @details Note, the Config File corresponding to each config type
+ * can be altered via the Extensions interface.
  */
 enum ConfigType {
     RESOURCE_CONFIG,
@@ -116,10 +135,17 @@ enum ClusterTypes {
     TOTAL_CLUSTER_COUNT
 };
 
-#define SERVER_ONLINE_CHECK_CALLBACK 150
-#define PROVISIONER_MESSAGE_RECEIVER_CALLBACK 180
-#define SYSCONFIG_MESSAGE_RECEIVER_CALLBACK 181
-#define PROVISIONER_SEND_DATA_TO_BUFFER_CALLBACK 182
-#define SIGNAL_MESSAGE_RECEIVER_CALLBACK 200
+typedef struct {
+    char* buffer;
+    uint64_t bufferSize;
+    int64_t handle;
+} MsgForwardInfo;
+
+// GLOBAL TYPEDEFS: Declare Function Pointers as types
+typedef ErrCode (*ModuleCallback)();
+typedef void (*ModuleMessageHandlerCallback)(void*);
+typedef int8_t (*ServerOnlineCheckCallback)();
+typedef void (*SystuneMessageReceivedCallback)(int32_t, MsgForwardInfo*);
+typedef void (*ResourceApplierCallback)(void*);
 
 #endif
