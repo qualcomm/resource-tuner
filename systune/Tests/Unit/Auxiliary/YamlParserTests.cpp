@@ -12,10 +12,10 @@ TEST(YamlParserTests, TestYamlParserFileNotFound) {
     ASSERT_EQ(rc, RC_FILE_NOT_FOUND);
 }
 
-// TEST(YamlParserTests, TestYamlParserInvalidSyntax) {
-//     // A YAML with Malformed or Invalid Syntax
-//     const std::string fileName = "testYamlInvalidSyntax.yaml";
-//     YAML::Node result;
-//     ErrCode rc = YamlParser::parse(fileName, result);
-//     ASSERT_EQ(rc, RC_YAML_INVALID_SYNTAX);
-// }
+TEST(YamlParserTests, TestYamlParserInvalidSyntax) {
+    // A YAML with Malformed or Invalid Syntax
+    const std::string fileName = "testYamlInvalidSyntax.yaml";
+    YAML::Node result;
+    ErrCode rc = YamlParser::parse(fileName, result);
+    ASSERT_EQ(rc, RC_YAML_INVALID_SYNTAX);
+}

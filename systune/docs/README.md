@@ -564,12 +564,12 @@ void sendRequest() {
     // Let's say we stored the handle returned by the tuneResources API in
     // a variable called "handle". Then the retuneResources API can be simply called like:
     if(retuneResources(20000, handle) < 0) {
-      std::cerr<<"Failed to Send retune request to Systune Server"<<std::endl;
+		std::cerr<<"Failed to Send retune request to Systune Server"<<std::endl;
     }
 }
 ```
 
-<div style="page-brea k-after: always;"></div>
+<div style="page-break-after: always;"></div>
 
 ## untuneResources
 

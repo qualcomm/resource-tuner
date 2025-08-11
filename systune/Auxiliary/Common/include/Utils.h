@@ -52,6 +52,10 @@ enum Permissions {
     NUMBER_PERMISSIONS //!< Total number of permissions currently supported.
 };
 
+/**
+ * @enum RequestPriority
+ * @brief Requests can have 2 levels of Priorities, HIGH or LOW.
+ */
 enum RequestPriority {
     REQ_PRIORITY_HIGH = 0,
     REQ_PRIORITY_LOW,

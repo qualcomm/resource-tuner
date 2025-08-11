@@ -137,6 +137,42 @@ TEST(DivideTest, Underflow) {
     ASSERT_EQ(result, std::numeric_limits<double>::lowest());
 }
 
+TEST(SafeDerefTests, TestSafeDerefMacro) {
+    int32_t* int_ptr = nullptr;
+    int8_t exceptionHit = false;
+    try {
+        SafeDeref(int_ptr);
+    } catch(const std::invalid_argument& e) {
+        exceptionHit = true;
+    }
+
+    ASSERT_EQ(exceptionHit, true);
+}
+
+TEST(SafeAssignmentTests, TestSafeAssignmentMacro) {
+    int32_t* int_ptr = nullptr;
+    int8_t exceptionHit = false;
+    try {
+        SafeAssignment(int_ptr, 57);
+    } catch(const std::invalid_argument& e) {
+        exceptionHit = true;
+    }
+
+    ASSERT_EQ(exceptionHit, true);
+}
+
+TEST(SafeStaticCastTests, TestSafeStaticCastMacro) {
+    int32_t* int_ptr = nullptr;
+    int8_t exceptionHit = false;
+    try {
+        SafeStaticCast(int_ptr, void*);
+    } catch(const std::invalid_argument& e) {
+        exceptionHit = true;
+    }
+
+    ASSERT_EQ(exceptionHit, true);
+}
+
 TEST(SafeMacroTests, TestValidationMacro1) {
     int32_t val = -670;
     int8_t exceptionHit = false;

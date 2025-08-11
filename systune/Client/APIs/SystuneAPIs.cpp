@@ -267,6 +267,8 @@ int8_t getprop(const char* prop, char* buffer, size_t bufferSize, const char* de
         buffer[bufferSize - 1] = '\0';
         strncpy(buffer, resultBuf, bufferSize - 1);
 
+        return 0;
+
     } catch(const std::invalid_argument& e) {
         return -1;
 

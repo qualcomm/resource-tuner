@@ -10,13 +10,13 @@ from pathlib import Path
 
 # Unit tests
 def unit_tests():
-    # os.system("./Tests/Unit/TimerTest")
+    os.system("./Tests/Unit/TimerTest")
     os.system("./Tests/Unit/YamlParserTests")
     os.system("./Tests/Unit/SafeOpsTest")
     os.system("./Tests/Unit/MiscTests")
-    # os.system("./Tests/Unit/ThreadPoolTests")
-    # os.system("./Tests/Unit/MemoryPoolTests")
-    # os.system("./Tests/Unit/RequestMapTests")
+    os.system("./Tests/Unit/ThreadPoolTests")
+    os.system("./Tests/Unit/MemoryPoolTests")
+    os.system("./Tests/Unit/RequestMapTests")
     os.system("./Tests/Unit/ResourceProcessorTests")
     os.system("./Tests/Unit/SysSignalConfigProcessorTests")
     os.system("./Tests/Unit/SysConfigAPITests")

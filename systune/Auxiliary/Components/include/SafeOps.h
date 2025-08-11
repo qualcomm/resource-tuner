@@ -108,6 +108,9 @@ T Divide(T firstArg, T secondArg, OperationStatus& status)  {
 #define SafeAssignment(ptr, val) \
     (ptr == nullptr) ? throw std::invalid_argument("Null Pointer Assignment") : *ptr = val
 
+#define SafeStaticCast(ptr, to) \
+    (ptr == nullptr) ? throw std::invalid_argument("Null Pointer Casting") : static_cast<to>(ptr)
+
 #define ASSIGN_AND_INCR(ptr, val)        \
     SafeAssignment(ptr, val);            \
     ptr++;                               \

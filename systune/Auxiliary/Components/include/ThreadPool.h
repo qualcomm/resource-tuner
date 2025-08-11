@@ -47,6 +47,7 @@
 #include "Utils.h"
 #include "Logger.h"
 #include "MemoryPool.h"
+#include "SafeOps.h"
 
 class TaskNode {
 public:
@@ -106,7 +107,7 @@ private:
 
     TaskNode* createTaskNode(std::function<void(void*)> taskCallback, void* args);
     int8_t addNewThread(int8_t isCoreThread);
-    int8_t threadRoutineHelper(int8_t isCoreThread, int8_t& firstTask);
+    int8_t threadRoutineHelper(int8_t isCoreThread, int8_t firstTask);
 
 public:
     ThreadPool(int32_t desiredCapacity, int32_t maxPending, int32_t maxCapacity);

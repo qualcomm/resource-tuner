@@ -60,15 +60,17 @@ int32_t TaskQueue::getSize() {
 }
 
 TaskQueue::~TaskQueue() {
-    while(!this->isEmpty()) {
-        TaskNode* taskNode = this->poll();
-        if(taskNode != nullptr) {
-            FreeBlock<TaskNode>(static_cast<void*>(taskNode));
+    try {
+        while(!this->isEmpty()) {
+            TaskNode* taskNode = this->poll();
+            if(taskNode != nullptr) {
+                FreeBlock<TaskNode>(SafeStaticCast(taskNode, void*));
+            }
         }
-    }
+    } catch(const std::exception& e) {}
 }
 
-int8_t ThreadPool::threadRoutineHelper(int8_t isCoreThread, int8_t& firstTask) {
+int8_t ThreadPool::threadRoutineHelper(int8_t isCoreThread, int8_t firstTask) {
     try {
         std::unique_lock<std::mutex> threadPoolUniqueLock(this->mThreadPoolMutex);
 
@@ -111,7 +113,6 @@ int8_t ThreadPool::threadRoutineHelper(int8_t isCoreThread, int8_t& firstTask) {
 
         TaskNode* taskNode = this->mCurrentTasks->poll();
         this->mTotalTasksCount--;
-        firstTask = false;
 
         if(taskNode != nullptr && taskNode->taskCallback != nullptr) {
             std::function<void(void*)> task = *taskNode->taskCallback;
@@ -125,7 +126,7 @@ int8_t ThreadPool::threadRoutineHelper(int8_t isCoreThread, int8_t& firstTask) {
         }
 
         // Free the TaskNode, before proceeding to the next task
-        FreeBlock<TaskNode>(static_cast<void*>(taskNode));
+        FreeBlock<TaskNode>(SafeStaticCast(taskNode, void*));
         return false;
 
     } catch(const std::system_error& e) {
@@ -153,10 +154,11 @@ int8_t ThreadPool::addNewThread(int8_t isCoreThread) {
     try {
         auto threadStartRoutine = ([this](int8_t isCoreThread) {
             while(true) {
-                int8_t firstTask = true;
+                static int8_t firstTask = true;
                 if(threadRoutineHelper(isCoreThread, firstTask)) {
                     return;
                 }
+                firstTask = !firstTask;
             }
         });
 

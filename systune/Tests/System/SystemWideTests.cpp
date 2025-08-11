@@ -2359,13 +2359,13 @@ int32_t main(int32_t argc, const char* argv[]) {
 
     // Request-Verification Tests
     ResourceTuningRequestVerification::RunTestGroup();
-    // SignalVerification::RunTestGroup();
+    SignalVerification::RunTestGroup();
 
     // Request Application Tests
-    // RequestApplicationTests::RunTestGroup();
+    RequestApplicationTests::RunTestGroup();
 
     // Tests on Real Sysfs Nodes (QLI)
-    // SystemSysfsNodesTests::RunTestGroup();
+    SystemSysfsNodesTests::RunTestGroup();
 
     return 0;
 }

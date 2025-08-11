@@ -4,7 +4,9 @@
 #include <gtest/gtest.h>
 #include "Timer.h"
 
-class TimerTest:  public testing::Test {
+static std::shared_ptr<ThreadPool> tpoolInstance = std::shared_ptr<ThreadPool> (new ThreadPool(4, 4, 5));
+
+class TimerTest : public testing::Test {
 protected:
     Timer* timer;
     Timer* recurringTimer;
@@ -13,7 +15,7 @@ protected:
     void SetUp() override {
         static int8_t firstTest = true;
         if(firstTest) {
-            Timer::mTimerThreadPool = new ThreadPool(4, 4, 5);
+            Timer::mTimerThreadPool = tpoolInstance.get();
             MakeAlloc<Timer>(10);
             firstTest = false;
         }
@@ -34,17 +36,8 @@ protected:
         }
     }
 
-    void TearDown() override {
-        delete timer;
-        delete recurringTimer;
-    }
-
 public:
-    ~TimerTest() {
-        if(Timer::mTimerThreadPool != nullptr) {
-            delete Timer::mTimerThreadPool;
-        }
-    }
+    ~TimerTest() {}
 };
 
 TEST_F(TimerTest, BaseCase) {

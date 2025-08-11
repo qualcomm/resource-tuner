@@ -40,7 +40,7 @@ int8_t parseResources(const std::string& resources, std::vector<std::pair<uint32
                 index++;
             }
 
-        } catch(const std::exception const& ex) {
+        } catch(const std::exception& ex) {
             return -1;
         }
 
@@ -87,6 +87,16 @@ void sendUntuneRequest(int64_t handle) {
         std::cout<<"Untune Request Successfully Submitted"<<std::endl;
     } else if(status == -1) {
         std::cout<<"Untune Request Could not be sent"<<std::endl;
+    }
+}
+
+static void sendSysConfigRequest(const char* prop) {
+    char buffer[1024];
+    int8_t status = getprop(prop, buffer, sizeof(buffer), "prop_not_found");
+    if(status == 0) {
+        std::cout<<"Prop Retrieved, value is: "<<buffer<<std::endl;
+    } else if(status == -1) {
+        std::cout<<"Get Prop Request Could not be sent"<<std::endl;
     }
 }
 
@@ -195,7 +205,7 @@ static int8_t processCommands() {
     return true;
 }
 
-void startPersistentMode() {
+static void startPersistentMode() {
     while(true) {
         try {
             if(!processCommands()) {
@@ -208,7 +218,7 @@ void startPersistentMode() {
 }
 
 int32_t main(int32_t argc, char* argv[]) {
-    const char* short_prompts = "turd:p:l:n:h:s:";
+    const char* short_prompts = "turd:p:l:n:h:s:gk:";
     const struct option long_prompts[] = {
         {"tune", no_argument, nullptr, 't'},
         {"untune", no_argument, nullptr, 'u'},
@@ -218,6 +228,8 @@ int32_t main(int32_t argc, char* argv[]) {
         {"priority", required_argument, nullptr, 'p'},
         {"res", required_argument, nullptr, 'l'},
         {"num", required_argument, nullptr, 'n'},
+        {"getprop", no_argument, nullptr, 'g'},
+        {"key", required_argument, nullptr, 'k'},
         {"persistent", no_argument, nullptr, 's'},
         {nullptr, no_argument, nullptr, 0}
     };
@@ -230,6 +242,7 @@ int32_t main(int32_t argc, char* argv[]) {
     int32_t priority = -1;
     int32_t numResources = -1;
     const char* resources = nullptr;
+    const char* propKey = nullptr;
     int8_t persistent = false;
 
     while ((c = getopt_long(argc, argv, short_prompts, long_prompts, nullptr)) != -1) {
@@ -261,6 +274,12 @@ int32_t main(int32_t argc, char* argv[]) {
             case 's':
                 persistent = true;
                 break;
+            case 'g':
+                requestType = REQ_SYSCONFIG_GET_PROP;
+                break;
+            case 'k':
+                propKey = optarg;
+                break;
             default:
                 break;
         }
@@ -276,7 +295,7 @@ int32_t main(int32_t argc, char* argv[]) {
             if(duration == 0 || duration < -1 || numResources <= 0 || priority == -1 ||
                resources == nullptr) {
                 std::cout<<"Invalid Params for Tune Request"<<std::endl;
-                std::cout << "Usage: --tune --duration <duration> --priority <priority> --num <numRes> -- res <opcode>:<value>,<opcode>:<value>" << std::endl;
+                std::cout<<"Usage: --tune --duration <duration> --priority <priority> --num <numRes> -- res <opcode>:<value>,<opcode>:<value>"<<std::endl;
                 break;
             }
             if(resources != nullptr) {
@@ -295,11 +314,20 @@ int32_t main(int32_t argc, char* argv[]) {
 
         case REQ_RESOURCE_UNTUNING:
             if(handle <= 0) {
-                std::cout<<"Invalid Params for Untune request"<< std::endl;
-                std::cout<<"Usage: --untune --handle <handle>"<< std::endl;
+                std::cout<<"Invalid Params for Untune request"<<std::endl;
+                std::cout<<"Usage: --untune --handle <handle>"<<std::endl;
                 break;
             }
             sendUntuneRequest(handle);
+            break;
+
+        case REQ_SYSCONFIG_GET_PROP:
+            if(propKey == nullptr) {
+                std::cout<<"Invalid Params for Get Prop request"<< std::endl;
+                std::cout<<"Usage: --getprop --key <key>"<<std::endl;
+                break;
+            }
+            sendSysConfigRequest(propKey);
             break;
 
         default:
