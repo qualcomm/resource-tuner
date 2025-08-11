@@ -15,7 +15,7 @@
 #include <cstdlib>
 #include <memory>
 
-#include "SystuneSettings.h"
+#include "ResourceTunerSettings.h"
 #include "ErrCodes.h"
 #include "Logger.h"
 

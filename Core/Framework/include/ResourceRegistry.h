@@ -99,7 +99,7 @@ public:
     void initRegistry(int8_t customerBit);
 
     /**
-     * @brief Used to register a Config specified (through YAML) Resource with Systune
+     * @brief Used to register a Config specified (through YAML) Resource with Resource Tuner
      * @details The Resource Info is parsed from YAML files. If the ResourceConfig provided is
      *          Malformed, then it will be freed as part of this routine, else it will
      *          be added to the "mResourceConfig" vector.

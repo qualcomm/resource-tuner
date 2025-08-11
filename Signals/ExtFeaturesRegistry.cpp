@@ -31,7 +31,7 @@ std::vector<ExtFeatureInfo*> ExtFeaturesRegistry::getExtFeaturesConfigs() {
 
 ExtFeatureInfo* ExtFeaturesRegistry::getExtFeatureConfigById(int32_t featureId) {
     if(this->mSystemIndependentLayerMappings.find(featureId) == this->mSystemIndependentLayerMappings.end()) {
-        LOGE("URM_RESOURCE_PROCESSOR", "Ext Feature ID not found in the registry");
+        LOGE("RTN_RESOURCE_PROCESSOR", "Ext Feature ID not found in the registry");
         return nullptr;
     }
 
@@ -47,9 +47,9 @@ void ExtFeaturesRegistry::displayExtFeatures() {
     for(int32_t i = 0; i < mTotalExtFeatures; i++) {
         auto& extFeature = this->mExtFeaturesConfigs[i];
 
-        LOGI("URM_EXT_FEATURES_REGISTRY", "Ext Feature Lib: " + extFeature->mFeatureLib);
+        LOGI("RTN_EXT_FEATURES_REGISTRY", "Ext Feature Lib: " + extFeature->mFeatureLib);
         for(uint32_t signalID: *extFeature->mSignalsSubscribedTo) {
-            LOGI("URM_EXT_FEATURES_REGISTRY", "Ext Feature Signal ID: " + std::to_string(signalID));
+            LOGI("RTN_EXT_FEATURES_REGISTRY", "Ext Feature Signal ID: " + std::to_string(signalID));
         }
     }
 }

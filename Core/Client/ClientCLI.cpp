@@ -13,7 +13,7 @@
 #include <getopt.h>
 
 #include "Utils.h"
-#include "SystuneAPIs.h"
+#include "ResourceTunerAPIs.h"
 
 int8_t parseResources(const std::string& resources, std::vector<std::pair<uint32_t, int32_t>>& resourcePairs) {
     std::stringstream resourceStream(resources);

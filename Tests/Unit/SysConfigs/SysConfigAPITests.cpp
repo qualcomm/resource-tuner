@@ -12,7 +12,7 @@
 #include "SysConfigProcessor.h"
 #include "Logger.h"
 
-URM_REGISTER_CONFIG(PROPERTIES_CONFIG, "../Tests/Configs/testPropertiesConfig.yaml")
+RTN_REGISTER_CONFIG(PROPERTIES_CONFIG, "../Tests/Configs/testPropertiesConfig.yaml")
 
 class SysConfigAPITests: public::testing::Test {
 protected:
@@ -25,7 +25,6 @@ protected:
                 SysConfigProcessor::getInstance(Extensions::getPropertiesConfigFilePath());
 
             if(RC_IS_NOTOK(sysConfigProcessor->parseSysConfigs())) {
-                LOGE("URM_TEST_SYSCONFIG_PARSER", "SysConfig Config Parsing Failed");
                 return;
             }
         }

@@ -9,7 +9,7 @@ static std::vector<int8_t> readRelatedCpus(const std::string& policyPath) {
 
     file.open(policyPath + "/related_cpus");
     if(!file.is_open()) {
-        LOGE("URM_TARGET_REGISTRY",
+        LOGE("RTN_TARGET_REGISTRY",
              "Failed to open file: " + policyPath + "/related_cpus");
         throw std::ifstream::failure("Failed to open file");
     }
@@ -30,7 +30,7 @@ static std::vector<int8_t> readRelatedCpus(const std::string& policyPath) {
         }
     }
 
-    SystuneSettings::targetConfigs.totalCoreCount += cpus.size();
+    ResourceTunerSettings::targetConfigs.totalCoreCount += cpus.size();
     return cpus;
 }
 
@@ -39,7 +39,7 @@ static int32_t getOnlineCpuCount() {
     try {
         file.open(ONLINE_CPU_FILE_PATH);
         if(!file.is_open()) {
-            LOGE("URM_TARGET_CONFIG_PROCESSOR",
+            LOGE("RTN_TARGET_CONFIG_PROCESSOR",
                  "Failed to Open file: " ONLINE_CPU_FILE_PATH);
             return 0;
         }
@@ -58,19 +58,19 @@ static int32_t getOnlineCpuCount() {
         return cpuIndex + 1;
 
     } catch(const std::invalid_argument& ex) {
-        LOGE("URM_TARGET_REGISTRY",
+        LOGE("RTN_TARGET_REGISTRY",
              "Dynamic Logical to Physical Mapping Failed,\
              std::invalid_argument::what(): " + std::string(ex.what()));
     } catch(const std::out_of_range& ex) {
-        LOGE("URM_TARGET_REGISTRY",
+        LOGE("RTN_TARGET_REGISTRY",
              "Dynamic Logical to Physical Mapping Failed,\
              std::out_of_range::what(): " + std::string(ex.what()));
     } catch(const std::ifstream::failure& ex) {
-        LOGE("URM_TARGET_REGISTRY",
+        LOGE("RTN_TARGET_REGISTRY",
              "Dynamic Logical to Physical Mapping Failed,\
              std::ifstream::failure::what(): " + std::string(ex.what()));
     } catch(const std::exception& ex) {
-        LOGE("URM_TARGET_REGISTRY",
+        LOGE("RTN_TARGET_REGISTRY",
              "Dynamic Logical to Physical Mapping"\
              "Failed, with error: " + std::string(ex.what()));
     }
@@ -83,12 +83,12 @@ TargetRegistry::TargetRegistry() {}
 
 void TargetRegistry::setTargetName(const std::string& targetName) {
     this->mTargetName = targetName;
-    SystuneSettings::targetConfigs.targetName = targetName;
+    ResourceTunerSettings::targetConfigs.targetName = targetName;
 }
 
 void TargetRegistry::setTotalCoreCount(uint8_t totalCoreCount) {
     this->mTotalCoreCount = totalCoreCount;
-    SystuneSettings::targetConfigs.totalCoreCount = this->mTotalCoreCount;
+    ResourceTunerSettings::targetConfigs.totalCoreCount = this->mTotalCoreCount;
 }
 
 int8_t TargetRegistry::addMapping(const std::string& clusterName, int8_t physicalClusterId) {
@@ -96,12 +96,12 @@ int8_t TargetRegistry::addMapping(const std::string& clusterName, int8_t physica
        (clusterName != "big") &&
        (clusterName != "prime") &&
        (clusterName != "titanium")) {
-        LOGE("URM_TARGET_CONFIG_PROCESSOR", "Incorrect cluster info");
+        LOGE("RTN_TARGET_CONFIG_PROCESSOR", "Incorrect cluster info");
         return RC_INVALID_VALUE;
     }
 
     if(physicalClusterId < 0 || physicalClusterId >= CLUSTER_TYPE_COUNT) {
-        LOGE("URM_TARGET_CONFIG_PROCESSOR", "Incorrect cluster id");
+        LOGE("RTN_TARGET_CONFIG_PROCESSOR", "Incorrect cluster id");
         return RC_INVALID_VALUE;
     }
 
@@ -134,7 +134,7 @@ int8_t TargetRegistry::readPhysicalMapping() {
         try {
             cpus = readRelatedCpus(fullPath);
         } catch(const std::exception& e) {
-            LOGE("URM_TARGET_CONFIG_PROCESSOR", "Failed to read policy dir: " + fullPath);
+            LOGE("RTN_TARGET_CONFIG_PROCESSOR", "Failed to read policy dir: " + fullPath);
             return RC_FILE_NOT_FOUND;
         }
 
@@ -153,7 +153,7 @@ int8_t TargetRegistry::readPhysicalMapping() {
 
 int8_t TargetRegistry::addClusterSpreadInfo(int8_t physicalClusterId, int32_t coreCount) {
     if(physicalClusterId < 0 || physicalClusterId >= CLUSTER_TYPE_COUNT || coreCount < 0) {
-        LOGE("URM_TARGET_CONFIG_PROCESSOR", "Invalid Cluster/Core Data id");
+        LOGE("RTN_TARGET_CONFIG_PROCESSOR", "Invalid Cluster/Core Data id");
         return RC_INVALID_VALUE;
     }
     this->mClusterSpreadInfo.push_back({physicalClusterId, coreCount});
@@ -163,7 +163,7 @@ int8_t TargetRegistry::addClusterSpreadInfo(int8_t physicalClusterId, int32_t co
 ErrCode TargetRegistry::readPhysicalCoreClusterInfo() {
     // Check if a Mapping file has been provided
     if(this->mClusterSpreadInfo.size() > 0) {
-        LOGD("URM_TARGET_CONFIG_PROCESSOR", "Reading Physical Cluster-Core Mapping data from BU-provided Config File");
+        LOGD("RTN_TARGET_CONFIG_PROCESSOR", "Reading Physical Cluster-Core Mapping data from BU-provided Config File");
         std::sort(this->mClusterSpreadInfo.begin(), this->mClusterSpreadInfo.end());
 
         int32_t coreCpuIndex = 0;
@@ -175,23 +175,23 @@ ErrCode TargetRegistry::readPhysicalCoreClusterInfo() {
 
     } else {
         // No Mapping File Provided, Try to obtain the Mapping Dynamically
-        LOGD("URM_TARGET_CONFIG_PROCESSOR", "Dynamically Reading Physical Cluster-Core Mapping data from /cpufreq/policy/* directories");
-        SystuneSettings::targetConfigs.totalCoreCount = 0;
+        LOGD("RTN_TARGET_CONFIG_PROCESSOR", "Dynamically Reading Physical Cluster-Core Mapping data from /cpufreq/policy/* directories");
+        ResourceTunerSettings::targetConfigs.totalCoreCount = 0;
         int8_t opStatus = readPhysicalMapping();
 
         if(RC_IS_NOTOK(opStatus)) {
-            LOGD("URM_TARGET_CONFIG_PROCESSOR", "Falling back to Default Heurisitc based core assignment");
+            LOGD("RTN_TARGET_CONFIG_PROCESSOR", "Falling back to Default Heurisitc based core assignment");
 
             // Fallback to a Default Heuristic based assignment
             int32_t totalOnlineCpuCount;
             try {
                 totalOnlineCpuCount = getOnlineCpuCount();
             } catch(const std::exception& e) {
-                LOGE("URM_TARGET_CONFIG_PROCESSOR", "Failed to read online cpu count");
+                LOGE("RTN_TARGET_CONFIG_PROCESSOR", "Failed to read online cpu count");
                 return RC_FILE_NOT_FOUND;
             }
 
-            SystuneSettings::targetConfigs.totalCoreCount = totalOnlineCpuCount;
+            ResourceTunerSettings::targetConfigs.totalCoreCount = totalOnlineCpuCount;
 
             int32_t coreCountPerCluster = totalOnlineCpuCount / CLUSTER_TYPE_COUNT;
             int32_t pendingAllocationCount = totalOnlineCpuCount % CLUSTER_TYPE_COUNT;
@@ -225,11 +225,11 @@ ErrCode TargetRegistry::readPhysicalCoreClusterInfo() {
 
 void TargetRegistry::displayLogicalClustersToPhysicalCoresMapping() {
     for(std::pair<std::string, std::vector<int8_t>> entry: mClusterTypeToPhysicalCores) {
-        LOGD("URM_LOGICAL_CORE_TRANSLATOR","=============");
+        LOGD("RTN_LOGICAL_CORE_TRANSLATOR","=============");
 
-        LOGD("URM_LOGICAL_CORE_TRANSLATOR","LogicalClusterId " + entry.first);
+        LOGD("RTN_LOGICAL_CORE_TRANSLATOR","LogicalClusterId " + entry.first);
         for(int8_t cores: entry.second) {
-            LOGD("URM_LOGICAL_CORE_TRANSLATOR", "Core " + std::to_string(cores));
+            LOGD("RTN_LOGICAL_CORE_TRANSLATOR", "Core " + std::to_string(cores));
         }
     }
 }

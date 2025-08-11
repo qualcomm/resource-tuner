@@ -10,7 +10,7 @@ static uint8_t isRootProcess(pid_t pid) {
     std::string line;
 
     if(!file.is_open()) {
-        LOGE("URM_CLIENT_DATA_MANAGER", "Failed to open: " + statusFile);
+        LOGE("RTN_CLIENT_DATA_MANAGER", "Failed to open: " + statusFile);
         return PERMISSION_THIRD_PARTY;
     }
 

@@ -32,12 +32,12 @@ ErrCode ResourceProcessor::parseResourceConfigs() {
             for(int32_t i = 0; i < result[RESOURCE_CONFIGS_ROOT].size(); i++) {
                 YAML::Node resourceConfig = result[RESOURCE_CONFIGS_ROOT][i];
                 try {
-                    LOGI("URM_RESOURCE_PROCESSOR", "Parsing resource at index = " + std::to_string(i));
+                    LOGI("RTN_RESOURCE_PROCESSOR", "Parsing resource at index = " + std::to_string(i));
                     parseYamlNode(resourceConfig);
                 } catch(const std::invalid_argument& e) {
-                    LOGE("URM_RESOURCE_PROCESSOR", "Error parsing Resource Config: " + std::string(e.what()));
+                    LOGE("RTN_RESOURCE_PROCESSOR", "Error parsing Resource Config: " + std::string(e.what()));
                 } catch(const std::bad_alloc& e) {
-                    LOGE("URM_RESOURCE_PROCESSOR", "Error parsing Resource Config: " + std::string(e.what()));
+                    LOGE("RTN_RESOURCE_PROCESSOR", "Error parsing Resource Config: " + std::string(e.what()));
                 }
             }
         }
@@ -51,12 +51,12 @@ int32_t readFromNode(const std::string& fName) {
     std::string value;
 
     if(!myFile.is_open()) {
-        LOGE("URM_RESOURCE_PROCESSOR", "Failed to open file: " + fName + " Error: " + std::strerror(errno));
+        LOGE("RTN_RESOURCE_PROCESSOR", "Failed to open file: " + fName + " Error: " + std::strerror(errno));
         return 0;
     }
 
     if(!getline(myFile, value)) {
-        LOGE("URM_RESOURCE_PROCESSOR", "Failed to read from file: " + fName);
+        LOGE("RTN_RESOURCE_PROCESSOR", "Failed to read from file: " + fName);
         return 0;
     }
 
@@ -64,12 +64,12 @@ int32_t readFromNode(const std::string& fName) {
 
     try {
         int32_t result = stoi(value);
-        LOGD("URM_RESOURCE_PROCESSOR", "Read value " + std::to_string(result) + " from file: " + fName);
+        LOGD("RTN_RESOURCE_PROCESSOR", "Read value " + std::to_string(result) + " from file: " + fName);
         return result;
     } catch(const std::invalid_argument& e) {
-        LOGE("URM_RESOURCE_PROCESSOR", "Invalid integer in file: " + fName + " Content: " + value);
+        LOGE("RTN_RESOURCE_PROCESSOR", "Invalid integer in file: " + fName + " Content: " + value);
     } catch(const std::out_of_range& e) {
-        LOGE("URM_RESOURCE_PROCESSOR", "Integer out of range in file: " + fName + " Content: " + value);
+        LOGE("RTN_RESOURCE_PROCESSOR", "Integer out of range in file: " + fName + " Content: " + value);
     }
 
     return 0;

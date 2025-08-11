@@ -11,7 +11,7 @@
 #include "Extensions.h"
 #include "Utils.h"
 
-URM_REGISTER_CONFIG(TARGET_CONFIG, "../Tests/Configs/testTargetConfigs.yaml")
+RTN_REGISTER_CONFIG(TARGET_CONFIG, "../Tests/Configs/testTargetConfigs.yaml")
 
 class TargetConfigProcessorTests: public::testing::Test {
 protected:
@@ -37,11 +37,11 @@ TEST_F(TargetConfigProcessorTests, TestTargetConfigProcessorYAMLDataIntegrity1) 
 }
 
 TEST_F(TargetConfigProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity2) {
-    ASSERT_EQ(SystuneSettings::targetConfigs.totalCoreCount, 16);
+    ASSERT_EQ(ResourceTunerSettings::targetConfigs.totalCoreCount, 16);
 }
 
 TEST_F(TargetConfigProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity3) {
-    ASSERT_EQ(strcmp(SystuneSettings::targetConfigs.targetName.c_str(), "qli-test"), 0);
+    ASSERT_EQ(strcmp(ResourceTunerSettings::targetConfigs.targetName.c_str(), "qli-test"), 0);
 }
 
 TEST_F(TargetConfigProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity4) {

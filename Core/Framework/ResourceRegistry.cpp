@@ -57,20 +57,20 @@ void ResourceRegistry::displayResources() {
     for(int32_t i = 0; i < mTotalResources; i++) {
         auto& res = mResourceConfig[i];
 
-        LOGI("URM_RESOURCE_PROCESSOR", "Resource Name: " + res->mResourceName);
-        LOGI("URM_RESOURCE_PROCESSOR", "Optype: " + std::to_string(res->mResourceOptype));
-        LOGI("URM_RESOURCE_PROCESSOR", "Opcode: " + std::to_string(res->mResourceOpcode));
-        LOGI("URM_RESOURCE_PROCESSOR", "High Threshold: " + std::to_string(res->mHighThreshold));
-        LOGI("URM_RESOURCE_PROCESSOR", "Low Threshold: " + std::to_string(res->mLowThreshold));
+        LOGI("RTN_RESOURCE_PROCESSOR", "Resource Name: " + res->mResourceName);
+        LOGI("RTN_RESOURCE_PROCESSOR", "Optype: " + std::to_string(res->mResourceOptype));
+        LOGI("RTN_RESOURCE_PROCESSOR", "Opcode: " + std::to_string(res->mResourceOpcode));
+        LOGI("RTN_RESOURCE_PROCESSOR", "High Threshold: " + std::to_string(res->mHighThreshold));
+        LOGI("RTN_RESOURCE_PROCESSOR", "Low Threshold: " + std::to_string(res->mLowThreshold));
 
         if(res->resourceApplierCallback != nullptr) {
-            LOGI("URM_RESOURCE_PROCESSOR", "BU has defined its own custom Resource Applier Function");
+            LOGI("RTN_RESOURCE_PROCESSOR", "BU has defined its own custom Resource Applier Function");
             res->resourceApplierCallback(nullptr);
         } else {
-            LOGI("URM_RESOURCE_PROCESSOR", "No custom Resource Applier Specified, will use default one");
+            LOGI("RTN_RESOURCE_PROCESSOR", "No custom Resource Applier Specified, will use default one");
         }
 
-        LOGI("URM_RESOURCE_PROCESSOR", "====================================");
+        LOGI("RTN_RESOURCE_PROCESSOR", "====================================");
     }
 }
 
@@ -93,7 +93,7 @@ int32_t ResourceRegistry::getResourceTableIndex(uint32_t resourceId) {
             throw std::out_of_range("Index out of bounds");
         }
     } catch(const std::exception& e) {
-        LOGE("URM_RESOURCE_PROCESSOR",
+        LOGE("RTN_RESOURCE_PROCESSOR",
              "Resource ID not found in the registry");
         return -1;
     }
@@ -115,13 +115,13 @@ void writeToNode(const std::string& fName, int32_t fValue) {
     std::ofstream myFile(fName, std::ios::out | std::ios::trunc);
 
     if(!myFile.is_open()) {
-        LOGD("URM_COCO_TABLE", "Failed to open file: "+ fName);
+        LOGD("RTN_COCO_TABLE", "Failed to open file: "+ fName);
         return;
     }
 
     myFile << std::to_string(fValue);
     if(myFile.fail()) {
-        LOGD("URM_COCO_TABLE", "Failed to write to file: "+ fName);
+        LOGD("RTN_COCO_TABLE", "Failed to write to file: "+ fName);
     }
     myFile.flush();
     myFile.close();
@@ -167,10 +167,10 @@ ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setOptype(const std::strin
     try {
         this->mResourceConfigInfo->mResourceOptype = (int8_t)stoi(opTypeString, nullptr, 0);
     } catch(const std::invalid_argument& ex) {
-        LOGE("URM_RESOURCE_REGISTRY",
+        LOGE("RTN_RESOURCE_REGISTRY",
              "Resource Parsing Failed with error: " + std::string(ex.what()));
     } catch(const std::out_of_range& ex) {
-        LOGE("URM_RESOURCE_REGISTRY",
+        LOGE("RTN_RESOURCE_REGISTRY",
              "Resource Parsing Failed with error: " + std::string(ex.what()));
     }
     return this;
@@ -183,10 +183,10 @@ ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setOpcode(const std::strin
     try {
         this->mResourceConfigInfo->mResourceOpcode = (int16_t)stoi(opCodeString, nullptr, 0);
     } catch(const std::invalid_argument& ex) {
-        LOGE("URM_SIGNAL_REGISTRY",
+        LOGE("RTN_SIGNAL_REGISTRY",
              "Signal Parsing Failed with error: " + std::string(ex.what()));
     } catch(const std::out_of_range& ex) {
-        LOGE("URM_SIGNAL_REGISTRY",
+        LOGE("RTN_SIGNAL_REGISTRY",
              "Signal Parsing Failed with error: " + std::string(ex.what()));
     }
     return this;

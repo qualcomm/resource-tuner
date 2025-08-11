@@ -154,7 +154,7 @@ static int8_t VerifyIncomingRequest(Request* req) {
 }
 
 static void dumpRequest(Request* clientReq) {
-    std::string LOG_TAG = "URM_PROVISIONER_SERVER";
+    std::string LOG_TAG = "RTN_SERVER";
 
     LOGD(LOG_TAG, "Request details:");
     LOGD(LOG_TAG, "reqType: " + std::to_string(clientReq->getRequestType()));
@@ -185,7 +185,7 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
     // Max Number of Concurrent Requests Allowed Threshold
     // If the Threshold has been hit, we don't process the Request any further.
     if(!rateLimiter->isGlobalRateLimitHonored()) {
-        LOGE("URM_PROVISIONER_SERVER_REQUESTS",
+        LOGE("RTN_SERVER_REQUESTS",
              "Max Concurrent Requests Count hit, "  \
              "Request with handle = " + std::to_string(request->getHandle()) + " Dropped.");
 
@@ -198,7 +198,7 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
         if(!ClientDataManager::getInstance()->clientExists(request->getClientPID(), request->getClientTID())) {
             if(!ClientDataManager::getInstance()->createNewClient(request->getClientPID(), request->getClientTID())) {
                 // Client Entry Could not be Created, don't Proceed further with the Request
-                LOGE("URM_PROVISIONER_SERVER_REQUESTS",
+                LOGE("RTN_SERVER_REQUESTS",
                      "Client Entry could not be created for handle = " +
                      std::to_string(request->getHandle()));
 
@@ -236,7 +236,7 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
     }
 
     if(!rateLimiter->isRateLimitHonored(request->getClientTID())) {
-        LOGI("URM_PROVISIONER_SERVER_REQUESTS", "ClientTID: " + std::to_string(request->getClientTID()) + " Rate Limited");
+        LOGI("RTN_SERVER_REQUESTS", "ClientTID: " + std::to_string(request->getClientTID()) + " Rate Limited");
         return;
     }
 
@@ -248,7 +248,7 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
     if(request->getRequestType() == REQ_RESOURCE_UNTUNING ||
        request->getRequestType() == REQ_RESOURCE_RETUNING) {
         if(!RequestManager::getInstance()->verifyHandle(request->getHandle())) {
-            LOGD("URM_PROVISIONER_SERVER_REQUESTS", "No existing request with this handle found, dropping the request");
+            LOGD("RTN_SERVER_REQUESTS", "No existing request with this handle found, dropping the request");
             Request::cleanUpRequest(request);
         } else {
             if(request->getRequestType() == REQ_RESOURCE_UNTUNING) {
@@ -272,7 +272,7 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
             RequestQueue::getInstance()->addAndWakeup(request);
 
         } else {
-            LOGD("URM_PROVISIONER_SERVER_REQUESTS", "Duplicate found, dropping request.");
+            LOGD("RTN_SERVER_REQUESTS", "Duplicate found, dropping request.");
             Request::cleanUpRequest(request);
         }
 
@@ -312,10 +312,10 @@ void submitResourceProvisioningRequest(void* msg) {
 }
 
 void toggleDisplayModes() {
-    if(SystuneSettings::targetConfigs.currMode & MODE_DISPLAY_ON) {
+    if(ResourceTunerSettings::targetConfigs.currMode & MODE_DISPLAY_ON) {
         // Toggle to Display Off
-        SystuneSettings::targetConfigs.currMode &= ~MODE_DISPLAY_ON;
-        SystuneSettings::targetConfigs.currMode |= MODE_DISPLAY_OFF;
+        ResourceTunerSettings::targetConfigs.currMode &= ~MODE_DISPLAY_ON;
+        ResourceTunerSettings::targetConfigs.currMode |= MODE_DISPLAY_OFF;
 
         // First drain out the CocoTable, and move Requests to Pending Queue (which
         // cannot be processed in Background)
@@ -323,8 +323,8 @@ void toggleDisplayModes() {
 
     } else {
         // Toggle to Display On
-        SystuneSettings::targetConfigs.currMode &= ~MODE_DISPLAY_OFF;
-        SystuneSettings::targetConfigs.currMode |= MODE_DISPLAY_ON;
+        ResourceTunerSettings::targetConfigs.currMode &= ~MODE_DISPLAY_OFF;
+        ResourceTunerSettings::targetConfigs.currMode |= MODE_DISPLAY_ON;
 
         // First drain out the CocoTable, and move all Requests to the Active Queue
         // from the Pending Queue.
@@ -350,22 +350,22 @@ void RequestQueue::orderedQueueConsumerHook() {
 
         // This is a custom Request used to clean up the Server.
         if(message->getPriority() == SERVER_CLEANUP_TRIGGER_PRIORITY) {
-            LOGI("URM_PROVISIONER_SERVER_REQUESTS", "Called Cleanup Request");
+            LOGI("RTN_SERVER_REQUESTS", "Called Cleanup Request");
             return;
         }
 
         Request* req = dynamic_cast<Request*>(message);
         if(req == nullptr) {
-            LOGD("URM_PROVISIONER_SERVER_REQUESTS",
+            LOGD("RTN_SERVER_REQUESTS",
                  "Message is Malformed, Downcasting to Request Type Failed");
             continue;
         }
 
         // Check for System Mode and Request Compatability
-        uint8_t currentMode = SystuneSettings::targetConfigs.currMode;
+        uint8_t currentMode = ResourceTunerSettings::targetConfigs.currMode;
         if((currentMode == MODE_DISPLAY_OFF || currentMode == MODE_DOZE) && !req->isBackgroundProcessingEnabled()) {
             // Cannot continue with this Request
-            LOGD("URM_PROVISIONER_SERVER_REQUESTS", "Request cannot be processed in current mode");
+            LOGD("RTN_SERVER_REQUESTS", "Request cannot be processed in current mode");
             continue;
         }
 
@@ -390,12 +390,12 @@ void RequestQueue::orderedQueueConsumerHook() {
 
             if(correspondingTuneRequest == nullptr) {
                 // Note by this point, the Client is ascertained to be in the Client Data Manager Table
-                LOGD("URM_PROVISIONER_SERVER_REQUESTS", "Corresponding Tune Request Not Found, Dropping");
+                LOGD("RTN_SERVER_REQUESTS", "Corresponding Tune Request Not Found, Dropping");
                 continue;
             }
 
             if(correspondingTuneRequest->getClientPID() != req->getClientPID()) {
-                LOGI("URM_PROVISIONER_SERVER_REQUESTS",
+                LOGI("RTN_SERVER_REQUESTS",
                      "Corresponding Tune Request issued by different Client, Dropping Request.");
 
                 // Free Up the Request
@@ -404,7 +404,7 @@ void RequestQueue::orderedQueueConsumerHook() {
             }
 
             if(req->getRequestType() == REQ_RESOURCE_UNTUNING) {
-                LOGI("URM_PROVISIONER_SERVER_REQUESTS", "Untune Request");
+                LOGI("RTN_SERVER_REQUESTS", "Untune Request");
 
                 cocoTable->removeRequest(correspondingTuneRequest);
                 RequestManager::getInstance()->removeRequest(correspondingTuneRequest);
@@ -416,7 +416,7 @@ void RequestQueue::orderedQueueConsumerHook() {
                 Request::cleanUpRequest(correspondingTuneRequest);
 
             } else if(req->getRequestType() == REQ_RESOURCE_RETUNING) {
-                LOGI("URM_PROVISIONER_SERVER_REQUESTS", "Retune Request");
+                LOGI("RTN_SERVER_REQUESTS", "Retune Request");
 
                 int64_t newDuration = req->getDuration();
                 cocoTable->updateRequest(correspondingTuneRequest, newDuration);
@@ -428,11 +428,11 @@ void RequestQueue::orderedQueueConsumerHook() {
     }
 }
 
-void* SyslocksdServerThread() {
-    LOGD("URM_PROVISIONER_SERVER_REQUESTS", "Provisioner Thread started");
+void* TunerServerThread() {
+    LOGD("RTN_SERVER_REQUESTS", "Provisioner Thread started");
 
     std::shared_ptr<RequestQueue> requestQueue = RequestQueue::getInstance();
-    while(SystuneSettings::isServerOnline()) {
+    while(ResourceTunerSettings::isServerOnline()) {
         requestQueue->wait();
     }
 

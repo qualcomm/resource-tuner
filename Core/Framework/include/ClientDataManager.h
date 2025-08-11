@@ -15,7 +15,7 @@
 #include "fstream"
 #include "sstream"
 
-#include "SystuneSettings.h"
+#include "ResourceTunerSettings.h"
 #include "MemoryPool.h"
 #include "Logger.h"
 #include "Utils.h"

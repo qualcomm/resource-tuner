@@ -22,9 +22,9 @@ protected:
             MakeAlloc<Request> (100);
         }
 
-        SystuneSettings::metaConfigs.mDelta = 1000;
-        SystuneSettings::metaConfigs.mPenaltyFactor = 2.0;
-        SystuneSettings::metaConfigs.mRewardFactor = 0.4;
+        ResourceTunerSettings::metaConfigs.mDelta = 1000;
+        ResourceTunerSettings::metaConfigs.mPenaltyFactor = 2.0;
+        ResourceTunerSettings::metaConfigs.mRewardFactor = 0.4;
     }
 };
 

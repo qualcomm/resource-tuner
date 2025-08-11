@@ -10,7 +10,7 @@
 #include "YamlParser.h"
 #include "SignalRegistry.h"
 
-#define SIGNAL_CONFIGS_FILE  "/etc/systune/signalConfigs.yaml"
+#define SIGNAL_CONFIGS_FILE  "/etc/ResourceTuner/SignalConfigs.yaml"
 #define SIGNAL_CONFIGS_ROOT "SignalConfigs"
 
 #define SIGNAL_SIGID "SigId"

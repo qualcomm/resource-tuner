@@ -15,7 +15,7 @@
 #include "ResourceProcessor.h"
 #include "Request.h"
 #include "RequestQueue.h"
-#include "SystuneSettings.h"
+#include "ResourceTunerSettings.h"
 #include "MemoryPool.h"
 #include "Logger.h"
 #include "Utils.h"
@@ -29,7 +29,7 @@
  * \defgroup COCO_TABLE Concurrency Coordinator Table (CocoTable)
  * \details The need for a separate module focusing on managing concurrencies arises due to the fact that multiple clients
  * can send multiple requests with different priorities for the same resource.
- * It becomes important for Systune to intelligently decide the order in which the requests are applied.
+ * It becomes important for Resource Tuner to intelligently decide the order in which the requests are applied.
  *
  * Every resource is allotted a Policy beforehand according to the requirements and the nature of the resource. These four policies were included:
  * - Instant Apply (or Always Apply): This policy is for resources where the latest request needs to be honored.

@@ -30,7 +30,7 @@ std::shared_ptr<PulseMonitor> PulseMonitor::mPulseMonitorInstance = nullptr;
 
 PulseMonitor::PulseMonitor() {
     this->mTimer = nullptr;
-    this->mPulseDuration = SystuneSettings::metaConfigs.mPulseDuration;
+    this->mPulseDuration = ResourceTunerSettings::metaConfigs.mPulseDuration;
 }
 
 // Check for optimizations
@@ -50,7 +50,7 @@ int8_t PulseMonitor::checkForDeadClients() {
     for(int32_t pid: clientList) {
         if(processIds.find(pid) == processIds.end()) {
             // Client is dead, Schedule it for deletion.
-            LOGD("URM_PULSE_MONITOR", "Client with PID: " + std::to_string(pid) + " is dead.");
+            LOGD("RTN_PULSE_MONITOR", "Client with PID: " + std::to_string(pid) + " is dead.");
             ClientGarbageCollector::getInstance()->submitClientThreadsForCleanup(pid);
             ClientDataManager::getInstance()->deleteClientPID(pid);
         }
@@ -75,7 +75,7 @@ ErrCode PulseMonitor::startPulseMonitorDaemon() {
         return RC_WORKER_THREAD_ASSIGNMENT_FAILURE;
     }
 
-    LOGI("URM_PULSE_MONITOR", "Pulse Monitor Daemon Thread Started");
+    LOGI("RTN_PULSE_MONITOR", "Pulse Monitor Daemon Thread Started");
     return RC_SUCCESS;
 }
 

@@ -4,7 +4,7 @@
 #include "SignalServerPrivate.h"
 
 static void dumpRequest(Signal* clientReq) {
-    std::string LOG_TAG = "URM_SIGNAL_SERVER";
+    std::string LOG_TAG = "RTN_SERVER";
     LOGD(LOG_TAG, "Print Signal details:");
 
     LOGD(LOG_TAG, "Print Signal Request");
@@ -59,20 +59,20 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
 
     // Basic sanity: Invalid resource Opcode
     if(signalInfo == nullptr) {
-        LOGI("URM_SIGNAL_SERVER_REQUESTS", "Invalid Opcode" + std::to_string(signal->getSignalID()));
+        LOGI("RTN_SERVER", "Invalid Opcode" + std::to_string(signal->getSignalID()));
         return false;
     }
 
     int8_t clientPermissions = ClientDataManager::getInstance()->getClientLevelByClientID(signal->getClientPID());
     if(clientPermissions == -1) {
-        LOGI("URM_SIGNAL_SERVER_REQUESTS", "Invalid Client Permissions");
+        LOGI("RTN_SERVER", "Invalid Client Permissions");
         return false;
     }
 
     int8_t reqSpecifiedPriority = signal->getPriority();
     if(reqSpecifiedPriority > RequestPriority::REQ_PRIORITY_LOW ||
        reqSpecifiedPriority < RequestPriority::REQ_PRIORITY_HIGH) {
-        LOGI("URM_SIGNAL_SERVER_REQUESTS", "Priority Level = " +
+        LOGI("RTN_SERVER", "Priority Level = " +
              std::to_string(reqSpecifiedPriority) + "is not a valid value");
         return false;
     }
@@ -83,7 +83,7 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
 
     // Check if the Signal is enabled for provisioning
     if(!signalInfo->mIsEnabled) {
-        LOGI("URM_SIGNAL_SERVER_REQUESTS", "Specified Signal is not enabled for provisioning");
+        LOGI("RTN_SERVER", "Specified Signal is not enabled for provisioning");
         return false;
     }
 
@@ -98,27 +98,27 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
 
     // Client does not have the necessary permissions to tune this Resource.
     if(!permissionCheck) {
-        LOGI("URM_SIGNAL_SERVER_REQUESTS",
+        LOGI("RTN_SERVER",
              "Client does not have sufficient Permissions to provision Signal: " + std::to_string(signal->getSignalID()));
         return false;
     }
 
     // Target Compatability Checks
-    std::string targetName = SystuneSettings::targetConfigs.targetName;
+    std::string targetName = ResourceTunerSettings::targetConfigs.targetName;
     if(signalInfo->mTargetsEnabled != nullptr) {
         if(signalInfo->mTargetsEnabled->find(targetName) == signalInfo->mTargetsEnabled->end()) {
-            LOGI("URM_SIGNAL_SERVER_REQUESTS", "Specified Signal is not enabled for provisioning on this Target");
+            LOGI("RTN_SERVER", "Specified Signal is not enabled for provisioning on this Target");
             return false;
         }
     } else if(signalInfo->mTargetsDisabled != nullptr) {
         if(signalInfo->mTargetsDisabled->find(targetName) != signalInfo->mTargetsDisabled->end()) {
-            LOGI("URM_SIGNAL_SERVER_REQUESTS", "Specified Signal is not enabled for provisioning on this Target");
+            LOGI("RTN_SERVER", "Specified Signal is not enabled for provisioning on this Target");
             return false;
         }
     }
 
     if(signal->getRequestType() == SIGNAL_RELAY) {
-        LOGI("URM_SIGNAL_SERVER_REQUESTS", "Request Verified");
+        LOGI("RTN_SERVER", "Request Verified");
         return true;
     }
 
@@ -129,7 +129,7 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
 
         // Basic sanity: Invalid resource Opcode
         if(resourceConfig == nullptr) {
-            LOGE("URM_SYSSIGNAL_SERVER_REQUESTS","Invalid Opcode, Dropping Request");
+            LOGE("RTN_SERVER","Invalid Opcode, Dropping Request");
             return false;
         }
 
@@ -140,7 +140,7 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
             int32_t highThreshold = resourceConfig->mHighThreshold;
 
             if(configValue < lowThreshold || configValue > highThreshold) {
-                LOGE("URM_SYSSIGNAL_SERVER_REQUESTS", "Range Checking Failed, Dropping Request");
+                LOGE("RTN_SERVER", "Range Checking Failed, Dropping Request");
                 return false;
             }
         } else {
@@ -152,7 +152,7 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
 
         // Check for Client permissions
         if(resourceConfig->mPermissions == PERMISSION_SYSTEM && clientPermissions == PERMISSION_THIRD_PARTY) {
-            LOGI("URM_SYSSIGNAL_SERVER_REQUESTS", "Permission Check Failed, Dropping Request");
+            LOGI("RTN_SERVER", "Permission Check Failed, Dropping Request");
             return false;
         }
     }
@@ -164,7 +164,7 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
         signal->setDuration(signalInfo->mTimeout);
     }
 
-    LOGI("URM_SIGNAL_SERVER_REQUESTS", "Request Verified");
+    LOGI("RTN_SERVER", "Request Verified");
     return true;
 }
 
@@ -186,13 +186,13 @@ static void processIncomingRequest(Signal* signal) {
     // Rate Check the client
     std::shared_ptr<RateLimiter> rateLimiter = RateLimiter::getInstance();
     if(!rateLimiter->isRateLimitHonored(signal->getClientTID())) {
-        LOGI("URM_SIGNAL_SERVER_REQUESTS", "ClientTID: " + std::to_string(signal->getClientTID()) + " Rate Limited");
+        LOGI("RTN_SERVER", "ClientTID: " + std::to_string(signal->getClientTID()) + " Rate Limited");
         return;
     }
 
     if(signal->getRequestType() == SIGNAL_ACQ || signal->getRequestType() == SIGNAL_RELAY) {
         if(!VerifyIncomingRequest(signal)) {
-            LOGE("URM_SIGNAL_SERVER_REQUESTS", "Signal Request verification failed, dropping request");
+            LOGE("RTN_SERVER", "Signal Request verification failed, dropping request");
             FreeBlock<Signal>(static_cast<void*>(signal));
             return;
         }
@@ -233,7 +233,7 @@ static Request* createResourceTuningRequest(Signal* signal) {
         request = new (GetBlock<Request>()) Request();
 
     } catch(const std::bad_alloc& e) {
-        LOGE("URM_SIGNAL_SERVER",
+        LOGE("RTN_SERVER",
              "Memory allocation for Request struct corresponding to Signal Req with handle: " +
              std::to_string(signal->getHandle()) +
              " failed with error: " + std::string(e.what()) + ". Dropping this Request");
@@ -278,7 +278,7 @@ static Request* createResourceUntuneRequest(Signal* signal) {
         request = new(GetBlock<Request>()) Request();
 
     } catch(const std::bad_alloc& e) {
-        LOGE("URM_SIGNAL_SERVER",
+        LOGE("RTN_SERVER",
              "Memory allocation for Request struct corresponding to Signal Req with handle: " +
              std::to_string(signal->getHandle()) +
              " failed with error: " + std::string(e.what()) + ". Dropping this Request");
@@ -305,13 +305,13 @@ void SignalQueue::orderedQueueConsumerHook() {
 
         // This is a custom Request used to clean up the Server.
         if(message->getPriority() == SERVER_CLEANUP_TRIGGER_PRIORITY) {
-            LOGI("URM_SIGNALS_SERVER_REQUESTS", "Called Cleanup Request");
+            LOGI("RTN_SERVER", "Called Cleanup Request");
             return;
         }
 
         Signal* signal = dynamic_cast<Signal*>(message);
         if(signal == nullptr) {
-            LOGD("URM_SYSSIGNAL_SERVER_REQUESTS",
+            LOGD("RTN_SERVER",
                  "Message is Malformed, Downcasting to Signal Type Failed");
             continue;
         }
@@ -343,7 +343,7 @@ void SignalQueue::orderedQueueConsumerHook() {
                 int8_t status = SignalExtFeatureMapper::getInstance()->getFeatures(signal->getSignalID(), subscribedFeatures);
 
                 if(!status) {
-                    LOGE("URM_SIGNAL_SERVER_REQUESTS", "No signal with the specified ID exists, dropping the request");
+                    LOGE("RTN_SERVER", "No signal with the specified ID exists, dropping the request");
                     break;
                 }
 
@@ -368,10 +368,10 @@ void SignalQueue::orderedQueueConsumerHook() {
 }
 
 void* SignalsdServerThread() {
-    LOGD("URM_SIGNALS_SERVER_REQUESTS", "SysSignal Thread started");
+    LOGD("RTN_SERVER", "SysSignal Thread started");
 
     std::shared_ptr<SignalQueue> signalQueue = SignalQueue::getInstance();
-    while(SystuneSettings::isServerOnline()) {
+    while(ResourceTunerSettings::isServerOnline()) {
         signalQueue->wait();
     }
 

@@ -200,7 +200,7 @@ TEST(MiscTests, TestSysConfigSerializingAndDeserializing) {
         firstConfig->setRequestType(REQ_SYSCONFIG_GET_PROP);
         firstConfig->setClientPID(1003);
         firstConfig->setClientTID(1009);
-        firstConfig->setProp("systune.urm.rate_limiter.min_health");
+        firstConfig->setProp("resourceTuner.rate_limiter.min_health");
         firstConfig->setValue("104");
         firstConfig->setDefaultValue("67");
         firstConfig->setBufferSize(1445);
@@ -208,7 +208,7 @@ TEST(MiscTests, TestSysConfigSerializingAndDeserializing) {
         ASSERT_EQ(firstConfig->getRequestType(), REQ_SYSCONFIG_GET_PROP);
         ASSERT_EQ(firstConfig->getClientPID(), 1003);
         ASSERT_EQ(firstConfig->getClientTID(), 1009);
-        ASSERT_EQ(firstConfig->getProp(), "systune.urm.rate_limiter.min_health");
+        ASSERT_EQ(firstConfig->getProp(), "resourceTuner.rate_limiter.min_health");
         ASSERT_EQ(firstConfig->getValue(), "104");
         ASSERT_EQ(firstConfig->getDefaultValue(), "67");
         ASSERT_EQ(firstConfig->getBufferSize(), 1445);

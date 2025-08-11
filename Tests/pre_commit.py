@@ -30,7 +30,7 @@ def system_tests():
     pid = os.fork()
     if pid == 0:
         # Start the Server
-        os.execvp("./systune", ["./systune", "--test"])
+        os.execvp("./resource_tuner", ["./resource_tuner", "--test"])
     elif pid > 0:
         time.sleep(4)
         os.system("./sys_tests_ex")

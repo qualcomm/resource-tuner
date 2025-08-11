@@ -1,4 +1,4 @@
-Source: qcom-systune
+Source: resource-tuner
 Section: libs
 Priority: optional
 Maintainer: Jagadeesh Pagadala <jpagadal@qti.qualcomm.com>
@@ -7,7 +7,7 @@ Build-Depends: debhelper-compat (= 13), dh-sequence-cmake, cmake, pkgconf,
 Standards-Version: 1.0
 Homepage:
 
-Package: qcom-systune
+Package: resource-tuner
 Architecture: arm64
 Section: libs
 Depends:  ${shlibs:Depends}, ${misc:Depends}

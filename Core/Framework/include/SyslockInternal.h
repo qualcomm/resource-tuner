@@ -1,8 +1,8 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#ifndef SYSLOCK_INTERNAL_H
-#define SYSLOCK_INTERNAL_H
+#ifndef FRAMEWORK_INTERNAL_H
+#define FRAMEWORK_INTERNAL_H
 
 #include <cstdint>
 
@@ -22,7 +22,7 @@ void toggleDisplayModes();
 
 /**
 * @brief Submit a Resource Provisioning Request from a Client for processing.
-* @details Note: This API acts an interface for other URM components like SysSignals
+* @details Note: This API acts an interface for other RTN components like SysSignals
 *          to submit a Resource Provisioning Request to the Provisioner Server, and
 *          subsequently provision the desired Resources.
 * @param request A buffer holding the Request.

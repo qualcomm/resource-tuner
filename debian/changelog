@@ -1,4 +1,4 @@
-qcom-systune (1.0.0) noble; urgency=low
+resource-tuner (1.0.0) noble; urgency=low
 
   * Initial release.
 

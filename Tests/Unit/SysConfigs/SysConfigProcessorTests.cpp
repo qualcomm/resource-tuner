@@ -11,7 +11,7 @@
 #include "Utils.h"
 #include "Logger.h"
 
-URM_REGISTER_CONFIG(PROPERTIES_CONFIG, "../Tests/Configs/testPropertiesConfig.yaml")
+RTN_REGISTER_CONFIG(PROPERTIES_CONFIG, "../Tests/Configs/testPropertiesConfig.yaml")
 
 #define TOTAL_SYS_CONFIGS_PROPS_COUNT 14
 
@@ -25,7 +25,6 @@ protected:
                 SysConfigProcessor::getInstance(Extensions::getPropertiesConfigFilePath());
 
             if(RC_IS_NOTOK(sysConfigProcessor->parseSysConfigs())) {
-                LOGE("URM_TEST_SYSCONFIG_PARSER", "SysConfig Config Parsing Failed");
                 return;
             }
         }

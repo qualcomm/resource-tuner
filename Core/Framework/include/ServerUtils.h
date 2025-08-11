@@ -11,8 +11,8 @@
 
 void preAllocateMemory() {
     // Preallocate Memory for certain frequently used types.
-    int32_t concurrentRequestsUB = SystuneSettings::metaConfigs.mMaxConcurrentRequests;
-    int32_t resourcesPerRequestUB = SystuneSettings::metaConfigs.mMaxResourcesPerRequest;
+    int32_t concurrentRequestsUB = ResourceTunerSettings::metaConfigs.mMaxConcurrentRequests;
+    int32_t resourcesPerRequestUB = ResourceTunerSettings::metaConfigs.mMaxResourcesPerRequest;
 
     MakeAlloc<Message> (concurrentRequestsUB);
     MakeAlloc<Request> (concurrentRequestsUB);
@@ -39,43 +39,43 @@ ErrCode fetchMetaConfigs() {
             return RC_PROP_PARSING_ERROR;
         }
 
-        SystuneSettings::targetConfigs.targetName = sysInfo.nodename;
+        ResourceTunerSettings::targetConfigs.targetName = sysInfo.nodename;
 
-        sysConfigGetProp("systune.maximum.concurrent.requests", resultBuffer, sizeof(resultBuffer), "120");
-        SystuneSettings::metaConfigs.mMaxConcurrentRequests = (uint32_t)std::stol(resultBuffer);
+        sysConfigGetProp("resource_tuner.maximum.concurrent.requests", resultBuffer, sizeof(resultBuffer), "120");
+        ResourceTunerSettings::metaConfigs.mMaxConcurrentRequests = (uint32_t)std::stol(resultBuffer);
 
-        sysConfigGetProp("systune.maximum.resources.per.request", resultBuffer, sizeof(resultBuffer), "5");
-        SystuneSettings::metaConfigs.mMaxResourcesPerRequest = (uint32_t)std::stol(resultBuffer);
+        sysConfigGetProp("resource_tuner.maximum.resources.per.request", resultBuffer, sizeof(resultBuffer), "5");
+        ResourceTunerSettings::metaConfigs.mMaxResourcesPerRequest = (uint32_t)std::stol(resultBuffer);
 
-        sysConfigGetProp("systune.listening.port", resultBuffer, sizeof(resultBuffer), "12000");
-        SystuneSettings::metaConfigs.mListeningPort = (uint32_t)std::stol(resultBuffer);
+        sysConfigGetProp("resource_tuner.listening.port", resultBuffer, sizeof(resultBuffer), "12000");
+        ResourceTunerSettings::metaConfigs.mListeningPort = (uint32_t)std::stol(resultBuffer);
 
-        sysConfigGetProp("systune.pulse.duration", resultBuffer, sizeof(resultBuffer), "60000");
-        SystuneSettings::metaConfigs.mPulseDuration = (uint32_t)std::stol(resultBuffer);
+        sysConfigGetProp("resource_tuner.pulse.duration", resultBuffer, sizeof(resultBuffer), "60000");
+        ResourceTunerSettings::metaConfigs.mPulseDuration = (uint32_t)std::stol(resultBuffer);
 
-        sysConfigGetProp("systune.garbage_collection.duration", resultBuffer, sizeof(resultBuffer), "83000");
-        SystuneSettings::metaConfigs.mClientGarbageCollectorDuration = (uint32_t)std::stol(resultBuffer);
+        sysConfigGetProp("resource_tuner.garbage_collection.duration", resultBuffer, sizeof(resultBuffer), "83000");
+        ResourceTunerSettings::metaConfigs.mClientGarbageCollectorDuration = (uint32_t)std::stol(resultBuffer);
 
-        sysConfigGetProp("systune.rate_limiter.delta", resultBuffer, sizeof(resultBuffer), "5");
-        SystuneSettings::metaConfigs.mDelta = (uint32_t)std::stol(resultBuffer);
+        sysConfigGetProp("resource_tuner.rate_limiter.delta", resultBuffer, sizeof(resultBuffer), "5");
+        ResourceTunerSettings::metaConfigs.mDelta = (uint32_t)std::stol(resultBuffer);
 
-        sysConfigGetProp("systune.penalty.factor", resultBuffer, sizeof(resultBuffer), "2.0");
-        SystuneSettings::metaConfigs.mPenaltyFactor = std::stod(resultBuffer);
+        sysConfigGetProp("resource_tuner.penalty.factor", resultBuffer, sizeof(resultBuffer), "2.0");
+        ResourceTunerSettings::metaConfigs.mPenaltyFactor = std::stod(resultBuffer);
 
-        sysConfigGetProp("systune.reward.factor", resultBuffer, sizeof(resultBuffer), "0.4");
-        SystuneSettings::metaConfigs.mRewardFactor = std::stod(resultBuffer);
+        sysConfigGetProp("resource_tuner.reward.factor", resultBuffer, sizeof(resultBuffer), "0.4");
+        ResourceTunerSettings::metaConfigs.mRewardFactor = std::stod(resultBuffer);
 
-        sysConfigGetProp("systune.logging.level", resultBuffer, sizeof(resultBuffer), "2");
+        sysConfigGetProp("resource_tuner.logging.level", resultBuffer, sizeof(resultBuffer), "2");
         int8_t logLevel = (int8_t)std::stoi(resultBuffer);
 
         int8_t levelSpecificLogging = false;
-        sysConfigGetProp("systune.logging.level.exact", resultBuffer, sizeof(resultBuffer), "false");
+        sysConfigGetProp("resource_tuner.logging.level.exact", resultBuffer, sizeof(resultBuffer), "false");
         if(resultBuffer == "true") {
             levelSpecificLogging = true;
         }
 
         RedirectOptions redirectOutputTo = LOG_FILE;
-        sysConfigGetProp("systune.logging.redirect_to", resultBuffer, sizeof(resultBuffer), "1");
+        sysConfigGetProp("resource_tuner.logging.redirect_to", resultBuffer, sizeof(resultBuffer), "1");
         if((int8_t)std::stoi(resultBuffer) == 0) {
             redirectOutputTo = FTRACE;
         }

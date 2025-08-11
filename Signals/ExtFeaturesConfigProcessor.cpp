@@ -29,7 +29,7 @@ ErrCode ExtFeaturesConfigProcessor::parseExtFeaturesConfigs() {
                 try {
                     parseYamlNode(featureConfig);
                 } catch(const std::invalid_argument& e) {
-                    LOGE("URM_EXT_FEATURE_PROCESSOR", "Error parsing Ext Feature Config: " + std::string(e.what()));
+                    LOGE("RTN_EXT_FEATURE_PROCESSOR", "Error parsing Ext Feature Config: " + std::string(e.what()));
                 }
             }
         }

@@ -7,7 +7,7 @@
 #include "SyslockServerRequests.h"
 #include "ResourceProcessor.h"
 #include "TargetConfigProcessor.h"
-#include "SystuneSettings.h"
+#include "ResourceTunerSettings.h"
 #include "Extensions.h"
 #include "SysConfigProcessor.h"
 #include "ServerUtils.h"
@@ -35,34 +35,34 @@ ErrCode initProvisioner() {
     ErrCode opStatus = RC_SUCCESS;
     preAllocateMemory();
 
-    LOGI("URM_SYSTUNE_INIT", "Parsing Resource Configs");
+    LOGI("RTN_SERVER_INIT", "Parsing Resource Configs");
     ResourceProcessor resourceProcessor(Extensions::getResourceConfigFilePath());
     opStatus = resourceProcessor.parseResourceConfigs();
     if(RC_IS_NOTOK(opStatus)) {
-        LOGE("URM_SYSTUNE_INIT", "Resource Config Parsing Failed, Server Init Failed");
+        LOGE("RTN_SERVER_INIT", "Resource Config Parsing Failed, Server Init Failed");
         return opStatus;
     }
-    LOGI("URM_SYSTUNE_INIT", "Resource Configs Successfully Parsed");
+    LOGI("RTN_SERVER_INIT", "Resource Configs Successfully Parsed");
 
-    // Target Configs is optional, i.e. file targetConfigs.yaml need not be provided.
-    // Systune will dynamically fetch mapping data in such cases
+    // Target Configs is optional, i.e. file TargetConfigs.yaml need not be provided.
+    // Resource Tuner will dynamically fetch mapping data in such cases
     // Hence, no need to error check for TargetConfigProcessor parsing status.
     TargetConfigProcessor targetConfigProcessor(Extensions::getTargetConfigFilePath());
     targetConfigProcessor.parseTargetConfigs();
 
     opStatus = TargetRegistry::getInstance()->readPhysicalCoreClusterInfo();
     if(RC_IS_NOTOK(opStatus)) {
-        LOGE("URM_SYSTUNE_INIT", "Reading Physical Core, Cluster Info Failed, Server Init Failed");
+        LOGE("RTN_SERVER_INIT", "Reading Physical Core, Cluster Info Failed, Server Init Failed");
         return opStatus;
     }
-    LOGI("URM_SYSTUNE_INIT", "Logical to Physical Core / Cluster mapping successfully created");
+    LOGI("RTN_SERVER_INIT", "Logical to Physical Core / Cluster mapping successfully created");
 
     // By this point, all the Extension Appliers / Resources should be registered.
     ResourceRegistry::getInstance()->pluginModifications(Extensions::getModifiedResources());
 
     // Create one thread:
     // - Processor Server thread
-    serverThread = std::thread(SyslocksdServerThread);
+    serverThread = std::thread(TunerServerThread);
 
     return opStatus;
 }
@@ -74,12 +74,12 @@ ErrCode terminateProvisioner() {
         RequestQueue::getInstance()->forcefulAwake();
         serverThread.join();
     } else {
-        LOGE("URM_SYSTUNE_TERMINATION", "Provisioner thread is not joinable");
+        LOGE("RTN_SERVER_TERMINATION", "Provisioner thread is not joinable");
     }
     return RC_SUCCESS;
 }
 
-URM_REGISTER_MODULE(MOD_PROVISIONER,
-                    initProvisioner,
-                    terminateProvisioner,
-                    submitResourceProvisioningRequest);
+RTN_REGISTER_MODULE(MOD_PROVISIONER,
+                     initProvisioner,
+                     terminateProvisioner,
+                     submitResourceProvisioningRequest);

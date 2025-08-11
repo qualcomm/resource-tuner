@@ -11,7 +11,7 @@
 #include "RateLimiter.h"
 #include "RequestManager.h"
 #include "Request.h"
-#include "SystuneSettings.h"
+#include "ResourceTunerSettings.h"
 #include "ResourceProcessor.h"
 #include "ResourceRegistry.h"
 #include "RequestManager.h"
@@ -26,6 +26,6 @@
  * to appropriate internal handlers based on their type. The request queue goes idle if
  * there are no more requests. When a new request arrives, it wakes up the queue.
  */
-void* SyslocksdServerThread();
+void* TunerServerThread();
 
 #endif

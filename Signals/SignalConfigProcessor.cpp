@@ -29,7 +29,7 @@ ErrCode SignalConfigProcessor::parseSignalConfigs() {
                 try {
                     parseYamlNode(signalConfig);
                 } catch(const std::invalid_argument& e) {
-                    LOGE("URM_SIGNAL_PROCESSOR", "Error parsing Signal Config: " + std::string(e.what()));
+                    LOGE("RTN_SIGNAL_PROCESSOR", "Error parsing Signal Config: " + std::string(e.what()));
                 } catch(const std::bad_alloc& e) {
 
                 }

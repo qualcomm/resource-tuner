@@ -29,7 +29,7 @@
 
 #include "RequestManager.h"
 #include "ClientDataManager.h"
-#include "SystuneSettings.h"
+#include "ResourceTunerSettings.h"
 
 /**
  * @brief RateLimiter
@@ -65,7 +65,7 @@ public:
 
     /**
     * @brief Checks if the Global Rate Limit is honored.
-    * @details Systune sets a cap on the number of Active Requests which can be
+    * @details Resource Tuner sets a cap on the number of Active Requests which can be
     *          served concurrently. If the current Count of Concurrent Active Requests
     *          hits this threshold, then any new Requests shall be dropped.
     * @return int8_t

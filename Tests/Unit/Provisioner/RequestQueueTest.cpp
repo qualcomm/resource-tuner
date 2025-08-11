@@ -20,9 +20,9 @@
 //             firstTest = false;
 //         }
 
-//         SystuneSettings::metaConfigs.mDelta = 5000;
-//         SystuneSettings::metaConfigs.mPenaltyFactor = 2.0;
-//         SystuneSettings::metaConfigs.mRewardFactor = 0.4;
+//         ResourceTunerSettings::metaConfigs.mDelta = 5000;
+//         ResourceTunerSettings::metaConfigs.mPenaltyFactor = 2.0;
+//         ResourceTunerSettings::metaConfigs.mRewardFactor = 0.4;
 //     }
 // };
 

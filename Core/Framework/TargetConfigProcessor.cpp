@@ -24,7 +24,7 @@ ErrCode TargetConfigProcessor::parseTargetConfigs() {
                 try {
                     parseYamlNode(targetConfig);
                 } catch(const std::invalid_argument& e) {
-                    LOGE("URM_TARGET_PROCESSOR", "Error parsing Target Config: " + std::string(e.what()));
+                    LOGE("RTN_TARGET_PROCESSOR", "Error parsing Target Config: " + std::string(e.what()));
                 }
             }
         }

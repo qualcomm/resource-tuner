@@ -131,7 +131,7 @@ TEST_F(ClientDataManagerTests, TestClientDataManagerRateLimiterUtilsLastRequestT
     clientDataManager->createNewClient(testClientPID, testClientTID);
     ASSERT_EQ(clientDataManager->clientExists(testClientPID, testClientTID), true);
 
-    int64_t currentMillis = SystuneSettings::getCurrentTimeInMilliseconds();
+    int64_t currentMillis = ResourceTunerSettings::getCurrentTimeInMilliseconds();
 
     clientDataManager->updateLastRequestTimestampByClientID(testClientTID, currentMillis);
     int64_t lastRequestTimestamp = clientDataManager->getLastRequestTimestampByClientID(testClientTID);

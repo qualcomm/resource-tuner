@@ -7,13 +7,13 @@ static void writeToNode(const std::string& fName, int32_t fValue) {
     std::ofstream myFile(fName, std::ios::out | std::ios::trunc);
 
     if(!myFile.is_open()) {
-        LOGD("URM_COCO_TABLE", "Failed to open file: "+ fName + " Error: " + std::strerror(errno));
+        LOGD("RTN_COCO_TABLE", "Failed to open file: "+ fName + " Error: " + std::strerror(errno));
         return;
     }
 
     myFile << std::to_string(fValue);
     if(myFile.fail()) {
-        LOGD("URM_COCO_TABLE", "Failed to write to file: "+ fName + " Error: " + std::strerror(errno));
+        LOGD("RTN_COCO_TABLE", "Failed to write to file: "+ fName + " Error: " + std::strerror(errno));
     }
     myFile.flush();
     myFile.close();
@@ -44,7 +44,7 @@ CocoTable::CocoTable() {
     // different core, priority combination. For example Priority 0 (SH) and Core 0 maps to index 0 in the CocoTable.
     for(ResourceConfigInfo* resourceConfig: mResourceTable) {
         if(resourceConfig->mCoreLevelConflict) {
-            mCocoTable.push_back(std::vector<std::pair<CocoNode*, CocoNode*>>(TOTAL_PRIORITIES * SystuneSettings::targetConfigs.totalCoreCount));
+            mCocoTable.push_back(std::vector<std::pair<CocoNode*, CocoNode*>>(TOTAL_PRIORITIES * ResourceTunerSettings::targetConfigs.totalCoreCount));
         } else {
             mCocoTable.push_back(std::vector<std::pair<CocoNode*, CocoNode*>>(TOTAL_PRIORITIES));
         }
@@ -59,7 +59,7 @@ void CocoTable::applyAction(CocoNode* currNode, int32_t index, int8_t priority) 
     if(mCurrentlyAppliedPriority[index] >= priority ||
        mCurrentlyAppliedPriority[index] == -1) {
         ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
-        if(resourceConfig->mModes & SystuneSettings::targetConfigs.currMode) {
+        if(resourceConfig->mModes & ResourceTunerSettings::targetConfigs.currMode) {
             // Check if a custom Applier (Callback) has been provided for this Resource, if yes, then call it
             // Note for resources with multiple values, the BU will need to provide a custom applier, which provides
             // the aggregation / selection logic.
@@ -68,7 +68,7 @@ void CocoTable::applyAction(CocoNode* currNode, int32_t index, int8_t priority) 
             } else {
                 // Default Applier
                 writeToNode(resourceConfig->mResourceName, resource->mConfigValue.singleValue);
-                LOGI("URM_COCO_TABLE" , "Value " + std::to_string(resource->mConfigValue.singleValue) + " written in " +
+                LOGI("RTN_COCO_TABLE" , "Value " + std::to_string(resource->mConfigValue.singleValue) + " written in " +
                      resourceConfig->mResourceName);
             }
             mCurrentlyAppliedPriority[index] = priority;
@@ -79,7 +79,7 @@ void CocoTable::applyAction(CocoNode* currNode, int32_t index, int8_t priority) 
 void CocoTable::applyDefaultAction(int32_t index, Resource* resource) {
     if(!resource) return;
     writeToNode(ResourceRegistry::getInstance()->getResourceById(resource->getOpCode())->mResourceName, ResourceRegistry::getInstance()->getResourceById(resource->getOpCode())->mDefaultValue);
-    LOGI("URM_COCO_TABLE" , "Value "+ std::to_string(ResourceRegistry::getInstance()->getResourceById(resource->getOpCode())->mDefaultValue) + " written in " + ResourceRegistry::getInstance()->getResourceById(resource->getOpCode())->mResourceName);
+    LOGI("RTN_COCO_TABLE" , "Value "+ std::to_string(ResourceRegistry::getInstance()->getResourceById(resource->getOpCode())->mDefaultValue) + " written in " + ResourceRegistry::getInstance()->getResourceById(resource->getOpCode())->mResourceName);
     mCurrentlyAppliedPriority[index] = -1;
 }
 
@@ -251,7 +251,7 @@ int8_t CocoTable::insertInCocoTable(CocoNode* currNode, Resource* resource, int8
 int8_t CocoTable::insertRequest(Request* req) {
     if(req == nullptr) return false;
 
-    LOGD("URM_COCO_TABLE","Inserting in CocoTable: Request Handle " + std::to_string(req->getHandle()));
+    LOGD("RTN_COCO_TABLE","Inserting in CocoTable: Request Handle " + std::to_string(req->getHandle()));
 
     // Create a List to Hold all the CocoNodes for the Request
     std::vector<CocoNode*>* cocoNodesList = nullptr;
@@ -260,7 +260,7 @@ int8_t CocoTable::insertRequest(Request* req) {
         cocoNodesList->resize(req->getResourcesCount(), nullptr);
 
     } catch(const std::bad_alloc& e) {
-        LOGE("URM_COCO_TABLE",
+        LOGE("RTN_COCO_TABLE",
              "Failed to allocate memory for CocoNodesList");
         return false;
     }
@@ -298,7 +298,7 @@ int8_t CocoTable::insertRequest(Request* req) {
         requestTimer = new (GetBlock<Timer>())
                             Timer(std::bind(&CocoTable::timerOver, this, req));
     } catch(const std::bad_alloc& e) {
-        LOGE("URM_COCO_TABLE",
+        LOGE("RTN_COCO_TABLE",
              "Timer allocation Failed for Request: " + std::to_string(req->getHandle()));
         return false;
     }
@@ -330,7 +330,7 @@ int8_t CocoTable::insertRequest(Request* req) {
 }
 
 int8_t CocoTable::updateRequest(Request* req, int64_t duration) {
-    LOGD("URM_COCO_TABLE","Updating in CocoTable: Request Handle" + std::to_string(req->getHandle()));
+    LOGD("RTN_COCO_TABLE","Updating in CocoTable: Request Handle" + std::to_string(req->getHandle()));
     if(req == nullptr || duration < -1 || (duration > 0 && (duration < req->getDuration()))) return false;
 
     // Update the duration of the request, and the corresponding timer interval.
@@ -346,7 +346,7 @@ int8_t CocoTable::updateRequest(Request* req, int64_t duration) {
         requestTimer = new (GetBlock<Timer>())
                             Timer(std::bind(&CocoTable::timerOver, this, req));
     } catch(const std::bad_alloc& e) {
-        LOGE("URM_COCO_TABLE",
+        LOGE("RTN_COCO_TABLE",
              "Timer allocation Failed for Request: " + std::to_string(req->getHandle()));
         return false;
     }
@@ -363,7 +363,7 @@ int8_t CocoTable::updateRequest(Request* req, int64_t duration) {
 
 // Methods for Request Cleanup
 int8_t CocoTable::removeRequest(Request* req) {
-    LOGD("URM_COCO_TABLE",
+    LOGD("RTN_COCO_TABLE",
          "Request cleanup for Request Handle " + std::to_string(req->getHandle()) + " initiated");
 
     for(int32_t i = 0; i < req->getResourcesCount(); i++) {
@@ -417,14 +417,14 @@ int8_t CocoTable::removeRequest(Request* req) {
 }
 
 int32_t CocoTable::timerOver(Request* request) {
-    LOGD("URM_COCO_TABLE",
+    LOGD("RTN_COCO_TABLE",
          "Timer over for request " + std::to_string(request->getHandle()));
 
     Request* untuneRequest = nullptr;
     try {
         untuneRequest = new (GetBlock<Request>()) Request();
     } catch(const std::bad_alloc& e) {
-        LOGI("URM_COCO_TABLE",
+        LOGI("RTN_COCO_TABLE",
              "Failed to Allocate Memory for Untune Request");
     }
 

@@ -14,21 +14,21 @@ ErrCode initSysSignals() {
     ErrCode opStatus = RC_SUCCESS;
 
     // Pre-Allocate memory for commonly used types.
-    int32_t concurrentRequestsUB = SystuneSettings::metaConfigs.mMaxConcurrentRequests;
-    int32_t resourcesPerRequestUB = SystuneSettings::metaConfigs.mMaxResourcesPerRequest;
+    int32_t concurrentRequestsUB = ResourceTunerSettings::metaConfigs.mMaxConcurrentRequests;
+    int32_t resourcesPerRequestUB = ResourceTunerSettings::metaConfigs.mMaxResourcesPerRequest;
 
     MakeAlloc<Signal> (concurrentRequestsUB);
     MakeAlloc<std::vector<Resource*>> (concurrentRequestsUB * resourcesPerRequestUB);
     MakeAlloc<std::vector<uint32_t>> (concurrentRequestsUB * resourcesPerRequestUB);
 
-    LOGI("URM_SYSTUNE_INIT", "Parsing Signal Configs");
+    LOGI("RTN_SERVER_INIT", "Parsing Signal Configs");
     SignalConfigProcessor signalConfigProcessor(Extensions::getSignalsConfigFilePath());
     opStatus = signalConfigProcessor.parseSignalConfigs();
     if(RC_IS_NOTOK(opStatus)) {
-        LOGE("URM_SYSTUNE_INIT", "Signal Configs Parsing Failed");
+        LOGE("RTN_SERVER_INIT", "Signal Configs Parsing Failed");
         return opStatus;
     }
-    LOGI("URM_SYSTUNE_INIT", "Signal Configs Successfully Parsed");
+    LOGI("RTN_SERVER_INIT", "Signal Configs Successfully Parsed");
 
     SignalRegistry::getInstance()->displaySignals();
 
@@ -51,12 +51,12 @@ ErrCode terminateSysSignals() {
         SignalQueue::getInstance()->forcefulAwake();
         signalServerProcessorThread.join();
     } else {
-        LOGE("URM_SYSTUNE_TERMINATION", "Signal server thread is not joinable");
+        LOGE("RTN_SERVER_TERMINATION", "Signal server thread is not joinable");
     }
     return RC_SUCCESS;
 }
 
-URM_REGISTER_MODULE(MOD_SYSSIGNAL,
-                    initSysSignals,
-                    terminateSysSignals,
-                    submitSignalRequest);
+RTN_REGISTER_MODULE(MOD_SYSSIGNAL,
+                     initSysSignals,
+                     terminateSysSignals,
+                     submitSignalRequest);

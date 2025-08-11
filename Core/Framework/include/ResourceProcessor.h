@@ -17,7 +17,7 @@
 #include "ResourceRegistry.h"
 #include "Utils.h"
 
-#define RESOURCE_CONFIGS_FILE "/etc/systune/resourceConfigs.yaml"
+#define RESOURCE_CONFIGS_FILE "/etc/ResourceTuner/ResourceConfigs.yaml"
 
 #define RESOURCE_CONFIGS_ROOT "ResourceConfigs"
 #define RESOURCE_CONFIGS_ELEM_RESOURCE_TYPE "ResType"

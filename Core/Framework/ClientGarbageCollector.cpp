@@ -6,7 +6,7 @@
 std::shared_ptr<ClientGarbageCollector> ClientGarbageCollector::mClientGarbageCollectorInstance = nullptr;
 ClientGarbageCollector::ClientGarbageCollector() {
     this->mTimer = nullptr;
-    this->mGarbageCollectionDuration = SystuneSettings::metaConfigs.mClientGarbageCollectorDuration;
+    this->mGarbageCollectionDuration = ResourceTunerSettings::metaConfigs.mClientGarbageCollectorDuration;
 }
 
 void ClientGarbageCollector::submitClientThreadsForCleanup(int32_t clientPid) {
@@ -23,7 +23,7 @@ void ClientGarbageCollector::performCleanup() {
         int32_t clientTID = this->mGcQueue.front();
         this->mGcQueue.pop();
 
-        LOGD("URM_CLIENT_GARBAGE_COLLECTOR",
+        LOGD("RTN_CLIENT_GARBAGE_COLLECTOR",
              "Proceeding with Cleanup for Client TID: " + std::to_string(clientTID));
 
         std::unordered_set<int64_t>* clientHandles =
@@ -49,7 +49,7 @@ void ClientGarbageCollector::performCleanup() {
                 untuneRequest = new (GetBlock<Request>()) Request();
                 request->populateUntuneRequest(untuneRequest);
             } catch(const std::bad_alloc& e) {
-                LOGI("URM_CLIENT_GARBAGE_COLLECTOR",
+                LOGI("RTN_CLIENT_GARBAGE_COLLECTOR",
                      "Failed to Allocate Memory for Untune Request. Error: " + std::string(e.what()));
             }
 
@@ -76,7 +76,7 @@ ErrCode ClientGarbageCollector::startClientGarbageCollectorDaemon() {
         return RC_WORKER_THREAD_ASSIGNMENT_FAILURE;
     }
 
-    LOGI("URM_CLIENT_GARBAGE_COLLECTOR", "Garbage Collector Daemon Thread Started");
+    LOGI("RTN_CLIENT_GARBAGE_COLLECTOR", "Garbage Collector Daemon Thread Started");
     return RC_SUCCESS;
 }
 

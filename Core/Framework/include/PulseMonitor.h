@@ -9,7 +9,7 @@
  * \ingroup  PULSE_MONITOR
  * \defgroup PULSE_MONITOR Pulse Monitor
  * \details Runs as a Daemon Thread and Periodically (Every 60 seconds) checks if any of the Clients with
- *          Active or Pending Requests with the Systune Server have died or terminated.
+ *          Active or Pending Requests with the Resource Tuner Server have died or terminated.
  *          When such a Client is Found it is added to the Garbage Collector Queue, so that it
  *          can be cleaned up.\n\n
  *          Pulse Monitor Flow:\n\n
@@ -34,7 +34,7 @@
 #include "CocoTable.h"
 #include "ClientDataManager.h"
 #include "ClientGarbageCollector.h"
-#include "SystuneSettings.h"
+#include "ResourceTunerSettings.h"
 #include "Logger.h"
 
 /**

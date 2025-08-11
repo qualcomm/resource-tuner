@@ -2,7 +2,7 @@
 set -e
 
 if [ "$1" = "configure" ]; then
-    systemctl enable qcom-systune.service || true
+    systemctl enable resource-tuner.service || true
 fi
 
 exit 0

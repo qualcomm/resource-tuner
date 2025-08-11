@@ -107,7 +107,7 @@ public:
             try {
                 signalRegistryInstance = std::shared_ptr<SignalRegistry>(new SignalRegistry());
             } catch(const std::bad_alloc& e) {
-                LOGE("URM_SIGNAL_REGISTRY",
+                LOGE("RTN_SIGNAL_REGISTRY",
                      "Failed to allocate memory for SignalRegistry instance: " + std::string(e.what()));
                 return nullptr;
             }

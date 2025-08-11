@@ -14,7 +14,7 @@
 #define PROP_NAME "Name"
 #define PROP_VALUE "Value"
 
-#define SYS_CONFIGS_PROPS_FILE "/etc/systune/propertiesConfigs.yaml"
+#define SYS_CONFIGS_PROPS_FILE "/etc/ResourceTuner/PropertiesConfigs.yaml"
 
 /**
  * @brief SysConfigProcessor
@@ -26,28 +26,28 @@
  * Example YAML configuration:
  * @code{.yaml}
  * PropertyConfigs:
- *   - Name: "systune.maximum.concurrent.requests"
+ *   - Name: "resource_tuner.maximum.concurrent.requests"
  *     Value: "60"
  *
- *   - Name: "systune.maximum.resources.per.request"
+ *   - Name: "resource_tuner.maximum.resources.per.request"
  *     Value: "64"
  *
- *   - Name: "systune.listening.port"
+ *   - Name: "resource_tuner.listening.port"
  *     Value: "12000"
  *
- *   - Name: "systune.pulse.duration"
+ *   - Name: "resource_tuner.pulse.duration"
  *     Value: "60000"
  *
- *   - Name: "systune.garbage_collection.duration"
+ *   - Name: "resource_tuner.garbage_collection.duration"
  *     Value: "83000"
  *
- *   - Name: "systune.rate_limiter.delta"
+ *   - Name: "resource_tuner.rate_limiter.delta"
  *     Value: "5"
  *
- *   - Name: "systune.penalty.factor"
+ *   - Name: "resource_tuner.penalty.factor"
  *     Value: "2.0"
  *
- *   - Name: "systune.reward.factor"
+ *   - Name: "resource_tuner.reward.factor"
  *     Value: "0.4"
  * @endcode
  *

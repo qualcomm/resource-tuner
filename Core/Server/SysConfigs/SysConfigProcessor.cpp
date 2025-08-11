@@ -26,7 +26,7 @@ ErrCode SysConfigProcessor::parseSysConfigs() {
                 try {
                     parseYamlNode(sysConfigElement);
                 } catch(const std::invalid_argument& e) {
-                    LOGE("URM_SYSCONFIG_PROCESSOR", "Error parsing Property Config: " + std::string(e.what()));
+                    LOGE("RTN_SYSCONFIG_PROCESSOR", "Error parsing Property Config: " + std::string(e.what()));
                 }
             }
         }
@@ -43,7 +43,7 @@ void SysConfigProcessor::parseYamlNode(const YAML::Node& item) {
     propVal = safeExtract<std::string>(item[PROP_VALUE]);
 
     if(!SysConfigPropRegistry::getInstance()->createProperty(propKey, propVal)) {
-        LOGE("URM_SYSCONFIG_PROCESSOR",
+        LOGE("RTN_SYSCONFIG_PROCESSOR",
              "Detected Malformed Property [Name = " + propKey + "] Or Prop with " \
              "this name already exists in the Registry");
     }

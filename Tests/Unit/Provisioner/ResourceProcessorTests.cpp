@@ -10,7 +10,7 @@
 #include "Extensions.h"
 #include "Utils.h"
 
-URM_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourceConfigs.yaml")
+RTN_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourceConfigs.yaml")
 
 #define TOTAL_RESOURCE_CONFIGS_COUNT 11
 
@@ -31,7 +31,6 @@ protected:
             ResourceProcessor resourceConfigProcessor(Extensions::getResourceConfigFilePath());
 
             if(RC_IS_NOTOK(resourceConfigProcessor.parseResourceConfigs())) {
-                LOGE("URM_TEST_RESOURCE_PARSER", "Resource Config Parsing Failed");
                 return;
             }
         }

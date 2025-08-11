@@ -7,9 +7,9 @@ std::shared_ptr<RateLimiter> RateLimiter::mRateLimiterInstance = nullptr;
 std::mutex RateLimiter::instanceProtectionLock{};
 
 RateLimiter::RateLimiter() {
-    this->mDelta = SystuneSettings::metaConfigs.mDelta;
-    this->mPenaltyFactor = SystuneSettings::metaConfigs.mPenaltyFactor;
-    this->mRewardFactor = SystuneSettings::metaConfigs.mRewardFactor;
+    this->mDelta = ResourceTunerSettings::metaConfigs.mDelta;
+    this->mPenaltyFactor = ResourceTunerSettings::metaConfigs.mPenaltyFactor;
+    this->mRewardFactor = ResourceTunerSettings::metaConfigs.mRewardFactor;
 }
 
 int8_t RateLimiter::shouldBeProcessed(int32_t clientTID) {
@@ -22,7 +22,7 @@ int8_t RateLimiter::shouldBeProcessed(int32_t clientTID) {
         return false;
     }
 
-    int64_t currentMillis = SystuneSettings::getCurrentTimeInMilliseconds();
+    int64_t currentMillis = ResourceTunerSettings::getCurrentTimeInMilliseconds();
     // If this is the First Request, don't update the Health
     if(ClientDataManager::getInstance()->getLastRequestTimestampByClientID(clientTID) != 0) {
         int64_t requestDelta = currentMillis - ClientDataManager::getInstance()->getLastRequestTimestampByClientID(clientTID);
@@ -57,7 +57,7 @@ int8_t RateLimiter::isRateLimitHonored(int32_t clientTID) {
 int8_t RateLimiter::isGlobalRateLimitHonored() {
     int64_t currActiveReqCount = RequestManager::getInstance()->getActiveReqeustsCount();
     // Cover this check as part of Rate Limiter
-    if(currActiveReqCount >= SystuneSettings::metaConfigs.mMaxConcurrentRequests) {
+    if(currActiveReqCount >= ResourceTunerSettings::metaConfigs.mMaxConcurrentRequests) {
         return false;
     }
     return true;

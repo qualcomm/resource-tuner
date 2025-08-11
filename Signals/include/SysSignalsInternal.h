@@ -9,7 +9,7 @@
 /**
 * @brief Internal API for submitting Signal Requests for Processing if the SysSignals
 *        module is enabled.
-* @details Systune Modules can directly use this API to submit Requests rather than
+* @details Resource Tuner Modules can directly use this API to submit Requests rather than
 *          using the Client Interface.
 */
 void submitSignalRequest(void* clientReq);

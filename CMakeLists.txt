@@ -5,7 +5,7 @@ set(CMAKE_STANDARD_REQUIRED True)
 # for gdb. can be removed in production.
 set(CMAKE_BUILD_TYPE Debug)
 
-project(Systune)
+project("Resource Tuner")
 
 #GoogleTest dependency (Update the hash often)
 include(FetchContent)
@@ -55,7 +55,7 @@ endif()
 option(BUILD_SHARED_LIBS "Build shared libraries instead of static ones" ON)
 
 # Mandatory Builds
-add_subdirectory(Auxiliary)
+add_subdirectory(Core/Modula)
 add_subdirectory(Core/Client)
 add_subdirectory(Core/Server)
 add_subdirectory(Core/Framework)
@@ -75,31 +75,31 @@ endif()
 
 option(BUILD_CLI "Build CLI" OFF)
 if(BUILD_CLI)
-  add_executable(systune_cli
-    ./Client/APIs/SystuneAPIs.cpp
+  add_executable(resource_tuner_cli
+    ./Client/APIs/ResourceTunerAPIs.cpp
     ./Client/ClientCLI.cpp
   )
-  target_link_libraries(systune_cli CommunicationClient ClientAPIs)
-  install(TARGETS systune_cli RUNTIME DESTINATION bin)
+  target_link_libraries(resource_tuner_cli CommunicationClient ClientAPIs)
+  install(TARGETS resource_tuner_cli RUNTIME DESTINATION bin)
 endif()
 
 # Server Executable
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(YAMLCPP REQUIRED yaml-cpp)
 if(BUILD_SIGNALS)
-  add_executable(systune ./ServerMain.cpp ./Signals/SignalServer.cpp)
-  target_include_directories(systune PRIVATE ${YAMLCPP_INCLUDE_DIRS})
-  target_include_directories(systune PRIVATE ${CMAKE_SOURCE_DIR}/Extensions/include)
-  target_link_libraries(systune PUBLIC SysSignals)
-  target_link_libraries(systune PUBLIC ExtAPIs)
+  add_executable(resource_tuner ./ServerMain.cpp ./Signals/SignalServer.cpp)
+  target_include_directories(resource_tuner PRIVATE ${YAMLCPP_INCLUDE_DIRS})
+  target_include_directories(resource_tuner PRIVATE ${CMAKE_SOURCE_DIR}/Extensions/include)
+  target_link_libraries(resource_tuner PUBLIC SysSignals)
+  target_link_libraries(resource_tuner PUBLIC ExtAPIs)
 else()
-  add_executable(systune ./ServerMain.cpp)
-  target_include_directories(systune PRIVATE ${YAMLCPP_INCLUDE_DIRS})
-  target_include_directories(systune PRIVATE ${CMAKE_SOURCE_DIR}/Extensions/include)
-  target_link_libraries(systune PUBLIC ExtAPIs)
+  add_executable(resource_tuner ./ServerMain.cpp)
+  target_include_directories(resource_tuner PRIVATE ${YAMLCPP_INCLUDE_DIRS})
+  target_include_directories(resource_tuner PRIVATE ${CMAKE_SOURCE_DIR}/Extensions/include)
+  target_link_libraries(resource_tuner PUBLIC ExtAPIs)
 endif()
 
-target_link_libraries(systune PUBLIC Server Auxiliary SysRequestReceiver)
+target_link_libraries(resource_tuner PUBLIC Server Auxiliary SysRequestReceiver)
 
 # System Test Executable
 if(BUILD_TESTS)
@@ -108,8 +108,8 @@ target_link_libraries(sys_tests_ex PUBLIC Auxiliary ClientAPIs)
 endif()
 
 #install libs
-install(TARGETS systune RUNTIME DESTINATION bin)
-install(TARGETS Auxiliary CommunicationClient SystuneCommunicationServer
+install(TARGETS resource_tuner RUNTIME DESTINATION bin)
+install(TARGETS Auxiliary CommunicationClient ResourceTunerCommunicationServer
         ClientAPIs SysConfigProps Server ExtAPIs
         SysRequestReceiver LIBRARY DESTINATION lib)
 if(BUILD_SIGNALS)
@@ -117,12 +117,12 @@ install(TARGETS SysSignals DESTINATION lib)
 endif()
 
 #install headers
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/Client/APIs/include/ DESTINATION include/Systune)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/Client/APIs/include/ DESTINATION include/ResourceTuner)
 
 #install config files
 install(
     DIRECTORY ${CMAKE_SOURCE_DIR}/Configs/
-    DESTINATION /etc/systune/
+    DESTINATION /etc/ResourceTuner/
     FILES_MATCHING
     PATTERN "*.yaml"
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ

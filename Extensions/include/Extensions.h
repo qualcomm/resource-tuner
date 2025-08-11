@@ -5,8 +5,8 @@
  * \file  Extensions.h
  */
 
-#ifndef SYSTUNE_EXTENSION_H
-#define SYSTUNE_EXTENSION_H
+#ifndef RESOURCE_TUNER_EXTENSION_H
+#define RESOURCE_TUNER_EXTENSION_H
 
 #include <iostream>
 #include <vector>
@@ -16,7 +16,7 @@
 
 /**
 * @brief Extensions
-* @details Provides an Interface for Customizing Systune Behaviour. Through the Extension Interface,
+* @details Provides an Interface for Customizing Resource Tuner Behaviour. Through the Extension Interface,
 *          Custom Resource Callbacks / Appliers as well as Custom Config Files (for example: Resource
 *          Configs or Signal Configs) can be specified.
 */
@@ -45,29 +45,29 @@ public:
 #define CONCAT(a, b) a ## b
 
 /**
- * \def URM_REGISTER_RESOURCE(resourceOpcode, resourceApplierCallback)
+ * \def RTN_REGISTER_RESOURCE(resourceOpcode, resourceApplierCallback)
  * \brief Register a Customer Resource Applier for a particular Opcode
  * \param optionalInfo An unsigned 32-bit integer representing the Resource Opcode.
  * \param resourceApplierCallback A function Pointer to the Custom Applier.
  *
  * \note This macro must be used in the Global Scope.
  */
-#define URM_REGISTER_RESOURCE(resourceOpcode, resourceApplierCallback) \
+#define RTN_REGISTER_RESOURCE(resourceOpcode, resourceApplierCallback) \
         static Extensions CONCAT(_resource, resourceOpcode)(resourceOpcode, resourceApplierCallback);
 
 /**
- * \def URM_REGISTER_CONFIG(configType, yamlFile)
+ * \def RTN_REGISTER_CONFIG(configType, yamlFile)
  * \brief Register custom Config (YAML) file. This Macro can be used to register
- *        Resource Configs File, Signal Configs file and others with Systune.
+ *        Resource Configs File, Signal Configs file and others with Resource Tuner.
  * \param configType The type of Config for which the Custom YAML file has to be specified.
  * \param yamlFile File Path of this Config YAML file.
  *
  * \note This macro must be used in the Global Scope.
  */
-#define URM_REGISTER_CONFIG(configType, yamlFile) \
+#define RTN_REGISTER_CONFIG(configType, yamlFile) \
         static Extensions CONCAT(_regConfig, configType)(configType, yamlFile);
 
-#define URM_REGISTER_SIGNALS_CALLBACK(signalsInitCallback, signalsListenerCallback) \
+#define RTN_REGISTER_SIGNALS_CALLBACK(signalsInitCallback, signalsListenerCallback) \
         static Extensions _signalsConfigInit(signalsInitCallback, signalsListenerCallback);
 
 #endif

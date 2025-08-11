@@ -27,7 +27,7 @@ enum RequestProcessingStatus {
 
 /**
  * @details Responsible for Tracking and Maintaining all the active Requests, currently
- *          submitted to the Syslock Server. Additionally it is responsible for performing
+ *          submitted to the Resource Tuner Server. Additionally it is responsible for performing
  *          Request Duplication Check, which aims to improve System efficiency by reducing
  *          wasteful duplicate processing.
  */

@@ -40,7 +40,7 @@ std::vector<SignalInfo*> SignalRegistry::getSignalConfigs() {
 
 SignalInfo* SignalRegistry::getSignalConfigById(uint32_t signalID) {
     if(this->mSystemIndependentLayerMappings.find(signalID) == this->mSystemIndependentLayerMappings.end()) {
-        LOGE("URM_RESOURCE_PROCESSOR", "Resource ID not found in the registry");
+        LOGE("RTN_RESOURCE_PROCESSOR", "Resource ID not found in the registry");
         return nullptr;
     }
 
@@ -56,11 +56,11 @@ void SignalRegistry::displaySignals() {
     for(int32_t i = 0; i < mTotalSignals; i++) {
         auto& signal = this->mSignalsConfigs[i];
 
-        LOGD("URM_SIGNAL_REGISTRY", "Signal Name: " + signal->mSignalName);
-        LOGD("URM_SIGNAL_REGISTRY", "Signal OpID: " + std::to_string(signal->mSignalOpId));
-        LOGD("URM_SIGNAL_REGISTRY", "Signal SignalCategory: " + std::to_string(signal->mSignalCategory));
+        LOGD("RTN_SIGNAL_REGISTRY", "Signal Name: " + signal->mSignalName);
+        LOGD("RTN_SIGNAL_REGISTRY", "Signal OpID: " + std::to_string(signal->mSignalOpId));
+        LOGD("RTN_SIGNAL_REGISTRY", "Signal SignalCategory: " + std::to_string(signal->mSignalCategory));
 
-        LOGD("URM_SIGNAL_REGISTRY", "====================================");
+        LOGD("RTN_SIGNAL_REGISTRY", "====================================");
     }
 }
 
@@ -114,10 +114,10 @@ SignalInfoBuilder* SignalInfoBuilder::setOpID(const std::string& signalOpIdStrin
     try {
         this->mSignalInfo->mSignalOpId = (int16_t)stoi(signalOpIdString, nullptr, 0);
     } catch(const std::invalid_argument& ex) {
-        LOGE("URM_SIGNAL_REGISTRY",
+        LOGE("RTN_SIGNAL_REGISTRY",
              "Signal Parsing Failed with error: " + std::string(ex.what()));
     } catch(const std::out_of_range& ex) {
-        LOGE("URM_SIGNAL_REGISTRY",
+        LOGE("RTN_SIGNAL_REGISTRY",
              "Signal Parsing Failed with error: " + std::string(ex.what()));
     }
     return this;
@@ -132,10 +132,10 @@ SignalInfoBuilder* SignalInfoBuilder::setCategory(const std::string& categoryStr
     try {
         this->mSignalInfo->mSignalCategory = (int8_t)stoi(categoryString, nullptr, 0);
     } catch(const std::invalid_argument& ex) {
-        LOGE("URM_SIGNAL_REGISTRY",
+        LOGE("RTN_SIGNAL_REGISTRY",
              "Signal Parsing Failed with error: " + std::string(ex.what()));
     } catch(const std::out_of_range& ex) {
-        LOGE("URM_SIGNAL_REGISTRY",
+        LOGE("RTN_SIGNAL_REGISTRY",
              "Signal Parsing Failed with error: " + std::string(ex.what()));
     }
     return this;

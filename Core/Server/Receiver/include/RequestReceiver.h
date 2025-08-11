@@ -10,8 +10,8 @@
 #include <sstream>
 
 #include "Logger.h"
-#include "SystuneSocketServer.h"
-#include "SystuneSettings.h"
+#include "ResourceTunerSocketServer.h"
+#include "ResourceTunerSettings.h"
 #include "SysConfig.h"
 #include "ComponentRegistry.h"
 
@@ -36,7 +36,7 @@ public:
     }
 };
 
-void OnSysTuneMessageAsyncCallback(int32_t callbackID, char* message, uint64_t bufferSize);
+void OnResourceTunerMessageReceiverCallback(int32_t callbackID, char* message, uint64_t bufferSize);
 
 void listenerThreadStartRoutine();
 
