@@ -59,7 +59,7 @@ add_subdirectory(Core/Modula)
 add_subdirectory(Core/Client)
 add_subdirectory(Core/Server)
 add_subdirectory(Core/Framework)
-add_subdirectory(Extensions)
+add_subdirectory(Core/Extensions)
 
 # Optional builds
 option(BUILD_SIGNALS "Build SysSignals" OFF)
@@ -76,8 +76,8 @@ endif()
 option(BUILD_CLI "Build CLI" OFF)
 if(BUILD_CLI)
   add_executable(resource_tuner_cli
-    ./Client/APIs/ResourceTunerAPIs.cpp
-    ./Client/ClientCLI.cpp
+    ./Core/Client/APIs/ResourceTunerAPIs.cpp
+    ./Core/Client/ClientCLI.cpp
   )
   target_link_libraries(resource_tuner_cli CommunicationClient ClientAPIs)
   install(TARGETS resource_tuner_cli RUNTIME DESTINATION bin)
