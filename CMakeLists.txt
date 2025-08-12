@@ -117,11 +117,19 @@ install(TARGETS SysSignals DESTINATION lib)
 endif()
 
 #install headers
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/Client/APIs/Include/ DESTINATION include/ResourceTuner)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/Core/Client/APIs/Include/ DESTINATION include/ResourceTuner)
 
 #install config files
 install(
-    DIRECTORY ${CMAKE_SOURCE_DIR}/Configs/
+    DIRECTORY ${CMAKE_SOURCE_DIR}/Core/Configs/
+    DESTINATION /etc/ResourceTuner/
+    FILES_MATCHING
+    PATTERN "*.yaml"
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
+
+install(
+    DIRECTORY ${CMAKE_SOURCE_DIR}/Signals/Configs/
     DESTINATION /etc/ResourceTuner/
     FILES_MATCHING
     PATTERN "*.yaml"
