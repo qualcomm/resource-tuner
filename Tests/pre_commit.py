@@ -44,7 +44,7 @@ def system_tests():
 
 # Server Lifecycle Tests
 def lifecycle_tests():
-    os.system("python ../Tests/System/ServerLifecyleTests.py")
+    os.system("python ../Tests/System/ServerLifecycleTests.py")
 
 if __name__ == "__main__":
     # Setup
@@ -64,8 +64,8 @@ if __name__ == "__main__":
     time.sleep(10)
 
     unit_tests()
-    # system_tests()
-    # lifecycle_tests()
+    system_tests()
+    lifecycle_tests()
 
     time.sleep(10)
 

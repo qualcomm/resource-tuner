@@ -10,8 +10,8 @@ cc_library_shared{
     name:"libSysConfigProps",
     defaults:["sysconfig_defaults"],
     srcs: ["Props/*.cpp"],
-    local_include_dirs: ["Props/include"],
-    export_include_dirs: ["Props/include"],
+    local_include_dirs: ["Props/Include"],
+    export_include_dirs: ["Props/Include"],
     shared_libs: ["libExtAPIs"],
 }
 
@@ -19,8 +19,8 @@ cc_library_shared{
     name:"libSysConfigAPIs",
     defaults:["sysconfig_defaults"],
     srcs: ["APIs/*.cpp"],
-    local_include_dirs: ["APIs/include"],
-    export_include_dirs: ["APIs/include"],
+    local_include_dirs: ["APIs/Include"],
+    export_include_dirs: ["APIs/Include"],
     shared_libs: ["libSysConfigProps"],
 }
 
@@ -28,7 +28,7 @@ cc_library_shared{
     name:"libSysConfigParsers",
     defaults:["sysconfig_defaults"],
     srcs: ["Parsers/*.cpp"],
-    local_include_dirs: ["Parsers/include"],
-    export_include_dirs: ["Parsers/include"],
+    local_include_dirs: ["Parsers/Include"],
+    export_include_dirs: ["Parsers/Include"],
     shared_libs: ["libSysConfigProps", "libAuxiliary"],
 }

@@ -89,13 +89,13 @@ pkg_check_modules(YAMLCPP REQUIRED yaml-cpp)
 if(BUILD_SIGNALS)
   add_executable(resource_tuner ./ServerMain.cpp ./Signals/SignalServer.cpp)
   target_include_directories(resource_tuner PRIVATE ${YAMLCPP_INCLUDE_DIRS})
-  target_include_directories(resource_tuner PRIVATE ${CMAKE_SOURCE_DIR}/Extensions/include)
+  target_include_directories(resource_tuner PRIVATE ${CMAKE_SOURCE_DIR}/Extensions/Include)
   target_link_libraries(resource_tuner PUBLIC SysSignals)
   target_link_libraries(resource_tuner PUBLIC ExtAPIs)
 else()
   add_executable(resource_tuner ./ServerMain.cpp)
   target_include_directories(resource_tuner PRIVATE ${YAMLCPP_INCLUDE_DIRS})
-  target_include_directories(resource_tuner PRIVATE ${CMAKE_SOURCE_DIR}/Extensions/include)
+  target_include_directories(resource_tuner PRIVATE ${CMAKE_SOURCE_DIR}/Extensions/Include)
   target_link_libraries(resource_tuner PUBLIC ExtAPIs)
 endif()
 
@@ -117,7 +117,7 @@ install(TARGETS SysSignals DESTINATION lib)
 endif()
 
 #install headers
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/Client/APIs/include/ DESTINATION include/ResourceTuner)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/Client/APIs/Include/ DESTINATION include/ResourceTuner)
 
 #install config files
 install(

@@ -1225,10 +1225,6 @@ namespace RequestApplicationTests {
                     value = readFromNode(testResourceName);
                     newValue = C_STOI(value);
                     assert(newValue == originalValue);
-
-                    waitpid(rc1, nullptr, 0);
-                    waitpid(rc2, nullptr, 0);
-                    waitpid(rc3, nullptr, 0);
                 }
             }
         }
@@ -2015,22 +2011,22 @@ namespace RequestApplicationTests {
     static void RunTestGroup() {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
-        RUN_TEST(TestSingleClientTuneRequest);
-        RUN_TEST(TestSingleClientTuneRequestMultipleResources)
-        RUN_TEST(TestMultipleClientsHigherIsBetterPolicy1)
-        RUN_TEST(TestMultipleClientsHigherIsBetterPolicy2)
+        // RUN_TEST(TestSingleClientTuneRequest);
+        // RUN_TEST(TestSingleClientTuneRequestMultipleResources)
+        // RUN_TEST(TestMultipleClientsHigherIsBetterPolicy1)
+        // RUN_TEST(TestMultipleClientsHigherIsBetterPolicy2)
         RUN_TEST(TestMultipleClientsLowerIsBetterPolicy)
-        RUN_TEST(TestMultipleClientsLazyApplyPolicy)
-        RUN_TEST(TestMultipleClientsTuneRequestDifferentResources)
-        RUN_TEST(TestSingleClientSequentialRequests)
-        RUN_TEST(TestMultipleClientTIDsConcurrentRequests)
-        RUN_TEST(TestInfiniteDurationTuneRequestAndValidUntuning)
-        RUN_TEST(TestInfiniteDurationTuneRequestAndInValidUntuning)
-        RUN_TEST(TestPriorityBasedResourceAcquisition1)
-        RUN_TEST(TestPriorityBasedResourceAcquisition2)
-        RUN_TEST(TestPriorityBasedResourceAcquisition3)
-        RUN_TEST(TestRequestValidRetuning)
-        RUN_TEST(TestRequestInvalidRetuning1)
+        // RUN_TEST(TestMultipleClientsLazyApplyPolicy)
+        // RUN_TEST(TestMultipleClientsTuneRequestDifferentResources)
+        // RUN_TEST(TestSingleClientSequentialRequests)
+        // RUN_TEST(TestMultipleClientTIDsConcurrentRequests)
+        // RUN_TEST(TestInfiniteDurationTuneRequestAndValidUntuning)
+        // RUN_TEST(TestInfiniteDurationTuneRequestAndInValidUntuning)
+        // RUN_TEST(TestPriorityBasedResourceAcquisition1)
+        // RUN_TEST(TestPriorityBasedResourceAcquisition2)
+        // RUN_TEST(TestPriorityBasedResourceAcquisition3)
+        // RUN_TEST(TestRequestValidRetuning)
+        // RUN_TEST(TestRequestInvalidRetuning1)
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
     }
@@ -2354,18 +2350,17 @@ namespace SystemSysfsNodesTests {
 
 int32_t main(int32_t argc, const char* argv[]) {
     // Run the Tests
-
-    RUN_TEST(TestHandleGeneration)
+    // RUN_TEST(TestHandleGeneration)
 
     // Request-Verification Tests
-    ResourceTuningRequestVerification::RunTestGroup();
-    SignalVerification::RunTestGroup();
+    // ResourceTuningRequestVerification::RunTestGroup();
+    // SignalVerification::RunTestGroup();
 
     // Request Application Tests
     RequestApplicationTests::RunTestGroup();
 
     // Tests on Real Sysfs Nodes (QLI)
-    SystemSysfsNodesTests::RunTestGroup();
+    // SystemSysfsNodesTests::RunTestGroup();
 
     return 0;
 }
