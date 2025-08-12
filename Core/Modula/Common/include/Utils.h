@@ -15,12 +15,9 @@
 #include "Message.h"
 #include "Logger.h"
 
-#define PROVISIONER "Provisioner"
-#define SYSSIGNAL "SysSignal"
-
 /**
  * @enum RequestType
- * @brief Enumeration for different types of Provisioner and SysConfig requests.
+ * @brief Enumeration for different types of Resource Provisioning and SysConfig requests.
  */
 enum RequestType {
     REQ_RESOURCE_TUNING,

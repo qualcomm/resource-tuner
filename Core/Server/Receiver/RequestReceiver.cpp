@@ -25,7 +25,7 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
             // Enqueue the Request to the Thread Pool for async processing.
             if(this->mRequestsThreadPool != nullptr) {
                 if(!this->mRequestsThreadPool->
-                    enqueueTask(ComponentRegistry::getModuleMessageHandlerCallback(MOD_PROVISIONER), msgForwardInfo)) {
+                    enqueueTask(ComponentRegistry::getModuleMessageHandlerCallback(MOD_CORE), msgForwardInfo)) {
                     LOGE("RTN_REQUEST_RECEIVER",
                          "Failed to enqueue the Request to the Thread Pool");
                 }
@@ -85,7 +85,7 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
             // Enqueue the Request to the Thread Pool for async processing.
             if(this->mRequestsThreadPool != nullptr) {
                 if(!this->mRequestsThreadPool->
-                    enqueueTask(ComponentRegistry::getModuleMessageHandlerCallback(MOD_PROVISIONER), msgForwardInfo)) {
+                    enqueueTask(ComponentRegistry::getModuleMessageHandlerCallback(MOD_CORE), msgForwardInfo)) {
                     LOGE("RTN_REQUEST_RECEIVER",
                          "Failed to enqueue the Request to the Thread Pool");
                 }

@@ -1,7 +1,7 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include "SyslockServerRequests.h"
+#include "ServerRequests.h"
 
 static int8_t getRequestPriority(int8_t clientPermissions, int8_t reqSpecifiedPriority) {
     if(clientPermissions == PERMISSION_SYSTEM) {
@@ -429,8 +429,6 @@ void RequestQueue::orderedQueueConsumerHook() {
 }
 
 void* TunerServerThread() {
-    LOGD("RTN_SERVER_REQUESTS", "Provisioner Thread started");
-
     std::shared_ptr<RequestQueue> requestQueue = RequestQueue::getInstance();
     while(ResourceTunerSettings::isServerOnline()) {
         requestQueue->wait();

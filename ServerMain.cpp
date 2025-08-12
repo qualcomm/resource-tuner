@@ -7,7 +7,7 @@
 #include <getopt.h>
 
 #include "ComponentRegistry.h"
-#include "SyslockInternal.h"
+#include "ServerInternal.h"
 #include "ClientGarbageCollector.h"
 #include "PulseMonitor.h"
 #include "Extensions.h"
@@ -196,19 +196,19 @@ int32_t main(int32_t argc, char *argv[]) {
 
     // Check which modules are plugged In and Initialize them
     if(RC_IS_OK(mOpStatus)) {
-        mOpStatus = ComponentRegistry::getModuleRegistrationCallback(MOD_PROVISIONER)();
+        mOpStatus = ComponentRegistry::getModuleRegistrationCallback(MOD_CORE)();
         if(RC_IS_NOTOK(mOpStatus)) {
-            TYPELOGV(MODULE_INIT_FAILED, PROVISIONER);
+            TYPELOGV(MODULE_INIT_FAILED, "Core");
         }
     }
 
     if(RC_IS_OK(mOpStatus)) {
         if(ComponentRegistry::isModuleEnabled(MOD_SYSSIGNAL)) {
-            TYPELOGV(NOTIFY_MODULE_ENABLED, SYSSIGNAL);
+            TYPELOGV(NOTIFY_MODULE_ENABLED, "SysSignal");
             if(RC_IS_OK(mOpStatus)) {
                 mOpStatus = ComponentRegistry::getModuleRegistrationCallback(MOD_SYSSIGNAL)();
                 if(RC_IS_NOTOK(mOpStatus)) {
-                    TYPELOGV(MODULE_INIT_FAILED, SYSSIGNAL);
+                    TYPELOGV(MODULE_INIT_FAILED, "SysSignal");
                 }
             }
         }
@@ -270,7 +270,7 @@ int32_t main(int32_t argc, char *argv[]) {
     // - Killing the child process created to monitor the parent (Server)
     serverCleanup();
 
-    ComponentRegistry::getModuleTeardownCallback(MOD_PROVISIONER)();
+    ComponentRegistry::getModuleTeardownCallback(MOD_CORE)();
 
     if(ComponentRegistry::isModuleEnabled(MOD_SYSSIGNAL)) {
         ComponentRegistry::getModuleTeardownCallback(MOD_SYSSIGNAL)();

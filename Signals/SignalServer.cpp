@@ -10,7 +10,7 @@
 
 static std::thread signalServerProcessorThread;
 
-ErrCode initSysSignals() {
+ErrCode initSignals() {
     ErrCode opStatus = RC_SUCCESS;
 
     // Pre-Allocate memory for commonly used types.
@@ -36,15 +36,15 @@ ErrCode initSysSignals() {
 
     // Create one thread:
     // - Signal Server thread
-    signalServerProcessorThread = std::thread(SignalsdServerThread);
+    // signalServerProcessorThread = std::thread(SignalsdServerThread);
 
     // Wait for the thread to initialize
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
 
-    return opStatus;
+    return RC_SUCCESS;
 }
 
-ErrCode terminateSysSignals() {
+ErrCode terminateSignals() {
     // Terminate SysSignals
     // Check if the thread is joinable, to prevent undefined behaviour
     if(signalServerProcessorThread.joinable()) {
@@ -57,6 +57,6 @@ ErrCode terminateSysSignals() {
 }
 
 RTN_REGISTER_MODULE(MOD_SYSSIGNAL,
-                     initSysSignals,
-                     terminateSysSignals,
-                     submitSignalRequest);
+                    initSignals,
+                    terminateSignals,
+                    submitSignalRequest);

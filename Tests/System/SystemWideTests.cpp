@@ -69,7 +69,7 @@ static void TestHandleGeneration() {
 
 /*
 * =========================================================
-*   TEST CATEGORY - I: "PROVISIONER REQUEST-VERIFICATION"
+*   TEST CATEGORY - I: "Resource Tuner REQUEST-VERIFICATION"
 * =========================================================
 */
 
@@ -107,7 +107,7 @@ namespace ResourceTuningRequestVerification {
     * This includes testing for cases A, B and C.
     */
 
-    std::string __testGroupName = "Provisioner Requests Verification / Integrity Checks";
+    std::string __testGroupName = "Resource Tuner Requests Verification / Integrity Checks";
     /**
     * API under test: Tune
     * - The client tries to send a Request with a duration of 0.
@@ -621,7 +621,7 @@ namespace SignalVerification {
    /*
     * Description:
     * This Section contains tests which aim to verify the correctness of the Signal Verifier.
-    * The Signal Verifier works similarly to the Provisioner Verifier, and performs the following checks:
+    * The Signal Verifier works similarly to the Resource Tuner Verifier, and performs the following checks:
     *   - Sanity Tests
     *       - Signal Request should have a positive duration (with the exception of -1) [A]
     *   - Priority Level Checking
@@ -634,7 +634,7 @@ namespace SignalVerification {
     *       - Each Signal Config can specify a permission level, i.e. only the clients with Permission level equal
     *         to or greater than what is specified in the Signal Config can provision that Signal. [C]
     *   - Resource Level Tests: Verifier will iterate over all the Resources part of the Request, and perform Verification
-    *     tests on each of them (As discussed before for Provisioner Request Verifier). Note if any test fails for any (even one) Resource part of the Signal,
+    *     tests on each of them (As discussed before for Resource Tuner Request Verifier). Note if any test fails for any (even one) Resource part of the Signal,
     *     then the entire Request shall be dropped. [D]
     *   - Target Compatability Tests: Checks if the signal is eligible for provisioning on the given Target. [E]
     *   - Application Tests:

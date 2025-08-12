@@ -10,7 +10,7 @@
 #include "Utils.h"
 
 enum ModuleIdentifier {
-    MOD_PROVISIONER,
+    MOD_CORE,
     MOD_SYSSIGNAL,
 };
 

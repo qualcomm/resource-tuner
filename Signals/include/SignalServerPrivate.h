@@ -14,7 +14,7 @@
 #include "SignalQueue.h"
 #include "RequestQueue.h"
 #include "SignalRegistry.h"
-#include "SyslockInternal.h"
+#include "ServerInternal.h"
 #include "ResourceTunerSettings.h"
 #include "ClientDataManager.h"
 #include "RateLimiter.h"

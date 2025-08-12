@@ -26,7 +26,7 @@ int8_t sysConfigGetProp(const std::string& prop, std::string& buffer, size_t buf
 
 /**
 * @brief Modifies an already existing property in the Config Store.
-* @details Note: This API is an meant to be used internally i.e. by other RTN componenets like Provisioner or Signals
+* @details Note: This API is an meant to be used internally i.e. by other RTN componenets like Signals or Profiles
 *          and not the End-Client Directly. Client Facing APIs are provided in Client/APIs/
 * @param prop Name of the Property to be modified.
 * @param value A buffer holding the new the property value.

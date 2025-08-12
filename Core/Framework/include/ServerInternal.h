@@ -23,7 +23,7 @@ void toggleDisplayModes();
 /**
 * @brief Submit a Resource Provisioning Request from a Client for processing.
 * @details Note: This API acts an interface for other RTN components like SysSignals
-*          to submit a Resource Provisioning Request to the Provisioner Server, and
+*          to submit a Resource Provisioning Request to the Resource Tuner Server, and
 *          subsequently provision the desired Resources.
 * @param request A buffer holding the Request.
 */

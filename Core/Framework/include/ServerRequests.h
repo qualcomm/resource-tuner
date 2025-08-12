@@ -1,8 +1,8 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#ifndef PROVISIONER_SERVER_REQUEST_H
-#define PROVISIONER_SERVER_REQUEST_H
+#ifndef RESOURCE_TUNER_SERVER_REQUEST_H
+#define RESOURCE_TUNER_SERVER_REQUEST_H
 
 #include "Utils.h"
 #include "RequestQueue.h"
@@ -15,7 +15,7 @@
 #include "ResourceProcessor.h"
 #include "ResourceRegistry.h"
 #include "RequestManager.h"
-#include "SyslockInternal.h"
+#include "ServerInternal.h"
 #include "Logger.h"
 #include "TargetRegistry.h"
 

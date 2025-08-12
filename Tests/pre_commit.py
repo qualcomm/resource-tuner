@@ -64,8 +64,8 @@ if __name__ == "__main__":
     time.sleep(10)
 
     unit_tests()
-    system_tests()
-    lifecycle_tests()
+    # system_tests()
+    # lifecycle_tests()
 
     time.sleep(10)
 

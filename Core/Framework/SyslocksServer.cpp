@@ -4,7 +4,7 @@
 #include <csignal>
 #include <fcntl.h>
 
-#include "SyslockServerRequests.h"
+#include "ServerRequests.h"
 #include "ResourceProcessor.h"
 #include "TargetConfigProcessor.h"
 #include "ResourceTunerSettings.h"
@@ -31,7 +31,7 @@ ErrCode fetchProperties() {
     return opStatus;
 }
 
-ErrCode initProvisioner() {
+static ErrCode initServer() {
     ErrCode opStatus = RC_SUCCESS;
     preAllocateMemory();
 
@@ -67,19 +67,18 @@ ErrCode initProvisioner() {
     return opStatus;
 }
 
-ErrCode terminateProvisioner() {
-    // Terminate Provisioner
+static ErrCode terminateServer() {
     // Check if the thread is joinable, to prevent undefined behaviour
     if(serverThread.joinable()) {
         RequestQueue::getInstance()->forcefulAwake();
         serverThread.join();
     } else {
-        LOGE("RTN_SERVER_TERMINATION", "Provisioner thread is not joinable");
+        LOGE("RTN_SERVER_TERMINATION", "Server thread is not joinable");
     }
     return RC_SUCCESS;
 }
 
-RTN_REGISTER_MODULE(MOD_PROVISIONER,
-                     initProvisioner,
-                     terminateProvisioner,
-                     submitResourceProvisioningRequest);
+RTN_REGISTER_MODULE(MOD_CORE,
+                    initServer,
+                    terminateServer,
+                    submitResourceProvisioningRequest);
