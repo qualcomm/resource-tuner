@@ -91,6 +91,10 @@ void TargetRegistry::setTotalCoreCount(uint8_t totalCoreCount) {
     ResourceTunerSettings::targetConfigs.totalCoreCount = this->mTotalCoreCount;
 }
 
+void TargetRegistry::addCGroupMapping(int8_t cGroupIdentifier, const std::string& cGroupName) {
+    this->mCGroupMapping[cGroupIdentifier] = cGroupName;
+}
+
 int8_t TargetRegistry::addMapping(const std::string& clusterName, int8_t physicalClusterId) {
     if((clusterName != "little") &&
        (clusterName != "big") &&
@@ -261,4 +265,8 @@ int32_t TargetRegistry::getPhysicalClusterId(int32_t logicalClusterId) const {
     }
     std::string clusterType = this->logicalClustersAPIConvention.at(logicalClusterId);
     return this->mClusterTypeToPhysicalSlotMapping.at(clusterType);
+}
+
+const std::string TargetRegistry::getCGroupPath(int8_t cGroupIdentifier) {
+    return this->mCGroupMapping[cGroupIdentifier];
 }

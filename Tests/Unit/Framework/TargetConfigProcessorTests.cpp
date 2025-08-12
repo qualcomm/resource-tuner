@@ -19,7 +19,7 @@ protected:
         static int8_t firstTest = true;
         if(firstTest) {
             firstTest = false;
-            TargetConfigProcessor targetConfigProcessor(Extensions::getTargetConfigFilePath());
+            TargetConfigProcessor targetConfigProcessor(Extensions::getTargetConfigFilePath(), "");
 
             if(RC_IS_NOTOK(targetConfigProcessor.parseTargetConfigs())) {
                 return;

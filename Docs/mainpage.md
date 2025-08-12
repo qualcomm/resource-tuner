@@ -53,7 +53,7 @@ Refer the **Examples** Tab for guidance on Resource Tuner API usage.
 
 For questions, suggestions, or contributions, feel free to reach out:
 
-- **Email**: maintainers.urm.systune@qti.qualcomm.com
+- **Email**: CSE.Perf@qti.qualcomm.com
 
 \section license_sec License
 

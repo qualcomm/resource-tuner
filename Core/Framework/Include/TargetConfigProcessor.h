@@ -22,7 +22,13 @@
 #define TARGET_CONFIGS_ID "Id"
 #define TARGET_CONFIGS_TYPE "Type"
 
+#define INIT_CONFIGS_ROOT "InitConfigs"
+#define INIT_CONFIGS_CGROUPS_LIST "CgroupsInfo"
+#define INIT_CONFIGS_CGROUP_NAME "Name"
+#define INIT_CONFIGS_CGROUPS_IDENTIFIER "ID"
+
 #define TARGET_CONFIGS_FILE "/etc/ResourceTuner/TargetConfigs.yaml"
+#define INIT_CONFIGS_FILE "/etc/ResourceTuner/InitConfigs.yaml"
 
 /**
  * @brief TargetConfigProcessor
@@ -62,11 +68,13 @@
 class TargetConfigProcessor {
 private:
     std::string mTargetConfigYamlFilePath;
+    std::string mInitConfigYamlFilePath;
 
-    void parseYamlNode(const YAML::Node& result);
+    void parseTargetConfig(const YAML::Node& result);
+    void parseInitConfig(const YAML::Node& result);
 
 public:
-    TargetConfigProcessor(const std::string& yamlFile);
+    TargetConfigProcessor(const std::string& targetConfigFile, const std::string& initConfigFile);
 
     ErrCode parseTargetConfigs();
 };

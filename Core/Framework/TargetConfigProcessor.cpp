@@ -3,17 +3,25 @@
 
 #include "TargetConfigProcessor.h"
 
-TargetConfigProcessor::TargetConfigProcessor(const std::string& yamlFile) {
-    if(yamlFile.length() == 0) {
+TargetConfigProcessor::TargetConfigProcessor(const std::string& targetConfigFile, const std::string& initConfigFile) {
+    if(targetConfigFile.length() == 0) {
         // No Custom Target Config File Specified
         this->mTargetConfigYamlFilePath = TARGET_CONFIGS_FILE;
     } else {
-        this->mTargetConfigYamlFilePath = yamlFile;
+        this->mTargetConfigYamlFilePath = targetConfigFile;
+    }
+
+    if(initConfigFile.length() == 0) {
+        // No Custom Target Config File Specified
+        this->mInitConfigYamlFilePath = INIT_CONFIGS_FILE;
+    } else {
+        this->mInitConfigYamlFilePath = initConfigFile;
     }
 }
 
 ErrCode TargetConfigProcessor::parseTargetConfigs() {
     const std::string fTargetConfigFileName(this->mTargetConfigYamlFilePath);
+    const std::string fInitConfigFileName(this->mInitConfigYamlFilePath);
 
     YAML::Node result;
     ErrCode rc = YamlParser::parse(fTargetConfigFileName, result);
@@ -22,9 +30,22 @@ ErrCode TargetConfigProcessor::parseTargetConfigs() {
         if(result[TARGET_CONFIGS_ROOT].IsDefined() && result[TARGET_CONFIGS_ROOT].IsSequence()) {
             for(const auto& targetConfig : result[TARGET_CONFIGS_ROOT]) {
                 try {
-                    parseYamlNode(targetConfig);
+                    parseTargetConfig(targetConfig);
                 } catch(const std::invalid_argument& e) {
                     LOGE("RTN_TARGET_PROCESSOR", "Error parsing Target Config: " + std::string(e.what()));
+                }
+            }
+        }
+    }
+
+    rc = YamlParser::parse(fInitConfigFileName, result);
+    if(RC_IS_OK(rc)) {
+        if(result[INIT_CONFIGS_ROOT].IsDefined() && result[INIT_CONFIGS_ROOT].IsSequence()) {
+            for(const auto& targetConfig : result[INIT_CONFIGS_ROOT]) {
+                try {
+                    parseInitConfig(targetConfig);
+                } catch(const std::invalid_argument& e) {
+                    LOGE("RTN_TARGET_PROCESSOR", "Error parsing Init Config: " + std::string(e.what()));
                 }
             }
         }
@@ -33,7 +54,7 @@ ErrCode TargetConfigProcessor::parseTargetConfigs() {
     return rc;
 }
 
-void TargetConfigProcessor::parseYamlNode(const YAML::Node& item) {
+void TargetConfigProcessor::parseTargetConfig(const YAML::Node& item) {
     TargetRegistry::getInstance()->setTargetName(
         safeExtract<std::string>(item[TARGET_NAME])
     );
@@ -63,6 +84,20 @@ void TargetConfigProcessor::parseYamlNode(const YAML::Node& item) {
             numCores = safeExtract<int32_t>(clusterSpread[TARGET_PER_CLUSTER_CORE_COUNT]);
 
             TargetRegistry::getInstance()->addClusterSpreadInfo(id, numCores);
+        }
+    }
+}
+
+void TargetConfigProcessor::parseInitConfig(const YAML::Node& item) {
+    if(isList(item[INIT_CONFIGS_CGROUPS_LIST])) {
+        std::string cGroupName = "";
+        int8_t cGroupIdentifier = -1;
+
+        cGroupName = safeExtract<std::string>(item[INIT_CONFIGS_CGROUP_NAME]);
+        cGroupIdentifier = (int8_t)(safeExtract<int8_t>(item[INIT_CONFIGS_CGROUPS_IDENTIFIER]));
+
+        if(cGroupName.length() > 0 && cGroupIdentifier != -1) {
+            TargetRegistry::getInstance()->addCGroupMapping(cGroupIdentifier, cGroupName);
         }
     }
 }

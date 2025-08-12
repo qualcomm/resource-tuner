@@ -9,6 +9,7 @@
 #include <unordered_map>
 
 #include "Utils.h"
+#include "Resource.h"
 #include "Logger.h"
 
 /**
@@ -68,6 +69,12 @@ typedef struct {
      */
     void (*resourceApplierCallback)(void*);
 } ResourceConfigInfo;
+
+typedef struct {
+    Resource* mResource;
+    int32_t mClientPID;
+    int32_t mClientTID;
+} CGroupApplyInfo;
 
 /**
 * @brief ResourceRegistry

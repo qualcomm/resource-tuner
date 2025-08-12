@@ -42,6 +42,8 @@ private:
         {3, "titanium"}
     };
 
+    std::unordered_map<int8_t, std::string> mCGroupMapping;
+
     TargetRegistry();
 
     int8_t readPhysicalMapping();
@@ -55,6 +57,8 @@ public:
     void setTargetName(const std::string& targetName);
 
     void setTotalCoreCount(uint8_t totalCoreCount);
+
+    void addCGroupMapping(int8_t cGroupIdentifier, const std::string& cGroupName);
 
     /**
     * @brief Called by the Verifier to get the physical core ID corresponding to the Logical Core ID value.
@@ -79,6 +83,8 @@ public:
     *              -1: otherwise
     */
     int32_t getPhysicalClusterId(int32_t logicalClusterId) const;
+
+    const std::string getCGroupPath(int8_t cGroupIdentifier);
 
     /**
     * @brief Called during Server Init, to read and Parse the Logical To Physical Core / Cluster Mappings.

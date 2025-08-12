@@ -47,7 +47,7 @@ static ErrCode initServer() {
     // Target Configs is optional, i.e. file TargetConfigs.yaml need not be provided.
     // Resource Tuner will dynamically fetch mapping data in such cases
     // Hence, no need to error check for TargetConfigProcessor parsing status.
-    TargetConfigProcessor targetConfigProcessor(Extensions::getTargetConfigFilePath());
+    TargetConfigProcessor targetConfigProcessor(Extensions::getTargetConfigFilePath(), "");
     targetConfigProcessor.parseTargetConfigs();
 
     opStatus = TargetRegistry::getInstance()->readPhysicalCoreClusterInfo();
