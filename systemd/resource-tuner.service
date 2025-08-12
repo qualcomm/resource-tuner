@@ -1,0 +1,20 @@
+# Copyright (c) 2022 Qualcomm Technologies, Inc.
+# All Rights Reserved.
+# Confidential and Proprietary - Qualcomm Technologies, Inc.
+#
+
+[Unit]
+Description=Resource Tuner Service
+SourcePath=/usr/bin/resource-tuner
+After=multi-user.target
+
+[Service]
+User=root
+Group=root
+Restart=always
+RemainAfterExit=yes
+ExecStart=/usr/bin/resource_tuner --start
+TimeoutStopSec=1
+
+[Install]
+WantedBy=multi-user.target

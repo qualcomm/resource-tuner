@@ -1,0 +1,15 @@
+Source: resource-tuner
+Section: libs
+Priority: optional
+Maintainer: Jagadeesh Pagadala <jpagadal@qti.qualcomm.com>
+Build-Depends: debhelper-compat (= 13), dh-sequence-cmake, cmake, pkgconf,
+ libglib2.0-dev, libyaml-cpp-dev
+Standards-Version: 1.0
+Homepage:
+
+Package: resource-tuner
+Architecture: arm64
+Section: libs
+Depends:  ${shlibs:Depends}, ${misc:Depends}
+Description:
+
