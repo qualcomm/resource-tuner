@@ -15,12 +15,12 @@ void addProcessToCgroup(void* context) {
     if(cGroupConfig != nullptr) {
         const std::string cGroupPath = cGroupConfig->mCgroupName;
         if(cGroupPath.length() > 0) {
-            std::ofstream procs_file("/sys/fs/cgroup/" + cGroupPath + "/cgroup.procs");
-            if(!procs_file.is_open()) {
+            std::ofstream controllerFile("/sys/fs/cgroup/" + cGroupPath + "/cgroup.procs");
+            if(!controllerFile.is_open()) {
                 return;
             }
-            procs_file << pid;
-            procs_file.close();
+            controllerFile << pid;
+            controllerFile.close();
         }
     }
 }
@@ -35,12 +35,12 @@ void addThreadToCgroup(void* context) {
     if(cGroupConfig != nullptr) {
         const std::string cGroupPath = cGroupConfig->mCgroupName;
         if(cGroupPath.length() > 0) {
-            std::ofstream procs_file("/sys/fs/cgroup/" + cGroupPath  + "/cgroup.threads");
-            if(!procs_file.is_open()) {
+            std::ofstream controllerFile("/sys/fs/cgroup/" + cGroupPath  + "/cgroup.threads");
+            if(!controllerFile.is_open()) {
                 return;
             }
-            procs_file << tid;
-            procs_file.close();
+            controllerFile << tid;
+            controllerFile.close();
         }
     }
 }
@@ -55,10 +55,59 @@ void setRunOnCoresExclusively(void* context) {
 
 void freezeCgroup(void* context) {
     CGroupApplyInfo* info = static_cast<CGroupApplyInfo*>(context);
+    Resource* resource = info->mResource;
+    int8_t cGroupIdentifier = static_cast<int8_t>(resource->getOptionalInfo());
+    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
+
+    if(cGroupConfig != nullptr) {
+        const std::string cGroupPath = cGroupConfig->mCgroupName;
+        if(cGroupPath.length() > 0) {
+            std::ofstream controllerFile("/sys/fs/cgroup/" + cGroupPath  + "/cgroup.freeze");
+            if(!controllerFile.is_open()) {
+                return;
+            }
+            controllerFile << "1";
+            controllerFile.close();
+        }
+    }
 }
 
 void unFreezeCGroup(void* context) {
     CGroupApplyInfo* info = static_cast<CGroupApplyInfo*>(context);
+    Resource* resource = info->mResource;
+    int8_t cGroupIdentifier = static_cast<int8_t>(resource->getOptionalInfo());
+    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
+
+    if(cGroupConfig != nullptr) {
+        const std::string cGroupPath = cGroupConfig->mCgroupName;
+        if(cGroupPath.length() > 0) {
+            std::ofstream controllerFile("/sys/fs/cgroup/" + cGroupPath  + "/cgroup.freeze");
+            if(!controllerFile.is_open()) {
+                return;
+            }
+            controllerFile << "0";
+            controllerFile.close();
+        }
+    }
+}
+
+void setCpuIdle(void* context) {
+    CGroupApplyInfo* info = static_cast<CGroupApplyInfo*>(context);
+    Resource* resource = info->mResource;
+    int8_t cGroupIdentifier = static_cast<int8_t>(resource->getOptionalInfo());
+    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
+
+    if(cGroupConfig != nullptr) {
+        const std::string cGroupPath = cGroupConfig->mCgroupName;
+        if(cGroupPath.length() > 0) {
+            std::ofstream controllerFile("/sys/fs/cgroup/" + cGroupPath  + "/cpu.idle");
+            if(!controllerFile.is_open()) {
+                return;
+            }
+            controllerFile << "1";
+            controllerFile.close();
+        }
+    }
 }
 
 RTN_REGISTER_RESOURCE(0x00090000, addProcessToCgroup);
@@ -67,3 +116,4 @@ RTN_REGISTER_RESOURCE(0x00090002, setRunOnCores);
 RTN_REGISTER_RESOURCE(0x00090003, setRunOnCoresExclusively);
 RTN_REGISTER_RESOURCE(0x00090004, freezeCgroup);
 RTN_REGISTER_RESOURCE(0x00090005, unFreezeCGroup);
+RTN_REGISTER_RESOURCE(0x00090006, setCpuIdle);

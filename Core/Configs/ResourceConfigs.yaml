@@ -159,3 +159,11 @@ ResourceConfigs:
     HighThreshold: 1024
     LowThreshold: 0
     Permissions: "system"
+
+  - ResType: "0x09"
+    ResID: "0x0006"
+    Name: "RES_TUNER_RUN_WHEN_CPU_IDLE"
+    Supported: true
+    HighThreshold: 1024
+    LowThreshold: 0
+    Permissions: "system"
