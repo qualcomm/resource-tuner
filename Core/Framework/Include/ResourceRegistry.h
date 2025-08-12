@@ -129,7 +129,7 @@ public:
     int32_t getTotalResourcesCount();
 
     // Merge the Changes provided by the BU with the existing ResourceTable.
-    void pluginModifications(const std::vector<std::pair<int32_t, ResourceApplierCallback>>& modifiedResources);
+    void pluginModifications(const std::vector<std::pair<uint32_t, ResourceApplierCallback>>& modifiedResources);
 
     void restoreResourcesToDefaultValues();
 

@@ -4,9 +4,9 @@
 #include "Extensions.h"
 
 std::vector<std::string> Extensions::mModifiedConfigFiles (TOTAL_CONFIGS_COUNT, "");
-std::unordered_map<int32_t, void (*)(void*)> Extensions::mModifiedResourceConfigs {};
+std::unordered_map<uint32_t, void (*)(void*)> Extensions::mModifiedResourceConfigs {};
 
-Extensions::Extensions(int32_t resourceOpcode, ResourceApplierCallback resourceApplierCallback) {
+Extensions::Extensions(uint32_t resourceOpcode, ResourceApplierCallback resourceApplierCallback) {
     this->mModifiedResourceConfigs[resourceOpcode] = resourceApplierCallback;
 }
 
@@ -15,9 +15,9 @@ Extensions::Extensions(ConfigType configType, std::string yamlFile) {
     mModifiedConfigFiles[configType] = yamlFile;
 }
 
-std::vector<std::pair<int32_t, ResourceApplierCallback>> Extensions::getModifiedResources() {
-    std::vector<std::pair<int32_t, ResourceApplierCallback>> modifiedResources;
-    for(std::pair<int32_t, ResourceApplierCallback> resource: mModifiedResourceConfigs) {
+std::vector<std::pair<uint32_t, ResourceApplierCallback>> Extensions::getModifiedResources() {
+    std::vector<std::pair<uint32_t, ResourceApplierCallback>> modifiedResources;
+    for(std::pair<uint32_t, ResourceApplierCallback> resource: mModifiedResourceConfigs) {
         modifiedResources.push_back(resource);
     }
     return modifiedResources;

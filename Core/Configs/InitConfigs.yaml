@@ -4,8 +4,11 @@
 InitConfigs:
   - CgroupsInfo:
     - Name: "camera-cgroup"
+      IsThreaded: false
       ID: 1
     - Name: "audio-cgroup"
+      IsThreaded: false
       ID: 2
     - Name: "video-cgroup"
+      IsThreaded: true
       ID: 3

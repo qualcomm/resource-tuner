@@ -25,7 +25,8 @@
 #define INIT_CONFIGS_ROOT "InitConfigs"
 #define INIT_CONFIGS_CGROUPS_LIST "CgroupsInfo"
 #define INIT_CONFIGS_CGROUP_NAME "Name"
-#define INIT_CONFIGS_CGROUPS_IDENTIFIER "ID"
+#define INIT_CONFIGS_CGROUP_IDENTIFIER "ID"
+#define INIT_CONFIGS_CGROUP_THREADED "IsThreaded"
 
 #define TARGET_CONFIGS_FILE "/etc/ResourceTuner/TargetConfigs.yaml"
 #define INIT_CONFIGS_FILE "/etc/ResourceTuner/InitConfigs.yaml"

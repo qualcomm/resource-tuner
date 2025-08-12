@@ -18,6 +18,36 @@
 
 static std::thread serverThread;
 
+static void writeToCgroupFile(const std::string& propName, const std::string& value) {
+    std::ofstream cGroupFile(propName);
+    if(!cGroupFile) {
+        cGroupFile.close();
+        return;
+    }
+
+    cGroupFile << value;
+    cGroupFile.close();
+}
+
+static ErrCode createCGroups() {
+    std::vector<CGroupConfigInfo*> cGroupConfigs;
+    TargetRegistry::getInstance()->getCGroupConfigs(cGroupConfigs);
+
+    for(CGroupConfigInfo* cGroupConfig : cGroupConfigs) {
+        const std::string cGroupPath = "/sys/fs/cgroup/" + cGroupConfig->mCgroupName;
+        if(mkdir(cGroupPath.c_str(), 0755) == 0) {
+            // Enable cpu, cpuset and memory for the cgroup
+            if(cGroupConfig->isThreaded) {
+                writeToCgroupFile(cGroupPath + "/cgroup.type", "threaded");
+            }
+            writeToCgroupFile(cGroupPath + "/cgroup.subtree_control", "+cpu +cpuset +memory");
+        } else {
+            TYPELOGV(ERRNO_LOG, "mkdir", strerror(errno));
+        }
+    }
+    return RC_SUCCESS;
+}
+
 ErrCode fetchProperties() {
     // Initialize SysConfigs
     std::shared_ptr<SysConfigProcessor> sysConfigProcessor =
@@ -56,6 +86,8 @@ static ErrCode initServer() {
         return opStatus;
     }
     LOGI("RTN_SERVER_INIT", "Logical to Physical Core / Cluster mapping successfully created");
+
+    opStatus = createCGroups();
 
     // By this point, all the Extension Appliers / Resources should be registered.
     ResourceRegistry::getInstance()->pluginModifications(Extensions::getModifiedResources());

@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <cstring>
 #include <cstdlib>
+#include <sys/stat.h>
 #include <memory>
 
 #include "ResourceTunerSettings.h"
@@ -23,6 +24,12 @@
 
 #define POLICY_DIR_PATH "/sys/devices/system/cpu/cpufreq/"
 #define ONLINE_CPU_FILE_PATH "/sys/devices/system/cpu/online"
+
+typedef struct {
+    std::string mCgroupName;
+    int8_t mCgroupID;
+    int8_t isThreaded;
+} CGroupConfigInfo;
 
 class TargetRegistry {
 private:
@@ -42,7 +49,7 @@ private:
         {3, "titanium"}
     };
 
-    std::unordered_map<int8_t, std::string> mCGroupMapping;
+    std::unordered_map<int8_t, CGroupConfigInfo*> mCGroupMapping;
 
     TargetRegistry();
 
@@ -58,7 +65,11 @@ public:
 
     void setTotalCoreCount(uint8_t totalCoreCount);
 
-    void addCGroupMapping(int8_t cGroupIdentifier, const std::string& cGroupName);
+    void addCGroupMapping(CGroupConfigInfo* cGroupConfigInfo);
+
+    void getCGroupConfigs(std::vector<CGroupConfigInfo*>& cGroupNames);
+
+    CGroupConfigInfo* getCGroupConfig(int8_t cGroupID);
 
     /**
     * @brief Called by the Verifier to get the physical core ID corresponding to the Logical Core ID value.
@@ -83,8 +94,6 @@ public:
     *              -1: otherwise
     */
     int32_t getPhysicalClusterId(int32_t logicalClusterId) const;
-
-    const std::string getCGroupPath(int8_t cGroupIdentifier);
 
     /**
     * @brief Called during Server Init, to read and Parse the Logical To Physical Core / Cluster Mappings.
@@ -117,6 +126,20 @@ public:
         }
         return targetRegistryInstance;
     }
+};
+
+class CGroupConfigInfoBuilder {
+private:
+    CGroupConfigInfo* mCGroupConfigInfo;
+
+public:
+    CGroupConfigInfoBuilder();
+
+    CGroupConfigInfoBuilder* setCGroupName(const std::string& cGroupName);
+    CGroupConfigInfoBuilder* setCGroupID(int8_t cGroupIdentifier);
+    CGroupConfigInfoBuilder* setThreaded(int8_t isThreaded);
+
+    CGroupConfigInfo* build();
 };
 
 #endif

@@ -10,15 +10,18 @@ void addProcessToCgroup(void* context) {
     Resource* resource = info->mResource;
     int32_t pid = info->mClientPID;
     int8_t cGroupIdentifier = static_cast<int8_t>(resource->getOptionalInfo());
-    const std::string cGroupPath = TargetRegistry::getInstance()->getCGroupPath(cGroupIdentifier);
+    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
-    if(cGroupPath.length() > 0) {
-        std::ofstream procs_file(cGroupPath + "/cgroup.procs");
-        if(!procs_file.is_open()) {
-            return;
+    if(cGroupConfig != nullptr) {
+        const std::string cGroupPath = cGroupConfig->mCgroupName;
+        if(cGroupPath.length() > 0) {
+            std::ofstream procs_file("/sys/fs/cgroup/" + cGroupPath + "/cgroup.procs");
+            if(!procs_file.is_open()) {
+                return;
+            }
+            procs_file << pid;
+            procs_file.close();
         }
-        procs_file << pid;
-        procs_file.close();
     }
 }
 
@@ -27,15 +30,18 @@ void addThreadToCgroup(void* context) {
     Resource* resource = info->mResource;
     int32_t tid = info->mClientTID;
     int8_t cGroupIdentifier = static_cast<int8_t>(resource->getOptionalInfo());
-    const std::string cGroupPath = TargetRegistry::getInstance()->getCGroupPath(cGroupIdentifier);
+    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
-    if(cGroupPath.length() > 0) {
-        std::ofstream procs_file(cGroupPath + "/cgroup.threads");
-        if(!procs_file.is_open()) {
-            return;
+    if(cGroupConfig != nullptr) {
+        const std::string cGroupPath = cGroupConfig->mCgroupName;
+        if(cGroupPath.length() > 0) {
+            std::ofstream procs_file("/sys/fs/cgroup/" + cGroupPath  + "/cgroup.threads");
+            if(!procs_file.is_open()) {
+                return;
+            }
+            procs_file << tid;
+            procs_file.close();
         }
-        procs_file << tid;
-        procs_file.close();
     }
 }
 
@@ -57,3 +63,7 @@ void unFreezeCGroup(void* context) {
 
 RTN_REGISTER_RESOURCE(0x00090000, addProcessToCgroup);
 RTN_REGISTER_RESOURCE(0x00090001, addThreadToCgroup);
+RTN_REGISTER_RESOURCE(0x00090002, setRunOnCores);
+RTN_REGISTER_RESOURCE(0x00090003, setRunOnCoresExclusively);
+RTN_REGISTER_RESOURCE(0x00090004, freezeCgroup);
+RTN_REGISTER_RESOURCE(0x00090005, unFreezeCGroup);

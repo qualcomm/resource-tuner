@@ -38,6 +38,7 @@ ErrCode TargetConfigProcessor::parseTargetConfigs() {
         }
     }
 
+    std::cout<<"Proceeeding with init COnfig parsing"<<std::endl;
     rc = YamlParser::parse(fInitConfigFileName, result);
     if(RC_IS_OK(rc)) {
         if(result[INIT_CONFIGS_ROOT].IsDefined() && result[INIT_CONFIGS_ROOT].IsSequence()) {
@@ -90,14 +91,13 @@ void TargetConfigProcessor::parseTargetConfig(const YAML::Node& item) {
 
 void TargetConfigProcessor::parseInitConfig(const YAML::Node& item) {
     if(isList(item[INIT_CONFIGS_CGROUPS_LIST])) {
-        std::string cGroupName = "";
-        int8_t cGroupIdentifier = -1;
+        for(const auto& cGroupConfig : item[INIT_CONFIGS_CGROUPS_LIST]) {
+            CGroupConfigInfoBuilder cGroupConfigBuilder;
+            cGroupConfigBuilder.setCGroupName(safeExtract<std::string>(cGroupConfig[INIT_CONFIGS_CGROUP_NAME]));
+            cGroupConfigBuilder.setCGroupID((int8_t)(safeExtract<int8_t>(cGroupConfig[INIT_CONFIGS_CGROUP_IDENTIFIER])));
+            cGroupConfigBuilder.setThreaded((int8_t)(safeExtract<bool>(cGroupConfig[INIT_CONFIGS_CGROUP_THREADED])));
 
-        cGroupName = safeExtract<std::string>(item[INIT_CONFIGS_CGROUP_NAME]);
-        cGroupIdentifier = (int8_t)(safeExtract<int8_t>(item[INIT_CONFIGS_CGROUPS_IDENTIFIER]));
-
-        if(cGroupName.length() > 0 && cGroupIdentifier != -1) {
-            TargetRegistry::getInstance()->addCGroupMapping(cGroupIdentifier, cGroupName);
+            TargetRegistry::getInstance()->addCGroupMapping(cGroupConfigBuilder.build());
         }
     }
 }

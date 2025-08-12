@@ -91,8 +91,8 @@ void TargetRegistry::setTotalCoreCount(uint8_t totalCoreCount) {
     ResourceTunerSettings::targetConfigs.totalCoreCount = this->mTotalCoreCount;
 }
 
-void TargetRegistry::addCGroupMapping(int8_t cGroupIdentifier, const std::string& cGroupName) {
-    this->mCGroupMapping[cGroupIdentifier] = cGroupName;
+void TargetRegistry::addCGroupMapping(CGroupConfigInfo* cGroupConfigInfo) {
+    this->mCGroupMapping[cGroupConfigInfo->mCgroupID] = cGroupConfigInfo;
 }
 
 int8_t TargetRegistry::addMapping(const std::string& clusterName, int8_t physicalClusterId) {
@@ -267,6 +267,47 @@ int32_t TargetRegistry::getPhysicalClusterId(int32_t logicalClusterId) const {
     return this->mClusterTypeToPhysicalSlotMapping.at(clusterType);
 }
 
-const std::string TargetRegistry::getCGroupPath(int8_t cGroupIdentifier) {
-    return this->mCGroupMapping[cGroupIdentifier];
+void TargetRegistry::getCGroupConfigs(std::vector<CGroupConfigInfo*>& cGroupConfigs) {
+    for(std::pair<int8_t, CGroupConfigInfo*> cGroup: mCGroupMapping) {
+        cGroupConfigs.push_back(cGroup.second);
+    }
+}
+
+CGroupConfigInfo* TargetRegistry::getCGroupConfig(int8_t cGroupID) {
+    return this->mCGroupMapping[cGroupID];
+}
+
+CGroupConfigInfoBuilder::CGroupConfigInfoBuilder() {
+    this->mCGroupConfigInfo = new CGroupConfigInfo;
+}
+
+CGroupConfigInfoBuilder* CGroupConfigInfoBuilder::setCGroupName(const std::string& cGroupName) {
+    if(this->mCGroupConfigInfo == nullptr) {
+        return this;
+    }
+
+    this->mCGroupConfigInfo->mCgroupName = cGroupName;
+    return this;
+}
+
+CGroupConfigInfoBuilder* CGroupConfigInfoBuilder::setCGroupID(int8_t cGroupIdentifier) {
+    if(this->mCGroupConfigInfo == nullptr) {
+        return this;
+    }
+
+    this->mCGroupConfigInfo->mCgroupID = cGroupIdentifier;
+    return this;
+}
+
+CGroupConfigInfoBuilder* CGroupConfigInfoBuilder::setThreaded(int8_t isThreaded) {
+    if(this->mCGroupConfigInfo == nullptr) {
+        return this;
+    }
+
+    this->mCGroupConfigInfo->isThreaded = isThreaded;
+    return this;
+}
+
+CGroupConfigInfo* CGroupConfigInfoBuilder::build() {
+    return this->mCGroupConfigInfo;
 }

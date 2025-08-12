@@ -23,22 +23,18 @@
 class Extensions {
 private:
     static std::vector<std::string> mModifiedConfigFiles;
-    static std::unordered_map<int32_t, ResourceApplierCallback> mModifiedResourceConfigs;
+    static std::unordered_map<uint32_t, ResourceApplierCallback> mModifiedResourceConfigs;
 
 public:
-    Extensions(int32_t resourceOpcode, void (*resourceApplierCallback)(void*));
+    Extensions(uint32_t resourceOpcode, void (*resourceApplierCallback)(void*));
     Extensions(ConfigType configType, std::string yamlFile);
 
-    static std::vector<std::pair<int32_t, ResourceApplierCallback>> getModifiedResources();
+    static std::vector<std::pair<uint32_t, ResourceApplierCallback>> getModifiedResources();
 
     static std::string getResourceConfigFilePath();
-
     static std::string getPropertiesConfigFilePath();
-
     static std::string getSignalsConfigFilePath();
-
     static std::string getExtFeaturesConfigFilePath();
-
     static std::string getTargetConfigFilePath();
 };
 

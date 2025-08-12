@@ -105,9 +105,12 @@ int32_t ResourceRegistry::getTotalResourcesCount() {
     return this->mTotalResources;
 }
 
-void ResourceRegistry::pluginModifications(const std::vector<std::pair<int32_t, ResourceApplierCallback>>& modifiedResources) {
-    for(std::pair<int32_t, ResourceApplierCallback> resource: modifiedResources) {
-        this->mResourceConfig[resource.first]->resourceApplierCallback = resource.second;
+void ResourceRegistry::pluginModifications(const std::vector<std::pair<uint32_t, ResourceApplierCallback>>& modifiedResources) {
+    for(std::pair<uint32_t, ResourceApplierCallback> resource: modifiedResources) {
+        int32_t resourceTableIndex = this->getResourceTableIndex(resource.first);
+        if(resourceTableIndex != -1) {
+            this->mResourceConfig[resourceTableIndex]->resourceApplierCallback = resource.second;
+        }
     }
 }
 
