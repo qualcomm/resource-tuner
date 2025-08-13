@@ -59,6 +59,7 @@ TEST_F(ResourceProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity3_1) 
     ASSERT_EQ(resourceConfigInfo->mPolicy, HIGHER_BETTER);
     ASSERT_EQ(resourceConfigInfo->mPermissions, PERMISSION_THIRD_PARTY);
     ASSERT_EQ(resourceConfigInfo->mModes, MODE_DISPLAY_ON | MODE_DOZE);
+    ASSERT_EQ(resourceConfigInfo->mApplyType, ResourceApplyType::APPLY_GLOBAL);
 }
 
 TEST_F(ResourceProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity3_2) {
@@ -75,6 +76,7 @@ TEST_F(ResourceProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity3_2) 
     ASSERT_EQ(resourceConfigInfo->mPolicy, HIGHER_BETTER);
     ASSERT_EQ(resourceConfigInfo->mPermissions, PERMISSION_THIRD_PARTY);
     ASSERT_EQ(resourceConfigInfo->mModes, MODE_DISPLAY_ON | MODE_DOZE);
+    ASSERT_EQ(resourceConfigInfo->mApplyType, ResourceApplyType::APPLY_GLOBAL);
 }
 
 TEST_F(ResourceProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity3_3) {
@@ -91,4 +93,5 @@ TEST_F(ResourceProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity3_3) 
     ASSERT_EQ(resourceConfigInfo->mPolicy, HIGHER_BETTER);
     ASSERT_EQ(resourceConfigInfo->mPermissions, PERMISSION_THIRD_PARTY);
     ASSERT_EQ(resourceConfigInfo->mModes, MODE_DISPLAY_ON);
+    ASSERT_EQ(resourceConfigInfo->mApplyType, ResourceApplyType::APPLY_GLOBAL);
 }

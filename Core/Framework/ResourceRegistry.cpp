@@ -253,7 +253,7 @@ ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setPolicy(const std::strin
         policy = LOWER_BETTER;
     } else if(policyString == "lazy_apply") {
         policy = LAZY_APPLY;
-    } else {
+    } else if(policyString == "instant_apply") {
         policy = INSTANT_APPLY;
     }
     this->mResourceConfigInfo->mPolicy = policy;
@@ -264,6 +264,24 @@ ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setCoreLevelConflict(int8_
     if(this->mResourceConfigInfo == nullptr) return this;
 
     this->mResourceConfigInfo->mCoreLevelConflict = coreLevelConflict;
+    return this;
+}
+
+ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setApplyType(const std::string& applyTypeString) {
+    if(this->mResourceConfigInfo == nullptr) return this;
+
+    enum ResourceApplyType applyType = APPLY_GLOBAL;
+    if(applyTypeString == "global") {
+        applyType = APPLY_GLOBAL;
+    } else if(applyTypeString == "core") {
+        applyType = APPLY_CORE;
+    } else if(applyTypeString == "cluster") {
+        applyType = APPLY_CLUSTER;
+    } else if(applyTypeString == "cgroup") {
+        applyType = APPLY_CGROUP;
+    }
+
+    this->mResourceConfigInfo->mApplyType = applyType;
     return this;
 }
 

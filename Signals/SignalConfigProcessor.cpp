@@ -105,7 +105,7 @@ void SignalConfigProcessor::parseYamlNode(const YAML::Node& item) {
             );
 
             resourceBuilder.setOpInfo(
-                safeExtract<std::string>(resourceConfig[SIGNAL_OPINFO])
+                safeExtract<std::string>(resourceConfig[SIGNAL_RESINFO])
             );
 
             if(isList(resourceConfig[SIGNAL_VALUES])) {

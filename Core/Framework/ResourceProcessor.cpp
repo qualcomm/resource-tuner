@@ -139,5 +139,10 @@ void ResourceProcessor::parseYamlNode(const YAML::Node& item) {
         safeExtract<bool>(item[RESOURCE_CONFIGS_ELEM_CORE_LEVEL_CONFLICT], false)
     );
 
+    // Defaults to APPLY_GLOBAL
+    resourceConfigInfoBuilder.setApplyType(
+        safeExtract<std::string>(item[RESOURCE_CONFIGS_APPLY_TYPE], "")
+    );
+
     ResourceRegistry::getInstance()->registerResource(resourceConfigInfoBuilder.build());
 }

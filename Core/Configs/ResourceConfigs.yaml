@@ -12,6 +12,7 @@ ResourceConfigs:
     Modes: ["display_on", "doze"]
     Policy: "higher_is_better"
     CoreLevelConflict: false
+    ApplyType: "global"
 
   - ResType: "0x03"
     ResID: "0x0001"
@@ -23,6 +24,7 @@ ResourceConfigs:
     Modes: ["display_on", "doze"]
     Policy: "lower_is_better"
     CoreLevelConflict: false
+    ApplyType: "global"
 
   - ResType: "0x04"
     ResID: "0x0000"
@@ -34,6 +36,7 @@ ResourceConfigs:
     Modes: ["display_on", "display_off"]
     Policy: lower_is_better
     CoreLevelConflict: true
+    ApplyType: "global"
 
   - ResType: "0x04"
     ResID: "0x0001"
@@ -45,6 +48,7 @@ ResourceConfigs:
     Modes: ["display_on", "display_off"]
     Policy: instant_apply
     CoreLevelConflict: true
+    ApplyType: "global"
 
   - ResType: "0x04"
     ResID: "0x0002"
@@ -56,6 +60,7 @@ ResourceConfigs:
     Modes: ["display_on", "display_off"]
     Policy: lazy_apply
     CoreLevelConflict: false
+    ApplyType: "global"
 
   - ResType: "0x04"
     ResID: "0x0003"
@@ -67,6 +72,7 @@ ResourceConfigs:
     Modes: ["display_on", "display_off"]
     Policy: lower_is_better
     CoreLevelConflict: true
+    ApplyType: "global"
 
   - ResType: "0x04"
     ResID: "0x0100"
@@ -78,6 +84,7 @@ ResourceConfigs:
     Modes: ["display_on", "display_off"]
     Policy: higher_is_better
     CoreLevelConflict: false
+    ApplyType: "global"
 
   - ResType: "0x04"
     ResID: "0x0101"
@@ -89,6 +96,7 @@ ResourceConfigs:
     Modes: ["display_on", "display_off"]
     Policy: higher_is_better
     CoreLevelConflict: true
+    ApplyType: "global"
 
   - ResType: "0x04"
     ResID: "0x0102"
@@ -100,6 +108,7 @@ ResourceConfigs:
     Modes: ["display_on", "display_off"]
     Policy: higher_is_better
     CoreLevelConflict: false
+    ApplyType: "global"
 
   - ResType: "0x04"
     ResID: "0x0103"
@@ -111,6 +120,7 @@ ResourceConfigs:
     Modes: ["display_on", "display_off"]
     Policy: higher_is_better
     CoreLevelConflict: true
+    ApplyType: "global"
 
   - ResType: "0x09"
     ResID: "0x0000"
@@ -119,6 +129,7 @@ ResourceConfigs:
     HighThreshold: 1024
     LowThreshold: 0
     Permissions: "system"
+    ApplyType: "cgroup"
 
   - ResType: "0x09"
     ResID: "0x0001"
@@ -127,6 +138,7 @@ ResourceConfigs:
     HighThreshold: 1024
     LowThreshold: 0
     Permissions: "system"
+    ApplyType: "cgroup"
 
   - ResType: "0x09"
     ResID: "0x0002"
@@ -135,6 +147,7 @@ ResourceConfigs:
     HighThreshold: 1024
     LowThreshold: 0
     Permissions: "system"
+    ApplyType: "cgroup"
 
   - ResType: "0x09"
     ResID: "0x0003"
@@ -143,6 +156,7 @@ ResourceConfigs:
     HighThreshold: 1024
     LowThreshold: 0
     Permissions: "system"
+    ApplyType: "cgroup"
 
   - ResType: "0x09"
     ResID: "0x0004"
@@ -151,6 +165,7 @@ ResourceConfigs:
     HighThreshold: 1024
     LowThreshold: 0
     Permissions: "system"
+    ApplyType: "cgroup"
 
   - ResType: "0x09"
     ResID: "0x0005"
@@ -159,6 +174,7 @@ ResourceConfigs:
     HighThreshold: 1024
     LowThreshold: 0
     Permissions: "system"
+    ApplyType: "cgroup"
 
   - ResType: "0x09"
     ResID: "0x0006"
@@ -167,3 +183,4 @@ ResourceConfigs:
     HighThreshold: 1024
     LowThreshold: 0
     Permissions: "system"
+    ApplyType: "cgroup"

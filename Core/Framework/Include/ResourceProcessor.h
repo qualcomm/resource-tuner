@@ -30,6 +30,7 @@
 #define RESOURCE_CONFIGS_ELEM_MODES "Modes"
 #define RESOURCE_CONFIGS_ELEM_POLICY "Policy"
 #define RESOURCE_CONFIGS_ELEM_CORE_LEVEL_CONFLICT "CoreLevelConflict"
+#define RESOURCE_CONFIGS_APPLY_TYPE "ApplyType"
 
 /**
  * @brief ResourceProcessor

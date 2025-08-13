@@ -25,7 +25,7 @@
 #define SIGNAL_RESOURCES "Resources"
 
 #define SIGNAL_RESOURCE_CODE "ResCode"
-#define SIGNAL_OPINFO "OpInfo"
+#define SIGNAL_RESINFO "ResInfo"
 #define SIGNAL_VALUES "Values"
 
 /**

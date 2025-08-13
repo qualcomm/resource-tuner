@@ -12,6 +12,7 @@ ResourceConfigs:
     Modes: ["display_on", "doze"]
     Policy: "higher_is_better"
     CoreLevelConflict: false
+    ApplyType: "global"
 
   - ResType: "0x1"
     ResID: "0x1"
@@ -23,6 +24,7 @@ ResourceConfigs:
     Modes: ["display_on", "doze"]
     Policy: "higher_is_better"
     CoreLevelConflict: false
+    ApplyType: "global"
 
   - ResType: "0x1"
     ResID: "0x2"
@@ -34,6 +36,7 @@ ResourceConfigs:
     Modes: ["display_on", "display_off"]
     Policy: "lower_is_better"
     CoreLevelConflict: false
+    ApplyType: "global"
 
   - ResType: "0x1"
     ResID: "0x3"
@@ -45,6 +48,7 @@ ResourceConfigs:
     Modes: ["display_on", "display_off"]
     Policy: "higher_is_better"
     CoreLevelConflict: false
+    ApplyType: "global"
 
   - ResType: "0x1"
     ResID: "0x4"
@@ -56,6 +60,7 @@ ResourceConfigs:
     Modes: ["display_on", "display_off"]
     Policy: "higher_is_better"
     CoreLevelConflict: false
+    ApplyType: "global"
 
   - ResType: "0x1"
     ResID: "0x5"
@@ -67,6 +72,7 @@ ResourceConfigs:
     Modes: ["display_on"]
     Policy: "higher_is_better"
     CoreLevelConflict: true
+    ApplyType: "global"
 
   - ResType: "0x1"
     ResID: "0x6"
@@ -78,6 +84,7 @@ ResourceConfigs:
     Modes: ["display_off"]
     Policy: "higher_is_better"
     CoreLevelConflict: false
+    ApplyType: "global"
 
   - ResType: "0x1"
     ResID: "0x7"
@@ -89,6 +96,7 @@ ResourceConfigs:
     Modes: ["display_on"]
     Policy: "higher_is_better"
     CoreLevelConflict: false
+    ApplyType: "global"
 
   - ResType: "0x1"
     ResID: "0x8"
@@ -100,6 +108,7 @@ ResourceConfigs:
     Modes: ["display_on"]
     Policy: "lazy_apply"
     CoreLevelConflict: false
+    ApplyType: "global"
 
   - ResType: "yx1"
     ResID: "zzo"
@@ -133,6 +142,7 @@ ResourceConfigs:
     Modes: ["display_on", "doze"]
     Policy: "higher_is_better"
     CoreLevelConflict: false
+    ApplyType: "global"
 
   - ResType: "0x8"
     ResID: "0x1"
@@ -144,3 +154,4 @@ ResourceConfigs:
     Modes: ["display_on", "doze"]
     Policy: "lower_is_better"
     CoreLevelConflict: false
+    ApplyType: "global"

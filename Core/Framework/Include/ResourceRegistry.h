@@ -12,6 +12,13 @@
 #include "Resource.h"
 #include "Logger.h"
 
+enum ResourceApplyType {
+    APPLY_CORE,
+    APPLY_CLUSTER,
+    APPLY_GLOBAL,
+    APPLY_CGROUP
+};
+
 /**
  * @struct ResourceConfigInfo
  * @brief Representation of a single Resource Configuration
@@ -55,6 +62,7 @@ typedef struct {
      * @brief boolean flag which is set if the Resource can have different values on different cores.
      */
     int8_t mCoreLevelConflict;
+    enum ResourceApplyType mApplyType;
     /**
      * @brief Policy by which the resource is governed, for example Higher is Better.
      */
@@ -160,6 +168,7 @@ public:
     ResourceConfigInfoBuilder* setSupported(int8_t supported);
     ResourceConfigInfoBuilder* setPolicy(const std::string& policyString);
     ResourceConfigInfoBuilder* setCoreLevelConflict(int8_t coreLevelConflict);
+    ResourceConfigInfoBuilder* setApplyType(const std::string& applyTypeString);
     ResourceConfigInfoBuilder* setDefaultValue(int32_t defaultValue);
 
     ResourceConfigInfo* build();
