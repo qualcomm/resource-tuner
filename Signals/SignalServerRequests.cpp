@@ -59,7 +59,7 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
 
     // Basic sanity: Invalid resource Opcode
     if(signalInfo == nullptr) {
-        LOGI("RTN_SERVER", "Invalid Opcode" + std::to_string(signal->getSignalID()));
+        LOGI("RTN_SERVER", "Invalid Opcode: " + std::to_string(signal->getSignalID()));
         return false;
     }
 
@@ -169,10 +169,23 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
 }
 
 static void processIncomingRequest(Signal* signal) {
+    std::shared_ptr<RateLimiter> rateLimiter = RateLimiter::getInstance();
+    if(!rateLimiter->isGlobalRateLimitHonored()) {
+        LOGE("RTN_SERVER_REQUESTS",
+             "Max Concurrent Requests Count hit, "  \
+             "Signal with handle = " + std::to_string(signal->getHandle()) + " Dropped.");
+
+        // Free the Signal Memory Block
+        Signal::cleanUpSignal(signal);
+        return;
+    }
+
     if(signal->getRequestType() == SIGNAL_RELAY || signal->getRequestType() == SIGNAL_ACQ) {
         // Check if the client exists, if not create a new client tracking entry
         if(!ClientDataManager::getInstance()->clientExists(signal->getClientPID(), signal->getClientTID())) {
-            ClientDataManager::getInstance()->createNewClient(signal->getClientPID(), signal->getClientTID());
+            if(!ClientDataManager::getInstance()->createNewClient(signal->getClientPID(), signal->getClientTID())) {
+                return;
+            }
         }
     } else {
         // SIGNAL_FREE request
@@ -184,7 +197,6 @@ static void processIncomingRequest(Signal* signal) {
     }
 
     // Rate Check the client
-    std::shared_ptr<RateLimiter> rateLimiter = RateLimiter::getInstance();
     if(!rateLimiter->isRateLimitHonored(signal->getClientTID())) {
         LOGI("RTN_SERVER", "ClientTID: " + std::to_string(signal->getClientTID()) + " Rate Limited");
         return;
@@ -227,10 +239,32 @@ void submitSignalRequest(void* clientReq) {
 }
 
 static Request* createResourceTuningRequest(Signal* signal) {
-    Request* request = nullptr;
-
     try {
-        request = new (GetBlock<Request>()) Request();
+        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(signal->getSignalID());
+        if(signalInfo == nullptr) return nullptr;
+
+        Request* request = new (GetBlock<Request>()) Request();
+
+        request->setRequestType(REQ_RESOURCE_TUNING);
+        request->setHandle(signal->getHandle());
+        request->setDuration(signal->getDuration());
+        request->setProperties(signal->getProperties());
+        request->setClientPID(signal->getClientPID());
+        request->setClientTID(signal->getClientTID());
+
+        std::vector<Resource*>* signalLocks = signalInfo->mSignalResources;
+        request->setNumResources(signalLocks->size());
+
+        std::vector<Resource*>* resourceList =
+            new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
+        resourceList->resize(request->getResourcesCount());
+
+        for(int32_t i = 0; i < signalLocks->size(); i++) {
+            (*resourceList)[i] = (*signalLocks)[i];
+        }
+
+        request->setResources(resourceList);
+        return request;
 
     } catch(const std::bad_alloc& e) {
         LOGE("RTN_SERVER",
@@ -240,35 +274,7 @@ static Request* createResourceTuningRequest(Signal* signal) {
         return nullptr;
     }
 
-    request->setRequestType(REQ_RESOURCE_TUNING);
-    request->setHandle(signal->getHandle());
-    request->setDuration(signal->getDuration());
-    request->setProperties(signal->getProperties());
-    request->setClientPID(signal->getClientPID());
-    request->setClientTID(signal->getClientTID());
-
-    SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(signal->getSignalID());
-
-    if(signalInfo == nullptr) {
-        FreeBlock<Request>(static_cast<void*>(request));
-        return nullptr;
-    }
-
-    std::vector<Resource*>* signalLocks = signalInfo->mSignalResources;
-    request->setNumResources(signalLocks->size() / 2);
-
-    std::vector<Resource*>* resourceList =
-        new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
-    resourceList->resize(request->getResourcesCount());
-
-    for(int32_t i = 0; i < signalLocks->size(); i++) {
-        Resource* resource = (*signalLocks)[i];
-        resourceList->push_back(resource);
-    }
-
-    request->setResources(resourceList);
-
-    return request;
+    return nullptr;
 }
 
 static Request* createResourceUntuneRequest(Signal* signal) {

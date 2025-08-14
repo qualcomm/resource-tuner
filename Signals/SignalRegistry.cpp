@@ -17,8 +17,17 @@ void SignalRegistry::initRegistry(int32_t size, int8_t customerBit) {
     }
 }
 
+int8_t SignalRegistry::isSignalConfigMalformed(SignalInfo* sConf) {
+    if(sConf == nullptr) return true;
+    if(sConf->mSignalOpId < 0 || sConf->mSignalCategory < 0) return true;
+    return false;
+}
+
 void SignalRegistry::registerSignal(SignalInfo* signalInfo) {
-    if(signalInfo == nullptr) return;
+    if(this->isSignalConfigMalformed(signalInfo)) {
+        delete signalInfo;
+        return;
+    }
 
     uint32_t signalBitmap = 0;
     if(this->customerBit) {

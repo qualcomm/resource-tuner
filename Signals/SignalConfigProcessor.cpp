@@ -44,29 +44,29 @@ void SignalConfigProcessor::parseYamlNode(const YAML::Node& item) {
     SignalInfoBuilder signalInfoBuilder;
 
     signalInfoBuilder.setOpID(
-        safeExtract<std::string>(item[SIGNAL_SIGID])
+        safeExtract<std::string>(item[SIGNAL_SIGID], "-1")
     );
 
     signalInfoBuilder.setCategory(
-        safeExtract<std::string>(item[SIGNAL_CATEGORY])
+        safeExtract<std::string>(item[SIGNAL_CATEGORY], "-1")
     );
 
     signalInfoBuilder.setName(
-        safeExtract<std::string>(item[SIGNAL_NAME])
+        safeExtract<std::string>(item[SIGNAL_NAME], "")
     );
 
     signalInfoBuilder.setTimeout(
-        safeExtract<int32_t>(item[SIGNAL_TIMEOUT])
+        safeExtract<int32_t>(item[SIGNAL_TIMEOUT], 1)
     );
 
     signalInfoBuilder.setIsEnabled(
-        safeExtract<bool>(item[SIGNAL_ENABLE])
+        safeExtract<bool>(item[SIGNAL_ENABLE], false)
     );
 
     if(isList(item[SIGNAL_PERMISSIONS])) {
         for(int32_t i = 0; i < item[SIGNAL_PERMISSIONS].size(); i++) {
             signalInfoBuilder.addPermission(
-                safeExtract<std::string>(item[SIGNAL_PERMISSIONS][i])
+                safeExtract<std::string>(item[SIGNAL_PERMISSIONS][i], "")
             );
         }
     }
@@ -74,7 +74,7 @@ void SignalConfigProcessor::parseYamlNode(const YAML::Node& item) {
     if(isList(item[SIGNAL_TARGETS_ENABLED])) {
         for(int32_t i = 0; i < item[SIGNAL_TARGETS_ENABLED].size(); i++) {
             signalInfoBuilder.addTarget(true,
-                safeExtract<std::string>(item[SIGNAL_TARGETS_ENABLED][i])
+                safeExtract<std::string>(item[SIGNAL_TARGETS_ENABLED][i], "")
             );
         }
     }
@@ -82,7 +82,7 @@ void SignalConfigProcessor::parseYamlNode(const YAML::Node& item) {
     if(isList(item[SIGNAL_TARGETS_DISABLED])) {
         for(int32_t i = 0; i < item[SIGNAL_TARGETS_DISABLED].size(); i++) {
             signalInfoBuilder.addTarget(false,
-                safeExtract<std::string>(item[SIGNAL_TARGETS_DISABLED][i])
+                safeExtract<std::string>(item[SIGNAL_TARGETS_DISABLED][i], "")
             );
         }
     }
@@ -90,7 +90,7 @@ void SignalConfigProcessor::parseYamlNode(const YAML::Node& item) {
     if(isList(item[SIGNAL_DERIVATIVES])) {
         for(int32_t i = 0; i < item[SIGNAL_DERIVATIVES].size(); i++) {
             signalInfoBuilder.addDerivative(
-                safeExtract<std::string>(item[SIGNAL_DERIVATIVES][i])
+                safeExtract<std::string>(item[SIGNAL_DERIVATIVES][i], "")
             );
         }
     }
@@ -101,11 +101,11 @@ void SignalConfigProcessor::parseYamlNode(const YAML::Node& item) {
 
             ResourceBuilder resourceBuilder;
             resourceBuilder.setResCode(
-                safeExtract<std::string>(resourceConfig[SIGNAL_RESOURCE_CODE])
+                safeExtract<std::string>(resourceConfig[SIGNAL_RESOURCE_CODE], "-1")
             );
 
             resourceBuilder.setOpInfo(
-                safeExtract<std::string>(resourceConfig[SIGNAL_RESINFO])
+                safeExtract<std::string>(resourceConfig[SIGNAL_RESINFO], "0")
             );
 
             if(isList(resourceConfig[SIGNAL_VALUES])) {
@@ -114,10 +114,11 @@ void SignalConfigProcessor::parseYamlNode(const YAML::Node& item) {
 
                 for(int32_t i = 0; i < valuesCount; i++) {
                     resourceBuilder.addValue(
-                        safeExtract<int32_t>(resourceConfig[SIGNAL_VALUES][i])
+                        safeExtract<int32_t>(resourceConfig[SIGNAL_VALUES][i], -1)
                     );
                 }
             }
+
             signalInfoBuilder.addResource(resourceBuilder.build());
         }
     }

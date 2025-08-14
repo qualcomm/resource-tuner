@@ -189,6 +189,23 @@ static void dumpRequest(Request* clientReq) {
 }
 
 static void processIncomingRequest(Request* request, int8_t isValidated=false) {
+    if(isValidated) {
+        // Request is already validated, add it to RequestQueue directly.
+        if(RequestManager::getInstance()->shouldRequestBeAdded(request)) {
+            RequestManager::getInstance()->addRequest(request);
+
+            // Add this request to the RequestQueue
+            RequestQueue::getInstance()->addAndWakeup(request);
+
+        } else {
+            LOGD("RTN_SERVER_REQUESTS", "Duplicate found, dropping request.");
+            Request::cleanUpRequest(request);
+        }
+
+        RequestQueue::getInstance()->addAndWakeup(request);
+        return;
+    }
+
     std::shared_ptr<RateLimiter> rateLimiter = RateLimiter::getInstance();
 
     // Perform a Global Rate Limit Check before Processing the Request
@@ -273,7 +290,7 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
         return;
     }
 
-    if(isValidated || VerifyIncomingRequest(request)) {
+    if(VerifyIncomingRequest(request)) {
         TYPELOGV(VERIFIER_REQUEST_VALIDATED, request->getHandle());
 
         if(RequestManager::getInstance()->shouldRequestBeAdded(request)) {

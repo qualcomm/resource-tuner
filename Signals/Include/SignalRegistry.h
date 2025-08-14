@@ -76,6 +76,11 @@ typedef struct {
 
 } SignalInfo;
 
+/**
+* @brief SignalRegistry
+* @details Stores information Relating to all the Signals available for Tuning.
+*          Note: This information is extracted from Config YAML files.
+*/
 class SignalRegistry {
 private:
     static std::shared_ptr<SignalRegistry> signalRegistryInstance;
@@ -92,10 +97,25 @@ public:
 
     void initRegistry(int32_t size, int8_t customerBit);
 
+    /**
+     * @brief Used to register a Config specified (through YAML) Signal with Resource Tuner
+     * @details The Signal Info is parsed from YAML files. If the SignalInfo provided is
+     *          Malformed, then it will be freed as part of this routine, else it will
+     *          be added to the "mSignalsConfigs" vector.
+     */
     void registerSignal(SignalInfo* signalInfo);
+
+    int8_t isSignalConfigMalformed(SignalInfo* sConf);
 
     std::vector<SignalInfo*> getSignalConfigs();
 
+   /**
+    * @brief Get the SignalInfo object corresponding to the given Resource ID.
+    * @param resourceId An unsigned 32 bit integer, representing the Signal ID.
+    * @return SignalInfo*:
+    *          - A pointer to the SignalInfo object
+    *          - nullptr, if no SignalInfo object with the given Signal ID exists.
+    */
     SignalInfo* getSignalConfigById(uint32_t signalID);
 
     int32_t getSignalsConfigCount();

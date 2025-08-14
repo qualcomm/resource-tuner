@@ -38,7 +38,6 @@ ErrCode TargetConfigProcessor::parseTargetConfigs() {
         }
     }
 
-    std::cout<<"Proceeeding with init COnfig parsing"<<std::endl;
     rc = YamlParser::parse(fInitConfigFileName, result);
     if(RC_IS_OK(rc)) {
         if(result[INIT_CONFIGS_ROOT].IsDefined() && result[INIT_CONFIGS_ROOT].IsSequence()) {

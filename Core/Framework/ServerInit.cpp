@@ -96,6 +96,9 @@ static ErrCode initServer() {
     // - Processor Server thread
     serverThread = std::thread(TunerServerThread);
 
+    // Wait for the thread to initialize
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+
     return opStatus;
 }
 

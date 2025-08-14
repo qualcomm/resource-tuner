@@ -36,7 +36,7 @@ ErrCode initSignals() {
 
     // Create one thread:
     // - Signal Server thread
-    // signalServerProcessorThread = std::thread(SignalsdServerThread);
+    signalServerProcessorThread = std::thread(SignalsdServerThread);
 
     // Wait for the thread to initialize
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
