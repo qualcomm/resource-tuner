@@ -36,11 +36,17 @@ static ErrCode createCGroups() {
     for(CGroupConfigInfo* cGroupConfig : cGroupConfigs) {
         const std::string cGroupPath = "/sys/fs/cgroup/" + cGroupConfig->mCgroupName;
         if(mkdir(cGroupPath.c_str(), 0755) == 0) {
-            // Enable cpu, cpuset and memory for the cgroup
             if(cGroupConfig->isThreaded) {
                 writeToCgroupFile(cGroupPath + "/cgroup.type", "threaded");
+            } else {
+                // Enable cpu, cpuset and memory Controllers for the cgroup
+                writeToCgroupFile(cGroupPath + "/cgroup.subtree_control", "+cpu +cpuset +memory");
+
+                // Create a child cgroup to hold the PIDs
+                const std::string childCGroupPath =
+                    "/sys/fs/cgroup/" + cGroupConfig->mCgroupName + "/tasks";
+                mkdir(childCGroupPath.c_str(), 0755);
             }
-            writeToCgroupFile(cGroupPath + "/cgroup.subtree_control", "+cpu +cpuset +memory");
         } else {
             TYPELOGV(ERRNO_LOG, "mkdir", strerror(errno));
         }

@@ -59,21 +59,20 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
 
     // Basic sanity: Invalid resource Opcode
     if(signalInfo == nullptr) {
-        LOGI("RTN_SERVER", "Invalid Opcode: " + std::to_string(signal->getSignalID()));
+        TYPELOGV(VERIFIER_INVALID_OPCODE, signal->getSignalID());
         return false;
     }
 
     int8_t clientPermissions = ClientDataManager::getInstance()->getClientLevelByClientID(signal->getClientPID());
     if(clientPermissions == -1) {
-        LOGI("RTN_SERVER", "Invalid Client Permissions");
+        TYPELOGV(VERIFIER_INVALID_PERMISSION, signal->getClientPID(), signal->getClientTID());
         return false;
     }
 
     int8_t reqSpecifiedPriority = signal->getPriority();
     if(reqSpecifiedPriority > RequestPriority::REQ_PRIORITY_LOW ||
        reqSpecifiedPriority < RequestPriority::REQ_PRIORITY_HIGH) {
-        LOGI("RTN_SERVER", "Priority Level = " +
-             std::to_string(reqSpecifiedPriority) + "is not a valid value");
+        TYPELOGV(VERIFIER_INVALID_PRIORITY, reqSpecifiedPriority);
         return false;
     }
 
@@ -83,7 +82,7 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
 
     // Check if the Signal is enabled for provisioning
     if(!signalInfo->mIsEnabled) {
-        LOGI("RTN_SERVER", "Specified Signal is not enabled for provisioning");
+        TYPELOGV(VERIFIER_UNSUPPORTED_SIGNAL_TUNING, signal->getSignalID());
         return false;
     }
 
@@ -98,8 +97,7 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
 
     // Client does not have the necessary permissions to tune this Resource.
     if(!permissionCheck) {
-        LOGI("RTN_SERVER",
-             "Client does not have sufficient Permissions to provision Signal: " + std::to_string(signal->getSignalID()));
+        TYPELOGV(VERIFIER_NOT_SUFFICIENT_SIGNAL_ACQ_PERMISSION, signal->getSignalID());
         return false;
     }
 
@@ -107,18 +105,18 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
     std::string targetName = ResourceTunerSettings::targetConfigs.targetName;
     if(signalInfo->mTargetsEnabled != nullptr) {
         if(signalInfo->mTargetsEnabled->find(targetName) == signalInfo->mTargetsEnabled->end()) {
-            LOGI("RTN_SERVER", "Specified Signal is not enabled for provisioning on this Target");
+            TYPELOGV(VERIFIER_TARGET_CHECK_FAILED, signal->getSignalID());
             return false;
         }
     } else if(signalInfo->mTargetsDisabled != nullptr) {
         if(signalInfo->mTargetsDisabled->find(targetName) != signalInfo->mTargetsDisabled->end()) {
-            LOGI("RTN_SERVER", "Specified Signal is not enabled for provisioning on this Target");
+            TYPELOGV(VERIFIER_TARGET_CHECK_FAILED, signal->getSignalID());
             return false;
         }
     }
 
     if(signal->getRequestType() == SIGNAL_RELAY) {
-        LOGI("RTN_SERVER", "Request Verified");
+        TYPELOGV(VERIFIER_REQUEST_VALIDATED, signal->getHandle());
         return true;
     }
 
@@ -129,7 +127,7 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
 
         // Basic sanity: Invalid resource Opcode
         if(resourceConfig == nullptr) {
-            LOGE("RTN_SERVER","Invalid Opcode, Dropping Request");
+            TYPELOGV(VERIFIER_INVALID_OPCODE, resource->getOpCode());
             return false;
         }
 
@@ -140,7 +138,7 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
             int32_t highThreshold = resourceConfig->mHighThreshold;
 
             if(configValue < lowThreshold || configValue > highThreshold) {
-                LOGE("RTN_SERVER", "Range Checking Failed, Dropping Request");
+                TYPELOGV(VERIFIER_VALUE_OUT_OF_BOUNDS, configValue, resource->getOpCode());
                 return false;
             }
         } else {
@@ -152,7 +150,7 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
 
         // Check for Client permissions
         if(resourceConfig->mPermissions == PERMISSION_SYSTEM && clientPermissions == PERMISSION_THIRD_PARTY) {
-            LOGI("RTN_SERVER", "Permission Check Failed, Dropping Request");
+            TYPELOGV(VERIFIER_NOT_SUFFICIENT_PERMISSION, resource->getOpCode());
             return false;
         }
     }
@@ -164,7 +162,39 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
         signal->setDuration(signalInfo->mTimeout);
     }
 
-    LOGI("RTN_SERVER", "Request Verified");
+    TYPELOGV(VERIFIER_REQUEST_VALIDATED, signal->getHandle());
+    return true;
+}
+
+static int8_t fillDefaults(Signal* signal) {
+    uint32_t signalID = signal->getSignalID();
+    SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(signalID);
+    if(signalInfo == nullptr) return false;
+
+    int32_t listIndex = 0;
+    for(Resource* resource : (*signalInfo->mSignalResources)) {
+        int32_t valueCount = resource->getValuesCount();
+        if(valueCount == 1) {
+            if(resource->mConfigValue.singleValue == -1) {
+                if(signal->getListArgs() == nullptr) return false;
+                resource->mConfigValue.singleValue = signal->getListArgAt(listIndex);
+                listIndex++;
+            }
+        } else {
+            for(int32_t i = 0; i < valueCount; i++) {
+                if((*resource->mConfigValue.valueArray)[i] == -1) {
+                    if(signal->getListArgs() == nullptr) return false;
+                    if(listIndex >= 0 && listIndex < signal->getNumArgs()) {
+                        (*resource->mConfigValue.valueArray)[i] = signal->getListArgAt(listIndex);
+                        listIndex++;
+                    } else {
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+
     return true;
 }
 
@@ -198,13 +228,36 @@ static void processIncomingRequest(Signal* signal) {
 
     // Rate Check the client
     if(!rateLimiter->isRateLimitHonored(signal->getClientTID())) {
-        LOGI("RTN_SERVER", "ClientTID: " + std::to_string(signal->getClientTID()) + " Rate Limited");
+        TYPELOGV(RATE_LIMITER_RATE_LIMITED, signal->getClientTID(), signal->getHandle());
+        return;
+    }
+
+    uint32_t signalID = signal->getSignalID();
+    SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(signalID);
+    if(signalInfo != nullptr && signalInfo->mSignalCategory == 0x08) {
+        // Handle Cgroup Requests here
+        if(!fillDefaults(signal)) {
+            Signal::cleanUpSignal(signal);
+            return;
+        }
+
+        for(Resource* resource: (*signalInfo->mSignalResources)) {
+            ResourceConfigInfo* resourceConfig =
+                ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
+
+            // Basic sanity: Invalid resource Opcode
+            if(resourceConfig != nullptr) {
+                resourceConfig->resourceApplierCallback(resource);
+            }
+        }
+
+        Signal::cleanUpSignal(signal);
         return;
     }
 
     if(signal->getRequestType() == SIGNAL_ACQ || signal->getRequestType() == SIGNAL_RELAY) {
         if(!VerifyIncomingRequest(signal)) {
-            LOGE("RTN_SERVER", "Signal Request verification failed, dropping request");
+            TYPELOGV(VERIFIER_STATUS_FAILURE, signal->getHandle());
             FreeBlock<Signal>(static_cast<void*>(signal));
             return;
         }
@@ -374,8 +427,6 @@ void SignalQueue::orderedQueueConsumerHook() {
 }
 
 void* SignalsdServerThread() {
-    LOGD("RTN_SERVER", "SysSignal Thread started");
-
     std::shared_ptr<SignalQueue> signalQueue = SignalQueue::getInstance();
     while(ResourceTunerSettings::isServerOnline()) {
         signalQueue->wait();

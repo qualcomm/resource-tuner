@@ -126,8 +126,6 @@ ResourceConfigs:
     ResID: "0x0000"
     Name: "RES_TUNER_CGROUP_MOVE_PROCS"
     Supported: true
-    HighThreshold: 1024
-    LowThreshold: 0
     Permissions: "system"
     ApplyType: "cgroup"
 
@@ -135,8 +133,6 @@ ResourceConfigs:
     ResID: "0x0001"
     Name: "RES_TUNER_CGROUP_MOVE_THREADS"
     Supported: true
-    HighThreshold: 1024
-    LowThreshold: 0
     Permissions: "system"
     ApplyType: "cgroup"
 
@@ -144,8 +140,6 @@ ResourceConfigs:
     ResID: "0x0002"
     Name: "RES_TUNER_CGROUP_RUN_ON_CORES"
     Supported: true
-    HighThreshold: 1024
-    LowThreshold: 0
     Permissions: "system"
     ApplyType: "cgroup"
 
@@ -153,8 +147,6 @@ ResourceConfigs:
     ResID: "0x0003"
     Name: "RES_TUNER_CGROUP_RUN_ON_CORES_EXCLUSIVELY"
     Supported: true
-    HighThreshold: 1024
-    LowThreshold: 0
     Permissions: "system"
     ApplyType: "cgroup"
 
@@ -162,8 +154,6 @@ ResourceConfigs:
     ResID: "0x0004"
     Name: "RES_TUNER_CGROUP_FREEZE"
     Supported: true
-    HighThreshold: 1024
-    LowThreshold: 0
     Permissions: "system"
     ApplyType: "cgroup"
 
@@ -171,8 +161,6 @@ ResourceConfigs:
     ResID: "0x0005"
     Name: "RES_TUNER_CGROUP_UNFREEZE"
     Supported: true
-    HighThreshold: 1024
-    LowThreshold: 0
     Permissions: "system"
     ApplyType: "cgroup"
 
@@ -180,7 +168,19 @@ ResourceConfigs:
     ResID: "0x0006"
     Name: "RES_TUNER_RUN_WHEN_CPU_IDLE"
     Supported: true
-    HighThreshold: 1024
-    LowThreshold: 0
+    Permissions: "system"
+    ApplyType: "cgroup"
+
+  - ResType: "0x09"
+    ResID: "0x0007"
+    Name: "RES_TUNER_UCLAMP_MIN"
+    Supported: true
+    Permissions: "system"
+    ApplyType: "cgroup"
+
+  - ResType: "0x09"
+    ResID: "0x0008"
+    Name: "RES_TUNER_UCLAMP_MAX"
+    Supported: true
     Permissions: "system"
     ApplyType: "cgroup"

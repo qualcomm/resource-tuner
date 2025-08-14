@@ -107,17 +107,6 @@ static int8_t VerifyIncomingRequest(Request* req) {
             return false;
         }
 
-        // if(resourceConfig->mApplyType == APPLY_CORE) {
-        //     if(resourceConfig->resourceApplierCallback != nullptr) {
-        //         CGroupApplyInfo* cGroupInfo = new CGroupApplyInfo;
-        //         cGroupInfo->mClientPID = req->getClientPID();
-        //         cGroupInfo->mClientTID = req->getClientTID();
-        //         cGroupInfo->mResource = resource;
-        //         resourceConfig->resourceApplierCallback(cGroupInfo);
-        //     }
-        //     continue;
-        // }
-
         if(resource->getValuesCount() == 1) {
             // Verify value is in the range [LT, HT]
             int32_t configValue = resource->mConfigValue.singleValue;

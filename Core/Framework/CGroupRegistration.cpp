@@ -4,32 +4,44 @@
 #include "Extensions.h"
 #include "TargetRegistry.h"
 #include "ResourceRegistry.h"
+#include <unistd.h>
 
-void addProcessToCgroup(void* context) {
-    CGroupApplyInfo* info = static_cast<CGroupApplyInfo*>(context);
-    Resource* resource = info->mResource;
-    int32_t pid = info->mClientPID;
-    int8_t cGroupIdentifier = static_cast<int8_t>(resource->getOptionalInfo());
+static void addProcessToCgroup(void* context) {
+    if(context == nullptr) return;
+    Resource* resource = static_cast<Resource*>(context);
+
+    if(resource->getValuesCount() != 2) return;
+
+    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
+    int32_t pid = (*resource->mConfigValue.valueArray)[1];
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
-        const std::string cGroupPath = cGroupConfig->mCgroupName;
-        if(cGroupPath.length() > 0) {
-            std::ofstream controllerFile("/sys/fs/cgroup/" + cGroupPath + "/cgroup.procs");
+        const std::string cGroupName = cGroupConfig->mCgroupName;
+
+        if(cGroupName.length() > 0) {
+            const std::string cGroupControllerFilePath =
+                "/sys/fs/cgroup/" + cGroupName + "/tasks/cgroup.procs";
+
+            std::ofstream controllerFile(cGroupControllerFilePath);
             if(!controllerFile.is_open()) {
                 return;
             }
-            controllerFile << pid;
+
+            controllerFile << getpid();
             controllerFile.close();
         }
     }
 }
 
-void addThreadToCgroup(void* context) {
-    CGroupApplyInfo* info = static_cast<CGroupApplyInfo*>(context);
-    Resource* resource = info->mResource;
-    int32_t tid = info->mClientTID;
-    int8_t cGroupIdentifier = static_cast<int8_t>(resource->getOptionalInfo());
+static void addThreadToCgroup(void* context) {
+    if(context == nullptr) return;
+    Resource* resource = static_cast<Resource*>(context);
+
+    if(resource->getValuesCount() != 2) return;
+
+    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
+    int32_t tid = (*resource->mConfigValue.valueArray)[1];
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
@@ -45,18 +57,17 @@ void addThreadToCgroup(void* context) {
     }
 }
 
-void setRunOnCores(void* context) {
-    CGroupApplyInfo* info = static_cast<CGroupApplyInfo*>(context);
-}
+static void setRunOnCores(void* context) {}
 
-void setRunOnCoresExclusively(void* context) {
-    CGroupApplyInfo* info = static_cast<CGroupApplyInfo*>(context);
-}
+static void setRunOnCoresExclusively(void* context) {}
 
-void freezeCgroup(void* context) {
-    CGroupApplyInfo* info = static_cast<CGroupApplyInfo*>(context);
-    Resource* resource = info->mResource;
-    int8_t cGroupIdentifier = static_cast<int8_t>(resource->getOptionalInfo());
+static void freezeCgroup(void* context) {
+    if(context == nullptr) return;
+    Resource* resource = static_cast<Resource*>(context);
+
+    if(resource->getValuesCount() != 1) return;
+
+    int32_t cGroupIdentifier = resource->mConfigValue.singleValue;
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
@@ -72,10 +83,13 @@ void freezeCgroup(void* context) {
     }
 }
 
-void unFreezeCGroup(void* context) {
-    CGroupApplyInfo* info = static_cast<CGroupApplyInfo*>(context);
-    Resource* resource = info->mResource;
-    int8_t cGroupIdentifier = static_cast<int8_t>(resource->getOptionalInfo());
+static void unFreezeCGroup(void* context) {
+    if(context == nullptr) return;
+    Resource* resource = static_cast<Resource*>(context);
+
+    if(resource->getValuesCount() != 1) return;
+
+    int32_t cGroupIdentifier = resource->mConfigValue.singleValue;
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
@@ -91,10 +105,13 @@ void unFreezeCGroup(void* context) {
     }
 }
 
-void setCpuIdle(void* context) {
-    CGroupApplyInfo* info = static_cast<CGroupApplyInfo*>(context);
-    Resource* resource = info->mResource;
-    int8_t cGroupIdentifier = static_cast<int8_t>(resource->getOptionalInfo());
+static void setCpuIdle(void* context) {
+    if(context == nullptr) return;
+    Resource* resource = static_cast<Resource*>(context);
+
+    if(resource->getValuesCount() != 1) return;
+
+    int32_t cGroupIdentifier = resource->mConfigValue.singleValue;
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
@@ -110,6 +127,52 @@ void setCpuIdle(void* context) {
     }
 }
 
+static void setUClampMin(void* context) {
+    if(context == nullptr) return;
+    Resource* resource = static_cast<Resource*>(context);
+
+    if(resource->getValuesCount() != 2) return;
+
+    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
+    int32_t clampVal = (*resource->mConfigValue.valueArray)[1];
+    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
+
+    if(cGroupConfig != nullptr) {
+        const std::string cGroupPath = cGroupConfig->mCgroupName;
+        if(cGroupPath.length() > 0) {
+            std::ofstream controllerFile("/sys/fs/cgroup/" + cGroupPath + "/cpu.uclamp.min");
+            if(!controllerFile.is_open()) {
+                return;
+            }
+            controllerFile << clampVal;
+            controllerFile.close();
+        }
+    }
+}
+
+static void setUClampMax(void* context) {
+    if(context == nullptr) return;
+    Resource* resource = static_cast<Resource*>(context);
+
+    if(resource->getValuesCount() != 2) return;
+
+    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
+    int32_t clampVal = (*resource->mConfigValue.valueArray)[1];
+    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
+
+    if(cGroupConfig != nullptr) {
+        const std::string cGroupPath = cGroupConfig->mCgroupName;
+        if(cGroupPath.length() > 0) {
+            std::ofstream controllerFile("/sys/fs/cgroup/" + cGroupPath + "/cpu.uclamp.max");
+            if(!controllerFile.is_open()) {
+                return;
+            }
+            controllerFile << clampVal;
+            controllerFile.close();
+        }
+    }
+}
+
 RTN_REGISTER_RESOURCE(0x00090000, addProcessToCgroup);
 RTN_REGISTER_RESOURCE(0x00090001, addThreadToCgroup);
 RTN_REGISTER_RESOURCE(0x00090002, setRunOnCores);
@@ -117,3 +180,5 @@ RTN_REGISTER_RESOURCE(0x00090003, setRunOnCoresExclusively);
 RTN_REGISTER_RESOURCE(0x00090004, freezeCgroup);
 RTN_REGISTER_RESOURCE(0x00090005, unFreezeCGroup);
 RTN_REGISTER_RESOURCE(0x00090006, setCpuIdle);
+RTN_REGISTER_RESOURCE(0x00090007, setUClampMin);
+RTN_REGISTER_RESOURCE(0x00090008, setUClampMax);

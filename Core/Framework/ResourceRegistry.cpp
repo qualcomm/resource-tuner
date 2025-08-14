@@ -18,7 +18,6 @@ void ResourceRegistry::initRegistry(int8_t customerBit) {
 int8_t ResourceRegistry::isResourceConfigMalformed(ResourceConfigInfo* rConf) {
     if(rConf == nullptr) return true;
     if(rConf->mResourceOptype < 0 || rConf->mResourceOpcode < 0) return true;
-    if(rConf->mHighThreshold < 0 || rConf->mLowThreshold < 0) return true;
     return false;
 }
 
@@ -31,12 +30,14 @@ void ResourceRegistry::registerResource(ResourceConfigInfo* resourceConfigInfo) 
 
     // Persist the Default Values of the Resources in a File.
     // These values will be used to restore the Sysfs nodes in case the Server Process crashes.
-    std::fstream sysfsPersistenceFile("../sysfsOriginalValues.txt", std::ios::out | std::ios::app);
-    std::string resourceData = resourceConfigInfo->mResourceName;
-    resourceData.push_back(',');
-    resourceData.append(std::to_string(resourceConfigInfo->mDefaultValue));
-    resourceData.push_back('\n');
-    sysfsPersistenceFile << resourceData;
+    if(resourceConfigInfo->mDefaultValue != 0) {
+        std::fstream sysfsPersistenceFile("../sysfsOriginalValues.txt", std::ios::out | std::ios::app);
+        std::string resourceData = resourceConfigInfo->mResourceName;
+        resourceData.push_back(',');
+        resourceData.append(std::to_string(resourceConfigInfo->mDefaultValue));
+        resourceData.push_back('\n');
+        sysfsPersistenceFile << resourceData;
+    }
 
     // Create the OpID Bitmap, this will serve as the key for the entry in mSystemIndependentLayerMappings.
     uint32_t resourceBitmap = 0;
