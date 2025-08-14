@@ -252,6 +252,13 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             Logger::log(ERROR, "RTN_REQUEST_VERIFIER", funcName, std::string(buffer));
             break;
 
+        case CommonMessageTypes::VERIFIER_UNSUPPORTED_SIGNAL_TUNING:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Specified Signal [%u] is not enabled for provisioning", args);
+
+            Logger::log(ERROR, "RTN_REQUEST_VERIFIER", funcName, std::string(buffer));
+            break;
+
         case CommonMessageTypes::VERIFIER_VALUE_OUT_OF_BOUNDS:
             vsnprintf(buffer, sizeof(buffer),
                       "Config Value [%d] does not fall in the Allowed Range" \
@@ -264,6 +271,21 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             vsnprintf(buffer, sizeof(buffer),
                       "Permission Check Failed for Resource [%u], "  \
                       "Dropping Request", args);
+
+            Logger::log(ERROR, "RTN_REQUEST_VERIFIER", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::VERIFIER_NOT_SUFFICIENT_SIGNAL_ACQ_PERMISSION:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Permission Check Failed for Signal [%u], "  \
+                      "Client does not have sufficient Permissions to provision Signal", args);
+
+            Logger::log(ERROR, "RTN_REQUEST_VERIFIER", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::VERIFIER_TARGET_CHECK_FAILED:
+             vsnprintf(buffer, sizeof(buffer),
+                       "Specified Signal [%u] is not enabled for provisioning on this Target", args);
 
             Logger::log(ERROR, "RTN_REQUEST_VERIFIER", funcName, std::string(buffer));
             break;
@@ -288,6 +310,13 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
                       "Verification Failed for Request [%lld], Dropping Request.", args);
 
             Logger::log(ERROR, "RTN_REQUEST_VERIFIER", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::RATE_LIMITER_RATE_LIMITED:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Client TID: [%d] Rate Limited, Dropping Request [%lld].", args);
+
+            Logger::log(INFO, "RTN_RATE_LIMITER", funcName, std::string(buffer));
             break;
 
         case CommonMessageTypes::YAML_PARSE_ERROR:

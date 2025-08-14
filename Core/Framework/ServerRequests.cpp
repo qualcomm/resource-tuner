@@ -432,8 +432,6 @@ void RequestQueue::orderedQueueConsumerHook() {
             }
 
             if(req->getRequestType() == REQ_RESOURCE_UNTUNING) {
-                LOGI("RTN_SERVER_REQUESTS", "Untune Request");
-
                 cocoTable->removeRequest(correspondingTuneRequest);
                 RequestManager::getInstance()->removeRequest(correspondingTuneRequest);
 
@@ -444,8 +442,6 @@ void RequestQueue::orderedQueueConsumerHook() {
                 Request::cleanUpRequest(correspondingTuneRequest);
 
             } else if(req->getRequestType() == REQ_RESOURCE_RETUNING) {
-                LOGI("RTN_SERVER_REQUESTS", "Retune Request");
-
                 int64_t newDuration = req->getDuration();
                 cocoTable->updateRequest(correspondingTuneRequest, newDuration);
 

@@ -12,7 +12,7 @@
 
 RTN_REGISTER_CONFIG(SIGNALS_CONFIG, "../Tests/Configs/testSignalConfigs.yaml")
 
-#define TOTAL_SIGNAL_CONFIGS_COUNT 5
+#define TOTAL_SIGNAL_CONFIGS_COUNT 6
 
 class SignalConfigProcessorTests: public::testing::Test {
 protected:
@@ -181,7 +181,8 @@ TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorYAMLDataIntegrity4) 
     std::vector<SignalInfo*> signalConfigs = SignalRegistry::getInstance()->getSignalConfigs();
     ASSERT_EQ(signalConfigs.size(), TOTAL_SIGNAL_CONFIGS_COUNT);
 
-    std::vector<std::string> signalNames {"INSTALL", "EARLY_WAKEUP", "LIGHTNING_LAUNCHES", "SMOOTH_SCROLL", "TEST_SIGNAL-1"};
+    std::vector<std::string> signalNames {"INSTALL", "EARLY_WAKEUP", "LIGHTNING_LAUNCHES",
+                                          "SMOOTH_SCROLL", "TEST_SIGNAL-1", "TEST_SIGNAL-2"};
 
     ASSERT_EQ(signalNames.size(), signalConfigs.size());
 
