@@ -156,7 +156,6 @@ Signal::~Signal() {}
 // Signal Utils
 void Signal::cleanUpSignal(Signal* signal) {
     if(signal == nullptr) return;
-    // Note: Resources and CocoNodes are expected to be allocated via the MemoryPool.
 
     if(signal->mListArgs != nullptr) {
         FreeBlock<std::vector<uint32_t>>

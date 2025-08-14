@@ -644,7 +644,7 @@ namespace SignalVerification {
 
     std::string __testGroupName = "Signal Requests Verification / Integrity Checks";
     /**
-    * API under test: ACQ
+    * API under test: tuneSignal
     * - The client tries to acquire a Signal with a duration of -2.
     * - Note a duration of 0 is considered valid for the tuneSignal API.
     * - The Request will fail reliminary tests on the Client side and won't be
@@ -661,7 +661,7 @@ namespace SignalVerification {
     }
 
     /**
-    * API under test: ACQ
+    * API under test: tuneSignal
     * - A client sends a Signal Request to acquire a Signal for some (possibly inf) duration
     * - Each Signal Config has an associated permission, either system or third_party. Here the
     *   Signal in question has system Permissions i.e. only Clients having system permissions
@@ -697,7 +697,7 @@ namespace SignalVerification {
     }
 
     /**
-    * API under test: ACQ
+    * API under test: tuneSignal
     * - A client sends a Signal Request to Acquire a Signal for some (possibly inf) duration
     * - Each Resource associated with the Signal Config has an associated Low Threshold (LT) and High Threshold (HT).
     * - If a Signal Config specifies a value which is (< LT) or (> HT) for any Resource, then the Reuqest
@@ -731,7 +731,7 @@ namespace SignalVerification {
     }
 
     /**
-    * API under test: ACQ
+    * API under test: tuneSignal
     * - Through the Signal Configs, it can be specified for each Signal which target it is supported
     *   on and for which it is not eligible for provisioning.
     * - If a client tries to acquire a Signal on a Target, where the Signal is not supported, the
@@ -767,7 +767,7 @@ namespace SignalVerification {
     }
 
     /**
-    * API under test: ACQ
+    * API under test: tuneSignal
     * - If the Enabled Field for the Signal Config is set to false, the Signal should not be provisioned.
     * - Hence, the Request is rejected by the Signal Verifier.
     * - Verify that the Resource Node's value remains unchanged.
@@ -2348,6 +2348,128 @@ namespace SystemSysfsNodesTests {
     }
 }
 
+namespace SignalApplicationTests {
+   /*
+    * Description:
+    * This Section contains tests which aim to verify the correctness of Signal (GRAB / FREE) Application.
+    * The tests are enumerated as follows:
+    * => Single Client - Single Signal Tuning [A]
+    */
+    std::string __testGroupName = "Signal Application Checks";
+
+   /**
+    * API under test: tuneSignal
+    * - A client tries to acquire a Signal, which tunes a Single Resource
+    * - Verified the Resource Node is updated to the configured value
+    * - Verify that the Resource Node is reset once the Signal timeouts.
+    * Cross-Reference id: [A]
+    */
+    static void TestSingleClientTuneSignal1() {
+        LOG_START
+
+        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
+        int32_t testResourceOriginalValue = 300;
+
+        std::string value;
+        int32_t originalValue, newValue;
+
+        value = readFromNode(testResourceName);
+        originalValue = C_STOI(value);
+        assert(originalValue == testResourceOriginalValue);
+
+        int64_t handle =
+            tuneSignal(GENERATE_RESOURCE_ID(8, 0), 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        value = readFromNode(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == 917);
+
+        std::this_thread::sleep_for(std::chrono::seconds(8));
+
+        value = readFromNode(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == testResourceOriginalValue);
+
+        LOG_END
+    }
+
+   /**
+    * API under test: tuneSignal
+    * - A client tries to acquire a Signal, which tunes multiple Resources
+    * - Verified the Resource Node is updated to the configured value
+    * - Verify that the Resource Node is reset once the Signal timeouts.
+    * Cross-Reference id: [A]
+    */
+    static void TestSingleClientTuneSignal2() {
+        LOG_START
+
+        std::string testResourceName1 = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
+        std::string testResourceName2 = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_max";
+        std::string testResourceName3 = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+
+        int originalValues[] = {300, 684, 114};
+
+        std::string value;
+        int32_t originalValue, newValue;
+
+        value = readFromNode(testResourceName1);
+        originalValue = C_STOI(value);
+        assert(originalValue == originalValues[0]);
+
+        value = readFromNode(testResourceName2);
+        originalValue = C_STOI(value);
+        assert(originalValue == originalValues[1]);
+
+        value = readFromNode(testResourceName3);
+        originalValue = C_STOI(value);
+        assert(originalValue == originalValues[2]);
+
+        int64_t handle =
+            tuneSignal(GENERATE_RESOURCE_ID(8, 1), 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        value = readFromNode(testResourceName1);
+        newValue = C_STOI(value);
+        assert(newValue == 883);
+
+        value = readFromNode(testResourceName2);
+        newValue = C_STOI(value);
+        assert(newValue == 920);
+
+        value = readFromNode(testResourceName3);
+        newValue = C_STOI(value);
+        assert(newValue == 1555);
+
+        std::this_thread::sleep_for(std::chrono::seconds(8));
+
+        value = readFromNode(testResourceName1);
+        originalValue = C_STOI(value);
+        assert(originalValue == originalValues[0]);
+
+        value = readFromNode(testResourceName2);
+        originalValue = C_STOI(value);
+        assert(originalValue == originalValues[1]);
+
+        value = readFromNode(testResourceName3);
+        originalValue = C_STOI(value);
+        assert(originalValue == originalValues[2]);
+
+        LOG_END
+    }
+
+    static void RunTestGroup() {
+        std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
+
+        RUN_TEST(TestSingleClientTuneSignal1);
+        RUN_TEST(TestSingleClientTuneSignal2);
+
+        std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
+    }
+}
+
 int32_t main(int32_t argc, const char* argv[]) {
     // Run the Tests
     RUN_TEST(TestHandleGeneration)
@@ -2361,6 +2483,8 @@ int32_t main(int32_t argc, const char* argv[]) {
 
     // Tests on Real Sysfs Nodes (QLI)
     SystemSysfsNodesTests::RunTestGroup();
+
+    SignalApplicationTests::RunTestGroup();
 
     return 0;
 }

@@ -50,8 +50,8 @@ SignalConfigs:
       - {ResCode: "0x0000abcd", ResInfo: "0x00000020", Values: [5]}
       - {ResCode: "0x0000ea0d", ResInfo: "0x00000200", Values: [87]}
 
-  - SigId: "0x0"
-    Category: "0x8"
+  - SigId: "0x0000"
+    Category: "0x08"
     Name: "TEST_SIGNAL-1"
     Enable: true
     TargetsEnabled: ["qli-test"]
@@ -60,3 +60,16 @@ SignalConfigs:
     Timeout: 4000
     Resources:
     - {ResCode: "0x80010000", ResInfo: "0x00000000", Values: [917]}
+
+  - SigId: "0x0001"
+    Category: "0x08"
+    Name: "TEST_SIGNAL-2"
+    Enable: true
+    TargetsEnabled: ["qli-test"]
+    Permissions: ["third_party"]
+    Derivatives: ["solar"]
+    Timeout: 4000
+    Resources:
+    - {ResCode: "0x80010000", ResInfo: "0x00000000", Values: [883]}
+    - {ResCode: "0x80010001", ResInfo: "0x00000000", Values: [920]}
+    - {ResCode: "0x80010003", ResInfo: "0x00000000", Values: [1555]}
