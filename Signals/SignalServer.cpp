@@ -34,14 +34,18 @@ ErrCode initSignals() {
 
     // Later: Parse Extension Features Configs here
 
-    // Create one thread:
-    // - Signal Server thread
-    signalServerProcessorThread = std::thread(SignalsdServerThread);
+    // Create Signal Processor thread
+    try {
+        signalServerProcessorThread = std::thread(SignalsdServerThread);
+    } catch(const std::system_error& e) {
+        TYPELOGV(SYSTEM_THREAD_CREATION_FAILURE, "Signal", e.what());
+        opStatus = RC_MODULE_INIT_FAILURE;
+    }
 
     // Wait for the thread to initialize
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
 
-    return RC_SUCCESS;
+    return opStatus;
 }
 
 ErrCode terminateSignals() {

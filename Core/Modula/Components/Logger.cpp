@@ -76,6 +76,32 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
                         funcName, std::string(buffer));
             break;
 
+        case CommonMessageTypes::NOTIFY_MODULE_NOT_ENABLED:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Module: [%s] is Not Enabled, Dropping Request", args);
+
+            Logger::log(ERROR, "RTN_REQUEST_DECODE",
+                        funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::SYSTEM_THREAD_CREATION_FAILURE:
+            vsnprintf(buffer, sizeof(buffer),
+                      "[%s] thread could not be created, Error: %s", args);
+
+            Logger::log(ERROR, "RTN_SYSTEM_ERROR",
+                        funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::LISTENER_THREAD_CREATION_SUCCESS:
+            Logger::log(INFO, "RTN_SERVER_INIT", funcName,
+                        "Listener Thread Successfully Created, Server ready for Requests");
+            break;
+
+        case CommonMessageTypes::LISTENER_THREAD_CREATION_FAILURE:
+            Logger::log(ERROR, "RTN_SERVER_INIT", funcName,
+                        "Listener Thread Creation Failed, Aborting Initialization");
+            break;
+
         case CommonMessageTypes::CLIENT_ALLOCATION_FAILURE:
             vsnprintf(buffer, sizeof(buffer),
                      "Memory allocation for Client: " \
@@ -149,8 +175,10 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             break;
 
         case CommonMessageTypes::NOTIFY_RESOURCE_TUNER_INIT_START:
-            Logger::log(INFO, "RTN_SERVER_INIT", funcName,
-                        "Starting Resource Tuner Server initialization");
+            vsnprintf(buffer, sizeof(buffer),
+                      "Starting Resource Tuner Server, PID = [%d]", args);
+
+            Logger::log(ERROR, "RTN_SERVER_INIT", funcName, std::string(buffer));
 
             break;
 

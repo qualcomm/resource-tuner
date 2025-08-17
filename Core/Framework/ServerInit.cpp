@@ -29,6 +29,7 @@ static void writeToCgroupFile(const std::string& propName, const std::string& va
     cGroupFile.close();
 }
 
+// Create all the CGroups specified via InitConfigs.yaml during the init phase.
 static ErrCode createCGroups() {
     std::vector<CGroupConfigInfo*> cGroupConfigs;
     TargetRegistry::getInstance()->getCGroupConfigs(cGroupConfigs);
@@ -98,9 +99,13 @@ static ErrCode initServer() {
     // By this point, all the Extension Appliers / Resources should be registered.
     ResourceRegistry::getInstance()->pluginModifications(Extensions::getModifiedResources());
 
-    // Create one thread:
-    // - Processor Server thread
-    serverThread = std::thread(TunerServerThread);
+    // Create the Processor thread:
+    try {
+        serverThread = std::thread(TunerServerThread);
+    } catch(const std::system_error& e) {
+        TYPELOGV(SYSTEM_THREAD_CREATION_FAILURE, "Server", e.what());
+        opStatus = RC_MODULE_INIT_FAILURE;
+    }
 
     // Wait for the thread to initialize
     std::this_thread::sleep_for(std::chrono::milliseconds(300));

@@ -113,15 +113,12 @@ static void serverCleanup() {
     ResourceTunerSettings::setServerOnlineStatus(false);
 }
 
-/**
- * @brief The main function representing the initialisation of the server.
- * @details The parsing occurs in this stage.
- */
 int32_t main(int32_t argc, char *argv[]) {
+    // PID of the Child Daemon
     int32_t childProcessID = -1;
 
     if(argc != 2) {
-        std::cout << "Usage: " << argv[0] << " <start|stop|test>" << std::endl;
+        std::cout<<"Usage: "<<argv[0]<<" <start|stop|test>"<<std::endl;
         return -1;
     }
 
@@ -158,7 +155,7 @@ int32_t main(int32_t argc, char *argv[]) {
         }
     }
 
-    TYPELOGD(NOTIFY_RESOURCE_TUNER_INIT_START);
+    TYPELOGV(NOTIFY_RESOURCE_TUNER_INIT_START, getpid());
 
     // Start Resource Tuner Server Initialization
     // As part of Server Initialization the Configs (Resource / Signals etc.) will be parsed
@@ -178,8 +175,17 @@ int32_t main(int32_t argc, char *argv[]) {
         ResourceTunerSettings::targetConfigs.currMode = MODE_DISPLAY_ON;
 
         try {
-            RequestReceiver::mRequestsThreadPool = new ThreadPool(4, 4, 6);
-            Timer::mTimerThreadPool = new ThreadPool(4, 4, 6);
+            int32_t desiredThreadCapacity = ResourceTunerSettings::desiredThreadCount;
+            int32_t maxPendingQueueSize = ResourceTunerSettings::maxPendingQueueSize;
+            int32_t maxScalingCapacity = ResourceTunerSettings::maxScalingCapacity;
+
+            RequestReceiver::mRequestsThreadPool = new ThreadPool(desiredThreadCapacity,
+                                                                  maxPendingQueueSize,
+                                                                  maxScalingCapacity);
+
+            Timer::mTimerThreadPool = new ThreadPool(desiredThreadCapacity,
+                                                     maxPendingQueueSize,
+                                                     maxScalingCapacity);
 
         } catch(const std::bad_alloc& e) {
             TYPELOGV(THREAD_POOL_CREATION_FAILURE, e.what());
@@ -238,8 +244,15 @@ int32_t main(int32_t argc, char *argv[]) {
     if(RC_IS_OK(mOpStatus)) {
         LOGI("RTN_SERVER_INIT",
              "Starting Resource Tuner Listener Thread");
-        resourceTunerListener = std::thread(listenerThreadStartRoutine);
+        try {
+            resourceTunerListener = std::thread(listenerThreadStartRoutine);
+        } catch(const std::system_error& e) {
+            TYPELOGV(SYSTEM_THREAD_CREATION_FAILURE, "Listener", e.what());
+            mOpStatus = RC_MODULE_INIT_FAILURE;
+        }
     }
+
+    TYPELOGD(LISTENER_THREAD_CREATION_SUCCESS);
 
     if(RC_IS_OK(mOpStatus)) {
         // Make Stdin Non-Blocking

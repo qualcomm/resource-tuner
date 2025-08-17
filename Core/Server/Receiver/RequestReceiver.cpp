@@ -14,6 +14,10 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
     switch(requestType) {
         // Resource Provisioning Requests
         case REQ_RESOURCE_TUNING: {
+            if(!ComponentRegistry::isModuleEnabled(MOD_CORE)) {
+                TYPELOGV(NOTIFY_MODULE_NOT_ENABLED, "Core");
+                return;
+            }
             msgForwardInfo->handle = ResourceTunerSettings::generateUniqueHandle();
             if(msgForwardInfo->handle < 0) {
                 // Handle Generation Failure
@@ -22,6 +26,10 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
         }
         case REQ_RESOURCE_RETUNING:
         case REQ_RESOURCE_UNTUNING: {
+            if(!ComponentRegistry::isModuleEnabled(MOD_CORE)) {
+                TYPELOGV(NOTIFY_MODULE_NOT_ENABLED, "Core");
+                return;
+            }
             // Enqueue the Request to the Thread Pool for async processing.
             if(this->mRequestsThreadPool != nullptr) {
                 if(!this->mRequestsThreadPool->
@@ -74,6 +82,10 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
         }
         // SysSignal Requests
         case SIGNAL_ACQ: {
+            if(!ComponentRegistry::isModuleEnabled(MOD_SYSSIGNAL)) {
+                TYPELOGV(NOTIFY_MODULE_NOT_ENABLED, "Signals");
+                return;
+            }
             msgForwardInfo->handle = ResourceTunerSettings::generateUniqueHandle();
             if(msgForwardInfo->handle < 0) {
                 // Handle Generation Failure
@@ -82,6 +94,10 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
         }
         case SIGNAL_FREE:
         case SIGNAL_RELAY: {
+            if(!ComponentRegistry::isModuleEnabled(MOD_SYSSIGNAL)) {
+                TYPELOGV(NOTIFY_MODULE_NOT_ENABLED, "Signals");
+                return;
+            }
             // Enqueue the Request to the Thread Pool for async processing.
             if(this->mRequestsThreadPool != nullptr) {
                 if(!this->mRequestsThreadPool->

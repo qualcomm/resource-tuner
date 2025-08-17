@@ -39,6 +39,10 @@ private:
     static int32_t serverOnlineStatus;
 
 public:
+    static const int32_t desiredThreadCount = 10;
+    static const int32_t maxPendingQueueSize = 12;
+    static const int32_t maxScalingCapacity = 25;
+
     static std::shared_timed_mutex mModeLock;
     static MetaConfigs metaConfigs;
     static TargetConfigs targetConfigs;
