@@ -3,6 +3,8 @@
 
 #include "SignalServerPrivate.h"
 
+static const int8_t cGroupSignalCategory = 0x08;
+
 static void dumpRequest(Signal* clientReq) {
     std::string LOG_TAG = "RTN_SERVER";
     LOGD(LOG_TAG, "Print Signal details:");
@@ -232,9 +234,11 @@ static void processIncomingRequest(Signal* signal) {
         return;
     }
 
+    // Special Handling for Cgroup based Requests
+    // TODO: Check if it can be structured in a better way
     uint32_t signalID = signal->getSignalID();
     SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(signalID);
-    if(signalInfo != nullptr && signalInfo->mSignalCategory == 0x08) {
+    if(signalInfo != nullptr && signalInfo->mSignalCategory == cGroupSignalCategory) {
         // Handle Cgroup Requests here
         if(!fillDefaults(signal)) {
             Signal::cleanUpSignal(signal);

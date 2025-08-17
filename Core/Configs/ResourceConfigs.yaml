@@ -184,3 +184,10 @@ ResourceConfigs:
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
+
+  - ResType: "0x09"
+    ResID: "0x0009"
+    Name: "RES_TUNER_RELATIVE_CPU_WEIGHT"
+    Supported: true
+    Permissions: "system"
+    ApplyType: "cgroup"
