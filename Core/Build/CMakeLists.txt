@@ -1,0 +1,5 @@
+add_subdirectory(Client)
+add_subdirectory(Framework)
+add_subdirectory(Modula)
+add_subdirectory(Server)
+add_subdirectory(Extensions)

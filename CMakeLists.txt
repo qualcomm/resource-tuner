@@ -55,22 +55,18 @@ endif()
 option(BUILD_SHARED_LIBS "Build shared libraries instead of static ones" ON)
 
 # Mandatory Builds
-add_subdirectory(Core/Modula)
-add_subdirectory(Core/Client)
-add_subdirectory(Core/Server)
-add_subdirectory(Core/Framework)
-add_subdirectory(Core/Extensions)
+add_subdirectory(Core/Build)
 
 # Optional builds
 option(BUILD_SIGNALS "Build SysSignals" OFF)
 if(BUILD_SIGNALS)
-  add_subdirectory(Signals)
+  add_subdirectory(Signals/Build)
 endif()
 
 option(BUILD_TESTS "Testing" OFF)
 if(BUILD_TESTS)
   enable_testing()
-  add_subdirectory(Tests)
+  add_subdirectory(Tests/Unit/Build)
 endif()
 
 option(BUILD_CLI "Build CLI" OFF)
@@ -79,7 +75,7 @@ if(BUILD_CLI)
     ./Core/Client/APIs/ResourceTunerAPIs.cpp
     ./Core/Client/ClientCLI.cpp
   )
-  target_link_libraries(resource_tuner_cli CommunicationClient ClientAPIs)
+  target_link_libraries(resource_tuner_cli SocketCommClient ClientAPIs)
   install(TARGETS resource_tuner_cli RUNTIME DESTINATION bin)
 endif()
 
@@ -109,7 +105,7 @@ endif()
 
 #install libs
 install(TARGETS resource_tuner RUNTIME DESTINATION bin)
-install(TARGETS Auxiliary CommunicationClient ResourceTunerCommunicationServer
+install(TARGETS Auxiliary SocketCommClient SocketCommServer
         ClientAPIs SysConfigProps Server ExtAPIs
         SysRequestReceiver LIBRARY DESTINATION lib)
 if(BUILD_SIGNALS)

@@ -1,51 +1,51 @@
 if(BUILD_TESTS)
-    add_executable(YamlParserTests Modula/YamlParserTests.cpp)
+    add_executable(YamlParserTests ../Core/YamlParserTests.cpp)
     target_link_libraries(YamlParserTests GTest::gtest_main Auxiliary)
 
-    add_executable(MemoryPoolTests ./Modula/MemoryPoolTests.cpp)
+    add_executable(MemoryPoolTests ../Core/MemoryPoolTests.cpp)
     target_link_libraries(MemoryPoolTests GTest::gtest_main Auxiliary)
 
-    add_executable(SafeOpsTest ./Modula/SafeOpsTest.cpp)
+    add_executable(SafeOpsTest ../Core/SafeOpsTest.cpp)
     target_link_libraries(SafeOpsTest GTest::gtest_main Auxiliary)
 
-    add_executable(ThreadPoolTests ./Modula/ThreadPoolTests.cpp)
+    add_executable(ThreadPoolTests ../Core/ThreadPoolTests.cpp)
     target_link_libraries(ThreadPoolTests GTest::gtest_main Auxiliary)
 
-    add_executable(TimerTest Modula/TimerTest.cpp)
+    add_executable(TimerTest ../Core/TimerTest.cpp)
     target_link_libraries(TimerTest GTest::gtest_main Auxiliary)
 
-    add_executable(MiscTests Modula/MiscTests.cpp)
+    add_executable(MiscTests ../Core/MiscTests.cpp)
     target_link_libraries(MiscTests GTest::gtest_main Auxiliary)
 
-    add_executable(RequestQueueTest Framework/RequestQueueTest.cpp)
+    add_executable(RequestQueueTest ../Core/RequestQueueTest.cpp)
     target_link_libraries(RequestQueueTest GTest::gtest_main Server)
 
-    add_executable(CocoTableTest Framework/CocoTableTest.cpp)
+    add_executable(CocoTableTest ../Core/CocoTableTest.cpp)
     target_link_libraries(CocoTableTest GTest::gtest_main Server ExtAPIs)
 
-    add_executable(ClientDataManagerTests Framework/ClientDataManagerTests.cpp)
+    add_executable(ClientDataManagerTests ../Core/ClientDataManagerTests.cpp)
     target_link_libraries(ClientDataManagerTests GTest::gtest_main Auxiliary Server)
 
-    add_executable(RequestMapTests Framework/RequestMapTests.cpp)
+    add_executable(RequestMapTests ../Core/RequestMapTests.cpp)
     target_link_libraries(RequestMapTests GTest::gtest_main  Auxiliary Server)
 
-    add_executable(RateLimiterTests Framework/RateLimiterTests.cpp)
+    add_executable(RateLimiterTests ../Core/RateLimiterTests.cpp)
     target_link_libraries(RateLimiterTests GTest::gtest_main  Auxiliary Server)
 
-    add_executable(ResourceProcessorTests Framework/ResourceProcessorTests.cpp)
+    add_executable(ResourceProcessorTests ../Core/ResourceProcessorTests.cpp)
     target_link_libraries(ResourceProcessorTests GTest::gtest_main Auxiliary Server ExtAPIs)
 
-    add_executable(TargetConfigProcessorTests Framework/TargetConfigProcessorTests.cpp)
+    add_executable(TargetConfigProcessorTests ../Core/TargetConfigProcessorTests.cpp)
     target_link_libraries(TargetConfigProcessorTests GTest::gtest_main Auxiliary Server ExtAPIs)
 
-    add_executable(SysConfigAPITests SysConfigs/SysConfigAPITests.cpp)
+    add_executable(SysConfigAPITests ../Core/SysConfigAPITests.cpp)
     target_link_libraries(SysConfigAPITests GTest::gtest_main Auxiliary ExtAPIs SysConfigProps)
 
-    add_executable(SysConfigProcessorTests SysConfigs/SysConfigProcessorTests.cpp)
+    add_executable(SysConfigProcessorTests ../Core/SysConfigProcessorTests.cpp)
     target_link_libraries(SysConfigProcessorTests GTest::gtest_main Auxiliary ExtAPIs SysConfigProps)
 
     if(BUILD_SIGNALS)
-        add_executable(SysSignalConfigProcessorTests SysSignals/SignalConfigProcessorTests.cpp)
+        add_executable(SysSignalConfigProcessorTests ../Signals/SignalConfigProcessorTests.cpp)
         target_link_libraries(SysSignalConfigProcessorTests GTest::gtest_main Auxiliary ExtAPIs SysSignals)
     endif()
 
