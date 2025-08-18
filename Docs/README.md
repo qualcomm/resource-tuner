@@ -17,6 +17,8 @@
 
 # Introduction
 
+Resource Tuner is a lightweight daemon that monitors and dynamically regulates CPU, memory, and I/O usage of user-space processes. It leverages kernel interfaces like procfs, sysfs and cgroups to enforce runtime policies, ensuring system stability and performance in embedded and resource-constrained environments.
+
 Gaining control over system resources such as the CPU, caches, and GPU is a powerful capability in any developer’s toolkit. By fine-tuning these components, developers can optimize the system’s operating point to make more efficient use of hardware resources and significantly enhance the user experience.
 
 For example, increasing the CPU's Dynamic Clock and Voltage Scaling (DCVS) minimum frequency to 1 GHz can boost performance during demanding tasks. Conversely, capping the maximum frequency at 1.5 GHz can help conserve power during less intensive operations.
@@ -24,6 +26,45 @@ For example, increasing the CPU's Dynamic Clock and Voltage Scaling (DCVS) minim
 The Resource Tuner framework supports `Signals` which is dynamic provisioning of system resources in response to specific signals—such as app launches or installations—based on configurations defined in YAML. It allows business units (BUs) to register extensions and add custom functionality tailored to their specific needs.
 
 ---
+
+<div style="page-break-after: always;"></div>
+
+# Getting Started
+
+To get started with the project:
+
+1. Clone the repository:
+   \code{.sh}
+   git clone https://github.com/qualcomm/resource-tuner.git
+   \endcode
+
+2. Build the project:
+   \code{.sh}
+   mkdir build && cd build
+   cmake ..
+   make
+   \endcode
+
+3. Run the application:
+   \code{.sh}
+   ./resource_tuner --start
+   \endcode
+
+Refer the **Examples** Tab for guidance on Resource Tuner API usage.
+
+[GitHub Repo](https://github.com/qualcomm/resource-tuner/tree/main)
+
+# Project Structure
+
+\verbatim
+/Framework  → Core Resource Provisioning Request Logic
+/Auxiliary  → Common Utilities and Components used across Resource Tuner Modules.
+/Client     → Exposes the Client Facing APIs, and Defines the Client Communication Endpoint
+/Server     → Defines the Server Communication Endpoint and other Common Server-Side Utils.
+/Signals    → Optional Module, exposes Signal Acquire / Relay APIs
+/Tests      → Unit and System Wide Tests
+/docs       → Documentation
+\endverbatim
 
 <div style="page-break-after: always;"></div>
 
@@ -44,7 +85,7 @@ The Resource Tuner framework supports `Signals` which is dynamic provisioning of
 
 # Resource Tuner Features
 
-![alt text](images/design_resource_tuner.png)
+<img src="design_resource_tuner.png" alt="Resource Tuner Design" width="50%"/>
 
 Resource Tuner Architecture is captured above.
 ## Initialization
@@ -320,7 +361,7 @@ This API suite allows you to manage system resource provisioning through tuning 
 
 ---
 
-## `tuneResources`
+## tuneResources
 
 **Description:**
 Issues a Resource provisioning (or Tuning) request for a finite or infinite duration.
@@ -351,7 +392,7 @@ int64_t tuneResources(int64_t duration,
 ---
 <div style="page-break-after: always;"></div>
 
-## `retuneResources`
+## retuneResources
 
 **Description:**
 Modifies the duration of an existing Tune request.
@@ -377,7 +418,7 @@ int8_t retuneResources(int64_t handle,
 
 <div style="page-break-after: always;"></div>
 
-## `untuneResources`
+## untuneResources
 
 **Description:**
 Withdraws a previously issued resource provisioning (or Tune) request.
@@ -399,7 +440,7 @@ int8_t untuneResources(int64_t handle);
 ---
 <div style="page-break-after: always;"></div>
 
-## `getprop`
+## getprop
 
 **Description:**
 Gets a property from the Config Store
@@ -427,7 +468,7 @@ int8_t getprop(const char* prop,
 
 <div style="page-break-after: always;"></div>
 
-## `setprop`
+## setprop
 
 **Description:**
 Modifies an already existing property in the Config Store.
@@ -473,9 +514,6 @@ typedef struct Resource {
 
 **OpId**: An unsigned 32-bit unique identifier for the resource. It encodes essential information that is useful in abstracting away the system specific details.
 
-<!-- ![OpId Bitmap] (images/OpId_Bitmap.png) -->
-![OpID Bitmap](images/OpId_Bitmap.png)
-
 **OpInfo**: Encodes operation-specific information such as the Logical cluster and core IDs, and MPAM part ID.
 
 **OptionalInfo**: Additional optional metadata, useful for custom or extended resource configurations.
@@ -508,8 +546,8 @@ Examples:
 |----------------|----------|----------|
 |    POWER       |    `1`   | |
 |    CPU_DCVS    |    `2`   | |
-|    CPU_SCHED   |    `3`   | `/proc/sys/kernel/sched_util_clamp_min` `/proc/sys/kernel/sched_util_clamp_max` |
-|    CPU_FREQ    |    `4`   | `/sys/devices/system/cpu/cpufreq/policy<>/scaling_min_freq` `/sys/devices/system/cpu/cpufreq/policy<>/scaling_max_freq` |
+|    CPU_SCHED   |    `3`   | `/proc/sys/kernel/sched_util_clamp_min`, `/proc/sys/kernel/sched_util_clamp_max` |
+|    CPU_FREQ    |    `4`   | `/sys/devices/system/cpu/cpufreq/policy<>/scaling_min_freq`, `/sys/devices/system/cpu/cpufreq/policy<>/scaling_max_freq` |
 |    GPU         |    `5`   | |
 |    NPU         |    `6`   | |
 |    CACHES      |    `7`   | |
@@ -682,5 +720,17 @@ The **Resource Tuner Client** sends tuning-related requests to the server via co
 - `-r` : Retune request  
 - `-h` : Handle ID  
 - `-d` : New duration in milliseconds
+
+<div style="page-break-after: always;"></div>
+
+# Contact
+
+For questions, suggestions, or contributions, feel free to reach out:
+
+- **Email**: CSE.Perf@qti.qualcomm.com
+
+# License
+
+This project is licensed under the BSD 3-Clause Clear License.
 
 <div style="page-break-after: always;"></div>

@@ -99,7 +99,52 @@ static void setRunOnCores(void* context) {
     }
 }
 
-static void setRunOnCoresExclusively(void* context) {}
+static void setRunOnCoresExclusively(void* context) {
+    if(context == nullptr) return;
+    Resource* resource = static_cast<Resource*>(context);
+
+    if(resource->getValuesCount() < 2) return;
+    if(resource->mConfigValue.valueArray == nullptr) return;
+
+    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
+    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
+
+    if(cGroupConfig != nullptr) {
+        const std::string cGroupName = cGroupConfig->mCgroupName;
+        if(cGroupName.length() > 0) {
+            const std::string cGroupControllerFilePath =
+                "/sys/fs/cgroup/" + cGroupName + "/cpuset.cpus";
+
+            std::string cpusString = "";
+            for(int32_t i = 1; i < resource->getValuesCount(); i++) {
+                cpusString += std::to_string((*resource->mConfigValue.valueArray)[i]);
+                if(resource->getValuesCount() > 2 && i < resource->getValuesCount() - 1) {
+                    cpusString.push_back(',');
+                }
+            }
+
+            std::ofstream controllerFile(cGroupControllerFilePath);
+            if(!controllerFile.is_open()) {
+                TYPELOGV(ERRNO_LOG, "open", strerror(errno));
+                return;
+            }
+            controllerFile<<cpusString;
+            controllerFile.close();
+
+            const std::string cGroupCpusetPartitionFilePath =
+                "/sys/fs/cgroup/" + cGroupName + "/cpuset.cpus.partition";
+
+            std::ofstream partitionFile(cGroupCpusetPartitionFilePath);
+            if(!partitionFile.is_open()) {
+                TYPELOGV(ERRNO_LOG, "open", strerror(errno));
+                return;
+            }
+            partitionFile<<"root";
+            partitionFile<<"isolated";
+            partitionFile.close();
+        }
+    }
+}
 
 static void freezeCgroup(void* context) {
     if(context == nullptr) return;
@@ -220,7 +265,7 @@ static void setUClampMax(void* context) {
     }
 }
 
-static void setRelativeCPUWeight(void* context) {
+static void setRelativeCPUShare(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
 
@@ -295,6 +340,32 @@ static void setMinMemoryFloor(void* context) {
     }
 }
 
+static void limitCpuTime(void* context) {
+    if(context == nullptr) return;
+    Resource* resource = static_cast<Resource*>(context);
+
+    if(resource->getValuesCount() != 3) return;
+    if(resource->mConfigValue.valueArray == nullptr) return;
+
+    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
+    int32_t maxUsageMicroseconds = (*resource->mConfigValue.valueArray)[1];
+    int32_t periodMicroseconds = (*resource->mConfigValue.valueArray)[2];
+    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
+
+    if(cGroupConfig != nullptr) {
+        const std::string cGroupName = cGroupConfig->mCgroupName;
+        if(cGroupName.length() > 0) {
+            std::ofstream controllerFile("/sys/fs/cgroup/" + cGroupName + "/cpu.max");
+            if(!controllerFile.is_open()) {
+                TYPELOGV(ERRNO_LOG, "open", strerror(errno));
+                return;
+            }
+            controllerFile<<maxUsageMicroseconds<<" "<<periodMicroseconds;
+            controllerFile.close();
+        }
+    }
+}
+
 RTN_REGISTER_RESOURCE(0x00090000, addProcessToCgroup);
 RTN_REGISTER_RESOURCE(0x00090001, addThreadToCgroup);
 RTN_REGISTER_RESOURCE(0x00090002, setRunOnCores);
@@ -304,6 +375,7 @@ RTN_REGISTER_RESOURCE(0x00090005, unFreezeCGroup);
 RTN_REGISTER_RESOURCE(0x00090006, setCpuIdle);
 RTN_REGISTER_RESOURCE(0x00090007, setUClampMin);
 RTN_REGISTER_RESOURCE(0x00090008, setUClampMax);
-RTN_REGISTER_RESOURCE(0x00090009, setRelativeCPUWeight);
+RTN_REGISTER_RESOURCE(0x00090009, setRelativeCPUShare);
 RTN_REGISTER_RESOURCE(0x0009000a, setMaxMemoryLimit);
 RTN_REGISTER_RESOURCE(0x0009000b, setMinMemoryFloor);
+RTN_REGISTER_RESOURCE(0x0009000c, limitCpuTime);

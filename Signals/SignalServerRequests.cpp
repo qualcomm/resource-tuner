@@ -168,6 +168,8 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
     return true;
 }
 
+// Fills in any optional fields in the Signal that are not specified in the Config file
+// with the values specified in the tuneSignal API's list argument.
 static int8_t fillDefaults(Signal* signal) {
     uint32_t signalID = signal->getSignalID();
     SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(signalID);

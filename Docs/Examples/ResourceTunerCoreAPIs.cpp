@@ -10,6 +10,8 @@
  * - retuneResources
  * - untuneResources
  */
+#include <iostream>
+
 #include <ResourceTuner/ResourceTunerAPIs.h>
 
 // EXAMPLE #1
@@ -59,8 +61,8 @@ void func1() {
 
     // Create the List of Resources which need to be Provisioned
     // Resource Struct Creation
+    SysResource* resourceList = new SysResource[1];
 
-    Resource* resource = new Resource;
     // Initialize Resource struct Fields:
 
     // Field: mOpCode:
@@ -70,18 +72,7 @@ void func1() {
     // In addition if you are using Custom Resources, then the MSB must be set to 1 as well.
     // In this case we are dealing with Default Resources, so need to set the MSB to 1.
 
-    // To set the Resource OpCode
-    // Option 1: 1) Generate the OpCode (unsigned 32 bit integer) according to the above rules
-    //           2) Call resource->setOpCode(<generate_opcode>).
-    // Option 2: 1) Call resource->setResourceID(<res_id>).
-    //           2) Call resource->setResourceType(<res_type>).
-    //           3) Call resource->setAsCustom() in case of Custom Resource.
-    // The second option will internally generate and set the Required OpCode.
-    // In this case we'll use Option 2:
-    resource->setResourceType(1);
-    resource->setResourceID(0);
-    // We don't need to call resource->setAsCustom(), since we are dealing
-    // with Default Resources in this example.
+    resourceList[0].mOpCode = 0x00030000;
 
     // Field: mOpInfo
     // This field is a 32-bit signed integer, which stores information
@@ -93,13 +84,13 @@ void func1() {
     // Field "CoreLevelConflict" is set to True.
     // In this case since CoreLevelConflict is false for R1, hence this field
     // will not be processed by the Resource Tuner Server
-    resource->setOperationalInfo(0);
+    resourceList[0].mOpInfo = 0;
     // Note, above line of Code is not necessary, since the field is already initialized
     // to 0 via the Constructor.
 
     // Field: mOptionalInfo
     // TODO
-    resource->setOptionalInfo(0);
+    resourceList[0].mOptionalInfo = 0;
     // Note, above line of Code is not necessary, since the field is already initialized
     // to 0 via the Constructor.
 
@@ -107,7 +98,7 @@ void func1() {
     // Number of Values to be Configured for this Resource
     // Resource Tuner supports both Single and Multi Valued Resources
     // Here we consider the example for a single Valued Resource:
-    resource->setNumValues(1);
+    resourceList[0].mNumValues = 1;
 
     // Field: mConfigValue
     // The value to be Configured for this Resource Node.
@@ -119,15 +110,12 @@ void func1() {
     // Let's say we want to configure a value of 750 for this Resource,
     // Notice from the Resource Config that the allowed Configurable Range for this
     // Resource is [0 - 1024].
-    resource->mConfigValue.singleValue = 750;
+    resourceList[0].mConfigValue.singleValue = 750;
 
-    // Now our Resource struct is fully constructed
-    // Next, create a list to hold the Resources to be provisioned as part of this Request
-    std::vector<Resource*>* resources = new std::vector<Resource*>();
-    resources->push_back(resource);
+    // Now our Resource List is fully constructed
 
     // Finally we can issue the Resource Provisioning (or Tune) Request
-    int64_t handle = tuneResources(duration, properties, resources->size(), resources);
+    int64_t handle = tuneResources(duration, properties, 1, resourceList);
 
     // Check the Returned Handle
     if(handle == -1) {
@@ -137,7 +125,7 @@ void func1() {
     }
 
     // This handle Value can be used for Future Untune / Retune Requests.
-    // Not the Memory allocations made for Resource and Resource List will be freed
+    // Note the Memory allocations made for Resource List will be freed
     // automatically by the Client Library, and should not be done by the Client itself.
 }
 
@@ -164,24 +152,23 @@ void func2() {
 
     // Create the List of Resources which need to be Provisioned
     // Resource Struct Creation
-    Resource* resource = new Resource;
+    SysResource* resourceList = new SysResource[1];
 
     // Initialize Resource struct Fields:
 
     // Field: mOpCode:
     // Refer func1 for details
-    resource->setResourceType(1);
-    resource->setResourceID(0);
+    resourceList[0].mOpCode = 0x00030000;
 
     // Field: mOpInfo
     // Refer func1 for details
-    resource->setOperationalInfo(0);
+    resourceList[0].mOpCode = 0;
     // Note, above line of Code is not necessary, since the field is already initialized
     // to 0 via the Constructor.
 
     // Field: mOptionalInfo
     // Refer func1 for details
-    resource->setOptionalInfo(0);
+    resourceList[0].mOptionalInfo = 0;
     // Note, above line of Code is not necessary, since the field is already initialized
     // to 0 via the Constructor.
 
@@ -189,19 +176,16 @@ void func2() {
     // Number of Values to be Configured for this Resource
     // Resource Tuner supports both Single and Multi Valued Resources
     // Here we consider the example for a single Valued Resource:
-    resource->setNumValues(1);
+    resourceList[0].mNumValues = 1;
 
     // Field: mConfigValue
     // Refer func1 for details
-    resource->mConfigValue.singleValue = 884;
+    resourceList[0].mConfigValue.singleValue = 884;
 
     // Now our Resource struct is fully constructed
-    // Next, create a list to hold the Resources to be provisioned as part of this Request
-    std::vector<Resource*>* resources = new std::vector<Resource*>();
-    resources->push_back(resource);
 
     // Finally we can issue the Resource Provisioning (or Tune) Request
-    int64_t handle = tuneResources(duration, properties, resources->size(), resources);
+    int64_t handle = tuneResources(duration, properties, 1, resourceList);
 
     // Check the Returned Handle
     if(handle == -1) {
@@ -216,9 +200,9 @@ void func2() {
     // Resource Provisioning Request, i.e. restore the Resources to their original Value.
 
     // Issue an Untune Request
-    ErrCode errCode = untuneResources(handle);
+    int8_t status = untuneResources(handle);
 
-    if(RC_IS_NOTOK(errCode)) {
+    if(status == -1) {
         std::cout<<"Untune Request could not be sent to the Resource Tuner Server"<<std::endl;
     }
 }
@@ -244,24 +228,23 @@ void func3() {
 
     // Create the List of Resources which need to be Provisioned
     // Resource Struct Creation
-    Resource* resource = new Resource;
+    SysResource* resourceList = new SysResource[1];
 
     // Initialize Resource struct Fields:
 
     // Field: mOpCode:
     // Refer func1 for details
-    resource->setResourceType(1);
-    resource->setResourceID(0);
+    resourceList[0].mOpCode = 0x00030000;
 
     // Field: mOpInfo
     // Refer func1 for details
-    resource->setOperationalInfo(0);
+    resourceList[0].mOpInfo = 0;
     // Note, above line of Code is not necessary, since the field is already initialized
     // to 0 via the Constructor.
 
     // Field: mOptionalInfo
     // Refer func1 for details
-    resource->setOptionalInfo(0);
+    resourceList[0].mOptionalInfo = 0;
     // Note, above line of Code is not necessary, since the field is already initialized
     // to 0 via the Constructor.
 
@@ -269,19 +252,16 @@ void func3() {
     // Number of Values to be Configured for this Resource
     // Resource Tuner supports both Single and Multi Valued Resources
     // Here we consider the example for a single Valued Resource:
-    resource->setNumValues(1);
+    resourceList[0].mNumValues = 1;
 
     // Field: mConfigValue
     // Refer func1 for details
-    resource->mConfigValue.singleValue = 884;
+    resourceList[0].mConfigValue.singleValue = 884;
 
     // Now our Resource struct is fully constructed
-    // Next, create a list to hold the Resources to be provisioned as part of this Request
-    std::vector<Resource*>* resources = new std::vector<Resource*>();
-    resources->push_back(resource);
 
     // Finally we can issue the Resource Provisioning (or Tune) Request
-    int64_t handle = tuneResources(duration, properties, resources->size(), resources);
+    int64_t handle = tuneResources(duration, properties, 1, resourceList);
 
     // Check the Returned Handle
     if(handle == -1) {
@@ -293,16 +273,27 @@ void func3() {
     }
 
     // After some time, say the Client wishes to extend the duration of the previously
-    // issued Resource Provisioning Request, they can do by using the retuneResources API.
+    // issued Resource Provisioning Request, they can do so by using the retuneResources API.
 
     // Issue a Retune Request
-    ErrCode errCode = retuneResources(handle);
+    int64_t newDuration = 20000;
+    int8_t status = retuneResources(handle, newDuration);
 
-    if(RC_IS_NOTOK(errCode)) {
+    if(status == -1) {
         std::cout<<"Untune Request could not be sent to the Resource Tuner Server"<<std::endl;
     }
 }
 
+
 int32_t main(int32_t argc, char* argv[]) {
     func1();
 }
+
+// Compilation Notes:
+// The executable needs to be linked to the ClientAPIs lib, where these APIs
+// are defined. This can be done, as follows:
+// GCC: g++ ResourceTunerCoreAPIs.cpp -o ResourceTunerCoreAPIs -lClientAPIs
+// CMake: This can be done as part of the C/C++ project by adding the Library
+// to the target link libraries. For example, if the executalbe is called clientExec,
+// it can be linked as follows:
+// target_link_libraries(clientExec ClientAPIs)

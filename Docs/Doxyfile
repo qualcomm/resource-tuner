@@ -864,7 +864,7 @@ WARN_LOGFILE           =
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = ../Docs/mainpage.md ../Core/Modula/Common/Include/ ../Core/Modula/Components/Include/ ../Core/Modula/CoreModules/Include/ ../Core/Client/APIs/Include ../Core/Client/Comm/Socket/Include ../Core/Extensions/Include ../Core/Framework/Include ../Core/Server/Receiver/Include ../Core/Server/Socket/Include ../Core/Server/SysConfig/Include ../Signals/Include ../Examples/
+INPUT                  = ../Docs/README.md ../Core/Modula/Common/Include/ ../Core/Modula/Components/Include/ ../Core/Modula/CoreModules/Include/ ../Core/Client/APIs/Include ../Core/Client/Comm/Socket/Include ../Core/Extensions/Include ../Core/Framework/Include ../Core/Server/Receiver/Include ../Core/Server/Socket/Include ../Core/Server/SysConfigs/Include ../Signals/Include ../Docs/Examples/
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
@@ -984,7 +984,7 @@ EXCLUDE_SYMBOLS        =
 # that contain example code fragments that are included (see the \include
 # command).
 
-EXAMPLE_PATH           = ../Examples/
+EXAMPLE_PATH           = ../Docs/Examples/
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp and
@@ -1004,7 +1004,7 @@ EXAMPLE_RECURSIVE      = NO
 # that contain images that are to be included in the documentation (see the
 # \image command).
 
-IMAGE_PATH             = ../docs/images
+IMAGE_PATH             = ../Docs/images
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should
 # invoke to filter for each input file. Doxygen will invoke the filter program
@@ -1060,7 +1060,7 @@ FILTER_SOURCE_PATTERNS =
 # (index.html). This can be useful if you have a project on for instance GitHub
 # and want to reuse the introduction page also for the doxygen output.
 
-USE_MDFILE_AS_MAINPAGE = mainpage.md
+USE_MDFILE_AS_MAINPAGE = README.md
 
 #---------------------------------------------------------------------------
 # Configuration options related to source browsing
@@ -1331,7 +1331,7 @@ HTML_COLORSTYLE_GAMMA  = 80
 # The default value is: NO.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_TIMESTAMP         = NO
+HTML_TIMESTAMP         = YES
 
 # If the HTML_DYNAMIC_MENUS tag is set to YES then the generated HTML
 # documentation will contain a main index with vertical navigation menus that
