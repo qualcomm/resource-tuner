@@ -17,22 +17,6 @@
 
 static std::thread serverThread;
 
-static void writeToCgroupFile(const std::string& propName, const std::string& value) {
-    std::ofstream cGroupFile(propName);
-    if(!cGroupFile) {
-        TYPELOGV(ERRNO_LOG, "open", strerror(errno));
-        cGroupFile.close();
-        return;
-    }
-
-    cGroupFile<<value;
-
-    if(cGroupFile.fail()) {
-        TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-    }
-    cGroupFile.close();
-}
-
 // Create all the CGroups specified via InitConfig.yaml during the init phase.
 static ErrCode createCGroups() {
     std::vector<CGroupConfigInfo*> cGroupConfigs;
@@ -42,7 +26,7 @@ static ErrCode createCGroups() {
         const std::string cGroupPath = "/sys/fs/cgroup/" + cGroupConfig->mCgroupName;
         if(mkdir(cGroupPath.c_str(), 0755) == 0) {
             if(cGroupConfig->isThreaded) {
-                writeToCgroupFile(cGroupPath + "/cgroup.type", "threaded");
+                AuxRoutines::writeToFile(cGroupPath + "/cgroup.type", "threaded");
             }
         } else {
             TYPELOGV(ERRNO_LOG, "mkdir", strerror(errno));

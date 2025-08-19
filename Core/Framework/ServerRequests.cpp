@@ -3,30 +3,6 @@
 
 #include "ServerRequests.h"
 
-static void dumpRequest(Request* clientReq) {
-    std::string LOG_TAG = "RTN_SERVER";
-
-    LOGD(LOG_TAG, "Request details:");
-    LOGD(LOG_TAG, "reqType: " + std::to_string(clientReq->getRequestType()));
-    LOGD(LOG_TAG, "handle: " + std::to_string(clientReq->getHandle()));
-    LOGD(LOG_TAG, "Duration: " + std::to_string(clientReq->getDuration()));
-    LOGD(LOG_TAG, "Priority: " + std::to_string(clientReq->getPriority()));
-    LOGD(LOG_TAG, "client PID: " +std::to_string(clientReq->getClientPID()));
-    LOGD(LOG_TAG, "client TID: " + std::to_string(clientReq->getClientTID()));
-    LOGD(LOG_TAG, "Background Processing Enabled?: " + std::to_string((int32_t)clientReq->isBackgroundProcessingEnabled()));
-    LOGD(LOG_TAG, "Number of Resources: " + std::to_string(clientReq->getResourcesCount()));
-
-    LOGD(LOG_TAG, "Values for resources are as:");
-
-    for(int32_t i = 0; i < clientReq->getResourcesCount(); i++) {
-        Resource* res = clientReq->getResourceAt(i);
-        LOGD(LOG_TAG, "Resource " + std::to_string(i + 1) + ":");
-        LOGD(LOG_TAG, "Opcode ID: " + std::to_string(res->getOpCode()));
-        LOGD(LOG_TAG, "Number of Values: " + std::to_string(res->getValuesCount()));
-        LOGD(LOG_TAG, "-- Single Value: " + std::to_string(res->mConfigValue.singleValue));
-    }
-}
-
 static int8_t getRequestPriority(int8_t clientPermissions, int8_t reqSpecifiedPriority) {
     if(clientPermissions == PERMISSION_SYSTEM) {
         switch(reqSpecifiedPriority) {

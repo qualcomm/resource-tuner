@@ -137,26 +137,10 @@ void ResourceRegistry::pluginModifications() {
     }
 }
 
-static void writeToNode(const std::string& filePath, const std::string& value) {
-    std::ofstream resourceConfigFile(filePath, std::ios::out | std::ios::trunc);
-
-    if(!resourceConfigFile.is_open()) {
-        LOGD("RTN_COCO_TABLE", "Failed to open file: " + filePath);
-        return;
-    }
-
-    resourceConfigFile<<value;
-    if(resourceConfigFile.fail()) {
-        LOGD("RTN_COCO_TABLE", "Failed to write to file: " + filePath);
-    }
-    resourceConfigFile.flush();
-    resourceConfigFile.close();
-}
-
 void ResourceRegistry::restoreResourcesToDefaultValues() {
     for(ResourceConfigInfo* resourceConfig: this->mResourceConfig) {
         std::string defaultValue = resourceConfig->mDefaultValue;
-        writeToNode(resourceConfig->mResourceName, defaultValue);
+        AuxRoutines::writeToFile(resourceConfig->mResourceName, defaultValue);
     }
 }
 

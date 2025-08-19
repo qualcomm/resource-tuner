@@ -1,0 +1,29 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+
+#ifndef AUX_ROUTINES_H
+#define AUX_ROUTINES_H
+
+#include <string>
+#include <cstring>
+#include <sstream>
+#include <fstream>
+
+#include "Logger.h"
+#include "Request.h"
+#include "Signal.h"
+
+class AuxRoutines {
+public:
+    static std::string readFromFile(const std::string& fileName);
+    static void writeToFile(const std::string& fileName, const std::string& value);
+    static void deleteFile(const std::string& fileName);
+    static void writeSysFsDefaults();
+
+    static void dumpRequest(Request* request);
+    static void dumpRequest(Signal* signal);
+
+    static std::string requestTypeToString(int32_t requestType);
+};
+
+#endif

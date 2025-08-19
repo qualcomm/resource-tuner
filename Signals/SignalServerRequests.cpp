@@ -3,22 +3,6 @@
 
 #include "SignalServerPrivate.h"
 
-static const int8_t cGroupSignalCategory = 0x08;
-
-static void dumpRequest(Signal* clientReq) {
-    std::string LOG_TAG = "RTN_SERVER";
-    LOGD(LOG_TAG, "Print Signal details:");
-
-    LOGD(LOG_TAG, "Print Signal Request");
-    LOGD(LOG_TAG, "Signal ID: " + std::to_string(clientReq->getSignalID()));
-    LOGD(LOG_TAG, "Handle: " + std::to_string(clientReq->getHandle()));
-    LOGD(LOG_TAG, "Duration: " + std::to_string(clientReq->getDuration()));
-    LOGD(LOG_TAG, "App Name: " + std::string(clientReq->getAppName()));
-    LOGD(LOG_TAG, "Scenario: " + std::string(clientReq->getScenario()));
-    LOGD(LOG_TAG, "Num Args: " + std::to_string(clientReq->getNumArgs()));
-    LOGD(LOG_TAG, "Priority: " + std::to_string(clientReq->getPriority()));
-}
-
 static int8_t getRequestPriority(int8_t clientPermissions, int8_t reqSpecifiedPriority) {
     if(clientPermissions == PERMISSION_SYSTEM) {
         switch(reqSpecifiedPriority) {
@@ -201,32 +185,6 @@ static int8_t fillDefaults(Signal* signal) {
     }
 
     return true;
-}
-
-static int8_t CGroupProvisioningRequest(Signal* signal) {
-    // Special Handling for Cgroup based Requests
-    uint32_t signalID = signal->getSignalID();
-    SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(signalID);
-    if(signalInfo != nullptr && signalInfo->mSignalCategory == cGroupSignalCategory) {
-        // Handle Cgroup Requests here
-        if(!fillDefaults(signal)) {
-            return true;
-        }
-
-        for(Resource* resource: (*signalInfo->mSignalResources)) {
-            ResourceConfigInfo* resourceConfig =
-                ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
-
-            // Basic sanity: Invalid resource Opcode
-            if(resourceConfig != nullptr) {
-                resourceConfig->mResourceApplierCallback(resource);
-            }
-        }
-
-        return true;
-    }
-
-    return false;
 }
 
 static void processIncomingRequest(Signal* signal) {

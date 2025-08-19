@@ -3,24 +3,6 @@
 
 #include "ConfigProcessor.h"
 
-static std::string readFromNode(const std::string& fName) {
-    std::ifstream myFile(fName, std::ios::in);
-    std::string value = "";
-
-    if(!myFile.is_open()) {
-        LOGE("RTN_RESOURCE_PROCESSOR", "Failed to open file: " + fName + " Error: " + strerror(errno));
-        return "";
-    }
-
-    if(!getline(myFile, value)) {
-        LOGE("RTN_RESOURCE_PROCESSOR", "Failed to read from file: " + fName);
-        return "";
-    }
-
-    myFile.close();
-    return value;
-}
-
 void ConfigProcessor::parseResourceConfigYamlNode(const YAML::Node& item, int8_t isBuSpecified) {
     ResourceConfigInfoBuilder resourceConfigInfoBuilder;
 
@@ -49,7 +31,7 @@ void ConfigProcessor::parseResourceConfigYamlNode(const YAML::Node& item, int8_t
         safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCEPATH], "")
     );
 
-    std::string defaultValue = readFromNode(
+    std::string defaultValue = AuxRoutines::readFromFile(
         safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCEPATH], "")
     );
 

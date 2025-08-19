@@ -3,22 +3,6 @@
 
 #include "CocoTable.h"
 
-static void writeToNode(const std::string& fName, const std::string& fValue) {
-    std::ofstream myFile(fName, std::ios::out | std::ios::trunc);
-
-    if(!myFile.is_open()) {
-        LOGD("RTN_COCO_TABLE", "Failed to open file: "+ fName + " Error: " + strerror(errno));
-        return;
-    }
-
-    myFile<<fValue;
-    if(myFile.fail()) {
-        LOGD("RTN_COCO_TABLE", "Failed to write to file: "+ fName + " Error: " + strerror(errno));
-    }
-    myFile.flush();
-    myFile.close();
-}
-
 static int8_t comparison(int32_t first, int32_t second, int32_t policy) {
     if(policy == HIGHER_BETTER) {
         return first > second;
@@ -109,7 +93,7 @@ void CocoTable::applyAction(CocoNode* currNode, int32_t index, int8_t priority) 
                 resourceConfig->mResourceApplierCallback(resource);
             } else {
                 // Default Applier
-                writeToNode(resourceConfig->mResourceName, std::to_string(resource->mConfigValue.singleValue));
+                AuxRoutines::writeToFile(resourceConfig->mResourceName, std::to_string(resource->mConfigValue.singleValue));
                 LOGI("RTN_COCO_TABLE" , "Value " + std::to_string(resource->mConfigValue.singleValue) + " written in " +
                      resourceConfig->mResourceName);
             }
@@ -126,7 +110,7 @@ void CocoTable::applyDefaultAction(int32_t index, Resource* resource) {
             resourceConfigInfo->mResourceTearCallback(resource);
         } else {
             // Default Tear Callback
-            writeToNode(resourceConfigInfo->mResourceName, resourceConfigInfo->mDefaultValue);
+            AuxRoutines::writeToFile(resourceConfigInfo->mResourceName, resourceConfigInfo->mDefaultValue);
             LOGI("RTN_COCO_TABLE" ,
                  "Value " + resourceConfigInfo->mDefaultValue + " written in " + resourceConfigInfo->mResourceName);
         }

@@ -13,57 +13,19 @@
 #include "Extensions.h"
 #include "RequestReceiver.h"
 
-static void writeSysFsDefaults() {
-    // Write Defaults
-    std::ifstream file;
+static int8_t terminateServer = false;
 
-    file.open("../sysfsOriginalValues.txt");
-    if(!file.is_open()) {
-        LOGE("RTN_SERVER_INIT", "Failed to open sysfs original values file: sysfsOriginalValues.txt");
-        return;
-    }
+static void handleSIGINT(int32_t sig) {
+    terminateServer = true;
+}
 
-    std::string line;
-    while(std::getline(file, line)) {
-        std::stringstream lineStream(line);
-        std::string token;
+static void handleSIGTSTP(int32_t sig) {
+    toggleDisplayModes();
+}
 
-        int8_t index = 0;
-        std::string sysfsNodePath = "";
-        int32_t sysfsNodeDefaultValue = -1;
-
-        while(std::getline(lineStream, token, ',')) {
-            if(index == 0) {
-                sysfsNodePath = token;
-            } else if(index == 1) {
-                sysfsNodeDefaultValue = std::stoi(token);
-            }
-            index++;
-        }
-
-        if(sysfsNodePath.length() > 0 && sysfsNodeDefaultValue != -1) {
-            // Write To Node
-            std::ofstream sysfsFile(sysfsNodePath, std::ios::out | std::ios::trunc);
-
-            if(!sysfsFile.is_open()) {
-                LOGE("RTN_SERVER_INIT",
-                     "Failed to write default value to sysfs node: " + sysfsNodePath);
-                continue;
-            }
-
-            sysfsFile << std::to_string(sysfsNodeDefaultValue);
-            if(sysfsFile.fail()) {
-                LOGE("RTN_SERVER_INIT",
-                     "Failed to write default value to sysfs node: " + sysfsNodePath);
-                sysfsFile.flush();
-                sysfsFile.close();
-                continue;
-            }
-
-            sysfsFile.flush();
-            sysfsFile.close();
-        }
-    }
+static void serverCleanup() {
+    LOGE("RTN_SERVER_INIT", "Server Stopped, Cleanup Initiated");
+    ResourceTunerSettings::setServerOnlineStatus(false);
 }
 
 static ErrCode createResourceTunerDaemon(int32_t& childProcessID) {
@@ -85,32 +47,17 @@ static ErrCode createResourceTunerDaemon(int32_t& childProcessID) {
             // all the Sysfs Nodes to a Sane State.
             std::this_thread::sleep_for(std::chrono::seconds(1));
             if(getppid() == 1) {
-                writeSysFsDefaults();
+                AuxRoutines::writeSysFsDefaults();
                 break;
             }
         }
 
         // Delete the Sysfs Persistent File
-        remove("../sysfsOriginalValues.txt");
+        AuxRoutines::deleteFile("../sysfsOriginalValues.txt");
         exit(EXIT_SUCCESS);
     }
 
     return RC_SUCCESS;
-}
-
-static int8_t terminateServer = false;
-
-static void handleSIGINT(int32_t sig) {
-    terminateServer = true;
-}
-
-static void handleSIGTSTP(int32_t sig) {
-    toggleDisplayModes();
-}
-
-static void serverCleanup() {
-    LOGE("RTN_SERVER_INIT", "Server Stopped, Cleanup Initiated");
-    ResourceTunerSettings::setServerOnlineStatus(false);
 }
 
 int32_t main(int32_t argc, char *argv[]) {
@@ -210,11 +157,11 @@ int32_t main(int32_t argc, char *argv[]) {
 
     if(RC_IS_OK(mOpStatus)) {
         if(ComponentRegistry::isModuleEnabled(MOD_SYSSIGNAL)) {
-            TYPELOGV(NOTIFY_MODULE_ENABLED, "SysSignal");
+            TYPELOGV(NOTIFY_MODULE_ENABLED, "Signal");
             if(RC_IS_OK(mOpStatus)) {
                 mOpStatus = ComponentRegistry::getModuleRegistrationCallback(MOD_SYSSIGNAL)();
                 if(RC_IS_NOTOK(mOpStatus)) {
-                    TYPELOGV(MODULE_INIT_FAILED, "SysSignal");
+                    TYPELOGV(MODULE_INIT_FAILED, "Signal");
                 }
             }
         }
@@ -263,12 +210,16 @@ int32_t main(int32_t argc, char *argv[]) {
 
         // Listen for Terminal prompts
         while(!terminateServer) {
-            char exitStatus[16];
-            exitStatus[sizeof(exitStatus) - 1] = '\0';
-            ssize_t bytesRead = read(STDIN_FILENO, exitStatus, sizeof(exitStatus) - 1);
-            if(bytesRead > 0) {
-                if(strncmp(exitStatus, "stop", 4) == 0 || strncmp(exitStatus, "exit", 4) == 0) {
-                    terminateServer = true;
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+
+            if(flags != -1) {
+                char exitStatus[16];
+                exitStatus[sizeof(exitStatus) - 1] = '\0';
+                ssize_t bytesRead = read(STDIN_FILENO, exitStatus, sizeof(exitStatus) - 1);
+                if(bytesRead > 0) {
+                    if(strncmp(exitStatus, "stop", 4) == 0) {
+                        terminateServer = true;
+                    }
                 }
             }
         }
@@ -281,7 +232,9 @@ int32_t main(int32_t argc, char *argv[]) {
     // - Killing the child process created to monitor the parent (Server)
     serverCleanup();
 
-    ComponentRegistry::getModuleTeardownCallback(MOD_CORE)();
+    if(ComponentRegistry::isModuleEnabled(MOD_CORE)) {
+        ComponentRegistry::getModuleTeardownCallback(MOD_CORE)();
+    }
 
     if(ComponentRegistry::isModuleEnabled(MOD_SYSSIGNAL)) {
         ComponentRegistry::getModuleTeardownCallback(MOD_SYSSIGNAL)();
@@ -310,7 +263,7 @@ int32_t main(int32_t argc, char *argv[]) {
     }
 
     // Delete the Sysfs Persistent File
-    remove("../sysfsOriginalValues.txt");
+    AuxRoutines::deleteFile("../sysfsOriginalValues.txt");
 
     return 0;
 }

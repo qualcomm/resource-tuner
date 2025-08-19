@@ -10,6 +10,7 @@
 
 #include "Utils.h"
 #include "Resource.h"
+#include "AuxRoutines.h"
 #include "Extensions.h"
 #include "Logger.h"
 

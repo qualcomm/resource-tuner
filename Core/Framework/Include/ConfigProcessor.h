@@ -17,6 +17,7 @@
 #include "ResourceRegistry.h"
 #include "TargetRegistry.h"
 #include "Utils.h"
+#include "AuxRoutines.h"
 
 #define RESOURCE_CONFIGS_ROOT "ResourceConfigs"
 #define RESOURCE_CONFIGS_ELEM_RESOURCE_TYPE "ResType"

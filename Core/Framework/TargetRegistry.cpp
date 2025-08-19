@@ -78,24 +78,6 @@ static int32_t getOnlineCpuCount() {
     return 0;
 }
 
-static std::string readFromNode(const std::string& fName) {
-    std::ifstream myFile(fName, std::ios::in);
-    std::string value = "";
-
-    if(!myFile.is_open()) {
-        LOGE("RTN_RESOURCE_PROCESSOR", "Failed to open file: " + fName + " Error: " + strerror(errno));
-        return "";
-    }
-
-    if(!getline(myFile, value)) {
-        LOGE("RTN_RESOURCE_PROCESSOR", "Failed to read from file: " + fName);
-        return "";
-    }
-
-    myFile.close();
-    return value;
-}
-
 std::shared_ptr<TargetRegistry> TargetRegistry::targetRegistryInstance = nullptr;
 TargetRegistry::TargetRegistry() {
     ResourceTunerSettings::targetConfigs.totalClusterCount = ClusterTypes::TOTAL_CLUSTER_COUNT;
@@ -119,16 +101,26 @@ void TargetRegistry::addCGroupMapping(CGroupConfigInfo* cGroupConfigInfo) {
     }
 
     // Fill in defaults
-    (*cGroupConfigInfo->mDefaultValues)["cpu.uclamp.min"] = readFromNode("cpu.uclamp.min");
-    (*cGroupConfigInfo->mDefaultValues)["cpu.uclamp.max"] = readFromNode("cpu.uclamp.max");
-    (*cGroupConfigInfo->mDefaultValues)["cpuset.cpus"] = readFromNode("cpuset.cpus");
-    (*cGroupConfigInfo->mDefaultValues)["cpu.idle"] = readFromNode("cpu.idle");
-    (*cGroupConfigInfo->mDefaultValues)["cpu.max"] = readFromNode("cpu.max");
-    (*cGroupConfigInfo->mDefaultValues)["cpu.weight"] = readFromNode("cpu.weight");
-    (*cGroupConfigInfo->mDefaultValues)["memory.max"] = readFromNode("memory.max");
-    (*cGroupConfigInfo->mDefaultValues)["memory.min"] = readFromNode("memory.min");
-    (*cGroupConfigInfo->mDefaultValues)["cgroup.freeze"] = readFromNode("cgroup.freeze");
-    (*cGroupConfigInfo->mDefaultValues)["cpuset.cpus.partition"] = readFromNode("cpuset.cpus.partition");
+    (*cGroupConfigInfo->mDefaultValues)["cpu.uclamp.min"] =
+                            AuxRoutines::readFromFile("cpu.uclamp.min");
+    (*cGroupConfigInfo->mDefaultValues)["cpu.uclamp.max"] =
+                            AuxRoutines::readFromFile("cpu.uclamp.max");
+    (*cGroupConfigInfo->mDefaultValues)["cpuset.cpus"] =
+                            AuxRoutines::readFromFile("cpuset.cpus");
+    (*cGroupConfigInfo->mDefaultValues)["cpu.idle"] =
+                            AuxRoutines::readFromFile("cpu.idle");
+    (*cGroupConfigInfo->mDefaultValues)["cpu.max"] =
+                            AuxRoutines::readFromFile("cpu.max");
+    (*cGroupConfigInfo->mDefaultValues)["cpu.weight"] =
+                            AuxRoutines::readFromFile("cpu.weight");
+    (*cGroupConfigInfo->mDefaultValues)["memory.max"] =
+                            AuxRoutines::readFromFile("memory.max");
+    (*cGroupConfigInfo->mDefaultValues)["memory.min"] =
+                            AuxRoutines::readFromFile("memory.min");
+    (*cGroupConfigInfo->mDefaultValues)["cgroup.freeze"] =
+                            AuxRoutines::readFromFile("cgroup.freeze");
+    (*cGroupConfigInfo->mDefaultValues)["cpuset.cpus.partition"] =
+                            AuxRoutines::readFromFile("cpuset.cpus.partition");
 
     this->mCGroupMapping[cGroupConfigInfo->mCgroupID] = cGroupConfigInfo;
 }

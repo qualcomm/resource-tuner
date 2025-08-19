@@ -8,6 +8,7 @@
 // #include <limits.h>
 // #include <memory>
 
+// #include "AuxRoutines.h"
 // #include "Extensions.h"
 // #include "CocoTable.h"
 // #include "ResourceRegistry.h"
@@ -60,19 +61,6 @@
 //     int32_t getCurrentlyAppliedPriorityAtIndex(int32_t index) {
 //         return CocoTable::getInstance()-> mCurrentlyAppliedPriority[index];
 //     }
-
-//     std::string readFromNode(const std::string& fName) {
-//         std::fstream myFile(fName, std::ios::in | std::ios::out | std::ios::app);
-//         std::string value;
-
-//         if(myFile.is_open()) {
-//             getline(myFile, value);
-//             myFile.close();
-//         } else {
-//             return "";
-//         }
-//         return value;
-//     }
 // };
 
 // TEST_F(CocoTableTest, ConstructorInitializesFields) {
@@ -105,7 +93,7 @@
 
 //     CocoTable::getInstance()->insertRequest(request);
 
-//     EXPECT_EQ(readFromNode("../Tests/Configs/sched_util_clamp_min"),
+//     EXPECT_EQ(AuxRoutine::readFromFile("../Tests/Configs/sched_util_clamp_min"),
 //               std::to_string(valueToBeWritten));
 
 //     CocoTable::getInstance()->removeRequest(request);
@@ -651,7 +639,7 @@
 
 //     CocoTable::getInstance()->insertRequest(request);
 
-//     EXPECT_EQ(readFromNode("../Tests/Configs/sched_util_clamp_min"),
+//     EXPECT_EQ(AuxRoutine::readFromFile("../Tests/Configs/sched_util_clamp_min"),
 //               std::to_string(resource->mConfigValue.singleValue));
 
 //     CocoTable::getInstance()->removeRequest(request);
