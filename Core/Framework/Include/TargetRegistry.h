@@ -29,6 +29,7 @@ typedef struct {
     std::string mCgroupName;
     int8_t mCgroupID;
     int8_t isThreaded;
+    std::unordered_map<std::string, std::string>* mDefaultValues;
 } CGroupConfigInfo;
 
 class TargetRegistry {
@@ -56,6 +57,8 @@ private:
     int8_t readPhysicalMapping();
 
 public:
+    ~TargetRegistry();
+
     // Add a new Cluste Type to Physical ID mapping to mClusterTypeToPhysicalSlotMapping
     int8_t addMapping(const std::string& clusterName, int8_t physicalClusterId);
 
@@ -68,6 +71,8 @@ public:
     void addCGroupMapping(CGroupConfigInfo* cGroupConfigInfo);
 
     void getCGroupConfigs(std::vector<CGroupConfigInfo*>& cGroupNames);
+
+    int32_t getCreatedCGroupsCount();
 
     CGroupConfigInfo* getCGroupConfig(int8_t cGroupID);
 

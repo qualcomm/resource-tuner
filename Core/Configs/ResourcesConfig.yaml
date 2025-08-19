@@ -11,7 +11,7 @@ ResourceConfigs:
     LowThreshold: 0
     Permissions: "third_party"
     Modes: ["display_on", "doze"]
-    Policy: "higher_is_better"
+    Policy: "lower_is_better"
     ApplyType: "global"
 
   - ResType: "0x03"
@@ -21,9 +21,9 @@ ResourceConfigs:
     Supported: true
     HighThreshold: 1024
     LowThreshold: 0
-    Permissions: "third_party"
+    Permissions: third_party
     Modes: ["display_on", "doze"]
-    Policy: "lower_is_better"
+    Policy: higher_is_better
     ApplyType: "global"
 
   - ResType: "0x04"
@@ -34,7 +34,7 @@ ResourceConfigs:
     HighThreshold: 1939200
     LowThreshold: 1267200
     Permissions: third_party
-    Modes: ["display_on", "display_off"]
+    Modes: ["display_on", "doze"]
     Policy: lower_is_better
     ApplyType: "global"
 
@@ -46,8 +46,8 @@ ResourceConfigs:
     HighThreshold: 1939200
     LowThreshold: 1267200
     Permissions: third_party
-    Modes: ["display_on", "display_off"]
-    Policy: instant_apply
+    Modes: ["display_on", "doze"]
+    Policy: lower_is_better
     ApplyType: "global"
 
   - ResType: "0x04"
@@ -58,8 +58,8 @@ ResourceConfigs:
     HighThreshold: 1939200
     LowThreshold: 1267200
     Permissions: third_party
-    Modes: ["display_on", "display_off"]
-    Policy: lazy_apply
+    Modes: ["display_on", "doze"]
+    Policy: lower_is_better
     ApplyType: "global"
 
   - ResType: "0x04"
@@ -70,7 +70,7 @@ ResourceConfigs:
     HighThreshold: 1939200
     LowThreshold: 1267200
     Permissions: third_party
-    Modes: ["display_on", "display_off"]
+    Modes: ["display_on", "doze"]
     Policy: lower_is_better
     ApplyType: "global"
 
@@ -82,7 +82,7 @@ ResourceConfigs:
     HighThreshold: 1939200
     LowThreshold: 1267200
     Permissions: third_party
-    Modes: ["display_on", "display_off"]
+    Modes: ["display_on", "doze"]
     Policy: higher_is_better
     ApplyType: "global"
 
@@ -94,7 +94,7 @@ ResourceConfigs:
     HighThreshold: 1939200
     LowThreshold: 1267200
     Permissions: third_party
-    Modes: ["display_on", "display_off"]
+    Modes: ["display_on", "doze"]
     Policy: higher_is_better
     ApplyType: "global"
 
@@ -106,7 +106,7 @@ ResourceConfigs:
     HighThreshold: 1939200
     LowThreshold: 1267200
     Permissions: third_party
-    Modes: ["display_on", "display_off"]
+    Modes: ["display_on", "doze"]
     Policy: higher_is_better
     ApplyType: "global"
 
@@ -118,25 +118,51 @@ ResourceConfigs:
     HighThreshold: 1939200
     LowThreshold: 1267200
     Permissions: third_party
-    Modes: ["display_on", "display_off"]
+    Modes: ["display_on", "doze"]
     Policy: higher_is_better
     ApplyType: "global"
 
+  - ResType: "0x04"
+    ResID: "0x0200"
+    Name: "SCALING_MIN_FREQ_GENERIC"
+    Path: "/sys/devices/system/cpu/cpufreq/policy%d/scaling_min_freq"
+    Supported: true
+    HighThreshold: 1939200
+    LowThreshold: 1267200
+    Permissions: third_party
+    Modes: ["display_on", "doze"]
+    Policy: lower_is_better
+    ApplyType: "cluster"
+
+  - ResType: "0x04"
+    ResID: "0x0201"
+    Name: "SCALING_MAX_FREQ_GENERIC"
+    Path: "/sys/devices/system/cpu/cpufreq/policy%d/scaling_max_freq"
+    Supported: true
+    HighThreshold: 1939200
+    LowThreshold: 1267200
+    Permissions: third_party
+    Modes: ["display_on", "doze"]
+    Policy: higher_is_better
+    ApplyType: "cluster"
+
   - ResType: "0x09"
     ResID: "0x0000"
-    Name: "RES_TUNER_CGROUP_MOVE_PROCS"
+    Name: "RES_TUNER_CGROUP_MOVE_PID"
     Path: "/sys/fs/cgroup/%s/cgroup.procs"
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
+    Policy: instant_apply
 
   - ResType: "0x09"
     ResID: "0x0001"
-    Name: "RES_TUNER_CGROUP_MOVE_THREADS"
+    Name: "RES_TUNER_CGROUP_MOVE_TID"
     Path: "/sys/fs/cgroup/%s/cgroup.threads"
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
+    Policy: instant_apply
 
   - ResType: "0x09"
     ResID: "0x0002"
@@ -161,43 +187,67 @@ ResourceConfigs:
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
-
-  - ResType: "0x09"
-    ResID: "0x0005"
-    Name: "RES_TUNER_CGROUP_UNFREEZE"
-    Path: "/sys/fs/cgroup/%s/cgroup.freeze"
-    Supported: true
-    Permissions: "system"
-    ApplyType: "cgroup"
+    Policy: instant_apply
 
   - ResType: "0x09"
     ResID: "0x0006"
-    Name: "RES_TUNER_RUN_WHEN_CPU_IDLE"
-    Path: "/sys/fs/cgroup/%s/cpu.idle "
+    Name: "RES_TUNER_CGROUP_RUN_WHEN_CPU_IDLE"
+    Path: "/sys/fs/cgroup/%s/cpu.idle"
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
+    Policy: instant_apply
 
   - ResType: "0x09"
     ResID: "0x0007"
-    Name: "RES_TUNER_UCLAMP_MIN"
+    Name: "RES_TUNER_CGROUP_UCLAMP_MIN"
     Path: "/sys/fs/cgroup/%s/cpu.uclamp.min"
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
+    Policy: lower_is_better
 
   - ResType: "0x09"
     ResID: "0x0008"
-    Name: "RES_TUNER_UCLAMP_MAX"
+    Name: "RES_TUNER_CGROUP_UCLAMP_MAX"
     Path: "/sys/fs/cgroup/%s/cpu.uclamp.max"
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
+    Policy: higher_is_better
 
   - ResType: "0x09"
     ResID: "0x0009"
-    Name: "RES_TUNER_RELATIVE_CPU_WEIGHT"
+    Name: "RES_TUNER_CGROUP_RELATIVE_CPU_WEIGHT"
     Path: "/sys/fs/cgroup/%s/cpu.weight"
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
+    Policy: instant_apply
+
+  - ResType: "0x09"
+    ResID: "0x000a"
+    Name: "RES_TUNER_CGROUP_MAX_MEMORY"
+    Path: "/sys/fs/cgroup/%s/memory.max"
+    Supported: true
+    Permissions: "system"
+    ApplyType: "cgroup"
+    Policy: higher_is_better
+
+  - ResType: "0x09"
+    ResID: "0x000b"
+    Name: "RES_TUNER_CGROUP_MIN_MEMORY"
+    Path: "/sys/fs/cgroup/%s/memory.min"
+    Supported: true
+    Permissions: "system"
+    ApplyType: "cgroup"
+    Policy: lower_is_better
+
+  - ResType: "0x09"
+    ResID: "0x000c"
+    Name: "RES_TUNER_CGROUP_LIMIT_CPU_TIME"
+    Path: "/sys/fs/cgroup/%s/cpu.max"
+    Supported: true
+    Permissions: "system"
+    ApplyType: "cgroup"
+    Policy: higher_is_better

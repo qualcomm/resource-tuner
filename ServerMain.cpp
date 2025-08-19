@@ -141,10 +141,10 @@ int32_t main(int32_t argc, char *argv[]) {
                 break;
             case 't':
                 ResourceTunerSettings::serverInTestMode = true;
-                RTN_REGISTER_CONFIG(PROPERTIES_CONFIG, "../Tests/Configs/testPropertiesConfig.yaml")
-                RTN_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourcesConfig.yaml")
-                RTN_REGISTER_CONFIG(SIGNALS_CONFIG, "../Tests/Configs/testSignalsConfig.yaml")
-                RTN_REGISTER_CONFIG(TARGET_CONFIG, "../Tests/Configs/testTargetConfig.yaml")
+                RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "../Tests/Configs/testPropertiesConfig.yaml")
+                RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourcesConfig.yaml")
+                RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, "../Tests/Configs/testSignalsConfig.yaml")
+                RESTUNE_REGISTER_CONFIG(TARGET_CONFIG, "../Tests/Configs/testTargetConfig.yaml")
                 break;
             case 'h':
                 std::cout<<"Help Options"<<std::endl;
@@ -242,8 +242,6 @@ int32_t main(int32_t argc, char *argv[]) {
     // Create a Listener Thread
     std::thread resourceTunerListener;
     if(RC_IS_OK(mOpStatus)) {
-        LOGI("RTN_SERVER_INIT",
-             "Starting Resource Tuner Listener Thread");
         try {
             resourceTunerListener = std::thread(listenerThreadStartRoutine);
             TYPELOGD(LISTENER_THREAD_CREATION_SUCCESS);

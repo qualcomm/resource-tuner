@@ -4,4 +4,4 @@
 #include "Utils.h"
 #include "Extensions.h"
 
-RTN_REGISTER_CONFIG(TARGET_CONFIG, "/etc/ResourceTuner/Common/TargetConfig.yaml")
+RESTUNE_REGISTER_CONFIG(TARGET_CONFIG, "/etc/ResourceTuner/Common/TargetConfig.yaml")

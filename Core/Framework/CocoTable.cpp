@@ -3,7 +3,7 @@
 
 #include "CocoTable.h"
 
-static void writeToNode(const std::string& fName, int32_t fValue) {
+static void writeToNode(const std::string& fName, const std::string& fValue) {
     std::ofstream myFile(fName, std::ios::out | std::ios::trunc);
 
     if(!myFile.is_open()) {
@@ -11,7 +11,7 @@ static void writeToNode(const std::string& fName, int32_t fValue) {
         return;
     }
 
-    myFile << std::to_string(fValue);
+    myFile<<fValue;
     if(myFile.fail()) {
         LOGD("RTN_COCO_TABLE", "Failed to write to file: "+ fName + " Error: " + strerror(errno));
     }
@@ -31,42 +31,85 @@ std::shared_ptr<CocoTable> CocoTable::mCocoTableInstance = nullptr;
 std::mutex CocoTable::instanceProtectionLock {};
 
 CocoTable::CocoTable() {
-    mResourceTable = ResourceRegistry::getInstance()->getRegisteredResources();
+    this->mResourceTable = ResourceRegistry::getInstance()->getRegisteredResources();
     int32_t totalResources = ResourceRegistry::getInstance()->getTotalResourcesCount();
 
-    mCurrentlyAppliedPriority.resize(totalResources, -1);
+    this->mCurrentlyAppliedPriority.resize(totalResources, -1);
 
-    // Init the CocoTable, the table will contain a vector corresponding to each Resource from the ResourceTable
-    // For the Resource if there is no core level conflict, then a vector of size 4 will be allocated, where each
-    // entry corresponds to a different priority. Currently 4 priority levels are supported (SH / SL and TPH / TPL)
-    // However, if there is conflict then a vector of size 32 will be allocated, where each entry corresponds to a
-    // different core, priority combination. For example Priority 0 (SH) and Core 0 maps to index 0 in the CocoTable.
-    for(ResourceConfigInfo* resourceConfig: mResourceTable) {
+    /*
+        Initialize the CocoTable, the table will contain a vector corresponding to each Resource from the ResourceTable
+        For the Resource if there is no level of conflict (i.e. apply type is "global"), then a vector of size 4 will be
+        allocated, where each of the 4 entry corresponds to a different priority, as Currently 4 priority levels are supported (SH / SL and TPH / TPL)
+        In case of Conflicts:
+        - For a Resource with Core Level Conflict (i.e. apply type is "core") a vector of size: 4 * NUMBER_OF_CORES will be created
+        - For a Resource with Cluster Level Conflict (i.e. apply type is "cluster") a vector of size: 4 * NUMBER_OF_CLUSTER will be created
+        - For a Resource with CGroup Level Conflict (i.e. apply type is "cgroup") a vector of size: 4 * NUMBER_OF_CGROUPS_CREATED will be created
+
+        How the CocoTable (Vector) will look:
+        - Say we have 5 resources R1, R2, R3, R4, R5
+        - Where R3 has core level conflict
+        - R4 has cluster level conflict
+        - R5 has cgroup level conflict
+        - R1 and R2 have no conflict
+        - Say core count is 4, cluster count is 4 and cgroup count is 2
+        - P1, P2, P3 and P4 represent the priorities
+        [
+            R1: [P1: [], P2: [], P3: [], P4: []],                                       # size of vector: 4
+            R2: [P1: [], P2: [], P3: [], P4: []],                                       # size of vector: 4
+            R3: [                                                                       # size of vector: 4 * 4 = 16
+                Core1_P1: [], Core1_P2: [], Core1_P3: [], Core1_P4: [],
+                Core2_P1: [], Core2_P2: [], Core2_P3: [], Core2_P4: [],
+                Core3_P1: [], Core3_P2: [], Core3_P3: [], Core3_P4: [],
+                Core4_P1: [], Core4_P2: [], Core4_P3: [], Core4_P4: []
+                ],
+            R4: [                                                                       # size of vector: 4 * 4 = 16
+                Cluster1_P1: [], Cluster1_P2: [], Cluster1_P3: [], Cluster1_P4: [],
+                Cluster2_P1: [], Cluster2_P2: [], Cluster2_P3: [], Cluster2_P4: [],
+                Cluster3_P1: [], Cluster3_P2: [], Cluster3_P3: [], Cluster3_P4: [],
+                Cluster4_P1: [], Cluster4_P2: [], Cluster4_P3: [], Cluster4_P4: []
+                ],
+            R5: [                                                                       # size of vector: 4 * 2 = 8
+                Cgroup1_P1: [], Cgroup1_P2: [], Cgroup1_P3: [], Cgroup1_P4: [],
+                Cgroup2_P1: [], Cgroup2_P2: [], Cgroup2_P3: [], Cgroup2_P4: []
+                ]
+        ]
+    */
+    for(ResourceConfigInfo* resourceConfig: this->mResourceTable) {
         if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CORE) {
-            mCocoTable.push_back(std::vector<std::pair<CocoNode*, CocoNode*>>(TOTAL_PRIORITIES * ResourceTunerSettings::targetConfigs.totalCoreCount));
-        } else {
-            mCocoTable.push_back(std::vector<std::pair<CocoNode*, CocoNode*>>(TOTAL_PRIORITIES));
+            int32_t totalCoreCount = ResourceTunerSettings::targetConfigs.totalCoreCount;
+            this->mCocoTable.push_back(std::vector<std::pair<CocoNode*, CocoNode*>>(TOTAL_PRIORITIES * totalCoreCount));
+
+        } else if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CLUSTER) {
+            int32_t totalClusterCount = ResourceTunerSettings::targetConfigs.totalClusterCount;
+            this->mCocoTable.push_back(std::vector<std::pair<CocoNode*, CocoNode*>>(TOTAL_PRIORITIES * totalClusterCount));
+
+        } else if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CGROUP) {
+            int32_t totalCGroupCount = TargetRegistry::getInstance()->getCreatedCGroupsCount();
+            this->mCocoTable.push_back(std::vector<std::pair<CocoNode*, CocoNode*>>(TOTAL_PRIORITIES * totalCGroupCount));
+
+        } else if(resourceConfig->mApplyType == ResourceApplyType::APPLY_GLOBAL){
+            this->mCocoTable.push_back(std::vector<std::pair<CocoNode*, CocoNode*>>(TOTAL_PRIORITIES));
         }
     }
 }
 
 void CocoTable::applyAction(CocoNode* currNode, int32_t index, int8_t priority) {
-    if(!currNode) return;
+    if(currNode == nullptr) return;
 
     Resource* resource = currNode->mResource;
 
-    if(mCurrentlyAppliedPriority[index] >= priority ||
-       mCurrentlyAppliedPriority[index] == -1) {
+    if(this->mCurrentlyAppliedPriority[index] >= priority ||
+       this->mCurrentlyAppliedPriority[index] == -1) {
         ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
         if(resourceConfig->mModes & ResourceTunerSettings::targetConfigs.currMode) {
             // Check if a custom Applier (Callback) has been provided for this Resource, if yes, then call it
             // Note for resources with multiple values, the BU will need to provide a custom applier, which provides
             // the aggregation / selection logic.
-            if(resourceConfig->resourceApplierCallback != nullptr) {
-                resourceConfig->resourceApplierCallback(resource);
+            if(resourceConfig->mResourceApplierCallback != nullptr) {
+                resourceConfig->mResourceApplierCallback(resource);
             } else {
                 // Default Applier
-                writeToNode(resourceConfig->mResourceName, resource->mConfigValue.singleValue);
+                writeToNode(resourceConfig->mResourceName, std::to_string(resource->mConfigValue.singleValue));
                 LOGI("RTN_COCO_TABLE" , "Value " + std::to_string(resource->mConfigValue.singleValue) + " written in " +
                      resourceConfig->mResourceName);
             }
@@ -76,10 +119,19 @@ void CocoTable::applyAction(CocoNode* currNode, int32_t index, int8_t priority) 
 }
 
 void CocoTable::applyDefaultAction(int32_t index, Resource* resource) {
-    if(!resource) return;
-    writeToNode(ResourceRegistry::getInstance()->getResourceById(resource->getOpCode())->mResourceName, ResourceRegistry::getInstance()->getResourceById(resource->getOpCode())->mDefaultValue);
-    LOGI("RTN_COCO_TABLE" , "Value "+ std::to_string(ResourceRegistry::getInstance()->getResourceById(resource->getOpCode())->mDefaultValue) + " written in " + ResourceRegistry::getInstance()->getResourceById(resource->getOpCode())->mResourceName);
-    mCurrentlyAppliedPriority[index] = -1;
+    if(resource == nullptr) return;
+    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
+    if(resourceConfigInfo != nullptr) {
+        if(resourceConfigInfo->mResourceTearCallback != nullptr) {
+            resourceConfigInfo->mResourceTearCallback(resource);
+        } else {
+            // Default Tear Callback
+            writeToNode(resourceConfigInfo->mResourceName, resourceConfigInfo->mDefaultValue);
+            LOGI("RTN_COCO_TABLE" ,
+                 "Value " + resourceConfigInfo->mDefaultValue + " written in " + resourceConfigInfo->mResourceName);
+        }
+        mCurrentlyAppliedPriority[index] = -1;
+    }
 }
 
 void CocoTable::deleteNode(CocoNode* node, int32_t primaryIndex, int32_t secondaryIndex, int8_t priority) {
@@ -199,17 +251,28 @@ int32_t CocoTable::getCocoTablePrimaryIndex(uint32_t opId) {
 }
 
 int32_t CocoTable::getCocoTableSecondaryIndex(Resource* resource, int8_t priority) {
-    if(ResourceRegistry::getInstance()->getResourceById(resource->getOpCode()) == nullptr) {
+    std::shared_ptr<ResourceRegistry> resourceRegistry = ResourceRegistry::getInstance();
+    if(resourceRegistry->getResourceById(resource->getOpCode()) == nullptr) {
         return -1;
     }
 
-    if(ResourceRegistry::getInstance()->getResourceById(resource->getOpCode())->mApplyType ==
-       ResourceApplyType::APPLY_CORE) {
+    ResourceConfigInfo* resourceConfigInfo =
+        resourceRegistry->getResourceById(resource->getOpCode());
+
+    if(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_CORE) {
         int32_t physicalCore = resource->getCoreValue();
         return physicalCore * TOTAL_PRIORITIES + priority;
+    } else if(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_CLUSTER) {
+        int32_t physicalCluster = resource->getClusterValue();
+        return physicalCluster * TOTAL_PRIORITIES + priority;
+    } else if(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_CGROUP) {
+        int32_t cGroupIdentifier = resource->getOptionalInfo();
+        return cGroupIdentifier * TOTAL_PRIORITIES + priority;
+    } else if(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_GLOBAL) {
+        return priority;
     }
 
-    return priority;
+    return -1;
 }
 
 int8_t CocoTable::insertInCocoTable(CocoNode* currNode, Resource* resource, int8_t priority) {

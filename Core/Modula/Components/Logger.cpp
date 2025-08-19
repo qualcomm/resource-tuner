@@ -415,6 +415,56 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             Logger::log(ERROR, "RTN_RATE_LIMITER", funcName, std::string(buffer));
             break;
 
+        case CommonMessageTypes::SIGNAL_REGISTRY_SIGNAL_NOT_FOUND:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Signal ID [%u] not found in the registry", args);
+
+            Logger::log(ERROR, "RTN_SIGNAL_REGISTRY", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::SIGNAL_REGISTRY_PARSING_FAILURE:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Signal Parsing Failed with error: %s", args);
+
+            Logger::log(ERROR, "RTN_SIGNAL_REGISTRY", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::RESOURCE_REGISTRY_RESOURCE_NOT_FOUND:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Resource ID [%u] not found in the registry", args);
+
+            Logger::log(ERROR, "RTN_RESOURCE_REGISTRY", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::RESOURCE_REGISTRY_PARSING_FAILURE:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Resource Parsing Failed with error: %s", args);
+
+            Logger::log(ERROR, "RTN_RESOURCE_REGISTRY", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::CLIENT_ENTRY_CREATION_FAILURE:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Client Tracking Entry could not be created for handle [%ld] \
+                      Dropping Request", args);
+
+            Logger::log(ERROR, "RTN_SERVER", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::REQUEST_MANAGER_DUPLICATE_FOUND:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Duplicate Request found for handle [%ld]. Dropping Request", args);
+
+            Logger::log(ERROR, "RTN_REQUEST_MANAGER", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::REQUEST_MANAGER_REQUEST_NOT_ACTIVE:
+            vsnprintf(buffer, sizeof(buffer),
+                      "No existing request with handle [%ld] found, Dropping this Request", args);
+
+            Logger::log(ERROR, "RTN_REQUEST_MANAGER", funcName, std::string(buffer));
+            break;
+
         default:
             break;
     }

@@ -61,7 +61,7 @@ Refer the **Examples** Tab for guidance on Resource Tuner API usage.
 /Auxiliary  → Common Utilities and Components used across Resource Tuner Modules.
 /Client     → Exposes the Client Facing APIs, and Defines the Client Communication Endpoint
 /Server     → Defines the Server Communication Endpoint and other Common Server-Side Utils.
-/Signals    → Optional Module, exposes Signal Acquire / Relay APIs
+/Signals    → Optional Module, exposes Signal Tuning / Relay APIs
 /Tests      → Unit and System Wide Tests
 /docs       → Documentation
 \endverbatim
@@ -267,10 +267,10 @@ The file SignalsConfig.yaml defines the Signal Configs.
 | `Category`          | `string` (Mandatory)   | Category of the Signal, for example: Generic, App Lifecycle. | Not Applicable |
 | `Name`          | `string` (Optional)  | |`Empty String` |
 | `Enable`          | `boolean` (Optional)   | Indicates if the Signal is Eligible for Provisioning. | `False` |
-| `TargetsEnabled`          | `array` (Optional)   | List of Targets on which this Signal can be Acquired | `Empty List` |
-| `TargetsEnabled`          | `array` (Optional)   | List of Targets on which this Signal cannot be Acquired | `Empty List` |
+| `TargetsEnabled`          | `array` (Optional)   | List of Targets on which this Signal can be Tuned | `Empty List` |
+| `TargetsEnabled`          | `array` (Optional)   | List of Targets on which this Signal cannot be Tuned | `Empty List` |
 | `Permissions`          | `array` (Optional)   | List of acceptable Client Level Permissions for tuning this Signal | `third_party` |
-|`Timeout`              | `integer` (Optional) | Default Signal Acquire Duration to be used in case the Client specifies a value of 0 for duration in the tuneSignal API call. | `1000` |
+|`Timeout`              | `integer` (Optional) | Default Signal Tuning Duration to be used in case the Client specifies a value of 0 for duration in the tuneSignal API call. | `1 (ms)` |
 | `Resources` | `array` (Mandatory) | List of Resources. | Not Applicable |
 
 <div style="page-break-after: always;"></div>
@@ -634,7 +634,7 @@ Specifically the Extension Interface provides the following capabilities:
 
 ## Macros
 
-### `RTN_REGISTER_RESOURCE`
+### `RESTUNE_REGISTER_APPLIER_CB`
 
 Registers a custom resource handler with the system. This allows the framework to invoke a user-defined callback when a specific resource opcode is encountered. A function pointer to the callback is to be registered.
 Now, instead of the normal resource handler, this callback function will be called when a Resource Provisioning Request for this particular resource opcode arrives.
@@ -646,18 +646,18 @@ int32_t applyCustomCpuFreqCustom(Resource* res) {
     return 0;
 }
 
-RTN_REGISTER_RESOURCE(0x00010001, applyCustomCpuFreqCustom);
+RESTUNE_REGISTER_APPLIER_CB(0x00010001, applyCustomCpuFreqCustom);
 ```
 
 ---
 
-### `RTN_REGISTER_CONFIG`
+### `RESTUNE_REGISTER_CONFIG`
 
 Registers a custom configuration YAML file. This enables the BU to provide their own Config Files, i.e. allowing them to provide their Own Custom Resources for Example.
 
 ### Usage Example
 ```cpp
-RTN_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/bin/targetResourceConfigCustom.yaml");
+RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/bin/targetResourceConfigCustom.yaml");
 ```
 The above line of code, will indicate to Resource Tuner to Read the Resource Configs from the file
 "/etc/bin/targetResourceConfigCustom.yaml" instead of the Default File. Note, the BUs must honour the structure of the YAML files, for them to be read and registered successfully.
@@ -665,7 +665,7 @@ The above line of code, will indicate to Resource Tuner to Read the Resource Con
 Custom Signal Config File can be specified similarly:
 ### Usage Example
 ```cpp
-RTN_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/bin/targetSignalConfigCustom.yaml");
+RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/bin/targetSignalConfigCustom.yaml");
 ```
 
 <div style="page-break-after: always;"></div>

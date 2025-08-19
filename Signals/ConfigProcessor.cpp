@@ -134,7 +134,7 @@ ErrCode ConfigProcessor::parseSignalConfigs(const std::string& filePath, int8_t 
                 } catch(const std::invalid_argument& e) {
                     LOGE("RTN_SIGNAL_PROCESSOR", "Error parsing Signal Config: " + std::string(e.what()));
                 } catch(const std::bad_alloc& e) {
-
+                    LOGE("RTN_SIGNAL_PROCESSOR", "Error parsing Resource Config: " + std::string(e.what()));
                 }
             }
         }

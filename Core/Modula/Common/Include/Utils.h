@@ -136,6 +136,6 @@ typedef ErrCode (*ModuleCallback)();
 typedef void (*ModuleMessageHandlerCallback)(void*);
 typedef int8_t (*ServerOnlineCheckCallback)();
 typedef void (*ResourceTunerMessageReceivedCallback)(int32_t, MsgForwardInfo*);
-typedef void (*ResourceApplierCallback)(void*);
+typedef void (*ResourceLifecycleCallback)(void*);
 
 #endif

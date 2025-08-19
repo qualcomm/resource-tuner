@@ -14,6 +14,7 @@
 #include <memory>
 
 #include "ResourceRegistry.h"
+#include "TargetRegistry.h"
 #include "Request.h"
 #include "RequestQueue.h"
 #include "ResourceTunerSettings.h"

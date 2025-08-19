@@ -4,10 +4,15 @@
 #include "Extensions.h"
 
 std::vector<std::string> Extensions::mModifiedConfigFiles (TOTAL_CONFIGS_COUNT, "");
-std::unordered_map<uint32_t, void (*)(void*)> Extensions::mModifiedResourceConfigs {};
+std::unordered_map<uint32_t, ResourceLifecycleCallback> Extensions::mResourceApplierCallbacks {};
+std::unordered_map<uint32_t, ResourceLifecycleCallback> Extensions::mResourceTearCallbacks {};
 
-Extensions::Extensions(uint32_t resourceOpcode, ResourceApplierCallback resourceApplierCallback) {
-    this->mModifiedResourceConfigs[resourceOpcode] = resourceApplierCallback;
+Extensions::Extensions(uint32_t resourceOpcode, int8_t callbackType, ResourceLifecycleCallback callback) {
+    if(callbackType == 0) {
+        mResourceApplierCallbacks[resourceOpcode] = callback;
+    } else if(callbackType == 1) {
+        mResourceTearCallbacks[resourceOpcode] = callback;
+    }
 }
 
 Extensions::Extensions(ConfigType configType, std::string yamlFile) {
@@ -15,9 +20,17 @@ Extensions::Extensions(ConfigType configType, std::string yamlFile) {
     mModifiedConfigFiles[configType] = yamlFile;
 }
 
-std::vector<std::pair<uint32_t, ResourceApplierCallback>> Extensions::getModifiedResources() {
-    std::vector<std::pair<uint32_t, ResourceApplierCallback>> modifiedResources;
-    for(std::pair<uint32_t, ResourceApplierCallback> resource: mModifiedResourceConfigs) {
+std::vector<std::pair<uint32_t, ResourceLifecycleCallback>> Extensions::getResourceApplierCallbacks() {
+    std::vector<std::pair<uint32_t, ResourceLifecycleCallback>> modifiedResources;
+    for(std::pair<uint32_t, ResourceLifecycleCallback> resource: mResourceApplierCallbacks) {
+        modifiedResources.push_back(resource);
+    }
+    return modifiedResources;
+}
+
+std::vector<std::pair<uint32_t, ResourceLifecycleCallback>> Extensions::getResourceTearCallbacks() {
+    std::vector<std::pair<uint32_t, ResourceLifecycleCallback>> modifiedResources;
+    for(std::pair<uint32_t, ResourceLifecycleCallback> resource: mResourceTearCallbacks) {
         modifiedResources.push_back(resource);
     }
     return modifiedResources;

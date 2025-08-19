@@ -139,7 +139,8 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
             int32_t lowThreshold = resourceConfig->mLowThreshold;
             int32_t highThreshold = resourceConfig->mHighThreshold;
 
-            if(configValue < lowThreshold || configValue > highThreshold) {
+            if((lowThreshold != -1 && highThreshold != -1) &&
+                (configValue < lowThreshold || configValue > highThreshold)) {
                 TYPELOGV(VERIFIER_VALUE_OUT_OF_BOUNDS, configValue, resource->getOpCode());
                 return false;
             }
@@ -158,7 +159,7 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
     }
 
     if(signal->getDuration() == 0) {
-        // If the Client has not specified a duration to acquire the Signal for,
+        // If the Client has not specified a duration to tune the Signal for,
         // We use the default duration for the Signal, specified in the Signal
         // Configs (YAML) file.
         signal->setDuration(signalInfo->mTimeout);
@@ -218,7 +219,7 @@ static int8_t CGroupProvisioningRequest(Signal* signal) {
 
             // Basic sanity: Invalid resource Opcode
             if(resourceConfig != nullptr) {
-                resourceConfig->resourceApplierCallback(resource);
+                resourceConfig->mResourceApplierCallback(resource);
             }
         }
 
@@ -244,6 +245,9 @@ static void processIncomingRequest(Signal* signal) {
         if(!clientDataManager->clientExists(signal->getClientPID(), signal->getClientTID())) {
             if(!clientDataManager->createNewClient(signal->getClientPID(), signal->getClientTID())) {
                 // Failed to create a tracking entry, drop the Request.
+                TYPELOGV(CLIENT_ENTRY_CREATION_FAILURE, signal->getHandle());
+
+                // Free the Signal Memory Block
                 Signal::cleanUpSignal(signal);
                 return;
             }
@@ -264,8 +268,8 @@ static void processIncomingRequest(Signal* signal) {
         return;
     }
 
-    // If it is a Request for CGroup Provisioning, handle it right away
-    if(signal->getRequestType() == SIGNAL_ACQ && CGroupProvisioningRequest(signal)) {
+    // Fill any Placeholders in the Signal Config
+    if(!fillDefaults(signal)) {
         Signal::cleanUpSignal(signal);
         return;
     }

@@ -196,7 +196,7 @@ static ErrCode initServer() {
     opStatus = createCGroups();
 
     // By this point, all the Extension Appliers / Resources would have been registered.
-    ResourceRegistry::getInstance()->pluginModifications(Extensions::getModifiedResources());
+    ResourceRegistry::getInstance()->pluginModifications();
 
     // Create the Processor thread:
     try {

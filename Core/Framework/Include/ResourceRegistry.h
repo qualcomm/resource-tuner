@@ -10,6 +10,7 @@
 
 #include "Utils.h"
 #include "Resource.h"
+#include "Extensions.h"
 #include "Logger.h"
 
 enum ResourceApplyType {
@@ -74,12 +75,18 @@ typedef struct {
     /**
      * @brief Original value of the Resource node, i.e. the value before any Tuning.
      */
-    int32_t mDefaultValue;
+    std::string mDefaultValue;
     /**
      * @brief Optional Custom Resource Applier Callback, it needs to be supplied by
      *        the BU via the Extension Interface.
      */
-    void (*resourceApplierCallback)(void*);
+    ResourceLifecycleCallback mResourceApplierCallback;
+
+    /**
+     * @brief Optional Custom Resource Tear Callback, it needs to be supplied by
+     *        the BU via the Extension Interface.
+     */
+    ResourceLifecycleCallback mResourceTearCallback;
 } ResourceConfigInfo;
 
 /**
@@ -134,7 +141,7 @@ public:
     int32_t getTotalResourcesCount();
 
     // Merge the Changes provided by the BU with the existing ResourceTable.
-    void pluginModifications(const std::vector<std::pair<uint32_t, ResourceApplierCallback>>& modifiedResources);
+    void pluginModifications();
 
     void restoreResourcesToDefaultValues();
 
@@ -166,7 +173,7 @@ public:
     ResourceConfigInfoBuilder* setSupported(int8_t supported);
     ResourceConfigInfoBuilder* setPolicy(const std::string& policyString);
     ResourceConfigInfoBuilder* setApplyType(const std::string& applyTypeString);
-    ResourceConfigInfoBuilder* setDefaultValue(int32_t defaultValue);
+    ResourceConfigInfoBuilder* setDefaultValue(const std::string& defaultValue);
 
     ResourceConfigInfo* build();
 };

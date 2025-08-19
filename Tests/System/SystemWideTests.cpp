@@ -645,7 +645,7 @@ namespace SignalVerification {
     std::string __testGroupName = "Signal Requests Verification / Integrity Checks";
     /**
     * API under test: tuneSignal
-    * - The client tries to acquire a Signal with a duration of -2.
+    * - The client tries to tune a Signal with a duration of -2.
     * - Note a duration of 0 is considered valid for the tuneSignal API.
     * - The Request will fail reliminary tests on the Client side and won't be
     *   submitted to the Server returning -1 to the End-Client.
@@ -662,10 +662,10 @@ namespace SignalVerification {
 
     /**
     * API under test: tuneSignal
-    * - A client sends a Signal Request to acquire a Signal for some (possibly inf) duration
+    * - A client sends a Signal Request to tune a Signal for some (possibly inf) duration
     * - Each Signal Config has an associated permission, either system or third_party. Here the
     *   Signal in question has system Permissions i.e. only Clients having system permissions
-    *   can acquire this signal.
+    *   can tune this signal.
     * - The client here only has third_party permissions, hence the request should be rejected
     *   by the Signal Verifier
     * - Verify that the Resource Node's value remains unchanged.
@@ -698,7 +698,7 @@ namespace SignalVerification {
 
     /**
     * API under test: tuneSignal
-    * - A client sends a Signal Request to Acquire a Signal for some (possibly inf) duration
+    * - A client sends a Signal Request to Tune a Signal for some (possibly inf) duration
     * - Each Resource associated with the Signal Config has an associated Low Threshold (LT) and High Threshold (HT).
     * - If a Signal Config specifies a value which is (< LT) or (> HT) for any Resource, then the Reuqest
     *   should be rejected by the Signal Verifier
@@ -734,10 +734,10 @@ namespace SignalVerification {
     * API under test: tuneSignal
     * - Through the Signal Configs, it can be specified for each Signal which target it is supported
     *   on and for which it is not eligible for provisioning.
-    * - If a client tries to acquire a Signal on a Target, where the Signal is not supported, the
+    * - If a client tries to tune a Signal on a Target, where the Signal is not supported, the
     *   request should be rejected by the Signal Verifier.
     * - Verify that the Resource Node's value remains unchanged.
-    * - Here the Signal in question is supported on "sun" and "moon", but the client tries to acquire it
+    * - Here the Signal in question is supported on "sun" and "moon", but the client tries to tune it
     *   on Kodiak. Hence, the Request should be dropped.
     * Cross-Reference id: [E]
     */
@@ -2359,7 +2359,7 @@ namespace SignalApplicationTests {
 
    /**
     * API under test: tuneSignal
-    * - A client tries to acquire a Signal, which tunes a Single Resource
+    * - A client tries to tune a Signal, which tunes a Single Resource
     * - Verified the Resource Node is updated to the configured value
     * - Verify that the Resource Node is reset once the Signal timeouts.
     * Cross-Reference id: [A]
@@ -2397,7 +2397,7 @@ namespace SignalApplicationTests {
 
    /**
     * API under test: tuneSignal
-    * - A client tries to acquire a Signal, which tunes multiple Resources
+    * - A client tries to tune a Signal, which tunes multiple Resources
     * - Verified the Resource Node is updated to the configured value
     * - Verify that the Resource Node is reset once the Signal timeouts.
     * Cross-Reference id: [A]

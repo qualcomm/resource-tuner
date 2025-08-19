@@ -10,7 +10,7 @@
 #include "Extensions.h"
 #include "Utils.h"
 
-RTN_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourcesConfig.yaml")
+RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourcesConfig.yaml")
 
 #define TOTAL_RESOURCE_CONFIGS_COUNT 11
 

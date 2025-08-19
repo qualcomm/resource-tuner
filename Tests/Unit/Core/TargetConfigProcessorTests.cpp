@@ -11,7 +11,7 @@
 #include "Extensions.h"
 #include "Utils.h"
 
-RTN_REGISTER_CONFIG(TARGET_CONFIG, "../Tests/Configs/testTargetConfig.yaml")
+RESTUNE_REGISTER_CONFIG(TARGET_CONFIG, "../Tests/Configs/testTargetConfig.yaml")
 
 class TargetConfigProcessorTests: public::testing::Test {
 protected:

@@ -3,33 +3,22 @@
 
 #include "ConfigProcessor.h"
 
-static int32_t readFromNode(const std::string& fName) {
+static std::string readFromNode(const std::string& fName) {
     std::ifstream myFile(fName, std::ios::in);
-    std::string value;
+    std::string value = "";
 
     if(!myFile.is_open()) {
         LOGE("RTN_RESOURCE_PROCESSOR", "Failed to open file: " + fName + " Error: " + strerror(errno));
-        return 0;
+        return "";
     }
 
     if(!getline(myFile, value)) {
         LOGE("RTN_RESOURCE_PROCESSOR", "Failed to read from file: " + fName);
-        return 0;
+        return "";
     }
 
     myFile.close();
-
-    try {
-        int32_t result = stoi(value);
-        LOGD("RTN_RESOURCE_PROCESSOR", "Read value " + std::to_string(result) + " from file: " + fName);
-        return result;
-    } catch(const std::invalid_argument& e) {
-        LOGE("RTN_RESOURCE_PROCESSOR", "Invalid integer in file: " + fName + " Content: " + value);
-    } catch(const std::out_of_range& e) {
-        LOGE("RTN_RESOURCE_PROCESSOR", "Integer out of range in file: " + fName + " Content: " + value);
-    }
-
-    return 0;
+    return value;
 }
 
 void ConfigProcessor::parseResourceConfigYamlNode(const YAML::Node& item, int8_t isBuSpecified) {
@@ -60,7 +49,7 @@ void ConfigProcessor::parseResourceConfigYamlNode(const YAML::Node& item, int8_t
         safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCEPATH], "")
     );
 
-    int32_t defaultValue = readFromNode(
+    std::string defaultValue = readFromNode(
         safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCEPATH], "")
     );
 
@@ -142,9 +131,9 @@ void ConfigProcessor::parseInitConfigYamlNode(const YAML::Node& item) {
     if(isList(item[INIT_CONFIGS_CGROUPS_LIST])) {
         for(const auto& cGroupConfig : item[INIT_CONFIGS_CGROUPS_LIST]) {
             CGroupConfigInfoBuilder cGroupConfigBuilder;
-            cGroupConfigBuilder.setCGroupName(safeExtract<std::string>(cGroupConfig[INIT_CONFIGS_CGROUP_NAME]));
-            cGroupConfigBuilder.setCGroupID((int8_t)(safeExtract<int8_t>(cGroupConfig[INIT_CONFIGS_CGROUP_IDENTIFIER])));
-            cGroupConfigBuilder.setThreaded((int8_t)(safeExtract<bool>(cGroupConfig[INIT_CONFIGS_CGROUP_THREADED])));
+            cGroupConfigBuilder.setCGroupName(safeExtract<std::string>(cGroupConfig[INIT_CONFIGS_CGROUP_NAME], ""));
+            cGroupConfigBuilder.setCGroupID((int8_t)(safeExtract<int8_t>(cGroupConfig[INIT_CONFIGS_CGROUP_IDENTIFIER], -1)));
+            cGroupConfigBuilder.setThreaded((int8_t)(safeExtract<bool>(cGroupConfig[INIT_CONFIGS_CGROUP_THREADED], false)));
 
             TargetRegistry::getInstance()->addCGroupMapping(cGroupConfigBuilder.build());
         }

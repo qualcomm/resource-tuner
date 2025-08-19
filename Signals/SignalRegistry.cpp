@@ -58,7 +58,7 @@ std::vector<SignalInfo*> SignalRegistry::getSignalConfigs() {
 
 SignalInfo* SignalRegistry::getSignalConfigById(uint32_t signalID) {
     if(this->mSystemIndependentLayerMappings.find(signalID) == this->mSystemIndependentLayerMappings.end()) {
-        LOGE("RTN_SIGNAL_PROCESSOR", "Resource ID not found in the registry");
+        TYPELOGV(SIGNAL_REGISTRY_SIGNAL_NOT_FOUND, signalID);
         return nullptr;
     }
 
@@ -139,12 +139,10 @@ SignalInfoBuilder* SignalInfoBuilder::setOpID(const std::string& signalOpIdStrin
     this->mSignalInfo->mSignalOpId = -1;
     try {
         this->mSignalInfo->mSignalOpId = (int16_t)stoi(signalOpIdString, nullptr, 0);
-    } catch(const std::invalid_argument& ex) {
-        LOGE("RTN_SIGNAL_REGISTRY",
-             "Signal Parsing Failed with error: " + std::string(ex.what()));
-    } catch(const std::out_of_range& ex) {
-        LOGE("RTN_SIGNAL_REGISTRY",
-             "Signal Parsing Failed with error: " + std::string(ex.what()));
+    } catch(const std::invalid_argument& e) {
+        TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
+    } catch(const std::out_of_range& e) {
+        TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
     }
     return this;
 }
@@ -157,12 +155,10 @@ SignalInfoBuilder* SignalInfoBuilder::setCategory(const std::string& categoryStr
     this->mSignalInfo->mSignalCategory = -1;
     try {
         this->mSignalInfo->mSignalCategory = (int8_t)stoi(categoryString, nullptr, 0);
-    } catch(const std::invalid_argument& ex) {
-        LOGE("RTN_SIGNAL_REGISTRY",
-             "Signal Parsing Failed with error: " + std::string(ex.what()));
-    } catch(const std::out_of_range& ex) {
-        LOGE("RTN_SIGNAL_REGISTRY",
-             "Signal Parsing Failed with error: " + std::string(ex.what()));
+    } catch(const std::invalid_argument& e) {
+        TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
+    } catch(const std::out_of_range& e) {
+        TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
     }
     return this;
 }

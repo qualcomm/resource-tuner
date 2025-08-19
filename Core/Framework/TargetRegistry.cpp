@@ -78,8 +78,28 @@ static int32_t getOnlineCpuCount() {
     return 0;
 }
 
+static std::string readFromNode(const std::string& fName) {
+    std::ifstream myFile(fName, std::ios::in);
+    std::string value = "";
+
+    if(!myFile.is_open()) {
+        LOGE("RTN_RESOURCE_PROCESSOR", "Failed to open file: " + fName + " Error: " + strerror(errno));
+        return "";
+    }
+
+    if(!getline(myFile, value)) {
+        LOGE("RTN_RESOURCE_PROCESSOR", "Failed to read from file: " + fName);
+        return "";
+    }
+
+    myFile.close();
+    return value;
+}
+
 std::shared_ptr<TargetRegistry> TargetRegistry::targetRegistryInstance = nullptr;
-TargetRegistry::TargetRegistry() {}
+TargetRegistry::TargetRegistry() {
+    ResourceTunerSettings::targetConfigs.totalClusterCount = ClusterTypes::TOTAL_CLUSTER_COUNT;
+}
 
 void TargetRegistry::setTargetName(const std::string& targetName) {
     this->mTargetName = targetName;
@@ -92,6 +112,24 @@ void TargetRegistry::setTotalCoreCount(uint8_t totalCoreCount) {
 }
 
 void TargetRegistry::addCGroupMapping(CGroupConfigInfo* cGroupConfigInfo) {
+    if(cGroupConfigInfo == nullptr || cGroupConfigInfo->mDefaultValues == nullptr) return;
+    if(cGroupConfigInfo->mCgroupID == -1 || cGroupConfigInfo->mCgroupName.length() == 0) {
+        delete cGroupConfigInfo;
+        return;
+    }
+
+    // Fill in defaults
+    (*cGroupConfigInfo->mDefaultValues)["cpu.uclamp.min"] = readFromNode("cpu.uclamp.min");
+    (*cGroupConfigInfo->mDefaultValues)["cpu.uclamp.max"] = readFromNode("cpu.uclamp.max");
+    (*cGroupConfigInfo->mDefaultValues)["cpuset.cpus"] = readFromNode("cpuset.cpus");
+    (*cGroupConfigInfo->mDefaultValues)["cpu.idle"] = readFromNode("cpu.idle");
+    (*cGroupConfigInfo->mDefaultValues)["cpu.max"] = readFromNode("cpu.max");
+    (*cGroupConfigInfo->mDefaultValues)["cpu.weight"] = readFromNode("cpu.weight");
+    (*cGroupConfigInfo->mDefaultValues)["memory.max"] = readFromNode("memory.max");
+    (*cGroupConfigInfo->mDefaultValues)["memory.min"] = readFromNode("memory.min");
+    (*cGroupConfigInfo->mDefaultValues)["cgroup.freeze"] = readFromNode("cgroup.freeze");
+    (*cGroupConfigInfo->mDefaultValues)["cpuset.cpus.partition"] = readFromNode("cpuset.cpus.partition");
+
     this->mCGroupMapping[cGroupConfigInfo->mCgroupID] = cGroupConfigInfo;
 }
 
@@ -277,8 +315,30 @@ CGroupConfigInfo* TargetRegistry::getCGroupConfig(int8_t cGroupID) {
     return this->mCGroupMapping[cGroupID];
 }
 
+int32_t TargetRegistry::getCreatedCGroupsCount() {
+    return this->mCGroupMapping.size();
+}
+
+TargetRegistry::~TargetRegistry() {
+    for(std::pair<int8_t, CGroupConfigInfo*> cGroupInfo: this->mCGroupMapping) {
+        if(cGroupInfo.second == nullptr) return;
+
+        if(cGroupInfo.second->mDefaultValues != nullptr) {
+            delete cGroupInfo.second->mDefaultValues;
+            cGroupInfo.second->mDefaultValues = nullptr;
+        }
+
+        if(cGroupInfo.second != nullptr) {
+            delete cGroupInfo.second;
+            cGroupInfo.second = nullptr;
+        }
+    }
+}
+
 CGroupConfigInfoBuilder::CGroupConfigInfoBuilder() {
     this->mCGroupConfigInfo = new CGroupConfigInfo;
+    this->mCGroupConfigInfo->mDefaultValues =
+        new std::unordered_map<std::string, std::string>;
 }
 
 CGroupConfigInfoBuilder* CGroupConfigInfoBuilder::setCGroupName(const std::string& cGroupName) {

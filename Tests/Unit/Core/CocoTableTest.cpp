@@ -12,7 +12,7 @@
 // #include "CocoTable.h"
 // #include "ResourceRegistry.h"
 
-// RTN_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourcesConfig.yaml")
+// RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourcesConfig.yaml")
 
 // class CocoTableTest : public ::testing::Test {
 // protected:
@@ -69,8 +69,6 @@
 //             getline(myFile, value);
 //             myFile.close();
 //         } else {
-//             LOGE("RTN_COCO_TABLE",
-//                  "Failed to open the file: " + fName);
 //             return "";
 //         }
 //         return value;

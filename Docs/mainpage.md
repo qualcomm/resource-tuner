@@ -44,7 +44,7 @@ Refer the **Examples** Tab for guidance on Resource Tuner API usage.
 /Auxiliary  → Common Utilities and Components used across Resource Tuner Modules.
 /Client     → Exposes the Client Facing APIs, and Defines the Client Communication Endpoint
 /Server     → Defines the Server Communication Endpoint and other Common Server-Side Utils.
-/Signals    → Optional Module, exposes Signal Acquire / Relay APIs
+/Signals    → Optional Module, exposes Signal Tuning / Relay APIs
 /Tests      → Unit and System Wide Tests
 /docs       → Documentation
 \endverbatim

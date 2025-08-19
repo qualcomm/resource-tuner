@@ -11,7 +11,7 @@
 #include "Utils.h"
 #include "Logger.h"
 
-RTN_REGISTER_CONFIG(PROPERTIES_CONFIG, "../Tests/Configs/testPropertiesConfig.yaml")
+RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "../Tests/Configs/testPropertiesConfig.yaml")
 
 #define TOTAL_SYS_CONFIGS_PROPS_COUNT 14
 

@@ -12,7 +12,7 @@
 #include "SysConfigProcessor.h"
 #include "Logger.h"
 
-RTN_REGISTER_CONFIG(PROPERTIES_CONFIG, "../Tests/Configs/testPropertiesConfig.yaml")
+RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "../Tests/Configs/testPropertiesConfig.yaml")
 
 class SysConfigAPITests: public::testing::Test {
 protected:

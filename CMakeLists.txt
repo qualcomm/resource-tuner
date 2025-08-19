@@ -7,6 +7,12 @@ set(CMAKE_BUILD_TYPE Debug)
 
 project("Resource Tuner")
 
+option(BUILD_DOC "Build documentation" OFF)
+option(BUILD_SHARED_LIBS "Build shared libraries instead of static ones" ON)
+option(BUILD_SIGNALS "Build SysSignals" OFF)
+option(BUILD_TESTS "Testing" OFF)
+option(BUILD_CLI "Build CLI" OFF)
+
 #GoogleTest dependency (Update the hash often)
 include(FetchContent)
 FetchContent_Declare(
@@ -27,7 +33,6 @@ FetchContent_MakeAvailable(yaml-cpp)
 
 # Enable Doxygen documentation build
 # first we can indicate the documentation build as an option and set it to OFF by default
-option(BUILD_DOC "Build documentation" OFF)
 if(BUILD_DOC)
 # check if Doxygen is installed
 find_package(Doxygen)
@@ -52,24 +57,21 @@ else (DOXYGEN_FOUND)
 endif (DOXYGEN_FOUND)
 endif()
 
-option(BUILD_SHARED_LIBS "Build shared libraries instead of static ones" ON)
+
 
 # Mandatory Builds
 add_subdirectory(Core/Build)
 
 # Optional builds
-option(BUILD_SIGNALS "Build SysSignals" OFF)
 if(BUILD_SIGNALS)
   add_subdirectory(Signals/Build)
 endif()
 
-option(BUILD_TESTS "Testing" OFF)
 if(BUILD_TESTS)
   enable_testing()
   add_subdirectory(Tests/Unit/Build)
 endif()
 
-option(BUILD_CLI "Build CLI" OFF)
 if(BUILD_CLI)
   add_executable(resource_tuner_cli
     ./Core/Client/APIs/ResourceTunerAPIs.cpp
