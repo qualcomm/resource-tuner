@@ -262,12 +262,21 @@ int32_t CocoTable::getCocoTableSecondaryIndex(Resource* resource, int8_t priorit
     if(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_CORE) {
         int32_t physicalCore = resource->getCoreValue();
         return physicalCore * TOTAL_PRIORITIES + priority;
+
     } else if(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_CLUSTER) {
         int32_t physicalCluster = resource->getClusterValue();
         return physicalCluster * TOTAL_PRIORITIES + priority;
+
     } else if(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_CGROUP) {
-        int32_t cGroupIdentifier = resource->getOptionalInfo();
+        int32_t cGroupIdentifier = -1;
+        if(resource->getValuesCount() == 1) {
+            cGroupIdentifier = resource->mConfigValue.singleValue;
+        } else {
+            cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
+        }
+        if(cGroupIdentifier == -1) return -1;
         return cGroupIdentifier * TOTAL_PRIORITIES + priority;
+
     } else if(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_GLOBAL) {
         return priority;
     }
