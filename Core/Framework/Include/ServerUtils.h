@@ -9,25 +9,6 @@
 #include "MemoryPool.h"
 #include "SysConfigInternal.h"
 
-void preAllocateMemory() {
-    // Preallocate Memory for certain frequently used types.
-    int32_t concurrentRequestsUB = ResourceTunerSettings::metaConfigs.mMaxConcurrentRequests;
-    int32_t resourcesPerRequestUB = ResourceTunerSettings::metaConfigs.mMaxResourcesPerRequest;
-
-    MakeAlloc<Message> (concurrentRequestsUB);
-    MakeAlloc<Request> (concurrentRequestsUB);
-    MakeAlloc<Timer> (concurrentRequestsUB);
-    MakeAlloc<Resource> (concurrentRequestsUB * resourcesPerRequestUB);
-    MakeAlloc<CocoNode> (concurrentRequestsUB * resourcesPerRequestUB);
-    MakeAlloc<SysConfig> (concurrentRequestsUB);
-    MakeAlloc<ClientInfo> (concurrentRequestsUB * resourcesPerRequestUB);
-    MakeAlloc<ClientTidData> (concurrentRequestsUB * resourcesPerRequestUB);
-    MakeAlloc<std::unordered_set<int64_t>> (concurrentRequestsUB * resourcesPerRequestUB);
-    MakeAlloc<std::vector<Resource*>> (concurrentRequestsUB * resourcesPerRequestUB);
-    MakeAlloc<std::vector<int32_t>> (concurrentRequestsUB * resourcesPerRequestUB);
-    MakeAlloc<std::vector<CocoNode*>> (concurrentRequestsUB * resourcesPerRequestUB);
-}
-
 ErrCode fetchMetaConfigs() {
     std::string resultBuffer;
 
@@ -47,8 +28,8 @@ ErrCode fetchMetaConfigs() {
         sysConfigGetProp("resource_tuner.maximum.resources.per.request", resultBuffer, sizeof(resultBuffer), "5");
         ResourceTunerSettings::metaConfigs.mMaxResourcesPerRequest = (uint32_t)std::stol(resultBuffer);
 
-        sysConfigGetProp("resource_tuner.listening.port", resultBuffer, sizeof(resultBuffer), "12000");
-        ResourceTunerSettings::metaConfigs.mListeningPort = (uint32_t)std::stol(resultBuffer);
+        // Hard Code this value, as it should not be end-client customisable
+        ResourceTunerSettings::metaConfigs.mListeningPort = 12000;
 
         sysConfigGetProp("resource_tuner.pulse.duration", resultBuffer, sizeof(resultBuffer), "60000");
         ResourceTunerSettings::metaConfigs.mPulseDuration = (uint32_t)std::stol(resultBuffer);

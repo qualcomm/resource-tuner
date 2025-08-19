@@ -31,7 +31,6 @@ Resource:
     Permissions: "third_party"
     Modes: ["display_on", "doze"]
     Policy: "higher_is_better"
-    CoreLevelConflict: false
 */
 void func1() {
     // First Create a List of Resources to be Provisioned as part of this Request
@@ -81,8 +80,8 @@ void func1() {
     // Physical values in the background and the configured Resource Values
     // will only take effect on the Specified Physical Core and Cluster.
     // Note this Value is only meaningful for Resources for which the Config
-    // Field "CoreLevelConflict" is set to True.
-    // In this case since CoreLevelConflict is false for R1, hence this field
+    // Field "ApplyType" is set to "Core".
+    // In this case since ApplyType is "global" for R1, hence this field
     // will not be processed by the Resource Tuner Server
     resourceList[0].mOpInfo = 0;
     // Note, above line of Code is not necessary, since the field is already initialized

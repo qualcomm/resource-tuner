@@ -84,9 +84,8 @@ typedef struct {
 class SignalRegistry {
 private:
     static std::shared_ptr<SignalRegistry> signalRegistryInstance;
-    static int32_t mTotalSignals;
+    int32_t mTotalSignals;
     std::vector<SignalInfo*> mSignalsConfigs;
-    int8_t customerBit;
 
     std::unordered_map<uint32_t, int32_t> mSystemIndependentLayerMappings;
 
@@ -95,15 +94,13 @@ private:
 public:
     ~SignalRegistry();
 
-    void initRegistry(int32_t size, int8_t customerBit);
-
     /**
      * @brief Used to register a Config specified (through YAML) Signal with Resource Tuner
      * @details The Signal Info is parsed from YAML files. If the SignalInfo provided is
      *          Malformed, then it will be freed as part of this routine, else it will
      *          be added to the "mSignalsConfigs" vector.
      */
-    void registerSignal(SignalInfo* signalInfo);
+    void registerSignal(SignalInfo* signalInfo, int8_t isBuSpecified=false);
 
     int8_t isSignalConfigMalformed(SignalInfo* sConf);
 
@@ -121,6 +118,8 @@ public:
     int32_t getSignalsConfigCount();
 
     void displaySignals();
+
+    int32_t getSignalTableIndex(uint32_t signalID);
 
     static std::shared_ptr<SignalRegistry> getInstance() {
         if(signalRegistryInstance == nullptr) {

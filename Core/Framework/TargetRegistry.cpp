@@ -227,7 +227,7 @@ ErrCode TargetRegistry::readPhysicalCoreClusterInfo() {
     return RC_SUCCESS;
 }
 
-void TargetRegistry::displayLogicalClustersToPhysicalCoresMapping() {
+void TargetRegistry::displayLogicalToPhysicalMapping() {
     for(std::pair<std::string, std::vector<int8_t>> entry: mClusterTypeToPhysicalCores) {
         LOGD("RTN_LOGICAL_CORE_TRANSLATOR","=============");
 

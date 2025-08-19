@@ -183,7 +183,7 @@ Further, a ThreadPool component is provided to pre-allocate processing capacity.
 Resource Tuner utilises YAML files for configuration. This includes the Resources, Signal Config Files. The BUs can provide their own Config Files, which are specific to their use-case through the Extension Interface
 
 ## 1. Resource Configs
-Tunable Resources are specified via the ResourceConfigs.yaml file. Each Resource is defined with the following fields:
+Tunable Resources are specified via the ResourcesConfig.yaml file. Each Resource is defined with the following fields:
 
 #### Fields Description
 
@@ -198,7 +198,7 @@ Tunable Resources are specified via the ResourceConfigs.yaml file. Each Resource
 | `Permissions`   | `string` (Optional)   | Type of client allowed to Provision this Resource (`system` or `third_party`). | `third_party` |
 | `Modes`         | `array` (Optional)    | Display modes applicable (`"display_on"`, `"display_off"`, `"doze"`). | `display_on` |
 | `Policy`        | `string`(Optional)   | Concurrency policy (`"higher_is_better"`, `"lower_is_better"`, `"instant_apply"`, `"lazy_apply"`). | `lazy_apply` |
-| `CoreLevelConflict` | `boolean` (Optional)  | Indicates if the resource can have different values, across different cores. | `False` |
+| `ApplyType` | `string` (Optional)  | Indicates if the resource can have different values, across different cores. | `global` |
 
 <div style="page-break-after: always;"></div>
 
@@ -215,7 +215,6 @@ ResourceConfigs:
     Permissions: "third_party"
     Modes: ["display_on", "doze"]
     Policy: "higher_is_better"
-    CoreLevelConflict: false
 
   - ResType: "0x1"
     ResID: "0x1"
@@ -226,14 +225,13 @@ ResourceConfigs:
     Permissions: "third_party"
     Modes: ["display_on", "doze"]
     Policy: "lower_is_better"
-    CoreLevelConflict: false
 ```
 
 ---
 <div style="page-break-after: always;"></div>
 
 ## 2. Properties Config
-The targetPropertiesConfigs.yaml file stores various properties which are used by the Resource Tuner Modules internally (for example, to allocate sufficient amount of Memory for different Types, or to determine the Pulse Monitor Duration) as well as by the End Client.
+The targetPropertiesConfig.yaml file stores various properties which are used by the Resource Tuner Modules internally (for example, to allocate sufficient amount of Memory for different Types, or to determine the Pulse Monitor Duration) as well as by the End Client.
 
 #### Field Descriptions
 
@@ -259,7 +257,7 @@ PropertyConfigs:
 <div style="page-break-after: always;"></div>
 
 ## 3. Signal Configs
-The file SignalConfigs.yaml defines the Signal Configs.
+The file SignalsConfig.yaml defines the Signal Configs.
 
 #### Field Descriptions
 
@@ -311,11 +309,11 @@ SignalConfigs:
 
 
 ## 4. (Optional) Target Configs
-The file TargetConfigs.yaml defines the Target Configs, not this an Optional Config, i.e. this
+The file TargetConfig.yaml defines the Target Configs, not this an Optional Config, i.e. this
 file need not necessarily be provided. Resource Tuner can dynamically fetch system info, like Target Name,
 Logical to Physical Core / Cluster Mapping, number of cores etc. Use this file, if you want to
-provide this information explicitly. If the TargetConfigs.yaml is provided, Resource Tuner will always
-Prioritize and use it. Also note, there are no field-level default values available if the TargetConfigs.yaml is provided. Hence if you wish to provide this file, then you'll need to exhaustivly provide
+provide this information explicitly. If the TargetConfig.yaml is provided, Resource Tuner will always
+Prioritize and use it. Also note, there are no field-level default values available if the TargetConfig.yaml is provided. Hence if you wish to provide this file, then you'll need to exhaustivly provide
 all the required information.
 
 #### Field Descriptions
@@ -544,13 +542,13 @@ Examples:
 
 | Name           | ResType  | Examples |
 |----------------|----------|----------|
-|    POWER       |    `1`   | |
-|    CPU_DCVS    |    `2`   | |
+|    LPM       |    `1`   | |
+|    CACHES    |    `2`   | |
 |    CPU_SCHED   |    `3`   | `/proc/sys/kernel/sched_util_clamp_min`, `/proc/sys/kernel/sched_util_clamp_max` |
-|    CPU_FREQ    |    `4`   | `/sys/devices/system/cpu/cpufreq/policy<>/scaling_min_freq`, `/sys/devices/system/cpu/cpufreq/policy<>/scaling_max_freq` |
+|    CPU_DCVS    |    `4`   | `/sys/devices/system/cpu/cpufreq/policy<>/scaling_min_freq`, `/sys/devices/system/cpu/cpufreq/policy<>/scaling_max_freq` |
 |    GPU         |    `5`   | |
 |    NPU         |    `6`   | |
-|    CACHES      |    `7`   | |
+|    MEMORY      |    `7`   | |
 |    MPAM        |    `8`   | |
 |    MISC        |    `9`   | |
 

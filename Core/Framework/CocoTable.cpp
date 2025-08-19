@@ -7,13 +7,13 @@ static void writeToNode(const std::string& fName, int32_t fValue) {
     std::ofstream myFile(fName, std::ios::out | std::ios::trunc);
 
     if(!myFile.is_open()) {
-        LOGD("RTN_COCO_TABLE", "Failed to open file: "+ fName + " Error: " + std::strerror(errno));
+        LOGD("RTN_COCO_TABLE", "Failed to open file: "+ fName + " Error: " + strerror(errno));
         return;
     }
 
     myFile << std::to_string(fValue);
     if(myFile.fail()) {
-        LOGD("RTN_COCO_TABLE", "Failed to write to file: "+ fName + " Error: " + std::strerror(errno));
+        LOGD("RTN_COCO_TABLE", "Failed to write to file: "+ fName + " Error: " + strerror(errno));
     }
     myFile.flush();
     myFile.close();
@@ -34,7 +34,6 @@ CocoTable::CocoTable() {
     mResourceTable = ResourceRegistry::getInstance()->getRegisteredResources();
     int32_t totalResources = ResourceRegistry::getInstance()->getTotalResourcesCount();
 
-    // For all resources that have a core level conflict, 8 indices have been reserved (Total Cores). For rest, only one.
     mCurrentlyAppliedPriority.resize(totalResources, -1);
 
     // Init the CocoTable, the table will contain a vector corresponding to each Resource from the ResourceTable
@@ -43,7 +42,7 @@ CocoTable::CocoTable() {
     // However, if there is conflict then a vector of size 32 will be allocated, where each entry corresponds to a
     // different core, priority combination. For example Priority 0 (SH) and Core 0 maps to index 0 in the CocoTable.
     for(ResourceConfigInfo* resourceConfig: mResourceTable) {
-        if(resourceConfig->mCoreLevelConflict) {
+        if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CORE) {
             mCocoTable.push_back(std::vector<std::pair<CocoNode*, CocoNode*>>(TOTAL_PRIORITIES * ResourceTunerSettings::targetConfigs.totalCoreCount));
         } else {
             mCocoTable.push_back(std::vector<std::pair<CocoNode*, CocoNode*>>(TOTAL_PRIORITIES));
@@ -204,7 +203,8 @@ int32_t CocoTable::getCocoTableSecondaryIndex(Resource* resource, int8_t priorit
         return -1;
     }
 
-    if(ResourceRegistry::getInstance()->getResourceById(resource->getOpCode())->mCoreLevelConflict) {
+    if(ResourceRegistry::getInstance()->getResourceById(resource->getOpCode())->mApplyType ==
+       ResourceApplyType::APPLY_CORE) {
         int32_t physicalCore = resource->getCoreValue();
         return physicalCore * TOTAL_PRIORITIES + priority;
     }
@@ -391,7 +391,7 @@ int8_t CocoTable::removeRequest(Request* req) {
             int32_t reIndexIncrement = 0;
             ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
 
-            if(resourceConfig->mCoreLevelConflict) {
+            if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CORE) {
                 reIndexIncrement = getCocoTableSecondaryIndex(resource, SYSTEM_HIGH);
             }
 

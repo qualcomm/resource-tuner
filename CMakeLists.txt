@@ -83,7 +83,7 @@ endif()
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(YAMLCPP REQUIRED yaml-cpp)
 if(BUILD_SIGNALS)
-  add_executable(resource_tuner ./ServerMain.cpp ./Signals/SignalServer.cpp)
+  add_executable(resource_tuner ./ServerMain.cpp ./Signals/SignalInit.cpp)
   target_include_directories(resource_tuner PRIVATE ${YAMLCPP_INCLUDE_DIRS})
   target_include_directories(resource_tuner PRIVATE ${CMAKE_SOURCE_DIR}/Extensions/Include)
   target_link_libraries(resource_tuner PUBLIC SysSignals)
@@ -118,7 +118,7 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/Core/Client/APIs/Include/ DESTINATION incl
 #install config files
 install(
     DIRECTORY ${CMAKE_SOURCE_DIR}/Core/Configs/
-    DESTINATION /etc/ResourceTuner/
+    DESTINATION /etc/ResourceTuner/Common/
     FILES_MATCHING
     PATTERN "*.yaml"
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
@@ -126,7 +126,7 @@ install(
 
 install(
     DIRECTORY ${CMAKE_SOURCE_DIR}/Signals/Configs/
-    DESTINATION /etc/ResourceTuner/
+    DESTINATION /etc/ResourceTuner/Common/
     FILES_MATCHING
     PATTERN "*.yaml"
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ

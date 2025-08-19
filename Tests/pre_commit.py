@@ -50,9 +50,9 @@ if __name__ == "__main__":
     # Setup
     configFilesToCopy = ["testYamlInvalidSyntax.yaml",
                          "testPropertiesConfig.yaml",
-                         "testResourceConfigs.yaml",
-                         "testSignalConfigs.yaml",
-                         "testTargetConfigs.yaml"]
+                         "testResourcesConfig.yaml",
+                         "testSignalsConfig.yaml",
+                         "testTargetConfig.yaml"]
 
     currDirPath = os.getcwd()
     configDirPath = str(Path(__file__).parent) + "/Configs"

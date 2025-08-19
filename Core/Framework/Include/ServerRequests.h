@@ -12,7 +12,6 @@
 #include "RequestManager.h"
 #include "Request.h"
 #include "ResourceTunerSettings.h"
-#include "ResourceProcessor.h"
 #include "ResourceRegistry.h"
 #include "RequestManager.h"
 #include "ServerInternal.h"

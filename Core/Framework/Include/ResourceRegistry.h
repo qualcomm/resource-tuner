@@ -27,11 +27,15 @@ enum ResourceApplyType {
  */
 typedef struct {
     /**
-     * @brief Name of the sysfs node.
+     * @brief Name of the Resource (Placeholder).
      */
     std::string mResourceName;
     /**
-     * @brief Type of the Resource, for example: POWER, CPU_DCVS, GPU etc.
+     * @brief Path to the Sysfs node, CGroup controller file or as applicable.
+     */
+    std::string mResourcePath;
+    /**
+     * @brief Type of the Resource, for example: LPM, CPU_DCVS, GPU etc.
      */
     int8_t mResourceOptype;
     /**
@@ -59,9 +63,9 @@ typedef struct {
      */
     int8_t mSupported;
     /**
-     * @brief boolean flag which is set if the Resource can have different values on different cores.
+     * @brief Application Type Enum, indicating whether the specified value for the Resource
+     *        by a Request, needs to be applied at a per-core, per-cluster or global value.
      */
-    int8_t mCoreLevelConflict;
     enum ResourceApplyType mApplyType;
     /**
      * @brief Policy by which the resource is governed, for example Higher is Better.
@@ -78,12 +82,6 @@ typedef struct {
     void (*resourceApplierCallback)(void*);
 } ResourceConfigInfo;
 
-typedef struct {
-    Resource* mResource;
-    int32_t mClientPID;
-    int32_t mClientTID;
-} CGroupApplyInfo;
-
 /**
 * @brief ResourceRegistry
 * @details Stores information Relating to all the Resources available for Tuning.
@@ -93,7 +91,6 @@ class ResourceRegistry {
 private:
     static std::shared_ptr<ResourceRegistry> resourceRegistryInstance;
     int32_t mTotalResources;
-    int8_t customerBit;
 
     std::vector<ResourceConfigInfo*> mResourceConfig;
 
@@ -111,7 +108,7 @@ private:
 public:
     ~ResourceRegistry();
 
-    void initRegistry(int8_t customerBit);
+    void initRegistry();
 
     /**
      * @brief Used to register a Config specified (through YAML) Resource with Resource Tuner
@@ -119,7 +116,7 @@ public:
      *          Malformed, then it will be freed as part of this routine, else it will
      *          be added to the "mResourceConfig" vector.
      */
-    void registerResource(ResourceConfigInfo* resourceConfigInfo);
+    void registerResource(ResourceConfigInfo* resourceConfigInfo, int8_t isBuSpecified=false);
 
     std::vector<ResourceConfigInfo*> getRegisteredResources();
 
@@ -159,6 +156,7 @@ public:
     ResourceConfigInfoBuilder();
 
     ResourceConfigInfoBuilder* setName(const std::string& resourceName);
+    ResourceConfigInfoBuilder* setPath(const std::string& resourcePath);
     ResourceConfigInfoBuilder* setOptype(const std::string& opTypeString);
     ResourceConfigInfoBuilder* setOpcode(const std::string& opCodeString);
     ResourceConfigInfoBuilder* setHighThreshold(int32_t highThreshold);
@@ -167,7 +165,6 @@ public:
     ResourceConfigInfoBuilder* setModes(const std::string& modeString);
     ResourceConfigInfoBuilder* setSupported(int8_t supported);
     ResourceConfigInfoBuilder* setPolicy(const std::string& policyString);
-    ResourceConfigInfoBuilder* setCoreLevelConflict(int8_t coreLevelConflict);
     ResourceConfigInfoBuilder* setApplyType(const std::string& applyTypeString);
     ResourceConfigInfoBuilder* setDefaultValue(int32_t defaultValue);
 

@@ -6,9 +6,7 @@ SignalConfigs:
     Category: "0x01"
     Name: INSTALL
     Enable: true
-    TargetsEnabled: ["sun", "moon"]
     Permissions: ["system", "third_party"]
-    Derivatives: ["solar"]
     Timeout: 4000
     Resources:
       - {ResCode: "0x80030000", ResInfo: "0x00000000", Values: [700]}
@@ -17,9 +15,7 @@ SignalConfigs:
     Category: "0x01"
     Name: EARLY_WAKEUP
     Enable: true
-    TargetsDisabled: ["sun"]
     Permissions: ["system"]
-    Derivatives: ["solar"]
     Timeout: 5000
     Resources:
       - {ResCode: "0x80030000", ResInfo: "0x00000000", Values: [991]}

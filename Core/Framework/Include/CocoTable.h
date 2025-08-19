@@ -10,9 +10,10 @@
 #include <mutex>
 #include <cerrno>
 #include <atomic>
+#include <cstring>
 #include <memory>
 
-#include "ResourceProcessor.h"
+#include "ResourceRegistry.h"
 #include "Request.h"
 #include "RequestQueue.h"
 #include "ResourceTunerSettings.h"
@@ -51,7 +52,7 @@
  * The Concurrency Coordinator needs to honor both, the policy of the resource and the priority of the requests while taking decisions.
  *
  * Algorithm: Create 4 (number of currently supported priorities) doubly linked lists for each resource
- * (or for each core in each resource if core lever conflict exists).
+ * (or for each core in each resource if core level conflict exists).
  * Behavior of each linked list would depend on the policy specified in the resource table.
  *
  * Request Flow:\n\n

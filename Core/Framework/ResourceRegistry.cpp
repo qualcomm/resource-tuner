@@ -7,12 +7,7 @@
 std::shared_ptr<ResourceRegistry> ResourceRegistry::resourceRegistryInstance = nullptr;
 
 ResourceRegistry::ResourceRegistry() {
-    this->customerBit = false;
     this->mTotalResources = 0;
-}
-
-void ResourceRegistry::initRegistry(int8_t customerBit) {
-    this->customerBit = customerBit;
 }
 
 int8_t ResourceRegistry::isResourceConfigMalformed(ResourceConfigInfo* rConf) {
@@ -21,7 +16,8 @@ int8_t ResourceRegistry::isResourceConfigMalformed(ResourceConfigInfo* rConf) {
     return false;
 }
 
-void ResourceRegistry::registerResource(ResourceConfigInfo* resourceConfigInfo) {
+void ResourceRegistry::registerResource(ResourceConfigInfo* resourceConfigInfo,
+                                        int8_t isBuSpecified) {
     // Invalid Resource, skip.
     if(this->isResourceConfigMalformed(resourceConfigInfo)) {
         delete resourceConfigInfo;
@@ -32,7 +28,7 @@ void ResourceRegistry::registerResource(ResourceConfigInfo* resourceConfigInfo) 
     // These values will be used to restore the Sysfs nodes in case the Server Process crashes.
     if(resourceConfigInfo->mDefaultValue != 0) {
         std::fstream sysfsPersistenceFile("../sysfsOriginalValues.txt", std::ios::out | std::ios::app);
-        std::string resourceData = resourceConfigInfo->mResourceName;
+        std::string resourceData = resourceConfigInfo->mResourcePath;
         resourceData.push_back(',');
         resourceData.append(std::to_string(resourceConfigInfo->mDefaultValue));
         resourceData.push_back('\n');
@@ -41,21 +37,38 @@ void ResourceRegistry::registerResource(ResourceConfigInfo* resourceConfigInfo) 
 
     // Create the OpID Bitmap, this will serve as the key for the entry in mSystemIndependentLayerMappings.
     uint32_t resourceBitmap = 0;
-    if(this->customerBit) {
-        resourceBitmap |= (1 << 31);
-    }
-
     resourceBitmap |= ((uint32_t)resourceConfigInfo->mResourceOpcode);
     resourceBitmap |= ((uint32_t)resourceConfigInfo->mResourceOptype << 16);
 
-    this->mSystemIndependentLayerMappings[resourceBitmap] = this->mTotalResources;
-    this->mResourceConfig.push_back(resourceConfigInfo);
+    // Check for any conflict
+    if(this->mSystemIndependentLayerMappings.find(resourceBitmap) !=
+        this->mSystemIndependentLayerMappings.end()) {
+        // Resource with the specified ResType and ResCode already exists
+        // Overwrite it.
 
-    this->mTotalResources++;
+        int32_t resourceTableIndex = getResourceTableIndex(resourceBitmap);
+        this->mResourceConfig[resourceTableIndex] = resourceConfigInfo;
+
+        if(isBuSpecified) {
+            this->mSystemIndependentLayerMappings.erase(resourceBitmap);
+            resourceBitmap |= (1 << 31);
+
+            this->mSystemIndependentLayerMappings[resourceBitmap] = resourceTableIndex;
+        }
+    } else {
+        if(isBuSpecified) {
+            resourceBitmap |= (1 << 31);
+        }
+
+        this->mSystemIndependentLayerMappings[resourceBitmap] = this->mTotalResources;
+        this->mResourceConfig.push_back(resourceConfigInfo);
+
+        this->mTotalResources++;
+    }
 }
 
 void ResourceRegistry::displayResources() {
-    for(int32_t i = 0; i < mTotalResources; i++) {
+    for(int32_t i = 0; i < this->mTotalResources; i++) {
         auto& res = mResourceConfig[i];
 
         LOGI("RTN_RESOURCE_PROCESSOR", "Resource Name: " + res->mResourceName);
@@ -89,13 +102,7 @@ ResourceConfigInfo* ResourceRegistry::getResourceById(uint32_t resourceId) {
 }
 
 int32_t ResourceRegistry::getResourceTableIndex(uint32_t resourceId) {
-    try {
-        if(this->mSystemIndependentLayerMappings.find(resourceId) == this->mSystemIndependentLayerMappings.end()) {
-            throw std::out_of_range("Index out of bounds");
-        }
-    } catch(const std::exception& e) {
-        LOGE("RTN_RESOURCE_PROCESSOR",
-             "Resource ID not found in the registry");
+    if(this->mSystemIndependentLayerMappings.find(resourceId) == this->mSystemIndependentLayerMappings.end()) {
         return -1;
     }
 
@@ -161,6 +168,13 @@ ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setName(const std::string&
     if(this->mResourceConfigInfo == nullptr) return this;
 
     this->mResourceConfigInfo->mResourceName = name;
+    return this;
+}
+
+ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setPath(const std::string& path) {
+    if(this->mResourceConfigInfo == nullptr) return this;
+
+    this->mResourceConfigInfo->mResourcePath = path;
     return this;
 }
 
@@ -258,13 +272,6 @@ ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setPolicy(const std::strin
         policy = INSTANT_APPLY;
     }
     this->mResourceConfigInfo->mPolicy = policy;
-    return this;
-}
-
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setCoreLevelConflict(int8_t coreLevelConflict) {
-    if(this->mResourceConfigInfo == nullptr) return this;
-
-    this->mResourceConfigInfo->mCoreLevelConflict = coreLevelConflict;
     return this;
 }
 

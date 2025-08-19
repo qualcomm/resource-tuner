@@ -99,7 +99,7 @@ public:
     * @brief Called during Server Init, to read and Parse the Logical To Physical Core / Cluster Mappings.
     * @details This routine will extract the physical Core IDs and the list of CPU cores part of each Physical Cluster
     *          This data will be used to perform Logical to Physical Translation for each incoming tuneResources Request
-    *          later on, if it contains any Resource which has Core Conflict Enabled.
+    *          later on, if it contains any Resource which has ApplyType set to Core.
     *
     *          Note: This function tries to use different strategies to get the Core / Cluster Enumeration and Mapping data:
     *          - If the BU has provided a mapping file, it will be used. This mapping file should contain data specifying
@@ -118,7 +118,7 @@ public:
 
     // Utility to display the Parsed Mapping of Logical Cluster to Physical Cluster
     // Along with the list of cores, part of each Cluster.
-    void displayLogicalClustersToPhysicalCoresMapping();
+    void displayLogicalToPhysicalMapping();
 
     static std::shared_ptr<TargetRegistry> getInstance() {
         if(targetRegistryInstance == nullptr) {

@@ -43,6 +43,14 @@ public:
     static const int32_t maxPendingQueueSize = 12;
     static const int32_t maxScalingCapacity = 25;
 
+    static const std::string mCommonResourceFilePath;
+    static const std::string mCommonSignalFilePath;
+    static const std::string mInitConfigFilePath;
+    static const std::string mPropertiesFilePath;
+
+    static const std::string mTargetSpecificResourceFilePath;
+    static const std::string mTargetSpecificSignalFilePath;
+
     static std::shared_timed_mutex mModeLock;
     static MetaConfigs metaConfigs;
     static TargetConfigs targetConfigs;

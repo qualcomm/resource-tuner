@@ -4,17 +4,9 @@
 #include "SignalRegistry.h"
 
 std::shared_ptr<SignalRegistry> SignalRegistry::signalRegistryInstance = nullptr;
-int32_t SignalRegistry::mTotalSignals = 0;
 
 SignalRegistry::SignalRegistry() {
-    this->customerBit = 0;
-}
-
-void SignalRegistry::initRegistry(int32_t size, int8_t customerBit) {
-    if(mSignalsConfigs.size() == 0 && size > 0) {
-        mSignalsConfigs.resize(size);
-        this->customerBit = customerBit;
-    }
+    this->mTotalSignals = 0;
 }
 
 int8_t SignalRegistry::isSignalConfigMalformed(SignalInfo* sConf) {
@@ -23,24 +15,41 @@ int8_t SignalRegistry::isSignalConfigMalformed(SignalInfo* sConf) {
     return false;
 }
 
-void SignalRegistry::registerSignal(SignalInfo* signalInfo) {
+void SignalRegistry::registerSignal(SignalInfo* signalInfo, int8_t isBuSpecified) {
     if(this->isSignalConfigMalformed(signalInfo)) {
         delete signalInfo;
         return;
     }
 
     uint32_t signalBitmap = 0;
-    if(this->customerBit) {
-        signalBitmap |= (1 << 31);
-    }
-
     signalBitmap |= ((uint32_t)signalInfo->mSignalOpId);
     signalBitmap |= ((uint32_t)signalInfo->mSignalCategory << 16);
 
-    this->mSystemIndependentLayerMappings[signalBitmap] = mTotalSignals;
-    this->mSignalsConfigs[mTotalSignals] = signalInfo;
+    // Check for any conflict
+    if(this->mSystemIndependentLayerMappings.find(signalBitmap) !=
+        this->mSystemIndependentLayerMappings.end()) {
+        // Signal with the specified Category and SigID already exists
+        // Overwrite it.
 
-    mTotalSignals++;
+        int32_t signalTableIndex = getSignalTableIndex(signalBitmap);
+        this->mSignalsConfigs[signalTableIndex] = signalInfo;
+
+        if(isBuSpecified) {
+            this->mSystemIndependentLayerMappings.erase(signalBitmap);
+            signalBitmap |= (1 << 31);
+
+            this->mSystemIndependentLayerMappings[signalBitmap] = signalTableIndex;
+        }
+    } else {
+        if(isBuSpecified) {
+            signalBitmap |= (1 << 31);
+        }
+
+        this->mSystemIndependentLayerMappings[signalBitmap] = this->mTotalSignals;
+        this->mSignalsConfigs.push_back(signalInfo);
+
+        this->mTotalSignals++;
+    }
 }
 
 std::vector<SignalInfo*> SignalRegistry::getSignalConfigs() {
@@ -49,12 +58,12 @@ std::vector<SignalInfo*> SignalRegistry::getSignalConfigs() {
 
 SignalInfo* SignalRegistry::getSignalConfigById(uint32_t signalID) {
     if(this->mSystemIndependentLayerMappings.find(signalID) == this->mSystemIndependentLayerMappings.end()) {
-        LOGE("RTN_RESOURCE_PROCESSOR", "Resource ID not found in the registry");
+        LOGE("RTN_SIGNAL_PROCESSOR", "Resource ID not found in the registry");
         return nullptr;
     }
 
-    int32_t mResourceConfigTableIndex = this->mSystemIndependentLayerMappings[signalID];
-    return this->mSignalsConfigs[mResourceConfigTableIndex];
+    int32_t mResourceTableIndex = this->mSystemIndependentLayerMappings[signalID];
+    return this->mSignalsConfigs[mResourceTableIndex];
 }
 
 int32_t SignalRegistry::getSignalsConfigCount() {
@@ -62,7 +71,7 @@ int32_t SignalRegistry::getSignalsConfigCount() {
 }
 
 void SignalRegistry::displaySignals() {
-    for(int32_t i = 0; i < mTotalSignals; i++) {
+    for(int32_t i = 0; i < this->mTotalSignals; i++) {
         auto& signal = this->mSignalsConfigs[i];
 
         LOGD("RTN_SIGNAL_REGISTRY", "Signal Name: " + signal->mSignalName);
@@ -71,6 +80,14 @@ void SignalRegistry::displaySignals() {
 
         LOGD("RTN_SIGNAL_REGISTRY", "====================================");
     }
+}
+
+int32_t SignalRegistry::getSignalTableIndex(uint32_t signalID) {
+    if(this->mSystemIndependentLayerMappings.find(signalID) == this->mSystemIndependentLayerMappings.end()) {
+        return -1;
+    }
+
+    return this->mSystemIndependentLayerMappings[signalID];
 }
 
 SignalRegistry::~SignalRegistry() {

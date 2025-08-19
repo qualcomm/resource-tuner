@@ -295,7 +295,7 @@ namespace ResourceTuningRequestVerification {
     /**
     * API under test: Tune
     * - As part of the tune API call, the client specifies the target Logical Cluster and Core, if
-    *   the resource in question has Core Level Conflict Enabled.
+    *   the resource in question has Core Level Conflict.
     * - For such a Resource (part of the Request), Core / Cluster Logical To Physical Translation is
     *   needed.
     * - If the logical Core / Cluster value is invalid, or if translation cannot be performed then the
@@ -339,7 +339,7 @@ namespace ResourceTuningRequestVerification {
     /**
     * API under test: Tune
     * - As part of the tune API call, the client specifies the target Logical Cluster and Core, if
-    *   the resource in question has Core Level Conflict Enabled.
+    *   the resource in question has Core Level Conflict.
     * - For such a Resource (part of the Request), Core / Cluster Logical To Physical Translation is
     *   needed.
     * - If the logical Core / Cluster value is invalid, or if translation cannot be performed then the
@@ -382,7 +382,7 @@ namespace ResourceTuningRequestVerification {
     /**
     * API under test: Tune
     * - As part of the tune API call, the client specifies the target Logical Cluster and Core, if
-    *   the resource in question has Core Level Conflict Enabled.
+    *   the resource in question has Core Level Conflict.
     * - For such a Resource (part of the Request), Core / Cluster Logical To Physical Translation is
     *   needed.
     * - If the logical Core / Cluster value is invalid, or if translation cannot be performed then the
@@ -433,7 +433,7 @@ namespace ResourceTuningRequestVerification {
     /**
     * API under test: Tune
     * - As part of the tune API call, the client specifies the target Logical Cluster and Core, if
-    *   the resource in question has Core Level Conflict Enabled.
+    *   the resource in question has Core Level Conflict.
     * - For such a Resource (part of the Request), Core / Cluster Logical To Physical Translation is
     *   needed.
     * - If the logical Core / Cluster value is invalid, or if translation cannot be performed then the

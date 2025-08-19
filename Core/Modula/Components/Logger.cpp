@@ -50,20 +50,20 @@ void Logger::log(LogLevel level, const std::string& tag, const std::string& func
     if(mRedirectOutputTo == RedirectOptions::LOG_FILE) {
         std::ofstream logFile("log.txt", std::ios::app); //TODO: FIXME
         if(logFile.is_open()) {
-            logFile << "[" << timestamp << "] [" << tag << "] [" << levelStr << "] " << funcName <<" "<< message << std::endl;
+            logFile << "[" << timestamp << "] [" << tag << "] [" << levelStr << "] " << funcName <<": "<< message << std::endl;
             logFile.close();
         }
     } else if(mRedirectOutputTo == RedirectOptions::FTRACE) {
         std::ofstream traceFile("/sys/kernel/debug/tracing/trace_marker", std::ios::app);
         if (traceFile.is_open()) {
-            traceFile << "[" << timestamp << "] [" << tag << "] [" << levelStr << "] " << funcName <<" "<< message << std::endl;
+            traceFile << "[" << timestamp << "] [" << tag << "] [" << levelStr << "] " << funcName <<": "<< message << std::endl;
             traceFile.close();
         }
     }
 }
 
 void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) {
-    char buffer[128];
+    char buffer[256];
     va_list args;
     va_start(args, funcName);
 
@@ -114,7 +114,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
         case CommonMessageTypes::PROPERTY_RETRIEVAL_FAILED:
             Logger::log(ERROR, "RTN_SERVER_INIT", funcName,
                         "Failed to Fetch Properties, " \
-                        "Boot Configs, Resource Tuner Server Initialization Failed.");
+                        "Boot Configs. Resource Tuner Server Initialization Failed.");
             break;
 
         case CommonMessageTypes::META_CONFIG_PARSE_FAILURE:
@@ -242,6 +242,15 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
                         funcName, std::string(buffer));
             break;
 
+        case CommonMessageTypes::REQUEST_MEMORY_ALLOCATION_FAILURE_HANDLE:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Memory allocation for Request: [%ld]. " \
+                      "Failed with Error: %s", args);
+
+            Logger::log(ERROR, "RTN_SERVER",
+                        funcName, std::string(buffer));
+            break;
+
         case CommonMessageTypes::REQUEST_PARSING_FAILURE:
             vsnprintf(buffer, sizeof(buffer),
                       "Request Parsing Failed, Request is Malformed. " \
@@ -352,6 +361,58 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
                       "Failed to parse file: %s, Error: %s", args);
 
             Logger::log(ERROR, "RTN_YAML_PARSER", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::NOTIFY_PARSING_START:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Proceeding with [%s] Config Parsing", args);
+
+            Logger::log(INFO, "RTN_SERVER_INIT", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::NOTIFY_PARSING_SUCCESS:
+            vsnprintf(buffer, sizeof(buffer),
+                      "[%s] Configs successfully parsed", args);
+
+            Logger::log(INFO, "RTN_SERVER_INIT", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::NOTIFY_PARSING_FAILURE:
+            vsnprintf(buffer, sizeof(buffer),
+                      "[%s] Configs Could not be parsed", args);
+
+            Logger::log(ERROR, "RTN_SERVER_INIT", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::NOTIFY_CUSTOM_CONFIG_FILE:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Custom [%s] Config file provided [path: %s]", args);
+
+            Logger::log(INFO, "RTN_SERVER_INIT", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::LOGICAL_TO_PHYSICAL_MAPPING_GEN_FAILURE:
+            Logger::log(ERROR, "RTN_SERVER_INIT", funcName,
+                        "Reading Physical Core, Cluster Info Failed, Server Init Failed");
+            break;
+
+        case CommonMessageTypes::LOGICAL_TO_PHYSICAL_MAPPING_GEN_SUCCESS:
+            Logger::log(INFO, "RTN_SERVER_INIT", funcName,
+                        "Logical to Physical Core / Cluster mapping successfully created");
+            break;
+
+        case CommonMessageTypes::SYSTEM_THREAD_NOT_JOINABLE:
+            vsnprintf(buffer, sizeof(buffer),
+                      "[%s] Thread is not joinable", args);
+
+            Logger::log(ERROR, "RTN_SERVER_TERMINATION", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::RATE_LIMITER_GLOBAL_RATE_LIMIT_HIT:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Max Concurrent Requests Count hit, Dropping Request [%ld]", args);
+
+            Logger::log(ERROR, "RTN_RATE_LIMITER", funcName, std::string(buffer));
             break;
 
         default:

@@ -5,13 +5,13 @@
 #include <cstdint>
 #include <gtest/gtest.h>
 
-#include "TargetConfigProcessor.h"
+#include "ConfigProcessor.h"
 #include "ResourceRegistry.h"
 #include "TargetRegistry.h"
 #include "Extensions.h"
 #include "Utils.h"
 
-RTN_REGISTER_CONFIG(TARGET_CONFIG, "../Tests/Configs/testTargetConfigs.yaml")
+RTN_REGISTER_CONFIG(TARGET_CONFIG, "../Tests/Configs/testTargetConfig.yaml")
 
 class TargetConfigProcessorTests: public::testing::Test {
 protected:
@@ -19,9 +19,9 @@ protected:
         static int8_t firstTest = true;
         if(firstTest) {
             firstTest = false;
-            TargetConfigProcessor targetConfigProcessor(Extensions::getTargetConfigFilePath(), "");
+            ConfigProcessor configProcessor;
 
-            if(RC_IS_NOTOK(targetConfigProcessor.parseTargetConfigs())) {
+            if(RC_IS_NOTOK(configProcessor.parseTargetConfigs(Extensions::getTargetConfigFilePath()))) {
                 return;
             }
 

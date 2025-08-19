@@ -130,8 +130,8 @@ static int8_t VerifyIncomingRequest(Request* req) {
             return false;
         }
 
-        // If CoreLevelConflict for the Resource is set to true, then perform Logical to Physical Translation
-        if(resourceConfig->mCoreLevelConflict) {
+        // If ApplyType for the Resource is set to Core, then perform Logical to Physical Translation
+        if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CORE) {
             // Check for invalid Core / cluster values, these are the logical values
             int32_t coreValue = resource->getCoreValue();
             int32_t clusterValue = resource->getClusterValue();

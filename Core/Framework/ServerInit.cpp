@@ -5,8 +5,7 @@
 #include <fcntl.h>
 
 #include "ServerRequests.h"
-#include "ResourceProcessor.h"
-#include "TargetConfigProcessor.h"
+#include "ConfigProcessor.h"
 #include "ResourceTunerSettings.h"
 #include "Extensions.h"
 #include "SysConfigProcessor.h"
@@ -21,15 +20,20 @@ static std::thread serverThread;
 static void writeToCgroupFile(const std::string& propName, const std::string& value) {
     std::ofstream cGroupFile(propName);
     if(!cGroupFile) {
+        TYPELOGV(ERRNO_LOG, "open", strerror(errno));
         cGroupFile.close();
         return;
     }
 
-    cGroupFile << value;
+    cGroupFile<<value;
+
+    if(cGroupFile.fail()) {
+        TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+    }
     cGroupFile.close();
 }
 
-// Create all the CGroups specified via InitConfigs.yaml during the init phase.
+// Create all the CGroups specified via InitConfig.yaml during the init phase.
 static ErrCode createCGroups() {
     std::vector<CGroupConfigInfo*> cGroupConfigs;
     TargetRegistry::getInstance()->getCGroupConfigs(cGroupConfigs);
@@ -39,14 +43,6 @@ static ErrCode createCGroups() {
         if(mkdir(cGroupPath.c_str(), 0755) == 0) {
             if(cGroupConfig->isThreaded) {
                 writeToCgroupFile(cGroupPath + "/cgroup.type", "threaded");
-            } else {
-                // Enable cpu, cpuset and memory Controllers for the cgroup
-                writeToCgroupFile(cGroupPath + "/cgroup.subtree_control", "+cpu +cpuset +memory");
-
-                // Create a child cgroup to hold the PIDs
-                const std::string childCGroupPath =
-                    "/sys/fs/cgroup/" + cGroupConfig->mCgroupName + "/tasks";
-                mkdir(childCGroupPath.c_str(), 0755);
             }
         } else {
             TYPELOGV(ERRNO_LOG, "mkdir", strerror(errno));
@@ -55,11 +51,29 @@ static ErrCode createCGroups() {
     return RC_SUCCESS;
 }
 
+static void preAllocateMemory() {
+    // Preallocate Memory for certain frequently used types.
+    int32_t concurrentRequestsUB = ResourceTunerSettings::metaConfigs.mMaxConcurrentRequests;
+    int32_t resourcesPerRequestUB = ResourceTunerSettings::metaConfigs.mMaxResourcesPerRequest;
+
+    MakeAlloc<Message> (concurrentRequestsUB);
+    MakeAlloc<Request> (concurrentRequestsUB);
+    MakeAlloc<Timer> (concurrentRequestsUB);
+    MakeAlloc<Resource> (concurrentRequestsUB * resourcesPerRequestUB);
+    MakeAlloc<CocoNode> (concurrentRequestsUB * resourcesPerRequestUB);
+    MakeAlloc<SysConfig> (concurrentRequestsUB);
+    MakeAlloc<ClientInfo> (concurrentRequestsUB * resourcesPerRequestUB);
+    MakeAlloc<ClientTidData> (concurrentRequestsUB * resourcesPerRequestUB);
+    MakeAlloc<std::unordered_set<int64_t>> (concurrentRequestsUB * resourcesPerRequestUB);
+    MakeAlloc<std::vector<Resource*>> (concurrentRequestsUB * resourcesPerRequestUB);
+    MakeAlloc<std::vector<int32_t>> (concurrentRequestsUB * resourcesPerRequestUB);
+    MakeAlloc<std::vector<CocoNode*>> (concurrentRequestsUB * resourcesPerRequestUB);
+}
+
 ErrCode fetchProperties() {
     // Initialize SysConfigs
-    std::shared_ptr<SysConfigProcessor> sysConfigProcessor =
-        SysConfigProcessor::getInstance(Extensions::getPropertiesConfigFilePath());
-    ErrCode opStatus = sysConfigProcessor->parseSysConfigs();
+    SysConfigProcessor sysConfigProcessor;
+    ErrCode opStatus = sysConfigProcessor.parseSysConfigs(ResourceTunerSettings::mPropertiesFilePath);
 
     if(RC_IS_OK(opStatus)) {
         opStatus = fetchMetaConfigs();
@@ -68,35 +82,120 @@ ErrCode fetchProperties() {
     return opStatus;
 }
 
+static ErrCode fetchResources() {
+    ErrCode opStatus = RC_SUCCESS;
+
+    TYPELOGV(NOTIFY_PARSING_START, "Resource");
+
+    ConfigProcessor configProcessor;
+    std::string filePath = ResourceTunerSettings::mCommonResourceFilePath;
+    opStatus = configProcessor.parseResourceConfigs(filePath);
+    if(RC_IS_NOTOK(opStatus)) {
+        TYPELOGV(NOTIFY_PARSING_FAILURE, "Common-Resource");
+        return opStatus;
+    }
+
+    filePath = ResourceTunerSettings::mTargetSpecificResourceFilePath;
+    opStatus = configProcessor.parseResourceConfigs(filePath);
+    if(RC_IS_NOTOK(opStatus)) {
+        if(opStatus != RC_FILE_NOT_FOUND) {
+            // Additional check for ErrCode, as it is possible that there is
+            // no target-specific Configs at all for a given target. This
+            // case should not result in a failure.
+            TYPELOGV(NOTIFY_PARSING_FAILURE, "Target Specific Resource");
+            return opStatus;
+
+        } else {
+            // Reset opStatus
+            opStatus = RC_SUCCESS;
+        }
+    }
+
+    filePath = Extensions::getResourceConfigFilePath();
+    if(filePath.length() > 0) {
+        // Custom Resource Config file has been provided by BU
+        TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, "Resource", filePath.c_str());
+        opStatus = configProcessor.parseResourceConfigs(filePath);
+        if(RC_IS_NOTOK(opStatus)) {
+            TYPELOGV(NOTIFY_PARSING_FAILURE, "Custom-Resource");
+            return opStatus;
+        }
+    }
+
+    TYPELOGV(NOTIFY_PARSING_SUCCESS, "Resource");
+    return opStatus;
+}
+
+static ErrCode fetchInitInfo() {
+    ErrCode opStatus = RC_SUCCESS;
+
+    // Target Configs is optional, i.e. file TargetConfig.yaml need not be provided.
+    // Resource Tuner will dynamically fetch mapping data in such cases
+
+    ConfigProcessor configProcessor;
+    const std::string targetConfigFilePath = Extensions::getTargetConfigFilePath();
+    if(targetConfigFilePath.length() > 0) {
+        // Custom Target Config file has been provided by BU
+        TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, "Target", targetConfigFilePath.c_str());
+        opStatus = configProcessor.parseTargetConfigs(targetConfigFilePath);
+        if(RC_IS_NOTOK(opStatus)) {
+            TYPELOGV(NOTIFY_PARSING_FAILURE, "Target");
+            return opStatus;
+        } else {
+            TYPELOGV(NOTIFY_PARSING_SUCCESS, "Target");
+        }
+    }
+
+    TYPELOGV(NOTIFY_PARSING_START, "Init");
+
+    const std::string initConfigFilePath = ResourceTunerSettings::mInitConfigFilePath;
+    opStatus = configProcessor.parseInitConfigs(initConfigFilePath);
+    if(RC_IS_NOTOK(opStatus)) {
+        TYPELOGV(NOTIFY_PARSING_FAILURE, "Init");
+        return opStatus;
+    }
+
+    TYPELOGV(NOTIFY_PARSING_SUCCESS, "Init");
+    return opStatus;
+}
+
 static ErrCode initServer() {
     ErrCode opStatus = RC_SUCCESS;
+
+    // Pre-Allocate Memory for Commonly used Types via Memory Pool
     preAllocateMemory();
 
-    LOGI("RTN_SERVER_INIT", "Parsing Resource Configs");
-    ResourceProcessor resourceProcessor(Extensions::getResourceConfigFilePath());
-    opStatus = resourceProcessor.parseResourceConfigs();
+    // Fetch and Parse Resource Configs
+    // Resource Parsing which will be considered:
+    // - Common Resource Configs
+    // - Target Specific Resource Configs
+    // - Custom Resource Configs (if present)
+    opStatus = fetchResources();
     if(RC_IS_NOTOK(opStatus)) {
-        LOGE("RTN_SERVER_INIT", "Resource Config Parsing Failed, Server Init Failed");
         return opStatus;
     }
-    LOGI("RTN_SERVER_INIT", "Resource Configs Successfully Parsed");
 
-    // Target Configs is optional, i.e. file TargetConfigs.yaml need not be provided.
-    // Resource Tuner will dynamically fetch mapping data in such cases
-    // Hence, no need to error check for TargetConfigProcessor parsing status.
-    TargetConfigProcessor targetConfigProcessor(Extensions::getTargetConfigFilePath(), "");
-    targetConfigProcessor.parseTargetConfigs();
+    // Fetch and Parse:
+    // - Custom Target Configs (if present)
+    // - Init Configs
+    opStatus = fetchInitInfo();
+    if(RC_IS_NOTOK(opStatus)) {
+        return opStatus;
+    }
 
+    // Perform Logical To Physical (Core / Cluster) Mapping
     opStatus = TargetRegistry::getInstance()->readPhysicalCoreClusterInfo();
     if(RC_IS_NOTOK(opStatus)) {
-        LOGE("RTN_SERVER_INIT", "Reading Physical Core, Cluster Info Failed, Server Init Failed");
+        TYPELOGD(LOGICAL_TO_PHYSICAL_MAPPING_GEN_FAILURE);
         return opStatus;
     }
-    LOGI("RTN_SERVER_INIT", "Logical to Physical Core / Cluster mapping successfully created");
+    TYPELOGD(LOGICAL_TO_PHYSICAL_MAPPING_GEN_SUCCESS);
 
+    // Create any specified CGroups
+    // We don't care about the return value here, since it is an optional feature
     opStatus = createCGroups();
 
-    // By this point, all the Extension Appliers / Resources should be registered.
+    // By this point, all the Extension Appliers / Resources would have been registered.
     ResourceRegistry::getInstance()->pluginModifications(Extensions::getModifiedResources());
 
     // Create the Processor thread:
@@ -119,7 +218,7 @@ static ErrCode terminateServer() {
         RequestQueue::getInstance()->forcefulAwake();
         serverThread.join();
     } else {
-        LOGE("RTN_SERVER_TERMINATION", "Server thread is not joinable");
+        TYPELOGV(SYSTEM_THREAD_NOT_JOINABLE, "Server");
     }
     return RC_SUCCESS;
 }

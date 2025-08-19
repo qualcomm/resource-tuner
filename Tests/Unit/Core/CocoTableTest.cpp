@@ -12,7 +12,7 @@
 // #include "CocoTable.h"
 // #include "ResourceRegistry.h"
 
-// RTN_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourceConfigs.yaml")
+// RTN_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourcesConfig.yaml")
 
 // class CocoTableTest : public ::testing::Test {
 // protected:
@@ -21,7 +21,7 @@
 
 //         if(firstTest == true) {
 //             firstTest = false;
-//             ResourceProcessor resourceProcessor(Extensions::getResourceConfigFilePath());
+//             ConfigProcessor resourceProcessor(Extensions::getResourceConfigFilePath());
 
 //             if(RC_IS_NOTOK(resourceProcessor.parseResourceConfigs())) {
 //                 return;

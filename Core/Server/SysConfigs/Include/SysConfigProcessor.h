@@ -14,8 +14,6 @@
 #define PROP_NAME "Name"
 #define PROP_VALUE "Value"
 
-#define SYS_CONFIGS_PROPS_FILE "/etc/ResourceTuner/PropertiesConfigs.yaml"
-
 /**
  * @brief SysConfigProcessor
  * @details Responsible for Parsing the SysConfig (YAML) file.
@@ -56,23 +54,10 @@
 */
 class SysConfigProcessor {
 private:
-    static std::shared_ptr<SysConfigProcessor> sysConfigProcessorInstance;
-    std::string mPropertiesConfigYamlFilePath;
-
-    SysConfigProcessor(const std::string& yamlFilePath);
-
     void parseYamlNode(const YAML::Node& result);
 
 public:
-    ErrCode parseSysConfigs();
-
-    static std::shared_ptr<SysConfigProcessor> getInstance(const std::string& yamlFilePath = "") {
-        if(sysConfigProcessorInstance == nullptr) {
-            std::shared_ptr<SysConfigProcessor> localSysConfigProcessorInstance(new SysConfigProcessor(yamlFilePath));
-            localSysConfigProcessorInstance.swap(sysConfigProcessorInstance);
-        }
-        return sysConfigProcessorInstance;
-    }
+    ErrCode parseSysConfigs(const std::string& filePath);
 };
 
 #endif

@@ -5,12 +5,12 @@
 #include <cstdint>
 #include <gtest/gtest.h>
 
-#include "SignalConfigProcessor.h"
+#include "ConfigProcessor.h"
 #include "SignalRegistry.h"
 #include "Extensions.h"
 #include "Utils.h"
 
-RTN_REGISTER_CONFIG(SIGNALS_CONFIG, "../Tests/Configs/testSignalConfigs.yaml")
+RTN_REGISTER_CONFIG(SIGNALS_CONFIG, "../Tests/Configs/testSignalsConfig.yaml")
 
 #define TOTAL_SIGNAL_CONFIGS_COUNT 6
 
@@ -20,9 +20,9 @@ protected:
         static int8_t firstTest = true;
         if(firstTest) {
             firstTest = false;
-            SignalConfigProcessor signalConfigProcessor(Extensions::getSignalsConfigFilePath());
+            ConfigProcessor configProcessor;
 
-            if(RC_IS_NOTOK(signalConfigProcessor.parseSignalConfigs())) {
+            if(RC_IS_NOTOK(configProcessor.parseSignalConfigs(Extensions::getSignalsConfigFilePath(), true))) {
                 return;
             }
         }

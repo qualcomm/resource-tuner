@@ -9,6 +9,19 @@ int8_t ResourceTunerSettings::serverInTestMode = false;
 MetaConfigs ResourceTunerSettings::metaConfigs{};
 TargetConfigs ResourceTunerSettings::targetConfigs{};
 
+const std::string ResourceTunerSettings::mCommonResourceFilePath =
+                                    "/etc/ResourceTuner/Common/ResourcesConfig.yaml";
+const std::string ResourceTunerSettings::mInitConfigFilePath =
+                                    "/etc/ResourceTuner/Common/InitConfig.yaml";
+const std::string ResourceTunerSettings::mCommonSignalFilePath =
+                                    "/etc/ResourceTuner/Common/SignalsConfig.yaml";
+const std::string ResourceTunerSettings::mTargetSpecificResourceFilePath =
+                                    "/etc/ResourceTuner/ResourcesConfig.yaml";
+const std::string ResourceTunerSettings::mTargetSpecificSignalFilePath =
+                                    "/etc/ResourceTuner/SignalsConfig.yaml";
+const std::string ResourceTunerSettings::mPropertiesFilePath =
+                                    "/etc/ResourceTuner/Common/PropertiesConfig.yaml";
+
 int32_t ResourceTunerSettings::isServerOnline() {
     return serverOnlineStatus;
 }

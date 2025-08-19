@@ -7,6 +7,20 @@
 #include "TargetRegistry.h"
 #include "ResourceRegistry.h"
 
+static std::string getCGroupControllerFilePath(Resource* resource, const std::string& cGroupName) {
+    ResourceConfigInfo* resourceConfig =
+        ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
+
+    std::string controllerFilePath = resourceConfig->mResourcePath;
+
+    // Replace %s in above file path with the actual cgroup name
+    char pathBuffer[128];
+    std::snprintf(pathBuffer, sizeof(pathBuffer), controllerFilePath.c_str(), cGroupName.c_str());
+    controllerFilePath = std::string(pathBuffer);
+
+    return controllerFilePath;
+}
+
 static void addProcessToCgroup(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
@@ -22,16 +36,19 @@ static void addProcessToCgroup(void* context) {
         const std::string cGroupName = cGroupConfig->mCgroupName;
 
         if(cGroupName.length() > 0) {
-            const std::string cGroupControllerFilePath =
-                "/sys/fs/cgroup/" + cGroupName + "/tasks/cgroup.procs";
+            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
 
-            std::ofstream controllerFile(cGroupControllerFilePath, std::ios::app);
+            std::ofstream controllerFile(controllerFilePath, std::ios::app);
             if(!controllerFile.is_open()) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
                 return;
             }
 
             controllerFile<<pid<<std::endl;
+
+            if(controllerFile.fail()) {
+                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+            }
             controllerFile.close();
         }
     }
@@ -50,15 +67,21 @@ static void addThreadToCgroup(void* context) {
 
     if(cGroupConfig != nullptr) {
         const std::string cGroupName = cGroupConfig->mCgroupName;
+
         if(cGroupName.length() > 0) {
-            const std::string cGroupControllerFilePath =
-                "/sys/fs/cgroup/" + cGroupName + "/cgroup.threads";
-            std::ofstream controllerFile(cGroupControllerFilePath, std::ios::app);
+            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
+            std::ofstream controllerFile(controllerFilePath, std::ios::app);
+
             if(!controllerFile.is_open()) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
                 return;
             }
+
             controllerFile<<tid<<std::endl;
+
+            if(controllerFile.fail()) {
+                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+            }
             controllerFile.close();
         }
     }
@@ -76,10 +99,8 @@ static void setRunOnCores(void* context) {
 
     if(cGroupConfig != nullptr) {
         const std::string cGroupName = cGroupConfig->mCgroupName;
-        if(cGroupName.length() > 0) {
-            const std::string cGroupControllerFilePath =
-                "/sys/fs/cgroup/" + cGroupName + "/cpuset.cpus";
 
+        if(cGroupName.length() > 0) {
             std::string cpusString = "";
             for(int32_t i = 1; i < resource->getValuesCount(); i++) {
                 cpusString += std::to_string((*resource->mConfigValue.valueArray)[i]);
@@ -88,12 +109,19 @@ static void setRunOnCores(void* context) {
                 }
             }
 
-            std::ofstream controllerFile(cGroupControllerFilePath);
+            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
+            std::ofstream controllerFile(controllerFilePath);
+
             if(!controllerFile.is_open()) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
                 return;
             }
+
             controllerFile<<cpusString;
+
+            if(controllerFile.fail()) {
+                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+            }
             controllerFile.close();
         }
     }
@@ -111,6 +139,7 @@ static void setRunOnCoresExclusively(void* context) {
 
     if(cGroupConfig != nullptr) {
         const std::string cGroupName = cGroupConfig->mCgroupName;
+
         if(cGroupName.length() > 0) {
             const std::string cGroupControllerFilePath =
                 "/sys/fs/cgroup/" + cGroupName + "/cpuset.cpus";
@@ -156,14 +185,22 @@ static void freezeCgroup(void* context) {
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
-        const std::string cGroupPath = cGroupConfig->mCgroupName;
-        if(cGroupPath.length() > 0) {
-            std::ofstream controllerFile("/sys/fs/cgroup/" + cGroupPath  + "/cgroup.freeze");
+        const std::string cGroupName = cGroupConfig->mCgroupName;
+
+        if(cGroupName.length() > 0) {
+            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
+            std::ofstream controllerFile(controllerFilePath);
+
             if(!controllerFile.is_open()) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
                 return;
             }
-            controllerFile << "1";
+
+            controllerFile<<"1";
+
+            if(controllerFile.fail()) {
+                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+            }
             controllerFile.close();
         }
     }
@@ -179,14 +216,22 @@ static void unFreezeCGroup(void* context) {
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
-        const std::string cGroupPath = cGroupConfig->mCgroupName;
-        if(cGroupPath.length() > 0) {
-            std::ofstream controllerFile("/sys/fs/cgroup/" + cGroupPath  + "/cgroup.freeze");
+        const std::string cGroupName = cGroupConfig->mCgroupName;
+
+        if(cGroupName.length() > 0) {
+            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
+            std::ofstream controllerFile(controllerFilePath);
+
             if(!controllerFile.is_open()) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
                 return;
             }
+
             controllerFile << "0";
+            if(controllerFile.fail()) {
+                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+            }
+
             controllerFile.close();
         }
     }
@@ -202,14 +247,22 @@ static void setCpuIdle(void* context) {
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
-        const std::string cGroupPath = cGroupConfig->mCgroupName;
-        if(cGroupPath.length() > 0) {
-            std::ofstream controllerFile("/sys/fs/cgroup/" + cGroupPath  + "/cpu.idle");
+        const std::string cGroupName = cGroupConfig->mCgroupName;
+
+        if(cGroupName.length() > 0) {
+            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
+            std::ofstream controllerFile(controllerFilePath);
+
             if(!controllerFile.is_open()) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
                 return;
             }
-            controllerFile << "1";
+
+            controllerFile<<"1";
+
+            if(controllerFile.fail()) {
+                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+            }
             controllerFile.close();
         }
     }
@@ -227,14 +280,21 @@ static void setUClampMin(void* context) {
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
-        const std::string cGroupPath = cGroupConfig->mCgroupName;
-        if(cGroupPath.length() > 0) {
-            std::ofstream controllerFile("/sys/fs/cgroup/" + cGroupPath + "/cpu.uclamp.min");
+        const std::string cGroupName = cGroupConfig->mCgroupName;
+
+        if(cGroupName.length() > 0) {
+            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
+            std::ofstream controllerFile(controllerFilePath);
+
             if(!controllerFile.is_open()) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
                 return;
             }
             controllerFile << clampVal;
+
+            if(controllerFile.fail()) {
+                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+            }
             controllerFile.close();
         }
     }
@@ -252,14 +312,22 @@ static void setUClampMax(void* context) {
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
-        const std::string cGroupPath = cGroupConfig->mCgroupName;
-        if(cGroupPath.length() > 0) {
-            std::ofstream controllerFile("/sys/fs/cgroup/" + cGroupPath + "/cpu.uclamp.max");
+        const std::string cGroupName = cGroupConfig->mCgroupName;
+
+        if(cGroupName.length() > 0) {
+            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
+            std::ofstream controllerFile(controllerFilePath);
+
             if(!controllerFile.is_open()) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
                 return;
             }
-            controllerFile << clampVal;
+
+            controllerFile<<clampVal;
+
+            if(controllerFile.fail()) {
+                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+            }
             controllerFile.close();
         }
     }
@@ -278,13 +346,20 @@ static void setRelativeCPUShare(void* context) {
 
     if(cGroupConfig != nullptr) {
         const std::string cGroupName = cGroupConfig->mCgroupName;
+
         if(cGroupName.length() > 0) {
-            std::ofstream controllerFile("/sys/fs/cgroup/" + cGroupName + "/cpu.weight");
+            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
+            std::ofstream controllerFile(controllerFilePath);
+
             if(!controllerFile.is_open()) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
                 return;
             }
-            controllerFile << relativeWeight;
+
+            controllerFile<<relativeWeight;
+            if(controllerFile.fail()) {
+                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+            }
             controllerFile.close();
         }
     }
@@ -303,13 +378,21 @@ static void setMaxMemoryLimit(void* context) {
 
     if(cGroupConfig != nullptr) {
         const std::string cGroupName = cGroupConfig->mCgroupName;
+
         if(cGroupName.length() > 0) {
-            std::ofstream controllerFile("/sys/fs/cgroup/" + cGroupName + "/memory.max");
+            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
+            std::ofstream controllerFile(controllerFilePath);
+
             if(!controllerFile.is_open()) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
                 return;
             }
+
             controllerFile<<maxMemoryLimit;
+
+            if(controllerFile.fail()) {
+                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+            }
             controllerFile.close();
         }
     }
@@ -328,13 +411,21 @@ static void setMinMemoryFloor(void* context) {
 
     if(cGroupConfig != nullptr) {
         const std::string cGroupName = cGroupConfig->mCgroupName;
+
         if(cGroupName.length() > 0) {
-            std::ofstream controllerFile("/sys/fs/cgroup/" + cGroupName + "/memory.min");
+            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
+            std::ofstream controllerFile(controllerFilePath);
+
             if(!controllerFile.is_open()) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
                 return;
             }
+
             controllerFile<<minMemoryFloor;
+
+            if(controllerFile.fail()) {
+                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+            }
             controllerFile.close();
         }
     }
@@ -354,13 +445,21 @@ static void limitCpuTime(void* context) {
 
     if(cGroupConfig != nullptr) {
         const std::string cGroupName = cGroupConfig->mCgroupName;
+
         if(cGroupName.length() > 0) {
-            std::ofstream controllerFile("/sys/fs/cgroup/" + cGroupName + "/cpu.max");
+            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
+            std::ofstream controllerFile(controllerFilePath);
+
             if(!controllerFile.is_open()) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
                 return;
             }
+
             controllerFile<<maxUsageMicroseconds<<" "<<periodMicroseconds;
+
+            if(controllerFile.fail()) {
+                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+            }
             controllerFile.close();
         }
     }

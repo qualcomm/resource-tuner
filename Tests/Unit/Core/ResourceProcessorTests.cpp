@@ -5,12 +5,12 @@
 #include <cstdint>
 #include <gtest/gtest.h>
 
-#include "ResourceProcessor.h"
+#include "ConfigProcessor.h"
 #include "ResourceRegistry.h"
 #include "Extensions.h"
 #include "Utils.h"
 
-RTN_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourceConfigs.yaml")
+RTN_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourcesConfig.yaml")
 
 #define TOTAL_RESOURCE_CONFIGS_COUNT 11
 
@@ -28,9 +28,9 @@ protected:
         static int8_t firstTest = true;
         if(firstTest) {
             firstTest = false;
-            ResourceProcessor resourceConfigProcessor(Extensions::getResourceConfigFilePath());
+            ConfigProcessor configProcessor;
 
-            if(RC_IS_NOTOK(resourceConfigProcessor.parseResourceConfigs())) {
+            if(RC_IS_NOTOK(configProcessor.parseResourceConfigs(Extensions::getResourceConfigFilePath(), true))) {
                 return;
             }
         }
@@ -51,11 +51,11 @@ TEST_F(ResourceProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity3_1) 
     ASSERT_NE(resourceConfigInfo, nullptr);
     ASSERT_EQ(resourceConfigInfo->mResourceOptype, 1);
     ASSERT_EQ(resourceConfigInfo->mResourceOpcode, 0);
-    ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min"), 0);
+    ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "TEST_RESOURCE_1"), 0);
+    ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min"), 0);
     ASSERT_EQ(resourceConfigInfo->mHighThreshold, 1024);
     ASSERT_EQ(resourceConfigInfo->mLowThreshold, 0);
     ASSERT_EQ(resourceConfigInfo->mSupported, true);
-    ASSERT_EQ(resourceConfigInfo->mCoreLevelConflict, false);
     ASSERT_EQ(resourceConfigInfo->mPolicy, HIGHER_BETTER);
     ASSERT_EQ(resourceConfigInfo->mPermissions, PERMISSION_THIRD_PARTY);
     ASSERT_EQ(resourceConfigInfo->mModes, MODE_DISPLAY_ON | MODE_DOZE);
@@ -68,11 +68,11 @@ TEST_F(ResourceProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity3_2) 
     ASSERT_NE(resourceConfigInfo, nullptr);
     ASSERT_EQ(resourceConfigInfo->mResourceOptype, 1);
     ASSERT_EQ(resourceConfigInfo->mResourceOpcode, 1);
-    ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_max"), 0);
+    ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "TEST_RESOURCE_2"), 0);
+    ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_max"), 0);
     ASSERT_EQ(resourceConfigInfo->mHighThreshold, 1024);
     ASSERT_EQ(resourceConfigInfo->mLowThreshold, 512);
     ASSERT_EQ(resourceConfigInfo->mSupported, true);
-    ASSERT_EQ(resourceConfigInfo->mCoreLevelConflict, false);
     ASSERT_EQ(resourceConfigInfo->mPolicy, HIGHER_BETTER);
     ASSERT_EQ(resourceConfigInfo->mPermissions, PERMISSION_THIRD_PARTY);
     ASSERT_EQ(resourceConfigInfo->mModes, MODE_DISPLAY_ON | MODE_DOZE);
@@ -85,11 +85,11 @@ TEST_F(ResourceProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity3_3) 
     ASSERT_NE(resourceConfigInfo, nullptr);
     ASSERT_EQ(resourceConfigInfo->mResourceOptype, 1);
     ASSERT_EQ(resourceConfigInfo->mResourceOpcode, 5);
-    ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "../Tests/Configs/ResourceSysFsNodes/target_test_resource2"), 0);
+    ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "TEST_RESOURCE_6"), 0);
+    ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "../Tests/Configs/ResourceSysFsNodes/target_test_resource2"), 0);
     ASSERT_EQ(resourceConfigInfo->mHighThreshold, 6500);
     ASSERT_EQ(resourceConfigInfo->mLowThreshold, 50);
     ASSERT_EQ(resourceConfigInfo->mSupported, true);
-    ASSERT_EQ(resourceConfigInfo->mCoreLevelConflict, true);
     ASSERT_EQ(resourceConfigInfo->mPolicy, HIGHER_BETTER);
     ASSERT_EQ(resourceConfigInfo->mPermissions, PERMISSION_THIRD_PARTY);
     ASSERT_EQ(resourceConfigInfo->mModes, MODE_DISPLAY_ON);

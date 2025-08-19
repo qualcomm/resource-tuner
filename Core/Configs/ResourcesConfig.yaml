@@ -4,127 +4,128 @@
 ResourceConfigs:
   - ResType: "0x03"
     ResID: "0x0000"
-    Name: "/proc/sys/kernel/sched_util_clamp_min"
+    Name: "SCHED_UTIL_CLAMP_MIN"
+    Path: "/proc/sys/kernel/sched_util_clamp_min"
     Supported: true
     HighThreshold: 1024
     LowThreshold: 0
     Permissions: "third_party"
     Modes: ["display_on", "doze"]
     Policy: "higher_is_better"
-    CoreLevelConflict: false
     ApplyType: "global"
 
   - ResType: "0x03"
     ResID: "0x0001"
-    Name: "/proc/sys/kernel/sched_util_clamp_max"
+    Name: "SCHED_UTIL_CLAMP_MAX"
+    Path: "/proc/sys/kernel/sched_util_clamp_max"
     Supported: true
     HighThreshold: 1024
     LowThreshold: 0
     Permissions: "third_party"
     Modes: ["display_on", "doze"]
     Policy: "lower_is_better"
-    CoreLevelConflict: false
     ApplyType: "global"
 
   - ResType: "0x04"
     ResID: "0x0000"
-    Name: "/sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq"
+    Name: "SCALING_MIN_FREQ"
+    Path: "/sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq"
     Supported: true
     HighThreshold: 1939200
     LowThreshold: 1267200
     Permissions: third_party
     Modes: ["display_on", "display_off"]
     Policy: lower_is_better
-    CoreLevelConflict: true
     ApplyType: "global"
 
   - ResType: "0x04"
     ResID: "0x0001"
-    Name: "/sys/devices/system/cpu/cpufreq/policy1/scaling_min_freq"
+    Name: "SCALING_MIN_FREQ"
+    Path: "/sys/devices/system/cpu/cpufreq/policy1/scaling_min_freq"
     Supported: true
     HighThreshold: 1939200
     LowThreshold: 1267200
     Permissions: third_party
     Modes: ["display_on", "display_off"]
     Policy: instant_apply
-    CoreLevelConflict: true
     ApplyType: "global"
 
   - ResType: "0x04"
     ResID: "0x0002"
-    Name: "/sys/devices/system/cpu/cpufreq/policy2/scaling_min_freq"
+    Name: "SCALING_MIN_FREQ"
+    Path: "/sys/devices/system/cpu/cpufreq/policy2/scaling_min_freq"
     Supported: true
     HighThreshold: 1939200
     LowThreshold: 1267200
     Permissions: third_party
     Modes: ["display_on", "display_off"]
     Policy: lazy_apply
-    CoreLevelConflict: false
     ApplyType: "global"
 
   - ResType: "0x04"
     ResID: "0x0003"
-    Name: "/sys/devices/system/cpu/cpufreq/policy3/scaling_min_freq"
+    Name: "SCALING_MIN_FREQ"
+    Path: "/sys/devices/system/cpu/cpufreq/policy3/scaling_min_freq"
     Supported: true
     HighThreshold: 1939200
     LowThreshold: 1267200
     Permissions: third_party
     Modes: ["display_on", "display_off"]
     Policy: lower_is_better
-    CoreLevelConflict: true
     ApplyType: "global"
 
   - ResType: "0x04"
     ResID: "0x0100"
-    Name: "/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq"
+    Name: "SCALING_MAX_FREQ"
+    Path: "/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq"
     Supported: true
     HighThreshold: 1939200
     LowThreshold: 1267200
     Permissions: third_party
     Modes: ["display_on", "display_off"]
     Policy: higher_is_better
-    CoreLevelConflict: false
     ApplyType: "global"
 
   - ResType: "0x04"
     ResID: "0x0101"
-    Name: "/sys/devices/system/cpu/cpufreq/policy1/scaling_max_freq"
+    Name: "SCALING_MAX_FREQ"
+    Path: "/sys/devices/system/cpu/cpufreq/policy1/scaling_max_freq"
     Supported: true
     HighThreshold: 1939200
     LowThreshold: 1267200
     Permissions: third_party
     Modes: ["display_on", "display_off"]
     Policy: higher_is_better
-    CoreLevelConflict: true
     ApplyType: "global"
 
   - ResType: "0x04"
     ResID: "0x0102"
-    Name: "/sys/devices/system/cpu/cpufreq/policy2/scaling_max_freq"
+    Name: "SCALING_MAX_FREQ"
+    Path: "/sys/devices/system/cpu/cpufreq/policy2/scaling_max_freq"
     Supported: true
     HighThreshold: 1939200
     LowThreshold: 1267200
     Permissions: third_party
     Modes: ["display_on", "display_off"]
     Policy: higher_is_better
-    CoreLevelConflict: false
     ApplyType: "global"
 
   - ResType: "0x04"
     ResID: "0x0103"
-    Name: "/sys/devices/system/cpu/cpufreq/policy3/scaling_max_freq"
+    Name: "SCALING_MAX_FREQ"
+    Path: "/sys/devices/system/cpu/cpufreq/policy3/scaling_max_freq"
     Supported: true
     HighThreshold: 1939200
     LowThreshold: 1267200
     Permissions: third_party
     Modes: ["display_on", "display_off"]
     Policy: higher_is_better
-    CoreLevelConflict: true
     ApplyType: "global"
 
   - ResType: "0x09"
     ResID: "0x0000"
     Name: "RES_TUNER_CGROUP_MOVE_PROCS"
+    Path: "/sys/fs/cgroup/%s/cgroup.procs"
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
@@ -132,6 +133,7 @@ ResourceConfigs:
   - ResType: "0x09"
     ResID: "0x0001"
     Name: "RES_TUNER_CGROUP_MOVE_THREADS"
+    Path: "/sys/fs/cgroup/%s/cgroup.threads"
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
@@ -139,6 +141,7 @@ ResourceConfigs:
   - ResType: "0x09"
     ResID: "0x0002"
     Name: "RES_TUNER_CGROUP_RUN_ON_CORES"
+    Path: "/sys/fs/cgroup/%s/cpuset.cpus"
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
@@ -146,6 +149,7 @@ ResourceConfigs:
   - ResType: "0x09"
     ResID: "0x0003"
     Name: "RES_TUNER_CGROUP_RUN_ON_CORES_EXCLUSIVELY"
+    Path: ""
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
@@ -153,6 +157,7 @@ ResourceConfigs:
   - ResType: "0x09"
     ResID: "0x0004"
     Name: "RES_TUNER_CGROUP_FREEZE"
+    Path: "/sys/fs/cgroup/%s/cgroup.freeze"
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
@@ -160,6 +165,7 @@ ResourceConfigs:
   - ResType: "0x09"
     ResID: "0x0005"
     Name: "RES_TUNER_CGROUP_UNFREEZE"
+    Path: "/sys/fs/cgroup/%s/cgroup.freeze"
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
@@ -167,6 +173,7 @@ ResourceConfigs:
   - ResType: "0x09"
     ResID: "0x0006"
     Name: "RES_TUNER_RUN_WHEN_CPU_IDLE"
+    Path: "/sys/fs/cgroup/%s/cpu.idle "
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
@@ -174,6 +181,7 @@ ResourceConfigs:
   - ResType: "0x09"
     ResID: "0x0007"
     Name: "RES_TUNER_UCLAMP_MIN"
+    Path: "/sys/fs/cgroup/%s/cpu.uclamp.min"
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
@@ -181,6 +189,7 @@ ResourceConfigs:
   - ResType: "0x09"
     ResID: "0x0008"
     Name: "RES_TUNER_UCLAMP_MAX"
+    Path: "/sys/fs/cgroup/%s/cpu.uclamp.max"
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
@@ -188,6 +197,7 @@ ResourceConfigs:
   - ResType: "0x09"
     ResID: "0x0009"
     Name: "RES_TUNER_RELATIVE_CPU_WEIGHT"
+    Path: "/sys/fs/cgroup/%s/cpu.weight"
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"

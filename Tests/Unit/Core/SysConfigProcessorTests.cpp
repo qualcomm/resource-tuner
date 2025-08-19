@@ -21,10 +21,9 @@ protected:
         static int8_t firstTest = true;
         if(firstTest) {
             firstTest = false;
-            std::shared_ptr<SysConfigProcessor> sysConfigProcessor =
-                SysConfigProcessor::getInstance(Extensions::getPropertiesConfigFilePath());
+            SysConfigProcessor sysConfigProcessor;
 
-            if(RC_IS_NOTOK(sysConfigProcessor->parseSysConfigs())) {
+            if(RC_IS_NOTOK(sysConfigProcessor.parseSysConfigs(Extensions::getPropertiesConfigFilePath()))) {
                 return;
             }
         }

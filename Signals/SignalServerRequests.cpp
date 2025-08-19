@@ -202,49 +202,14 @@ static int8_t fillDefaults(Signal* signal) {
     return true;
 }
 
-static void processIncomingRequest(Signal* signal) {
-    std::shared_ptr<RateLimiter> rateLimiter = RateLimiter::getInstance();
-    if(!rateLimiter->isGlobalRateLimitHonored()) {
-        LOGE("RTN_SERVER_REQUESTS",
-             "Max Concurrent Requests Count hit, "  \
-             "Signal with handle = " + std::to_string(signal->getHandle()) + " Dropped.");
-
-        // Free the Signal Memory Block
-        Signal::cleanUpSignal(signal);
-        return;
-    }
-
-    if(signal->getRequestType() == SIGNAL_RELAY || signal->getRequestType() == SIGNAL_ACQ) {
-        // Check if the client exists, if not create a new client tracking entry
-        if(!ClientDataManager::getInstance()->clientExists(signal->getClientPID(), signal->getClientTID())) {
-            if(!ClientDataManager::getInstance()->createNewClient(signal->getClientPID(), signal->getClientTID())) {
-                return;
-            }
-        }
-    } else {
-        // SIGNAL_FREE request
-        if(!ClientDataManager::getInstance()->clientExists(signal->getClientPID(), signal->getClientTID())) {
-            // Client does not exist, drop the request
-            FreeBlock<Signal>(static_cast<void*>(signal));
-            return;
-        }
-    }
-
-    // Rate Check the client
-    if(!rateLimiter->isRateLimitHonored(signal->getClientTID())) {
-        TYPELOGV(RATE_LIMITER_RATE_LIMITED, signal->getClientTID(), signal->getHandle());
-        return;
-    }
-
+static int8_t CGroupProvisioningRequest(Signal* signal) {
     // Special Handling for Cgroup based Requests
-    // TODO: Check if it can be structured in a better way
     uint32_t signalID = signal->getSignalID();
     SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(signalID);
     if(signalInfo != nullptr && signalInfo->mSignalCategory == cGroupSignalCategory) {
         // Handle Cgroup Requests here
         if(!fillDefaults(signal)) {
-            Signal::cleanUpSignal(signal);
-            return;
+            return true;
         }
 
         for(Resource* resource: (*signalInfo->mSignalResources)) {
@@ -257,6 +222,50 @@ static void processIncomingRequest(Signal* signal) {
             }
         }
 
+        return true;
+    }
+
+    return false;
+}
+
+static void processIncomingRequest(Signal* signal) {
+    std::shared_ptr<RateLimiter> rateLimiter = RateLimiter::getInstance();
+    std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
+
+    if(!rateLimiter->isGlobalRateLimitHonored()) {
+        TYPELOGV(RATE_LIMITER_GLOBAL_RATE_LIMIT_HIT, signal->getHandle());
+        // Free the Signal Memory Block
+        Signal::cleanUpSignal(signal);
+        return;
+    }
+
+    if(signal->getRequestType() == SIGNAL_RELAY || signal->getRequestType() == SIGNAL_ACQ) {
+        // Check if the client exists, if not create a new client tracking entry
+        if(!clientDataManager->clientExists(signal->getClientPID(), signal->getClientTID())) {
+            if(!clientDataManager->createNewClient(signal->getClientPID(), signal->getClientTID())) {
+                // Failed to create a tracking entry, drop the Request.
+                Signal::cleanUpSignal(signal);
+                return;
+            }
+        }
+    } else {
+        // In case of untune Requests, the Client should already exist
+        if(!clientDataManager->clientExists(signal->getClientPID(), signal->getClientTID())) {
+            // Client does not exist, drop the request
+            Signal::cleanUpSignal(signal);
+            return;
+        }
+    }
+
+    // Rate Check the client
+    if(!rateLimiter->isRateLimitHonored(signal->getClientTID())) {
+        TYPELOGV(RATE_LIMITER_RATE_LIMITED, signal->getClientTID(), signal->getHandle());
+        Signal::cleanUpSignal(signal);
+        return;
+    }
+
+    // If it is a Request for CGroup Provisioning, handle it right away
+    if(signal->getRequestType() == SIGNAL_ACQ && CGroupProvisioningRequest(signal)) {
         Signal::cleanUpSignal(signal);
         return;
     }
@@ -264,11 +273,12 @@ static void processIncomingRequest(Signal* signal) {
     if(signal->getRequestType() == SIGNAL_ACQ || signal->getRequestType() == SIGNAL_RELAY) {
         if(!VerifyIncomingRequest(signal)) {
             TYPELOGV(VERIFIER_STATUS_FAILURE, signal->getHandle());
-            FreeBlock<Signal>(static_cast<void*>(signal));
+            Signal::cleanUpSignal(signal);
             return;
         }
     }
 
+    // Add the Signal to the SignalQueue
     SignalQueue::getInstance()->addAndWakeup(signal);
 }
 
@@ -326,10 +336,7 @@ static Request* createResourceTuningRequest(Signal* signal) {
         return request;
 
     } catch(const std::bad_alloc& e) {
-        LOGE("RTN_SERVER",
-             "Memory allocation for Request struct corresponding to Signal Req with handle: " +
-             std::to_string(signal->getHandle()) +
-             " failed with error: " + std::string(e.what()) + ". Dropping this Request");
+        TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE_HANDLE, signal->getHandle(), e.what());
         return nullptr;
     }
 
@@ -343,10 +350,7 @@ static Request* createResourceUntuneRequest(Signal* signal) {
         request = new(GetBlock<Request>()) Request();
 
     } catch(const std::bad_alloc& e) {
-        LOGE("RTN_SERVER",
-             "Memory allocation for Request struct corresponding to Signal Req with handle: " +
-             std::to_string(signal->getHandle()) +
-             " failed with error: " + std::string(e.what()) + ". Dropping this Request");
+        TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE_HANDLE, signal->getHandle(), e.what());
         return nullptr;
     }
 
@@ -376,8 +380,6 @@ void SignalQueue::orderedQueueConsumerHook() {
 
         Signal* signal = dynamic_cast<Signal*>(message);
         if(signal == nullptr) {
-            LOGD("RTN_SERVER",
-                 "Message is Malformed, Downcasting to Signal Type Failed");
             continue;
         }
 
@@ -408,7 +410,6 @@ void SignalQueue::orderedQueueConsumerHook() {
                 int8_t status = SignalExtFeatureMapper::getInstance()->getFeatures(signal->getSignalID(), subscribedFeatures);
 
                 if(!status) {
-                    LOGE("RTN_SERVER", "No signal with the specified ID exists, dropping the request");
                     break;
                 }
 

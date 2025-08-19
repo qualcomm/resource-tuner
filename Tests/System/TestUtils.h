@@ -15,18 +15,18 @@
 
 /*
 * TEST RESOURCES DESCRIPTION:
-* | Name                   | Optype | Opcode | Def Value | Core Level Conflict | Enabled | Permissions   | High Threshold | Low Threshold |
-* |------------------------|--------|--------|-----------|---------------------|---------|---------------|----------------|---------------|
-* | sched_util_clamp_min   |   01   |   00   |   300     |        False        |  True   | [third_party] |      1024      |      0        |
-* | sched_util_clamp_max   |   01   |   01   |   684     |        False        |  True   | [third_party] |      1024      |      0        |
-* | scaling_min_freq       |   01   |   02   |   107     |        False        |  True   | [third_party] |      1024      |      0        |
-* | scaling_max_freq       |   01   |   03   |   114     |        False        |  True   | [third_party] |      2048      |      0        |
-* | target_test_resource1  |   01   |   04   |   240     |        False        |  True   | [system]      |      400       |      0        |
-* | target_test_resource2  |   01   |   05   |   333     |        True         |  True   | [third_party] |      6500      |      50       |
-* | target_test_resource3  |   01   |   06   |   4400    |        False        |  True   | [third_party] |      5511      |      4000     |
-* | target_test_resource4  |   01   |   07   |   516     |        False        |  False  | [third_party] |      900       |      300      |
-* | target_test_resource5  |   01   |   08   |   17      |        False        |  True   | [third_party] |      20        |      0        |
-* |------------------------|--------|--------|-----------|---------------------|---------|---------------|----------------|---------------|
+* | Name                   | Optype | Opcode | Def Value | ApplyType | Enabled | Permissions   | High Threshold | Low Threshold |
+* |------------------------|--------|--------|-----------|---------------------|---------------|----------------|---------------|
+* | sched_util_clamp_min   |   01   |   00   |   300     |   global  |  True   | [third_party] |      1024      |      0        |
+* | sched_util_clamp_max   |   01   |   01   |   684     |   global  |  True   | [third_party] |      1024      |      0        |
+* | scaling_min_freq       |   01   |   02   |   107     |   global  |  True   | [third_party] |      1024      |      0        |
+* | scaling_max_freq       |   01   |   03   |   114     |   global  |  True   | [third_party] |      2048      |      0        |
+* | target_test_resource1  |   01   |   04   |   240     |   global  |  True   | [system]      |      400       |      0        |
+* | target_test_resource2  |   01   |   05   |   333     |   global  |  True   | [third_party] |      6500      |      50       |
+* | target_test_resource3  |   01   |   06   |   4400    |   global  |  True   | [third_party] |      5511      |      4000     |
+* | target_test_resource4  |   01   |   07   |   516     |   global  |  False  | [third_party] |      900       |      300      |
+* | target_test_resource5  |   01   |   08   |   17      |   global  |  True   | [third_party] |      20        |      0        |
+* |------------------------|--------|--------|-----------|---------------------|---------------|----------------|---------------|
 */
 
 static void writeToNode(const std::string& fName, std::string value) {

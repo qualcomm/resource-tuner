@@ -142,9 +142,9 @@ int32_t main(int32_t argc, char *argv[]) {
             case 't':
                 ResourceTunerSettings::serverInTestMode = true;
                 RTN_REGISTER_CONFIG(PROPERTIES_CONFIG, "../Tests/Configs/testPropertiesConfig.yaml")
-                RTN_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourceConfigs.yaml")
-                RTN_REGISTER_CONFIG(SIGNALS_CONFIG, "../Tests/Configs/testSignalConfigs.yaml")
-                RTN_REGISTER_CONFIG(TARGET_CONFIG, "../Tests/Configs/testTargetConfigs.yaml")
+                RTN_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourcesConfig.yaml")
+                RTN_REGISTER_CONFIG(SIGNALS_CONFIG, "../Tests/Configs/testSignalsConfig.yaml")
+                RTN_REGISTER_CONFIG(TARGET_CONFIG, "../Tests/Configs/testTargetConfig.yaml")
                 break;
             case 'h':
                 std::cout<<"Help Options"<<std::endl;
@@ -246,13 +246,13 @@ int32_t main(int32_t argc, char *argv[]) {
              "Starting Resource Tuner Listener Thread");
         try {
             resourceTunerListener = std::thread(listenerThreadStartRoutine);
+            TYPELOGD(LISTENER_THREAD_CREATION_SUCCESS);
+
         } catch(const std::system_error& e) {
             TYPELOGV(SYSTEM_THREAD_CREATION_FAILURE, "Listener", e.what());
             mOpStatus = RC_MODULE_INIT_FAILURE;
         }
     }
-
-    TYPELOGD(LISTENER_THREAD_CREATION_SUCCESS);
 
     if(RC_IS_OK(mOpStatus)) {
         // Make Stdin Non-Blocking

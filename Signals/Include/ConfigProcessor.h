@@ -9,10 +9,9 @@
 
 #include "YamlParser.h"
 #include "SignalRegistry.h"
+#include "ExtFeaturesRegistry.h"
 
-#define SIGNAL_CONFIGS_FILE  "/etc/ResourceTuner/SignalConfigs.yaml"
 #define SIGNAL_CONFIGS_ROOT "SignalConfigs"
-
 #define SIGNAL_SIGID "SigId"
 #define SIGNAL_CATEGORY "Category"
 #define SIGNAL_NAME "Name"
@@ -27,6 +26,12 @@
 #define SIGNAL_RESOURCE_CODE "ResCode"
 #define SIGNAL_RESINFO "ResInfo"
 #define SIGNAL_VALUES "Values"
+
+#define EXT_FEATURES_CONFIGS_ROOT "ExtFeaturesConfigs"
+#define EXT_FEATURE_ID "FeatureId"
+#define EXT_FEATURE_LIB "Lib"
+#define EXT_FEATURE_SIGNAL_RANGE "Range"
+#define EXT_FEATURE_SIGNAL_INDIVIDUAL "Individual"
 
 /**
  * @brief SignalConfigProcessor
@@ -59,17 +64,14 @@
  * @example Signal_Configs
  * This example shows the expected YAML format for Signal configuration.
 */
-class SignalConfigProcessor {
+class ConfigProcessor {
 private:
-    std::string mSignalConfigYamlFilePath;
-    int8_t mCustomSignalsFileSpecified;
-
-    void parseYamlNode(const YAML::Node& result);
+    void parseSignalConfigYamlNode(const YAML::Node& result, int8_t isBuSpecified);
+    void parseExtFeatureConfigYamlNode(const YAML::Node& result);
 
 public:
-    SignalConfigProcessor(const std::string& yamlFilePath);
-
-    ErrCode parseSignalConfigs();
+    ErrCode parseSignalConfigs(const std::string& filePath, int8_t isBuSpecified=false);
+    ErrCode parseExtFeaturesConfigs(const std::string& filePath);
 };
 
 #endif
