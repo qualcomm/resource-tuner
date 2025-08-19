@@ -217,9 +217,12 @@ static void setCpuIdle(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
 
-    if(resource->getValuesCount() != 1) return;
+    if(resource->getValuesCount() != 2) return;
 
-    int32_t cGroupIdentifier = resource->mConfigValue.singleValue;
+    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
+    int32_t idleStatus = (*resource->mConfigValue.valueArray)[1];
+
+    if(idleStatus != 0 && idleStatus != 1) return;
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
@@ -234,7 +237,7 @@ static void setCpuIdle(void* context) {
                 return;
             }
 
-            controllerFile<<"1";
+            controllerFile<<idleStatus;
 
             if(controllerFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));
