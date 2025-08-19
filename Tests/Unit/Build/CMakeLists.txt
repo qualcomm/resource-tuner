@@ -27,10 +27,10 @@ if(BUILD_TESTS)
     target_link_libraries(ClientDataManagerTests GTest::gtest_main Auxiliary Server)
 
     add_executable(RequestMapTests ../Core/RequestMapTests.cpp)
-    target_link_libraries(RequestMapTests GTest::gtest_main  Auxiliary Server)
+    target_link_libraries(RequestMapTests GTest::gtest_main  Auxiliary Server ExtAPIs)
 
     add_executable(RateLimiterTests ../Core/RateLimiterTests.cpp)
-    target_link_libraries(RateLimiterTests GTest::gtest_main  Auxiliary Server)
+    target_link_libraries(RateLimiterTests GTest::gtest_main  Auxiliary Server ExtAPIs)
 
     add_executable(ResourceProcessorTests ../Core/ResourceProcessorTests.cpp)
     target_link_libraries(ResourceProcessorTests GTest::gtest_main Auxiliary Server ExtAPIs)
