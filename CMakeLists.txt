@@ -57,8 +57,6 @@ else (DOXYGEN_FOUND)
 endif (DOXYGEN_FOUND)
 endif()
 
-
-
 # Mandatory Builds
 add_subdirectory(Core/Build)
 
@@ -101,8 +99,8 @@ target_link_libraries(resource_tuner PUBLIC Server Auxiliary SysRequestReceiver)
 
 # System Test Executable
 if(BUILD_TESTS)
-add_executable(sys_tests_ex ./Tests/System/SystemWideTests.cpp)
-target_link_libraries(sys_tests_ex PUBLIC Auxiliary ClientAPIs)
+  add_executable(sys_tests_ex ./Tests/System/SystemWideTests.cpp)
+  target_link_libraries(sys_tests_ex PUBLIC Auxiliary ClientAPIs)
 endif()
 
 #install libs
@@ -111,7 +109,7 @@ install(TARGETS Auxiliary SocketCommClient SocketCommServer
         ClientAPIs SysConfigProps Server ExtAPIs
         SysRequestReceiver LIBRARY DESTINATION lib)
 if(BUILD_SIGNALS)
-install(TARGETS SysSignals DESTINATION lib)
+  install(TARGETS SysSignals DESTINATION lib)
 endif()
 
 #install headers

@@ -23,6 +23,8 @@ static ErrCode createCGroups() {
     TargetRegistry::getInstance()->getCGroupConfigs(cGroupConfigs);
 
     for(CGroupConfigInfo* cGroupConfig : cGroupConfigs) {
+        if(cGroupConfig == nullptr) continue;
+
         std::string cGroupPath = ResourceTunerSettings::mBaseCGroupPath + cGroupConfig->mCgroupName;
         if(mkdir(cGroupPath.c_str(), 0755) == 0) {
             if(cGroupConfig->isThreaded) {
