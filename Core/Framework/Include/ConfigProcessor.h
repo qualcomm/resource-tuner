@@ -48,26 +48,21 @@
 #define INIT_CONFIGS_CGROUP_THREADED "IsThreaded"
 
 /**
- * @brief ConfigProcessor
- * @details Responsible for Parsing the ResourceConfig (YAML) file.
- *          Note, this class uses the YamlParser class for actually Reading and
- *          Parsing the YAML data.
- *
- * The configuration file must follow a specific structure.
+ * The Resource Config file (ResourcesConfig.yaml) must follow a specific structure.
  * Example YAML configuration:
  * @code{.yaml}
  * ResourceConfigs:
- *   - ResType: "0x1"
- *     ResID: "0x0"
- *     Name: "/proc/sys/kernel/sched_util_clamp_min"
+ *   - ResType: "0x03"
+ *     ResID: "0x0000"
+ *     Name: "SCHED_UTIL_CLAMP_MIN"
+ *     Path: "/proc/sys/kernel/sched_util_clamp_min"
  *     Supported: true
- *     HighThreshold: 1024,
+ *     HighThreshold: 1024
  *     LowThreshold: 0
  *     Permissions: "third_party"
- *     Modes:
- *     - "display_on"
- *     - "doze"
- *     Policy: "higher_is_better"
+ *     Modes: ["display_on", "doze"]
+ *     Policy: "lower_is_better"
+ *     ApplyType: "global"
  * @endcode
  *
  * @example Resource_Configs
@@ -75,12 +70,7 @@
 */
 
 /**
- * @brief TargetConfigProcessor
- * @details Responsible for Parsing the Target Config (YAML) file.
- *          Note, this class uses the YamlParser class for actually Reading and
- *          Parsing the YAML data.
- *
- * The configuration file must follow a specific structure.
+ * The Target Config file (TargetConfig.yaml) must follow a specific structure.
  * Example YAML configuration:
  * @code{.yaml}
  * TargetConfig:
@@ -110,6 +100,34 @@
  * This example shows the expected YAML format for Target configuration.
 */
 
+/**
+ * The Init Config file (InitConfig.yaml) must follow a specific structure.
+ * Example YAML configuration:
+ * @code{.yaml}
+ * InitConfigs:
+ *   - CgroupsInfo:
+ *     - Name: "camera-cgroup"
+ *       ID: 0
+ *     - Name: "audio-cgroup"
+ *       ID: 1
+ *     - Name: "video-cgroup"
+ *       IsThreaded: true
+ *       ID: 2
+ *
+ * @endcode
+ *
+ * @example Init_Configs
+ * This example shows the expected YAML format for Init Config, which includes any
+ * applicable CGroup Creation Information.
+*/
+
+/**
+ * @brief ConfigProcessor
+ * @details Responsible for Parsing the ResourceConfig file,
+*           InitConfig and TargetConfig (if provided) YAML files.
+ *          Note, this class uses the YamlParser class for actually Reading and
+ *          Parsing the YAML data.
+*/
 class ConfigProcessor {
 private:
     void parseResourceConfigYamlNode(const YAML::Node& result, int8_t isBuSpecified);

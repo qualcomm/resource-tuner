@@ -21,6 +21,7 @@ const std::string ResourceTunerSettings::mTargetSpecificSignalFilePath =
                                     "/etc/ResourceTuner/SignalsConfig.yaml";
 const std::string ResourceTunerSettings::mPropertiesFilePath =
                                     "/etc/ResourceTuner/Common/PropertiesConfig.yaml";
+const std::string ResourceTunerSettings::mBaseCGroupPath = "/sys/fs/cgroup/";
 
 int32_t ResourceTunerSettings::isServerOnline() {
     return serverOnlineStatus;

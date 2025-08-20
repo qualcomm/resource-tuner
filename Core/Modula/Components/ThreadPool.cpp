@@ -234,7 +234,7 @@ ThreadPool::ThreadPool(int32_t desiredCapacity, int32_t maxPending, int32_t maxC
         }
     }
 
-    LOGI("RTN_THREAD_POOL",
+    LOGI("RESTUNE_THREAD_POOL",
          "Requested Thread Count = " + std::to_string(this->mDesiredPoolCapacity) + ", "  \
          "Allocated Thread Count = " + std::to_string(this->mCurrentThreadsCount));
 

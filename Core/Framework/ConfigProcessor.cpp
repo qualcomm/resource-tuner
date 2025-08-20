@@ -133,12 +133,12 @@ ErrCode ConfigProcessor::parseResourceConfigs(const std::string& filePath, int8_
             for(int32_t i = 0; i < result[RESOURCE_CONFIGS_ROOT].size(); i++) {
                 YAML::Node resourceConfig = result[RESOURCE_CONFIGS_ROOT][i];
                 try {
-                    LOGI("RTN_RESOURCE_PROCESSOR", "Parsing Resource Config at index = " + std::to_string(i));
+                    LOGI("RESTUNE_RESOURCE_PROCESSOR", "Parsing Resource Config at index = " + std::to_string(i));
                     parseResourceConfigYamlNode(resourceConfig, isBuSpecified);
                 } catch(const std::invalid_argument& e) {
-                    LOGE("RTN_RESOURCE_PROCESSOR", "Error parsing Resource Config: " + std::string(e.what()));
+                    LOGE("RESTUNE_RESOURCE_PROCESSOR", "Error parsing Resource Config: " + std::string(e.what()));
                 } catch(const std::bad_alloc& e) {
-                    LOGE("RTN_RESOURCE_PROCESSOR", "Error parsing Resource Config: " + std::string(e.what()));
+                    LOGE("RESTUNE_RESOURCE_PROCESSOR", "Error parsing Resource Config: " + std::string(e.what()));
                 }
             }
         }
@@ -157,7 +157,7 @@ ErrCode ConfigProcessor::parseTargetConfigs(const std::string& filePath) {
                 try {
                     parseTargetConfigYamlNode(targetConfig);
                 } catch(const std::invalid_argument& e) {
-                    LOGE("RTN_TARGET_PROCESSOR", "Error parsing Target Config: " + std::string(e.what()));
+                    LOGE("RESTUNE_TARGET_PROCESSOR", "Error parsing Target Config: " + std::string(e.what()));
                 }
             }
         }
@@ -176,7 +176,7 @@ ErrCode ConfigProcessor::parseInitConfigs(const std::string& filePath) {
                 try {
                     parseInitConfigYamlNode(targetConfig);
                 } catch(const std::invalid_argument& e) {
-                    LOGE("RTN_TARGET_PROCESSOR", "Error parsing Init Config: " + std::string(e.what()));
+                    LOGE("RESTUNE_TARGET_PROCESSOR", "Error parsing Init Config: " + std::string(e.what()));
                 }
             }
         }

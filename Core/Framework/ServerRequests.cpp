@@ -347,7 +347,7 @@ void RequestQueue::orderedQueueConsumerHook() {
 
         // This is a custom Request used to clean up the Server.
         if(message->getPriority() == SERVER_CLEANUP_TRIGGER_PRIORITY) {
-            LOGI("RTN_SERVER_REQUESTS", "Called Cleanup Request");
+            LOGI("RESTUNE_SERVER_REQUESTS", "Called Cleanup Request");
             return;
         }
 
@@ -360,7 +360,7 @@ void RequestQueue::orderedQueueConsumerHook() {
         uint8_t currentMode = ResourceTunerSettings::targetConfigs.currMode;
         if((currentMode == MODE_DISPLAY_OFF || currentMode == MODE_DOZE) && !req->isBackgroundProcessingEnabled()) {
             // Cannot continue with this Request
-            LOGD("RTN_SERVER_REQUESTS", "Request cannot be processed in current mode");
+            LOGD("RESTUNE_SERVER_REQUESTS", "Request cannot be processed in current mode");
             continue;
         }
 
@@ -385,14 +385,14 @@ void RequestQueue::orderedQueueConsumerHook() {
 
             if(correspondingTuneRequest == nullptr) {
                 // Note by this point, the Client is ascertained to be in the Client Data Manager Table
-                LOGD("RTN_SERVER_REQUESTS", "Corresponding Tune Request Not Found, Dropping");
+                LOGD("RESTUNE_SERVER_REQUESTS", "Corresponding Tune Request Not Found, Dropping");
 
                 Request::cleanUpRequest(req);
                 continue;
             }
 
             if(correspondingTuneRequest->getClientPID() != req->getClientPID()) {
-                LOGI("RTN_SERVER_REQUESTS",
+                LOGI("RESTUNE_SERVER_REQUESTS",
                      "Corresponding Tune Request issued by different Client, Dropping Request.");
 
                 // Free Up the Request

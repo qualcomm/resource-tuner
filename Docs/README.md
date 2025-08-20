@@ -54,6 +54,8 @@ Refer the **Examples** Tab for guidance on Resource Tuner API usage.
 
 [GitHub Repo](https://github.com/qualcomm/resource-tuner/tree/main)
 
+---
+
 # Project Structure
 
 \verbatim
@@ -66,6 +68,7 @@ Refer the **Examples** Tab for guidance on Resource Tuner API usage.
 /docs       → Documentation
 \endverbatim
 
+---
 <div style="page-break-after: always;"></div>
 
 
@@ -81,6 +84,7 @@ Refer the **Examples** Tab for guidance on Resource Tuner API usage.
 - The Extension Interface Provides a way to Customize Resource Tuner Behaviour, by Specifying Custom Resources, Custom Signals and Features.
 - Resource Tuner uses YAML based Config files, for fetching Information relating to Resources / Signals and Properties.
 
+---
 <div style="page-break-after: always;"></div>
 
 # Resource Tuner Features
@@ -112,6 +116,7 @@ Resource Tuner Architecture is captured above.
 - A timer is created and used to keep track of a Request, i.e. check if it has expired. Once it is detected that the Request has expired an Untune Request for the same Handle as this Request, is automatically generated and submitted, it will take care of Resetting the effected Resource Nodes to their Original Values.
 - BUs can Provide their own Custom Appliers for any Resource. The Default Action provided by Resource Tuner is writing to the Resource Sysfs Node.
 
+---
 <div style="page-break-after: always;"></div>
 
 Here is a more detailed explanation of the key features discussed above:
@@ -174,9 +179,7 @@ Resource Tuner provides a MemoryPool component, which allows for pre-allocation 
 
 Further, a ThreadPool component is provided to pre-allocate processing capacity. This is done to improve the efficiency of the system, by reducing the number of thread creation and destruction required during the processing of Requests, further ThreadPool allows for the Threads to be repeatedly reused for processing different tasks.
 
-<div style="page-break-after: always;"></div>
-
-
+---
 <div style="page-break-after: always;"></div>
 
 # Config Files Format
@@ -668,57 +671,70 @@ Custom Signal Config File can be specified similarly:
 RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/bin/targetSignalConfigCustom.yaml");
 ```
 
+---
 <div style="page-break-after: always;"></div>
 
-
-# Server CLI
-The **Resource Tuner Server** runs as a background service, initializing configurations and registering extensions to handle incoming requests.
-
-## Commands
-- `start` Launches the server, loads all configuration files, and prepares for request handling.
-
-- `exit` Gracefully shuts down the server.
-
-- `dump` Displays all currently active requests in the system.
----
-
 # Client CLI
-REDO: NEED TO REWRITE TO MATCH CURRENT IMPLEMENTATION
-
-The **Resource Tuner Client** sends tuning-related requests to the server via command-line interface.
+Resource Tuner provides a minimal CLI to interact with the server. This is provided to help with development and debugging purposes.
 
 ## Usage Examples
 
-### 1. Send Tune Requests from YAML File
+### 1. Send a Tune Request
 ```bash
-./client_ex -j
+./resource_tuner_cli --tune --duration <> --priority <> --num <> --res <>
 ```
-- Reads requests from `SampleRequests.yaml`. TODO:show example.
+Where:
+- `duration`: Duration in milliseconds for the tune request
+- `priority`: Priority level for the tune request (HIGH: 0 or LOW: 1)
+- `num`: Number of Resources
+- `res`: List of resource OpCode, Value pairs to be tuned as part of this request
 
-### 2. Send Tune Request via CLI
+Example:
 ```bash
-./client_ex -i -v 0:567 -d 5000 -p 1
+./resource_tuner_cli --tune --duration 5000 --priority 0 --num 1 --res 65536:700
 ```
-- `-i` : Initiates a tune request  
-- `-v` : Opcode:Value pairs (comma-separated, no spaces)  
-- `-d` : Duration in milliseconds  
-- `-p` : Priority level
 
-### 3. Send Untune Request
+### 2. Send an Untune Request
 ```bash
-./client_ex -u -h 1
+./resource_tuner_cli --untune --handle <>
 ```
-- `-u` : Untune request  
-- `-h` : Handle ID
+Where:
+- `handle`: Handle of the previously issued Tune Request, which needs to be untuned
 
-### 4. Send Retune Request
+Example:
 ```bash
-./client_ex -r -h 1 -d 8000
+./resource_tuner_cli --untune --handle 50
 ```
-- `-r` : Retune request  
-- `-h` : Handle ID  
-- `-d` : New duration in milliseconds
 
+### 3. Send a Retune Request
+```bash
+./resource_tuner_cli --retune --handle <> --duration <>
+```
+Where:
+- `handle`: Handle of the previously issued Tune Request, which needs to be retuned
+- `duration`: The new Duration in milliseconds for the tune request
+
+Example:
+```bash
+./resource_tuner_cli --retune --handle 7 --duration 8000
+```
+
+### 4. Send a getprop Request
+
+```bash
+./resource_tuner_cli --getprop --key <>
+```
+Where:
+- `key`: The Prop Name of which the corresponding value needs to be fetched
+
+Example:
+```bash
+./resource_tuner_cli --getprop --key "resource_tuner.logging.level"
+```
+
+### 5. Send a setprop Request
+
+---
 <div style="page-break-after: always;"></div>
 
 # Contact

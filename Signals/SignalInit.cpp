@@ -106,7 +106,7 @@ ErrCode terminateSignals() {
     return RC_SUCCESS;
 }
 
-RTN_REGISTER_MODULE(MOD_SYSSIGNAL,
+RESTUNE_REGISTER_MODULE(MOD_SYSSIGNAL,
                     initSignals,
                     terminateSignals,
                     submitSignalRequest);

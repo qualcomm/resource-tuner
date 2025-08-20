@@ -143,7 +143,7 @@ ErrCode Signal::deserialize(char* buf) {
         return RC_MEMORY_POOL_BLOCK_RETRIEVAL_FAILURE;
 
     } catch(const std::exception& e) {
-        LOGE("RTN_SERVER",
+        LOGE("RESTUNE_SERVER",
              "Request Deserialization Failed with error: " + std::string(e.what()));
         return RC_REQUEST_DESERIALIZATION_FAILURE;
     }

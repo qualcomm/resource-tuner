@@ -34,11 +34,11 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
             if(this->mRequestsThreadPool != nullptr) {
                 if(!this->mRequestsThreadPool->
                     enqueueTask(ComponentRegistry::getModuleMessageHandlerCallback(MOD_CORE), msgForwardInfo)) {
-                    LOGE("RTN_REQUEST_RECEIVER",
+                    LOGE("RESTUNE_REQUEST_RECEIVER",
                          "Failed to enqueue the Request to the Thread Pool");
                 }
             } else {
-                LOGE("RTN_REQUEST_RECEIVER",
+                LOGE("RESTUNE_REQUEST_RECEIVER",
                      "Thread pool not initialized, Dropping the Request");
             }
 
@@ -102,11 +102,11 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
             if(this->mRequestsThreadPool != nullptr) {
                 if(!this->mRequestsThreadPool->
                     enqueueTask(ComponentRegistry::getModuleMessageHandlerCallback(MOD_SYSSIGNAL), msgForwardInfo)) {
-                    LOGE("RTN_REQUEST_RECEIVER",
+                    LOGE("RESTUNE_REQUEST_RECEIVER",
                          "Failed to enqueue the Request to the Thread Pool");
                 }
             } else {
-                LOGE("RTN_REQUEST_RECEIVER",
+                LOGE("RESTUNE_REQUEST_RECEIVER",
                      "Thread pool not initialized, Dropping the Request");
             }
 
@@ -119,7 +119,7 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
             break;
         }
         default:
-            LOGE("RTN_SOCKET_SERVER", "Invalid Request Type");
+            LOGE("RESTUNE_SOCKET_SERVER", "Invalid Request Type");
             break;
     }
 }
@@ -140,20 +140,20 @@ void listenerThreadStartRoutine() {
                                              CheckServerOnlineStatus,
                                              OnResourceTunerMessageReceiverCallback);
     } catch(const std::bad_alloc& e) {
-        LOGE("RTN_REQUEST_RECEIVER",
+        LOGE("RESTUNE_REQUEST_RECEIVER",
              "Failed to allocate memory for Resource Tuner Socket Server-Endpoint, Resource Tuner\
               Server startup failed: " + std::string(e.what()));
 
         return;
     } catch(const std::exception& e) {
-        LOGE("RTN_REQUEST_RECEIVER",
+        LOGE("RESTUNE_REQUEST_RECEIVER",
              "Failed to start the Resource Tuner Listener, error: " + std::string(e.what()));
 
         return;
     }
 
     if(RC_IS_NOTOK(connection->ListenForClientRequests())) {
-        LOGE("RTN_REQUEST_RECEIVER", "Server Socket Endpoint crashed");
+        LOGE("RESTUNE_REQUEST_RECEIVER", "Server Socket Endpoint crashed");
     }
 
     if(connection != nullptr) {

@@ -8,12 +8,12 @@ std::string AuxRoutines::readFromFile(const std::string& fileName) {
     std::string value = "";
 
     if(!fileStream.is_open()) {
-        LOGE("RTN_AUX_ROUTINE", "Failed to open file: " + fileName + " Error: " + strerror(errno));
+        LOGE("RESTUNE_AUX_ROUTINE", "Failed to open file: " + fileName + " Error: " + strerror(errno));
         return "";
     }
 
     if(!getline(fileStream, value)) {
-        LOGE("RTN_AUX_ROUTINE", "Failed to read from file: " + fileName);
+        LOGE("RESTUNE_AUX_ROUTINE", "Failed to read from file: " + fileName);
         return "";
     }
 
@@ -25,14 +25,14 @@ void AuxRoutines::writeToFile(const std::string& fileName, const std::string& va
     std::ofstream fileStream(fileName, std::ios::out | std::ios::trunc);
 
     if(!fileStream.is_open()) {
-        LOGD("RTN_AUX_ROUTINE", "Failed to open file: " + fileName + " Error: " + strerror(errno));
+        LOGD("RESTUNE_AUX_ROUTINE", "Failed to open file: " + fileName + " Error: " + strerror(errno));
         return;
     }
 
     fileStream<<value;
 
     if(fileStream.fail()) {
-        LOGD("RTN_AUX_ROUTINE", "Failed to write to file: "+ fileName + " Error: " + strerror(errno));
+        LOGD("RESTUNE_AUX_ROUTINE", "Failed to write to file: "+ fileName + " Error: " + strerror(errno));
     }
 
     fileStream.flush();
@@ -45,7 +45,7 @@ void AuxRoutines::writeSysFsDefaults() {
 
     file.open("sysfsOriginalValues.txt");
     if(!file.is_open()) {
-        LOGE("RTN_SERVER_INIT", "Failed to open sysfs original values file: sysfsOriginalValues.txt");
+        LOGE("RESTUNE_SERVER_INIT", "Failed to open sysfs original values file: sysfsOriginalValues.txt");
         return;
     }
 
@@ -80,7 +80,7 @@ void AuxRoutines::deleteFile(const std::string& fileName) {
 }
 
 void dumpRequest(Request* clientReq) {
-    std::string LOG_TAG = "RTN_SERVER";
+    std::string LOG_TAG = "RESTUNE_SERVER";
 
     LOGD(LOG_TAG, "Request details:");
     LOGD(LOG_TAG, "reqType: " + std::to_string(clientReq->getRequestType()));
@@ -104,7 +104,7 @@ void dumpRequest(Request* clientReq) {
 }
 
 void AuxRoutines::dumpRequest(Signal* clientReq) {
-    std::string LOG_TAG = "RTN_SERVER";
+    std::string LOG_TAG = "RESTUNE_SERVER";
     LOGD(LOG_TAG, "Print Signal details:");
 
     LOGD(LOG_TAG, "Print Signal Request");

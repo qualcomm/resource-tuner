@@ -48,13 +48,13 @@ inline T safeExtract(const YAML::Node& node, T defaultValue) {
             return node.as<T>();
         }
     } catch(const YAML::TypedBadConversion<T>& e) {
-        LOGE("RTN_YAML_PARSER",
+        LOGE("RESTUNE_YAML_PARSER",
              "Failed to parse Node to Yaml, Error: " + std::string(e.what()) + " " +
              "returning specified default Value");
         return defaultValue;
     }
 
-    LOGE("RTN_YAML_PARSER",
+    LOGE("RESTUNE_YAML_PARSER",
          "Could not parse Yaml Node as it is Null or Not a Scalar " \
          "returning specified default Value");
     return defaultValue;

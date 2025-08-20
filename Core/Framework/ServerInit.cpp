@@ -23,7 +23,7 @@ static ErrCode createCGroups() {
     TargetRegistry::getInstance()->getCGroupConfigs(cGroupConfigs);
 
     for(CGroupConfigInfo* cGroupConfig : cGroupConfigs) {
-        const std::string cGroupPath = "/sys/fs/cgroup/" + cGroupConfig->mCgroupName;
+        std::string cGroupPath = ResourceTunerSettings::mBaseCGroupPath + cGroupConfig->mCgroupName;
         if(mkdir(cGroupPath.c_str(), 0755) == 0) {
             if(cGroupConfig->isThreaded) {
                 AuxRoutines::writeToFile(cGroupPath + "/cgroup.type", "threaded");
@@ -207,7 +207,7 @@ static ErrCode terminateServer() {
     return RC_SUCCESS;
 }
 
-RTN_REGISTER_MODULE(MOD_CORE,
+RESTUNE_REGISTER_MODULE(MOD_CORE,
                     initServer,
                     terminateServer,
                     submitResourceProvisioningRequest);

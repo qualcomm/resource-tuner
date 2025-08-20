@@ -129,12 +129,12 @@ ErrCode ConfigProcessor::parseSignalConfigs(const std::string& filePath, int8_t 
             for(int32_t i = 0; i < result[SIGNAL_CONFIGS_ROOT].size(); i++) {
                 YAML::Node signalConfig = result[SIGNAL_CONFIGS_ROOT][i];
                 try {
-                    LOGI("RTN_SIGNAL_PROCESSOR", "Parsing Signal Config at index = " + std::to_string(i));
+                    LOGI("RESTUNE_SIGNAL_PROCESSOR", "Parsing Signal Config at index = " + std::to_string(i));
                     parseSignalConfigYamlNode(signalConfig, isBuSpecified);
                 } catch(const std::invalid_argument& e) {
-                    LOGE("RTN_SIGNAL_PROCESSOR", "Error parsing Signal Config: " + std::string(e.what()));
+                    LOGE("RESTUNE_SIGNAL_PROCESSOR", "Error parsing Signal Config: " + std::string(e.what()));
                 } catch(const std::bad_alloc& e) {
-                    LOGE("RTN_SIGNAL_PROCESSOR", "Error parsing Resource Config: " + std::string(e.what()));
+                    LOGE("RESTUNE_SIGNAL_PROCESSOR", "Error parsing Resource Config: " + std::string(e.what()));
                 }
             }
         }
@@ -156,7 +156,7 @@ ErrCode ConfigProcessor::parseExtFeaturesConfigs(const std::string& filePath) {
                 try {
                     parseExtFeatureConfigYamlNode(featureConfig);
                 } catch(const std::invalid_argument& e) {
-                    LOGE("RTN_EXT_FEATURE_PROCESSOR", "Error parsing Ext Feature Config: " + std::string(e.what()));
+                    LOGE("RESTUNE_EXT_FEATURE_PROCESSOR", "Error parsing Ext Feature Config: " + std::string(e.what()));
                 }
             }
         }

@@ -94,7 +94,7 @@ void CocoTable::applyAction(CocoNode* currNode, int32_t index, int8_t priority) 
             } else {
                 // Default Applier
                 AuxRoutines::writeToFile(resourceConfig->mResourceName, std::to_string(resource->mConfigValue.singleValue));
-                LOGI("RTN_COCO_TABLE" , "Value " + std::to_string(resource->mConfigValue.singleValue) + " written in " +
+                LOGI("RESTUNE_COCO_TABLE" , "Value " + std::to_string(resource->mConfigValue.singleValue) + " written in " +
                      resourceConfig->mResourceName);
             }
             mCurrentlyAppliedPriority[index] = priority;
@@ -111,7 +111,7 @@ void CocoTable::applyDefaultAction(int32_t index, Resource* resource) {
         } else {
             // Default Tear Callback
             AuxRoutines::writeToFile(resourceConfigInfo->mResourceName, resourceConfigInfo->mDefaultValue);
-            LOGI("RTN_COCO_TABLE" ,
+            LOGI("RESTUNE_COCO_TABLE" ,
                  "Value " + resourceConfigInfo->mDefaultValue + " written in " + resourceConfigInfo->mResourceName);
         }
         mCurrentlyAppliedPriority[index] = -1;
@@ -307,7 +307,7 @@ int8_t CocoTable::insertInCocoTable(CocoNode* currNode, Resource* resource, int8
 int8_t CocoTable::insertRequest(Request* req) {
     if(req == nullptr) return false;
 
-    LOGD("RTN_COCO_TABLE","Inserting in CocoTable: Request Handle " + std::to_string(req->getHandle()));
+    LOGD("RESTUNE_COCO_TABLE","Inserting in CocoTable: Request Handle " + std::to_string(req->getHandle()));
 
     // Create a List to Hold all the CocoNodes for the Request
     std::vector<CocoNode*>* cocoNodesList = nullptr;
@@ -316,7 +316,7 @@ int8_t CocoTable::insertRequest(Request* req) {
         cocoNodesList->resize(req->getResourcesCount(), nullptr);
 
     } catch(const std::bad_alloc& e) {
-        LOGE("RTN_COCO_TABLE",
+        LOGE("RESTUNE_COCO_TABLE",
              "Failed to allocate memory for CocoNodesList");
         return false;
     }
@@ -354,7 +354,7 @@ int8_t CocoTable::insertRequest(Request* req) {
         requestTimer = new (GetBlock<Timer>())
                             Timer(std::bind(&CocoTable::timerOver, this, req));
     } catch(const std::bad_alloc& e) {
-        LOGE("RTN_COCO_TABLE",
+        LOGE("RESTUNE_COCO_TABLE",
              "Timer allocation Failed for Request: " + std::to_string(req->getHandle()));
         return false;
     }
@@ -386,7 +386,7 @@ int8_t CocoTable::insertRequest(Request* req) {
 }
 
 int8_t CocoTable::updateRequest(Request* req, int64_t duration) {
-    LOGD("RTN_COCO_TABLE","Updating in CocoTable: Request Handle" + std::to_string(req->getHandle()));
+    LOGD("RESTUNE_COCO_TABLE","Updating in CocoTable: Request Handle" + std::to_string(req->getHandle()));
     if(req == nullptr || duration < -1 || (duration > 0 && (duration < req->getDuration()))) return false;
 
     // Update the duration of the request, and the corresponding timer interval.
@@ -402,7 +402,7 @@ int8_t CocoTable::updateRequest(Request* req, int64_t duration) {
         requestTimer = new (GetBlock<Timer>())
                             Timer(std::bind(&CocoTable::timerOver, this, req));
     } catch(const std::bad_alloc& e) {
-        LOGE("RTN_COCO_TABLE",
+        LOGE("RESTUNE_COCO_TABLE",
              "Timer allocation Failed for Request: " + std::to_string(req->getHandle()));
         return false;
     }
@@ -419,7 +419,7 @@ int8_t CocoTable::updateRequest(Request* req, int64_t duration) {
 
 // Methods for Request Cleanup
 int8_t CocoTable::removeRequest(Request* req) {
-    LOGD("RTN_COCO_TABLE",
+    LOGD("RESTUNE_COCO_TABLE",
          "Request cleanup for Request Handle " + std::to_string(req->getHandle()) + " initiated");
 
     for(int32_t i = 0; i < req->getResourcesCount(); i++) {
@@ -473,14 +473,14 @@ int8_t CocoTable::removeRequest(Request* req) {
 }
 
 int32_t CocoTable::timerOver(Request* request) {
-    LOGD("RTN_COCO_TABLE",
+    LOGD("RESTUNE_COCO_TABLE",
          "Timer over for request " + std::to_string(request->getHandle()));
 
     Request* untuneRequest = nullptr;
     try {
         untuneRequest = new (GetBlock<Request>()) Request();
     } catch(const std::bad_alloc& e) {
-        LOGI("RTN_COCO_TABLE",
+        LOGI("RESTUNE_COCO_TABLE",
              "Failed to Allocate Memory for Untune Request");
     }
 

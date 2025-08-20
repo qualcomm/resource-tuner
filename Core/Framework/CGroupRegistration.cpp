@@ -151,7 +151,7 @@ static void setRunOnCoresExclusively(void* context) {
 
         if(cGroupName.length() > 0) {
             const std::string cGroupControllerFilePath =
-                "/sys/fs/cgroup/" + cGroupName + "/cpuset.cpus";
+                ResourceTunerSettings::mBaseCGroupPath + cGroupName + "/cpuset.cpus";
 
             std::string cpusString = "";
             for(int32_t i = 1; i < resource->getValuesCount(); i++) {
@@ -170,7 +170,7 @@ static void setRunOnCoresExclusively(void* context) {
             controllerFile.close();
 
             const std::string cGroupCpusetPartitionFilePath =
-                "/sys/fs/cgroup/" + cGroupName + "/cpuset.cpus.partition";
+                ResourceTunerSettings::mBaseCGroupPath + cGroupName + "/cpuset.cpus.partition";
 
             std::ofstream partitionFile(cGroupCpusetPartitionFilePath);
             if(!partitionFile.is_open()) {
@@ -621,7 +621,7 @@ static void resetRunOnCoresExclusively(void* context) {
 
         if(cGroupName.length() > 0) {
             const std::string cGroupControllerFilePath =
-                "/sys/fs/cgroup/" + cGroupName + "/cpuset.cpus";
+                ResourceTunerSettings::mBaseCGroupPath + cGroupName + "/cpuset.cpus";
 
             std::ofstream controllerFile(cGroupControllerFilePath);
             if(!controllerFile.is_open()) {
@@ -637,7 +637,7 @@ static void resetRunOnCoresExclusively(void* context) {
             controllerFile.close();
 
             const std::string cGroupCpusetPartitionFilePath =
-                "/sys/fs/cgroup/" + cGroupName + "/cpuset.cpus.partition";
+                ResourceTunerSettings::mBaseCGroupPath + cGroupName + "/cpuset.cpus.partition";
 
             std::ofstream partitionFile(cGroupCpusetPartitionFilePath);
             if(!partitionFile.is_open()) {

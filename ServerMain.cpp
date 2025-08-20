@@ -24,7 +24,7 @@ static void handleSIGTSTP(int32_t sig) {
 }
 
 static void serverCleanup() {
-    LOGE("RTN_SERVER_INIT", "Server Stopped, Cleanup Initiated");
+    LOGE("RESTUNE_SERVER_INIT", "Server Stopped, Cleanup Initiated");
     ResourceTunerSettings::setServerOnlineStatus(false);
 }
 

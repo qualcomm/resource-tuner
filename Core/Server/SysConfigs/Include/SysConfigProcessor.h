@@ -50,7 +50,7 @@
  * @endcode
  *
  * @example Properties_Configs
- * This example shows the expected YAML format for SysConfig configuration.
+ * This example shows the expected YAML format for Properties configuration.
 */
 class SysConfigProcessor {
 private:

@@ -71,20 +71,20 @@ void ResourceRegistry::displayResources() {
     for(int32_t i = 0; i < this->mTotalResources; i++) {
         auto& res = mResourceConfig[i];
 
-        LOGI("RTN_RESOURCE_PROCESSOR", "Resource Name: " + res->mResourceName);
-        LOGI("RTN_RESOURCE_PROCESSOR", "Optype: " + std::to_string(res->mResourceOptype));
-        LOGI("RTN_RESOURCE_PROCESSOR", "Opcode: " + std::to_string(res->mResourceOpcode));
-        LOGI("RTN_RESOURCE_PROCESSOR", "High Threshold: " + std::to_string(res->mHighThreshold));
-        LOGI("RTN_RESOURCE_PROCESSOR", "Low Threshold: " + std::to_string(res->mLowThreshold));
+        LOGI("RESTUNE_RESOURCE_PROCESSOR", "Resource Name: " + res->mResourceName);
+        LOGI("RESTUNE_RESOURCE_PROCESSOR", "Optype: " + std::to_string(res->mResourceOptype));
+        LOGI("RESTUNE_RESOURCE_PROCESSOR", "Opcode: " + std::to_string(res->mResourceOpcode));
+        LOGI("RESTUNE_RESOURCE_PROCESSOR", "High Threshold: " + std::to_string(res->mHighThreshold));
+        LOGI("RESTUNE_RESOURCE_PROCESSOR", "Low Threshold: " + std::to_string(res->mLowThreshold));
 
         if(res->mResourceApplierCallback != nullptr) {
-            LOGI("RTN_RESOURCE_PROCESSOR", "BU has defined its own custom Resource Applier Function");
+            LOGI("RESTUNE_RESOURCE_PROCESSOR", "BU has defined its own custom Resource Applier Function");
             res->mResourceApplierCallback(nullptr);
         } else {
-            LOGI("RTN_RESOURCE_PROCESSOR", "No custom Resource Applier Specified, will use default one");
+            LOGI("RESTUNE_RESOURCE_PROCESSOR", "No custom Resource Applier Specified, will use default one");
         }
 
-        LOGI("RTN_RESOURCE_PROCESSOR", "====================================");
+        LOGI("RESTUNE_RESOURCE_PROCESSOR", "====================================");
     }
 }
 

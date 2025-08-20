@@ -74,11 +74,11 @@ void SignalRegistry::displaySignals() {
     for(int32_t i = 0; i < this->mTotalSignals; i++) {
         auto& signal = this->mSignalsConfigs[i];
 
-        LOGD("RTN_SIGNAL_REGISTRY", "Signal Name: " + signal->mSignalName);
-        LOGD("RTN_SIGNAL_REGISTRY", "Signal OpID: " + std::to_string(signal->mSignalOpId));
-        LOGD("RTN_SIGNAL_REGISTRY", "Signal SignalCategory: " + std::to_string(signal->mSignalCategory));
+        LOGD("RESTUNE_SIGNAL_REGISTRY", "Signal Name: " + signal->mSignalName);
+        LOGD("RESTUNE_SIGNAL_REGISTRY", "Signal OpID: " + std::to_string(signal->mSignalOpId));
+        LOGD("RESTUNE_SIGNAL_REGISTRY", "Signal SignalCategory: " + std::to_string(signal->mSignalCategory));
 
-        LOGD("RTN_SIGNAL_REGISTRY", "====================================");
+        LOGD("RESTUNE_SIGNAL_REGISTRY", "====================================");
     }
 }
 

@@ -49,6 +49,8 @@ public:
     static const std::string mInitConfigFilePath;
     static const std::string mPropertiesFilePath;
 
+    static const std::string mBaseCGroupPath;
+
     static const std::string mTargetSpecificResourceFilePath;
     static const std::string mTargetSpecificSignalFilePath;
 

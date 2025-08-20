@@ -34,36 +34,28 @@
 #define EXT_FEATURE_SIGNAL_INDIVIDUAL "Individual"
 
 /**
- * @brief SignalConfigProcessor
- * @details Responsible for Parsing the SignalConfig (YAML) file.
- *          Note, this class uses the YamlParser class for actually Reading and
- *          Parsing the YAML data.
- *
- * The configuration file must follow a specific structure.
+ * The Signal configuration file (SignalsConfig.yaml) must follow a specific structure.
  * Example YAML configuration:
  * @code{.yaml}
  * SignalConfigs:
- *   - SigId: "0x0"
- *     Category: "0x1"
- *     Name: INSTALL
- *     Enable: true
- *     TargetsEnabled:
- *       - sun
- *       - moon
- *     Permissions:
- *       - system
- *       - third_party
- *     Derivatives:
- *       - solar
- *     Timeout: 4000
- *     Resources:
- *       - 65536
- *       - 700
+ *  - SigId: "0x0000"
+ *    Category: "0x01"
+ *    Name: INSTALL
+ *    Enable: true
+ *    Permissions: ["system", "third_party"]
+ *    Timeout: 4000
+ *    Resources:
+ *      - {ResCode: "0x80030000", ResInfo: "0x00000000", Values: [700]}
+ *      - {ResCode: "0x80040001", ResInfo: "0x00000702", Values: [1388256]}
+ *      - {ResCode: "0x80040102", ResInfo: "0x00000104", Values: [1344100, 1590871]}
  * @endcode
  *
  * @example Signal_Configs
  * This example shows the expected YAML format for Signal configuration.
+ * For Information on each of these fields as well as some which have been omitted from
+ * this example, refer Config Files Format Documentation.
 */
+
 class ConfigProcessor {
 private:
     void parseSignalConfigYamlNode(const YAML::Node& result, int8_t isBuSpecified);
