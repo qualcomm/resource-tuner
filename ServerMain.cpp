@@ -53,7 +53,7 @@ static ErrCode createResourceTunerDaemon(int32_t& childProcessID) {
         }
 
         // Delete the Sysfs Persistent File
-        AuxRoutines::deleteFile("../sysfsOriginalValues.txt");
+        AuxRoutines::deleteFile("sysfsOriginalValues.txt");
         exit(EXIT_SUCCESS);
     }
 
@@ -263,7 +263,7 @@ int32_t main(int32_t argc, char *argv[]) {
     }
 
     // Delete the Sysfs Persistent File
-    AuxRoutines::deleteFile("../sysfsOriginalValues.txt");
+    AuxRoutines::deleteFile("sysfsOriginalValues.txt");
 
     return 0;
 }

@@ -327,6 +327,13 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             Logger::log(ERROR, "RTN_REQUEST_VERIFIER", funcName, std::string(buffer));
             break;
 
+        case CommonMessageTypes::VERIFIER_CGROUP_NOT_FOUND:
+             vsnprintf(buffer, sizeof(buffer),
+                       "CGroup with Identifier [%d] does not exist", args);
+
+            Logger::log(ERROR, "RTN_REQUEST_VERIFIER", funcName, std::string(buffer));
+            break;
+
         case CommonMessageTypes::VERIFIER_LOGICAL_TO_PHYSICAL_MAPPING_FAILED:
             vsnprintf(buffer, sizeof(buffer),
                       "Logical to Physical Core / Cluster Mapping for the "  \

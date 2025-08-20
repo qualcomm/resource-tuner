@@ -43,7 +43,7 @@ void AuxRoutines::writeSysFsDefaults() {
     // Write Defaults
     std::ifstream file;
 
-    file.open("../sysfsOriginalValues.txt");
+    file.open("sysfsOriginalValues.txt");
     if(!file.is_open()) {
         LOGE("RTN_SERVER_INIT", "Failed to open sysfs original values file: sysfsOriginalValues.txt");
         return;

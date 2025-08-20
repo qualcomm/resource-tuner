@@ -190,6 +190,15 @@ ResourceConfigs:
     Policy: instant_apply
 
   - ResType: "0x09"
+    ResID: "0x0005"
+    Name: "RES_TUNER_CGROUP_LIMIT_CPU_TIME"
+    Path: "/sys/fs/cgroup/%s/cpu.max"
+    Supported: true
+    Permissions: "system"
+    ApplyType: "cgroup"
+    Policy: higher_is_better
+
+  - ResType: "0x09"
     ResID: "0x0006"
     Name: "RES_TUNER_CGROUP_RUN_WHEN_CPU_IDLE"
     Path: "/sys/fs/cgroup/%s/cpu.idle"
@@ -245,9 +254,9 @@ ResourceConfigs:
 
   - ResType: "0x09"
     ResID: "0x000c"
-    Name: "RES_TUNER_CGROUP_LIMIT_CPU_TIME"
-    Path: "/sys/fs/cgroup/%s/cpu.max"
+    Name: "RES_TUNER_CGROUP_CPU_LATENCY"
+    Path: "/sys/fs/cgroup/%s/cpu.latency_nice"
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
-    Policy: higher_is_better
+    Policy: lower_is_better

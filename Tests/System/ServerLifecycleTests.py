@@ -86,7 +86,7 @@ class ResourceTunerServerLifecycleTests:
                 logger.info('Server Started Successfully')
 
                 # Check that the sysfsOriginalValues.txt (Crash Recovery) file is created
-                if os.path.isfile('../sysfsOriginalValues.txt') == False:
+                if os.path.isfile('sysfsOriginalValues.txt') == False:
                     logger.error('Crash Recovery Data File creation Failed')
                     testResult = False
                 else:
@@ -99,7 +99,7 @@ class ResourceTunerServerLifecycleTests:
 
                     # Verify that the Crash Recovery Data file has been deleted
                     if testResult:
-                        if os.path.isfile('../sysfsOriginalValues.txt') == False:
+                        if os.path.isfile('sysfsOriginalValues.txt') == False:
                             logger.info('Crash Recovery Data File successfully Deleted')
                         else:
                             logger.error('Crash Recovery Data File Deletion Failed')

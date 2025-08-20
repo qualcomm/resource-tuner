@@ -27,7 +27,7 @@ void ResourceRegistry::registerResource(ResourceConfigInfo* resourceConfigInfo,
     // Persist the Default Values of the Resources in a File.
     // These values will be used to restore the Sysfs nodes in case the Server Process crashes.
     if(resourceConfigInfo->mDefaultValue.length() != 0) {
-        std::fstream sysfsPersistenceFile("../sysfsOriginalValues.txt", std::ios::out | std::ios::app);
+        std::fstream sysfsPersistenceFile("sysfsOriginalValues.txt", std::ios::out | std::ios::app);
         std::string resourceData = resourceConfigInfo->mResourcePath;
         resourceData.push_back(',');
         resourceData.append(resourceConfigInfo->mDefaultValue);

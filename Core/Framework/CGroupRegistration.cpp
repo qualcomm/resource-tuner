@@ -3,6 +3,7 @@
 
 #include <unistd.h>
 
+#include "Logger.h"
 #include "Extensions.h"
 #include "TargetRegistry.h"
 #include "ResourceRegistry.h"
@@ -53,6 +54,8 @@ static void addProcessToCgroup(void* context) {
             }
             controllerFile.close();
         }
+    } else {
+        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
     }
 }
 
@@ -86,6 +89,8 @@ static void addThreadToCgroup(void* context) {
             }
             controllerFile.close();
         }
+    } else {
+        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
     }
 }
 
@@ -126,6 +131,8 @@ static void setRunOnCores(void* context) {
             }
             controllerFile.close();
         }
+    } else {
+        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
     }
 }
 
@@ -176,6 +183,8 @@ static void setRunOnCoresExclusively(void* context) {
 
             partitionFile.close();
         }
+    } else {
+        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
     }
 }
 
@@ -210,6 +219,8 @@ static void freezeCgroup(void* context) {
             }
             controllerFile.close();
         }
+    } else {
+        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
     }
 }
 
@@ -244,6 +255,8 @@ static void setCpuIdle(void* context) {
             }
             controllerFile.close();
         }
+    } else {
+        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
     }
 }
 
@@ -276,6 +289,8 @@ static void setUClampMin(void* context) {
             }
             controllerFile.close();
         }
+    } else {
+        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
     }
 }
 
@@ -309,6 +324,8 @@ static void setUClampMax(void* context) {
             }
             controllerFile.close();
         }
+    } else {
+        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
     }
 }
 
@@ -341,6 +358,8 @@ static void setRelativeCPUShare(void* context) {
             }
             controllerFile.close();
         }
+    } else {
+        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
     }
 }
 
@@ -374,6 +393,8 @@ static void setMaxMemoryLimit(void* context) {
             }
             controllerFile.close();
         }
+    } else {
+        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
     }
 }
 
@@ -407,6 +428,8 @@ static void setMinMemoryFloor(void* context) {
             }
             controllerFile.close();
         }
+    } else {
+        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
     }
 }
 
@@ -441,6 +464,43 @@ static void limitCpuTime(void* context) {
             }
             controllerFile.close();
         }
+    } else {
+        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
+    }
+}
+
+static void setCpuLatency(void* context) {
+    if(context == nullptr) return;
+    Resource* resource = static_cast<Resource*>(context);
+
+    if(resource->getValuesCount() != 2) return;
+    if(resource->mConfigValue.valueArray == nullptr) return;
+
+    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
+    int64_t latencyValue = (*resource->mConfigValue.valueArray)[1];
+    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
+
+    if(cGroupConfig != nullptr) {
+        const std::string cGroupName = cGroupConfig->mCgroupName;
+
+        if(cGroupName.length() > 0) {
+            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
+            std::ofstream controllerFile(controllerFilePath);
+
+            if(!controllerFile.is_open()) {
+                TYPELOGV(ERRNO_LOG, "open", strerror(errno));
+                return;
+            }
+
+            controllerFile<<latencyValue;
+
+            if(controllerFile.fail()) {
+                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+            }
+            controllerFile.close();
+        }
+    } else {
+        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
     }
 }
 
@@ -456,6 +516,7 @@ RESTUNE_REGISTER_APPLIER_CB(0x00090008, setUClampMax);
 RESTUNE_REGISTER_APPLIER_CB(0x00090009, setRelativeCPUShare);
 RESTUNE_REGISTER_APPLIER_CB(0x0009000a, setMaxMemoryLimit);
 RESTUNE_REGISTER_APPLIER_CB(0x0009000b, setMinMemoryFloor);
+RESTUNE_REGISTER_APPLIER_CB(0x0009000c, setCpuLatency);
 
 static void removeProcessFromCGroup(void* context) {
     if(context == nullptr) return;
@@ -540,6 +601,8 @@ static void resetRunOnCores(void* context) {
             }
             controllerFile.close();
         }
+    } else {
+        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
     }
 }
 
@@ -589,6 +652,8 @@ static void resetRunOnCoresExclusively(void* context) {
             }
             partitionFile.close();
         }
+    } else {
+        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
     }
 }
 
@@ -627,6 +692,8 @@ static void resetCgroupFreeze(void* context) {
             }
             controllerFile.close();
         }
+    } else {
+        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
     }
 }
 
@@ -662,6 +729,8 @@ static void resetUClampMin(void* context) {
             }
             controllerFile.close();
         }
+    } else {
+        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
     }
 }
 
@@ -697,6 +766,8 @@ static void resetUClampMax(void* context) {
             }
             controllerFile.close();
         }
+    } else {
+        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
     }
 }
 
@@ -733,6 +804,8 @@ static void resetMaxMemoryLimit(void* context) {
             }
             controllerFile.close();
         }
+    } else {
+        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
     }
 }
 
@@ -769,6 +842,8 @@ static void resetMinMemoryFloor(void* context) {
             }
             controllerFile.close();
         }
+    } else {
+        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
     }
 }
 
@@ -805,6 +880,8 @@ static void resetCpuTime(void* context) {
             }
             controllerFile.close();
         }
+    } else {
+        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
     }
 }
 
@@ -840,6 +917,8 @@ static void resetCpuIdle(void* context) {
             }
             controllerFile.close();
         }
+    } else {
+        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
     }
 }
 
@@ -876,6 +955,42 @@ static void resetRelativeCPUShare(void* context) {
             }
             controllerFile.close();
         }
+    } else {
+        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
+    }
+}
+
+static void resetCpuLatency(void* context) {
+    if(context == nullptr) return;
+    Resource* resource = static_cast<Resource*>(context);
+
+    if(resource->getValuesCount() != 2) return;
+    if(resource->mConfigValue.valueArray == nullptr) return;
+
+    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
+    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
+
+    if(cGroupConfig != nullptr && cGroupConfig->mDefaultValues != nullptr) {
+        const std::string cGroupName = cGroupConfig->mCgroupName;
+
+        if(cGroupName.length() > 0) {
+            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
+            std::ofstream controllerFile(controllerFilePath);
+
+            if(!controllerFile.is_open()) {
+                TYPELOGV(ERRNO_LOG, "open", strerror(errno));
+                return;
+            }
+
+            controllerFile<<(*cGroupConfig->mDefaultValues)["cpu.latency_nice"];;
+
+            if(controllerFile.fail()) {
+                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+            }
+            controllerFile.close();
+        }
+    } else {
+        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
     }
 }
 
@@ -891,3 +1006,4 @@ RESTUNE_REGISTER_TEAR_CB(0x00090008, resetUClampMax);
 RESTUNE_REGISTER_TEAR_CB(0x00090009, resetRelativeCPUShare);
 RESTUNE_REGISTER_TEAR_CB(0x0009000a, resetMaxMemoryLimit);
 RESTUNE_REGISTER_TEAR_CB(0x0009000b, resetMinMemoryFloor);
+RESTUNE_REGISTER_TEAR_CB(0x0009000c, resetCpuLatency);
