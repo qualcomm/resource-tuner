@@ -1,4 +1,4 @@
-name: Deploy Doxygen Docs to GitHub Pages
+name: Deploy Doxygen Docs to gh-pages
 
 on:
   push:
@@ -17,12 +17,17 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y doxygen
 
       - name: Generate Doxygen Documentation
-        run: doxygen Docs/doxyfile
+        run: doxygen Docs/Doxyfile
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: docs/html
-          publish_branch: gh-pages
-          force_orphan: true
+      - name: Deploy to gh-pages branch
+        run: |
+          ROOT=$(pwd)
+          git config --global user.name 'github-actions'
+          git config --global user.email 'github-actions@github.com'
+          git checkout --orphan gh-pages
+          cd docs/html
+          touch .nojekyll
+          git init
+          git add .
+          git commit -m "Deploy Doxygen documentation"
+          git push -f origin HEAD:refs/heads/gh-pages
