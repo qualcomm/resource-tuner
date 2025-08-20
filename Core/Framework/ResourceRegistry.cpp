@@ -12,7 +12,7 @@ ResourceRegistry::ResourceRegistry() {
 
 int8_t ResourceRegistry::isResourceConfigMalformed(ResourceConfigInfo* rConf) {
     if(rConf == nullptr) return true;
-    if(rConf->mResourceOptype < 0 || rConf->mResourceOpcode < 0) return true;
+    if(rConf->mResourceResType < 0 || rConf->mResourceResID < 0) return true;
     return false;
 }
 
@@ -39,8 +39,8 @@ void ResourceRegistry::registerResource(ResourceConfigInfo* resourceConfigInfo,
 
     // Create the OpID Bitmap, this will serve as the key for the entry in mSystemIndependentLayerMappings.
     uint32_t resourceBitmap = 0;
-    resourceBitmap |= ((uint32_t)resourceConfigInfo->mResourceOpcode);
-    resourceBitmap |= ((uint32_t)resourceConfigInfo->mResourceOptype << 16);
+    resourceBitmap |= ((uint32_t)resourceConfigInfo->mResourceResID);
+    resourceBitmap |= ((uint32_t)resourceConfigInfo->mResourceResType << 16);
 
     // Check for any conflict
     if(this->mSystemIndependentLayerMappings.find(resourceBitmap) !=
@@ -74,17 +74,11 @@ void ResourceRegistry::displayResources() {
         auto& res = mResourceConfig[i];
 
         LOGI("RESTUNE_RESOURCE_PROCESSOR", "Resource Name: " + res->mResourceName);
-        LOGI("RESTUNE_RESOURCE_PROCESSOR", "Optype: " + std::to_string(res->mResourceOptype));
-        LOGI("RESTUNE_RESOURCE_PROCESSOR", "Opcode: " + std::to_string(res->mResourceOpcode));
+        LOGI("RESTUNE_RESOURCE_PROCESSOR", "Resource Path: " + res->mResourcePath);
+        LOGI("RESTUNE_RESOURCE_PROCESSOR", "Optype: " + std::to_string(res->mResourceResType));
+        LOGI("RESTUNE_RESOURCE_PROCESSOR", "Opcode: " + std::to_string(res->mResourceResID));
         LOGI("RESTUNE_RESOURCE_PROCESSOR", "High Threshold: " + std::to_string(res->mHighThreshold));
         LOGI("RESTUNE_RESOURCE_PROCESSOR", "Low Threshold: " + std::to_string(res->mLowThreshold));
-
-        if(res->mResourceApplierCallback != nullptr) {
-            LOGI("RESTUNE_RESOURCE_PROCESSOR", "BU has defined its own custom Resource Applier Function");
-            res->mResourceApplierCallback(nullptr);
-        } else {
-            LOGI("RESTUNE_RESOURCE_PROCESSOR", "No custom Resource Applier Specified, will use default one");
-        }
 
         LOGI("RESTUNE_RESOURCE_PROCESSOR", "====================================");
     }
@@ -163,7 +157,7 @@ ResourceConfigInfoBuilder::ResourceConfigInfoBuilder() {
 
     this->mResourceConfigInfo->mResourceApplierCallback = nullptr;
     this->mResourceConfigInfo->mResourceTearCallback = nullptr;
-    this->mResourceConfigInfo->mModes = MODE_DISPLAY_ON;
+    this->mResourceConfigInfo->mModes = 0;
 }
 
 ErrCode ResourceConfigInfoBuilder::setName(const std::string& name) {
@@ -189,9 +183,9 @@ ErrCode ResourceConfigInfoBuilder::setResType(const std::string& resTypeString) 
         return RC_INVALID_VALUE;
     }
 
-    this->mResourceConfigInfo->mResourceOptype = -1;
+    this->mResourceConfigInfo->mResourceResType = -1;
     try {
-        this->mResourceConfigInfo->mResourceOptype = (int8_t)stoi(resTypeString, nullptr, 0);
+        this->mResourceConfigInfo->mResourceResType = (int8_t)stoi(resTypeString, nullptr, 0);
     } catch(const std::invalid_argument& e) {
         TYPELOGV(RESOURCE_REGISTRY_PARSING_FAILURE, e.what());
         return RC_INVALID_VALUE;
@@ -209,9 +203,9 @@ ErrCode ResourceConfigInfoBuilder::setResID(const std::string& resIDString) {
         return RC_INVALID_VALUE;
     }
 
-    this->mResourceConfigInfo->mResourceOpcode = -1;
+    this->mResourceConfigInfo->mResourceResID = -1;
     try {
-        this->mResourceConfigInfo->mResourceOpcode = (int16_t)stoi(resIDString, nullptr, 0);
+        this->mResourceConfigInfo->mResourceResID = (int16_t)stoi(resIDString, nullptr, 0);
     } catch(const std::invalid_argument& e) {
         TYPELOGV(RESOURCE_REGISTRY_PARSING_FAILURE, e.what());
         return RC_INVALID_VALUE;

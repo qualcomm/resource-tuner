@@ -71,9 +71,9 @@ ErrCode fetchProperties() {
 static ErrCode fetchResources() {
     ErrCode opStatus = RC_SUCCESS;
 
-    TYPELOGV(NOTIFY_PARSING_START, "Resource");
-
     ConfigProcessor configProcessor;
+
+    TYPELOGV(NOTIFY_PARSING_START, "Common-Resource");
     std::string filePath = ResourceTunerSettings::mCommonResourceFilePath;
     opStatus = configProcessor.parseResourceConfigs(filePath);
     if(RC_IS_NOTOK(opStatus)) {
@@ -81,6 +81,7 @@ static ErrCode fetchResources() {
         return opStatus;
     }
 
+    TYPELOGV(NOTIFY_PARSING_START, "Target-Specific Resource");
     filePath = ResourceTunerSettings::mTargetSpecificResourceFilePath;
     opStatus = configProcessor.parseResourceConfigs(filePath);
     if(RC_IS_NOTOK(opStatus)) {
@@ -88,7 +89,7 @@ static ErrCode fetchResources() {
             // Additional check for ErrCode, as it is possible that there is
             // no target-specific Configs at all for a given target. This
             // case should not result in a failure.
-            TYPELOGV(NOTIFY_PARSING_FAILURE, "Target Specific Resource");
+            TYPELOGV(NOTIFY_PARSING_FAILURE, "Target-Specific Resource");
             return opStatus;
 
         } else {
@@ -101,7 +102,8 @@ static ErrCode fetchResources() {
     if(filePath.length() > 0) {
         // Custom Resource Config file has been provided by BU
         TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, "Resource", filePath.c_str());
-        opStatus = configProcessor.parseResourceConfigs(filePath);
+        TYPELOGV(NOTIFY_PARSING_START, "Custom-Resource");
+        opStatus = configProcessor.parseResourceConfigs(filePath, true);
         if(RC_IS_NOTOK(opStatus)) {
             TYPELOGV(NOTIFY_PARSING_FAILURE, "Custom-Resource");
             return opStatus;

@@ -35,6 +35,9 @@ if(BUILD_TESTS)
     add_executable(ResourceProcessorTests ../Core/ResourceProcessorTests.cpp)
     target_link_libraries(ResourceProcessorTests GTest::gtest_main Auxiliary Server ExtAPIs)
 
+    add_executable(ResourceParsingTests ../Core/ResourceParsingTests.cpp)
+    target_link_libraries(ResourceParsingTests GTest::gtest_main Auxiliary Server ExtAPIs)
+
     add_executable(TargetConfigProcessorTests ../Core/TargetConfigProcessorTests.cpp)
     target_link_libraries(TargetConfigProcessorTests GTest::gtest_main Auxiliary Server ExtAPIs)
 
@@ -64,6 +67,7 @@ if(BUILD_TESTS)
         gtest_discover_tests(TimerTest)
         gtest_discover_tests(SysConfigAPITests)
         gtest_discover_tests(ResourceProcessorTests)
+        gtest_discover_tests(ResourceParsingTests)
         gtest_discover_tests(TargetConfigProcessorTests)
         if(BUILD_SIGNALS)
             gtest_discover_tests(SysSignalConfigProcessorTests)

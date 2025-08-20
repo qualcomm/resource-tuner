@@ -39,11 +39,11 @@ typedef struct {
     /**
      * @brief Type of the Resource, for example: LPM, CPU_DCVS, GPU etc.
      */
-    int8_t mResourceOptype;
+    int8_t mResourceResType;
     /**
      * @brief Unique opcode associated with the resource.
      */
-    int16_t mResourceOpcode;
+    int16_t mResourceResID;
     /**
      * @brief Max Possible Value which can be configured for this Resource.
      */

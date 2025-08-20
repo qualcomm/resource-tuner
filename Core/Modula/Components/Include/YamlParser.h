@@ -9,6 +9,12 @@
 #include "ErrCodes.h"
 #include "Logger.h"
 
+enum NodeExtractionStatus {
+    NODE_MISSING,
+    NODE_PRESENT_VALUE_VALID,
+    NODE_PRESENT_VALUE_INVALID
+};
+
 /**
  * @brief YamlParser
  * @details Utility for Reading and Parsing Yaml files (Note, Resource Tuner Configs are based in Yaml).
@@ -54,6 +60,37 @@ inline T safeExtract(const YAML::Node& node, T defaultValue) {
         return defaultValue;
     }
 
+    LOGE("RESTUNE_YAML_PARSER",
+         "Could not parse Yaml Node as it is Null or Not a Scalar " \
+         "returning specified default Value");
+    return defaultValue;
+}
+
+template <typename T>
+inline T safeExtract(const YAML::Node& node, T defaultValue, NodeExtractionStatus& status) {
+    try {
+        if(!node.IsDefined()) {
+            status = NodeExtractionStatus::NODE_MISSING;
+            return defaultValue;
+        }
+
+        if(node.IsScalar()) {
+            status = NODE_PRESENT_VALUE_VALID;
+            return node.as<T>();
+        } else {
+            status = NODE_PRESENT_VALUE_INVALID;
+        }
+
+    } catch(const YAML::TypedBadConversion<T>& e) {
+        status = NODE_PRESENT_VALUE_INVALID;
+
+        LOGE("RESTUNE_YAML_PARSER",
+             "Failed to parse Node to Yaml, Error: " + std::string(e.what()) + " " +
+             "returning specified default Value");
+        return defaultValue;
+    }
+
+    status = NODE_PRESENT_VALUE_INVALID;
     LOGE("RESTUNE_YAML_PARSER",
          "Could not parse Yaml Node as it is Null or Not a Scalar " \
          "returning specified default Value");

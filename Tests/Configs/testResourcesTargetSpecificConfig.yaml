@@ -157,3 +157,27 @@ ResourceConfigs:
     Modes: ["display_on", "doze"]
     Policy: "lower_is_better"
     ApplyType: "global"
+
+  - ResType: "0x03"
+    ResID: "0x0000"
+    Name: "OVERWRITE_RESOURCE_1"
+    Path: "/proc/sys/kernel/test_node1"
+    Supported: true
+    HighThreshold: 1024
+    LowThreshold: 0
+    Permissions: "system"
+    Modes: ["display_on", "doze"]
+    Policy: "lower_is_better"
+    ApplyType: "global"
+
+  - ResType: "0x04"
+    ResID: "0x0003"
+    Name: "OVERWRITE_RESOURCE_2"
+    Path: "/proc/sys/kernel/test_node2"
+    Supported: true
+    HighThreshold: 1024
+    LowThreshold: 890
+    Permissions: "system"
+    Modes: ["display_on", "display_off"]
+    Policy: "instant_apply"
+    ApplyType: "cluster"

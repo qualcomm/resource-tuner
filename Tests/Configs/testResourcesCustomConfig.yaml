@@ -1,0 +1,171 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause-Clear
+
+ResourceConfigs:
+  - ResType: "0x04"
+    ResID: "0x0102"
+    Name: "CUSTOM_SCALING_FREQ"
+    Path: "/usr/local/customfreq/node"
+    Supported: true
+    HighThreshold: 90
+    LowThreshold: 80
+    Permissions: third_party
+    Modes: ["doze"]
+    Policy: lazy_apply
+    ApplyType: "core"
+
+  - ResType: "0x0a"
+    ResID: "0x00aa"
+    Name: "CUSTOM_RESOURCE_ADDED_BY_BU"
+    Path: "/some/bu/specific/node/path/customized_to_usecase"
+    Supported: true
+    HighThreshold: 512
+    LowThreshold: 128
+    Permissions: system
+    Modes: ["display_on"]
+    Policy: lower_is_better
+    ApplyType: "global"
+
+  - ResType: -1
+    ResID: 9.8
+    Name: ILLEGAL_RESOURCE
+    Path: 2
+    Supported: "na"
+    HighThreshold: 78
+    LowThreshold: 128ab
+    Permissions: =
+    Modes: 3.33333
+    Policy: policy
+    ApplyType: -1
+
+  - ResType: "0x0b"
+    ResID: "0x00aa"
+    Name: "CUSTOM_RESOURCE_ADDED_BY_BU"
+    Path: "/some/bu/specific/node/path/customized_to_usecase"
+    Supported: true
+    HighThreshold: 512
+    LowThreshold: 128
+    Permissions: system
+    Modes: ["display_on"]
+    Policy: lower_is_better
+    ApplyType: []
+
+  - ResType: "0x0b"
+    ResID: "0x00ab"
+    Name: "CUSTOM_RESOURCE_ADDED_BY_BU"
+    Path: "/some/bu/specific/node/path/customized_to_usecase"
+    Supported: true
+    HighThreshold: 512
+    LowThreshold: 128
+    Permissions: system
+    Modes: ["display_on"]
+    Policy: {}
+    ApplyType: "global"
+
+  - ResType: "0x0b"
+    ResID: "0x00ac"
+    Name: "CUSTOM_RESOURCE_ADDED_BY_BU"
+    Path: "/some/bu/specific/node/path/customized_to_usecase"
+    Supported: true
+    HighThreshold: 512
+    LowThreshold: 128
+    Permissions: system
+    Modes: A
+    Policy: lower_is_better
+    ApplyType: "global"
+
+  - ResType: "0x0b"
+    ResID: "0x00ad"
+    Name: "CUSTOM_RESOURCE_ADDED_BY_BU"
+    Path: "/some/bu/specific/node/path/customized_to_usecase"
+    Supported: true
+    HighThreshold: 512
+    LowThreshold: 128
+    Permissions: {}
+    Modes: ["display_on"]
+    Policy: lower_is_better
+    ApplyType: "global"
+
+  - ResType: "0x0b"
+    ResID: "0x00ae"
+    Name: "CUSTOM_RESOURCE_ADDED_BY_BU"
+    Path: "/some/bu/specific/node/path/customized_to_usecase"
+    Supported: true
+    HighThreshold: 512
+    LowThreshold: "low_threshold"
+    Permissions: system
+    Modes: ["display_on"]
+    Policy: lower_is_better
+    ApplyType: "global"
+
+  - ResType: "0x0b"
+    ResID: "0x00af"
+    Name: "CUSTOM_RESOURCE_ADDED_BY_BU"
+    Path: "/some/bu/specific/node/path/customized_to_usecase"
+    Supported: true
+    HighThreshold: "high_threshold"
+    LowThreshold: 128
+    Permissions: system
+    Modes: ["display_on"]
+    Policy: lower_is_better
+    ApplyType: "global"
+
+  - ResType: "0x0b"
+    ResID: "0x00bb"
+    Name: "CUSTOM_RESOURCE_ADDED_BY_BU"
+    Path: "/some/bu/specific/node/path/customized_to_usecase"
+    Supported: 8
+    HighThreshold: 512
+    LowThreshold: 128
+    Permissions: system
+    Modes: ["display_on"]
+    Policy: lower_is_better
+    ApplyType: "global"
+
+  - ResType: "0x0b"
+    ResID: "0x00bc"
+    Name: "CUSTOM_RESOURCE_ADDED_BY_BU"
+    Path: []
+    Supported: true
+    HighThreshold: 512
+    LowThreshold: 128
+    Permissions: system
+    Modes: ["display_on"]
+    Policy: lower_is_better
+    ApplyType: "global"
+
+  - ResType: "0x0b"
+    ResID: "0x00bd"
+    Name: [{"name": "test"}]
+    Path: "/some/bu/specific/node/path/customized_to_usecase"
+    Supported: true
+    HighThreshold: 512
+    LowThreshold: 128
+    Permissions: system
+    Modes: ["display_on"]
+    Policy: lower_is_better
+    ApplyType: "global"
+
+  - ResType: "0x0b"
+    ResID: "string"
+    Name: "CUSTOM_RESOURCE_ADDED_BY_BU"
+    Path: "/some/bu/specific/node/path/customized_to_usecase"
+    Supported: true
+    HighThreshold: 512
+    LowThreshold: 128
+    Permissions: system
+    Modes: ["display_on"]
+    Policy: lower_is_better
+    ApplyType: "global"
+
+  - ResType: "string"
+    ResID: "0x00bf"
+    Name: "CUSTOM_RESOURCE_ADDED_BY_BU"
+    Path: "/some/bu/specific/node/path/customized_to_usecase"
+    Supported: true
+    HighThreshold: 512
+    LowThreshold: 128
+    Permissions: system
+    Modes: ["display_on"]
+    Policy: lower_is_better
+    ApplyType: "global"

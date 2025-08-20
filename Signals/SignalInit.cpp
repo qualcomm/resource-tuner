@@ -51,7 +51,7 @@ static ErrCode fetchSignals() {
     if(filePath.length() > 0) {
         // Custom Resource Config file has been provided by BU
         TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, "Signal", filePath.c_str());
-        opStatus = configProcessor.parseSignalConfigs(filePath);
+        opStatus = configProcessor.parseSignalConfigs(filePath, true);
         if(RC_IS_NOTOK(opStatus)) {
             TYPELOGV(NOTIFY_PARSING_FAILURE, "Custom-Signal");
             return opStatus;

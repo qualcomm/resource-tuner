@@ -6,6 +6,7 @@
 void ConfigProcessor::parseResourceConfigYamlNode(const YAML::Node& item, int8_t isBuSpecified) {
     ErrCode rc = RC_SUCCESS;
     ResourceConfigInfoBuilder resourceConfigInfoBuilder;
+    NodeExtractionStatus status;
 
     // No Defaults Available, a Resource with Invalid OpType is considered Malformed
     if(RC_IS_OK(rc)) {
@@ -24,52 +25,82 @@ void ConfigProcessor::parseResourceConfigYamlNode(const YAML::Node& item, int8_t
     // Defaults to false
     if(RC_IS_OK(rc)) {
         rc = resourceConfigInfoBuilder.setSupported(
-            safeExtract<bool>(item[RESOURCE_CONFIGS_ELEM_SUPPORTED], false)
+            safeExtract<bool>(item[RESOURCE_CONFIGS_ELEM_SUPPORTED], false, status)
         );
+
+        if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
+            rc = RC_INVALID_VALUE;
+        }
     }
 
     // Defaults to an empty string
     if(RC_IS_OK(rc)) {
         rc = resourceConfigInfoBuilder.setName(
-            safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCENAME], "")
+            safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCENAME], "", status)
         );
+
+        if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
+            rc = RC_INVALID_VALUE;
+        }
     }
 
     // Defaults to an empty string
     if(RC_IS_OK(rc)) {
         rc = resourceConfigInfoBuilder.setPath(
-            safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCEPATH], "")
+            safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCEPATH], "", status)
         );
+
+        if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
+            rc = RC_INVALID_VALUE;
+        }
     }
 
     if(RC_IS_OK(rc)) {
         std::string defaultValue = AuxRoutines::readFromFile(
-            safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCEPATH], "")
+            safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCEPATH], "", status)
         );
 
+        if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
+            rc = RC_INVALID_VALUE;
+        }
+
         // Defaults to 0
-        rc = resourceConfigInfoBuilder.setDefaultValue(defaultValue);
+        if(RC_IS_OK(rc)) {
+            rc = resourceConfigInfoBuilder.setDefaultValue(defaultValue);
+        }
     }
 
     // No Defaults Available, a Resource with Invalid HT is considered Malformed
     if(RC_IS_OK(rc)) {
         rc = resourceConfigInfoBuilder.setHighThreshold(
-            safeExtract<int32_t>(item[RESOURCE_CONFIGS_ELEM_HIGHTHRESHOLD], -1)
+            safeExtract<int32_t>(item[RESOURCE_CONFIGS_ELEM_HIGHTHRESHOLD], -1, status)
         );
+
+        if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
+            rc = RC_INVALID_VALUE;
+        }
     }
 
     // No Defaults Available, a Resource with Invalid LT is considered Malformed
     if(RC_IS_OK(rc)) {
         rc = resourceConfigInfoBuilder.setLowThreshold(
-            safeExtract<int32_t>(item[RESOURCE_CONFIGS_ELEM_LOWTHRESHOLD], -1)
+            safeExtract<int32_t>(item[RESOURCE_CONFIGS_ELEM_LOWTHRESHOLD], -1, status)
         );
+
+        if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
+            rc = RC_INVALID_VALUE;
+        }
     }
 
     // Default to a Value of Third Party
     if(RC_IS_OK(rc)) {
         rc = resourceConfigInfoBuilder.setPermissions(
-            safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_PERMISSIONS], "")
+            safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_PERMISSIONS], "", status)
         );
+
+        if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
+            rc = RC_INVALID_VALUE;
+        }
     }
 
     // Defaults to a Value of DISPLAY_ON
@@ -77,28 +108,45 @@ void ConfigProcessor::parseResourceConfigYamlNode(const YAML::Node& item, int8_t
         if(isList(item[RESOURCE_CONFIGS_ELEM_MODES])) {
             for(const auto& mode : item[RESOURCE_CONFIGS_ELEM_MODES]) {
                 if(RC_IS_OK(rc)) {
-                    rc = resourceConfigInfoBuilder.setModes(safeExtract<std::string>(mode, ""));
+                    rc = resourceConfigInfoBuilder.setModes(
+                        safeExtract<std::string>(mode, "", status)
+                    );
+
+                    if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
+                        rc = RC_INVALID_VALUE;
+                        break;
+                    }
                 } else {
                     break;
                 }
             }
+        } else if(!item[RESOURCE_CONFIGS_ELEM_MODES].IsDefined()) {
+            rc = resourceConfigInfoBuilder.setModes("display_on");
         } else {
-            rc = resourceConfigInfoBuilder.setModes("");
+            rc = RC_INVALID_VALUE;
         }
     }
 
     // Defaults to LAZY_APPLY
     if(RC_IS_OK(rc)) {
-        resourceConfigInfoBuilder.setPolicy(
-            safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_POLICY], "")
+        rc = resourceConfigInfoBuilder.setPolicy(
+            safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_POLICY], "", status)
         );
+
+        if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
+            rc = RC_INVALID_VALUE;
+        }
     }
 
     // Defaults to APPLY_GLOBAL
     if(RC_IS_OK(rc)) {
-        resourceConfigInfoBuilder.setApplyType(
-            safeExtract<std::string>(item[RESOURCE_CONFIGS_APPLY_TYPE], "")
+        rc = resourceConfigInfoBuilder.setApplyType(
+            safeExtract<std::string>(item[RESOURCE_CONFIGS_APPLY_TYPE], "", status)
         );
+
+        if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
+            rc = RC_INVALID_VALUE;
+        }
     }
 
     if(RC_IS_NOTOK(rc)) {
