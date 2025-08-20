@@ -20,7 +20,9 @@ void ResourceRegistry::registerResource(ResourceConfigInfo* resourceConfigInfo,
                                         int8_t isBuSpecified) {
     // Invalid Resource, skip.
     if(this->isResourceConfigMalformed(resourceConfigInfo)) {
-        delete resourceConfigInfo;
+        if(resourceConfigInfo != nullptr) {
+            delete resourceConfigInfo;
+        }
         return;
     }
 
@@ -161,67 +163,89 @@ ResourceConfigInfoBuilder::ResourceConfigInfoBuilder() {
 
     this->mResourceConfigInfo->mResourceApplierCallback = nullptr;
     this->mResourceConfigInfo->mResourceTearCallback = nullptr;
-    this->mResourceConfigInfo->mModes = 0;
+    this->mResourceConfigInfo->mModes = MODE_DISPLAY_ON;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setName(const std::string& name) {
-    if(this->mResourceConfigInfo == nullptr) return this;
+ErrCode ResourceConfigInfoBuilder::setName(const std::string& name) {
+    if(this->mResourceConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
 
     this->mResourceConfigInfo->mResourceName = name;
-    return this;
+    return RC_SUCCESS;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setPath(const std::string& path) {
-    if(this->mResourceConfigInfo == nullptr) return this;
+ErrCode ResourceConfigInfoBuilder::setPath(const std::string& path) {
+    if(this->mResourceConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
 
     this->mResourceConfigInfo->mResourcePath = path;
-    return this;
+    return RC_SUCCESS;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setOptype(const std::string& opTypeString) {
-    if(this->mResourceConfigInfo == nullptr) return this;
+ErrCode ResourceConfigInfoBuilder::setResType(const std::string& resTypeString) {
+    if(this->mResourceConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
 
     this->mResourceConfigInfo->mResourceOptype = -1;
     try {
-        this->mResourceConfigInfo->mResourceOptype = (int8_t)stoi(opTypeString, nullptr, 0);
+        this->mResourceConfigInfo->mResourceOptype = (int8_t)stoi(resTypeString, nullptr, 0);
     } catch(const std::invalid_argument& e) {
         TYPELOGV(RESOURCE_REGISTRY_PARSING_FAILURE, e.what());
+        return RC_INVALID_VALUE;
+
     } catch(const std::out_of_range& e) {
         TYPELOGV(RESOURCE_REGISTRY_PARSING_FAILURE, e.what());
+        return RC_INVALID_VALUE;
     }
-    return this;
+
+    return RC_SUCCESS;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setOpcode(const std::string& opCodeString) {
-    if(this->mResourceConfigInfo == nullptr) return this;
+ErrCode ResourceConfigInfoBuilder::setResID(const std::string& resIDString) {
+    if(this->mResourceConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
 
     this->mResourceConfigInfo->mResourceOpcode = -1;
     try {
-        this->mResourceConfigInfo->mResourceOpcode = (int16_t)stoi(opCodeString, nullptr, 0);
+        this->mResourceConfigInfo->mResourceOpcode = (int16_t)stoi(resIDString, nullptr, 0);
     } catch(const std::invalid_argument& e) {
         TYPELOGV(RESOURCE_REGISTRY_PARSING_FAILURE, e.what());
+        return RC_INVALID_VALUE;
+
     } catch(const std::out_of_range& e) {
         TYPELOGV(RESOURCE_REGISTRY_PARSING_FAILURE, e.what());
+        return RC_INVALID_VALUE;
     }
-    return this;
+
+    return RC_SUCCESS;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setHighThreshold(int32_t highThreshold) {
-    if(this->mResourceConfigInfo == nullptr) return this;
+ErrCode ResourceConfigInfoBuilder::setHighThreshold(int32_t highThreshold) {
+    if(this->mResourceConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
 
     this->mResourceConfigInfo->mHighThreshold = highThreshold;
-    return this;
+    return RC_SUCCESS;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setLowThreshold(int32_t lowThreshold) {
-    if(this->mResourceConfigInfo == nullptr) return this;
+ErrCode ResourceConfigInfoBuilder::setLowThreshold(int32_t lowThreshold) {
+    if(this->mResourceConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
 
     this->mResourceConfigInfo->mLowThreshold = lowThreshold;
-    return this;
+    return RC_SUCCESS;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setPermissions(const std::string& permissionString) {
-    if(this->mResourceConfigInfo == nullptr) return this;
+ErrCode ResourceConfigInfoBuilder::setPermissions(const std::string& permissionString) {
+    if(this->mResourceConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
 
     enum Permissions permissions = PERMISSION_THIRD_PARTY;
     if(permissionString == "system") {
@@ -231,11 +255,13 @@ ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setPermissions(const std::
     }
 
     this->mResourceConfigInfo->mPermissions = permissions;
-    return this;
+    return RC_SUCCESS;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setModes(const std::string& modeString) {
-    if(this->mResourceConfigInfo == nullptr) return this;
+ErrCode ResourceConfigInfoBuilder::setModes(const std::string& modeString) {
+    if(this->mResourceConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
 
     if(modeString == "display_on") {
         this->mResourceConfigInfo->mModes = this->mResourceConfigInfo->mModes | MODE_DISPLAY_ON;
@@ -244,18 +270,22 @@ ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setModes(const std::string
     } else if(modeString == "doze") {
         this->mResourceConfigInfo->mModes = this->mResourceConfigInfo->mModes | MODE_DOZE;
     }
-    return this;
+    return RC_SUCCESS;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setSupported(int8_t supported) {
-    if(this->mResourceConfigInfo == nullptr) return this;
+ErrCode ResourceConfigInfoBuilder::setSupported(int8_t supported) {
+    if(this->mResourceConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
 
     this->mResourceConfigInfo->mSupported = supported;
-    return this;
+    return RC_SUCCESS;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setPolicy(const std::string& policyString) {
-    if(this->mResourceConfigInfo == nullptr) return this;
+ErrCode ResourceConfigInfoBuilder::setPolicy(const std::string& policyString) {
+    if(this->mResourceConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
 
     enum Policy policy = LAZY_APPLY;
     if(policyString == "higher_is_better") {
@@ -268,11 +298,13 @@ ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setPolicy(const std::strin
         policy = INSTANT_APPLY;
     }
     this->mResourceConfigInfo->mPolicy = policy;
-    return this;
+    return RC_SUCCESS;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setApplyType(const std::string& applyTypeString) {
-    if(this->mResourceConfigInfo == nullptr) return this;
+ErrCode ResourceConfigInfoBuilder::setApplyType(const std::string& applyTypeString) {
+    if(this->mResourceConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
 
     enum ResourceApplyType applyType = APPLY_GLOBAL;
     if(applyTypeString == "global") {
@@ -286,14 +318,16 @@ ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setApplyType(const std::st
     }
 
     this->mResourceConfigInfo->mApplyType = applyType;
-    return this;
+    return RC_SUCCESS;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setDefaultValue(const std::string& defaultValue) {
-    if(this->mResourceConfigInfo == nullptr) return this;
+ErrCode ResourceConfigInfoBuilder::setDefaultValue(const std::string& defaultValue) {
+    if(this->mResourceConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
 
     this->mResourceConfigInfo->mDefaultValue = defaultValue;
-    return this;
+    return RC_SUCCESS;
 }
 
 ResourceConfigInfo* ResourceConfigInfoBuilder::build() {

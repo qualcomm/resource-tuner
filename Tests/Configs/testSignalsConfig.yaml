@@ -73,3 +73,39 @@ SignalConfigs:
     - {ResCode: "0x80010000", ResInfo: "0x00000000", Values: [883]}
     - {ResCode: "0x80010001", ResInfo: "0x00000000", Values: [920]}
     - {ResCode: "0x80010003", ResInfo: "0x00000000", Values: [1555]}
+
+  - SigId: x
+    Category: 4.9
+    Name: "INVALID_SIGNAL-1"
+    Enable: 8
+    TargetsEnabled: -1
+    Permissions: "abc"
+    Derivatives: [-1]
+    Timeout: x
+    Resources:
+    - {ResCode: uttt, ResInfo: "==", Values: "dummy-value"}
+
+  - SigId: "et"
+    Category: -1
+    Name: "INVALID_SIGNAL-2"
+    Enable: no
+    TargetsEnabled: sun
+    Permissions: no
+    Derivatives: 0
+    Timeout: 6.65
+    Resources:
+    - {ResCode: uttt, ResInfo: "==", Values: "dummy-value"}
+    - {ResCode: terra, ResInfo: 4,  Values: [-1]}
+
+  - SigId: "0x0008"
+    Category: "0x06"
+    Name: "TEST_SIGNAL-3"
+    Enable: true
+    TargetsEnabled: ["qli-test"]
+    Permissions: ["third_party"]
+    Derivatives: ["solar"]
+    Timeout: 4000
+    Resources:
+    - {ResCode: "0x80010000", ResInfo: "0x00000000", Values: [883]}
+    - {ResCode: "0x80010001", ResInfo: "0x00000000", Values: [920]}
+    - {ResCode: "Zero", ResInfo: "0x00000000", Values: [1555]}

@@ -142,15 +142,15 @@ private:
 public:
     SignalInfoBuilder();
 
-    SignalInfoBuilder* setOpID(const std::string& signalOpIdString);
-    SignalInfoBuilder* setCategory(const std::string& categoryString);
-    SignalInfoBuilder* setName(const std::string& signalName);
-    SignalInfoBuilder* setTimeout(int32_t timeout);
-    SignalInfoBuilder* setIsEnabled(int8_t isEnabled);
-    SignalInfoBuilder* addTarget(int8_t isEnabled, const std::string& target);
-    SignalInfoBuilder* addPermission(const std::string& permissionString);
-    SignalInfoBuilder* addDerivative(const std::string& derivative);
-    SignalInfoBuilder* addResource(Resource* resource);
+    ErrCode setOpID(const std::string& signalOpIdString);
+    ErrCode setCategory(const std::string& categoryString);
+    ErrCode setName(const std::string& signalName);
+    ErrCode setTimeout(int32_t timeout);
+    ErrCode setIsEnabled(int8_t isEnabled);
+    ErrCode addTarget(int8_t isEnabled, const std::string& target);
+    ErrCode addPermission(const std::string& permissionString);
+    ErrCode addDerivative(const std::string& derivative);
+    ErrCode addResource(Resource* resource);
 
     SignalInfo* build();
 };
@@ -162,10 +162,10 @@ private:
 public:
     ResourceBuilder();
 
-    ResourceBuilder* setResCode(const std::string& resCodeString);
-    ResourceBuilder* setOpInfo(const std::string& opInfoString);
-    ResourceBuilder* setNumValues(int32_t valuesCount);
-    ResourceBuilder* addValue(int32_t value);
+    ErrCode setResCode(const std::string& resCodeString);
+    ErrCode setOpInfo(const std::string& opInfoString);
+    ErrCode setNumValues(int32_t valuesCount);
+    ErrCode addValue(int32_t value);
 
     Resource* build();
 };

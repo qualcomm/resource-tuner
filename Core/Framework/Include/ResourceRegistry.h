@@ -163,18 +163,18 @@ private:
 public:
     ResourceConfigInfoBuilder();
 
-    ResourceConfigInfoBuilder* setName(const std::string& resourceName);
-    ResourceConfigInfoBuilder* setPath(const std::string& resourcePath);
-    ResourceConfigInfoBuilder* setOptype(const std::string& opTypeString);
-    ResourceConfigInfoBuilder* setOpcode(const std::string& opCodeString);
-    ResourceConfigInfoBuilder* setHighThreshold(int32_t highThreshold);
-    ResourceConfigInfoBuilder* setLowThreshold(int32_t lowThreshold);
-    ResourceConfigInfoBuilder* setPermissions(const std::string& permissionString);
-    ResourceConfigInfoBuilder* setModes(const std::string& modeString);
-    ResourceConfigInfoBuilder* setSupported(int8_t supported);
-    ResourceConfigInfoBuilder* setPolicy(const std::string& policyString);
-    ResourceConfigInfoBuilder* setApplyType(const std::string& applyTypeString);
-    ResourceConfigInfoBuilder* setDefaultValue(const std::string& defaultValue);
+    ErrCode setName(const std::string& resourceName);
+    ErrCode setPath(const std::string& resourcePath);
+    ErrCode setResType(const std::string& resTypeString);
+    ErrCode setResID(const std::string& resIDString);
+    ErrCode setHighThreshold(int32_t highThreshold);
+    ErrCode setLowThreshold(int32_t lowThreshold);
+    ErrCode setPermissions(const std::string& permissionString);
+    ErrCode setModes(const std::string& modeString);
+    ErrCode setSupported(int8_t supported);
+    ErrCode setPolicy(const std::string& policyString);
+    ErrCode setApplyType(const std::string& applyTypeString);
+    ErrCode setDefaultValue(const std::string& defaultValue);
 
     ResourceConfigInfo* build();
 };

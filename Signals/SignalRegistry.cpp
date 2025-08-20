@@ -17,7 +17,9 @@ int8_t SignalRegistry::isSignalConfigMalformed(SignalInfo* sConf) {
 
 void SignalRegistry::registerSignal(SignalInfo* signalInfo, int8_t isBuSpecified) {
     if(this->isSignalConfigMalformed(signalInfo)) {
-        delete signalInfo;
+        if(signalInfo != nullptr) {
+            delete signalInfo;
+        }
         return;
     }
 
@@ -131,25 +133,30 @@ SignalInfoBuilder::SignalInfoBuilder() {
     }
 }
 
-SignalInfoBuilder* SignalInfoBuilder::setOpID(const std::string& signalOpIdString) {
+ErrCode SignalInfoBuilder::setOpID(const std::string& signalOpIdString) {
     if(this->mSignalInfo == nullptr) {
-        return this;
+        return RC_INVALID_VALUE;
     }
 
     this->mSignalInfo->mSignalOpId = -1;
     try {
         this->mSignalInfo->mSignalOpId = (int16_t)stoi(signalOpIdString, nullptr, 0);
+
     } catch(const std::invalid_argument& e) {
         TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
+        return RC_INVALID_VALUE;
+
     } catch(const std::out_of_range& e) {
         TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
+        return RC_INVALID_VALUE;
     }
-    return this;
+
+    return RC_SUCCESS;
 }
 
-SignalInfoBuilder* SignalInfoBuilder::setCategory(const std::string& categoryString) {
+ErrCode SignalInfoBuilder::setCategory(const std::string& categoryString) {
     if(this->mSignalInfo == nullptr) {
-        return this;
+        return RC_INVALID_VALUE;
     }
 
     this->mSignalInfo->mSignalCategory = -1;
@@ -157,42 +164,46 @@ SignalInfoBuilder* SignalInfoBuilder::setCategory(const std::string& categoryStr
         this->mSignalInfo->mSignalCategory = (int8_t)stoi(categoryString, nullptr, 0);
     } catch(const std::invalid_argument& e) {
         TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
+        return RC_INVALID_VALUE;
+
     } catch(const std::out_of_range& e) {
         TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
+        return RC_INVALID_VALUE;
     }
-    return this;
+
+    return RC_SUCCESS;
 }
 
-SignalInfoBuilder* SignalInfoBuilder::setName(const std::string& signalName) {
+ErrCode SignalInfoBuilder::setName(const std::string& signalName) {
     if(this->mSignalInfo == nullptr) {
-        return this;
+        return RC_INVALID_VALUE;
     }
 
     this->mSignalInfo->mSignalName = signalName;
-    return this;
+    return RC_SUCCESS;
 }
 
-SignalInfoBuilder* SignalInfoBuilder::setTimeout(int32_t timeout) {
+ErrCode SignalInfoBuilder::setTimeout(int32_t timeout) {
     if(this->mSignalInfo == nullptr) {
-        return this;
+        return RC_INVALID_VALUE;
     }
 
     this->mSignalInfo->mTimeout = timeout;
-    return this;
+    return RC_SUCCESS;
 }
 
-SignalInfoBuilder* SignalInfoBuilder::setIsEnabled(int8_t isEnabled) {
+ErrCode SignalInfoBuilder::setIsEnabled(int8_t isEnabled) {
     if(this->mSignalInfo == nullptr) {
-        return this;
+        return RC_INVALID_VALUE;
     }
 
     this->mSignalInfo->mIsEnabled = isEnabled;
-    return this;
+    return RC_SUCCESS;
 }
 
-SignalInfoBuilder* SignalInfoBuilder::addPermission(const std::string& permissionString) {
+ErrCode SignalInfoBuilder::addPermission(const std::string& permissionString) {
     if(this->mSignalInfo == nullptr) {
-        return this;
+        return RC_INVALID_VALUE;
     }
 
     if(this->mSignalInfo->mPermissions == nullptr) {
@@ -208,14 +219,16 @@ SignalInfoBuilder* SignalInfoBuilder::addPermission(const std::string& permissio
 
     if(this->mSignalInfo->mPermissions != nullptr) {
         this->mSignalInfo->mPermissions->push_back(permission);
+    } else {
+        return RC_INVALID_VALUE;
     }
 
-    return this;
+    return RC_SUCCESS;
 }
 
-SignalInfoBuilder* SignalInfoBuilder::addTarget(int8_t isEnabled, const std::string& target) {
+ErrCode SignalInfoBuilder::addTarget(int8_t isEnabled, const std::string& target) {
     if(this->mSignalInfo == nullptr) {
-        return this;
+        return RC_INVALID_VALUE;
     }
 
     std::string targetName(target);
@@ -229,7 +242,10 @@ SignalInfoBuilder* SignalInfoBuilder::addTarget(int8_t isEnabled, const std::str
             std::transform(targetName.begin(), targetName.end(), targetName.begin(),
                 [](unsigned char ch) {return std::tolower(ch);});
             this->mSignalInfo->mTargetsEnabled->insert(targetName);
+        } else {
+            return RC_INVALID_VALUE;
         }
+
     } else {
         if(this->mSignalInfo->mTargetsDisabled == nullptr) {
             this->mSignalInfo->mTargetsDisabled = new(std::nothrow) std::unordered_set<std::string>;
@@ -239,15 +255,17 @@ SignalInfoBuilder* SignalInfoBuilder::addTarget(int8_t isEnabled, const std::str
             std::transform(targetName.begin(), targetName.end(), targetName.begin(),
                 [](unsigned char ch) {return std::tolower(ch);});
             this->mSignalInfo->mTargetsDisabled->insert(targetName);
+        } else {
+            return RC_INVALID_VALUE;
         }
     }
 
-    return this;
+    return RC_SUCCESS;
 }
 
-SignalInfoBuilder* SignalInfoBuilder::addDerivative(const std::string& derivative) {
+ErrCode SignalInfoBuilder::addDerivative(const std::string& derivative) {
     if(this->mSignalInfo == nullptr) {
-        return this;
+        return RC_INVALID_VALUE;
     }
 
     if(this->mSignalInfo->mDerivatives == nullptr) {
@@ -256,13 +274,16 @@ SignalInfoBuilder* SignalInfoBuilder::addDerivative(const std::string& derivativ
 
     if(this->mSignalInfo->mDerivatives != nullptr) {
         this->mSignalInfo->mDerivatives->push_back(derivative);
+    } else {
+        return RC_INVALID_VALUE;
     }
-    return this;
+
+    return RC_SUCCESS;
 }
 
-SignalInfoBuilder* SignalInfoBuilder::addResource(Resource* resource) {
+ErrCode SignalInfoBuilder::addResource(Resource* resource) {
     if(this->mSignalInfo == nullptr) {
-        return this;
+        return RC_INVALID_VALUE;
     }
 
     if(this->mSignalInfo->mSignalResources == nullptr) {
@@ -271,9 +292,11 @@ SignalInfoBuilder* SignalInfoBuilder::addResource(Resource* resource) {
 
     if(this->mSignalInfo->mSignalResources != nullptr) {
         this->mSignalInfo->mSignalResources->push_back(resource);
+    } else {
+        return RC_INVALID_VALUE;
     }
 
-    return this;
+    return RC_SUCCESS;
 }
 
 SignalInfo* SignalInfoBuilder::build() {
@@ -284,59 +307,75 @@ ResourceBuilder::ResourceBuilder() {
     this->mResource = new Resource;
 }
 
-ResourceBuilder* ResourceBuilder::setResCode(const std::string& resCodeString) {
-    if(this->mResource == nullptr) return this;
+ErrCode ResourceBuilder::setResCode(const std::string& resCodeString) {
+    if(this->mResource == nullptr) {
+        return RC_INVALID_VALUE;
+    }
 
     uint32_t resourceOpCode = 0;
     try {
         resourceOpCode = (uint32_t)stol(resCodeString, nullptr, 0);
         this->mResource->setOpCode(resourceOpCode);
-    } catch(const std::invalid_argument& ex) {
 
-    } catch(const std::out_of_range& ex) {
+    } catch(const std::invalid_argument& e) {
+        TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
+        return RC_INVALID_VALUE;
 
+    } catch(const std::out_of_range& e) {
+        TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
+        return RC_INVALID_VALUE;
     }
 
-    return this;
+    return RC_SUCCESS;
 }
 
-ResourceBuilder* ResourceBuilder::setOpInfo(const std::string& opInfoString) {
-    if(this->mResource == nullptr) return this;
+ErrCode ResourceBuilder::setOpInfo(const std::string& opInfoString) {
+    if(this->mResource == nullptr) return RC_INVALID_VALUE;
 
     int32_t resourceOpInfo = 0;
     try {
         resourceOpInfo = (int32_t)stoi(opInfoString, nullptr, 0);
         this->mResource->setOperationalInfo(resourceOpInfo);
-    } catch(const std::invalid_argument& ex) {
+    } catch(const std::invalid_argument& e) {
+        TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
+        return RC_INVALID_VALUE;
 
-    } catch(const std::out_of_range& ex) {
-
+    } catch(const std::out_of_range& e) {
+        TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
+        return RC_INVALID_VALUE;
     }
 
-    return this;
+    return RC_SUCCESS;
 }
 
-ResourceBuilder* ResourceBuilder::setNumValues(int32_t valuesCount) {
-    if(this->mResource == nullptr) return this;
+ErrCode ResourceBuilder::setNumValues(int32_t valuesCount) {
+    if(this->mResource == nullptr) {
+        return RC_INVALID_VALUE;
+    }
 
     this->mResource->setNumValues(valuesCount);
 
-    return this;
+    return RC_SUCCESS;
 }
 
-ResourceBuilder* ResourceBuilder::addValue(int32_t value) {
-    if(this->mResource == nullptr) return this;
+ErrCode ResourceBuilder::addValue(int32_t value) {
+    if(this->mResource == nullptr) {
+        return RC_INVALID_VALUE;
+    }
 
     if(this->mResource->getValuesCount() == 1) {
         this->mResource->mConfigValue.singleValue = value;
     } else {
         if(this->mResource->mConfigValue.valueArray == nullptr) {
-            this->mResource->mConfigValue.valueArray = new std::vector<int32_t>;
+            this->mResource->mConfigValue.valueArray = new(std::nothrow) std::vector<int32_t>;
+            if(this->mResource->mConfigValue.valueArray == nullptr) {
+                return RC_INVALID_VALUE;
+            }
         }
         this->mResource->mConfigValue.valueArray->push_back(value);
     }
 
-    return this;
+    return RC_SUCCESS;
 }
 
 Resource* ResourceBuilder::build() {

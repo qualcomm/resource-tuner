@@ -5,85 +5,165 @@
 
 void ConfigProcessor::parseSignalConfigYamlNode(const YAML::Node& item, int8_t isBuSpecified) {
     SignalInfoBuilder signalInfoBuilder;
+    ErrCode rc = RC_SUCCESS;
 
-    signalInfoBuilder.setOpID(
-        safeExtract<std::string>(item[SIGNAL_SIGID], "-1")
-    );
-
-    signalInfoBuilder.setCategory(
-        safeExtract<std::string>(item[SIGNAL_CATEGORY], "-1")
-    );
-
-    signalInfoBuilder.setName(
-        safeExtract<std::string>(item[SIGNAL_NAME], "")
-    );
-
-    signalInfoBuilder.setTimeout(
-        safeExtract<int32_t>(item[SIGNAL_TIMEOUT], 1)
-    );
-
-    signalInfoBuilder.setIsEnabled(
-        safeExtract<bool>(item[SIGNAL_ENABLE], false)
-    );
-
-    if(isList(item[SIGNAL_PERMISSIONS])) {
-        for(int32_t i = 0; i < item[SIGNAL_PERMISSIONS].size(); i++) {
-            signalInfoBuilder.addPermission(
-                safeExtract<std::string>(item[SIGNAL_PERMISSIONS][i], "")
-            );
-        }
+    // No defaults applicable
+    if(RC_IS_OK(rc)) {
+        rc = signalInfoBuilder.setOpID(
+            safeExtract<std::string>(item[SIGNAL_SIGID], "-1")
+        );
     }
 
-    if(isList(item[SIGNAL_TARGETS_ENABLED])) {
-        for(int32_t i = 0; i < item[SIGNAL_TARGETS_ENABLED].size(); i++) {
-            signalInfoBuilder.addTarget(true,
-                safeExtract<std::string>(item[SIGNAL_TARGETS_ENABLED][i], "")
-            );
-        }
+    if(RC_IS_OK(rc)) {
+        // No defaults applicable
+        rc = signalInfoBuilder.setCategory(
+            safeExtract<std::string>(item[SIGNAL_CATEGORY], "-1")
+        );
     }
 
-    if(isList(item[SIGNAL_TARGETS_DISABLED])) {
-        for(int32_t i = 0; i < item[SIGNAL_TARGETS_DISABLED].size(); i++) {
-            signalInfoBuilder.addTarget(false,
-                safeExtract<std::string>(item[SIGNAL_TARGETS_DISABLED][i], "")
-            );
-        }
+    if(RC_IS_OK(rc)) {
+        // defaults to empty string
+        rc = signalInfoBuilder.setName(
+            safeExtract<std::string>(item[SIGNAL_NAME], "")
+        );
     }
 
-    if(isList(item[SIGNAL_DERIVATIVES])) {
-        for(int32_t i = 0; i < item[SIGNAL_DERIVATIVES].size(); i++) {
-            signalInfoBuilder.addDerivative(
-                safeExtract<std::string>(item[SIGNAL_DERIVATIVES][i], "")
-            );
-        }
+    if(RC_IS_OK(rc)) {
+        // defaults to 1 ms
+        rc = signalInfoBuilder.setTimeout(
+            safeExtract<int32_t>(item[SIGNAL_TIMEOUT], 1)
+        );
     }
 
-    if(item[SIGNAL_RESOURCES].IsDefined() && item[SIGNAL_RESOURCES].IsSequence()) {
-        for(const auto& resourceConfig: item[SIGNAL_RESOURCES]) {
-            if(!resourceConfig.IsMap()) break;
+    if(RC_IS_OK(rc)) {
+        // defaults to False
+        rc = signalInfoBuilder.setIsEnabled(
+            safeExtract<bool>(item[SIGNAL_ENABLE], false)
+        );
+    }
 
-            ResourceBuilder resourceBuilder;
-            resourceBuilder.setResCode(
-                safeExtract<std::string>(resourceConfig[SIGNAL_RESOURCE_CODE], "-1")
-            );
-
-            resourceBuilder.setOpInfo(
-                safeExtract<std::string>(resourceConfig[SIGNAL_RESINFO], "0")
-            );
-
-            if(isList(resourceConfig[SIGNAL_VALUES])) {
-                int32_t valuesCount = resourceConfig[SIGNAL_VALUES].size();
-                resourceBuilder.setNumValues(valuesCount);
-
-                for(int32_t i = 0; i < valuesCount; i++) {
-                    resourceBuilder.addValue(
-                        safeExtract<int32_t>(resourceConfig[SIGNAL_VALUES][i], -1)
+    if(RC_IS_OK(rc)) {
+        if(isList(item[SIGNAL_PERMISSIONS])) {
+            for(int32_t i = 0; i < item[SIGNAL_PERMISSIONS].size(); i++) {
+                if(RC_IS_OK(rc)) {
+                    rc = signalInfoBuilder.addPermission(
+                        // defaults to THIRD_PARTY
+                        safeExtract<std::string>(item[SIGNAL_PERMISSIONS][i], "")
                     );
+                } else {
+                    break;
                 }
             }
-
-            signalInfoBuilder.addResource(resourceBuilder.build());
         }
+    }
+
+    if(RC_IS_OK(rc)) {
+        if(isList(item[SIGNAL_TARGETS_ENABLED])) {
+            for(int32_t i = 0; i < item[SIGNAL_TARGETS_ENABLED].size(); i++) {
+                // Defaults to empty string
+                if(RC_IS_OK(rc)) {
+                    rc = signalInfoBuilder.addTarget(true,
+                            safeExtract<std::string>(item[SIGNAL_TARGETS_ENABLED][i], "")
+                    );
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
+    if(RC_IS_OK(rc)) {
+        if(isList(item[SIGNAL_TARGETS_DISABLED])) {
+            for(int32_t i = 0; i < item[SIGNAL_TARGETS_DISABLED].size(); i++) {
+                // Defaults to empty string
+                if(RC_IS_OK(rc)) {
+                    rc = signalInfoBuilder.addTarget(false,
+                            safeExtract<std::string>(item[SIGNAL_TARGETS_DISABLED][i], "")
+                    );
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
+    if(RC_IS_OK(rc)) {
+        if(isList(item[SIGNAL_DERIVATIVES])) {
+            for(int32_t i = 0; i < item[SIGNAL_DERIVATIVES].size(); i++) {
+                // Defaults to empty string
+                if(RC_IS_OK(rc)) {
+                    rc = signalInfoBuilder.addDerivative(
+                        safeExtract<std::string>(item[SIGNAL_DERIVATIVES][i], "")
+                    );
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
+    if(RC_IS_OK(rc)) {
+        if(item[SIGNAL_RESOURCES].IsDefined() && item[SIGNAL_RESOURCES].IsSequence()) {
+            for(const auto& resourceConfig: item[SIGNAL_RESOURCES]) {
+                if(!resourceConfig.IsMap()) {
+                    rc = RC_INVALID_VALUE;
+                    break;
+                }
+
+                ResourceBuilder resourceBuilder;
+                std::string resCode =
+                    safeExtract<std::string>(resourceConfig[SIGNAL_RESOURCE_CODE], "");
+                if(resCode.length() == 0) {
+                    rc = RC_INVALID_VALUE;
+                    break;
+                }
+
+                // No Defaults Applicable
+                if(RC_IS_OK(rc)) {
+                    rc = resourceBuilder.setResCode(resCode);
+                } else {
+                    break;
+                }
+
+                if(RC_IS_OK(rc)) {
+                    rc = resourceBuilder.setOpInfo(
+                        // Defaults to 0
+                        safeExtract<std::string>(resourceConfig[SIGNAL_RESINFO], "0")
+                    );
+                } else {
+                    break;
+                }
+
+                if(RC_IS_OK(rc)) {
+                    if(isList(resourceConfig[SIGNAL_VALUES])) {
+                        int32_t valuesCount = resourceConfig[SIGNAL_VALUES].size();
+                        rc = resourceBuilder.setNumValues(valuesCount);
+
+                        for(int32_t i = 0; i < valuesCount; i++) {
+                            // Defaults to -1
+                            if(RC_IS_OK(rc)) {
+                                rc = resourceBuilder.addValue(
+                                    safeExtract<int32_t>(resourceConfig[SIGNAL_VALUES][i], -1)
+                                );
+                            } else {
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if(RC_IS_OK(rc)) {
+                    rc = signalInfoBuilder.addResource(resourceBuilder.build());
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
+    if(RC_IS_NOTOK(rc)) {
+        // Set OpId so that the Signal gets discarded by Signal Regsitry
+        signalInfoBuilder.setOpID("-1");
     }
 
     SignalRegistry::getInstance()->registerSignal(signalInfoBuilder.build(), isBuSpecified);

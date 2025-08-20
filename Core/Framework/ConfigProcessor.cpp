@@ -4,73 +4,106 @@
 #include "ConfigProcessor.h"
 
 void ConfigProcessor::parseResourceConfigYamlNode(const YAML::Node& item, int8_t isBuSpecified) {
+    ErrCode rc = RC_SUCCESS;
     ResourceConfigInfoBuilder resourceConfigInfoBuilder;
 
     // No Defaults Available, a Resource with Invalid OpType is considered Malformed
-    resourceConfigInfoBuilder.setOptype(
-        safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCE_TYPE], "-1")
-    );
+    if(RC_IS_OK(rc)) {
+        rc = resourceConfigInfoBuilder.setResType(
+            safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCE_TYPE], "-1")
+        );
+    }
 
     // No Defaults Available, a Resource with Invalid OpId is considered Malformed
-    resourceConfigInfoBuilder.setOpcode(
-        safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCE_ID], "-1")
-    );
+    if(RC_IS_OK(rc)) {
+        rc = resourceConfigInfoBuilder.setResID(
+            safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCE_ID], "-1")
+        );
+    }
 
     // Defaults to false
-    resourceConfigInfoBuilder.setSupported(
-        safeExtract<bool>(item[RESOURCE_CONFIGS_ELEM_SUPPORTED], false)
-    );
+    if(RC_IS_OK(rc)) {
+        rc = resourceConfigInfoBuilder.setSupported(
+            safeExtract<bool>(item[RESOURCE_CONFIGS_ELEM_SUPPORTED], false)
+        );
+    }
 
     // Defaults to an empty string
-    resourceConfigInfoBuilder.setName(
-        safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCENAME], "")
-    );
+    if(RC_IS_OK(rc)) {
+        rc = resourceConfigInfoBuilder.setName(
+            safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCENAME], "")
+        );
+    }
 
     // Defaults to an empty string
-    resourceConfigInfoBuilder.setPath(
-        safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCEPATH], "")
-    );
+    if(RC_IS_OK(rc)) {
+        rc = resourceConfigInfoBuilder.setPath(
+            safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCEPATH], "")
+        );
+    }
 
-    std::string defaultValue = AuxRoutines::readFromFile(
-        safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCEPATH], "")
-    );
+    if(RC_IS_OK(rc)) {
+        std::string defaultValue = AuxRoutines::readFromFile(
+            safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCEPATH], "")
+        );
 
-    // Defaults to 0
-    resourceConfigInfoBuilder.setDefaultValue(defaultValue);
+        // Defaults to 0
+        rc = resourceConfigInfoBuilder.setDefaultValue(defaultValue);
+    }
 
     // No Defaults Available, a Resource with Invalid HT is considered Malformed
-    resourceConfigInfoBuilder.setHighThreshold(
-        safeExtract<int32_t>(item[RESOURCE_CONFIGS_ELEM_HIGHTHRESHOLD], -1)
-    );
+    if(RC_IS_OK(rc)) {
+        rc = resourceConfigInfoBuilder.setHighThreshold(
+            safeExtract<int32_t>(item[RESOURCE_CONFIGS_ELEM_HIGHTHRESHOLD], -1)
+        );
+    }
 
     // No Defaults Available, a Resource with Invalid LT is considered Malformed
-    resourceConfigInfoBuilder.setLowThreshold(
-        safeExtract<int32_t>(item[RESOURCE_CONFIGS_ELEM_LOWTHRESHOLD], -1)
-    );
+    if(RC_IS_OK(rc)) {
+        rc = resourceConfigInfoBuilder.setLowThreshold(
+            safeExtract<int32_t>(item[RESOURCE_CONFIGS_ELEM_LOWTHRESHOLD], -1)
+        );
+    }
 
     // Default to a Value of Third Party
-    resourceConfigInfoBuilder.setPermissions(
-        safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_PERMISSIONS], "")
-    );
+    if(RC_IS_OK(rc)) {
+        rc = resourceConfigInfoBuilder.setPermissions(
+            safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_PERMISSIONS], "")
+        );
+    }
 
     // Defaults to a Value of DISPLAY_ON
-    if(isList(item[RESOURCE_CONFIGS_ELEM_MODES])) {
-        for(const auto& mode : item[RESOURCE_CONFIGS_ELEM_MODES]) {
-            resourceConfigInfoBuilder.setModes(safeExtract<std::string>(mode, ""));
+    if(RC_IS_OK(rc)) {
+        if(isList(item[RESOURCE_CONFIGS_ELEM_MODES])) {
+            for(const auto& mode : item[RESOURCE_CONFIGS_ELEM_MODES]) {
+                if(RC_IS_OK(rc)) {
+                    rc = resourceConfigInfoBuilder.setModes(safeExtract<std::string>(mode, ""));
+                } else {
+                    break;
+                }
+            }
+        } else {
+            rc = resourceConfigInfoBuilder.setModes("");
         }
-    } else {
-        resourceConfigInfoBuilder.setModes("");
     }
 
     // Defaults to LAZY_APPLY
-    resourceConfigInfoBuilder.setPolicy(
-        safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_POLICY], "")
-    );
+    if(RC_IS_OK(rc)) {
+        resourceConfigInfoBuilder.setPolicy(
+            safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_POLICY], "")
+        );
+    }
 
     // Defaults to APPLY_GLOBAL
-    resourceConfigInfoBuilder.setApplyType(
-        safeExtract<std::string>(item[RESOURCE_CONFIGS_APPLY_TYPE], "")
-    );
+    if(RC_IS_OK(rc)) {
+        resourceConfigInfoBuilder.setApplyType(
+            safeExtract<std::string>(item[RESOURCE_CONFIGS_APPLY_TYPE], "")
+        );
+    }
+
+    if(RC_IS_NOTOK(rc)) {
+        resourceConfigInfoBuilder.setResID("-1");
+    }
 
     ResourceRegistry::getInstance()->registerResource(resourceConfigInfoBuilder.build(), isBuSpecified);
 }
