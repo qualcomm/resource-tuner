@@ -25,12 +25,12 @@ typedef struct {
     /**
      * @brief 16-bit Signal Opcode
      */
-    int16_t mSignalOpId;
+    uint16_t mSignalID;
 
     /**
      * @brief Category of the Signal
      */
-    int8_t mSignalCategory;
+    uint8_t mSignalCategory;
 
     /**
      * @brief Signal Name, for ex: EARLY_WAKEUP
@@ -142,8 +142,8 @@ private:
 public:
     SignalInfoBuilder();
 
-    ErrCode setOpID(const std::string& signalOpIdString);
-    ErrCode setCategory(const std::string& categoryString);
+    ErrCode setSignalID(const std::string& signalOpIdString);
+    ErrCode setSignalCategory(const std::string& categoryString);
     ErrCode setName(const std::string& signalName);
     ErrCode setTimeout(int32_t timeout);
     ErrCode setIsEnabled(int8_t isEnabled);

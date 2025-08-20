@@ -12,7 +12,7 @@
 
 RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourcesTargetSpecificConfig.yaml")
 
-#define TOTAL_RESOURCE_CONFIGS_COUNT 11
+#define TOTAL_RESOURCE_CONFIGS_COUNT 14
 
 #define GENERATE_RESOURCE_ID(optype, opcode) ({                                \
     uint32_t resourceBitmap = 0;                                               \

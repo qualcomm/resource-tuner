@@ -11,7 +11,7 @@ SignalRegistry::SignalRegistry() {
 
 int8_t SignalRegistry::isSignalConfigMalformed(SignalInfo* sConf) {
     if(sConf == nullptr) return true;
-    if(sConf->mSignalOpId < 0 || sConf->mSignalCategory < 0) return true;
+    if(sConf->mSignalCategory == 0) return true;
     return false;
 }
 
@@ -24,7 +24,7 @@ void SignalRegistry::registerSignal(SignalInfo* signalInfo, int8_t isBuSpecified
     }
 
     uint32_t signalBitmap = 0;
-    signalBitmap |= ((uint32_t)signalInfo->mSignalOpId);
+    signalBitmap |= ((uint32_t)signalInfo->mSignalID);
     signalBitmap |= ((uint32_t)signalInfo->mSignalCategory << 16);
 
     // Check for any conflict
@@ -77,7 +77,7 @@ void SignalRegistry::displaySignals() {
         auto& signal = this->mSignalsConfigs[i];
 
         LOGD("RESTUNE_SIGNAL_REGISTRY", "Signal Name: " + signal->mSignalName);
-        LOGD("RESTUNE_SIGNAL_REGISTRY", "Signal OpID: " + std::to_string(signal->mSignalOpId));
+        LOGD("RESTUNE_SIGNAL_REGISTRY", "Signal OpID: " + std::to_string(signal->mSignalID));
         LOGD("RESTUNE_SIGNAL_REGISTRY", "Signal SignalCategory: " + std::to_string(signal->mSignalCategory));
 
         LOGD("RESTUNE_SIGNAL_REGISTRY", "====================================");
@@ -133,14 +133,14 @@ SignalInfoBuilder::SignalInfoBuilder() {
     }
 }
 
-ErrCode SignalInfoBuilder::setOpID(const std::string& signalOpIdString) {
+ErrCode SignalInfoBuilder::setSignalID(const std::string& signalOpIdString) {
     if(this->mSignalInfo == nullptr) {
         return RC_INVALID_VALUE;
     }
 
-    this->mSignalInfo->mSignalOpId = -1;
+    this->mSignalInfo->mSignalID = 0;
     try {
-        this->mSignalInfo->mSignalOpId = (int16_t)stoi(signalOpIdString, nullptr, 0);
+        this->mSignalInfo->mSignalID = (uint16_t)stoi(signalOpIdString, nullptr, 0);
 
     } catch(const std::invalid_argument& e) {
         TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
@@ -154,14 +154,14 @@ ErrCode SignalInfoBuilder::setOpID(const std::string& signalOpIdString) {
     return RC_SUCCESS;
 }
 
-ErrCode SignalInfoBuilder::setCategory(const std::string& categoryString) {
+ErrCode SignalInfoBuilder::setSignalCategory(const std::string& categoryString) {
     if(this->mSignalInfo == nullptr) {
         return RC_INVALID_VALUE;
     }
 
-    this->mSignalInfo->mSignalCategory = -1;
+    this->mSignalInfo->mSignalCategory = 0;
     try {
-        this->mSignalInfo->mSignalCategory = (int8_t)stoi(categoryString, nullptr, 0);
+        this->mSignalInfo->mSignalCategory = (uint8_t)stoi(categoryString, nullptr, 0);
     } catch(const std::invalid_argument& e) {
         TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
         return RC_INVALID_VALUE;

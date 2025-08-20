@@ -6,40 +6,53 @@
 void ConfigProcessor::parseSignalConfigYamlNode(const YAML::Node& item, int8_t isBuSpecified) {
     SignalInfoBuilder signalInfoBuilder;
     ErrCode rc = RC_SUCCESS;
+    NodeExtractionStatus status;
 
     // No defaults applicable
     if(RC_IS_OK(rc)) {
-        rc = signalInfoBuilder.setOpID(
-            safeExtract<std::string>(item[SIGNAL_SIGID], "-1")
+        rc = signalInfoBuilder.setSignalID(
+            safeExtract<std::string>(item[SIGNAL_SIGID], "0")
         );
     }
 
     if(RC_IS_OK(rc)) {
         // No defaults applicable
-        rc = signalInfoBuilder.setCategory(
-            safeExtract<std::string>(item[SIGNAL_CATEGORY], "-1")
+        rc = signalInfoBuilder.setSignalCategory(
+            safeExtract<std::string>(item[SIGNAL_CATEGORY], "0")
         );
     }
 
     if(RC_IS_OK(rc)) {
         // defaults to empty string
         rc = signalInfoBuilder.setName(
-            safeExtract<std::string>(item[SIGNAL_NAME], "")
+            safeExtract<std::string>(item[SIGNAL_NAME], "", status)
         );
+
+        if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
+            rc = RC_INVALID_VALUE;
+        }
     }
 
     if(RC_IS_OK(rc)) {
         // defaults to 1 ms
         rc = signalInfoBuilder.setTimeout(
-            safeExtract<int32_t>(item[SIGNAL_TIMEOUT], 1)
+            safeExtract<int32_t>(item[SIGNAL_TIMEOUT], 1, status)
         );
+
+        if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
+            rc = RC_INVALID_VALUE;
+        }
     }
 
     if(RC_IS_OK(rc)) {
         // defaults to False
         rc = signalInfoBuilder.setIsEnabled(
-            safeExtract<bool>(item[SIGNAL_ENABLE], false)
+            safeExtract<bool>(item[SIGNAL_ENABLE], false, status)
         );
+
+        if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
+            rc = RC_INVALID_VALUE;
+        }
     }
 
     if(RC_IS_OK(rc)) {
@@ -48,8 +61,12 @@ void ConfigProcessor::parseSignalConfigYamlNode(const YAML::Node& item, int8_t i
                 if(RC_IS_OK(rc)) {
                     rc = signalInfoBuilder.addPermission(
                         // defaults to THIRD_PARTY
-                        safeExtract<std::string>(item[SIGNAL_PERMISSIONS][i], "")
+                        safeExtract<std::string>(item[SIGNAL_PERMISSIONS][i], "", status)
                     );
+
+                    if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
+                        rc = RC_INVALID_VALUE;
+                    }
                 } else {
                     break;
                 }
@@ -63,8 +80,12 @@ void ConfigProcessor::parseSignalConfigYamlNode(const YAML::Node& item, int8_t i
                 // Defaults to empty string
                 if(RC_IS_OK(rc)) {
                     rc = signalInfoBuilder.addTarget(true,
-                            safeExtract<std::string>(item[SIGNAL_TARGETS_ENABLED][i], "")
+                        safeExtract<std::string>(item[SIGNAL_TARGETS_ENABLED][i], "", status)
                     );
+
+                    if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
+                        rc = RC_INVALID_VALUE;
+                    }
                 } else {
                     break;
                 }
@@ -78,8 +99,12 @@ void ConfigProcessor::parseSignalConfigYamlNode(const YAML::Node& item, int8_t i
                 // Defaults to empty string
                 if(RC_IS_OK(rc)) {
                     rc = signalInfoBuilder.addTarget(false,
-                            safeExtract<std::string>(item[SIGNAL_TARGETS_DISABLED][i], "")
+                        safeExtract<std::string>(item[SIGNAL_TARGETS_DISABLED][i], "", status)
                     );
+
+                    if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
+                        rc = RC_INVALID_VALUE;
+                    }
                 } else {
                     break;
                 }
@@ -93,8 +118,13 @@ void ConfigProcessor::parseSignalConfigYamlNode(const YAML::Node& item, int8_t i
                 // Defaults to empty string
                 if(RC_IS_OK(rc)) {
                     rc = signalInfoBuilder.addDerivative(
-                        safeExtract<std::string>(item[SIGNAL_DERIVATIVES][i], "")
+                        safeExtract<std::string>(item[SIGNAL_DERIVATIVES][i], "", status)
                     );
+
+                    if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
+                        rc = RC_INVALID_VALUE;
+                        break;
+                    }
                 } else {
                     break;
                 }
@@ -112,8 +142,14 @@ void ConfigProcessor::parseSignalConfigYamlNode(const YAML::Node& item, int8_t i
 
                 ResourceBuilder resourceBuilder;
                 std::string resCode =
-                    safeExtract<std::string>(resourceConfig[SIGNAL_RESOURCE_CODE], "");
+                    safeExtract<std::string>(resourceConfig[SIGNAL_RESOURCE_CODE], "", status);
+
                 if(resCode.length() == 0) {
+                    rc = RC_INVALID_VALUE;
+                    break;
+                }
+
+                if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
                     rc = RC_INVALID_VALUE;
                     break;
                 }
@@ -128,8 +164,13 @@ void ConfigProcessor::parseSignalConfigYamlNode(const YAML::Node& item, int8_t i
                 if(RC_IS_OK(rc)) {
                     rc = resourceBuilder.setOpInfo(
                         // Defaults to 0
-                        safeExtract<std::string>(resourceConfig[SIGNAL_RESINFO], "0")
+                        safeExtract<std::string>(resourceConfig[SIGNAL_RESINFO], "0", status)
                     );
+
+                    if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
+                        rc = RC_INVALID_VALUE;
+                        break;
+                    }
                 } else {
                     break;
                 }
@@ -143,8 +184,13 @@ void ConfigProcessor::parseSignalConfigYamlNode(const YAML::Node& item, int8_t i
                             // Defaults to -1
                             if(RC_IS_OK(rc)) {
                                 rc = resourceBuilder.addValue(
-                                    safeExtract<int32_t>(resourceConfig[SIGNAL_VALUES][i], -1)
+                                    safeExtract<int32_t>(resourceConfig[SIGNAL_VALUES][i], -1, status)
                                 );
+
+                                if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
+                                    rc = RC_INVALID_VALUE;
+                                    break;
+                                }
                             } else {
                                 break;
                             }
@@ -163,7 +209,7 @@ void ConfigProcessor::parseSignalConfigYamlNode(const YAML::Node& item, int8_t i
 
     if(RC_IS_NOTOK(rc)) {
         // Set OpId so that the Signal gets discarded by Signal Regsitry
-        signalInfoBuilder.setOpID("-1");
+        signalInfoBuilder.setSignalCategory("0");
     }
 
     SignalRegistry::getInstance()->registerSignal(signalInfoBuilder.build(), isBuSpecified);

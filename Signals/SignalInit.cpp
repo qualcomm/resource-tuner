@@ -22,9 +22,9 @@ static void preAllocateMemory() {
 static ErrCode fetchSignals() {
     ErrCode opStatus = RC_SUCCESS;
 
-    TYPELOGV(NOTIFY_PARSING_START, "Signal");
-
     ConfigProcessor configProcessor;
+
+    TYPELOGV(NOTIFY_PARSING_START, "Common-Signal");
     std::string filePath = ResourceTunerSettings::mCommonSignalFilePath;
     opStatus = configProcessor.parseSignalConfigs(filePath);
     if(RC_IS_NOTOK(opStatus)) {
@@ -32,6 +32,7 @@ static ErrCode fetchSignals() {
         return opStatus;
     }
 
+    TYPELOGV(NOTIFY_PARSING_START, "Target-Specific Signal");
     filePath = ResourceTunerSettings::mTargetSpecificSignalFilePath;
     opStatus = configProcessor.parseSignalConfigs(filePath);
     if(RC_IS_NOTOK(opStatus)) {
@@ -39,7 +40,7 @@ static ErrCode fetchSignals() {
             // Additional check for ErrCode, as it is possible that there is
             // no target-specific Configs at all for a given target. This
             // case should not result in a failure.
-            TYPELOGV(NOTIFY_PARSING_FAILURE, "Target Specific Signal");
+            TYPELOGV(NOTIFY_PARSING_FAILURE, "Target-Specific Signal");
             return opStatus;
         } else {
             // Reset opStatus
@@ -51,6 +52,7 @@ static ErrCode fetchSignals() {
     if(filePath.length() > 0) {
         // Custom Resource Config file has been provided by BU
         TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, "Signal", filePath.c_str());
+        TYPELOGV(NOTIFY_PARSING_START, "Custom-Signal");
         opStatus = configProcessor.parseSignalConfigs(filePath, true);
         if(RC_IS_NOTOK(opStatus)) {
             TYPELOGV(NOTIFY_PARSING_FAILURE, "Custom-Signal");

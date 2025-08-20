@@ -128,7 +128,7 @@ TEST(MiscTests, TestSignalSerializingAndDeserializing) {
         firstSignal->setProperties((1 << 8) | (1 << 0));
         firstSignal->setHandle(15);
         firstSignal->setDuration(5600);
-        firstSignal->setSignalID(78099);
+        firstSignal->setSignalOpCode(78099);
         firstSignal->setNumArgs(1);
         firstSignal->setAppName("example-app-name");
         firstSignal->setScenario("example-scenario-name");

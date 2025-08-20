@@ -10,9 +10,7 @@
 #include "Extensions.h"
 #include "Utils.h"
 
-RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, "../Tests/Configs/testSignalsConfig.yaml")
-
-#define TOTAL_SIGNAL_CONFIGS_COUNT 6
+#define TOTAL_SIGNAL_CONFIGS_COUNT 8
 
 class SignalConfigProcessorTests: public::testing::Test {
 protected:
@@ -22,7 +20,7 @@ protected:
             firstTest = false;
             ConfigProcessor configProcessor;
 
-            if(RC_IS_NOTOK(configProcessor.parseSignalConfigs(Extensions::getSignalsConfigFilePath(), true))) {
+            if(RC_IS_NOTOK(configProcessor.parseSignalConfigs("../Tests/Configs/testSignalsTargetSpecificConfig.yaml"))) {
                 return;
             }
         }
@@ -38,11 +36,11 @@ TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorYAMLDataIntegrity2) 
 }
 
 TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorYAMLDataIntegrity3_1) {
-    SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(2147549184);
+    SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x000d0000);
 
     ASSERT_NE(signalInfo, nullptr);
-    ASSERT_EQ(signalInfo->mSignalOpId, 0);
-    ASSERT_EQ(signalInfo->mSignalCategory, 1);
+    ASSERT_EQ(signalInfo->mSignalID, 0);
+    ASSERT_EQ(signalInfo->mSignalCategory, 0x0d);
     ASSERT_EQ(strcmp((const char*)signalInfo->mSignalName.data(), "INSTALL"), 0);
     ASSERT_EQ(signalInfo->mIsEnabled, true);
     ASSERT_EQ(signalInfo->mTimeout, 4000);
@@ -75,11 +73,11 @@ TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorYAMLDataIntegrity3_1
 }
 
 TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorYAMLDataIntegrity3_2) {
-    SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(2147549185);
+    SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x000d0001);
 
     ASSERT_NE(signalInfo, nullptr);
-    ASSERT_EQ(signalInfo->mSignalOpId, 1);
-    ASSERT_EQ(signalInfo->mSignalCategory, 1);
+    ASSERT_EQ(signalInfo->mSignalID, 1);
+    ASSERT_EQ(signalInfo->mSignalCategory, 0x0d);
     ASSERT_EQ(strcmp((const char*)signalInfo->mSignalName.data(), "EARLY_WAKEUP"), 0);
     ASSERT_EQ(signalInfo->mIsEnabled, true);
     ASSERT_EQ(signalInfo->mTimeout, 5000);
@@ -117,11 +115,11 @@ TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorYAMLDataIntegrity3_2
 }
 
 TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorYAMLDataIntegrity3_3) {
-    SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(2147549187);
+    SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x000d0003);
 
     ASSERT_NE(signalInfo, nullptr);
-    ASSERT_EQ(signalInfo->mSignalOpId, 3);
-    ASSERT_EQ(signalInfo->mSignalCategory, 1);
+    ASSERT_EQ(signalInfo->mSignalID, 3);
+    ASSERT_EQ(signalInfo->mSignalCategory, 0x0d);
     ASSERT_EQ(strcmp((const char*)signalInfo->mSignalName.data(), "SMOOTH_SCROLL"), 0);
     ASSERT_EQ(signalInfo->mIsEnabled, false);
     ASSERT_EQ(signalInfo->mTimeout, 4000);
@@ -182,7 +180,8 @@ TEST_F(SignalConfigProcessorTests, TestSignalConfigProcessorYAMLDataIntegrity4) 
     ASSERT_EQ(signalConfigs.size(), TOTAL_SIGNAL_CONFIGS_COUNT);
 
     std::vector<std::string> signalNames {"INSTALL", "EARLY_WAKEUP", "LIGHTNING_LAUNCHES",
-                                          "SMOOTH_SCROLL", "TEST_SIGNAL-1", "TEST_SIGNAL-2"};
+                                          "SMOOTH_SCROLL", "TEST_SIGNAL-1", "TEST_SIGNAL-2",
+                                          "OVERRIDE_SIGNAL_1", "MOVE_TID_CUSTOMIZABLE"};
 
     ASSERT_EQ(signalNames.size(), signalConfigs.size());
 

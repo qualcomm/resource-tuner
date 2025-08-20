@@ -6,7 +6,7 @@
 Signal::Signal() {}
 
 uint32_t Signal::getSignalID() {
-    return this->mSignalID;
+    return this->mSignalOpCode;
 }
 
 int32_t Signal::getNumArgs() {
@@ -29,8 +29,8 @@ uint32_t Signal::getListArgAt(int32_t index) {
     return (*this->mListArgs)[index];
 }
 
-void Signal::setSignalID(uint32_t signalID) {
-    this->mSignalID = signalID;
+void Signal::setSignalOpCode(uint32_t signalOpCode) {
+    this->mSignalOpCode = signalOpCode;
 }
 
 void Signal::setAppName(const std::string& appName) {
@@ -100,7 +100,7 @@ ErrCode Signal::deserialize(char* buf) {
         this->mReqType = DEREF_AND_INCR(ptr8, int8_t);
 
         int32_t* ptr = (int32_t*)ptr8;
-        this->mSignalID = DEREF_AND_INCR(ptr, int32_t);
+        this->mSignalOpCode = DEREF_AND_INCR(ptr, int32_t);
 
         int64_t* ptr64 = (int64_t*)ptr;
         this->mHandle = DEREF_AND_INCR(ptr64, int64_t);
