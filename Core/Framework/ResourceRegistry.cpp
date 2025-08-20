@@ -12,7 +12,7 @@ ResourceRegistry::ResourceRegistry() {
 
 int8_t ResourceRegistry::isResourceConfigMalformed(ResourceConfigInfo* rConf) {
     if(rConf == nullptr) return true;
-    if(rConf->mResourceResType < 0 || rConf->mResourceResID < 0) return true;
+    if(rConf->mResourceResType == 0) return true;
     return false;
 }
 
@@ -185,7 +185,7 @@ ErrCode ResourceConfigInfoBuilder::setResType(const std::string& resTypeString) 
 
     this->mResourceConfigInfo->mResourceResType = -1;
     try {
-        this->mResourceConfigInfo->mResourceResType = (int8_t)stoi(resTypeString, nullptr, 0);
+        this->mResourceConfigInfo->mResourceResType = (uint8_t)stoi(resTypeString, nullptr, 0);
     } catch(const std::invalid_argument& e) {
         TYPELOGV(RESOURCE_REGISTRY_PARSING_FAILURE, e.what());
         return RC_INVALID_VALUE;
@@ -203,9 +203,9 @@ ErrCode ResourceConfigInfoBuilder::setResID(const std::string& resIDString) {
         return RC_INVALID_VALUE;
     }
 
-    this->mResourceConfigInfo->mResourceResID = -1;
+    this->mResourceConfigInfo->mResourceResID = 0;
     try {
-        this->mResourceConfigInfo->mResourceResID = (int16_t)stoi(resIDString, nullptr, 0);
+        this->mResourceConfigInfo->mResourceResID = (uint16_t)stoi(resIDString, nullptr, 0);
     } catch(const std::invalid_argument& e) {
         TYPELOGV(RESOURCE_REGISTRY_PARSING_FAILURE, e.what());
         return RC_INVALID_VALUE;
@@ -246,6 +246,10 @@ ErrCode ResourceConfigInfoBuilder::setPermissions(const std::string& permissionS
         permissions = PERMISSION_SYSTEM;
     } else if(permissionString == "third_party") {
         permissions = PERMISSION_THIRD_PARTY;
+    } else {
+        if(permissionString.length() != 0) {
+            return RC_INVALID_VALUE;
+        }
     }
 
     this->mResourceConfigInfo->mPermissions = permissions;
@@ -263,6 +267,10 @@ ErrCode ResourceConfigInfoBuilder::setModes(const std::string& modeString) {
         this->mResourceConfigInfo->mModes = this->mResourceConfigInfo->mModes | MODE_DISPLAY_OFF;
     } else if(modeString == "doze") {
         this->mResourceConfigInfo->mModes = this->mResourceConfigInfo->mModes | MODE_DOZE;
+    } else {
+        if(modeString.length() != 0) {
+            return RC_INVALID_VALUE;
+        }
     }
     return RC_SUCCESS;
 }
@@ -290,6 +298,10 @@ ErrCode ResourceConfigInfoBuilder::setPolicy(const std::string& policyString) {
         policy = LAZY_APPLY;
     } else if(policyString == "instant_apply") {
         policy = INSTANT_APPLY;
+    } else {
+        if(policyString.length() != 0) {
+            return RC_INVALID_VALUE;
+        }
     }
     this->mResourceConfigInfo->mPolicy = policy;
     return RC_SUCCESS;
@@ -309,6 +321,10 @@ ErrCode ResourceConfigInfoBuilder::setApplyType(const std::string& applyTypeStri
         applyType = APPLY_CLUSTER;
     } else if(applyTypeString == "cgroup") {
         applyType = APPLY_CGROUP;
+    } else {
+        if(applyTypeString.length() != 0) {
+            return RC_INVALID_VALUE;
+        }
     }
 
     this->mResourceConfigInfo->mApplyType = applyType;

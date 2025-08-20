@@ -169,3 +169,39 @@ ResourceConfigs:
     Modes: ["display_on"]
     Policy: lower_is_better
     ApplyType: "global"
+
+  - ResType: "0x0b"
+    ResID: "0x00da"
+    Name: "CUSTOM_RESOURCE_ADDED_BY_BU"
+    Path: "/some/bu/specific/node/path/customized_to_usecase"
+    Supported: true
+    HighThreshold: 512
+    LowThreshold: 128
+    Permissions: system
+    Modes: ["display_on"]
+    Policy: lower_is_better
+    ApplyType: 6
+
+  - ResType: "0x0b"
+    ResID: "0x00db"
+    Name: "CUSTOM_RESOURCE_ADDED_BY_BU"
+    Path: "/some/bu/specific/node/path/customized_to_usecase"
+    Supported: true
+    HighThreshold: 512
+    LowThreshold: 128
+    Permissions: system
+    Modes: ["display_on"]
+    Policy: 3.45
+    ApplyType: "global"
+
+  - ResType: "0x0b"
+    ResID: "0x00dc"
+    Name: "CUSTOM_RESOURCE_ADDED_BY_BU"
+    Path: "/some/bu/specific/node/path/customized_to_usecase"
+    Supported: true
+    HighThreshold: 512
+    LowThreshold: 128
+    Permissions: unknown
+    Modes: ["display_on"]
+    Policy: lower_is_better
+    ApplyType: "global"

@@ -10,7 +10,7 @@
 #include "Extensions.h"
 #include "Utils.h"
 
-#define TOTAL_RESOURCE_CONFIGS_COUNT 37
+#define TOTAL_RESOURCE_CONFIGS_COUNT 38
 
 static int8_t firstTest = true;
 
@@ -118,6 +118,23 @@ TEST_F(ResourceParsingTests, TestResourceParsingResourcesMerged5) {
     ASSERT_EQ(resourceConfigInfo->mSupported, true);
     ASSERT_EQ(resourceConfigInfo->mPolicy, LOWER_BETTER);
     ASSERT_EQ(resourceConfigInfo->mPermissions, PERMISSION_SYSTEM);
+    ASSERT_EQ(resourceConfigInfo->mModes, MODE_DISPLAY_ON);
+    ASSERT_EQ(resourceConfigInfo->mApplyType, ResourceApplyType::APPLY_GLOBAL);
+}
+
+TEST_F(ResourceParsingTests, TestResourceParsingResourcesDefaultValuesCheck) {
+    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(0x00efffff);
+
+    ASSERT_NE(resourceConfigInfo, nullptr);
+    ASSERT_EQ(resourceConfigInfo->mResourceResType, 0xef);
+    ASSERT_EQ(resourceConfigInfo->mResourceResID, 0xffff);
+    ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "DEFAULT_VALUES_TEST"), 0);
+    ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), ""), 0);
+    ASSERT_EQ(resourceConfigInfo->mHighThreshold, -1);
+    ASSERT_EQ(resourceConfigInfo->mLowThreshold, -1);
+    ASSERT_EQ(resourceConfigInfo->mSupported, false);
+    ASSERT_EQ(resourceConfigInfo->mPolicy, LAZY_APPLY);
+    ASSERT_EQ(resourceConfigInfo->mPermissions, PERMISSION_THIRD_PARTY);
     ASSERT_EQ(resourceConfigInfo->mModes, MODE_DISPLAY_ON);
     ASSERT_EQ(resourceConfigInfo->mApplyType, ResourceApplyType::APPLY_GLOBAL);
 }

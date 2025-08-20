@@ -11,14 +11,14 @@ void ConfigProcessor::parseResourceConfigYamlNode(const YAML::Node& item, int8_t
     // No Defaults Available, a Resource with Invalid OpType is considered Malformed
     if(RC_IS_OK(rc)) {
         rc = resourceConfigInfoBuilder.setResType(
-            safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCE_TYPE], "-1")
+            safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCE_TYPE], "0")
         );
     }
 
     // No Defaults Available, a Resource with Invalid OpId is considered Malformed
     if(RC_IS_OK(rc)) {
         rc = resourceConfigInfoBuilder.setResID(
-            safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCE_ID], "-1")
+            safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCE_ID], "0")
         );
     }
 
@@ -150,7 +150,8 @@ void ConfigProcessor::parseResourceConfigYamlNode(const YAML::Node& item, int8_t
     }
 
     if(RC_IS_NOTOK(rc)) {
-        resourceConfigInfoBuilder.setResID("-1");
+        // Invalid Resource
+        resourceConfigInfoBuilder.setResType("0");
     }
 
     ResourceRegistry::getInstance()->registerResource(resourceConfigInfoBuilder.build(), isBuSpecified);

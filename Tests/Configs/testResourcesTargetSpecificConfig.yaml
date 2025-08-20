@@ -181,3 +181,7 @@ ResourceConfigs:
     Modes: ["display_on", "display_off"]
     Policy: "instant_apply"
     ApplyType: "cluster"
+
+  - ResType: "0xef"
+    ResID: "0xffff"
+    Name: "DEFAULT_VALUES_TEST"
