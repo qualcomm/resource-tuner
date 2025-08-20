@@ -1,19 +1,20 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
+#include <cstring>
 #include "CocoTable.h"
 
 static void writeToNode(const std::string& fName, int32_t fValue) {
     std::ofstream myFile(fName, std::ios::out | std::ios::trunc);
 
     if(!myFile.is_open()) {
-        LOGD("RTN_COCO_TABLE", "Failed to open file: "+ fName + " Error: " + std::strerror(errno));
+        LOGD("RTN_COCO_TABLE", "Failed to open file: "+ fName + " Error: " + strerror(errno));
         return;
     }
 
     myFile << std::to_string(fValue);
     if(myFile.fail()) {
-        LOGD("RTN_COCO_TABLE", "Failed to write to file: "+ fName + " Error: " + std::strerror(errno));
+        LOGD("RTN_COCO_TABLE", "Failed to write to file: "+ fName + " Error: " + strerror(errno));
     }
     myFile.flush();
     myFile.close();
