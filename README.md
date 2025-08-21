@@ -49,7 +49,7 @@ cmake --install . --prefix /tmp/systune-install
 
 ## Usage
 
-Describe how to use the project.
+Describe how to use the project..
 
 ## Development
 
