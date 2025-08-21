@@ -1,0 +1,22 @@
+name: Build Resource Tuner
+
+on:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: sudo apt update && sudo apt install -y libyaml-cpp-dev
+
+    - name: Build project
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DBUILD_SIGNALS=ON -DBUILD_CLI=ON -DBUILD_TESTS=ON
+        cmake --build .
