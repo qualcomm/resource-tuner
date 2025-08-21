@@ -3,7 +3,7 @@ name: Deploy Doxygen Docs to gh-pages
 on:
   push:
     branches:
-      - dev/kartnema-cgroup
+      - main
 
 jobs:
   deploy-docs:

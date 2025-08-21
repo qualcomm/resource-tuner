@@ -215,6 +215,10 @@ ErrCode SignalInfoBuilder::addPermission(const std::string& permissionString) {
         permission = PERMISSION_SYSTEM;
     } else if(permissionString == "third_party") {
         permission = PERMISSION_THIRD_PARTY;
+    } else {
+        if(permissionString.length() != 0) {
+            return RC_INVALID_VALUE;
+        }
     }
 
     if(this->mSignalInfo->mPermissions != nullptr) {
