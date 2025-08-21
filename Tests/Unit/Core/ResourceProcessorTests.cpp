@@ -93,5 +93,5 @@ TEST_F(ResourceProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity3_3) 
     ASSERT_EQ(resourceConfigInfo->mPolicy, HIGHER_BETTER);
     ASSERT_EQ(resourceConfigInfo->mPermissions, PERMISSION_THIRD_PARTY);
     ASSERT_EQ(resourceConfigInfo->mModes, MODE_DISPLAY_ON);
-    ASSERT_EQ(resourceConfigInfo->mApplyType, ResourceApplyType::APPLY_GLOBAL);
+    ASSERT_EQ(resourceConfigInfo->mApplyType, ResourceApplyType::APPLY_CORE);
 }

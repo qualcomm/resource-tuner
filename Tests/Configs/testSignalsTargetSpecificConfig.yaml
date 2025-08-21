@@ -34,7 +34,7 @@ SignalConfigs:
     Derivatives: ["solar"]
     Timeout: 4000
     Resources:
-      - {ResCode: "0x8", ResInfo: "0x00000003", Values: [700]}
+      - {ResCode: "0x80010000", ResInfo: "0x00000000", Values: [1200]}
 
   - SigId: "0x0003"
     Category: "0x0d"

@@ -103,8 +103,8 @@ def unit_tests():
         return False
     if not run_test(["./Tests/Unit/Build/ClientDataManagerTests"]):
         return False
-    # if not run_test(["./Tests/Unit/RateLimiterTests"]):
-    #     exit(1)
+    if not run_test(["./Tests/Unit/Build/RateLimiterTests"]):
+        return False
 
     logger.info("All Unit Tests Ran Successfully")
     return True
@@ -120,7 +120,8 @@ def system_tests():
         os.execvp("./resource_tuner", ["./resource_tuner", "--test"])
     elif pid > 0:
         time.sleep(4)
-        os.system("./sys_tests_ex")
+        if not run_test(["./resource_tuner_tests"]):
+            return False
     else:
         return False
 
@@ -163,10 +164,10 @@ if __name__ == "__main__":
         cleanup()
         sys.exit(1)
 
-    # if not system_tests():
-    #     logger.error("System Wide Tests cannot be run as Server startup failed, Exiting process")
-    #     cleanup()
-    #     sys.exit(1)
+    if not system_tests():
+        logger.error("System Wide Tests cannot be run as Server startup failed, Exiting process")
+        cleanup()
+        sys.exit(1)
 
     if not lifecycle_tests():
         logger.error("Server Lifecycle tests failed. Exiting process.")

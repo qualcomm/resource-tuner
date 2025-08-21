@@ -80,7 +80,7 @@ ErrCode initSignals() {
         return opStatus;
     }
 
-    // Fetch and Parse Resource Configs
+    // Fetch and Parse Extension Features Configs
 
     // Create Signal Processor thread
     try {
@@ -109,6 +109,6 @@ ErrCode terminateSignals() {
 }
 
 RESTUNE_REGISTER_MODULE(MOD_SYSSIGNAL,
-                    initSignals,
-                    terminateSignals,
-                    submitSignalRequest);
+                        initSignals,
+                        terminateSignals,
+                        submitSignalRequest);

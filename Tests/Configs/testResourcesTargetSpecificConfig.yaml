@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 
 ResourceConfigs:
-  - ResType: "0x1"
-    ResID: "0x0"
+  - ResType: "0x01"
+    ResID: "0x0000"
     Name: "TEST_RESOURCE_1"
     Path: "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min"
     Supported: true
@@ -14,8 +14,8 @@ ResourceConfigs:
     Policy: "higher_is_better"
     ApplyType: "global"
 
-  - ResType: "0x1"
-    ResID: "0x1"
+  - ResType: "0x01"
+    ResID: "0x0001"
     Name: "TEST_RESOURCE_2"
     Path: "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_max"
     Supported: true
@@ -26,8 +26,8 @@ ResourceConfigs:
     Policy: "higher_is_better"
     ApplyType: "global"
 
-  - ResType: "0x1"
-    ResID: "0x2"
+  - ResType: "0x01"
+    ResID: "0x0002"
     Name: "TEST_RESOURCE_3"
     Path: "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq"
     Supported: true
@@ -38,8 +38,8 @@ ResourceConfigs:
     Policy: "lower_is_better"
     ApplyType: "global"
 
-  - ResType: "0x1"
-    ResID: "0x3"
+  - ResType: "0x01"
+    ResID: "0x0003"
     Name: "TEST_RESOURCE_4"
     Path: "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq"
     Supported: true
@@ -50,8 +50,8 @@ ResourceConfigs:
     Policy: "higher_is_better"
     ApplyType: "global"
 
-  - ResType: "0x1"
-    ResID: "0x4"
+  - ResType: "0x01"
+    ResID: "0x0004"
     Name: "TEST_RESOURCE_5"
     Path: "../Tests/Configs/ResourceSysFsNodes/target_test_resource1"
     Supported: true
@@ -62,8 +62,8 @@ ResourceConfigs:
     Policy: "higher_is_better"
     ApplyType: "global"
 
-  - ResType: "0x1"
-    ResID: "0x5"
+  - ResType: "0x01"
+    ResID: "0x0005"
     Name: "TEST_RESOURCE_6"
     Path: "../Tests/Configs/ResourceSysFsNodes/target_test_resource2"
     Supported: true
@@ -72,10 +72,10 @@ ResourceConfigs:
     Permissions: "third_party"
     Modes: ["display_on"]
     Policy: "higher_is_better"
-    ApplyType: "global"
+    ApplyType: "core"
 
-  - ResType: "0x1"
-    ResID: "0x6"
+  - ResType: "0x01"
+    ResID: "0x0006"
     Name: "TEST_RESOURCE_7"
     Path: "../Tests/Configs/ResourceSysFsNodes/target_test_resource3"
     Supported: true
@@ -86,8 +86,8 @@ ResourceConfigs:
     Policy: "higher_is_better"
     ApplyType: "global"
 
-  - ResType: "0x1"
-    ResID: "0x7"
+  - ResType: "0x01"
+    ResID: "0x0007"
     Name: "TEST_RESOURCE_8"
     Path: "../Tests/Configs/ResourceSysFsNodes/target_test_resource4"
     Supported: false
@@ -98,8 +98,8 @@ ResourceConfigs:
     Policy: "higher_is_better"
     ApplyType: "global"
 
-  - ResType: "0x1"
-    ResID: "0x8"
+  - ResType: "0x01"
+    ResID: "0x0008"
     Name: "TEST_RESOURCE_9"
     Path: "../Tests/Configs/ResourceSysFsNodes/target_test_resource5"
     Supported: true
@@ -134,8 +134,8 @@ ResourceConfigs:
     Policy: false
     ApplyType: 50.8
 
-  - ResType: "0x8"
-    ResID: "0x0"
+  - ResType: "0x08"
+    ResID: "0x0000"
     Name: "REAL_RESOURCE_1"
     Path: "/proc/sys/kernel/sched_util_clamp_min"
     Supported: true
@@ -146,8 +146,8 @@ ResourceConfigs:
     Policy: "higher_is_better"
     ApplyType: "global"
 
-  - ResType: "0x8"
-    ResID: "0x1"
+  - ResType: "0x08"
+    ResID: "0x0001"
     Name: "REAL_RESOURCE_2"
     Path: "/proc/sys/kernel/sched_util_clamp_max"
     Supported: true

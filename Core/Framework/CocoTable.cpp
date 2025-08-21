@@ -93,9 +93,9 @@ void CocoTable::applyAction(CocoNode* currNode, int32_t index, int8_t priority) 
                 resourceConfig->mResourceApplierCallback(resource);
             } else {
                 // Default Applier
-                AuxRoutines::writeToFile(resourceConfig->mResourceName, std::to_string(resource->mConfigValue.singleValue));
-                LOGI("RESTUNE_COCO_TABLE" , "Value " + std::to_string(resource->mConfigValue.singleValue) + " written in " +
-                     resourceConfig->mResourceName);
+                AuxRoutines::writeToFile(resourceConfig->mResourcePath, std::to_string(resource->mConfigValue.singleValue));
+                LOGI("RESTUNE_COCO_TABLE",
+                     "Value " + std::to_string(resource->mConfigValue.singleValue) + " written in " + resourceConfig->mResourcePath);
             }
             mCurrentlyAppliedPriority[index] = priority;
         }
@@ -110,9 +110,9 @@ void CocoTable::applyDefaultAction(int32_t index, Resource* resource) {
             resourceConfigInfo->mResourceTearCallback(resource);
         } else {
             // Default Tear Callback
-            AuxRoutines::writeToFile(resourceConfigInfo->mResourceName, resourceConfigInfo->mDefaultValue);
+            AuxRoutines::writeToFile(resourceConfigInfo->mResourcePath, resourceConfigInfo->mDefaultValue);
             LOGI("RESTUNE_COCO_TABLE" ,
-                 "Value " + resourceConfigInfo->mDefaultValue + " written in " + resourceConfigInfo->mResourceName);
+                 "Value " + resourceConfigInfo->mDefaultValue + " written in " + resourceConfigInfo->mResourcePath);
         }
         mCurrentlyAppliedPriority[index] = -1;
     }

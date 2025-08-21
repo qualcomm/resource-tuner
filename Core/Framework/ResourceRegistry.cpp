@@ -136,7 +136,7 @@ void ResourceRegistry::pluginModifications() {
 void ResourceRegistry::restoreResourcesToDefaultValues() {
     for(ResourceConfigInfo* resourceConfig: this->mResourceConfig) {
         std::string defaultValue = resourceConfig->mDefaultValue;
-        AuxRoutines::writeToFile(resourceConfig->mResourceName, defaultValue);
+        AuxRoutines::writeToFile(resourceConfig->mResourcePath, defaultValue);
     }
 }
 
