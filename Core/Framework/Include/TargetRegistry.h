@@ -13,9 +13,11 @@
 #include <algorithm>
 #include <cstring>
 #include <cstdlib>
+#include <sys/stat.h>
 #include <memory>
 
 #include "ResourceTunerSettings.h"
+#include "AuxRoutines.h"
 #include "ErrCodes.h"
 #include "Logger.h"
 
@@ -23,6 +25,13 @@
 
 #define POLICY_DIR_PATH "/sys/devices/system/cpu/cpufreq/"
 #define ONLINE_CPU_FILE_PATH "/sys/devices/system/cpu/online"
+
+typedef struct {
+    std::string mCgroupName;
+    int8_t mCgroupID;
+    int8_t isThreaded;
+    std::unordered_map<std::string, std::string>* mDefaultValues;
+} CGroupConfigInfo;
 
 class TargetRegistry {
 private:
@@ -42,11 +51,15 @@ private:
         {3, "titanium"}
     };
 
+    std::unordered_map<int8_t, CGroupConfigInfo*> mCGroupMapping;
+
     TargetRegistry();
 
     int8_t readPhysicalMapping();
 
 public:
+    ~TargetRegistry();
+
     // Add a new Cluste Type to Physical ID mapping to mClusterTypeToPhysicalSlotMapping
     int8_t addMapping(const std::string& clusterName, int8_t physicalClusterId);
 
@@ -55,6 +68,14 @@ public:
     void setTargetName(const std::string& targetName);
 
     void setTotalCoreCount(uint8_t totalCoreCount);
+
+    void addCGroupMapping(CGroupConfigInfo* cGroupConfigInfo);
+
+    void getCGroupConfigs(std::vector<CGroupConfigInfo*>& cGroupNames);
+
+    int32_t getCreatedCGroupsCount();
+
+    CGroupConfigInfo* getCGroupConfig(int8_t cGroupID);
 
     /**
     * @brief Called by the Verifier to get the physical core ID corresponding to the Logical Core ID value.
@@ -84,7 +105,7 @@ public:
     * @brief Called during Server Init, to read and Parse the Logical To Physical Core / Cluster Mappings.
     * @details This routine will extract the physical Core IDs and the list of CPU cores part of each Physical Cluster
     *          This data will be used to perform Logical to Physical Translation for each incoming tuneResources Request
-    *          later on, if it contains any Resource which has Core Conflict Enabled.
+    *          later on, if it contains any Resource which has ApplyType set to Core.
     *
     *          Note: This function tries to use different strategies to get the Core / Cluster Enumeration and Mapping data:
     *          - If the BU has provided a mapping file, it will be used. This mapping file should contain data specifying
@@ -103,7 +124,7 @@ public:
 
     // Utility to display the Parsed Mapping of Logical Cluster to Physical Cluster
     // Along with the list of cores, part of each Cluster.
-    void displayLogicalClustersToPhysicalCoresMapping();
+    void displayLogicalToPhysicalMapping();
 
     static std::shared_ptr<TargetRegistry> getInstance() {
         if(targetRegistryInstance == nullptr) {
@@ -111,6 +132,20 @@ public:
         }
         return targetRegistryInstance;
     }
+};
+
+class CGroupConfigInfoBuilder {
+private:
+    CGroupConfigInfo* mCGroupConfigInfo;
+
+public:
+    CGroupConfigInfoBuilder();
+
+    CGroupConfigInfoBuilder* setCGroupName(const std::string& cGroupName);
+    CGroupConfigInfoBuilder* setCGroupID(int8_t cGroupIdentifier);
+    CGroupConfigInfoBuilder* setThreaded(int8_t isThreaded);
+
+    CGroupConfigInfo* build();
 };
 
 #endif

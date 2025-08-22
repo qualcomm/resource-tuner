@@ -7,8 +7,7 @@
 #include <iostream>
 #include <thread>
 
-#include "SignalConfigProcessor.h"
-#include "ExtFeaturesConfigProcessor.h"
+#include "ConfigProcessor.h"
 #include "ExtFeaturesRegistry.h"
 #include "SignalExtFeatureMapper.h"
 #include "SignalQueue.h"

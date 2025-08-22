@@ -13,59 +13,36 @@
 #include <fcntl.h>
 #include <assert.h>
 
+#include "AuxRoutines.h"
+
 /*
 * TEST RESOURCES DESCRIPTION:
-* | Name                   | Optype | Opcode | Def Value | Core Level Conflict | Enabled | Permissions   | High Threshold | Low Threshold |
-* |------------------------|--------|--------|-----------|---------------------|---------|---------------|----------------|---------------|
-* | sched_util_clamp_min   |   01   |   00   |   300     |        False        |  True   | [third_party] |      1024      |      0        |
-* | sched_util_clamp_max   |   01   |   01   |   684     |        False        |  True   | [third_party] |      1024      |      0        |
-* | scaling_min_freq       |   01   |   02   |   107     |        False        |  True   | [third_party] |      1024      |      0        |
-* | scaling_max_freq       |   01   |   03   |   114     |        False        |  True   | [third_party] |      2048      |      0        |
-* | target_test_resource1  |   01   |   04   |   240     |        False        |  True   | [system]      |      400       |      0        |
-* | target_test_resource2  |   01   |   05   |   333     |        True         |  True   | [third_party] |      6500      |      50       |
-* | target_test_resource3  |   01   |   06   |   4400    |        False        |  True   | [third_party] |      5511      |      4000     |
-* | target_test_resource4  |   01   |   07   |   516     |        False        |  False  | [third_party] |      900       |      300      |
-* | target_test_resource5  |   01   |   08   |   17      |        False        |  True   | [third_party] |      20        |      0        |
-* |------------------------|--------|--------|-----------|---------------------|---------|---------------|----------------|---------------|
+* | Name                   | Optype | Opcode | Def Value | ApplyType | Enabled | Permissions   | High Threshold | Low Threshold |
+* |------------------------|--------|--------|-----------|---------------------|---------------|----------------|---------------|
+* | sched_util_clamp_min   |   01   |   00   |   300     |   global  |  True   | [third_party] |      1024      |      0        |
+* | sched_util_clamp_max   |   01   |   01   |   684     |   global  |  True   | [third_party] |      1024      |      0        |
+* | scaling_min_freq       |   01   |   02   |   107     |   global  |  True   | [third_party] |      1024      |      0        |
+* | scaling_max_freq       |   01   |   03   |   114     |   global  |  True   | [third_party] |      2048      |      0        |
+* | target_test_resource1  |   01   |   04   |   240     |   global  |  True   | [system]      |      400       |      0        |
+* | target_test_resource2  |   01   |   05   |   333     |   global  |  True   | [third_party] |      6500      |      50       |
+* | target_test_resource3  |   01   |   06   |   4400    |   global  |  True   | [third_party] |      5511      |      4000     |
+* | target_test_resource4  |   01   |   07   |   516     |   global  |  False  | [third_party] |      900       |      300      |
+* | target_test_resource5  |   01   |   08   |   17      |   global  |  True   | [third_party] |      20        |      0        |
+* |------------------------|--------|--------|-----------|---------------------|---------------|----------------|---------------|
 */
-
-static void writeToNode(const std::string& fName, std::string value) {
-    std::ofstream file(fName);
-    if(file.is_open()) {
-        file << value;
-        file.close();
-    } else {
-        std::cerr<<"Unable to open file"<<std::endl;
-    }
-}
-
-static std::string readFromNode(const std::string& fName) {
-    std::fstream myFile(fName, std::ios::in);
-    std::string value;
-
-    if(myFile.is_open()) {
-        getline(myFile, value);
-        myFile.close();
-    } else {
-        std::cerr<<"Failed to open the file."<<std::endl;
-        return "";
-    }
-
-    return value;
-}
 
 void SetUp() {
     // Make sure all the tests have a sane starting point
 
-    writeToNode("../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min", "300");
-    writeToNode("../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_max", "684");
-    writeToNode("../Tests/Configs/ResourceSysFsNodes/scaling_min_freq", "107");
-    writeToNode("../Tests/Configs/ResourceSysFsNodes/scaling_max_freq", "114");
-    writeToNode("../Tests/Configs/ResourceSysFsNodes/target_test_resource1", "240");
-    writeToNode("../Tests/Configs/ResourceSysFsNodes/target_test_resource2", "333");
-    writeToNode("../Tests/Configs/ResourceSysFsNodes/target_test_resource3", "4400");
-    writeToNode("../Tests/Configs/ResourceSysFsNodes/target_test_resource4", "516");
-    writeToNode("../Tests/Configs/ResourceSysFsNodes/target_test_resource5", "17");
+    AuxRoutines::writeToFile("../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min", "300");
+    AuxRoutines::writeToFile("../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_max", "684");
+    AuxRoutines::writeToFile("../Tests/Configs/ResourceSysFsNodes/scaling_min_freq", "107");
+    AuxRoutines::writeToFile("../Tests/Configs/ResourceSysFsNodes/scaling_max_freq", "114");
+    AuxRoutines::writeToFile("../Tests/Configs/ResourceSysFsNodes/target_test_resource1", "240");
+    AuxRoutines::writeToFile("../Tests/Configs/ResourceSysFsNodes/target_test_resource2", "333");
+    AuxRoutines::writeToFile("../Tests/Configs/ResourceSysFsNodes/target_test_resource3", "4400");
+    AuxRoutines::writeToFile("../Tests/Configs/ResourceSysFsNodes/target_test_resource4", "516");
+    AuxRoutines::writeToFile("../Tests/Configs/ResourceSysFsNodes/target_test_resource5", "17");
 
     std::this_thread::sleep_for(std::chrono::seconds(3));
 }

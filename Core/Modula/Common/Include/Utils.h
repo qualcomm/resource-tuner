@@ -93,20 +93,13 @@ enum Modes {
  * @enum Policy
  * @brief Different Resource Policies supported by Resource Tuner
  * @details Resource Policies determine the order in which the Tuning Requests will be processed for
- *   particular resource. Currently 4 types of Policies are supported:
- * - Instant Apply (or Always Apply): This policy is for resources where the latest request needs to be honored.
- *   This is kept as the default policy.
- * - Higher is better: This policy honors the request writing the highest value to the node.
- *   One of the cases where this makes sense is for resources that describe the upper bound value.
- *   By applying the higher-valued request, the lower-valued request is implicitly honored.
- * - Lower is better: Self-explanatory. Works exactly opposite of the higher is better policy.
- * - Lazy Apply: Sometimes, you want the resources to apply requests in a first-in-first-out manner.
+ *          a particular resource. Currently 4 types of Policies are supported:
  */
 enum Policy {
-    INSTANT_APPLY,
-    HIGHER_BETTER,
-    LOWER_BETTER,
-    LAZY_APPLY
+    INSTANT_APPLY, //!< This policy is for resources where the latest request needs to be honored.
+    HIGHER_BETTER, //!< This policy first applies the request writing the highest value to the node.
+    LOWER_BETTER, //!< Self-explanatory. Works exactly opposite of the higher is better policy.
+    LAZY_APPLY //!< The requests are applied in a first-in-first-out manner.
 };
 
 /**
@@ -143,6 +136,6 @@ typedef ErrCode (*ModuleCallback)();
 typedef void (*ModuleMessageHandlerCallback)(void*);
 typedef int8_t (*ServerOnlineCheckCallback)();
 typedef void (*ResourceTunerMessageReceivedCallback)(int32_t, MsgForwardInfo*);
-typedef void (*ResourceApplierCallback)(void*);
+typedef void (*ResourceLifecycleCallback)(void*);
 
 #endif

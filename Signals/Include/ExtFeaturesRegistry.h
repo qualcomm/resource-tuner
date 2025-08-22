@@ -13,15 +13,16 @@
 #include "Logger.h"
 
 typedef struct {
-    int32_t mFeatureId;
+    uint32_t mFeatureId;
     std::string mFeatureLib;
+    std::string mFeatureName;
     std::vector<uint32_t>* mSignalsSubscribedTo;
 } ExtFeatureInfo;
 
 class ExtFeaturesRegistry {
 private:
     static std::shared_ptr<ExtFeaturesRegistry> extFeaturesRegistryInstance;
-    static int32_t mTotalExtFeatures;
+    int32_t mTotalExtFeatures;
     std::vector<ExtFeatureInfo*> mExtFeaturesConfigs;
 
     std::unordered_map<uint32_t, int32_t> mSystemIndependentLayerMappings;
@@ -30,8 +31,6 @@ private:
 
 public:
     ~ExtFeaturesRegistry();
-
-    void initRegistry(int32_t size);
 
     void registerExtFeature(ExtFeatureInfo* extFeatureInfo);
 
@@ -58,9 +57,10 @@ private:
 public:
     ExtFeatureInfoBuilder();
 
-    ExtFeatureInfoBuilder* setId(int32_t featureId);
-    ExtFeatureInfoBuilder* setLib(const std::string& featureLib);
-    ExtFeatureInfoBuilder* addSignalsSubscribedTo(uint32_t signalId);
+    ErrCode setId(const std::string& featureIdString);
+    ErrCode setName(const std::string& featureName);
+    ErrCode setLib(const std::string& featureLib);
+    ErrCode addSignalSubscribedTo(const std::string& signalOpCodeString);
 
     ExtFeatureInfo* build();
 };

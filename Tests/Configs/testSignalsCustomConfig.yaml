@@ -1,0 +1,25 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause-Clear
+
+SignalConfigs:
+  - SigId: "0x00ab"
+    Category: "0x1e"
+    Name: "CUSTOM_SIGNAL_1"
+    Enable: true
+    TargetsEnabled: ["target1", "target2"]
+    Permissions: ["third_party"]
+    Derivatives: ["derivative-device1"]
+    Timeout: 6700
+    Resources:
+    - {ResCode: "0x80f10000", ResInfo: "0x0a00f000", Values: [665]}
+    - {ResCode: "0x800100d0", ResInfo: "0x00100112", Values: [679, 812]}
+
+  - SigId: "0x0000"
+    Category: "0x08"
+    Name: CAMERA_OPEN_CUSTOM
+    TargetsDisabled: ["target1", "target2"]
+    Enable: true
+    Permissions: ["system"]
+    Resources:
+      - {ResCode: "0x80d9aa00", Values: [1, 556]}
+      - {ResCode: "0x80c6500f", Values: [1, 900, 965]}

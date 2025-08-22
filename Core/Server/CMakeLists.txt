@@ -1,3 +1,0 @@
-add_subdirectory(Receiver)
-add_subdirectory(Socket)
-add_subdirectory(SysConfigs)

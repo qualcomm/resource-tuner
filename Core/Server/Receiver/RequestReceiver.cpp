@@ -14,6 +14,10 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
     switch(requestType) {
         // Resource Provisioning Requests
         case REQ_RESOURCE_TUNING: {
+            if(!ComponentRegistry::isModuleEnabled(MOD_CORE)) {
+                TYPELOGV(NOTIFY_MODULE_NOT_ENABLED, "Core");
+                return;
+            }
             msgForwardInfo->handle = ResourceTunerSettings::generateUniqueHandle();
             if(msgForwardInfo->handle < 0) {
                 // Handle Generation Failure
@@ -22,15 +26,19 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
         }
         case REQ_RESOURCE_RETUNING:
         case REQ_RESOURCE_UNTUNING: {
+            if(!ComponentRegistry::isModuleEnabled(MOD_CORE)) {
+                TYPELOGV(NOTIFY_MODULE_NOT_ENABLED, "Core");
+                return;
+            }
             // Enqueue the Request to the Thread Pool for async processing.
             if(this->mRequestsThreadPool != nullptr) {
                 if(!this->mRequestsThreadPool->
                     enqueueTask(ComponentRegistry::getModuleMessageHandlerCallback(MOD_CORE), msgForwardInfo)) {
-                    LOGE("RTN_REQUEST_RECEIVER",
+                    LOGE("RESTUNE_REQUEST_RECEIVER",
                          "Failed to enqueue the Request to the Thread Pool");
                 }
             } else {
-                LOGE("RTN_REQUEST_RECEIVER",
+                LOGE("RESTUNE_REQUEST_RECEIVER",
                      "Thread pool not initialized, Dropping the Request");
             }
 
@@ -74,6 +82,10 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
         }
         // SysSignal Requests
         case SIGNAL_ACQ: {
+            if(!ComponentRegistry::isModuleEnabled(MOD_SYSSIGNAL)) {
+                TYPELOGV(NOTIFY_MODULE_NOT_ENABLED, "Signals");
+                return;
+            }
             msgForwardInfo->handle = ResourceTunerSettings::generateUniqueHandle();
             if(msgForwardInfo->handle < 0) {
                 // Handle Generation Failure
@@ -82,15 +94,19 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
         }
         case SIGNAL_FREE:
         case SIGNAL_RELAY: {
+            if(!ComponentRegistry::isModuleEnabled(MOD_SYSSIGNAL)) {
+                TYPELOGV(NOTIFY_MODULE_NOT_ENABLED, "Signals");
+                return;
+            }
             // Enqueue the Request to the Thread Pool for async processing.
             if(this->mRequestsThreadPool != nullptr) {
                 if(!this->mRequestsThreadPool->
-                    enqueueTask(ComponentRegistry::getModuleMessageHandlerCallback(MOD_CORE), msgForwardInfo)) {
-                    LOGE("RTN_REQUEST_RECEIVER",
+                    enqueueTask(ComponentRegistry::getModuleMessageHandlerCallback(MOD_SYSSIGNAL), msgForwardInfo)) {
+                    LOGE("RESTUNE_REQUEST_RECEIVER",
                          "Failed to enqueue the Request to the Thread Pool");
                 }
             } else {
-                LOGE("RTN_REQUEST_RECEIVER",
+                LOGE("RESTUNE_REQUEST_RECEIVER",
                      "Thread pool not initialized, Dropping the Request");
             }
 
@@ -103,7 +119,7 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
             break;
         }
         default:
-            LOGE("RTN_SOCKET_SERVER", "Invalid Request Type");
+            LOGE("RESTUNE_SOCKET_SERVER", "Invalid Request Type");
             break;
     }
 }
@@ -124,20 +140,20 @@ void listenerThreadStartRoutine() {
                                              CheckServerOnlineStatus,
                                              OnResourceTunerMessageReceiverCallback);
     } catch(const std::bad_alloc& e) {
-        LOGE("RTN_REQUEST_RECEIVER",
+        LOGE("RESTUNE_REQUEST_RECEIVER",
              "Failed to allocate memory for Resource Tuner Socket Server-Endpoint, Resource Tuner\
               Server startup failed: " + std::string(e.what()));
 
         return;
     } catch(const std::exception& e) {
-        LOGE("RTN_REQUEST_RECEIVER",
+        LOGE("RESTUNE_REQUEST_RECEIVER",
              "Failed to start the Resource Tuner Listener, error: " + std::string(e.what()));
 
         return;
     }
 
     if(RC_IS_NOTOK(connection->ListenForClientRequests())) {
-        LOGE("RTN_REQUEST_RECEIVER", "Server Socket Endpoint crashed");
+        LOGE("RESTUNE_REQUEST_RECEIVER", "Server Socket Endpoint crashed");
     }
 
     if(connection != nullptr) {

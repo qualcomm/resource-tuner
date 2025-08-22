@@ -38,7 +38,7 @@ public:
 
 #define CONCAT(a, b) a ## b
 
-#define RTN_REGISTER_MODULE(identifier, registration, teardown, handler) \
+#define RESTUNE_REGISTER_MODULE(identifier, registration, teardown, handler) \
         static ComponentRegistry CONCAT(_module, identifier)(identifier, registration, teardown, handler);
 
 #endif

@@ -21,14 +21,10 @@ option(BUILD_TESTS "Testing" OFF)
 option(BUILD_CLI "CLI" OFF)
 
 # Mandatory Builds
-add_subdirectory(Core/Modula)
-add_subdirectory(Core/Client)
-add_subdirectory(Core/Server)
-add_subdirectory(Core/Framework)
-add_subdirectory(Core/Extensions)
+add_subdirectory(Core/Build)
 
 if(BUILD_SIGNALS)
-  add_subdirectory(Signals)
+  add_subdirectory(Signals/Build)
 endif()
 
 if(BUILD_TESTS)
@@ -41,7 +37,7 @@ if(BUILD_TESTS)
   FetchContent_MakeAvailable(googletest)
 
   enable_testing()
-  add_subdirectory(Tests)
+  add_subdirectory(Tests/Unit/Build)
 endif()
 
 if(BUILD_CLI)
@@ -49,12 +45,12 @@ if(BUILD_CLI)
     ./Core/Client/APIs/ResourceTunerAPIs.cpp
     ./Core/Client/ClientCLI.cpp
   )
-  target_link_libraries(resource_tuner_cli CommunicationClient ClientAPIs)
+  target_link_libraries(resource_tuner_cli SocketCommClient ClientAPIs)
   install(TARGETS resource_tuner_cli RUNTIME DESTINATION bin)
 endif()
 
 if(BUILD_SIGNALS)
-  add_executable(resource_tuner ./ServerMain.cpp ./Signals/SignalServer.cpp)
+  add_executable(resource_tuner ./ServerMain.cpp ./Signals/SignalInit.cpp)
   target_include_directories(resource_tuner PRIVATE ${YAMLCPP_INCLUDE_DIRS})
   target_include_directories(resource_tuner PRIVATE ${CMAKE_SOURCE_DIR}/Extensions/Include)
   target_link_libraries(resource_tuner PUBLIC SysSignals)
@@ -76,7 +72,7 @@ endif()
 
 # Install libs
 install(TARGETS resource_tuner RUNTIME DESTINATION bin)
-install(TARGETS Auxiliary CommunicationClient ResourceTunerCommunicationServer
+install(TARGETS Auxiliary SocketCommClient SocketCommServer
         ClientAPIs SysConfigProps Server ExtAPIs
         SysRequestReceiver LIBRARY DESTINATION lib)
 if(BUILD_SIGNALS)
@@ -89,7 +85,7 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/Core/Client/APIs/Include/ DESTINATION incl
 # Install core config files
 install(
   DIRECTORY ${CMAKE_SOURCE_DIR}/Core/Configs/
-  DESTINATION /etc/ResourceTuner/
+  DESTINATION /etc/ResourceTuner/Common/
   FILES_MATCHING
   PATTERN "*.yaml"
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
@@ -98,9 +94,8 @@ install(
 # Install Signal config files
 install(
   DIRECTORY ${CMAKE_SOURCE_DIR}/Signals/Configs/
-  DESTINATION /etc/ResourceTuner/
+  DESTINATION /etc/ResourceTuner/Common/
   FILES_MATCHING
   PATTERN "*.yaml"
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
-

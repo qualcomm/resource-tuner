@@ -3,20 +3,6 @@
 
 #include "SignalServerPrivate.h"
 
-static void dumpRequest(Signal* clientReq) {
-    std::string LOG_TAG = "RTN_SERVER";
-    LOGD(LOG_TAG, "Print Signal details:");
-
-    LOGD(LOG_TAG, "Print Signal Request");
-    LOGD(LOG_TAG, "Signal ID: " + std::to_string(clientReq->getSignalID()));
-    LOGD(LOG_TAG, "Handle: " + std::to_string(clientReq->getHandle()));
-    LOGD(LOG_TAG, "Duration: " + std::to_string(clientReq->getDuration()));
-    LOGD(LOG_TAG, "App Name: " + std::string(clientReq->getAppName()));
-    LOGD(LOG_TAG, "Scenario: " + std::string(clientReq->getScenario()));
-    LOGD(LOG_TAG, "Num Args: " + std::to_string(clientReq->getNumArgs()));
-    LOGD(LOG_TAG, "Priority: " + std::to_string(clientReq->getPriority()));
-}
-
 static int8_t getRequestPriority(int8_t clientPermissions, int8_t reqSpecifiedPriority) {
     if(clientPermissions == PERMISSION_SYSTEM) {
         switch(reqSpecifiedPriority) {
@@ -59,21 +45,20 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
 
     // Basic sanity: Invalid resource Opcode
     if(signalInfo == nullptr) {
-        LOGI("RTN_SERVER", "Invalid Opcode" + std::to_string(signal->getSignalID()));
+        TYPELOGV(VERIFIER_INVALID_OPCODE, signal->getSignalID());
         return false;
     }
 
     int8_t clientPermissions = ClientDataManager::getInstance()->getClientLevelByClientID(signal->getClientPID());
     if(clientPermissions == -1) {
-        LOGI("RTN_SERVER", "Invalid Client Permissions");
+        TYPELOGV(VERIFIER_INVALID_PERMISSION, signal->getClientPID(), signal->getClientTID());
         return false;
     }
 
     int8_t reqSpecifiedPriority = signal->getPriority();
     if(reqSpecifiedPriority > RequestPriority::REQ_PRIORITY_LOW ||
        reqSpecifiedPriority < RequestPriority::REQ_PRIORITY_HIGH) {
-        LOGI("RTN_SERVER", "Priority Level = " +
-             std::to_string(reqSpecifiedPriority) + "is not a valid value");
+        TYPELOGV(VERIFIER_INVALID_PRIORITY, reqSpecifiedPriority);
         return false;
     }
 
@@ -83,7 +68,7 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
 
     // Check if the Signal is enabled for provisioning
     if(!signalInfo->mIsEnabled) {
-        LOGI("RTN_SERVER", "Specified Signal is not enabled for provisioning");
+        TYPELOGV(VERIFIER_UNSUPPORTED_SIGNAL_TUNING, signal->getSignalID());
         return false;
     }
 
@@ -98,8 +83,7 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
 
     // Client does not have the necessary permissions to tune this Resource.
     if(!permissionCheck) {
-        LOGI("RTN_SERVER",
-             "Client does not have sufficient Permissions to provision Signal: " + std::to_string(signal->getSignalID()));
+        TYPELOGV(VERIFIER_NOT_SUFFICIENT_SIGNAL_ACQ_PERMISSION, signal->getSignalID());
         return false;
     }
 
@@ -107,18 +91,18 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
     std::string targetName = ResourceTunerSettings::targetConfigs.targetName;
     if(signalInfo->mTargetsEnabled != nullptr) {
         if(signalInfo->mTargetsEnabled->find(targetName) == signalInfo->mTargetsEnabled->end()) {
-            LOGI("RTN_SERVER", "Specified Signal is not enabled for provisioning on this Target");
+            TYPELOGV(VERIFIER_TARGET_CHECK_FAILED, signal->getSignalID());
             return false;
         }
     } else if(signalInfo->mTargetsDisabled != nullptr) {
         if(signalInfo->mTargetsDisabled->find(targetName) != signalInfo->mTargetsDisabled->end()) {
-            LOGI("RTN_SERVER", "Specified Signal is not enabled for provisioning on this Target");
+            TYPELOGV(VERIFIER_TARGET_CHECK_FAILED, signal->getSignalID());
             return false;
         }
     }
 
     if(signal->getRequestType() == SIGNAL_RELAY) {
-        LOGI("RTN_SERVER", "Request Verified");
+        TYPELOGV(VERIFIER_REQUEST_VALIDATED, signal->getHandle());
         return true;
     }
 
@@ -129,7 +113,7 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
 
         // Basic sanity: Invalid resource Opcode
         if(resourceConfig == nullptr) {
-            LOGE("RTN_SERVER","Invalid Opcode, Dropping Request");
+            TYPELOGV(VERIFIER_INVALID_OPCODE, resource->getOpCode());
             return false;
         }
 
@@ -139,8 +123,9 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
             int32_t lowThreshold = resourceConfig->mLowThreshold;
             int32_t highThreshold = resourceConfig->mHighThreshold;
 
-            if(configValue < lowThreshold || configValue > highThreshold) {
-                LOGE("RTN_SERVER", "Range Checking Failed, Dropping Request");
+            if((lowThreshold != -1 && highThreshold != -1) &&
+                (configValue < lowThreshold || configValue > highThreshold)) {
+                TYPELOGV(VERIFIER_VALUE_OUT_OF_BOUNDS, configValue, resource->getOpCode());
                 return false;
             }
         } else {
@@ -152,52 +137,110 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
 
         // Check for Client permissions
         if(resourceConfig->mPermissions == PERMISSION_SYSTEM && clientPermissions == PERMISSION_THIRD_PARTY) {
-            LOGI("RTN_SERVER", "Permission Check Failed, Dropping Request");
+            TYPELOGV(VERIFIER_NOT_SUFFICIENT_PERMISSION, resource->getOpCode());
             return false;
         }
     }
 
     if(signal->getDuration() == 0) {
-        // If the Client has not specified a duration to acquire the Signal for,
+        // If the Client has not specified a duration to tune the Signal for,
         // We use the default duration for the Signal, specified in the Signal
         // Configs (YAML) file.
         signal->setDuration(signalInfo->mTimeout);
     }
 
-    LOGI("RTN_SERVER", "Request Verified");
+    TYPELOGV(VERIFIER_REQUEST_VALIDATED, signal->getHandle());
+    return true;
+}
+
+// Fills in any optional fields in the Signal that are not specified in the Config file
+// with the values specified in the tuneSignal API's list argument.
+static int8_t fillDefaults(Signal* signal) {
+    uint32_t signalID = signal->getSignalID();
+    SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(signalID);
+    if(signalInfo == nullptr) return false;
+
+    int32_t listIndex = 0;
+    for(Resource* resource : (*signalInfo->mSignalResources)) {
+        int32_t valueCount = resource->getValuesCount();
+        if(valueCount == 1) {
+            if(resource->mConfigValue.singleValue == -1) {
+                if(signal->getListArgs() == nullptr) return false;
+                resource->mConfigValue.singleValue = signal->getListArgAt(listIndex);
+                listIndex++;
+            }
+        } else {
+            for(int32_t i = 0; i < valueCount; i++) {
+                if((*resource->mConfigValue.valueArray)[i] == -1) {
+                    if(signal->getListArgs() == nullptr) return false;
+                    if(listIndex >= 0 && listIndex < signal->getNumArgs()) {
+                        (*resource->mConfigValue.valueArray)[i] = signal->getListArgAt(listIndex);
+                        listIndex++;
+                    } else {
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+
     return true;
 }
 
 static void processIncomingRequest(Signal* signal) {
+    std::shared_ptr<RateLimiter> rateLimiter = RateLimiter::getInstance();
+    std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
+
+    if(!rateLimiter->isGlobalRateLimitHonored()) {
+        TYPELOGV(RATE_LIMITER_GLOBAL_RATE_LIMIT_HIT, signal->getHandle());
+        // Free the Signal Memory Block
+        Signal::cleanUpSignal(signal);
+        return;
+    }
+
     if(signal->getRequestType() == SIGNAL_RELAY || signal->getRequestType() == SIGNAL_ACQ) {
         // Check if the client exists, if not create a new client tracking entry
-        if(!ClientDataManager::getInstance()->clientExists(signal->getClientPID(), signal->getClientTID())) {
-            ClientDataManager::getInstance()->createNewClient(signal->getClientPID(), signal->getClientTID());
+        if(!clientDataManager->clientExists(signal->getClientPID(), signal->getClientTID())) {
+            if(!clientDataManager->createNewClient(signal->getClientPID(), signal->getClientTID())) {
+                // Failed to create a tracking entry, drop the Request.
+                TYPELOGV(CLIENT_ENTRY_CREATION_FAILURE, signal->getHandle());
+
+                // Free the Signal Memory Block
+                Signal::cleanUpSignal(signal);
+                return;
+            }
         }
     } else {
-        // SIGNAL_FREE request
-        if(!ClientDataManager::getInstance()->clientExists(signal->getClientPID(), signal->getClientTID())) {
+        // In case of untune Requests, the Client should already exist
+        if(!clientDataManager->clientExists(signal->getClientPID(), signal->getClientTID())) {
             // Client does not exist, drop the request
-            FreeBlock<Signal>(static_cast<void*>(signal));
+            Signal::cleanUpSignal(signal);
             return;
         }
     }
 
     // Rate Check the client
-    std::shared_ptr<RateLimiter> rateLimiter = RateLimiter::getInstance();
     if(!rateLimiter->isRateLimitHonored(signal->getClientTID())) {
-        LOGI("RTN_SERVER", "ClientTID: " + std::to_string(signal->getClientTID()) + " Rate Limited");
+        TYPELOGV(RATE_LIMITER_RATE_LIMITED, signal->getClientTID(), signal->getHandle());
+        Signal::cleanUpSignal(signal);
+        return;
+    }
+
+    // Fill any Placeholders in the Signal Config
+    if(!fillDefaults(signal)) {
+        Signal::cleanUpSignal(signal);
         return;
     }
 
     if(signal->getRequestType() == SIGNAL_ACQ || signal->getRequestType() == SIGNAL_RELAY) {
         if(!VerifyIncomingRequest(signal)) {
-            LOGE("RTN_SERVER", "Signal Request verification failed, dropping request");
-            FreeBlock<Signal>(static_cast<void*>(signal));
+            TYPELOGV(VERIFIER_STATUS_FAILURE, signal->getHandle());
+            Signal::cleanUpSignal(signal);
             return;
         }
     }
 
+    // Add the Signal to the SignalQueue
     SignalQueue::getInstance()->addAndWakeup(signal);
 }
 
@@ -227,48 +270,39 @@ void submitSignalRequest(void* clientReq) {
 }
 
 static Request* createResourceTuningRequest(Signal* signal) {
-    Request* request = nullptr;
-
     try {
-        request = new (GetBlock<Request>()) Request();
+        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(signal->getSignalID());
+        if(signalInfo == nullptr) return nullptr;
+
+        Request* request = new (GetBlock<Request>()) Request();
+
+        request->setRequestType(REQ_RESOURCE_TUNING);
+        request->setHandle(signal->getHandle());
+        request->setDuration(signal->getDuration());
+        request->setProperties(signal->getProperties());
+        request->setClientPID(signal->getClientPID());
+        request->setClientTID(signal->getClientTID());
+
+        std::vector<Resource*>* signalLocks = signalInfo->mSignalResources;
+        request->setNumResources(signalLocks->size());
+
+        std::vector<Resource*>* resourceList =
+            new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
+        resourceList->resize(request->getResourcesCount());
+
+        for(int32_t i = 0; i < signalLocks->size(); i++) {
+            (*resourceList)[i] = (*signalLocks)[i];
+        }
+
+        request->setResources(resourceList);
+        return request;
 
     } catch(const std::bad_alloc& e) {
-        LOGE("RTN_SERVER",
-             "Memory allocation for Request struct corresponding to Signal Req with handle: " +
-             std::to_string(signal->getHandle()) +
-             " failed with error: " + std::string(e.what()) + ". Dropping this Request");
+        TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE_HANDLE, signal->getHandle(), e.what());
         return nullptr;
     }
 
-    request->setRequestType(REQ_RESOURCE_TUNING);
-    request->setHandle(signal->getHandle());
-    request->setDuration(signal->getDuration());
-    request->setProperties(signal->getProperties());
-    request->setClientPID(signal->getClientPID());
-    request->setClientTID(signal->getClientTID());
-
-    SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(signal->getSignalID());
-
-    if(signalInfo == nullptr) {
-        FreeBlock<Request>(static_cast<void*>(request));
-        return nullptr;
-    }
-
-    std::vector<Resource*>* signalLocks = signalInfo->mSignalResources;
-    request->setNumResources(signalLocks->size() / 2);
-
-    std::vector<Resource*>* resourceList =
-        new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
-    resourceList->resize(request->getResourcesCount());
-
-    for(int32_t i = 0; i < signalLocks->size(); i++) {
-        Resource* resource = (*signalLocks)[i];
-        resourceList->push_back(resource);
-    }
-
-    request->setResources(resourceList);
-
-    return request;
+    return nullptr;
 }
 
 static Request* createResourceUntuneRequest(Signal* signal) {
@@ -278,10 +312,7 @@ static Request* createResourceUntuneRequest(Signal* signal) {
         request = new(GetBlock<Request>()) Request();
 
     } catch(const std::bad_alloc& e) {
-        LOGE("RTN_SERVER",
-             "Memory allocation for Request struct corresponding to Signal Req with handle: " +
-             std::to_string(signal->getHandle()) +
-             " failed with error: " + std::string(e.what()) + ". Dropping this Request");
+        TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE_HANDLE, signal->getHandle(), e.what());
         return nullptr;
     }
 
@@ -305,14 +336,12 @@ void SignalQueue::orderedQueueConsumerHook() {
 
         // This is a custom Request used to clean up the Server.
         if(message->getPriority() == SERVER_CLEANUP_TRIGGER_PRIORITY) {
-            LOGI("RTN_SERVER", "Called Cleanup Request");
+            LOGI("RESTUNE_SERVER", "Called Cleanup Request");
             return;
         }
 
         Signal* signal = dynamic_cast<Signal*>(message);
         if(signal == nullptr) {
-            LOGD("RTN_SERVER",
-                 "Message is Malformed, Downcasting to Signal Type Failed");
             continue;
         }
 
@@ -340,10 +369,9 @@ void SignalQueue::orderedQueueConsumerHook() {
             case SIGNAL_RELAY: {
                 // Get all the subscribed Features
                 std::vector<int32_t> subscribedFeatures;
-                int8_t status = SignalExtFeatureMapper::getInstance()->getFeatures(signal->getSignalID(), subscribedFeatures);
+                int8_t featuresExist = SignalExtFeatureMapper::getInstance()->getFeatures(signal->getSignalID(), subscribedFeatures);
 
-                if(!status) {
-                    LOGE("RTN_SERVER", "No signal with the specified ID exists, dropping the request");
+                if(!featuresExist) {
                     break;
                 }
 
@@ -356,9 +384,13 @@ void SignalQueue::orderedQueueConsumerHook() {
                     }
 
                     // Relay the Signal to all subscribed features.
+                    std::string featureName = featureInfo->mFeatureName;
+                    std::string featureLib = featureInfo->mFeatureLib;
+
+                    // Call the "resourceTunerRelay" function in the lib
                 }
 
-                FreeBlock<Signal>(static_cast<void*>(signal));
+                Signal::cleanUpSignal(signal);
                 break;
             }
             default:
@@ -368,8 +400,6 @@ void SignalQueue::orderedQueueConsumerHook() {
 }
 
 void* SignalsdServerThread() {
-    LOGD("RTN_SERVER", "SysSignal Thread started");
-
     std::shared_ptr<SignalQueue> signalQueue = SignalQueue::getInstance();
     while(ResourceTunerSettings::isServerOnline()) {
         signalQueue->wait();

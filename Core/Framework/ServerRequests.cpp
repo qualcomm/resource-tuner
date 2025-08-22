@@ -113,12 +113,15 @@ static int8_t VerifyIncomingRequest(Request* req) {
             int32_t lowThreshold = resourceConfig->mLowThreshold;
             int32_t highThreshold = resourceConfig->mHighThreshold;
 
-            if(configValue < lowThreshold || configValue > highThreshold) {
+            if((lowThreshold != -1 && highThreshold != -1) &&
+                (configValue < lowThreshold || configValue > highThreshold)) {
                 TYPELOGV(VERIFIER_VALUE_OUT_OF_BOUNDS, configValue, resource->getOpCode());
                 return false;
             }
         } else {
-            // Note: Extend this verification for multiple values
+            // No Range Check Verification mechanism is provided for Multi-Valued Resources
+            // by default. Users are expected to provide their own Applier and Tear Callbacks
+            // for such Resources, through the Extension Interface.
         }
 
         // Verify tuning is supported for the resource in question
@@ -130,8 +133,9 @@ static int8_t VerifyIncomingRequest(Request* req) {
             return false;
         }
 
-        // If CoreLevelConflict for the Resource is set to true, then perform Logical to Physical Translation
-        if(resourceConfig->mCoreLevelConflict) {
+        // If ApplyType for the Resource is set to Core, then perform Logical to Physical Translation
+        if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CORE ||
+            resourceConfig->mApplyType == ResourceApplyType::APPLY_CLUSTER) {
             // Check for invalid Core / cluster values, these are the logical values
             int32_t coreValue = resource->getCoreValue();
             int32_t clusterValue = resource->getClusterValue();
@@ -153,54 +157,50 @@ static int8_t VerifyIncomingRequest(Request* req) {
     return true;
 }
 
-static void dumpRequest(Request* clientReq) {
-    std::string LOG_TAG = "RTN_SERVER";
+static int8_t addToRequestManager(Request* request) {
+    std::shared_ptr<RequestManager> requestManager = RequestManager::getInstance();
 
-    LOGD(LOG_TAG, "Request details:");
-    LOGD(LOG_TAG, "reqType: " + std::to_string(clientReq->getRequestType()));
-    LOGD(LOG_TAG, "handle: " + std::to_string(clientReq->getHandle()));
-    LOGD(LOG_TAG, "Duration: " + std::to_string(clientReq->getDuration()));
-    LOGD(LOG_TAG, "Priority: " + std::to_string(clientReq->getPriority()));
-    LOGD(LOG_TAG, "client PID: " +std::to_string(clientReq->getClientPID()));
-    LOGD(LOG_TAG, "client TID: " + std::to_string(clientReq->getClientTID()));
-    LOGD(LOG_TAG, "Background Processing Enabled?: " + std::to_string((int32_t)clientReq->isBackgroundProcessingEnabled()));
-    LOGD(LOG_TAG, "Number of Resources: " + std::to_string(clientReq->getResourcesCount()));
-
-    LOGD(LOG_TAG, "Values for resources are as:");
-
-    for(int32_t i = 0; i < clientReq->getResourcesCount(); i++) {
-        Resource* res = clientReq->getResourceAt(i);
-        LOGD(LOG_TAG, "Resource " + std::to_string(i + 1) + ":");
-        LOGD(LOG_TAG, "Opcode ID: " + std::to_string(res->getOpCode()));
-        LOGD(LOG_TAG, "Number of Values: " + std::to_string(res->getValuesCount()));
-        LOGD(LOG_TAG, "-- Single Value: " + std::to_string(res->mConfigValue.singleValue));
+    if(requestManager->shouldRequestBeAdded(request)) {
+        requestManager->addRequest(request);
+        return true;
     }
+
+    TYPELOGV(REQUEST_MANAGER_DUPLICATE_FOUND, request->getHandle());
+    return false;
 }
 
 static void processIncomingRequest(Request* request, int8_t isValidated=false) {
+    std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RateLimiter> rateLimiter = RateLimiter::getInstance();
+    std::shared_ptr<RequestManager> requestManager = RequestManager::getInstance();
+    std::shared_ptr<RequestQueue> requestQueue = RequestQueue::getInstance();
+
+    if(isValidated) {
+        // Request is already validated, add it to RequestQueue directly.
+        if(addToRequestManager(request)) {
+            requestQueue->addAndWakeup(request);
+        } else {
+            Request::cleanUpRequest(request);
+        }
+        return;
+    }
 
     // Perform a Global Rate Limit Check before Processing the Request
     // This is to check if the current Active Request count has hit the
     // Max Number of Concurrent Requests Allowed Threshold
     // If the Threshold has been hit, we don't process the Request any further.
     if(!rateLimiter->isGlobalRateLimitHonored()) {
-        LOGE("RTN_SERVER_REQUESTS",
-             "Max Concurrent Requests Count hit, "  \
-             "Request with handle = " + std::to_string(request->getHandle()) + " Dropped.");
-
+        TYPELOGV(RATE_LIMITER_GLOBAL_RATE_LIMIT_HIT, request->getHandle());
         // Free the Request Memory Block
         Request::cleanUpRequest(request);
         return;
     }
 
     if(request->getRequestType() == REQ_RESOURCE_TUNING) {
-        if(!ClientDataManager::getInstance()->clientExists(request->getClientPID(), request->getClientTID())) {
-            if(!ClientDataManager::getInstance()->createNewClient(request->getClientPID(), request->getClientTID())) {
+        if(!clientDataManager->clientExists(request->getClientPID(), request->getClientTID())) {
+            if(!clientDataManager->createNewClient(request->getClientPID(), request->getClientTID())) {
                 // Client Entry Could not be Created, don't Proceed further with the Request
-                LOGE("RTN_SERVER_REQUESTS",
-                     "Client Entry could not be created for handle = " +
-                     std::to_string(request->getHandle()));
+                TYPELOGV(CLIENT_ENTRY_CREATION_FAILURE, request->getHandle());
 
                 // Free the Request Memory Block
                 Request::cleanUpRequest(request);
@@ -221,14 +221,14 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
             //    before a Client Data Entry is even created for the Tune Request.
             // 2. Tune and Untune Requests are sent concurrently and the Untune Request is picked
             //    up for Processing in the RequestQueue before the Tune Request is added to the RequestManager.
-            RequestManager::getInstance()->disableRequestProcessing(request->getHandle());
+            requestManager->disableRequestProcessing(request->getHandle());
         } else {
             // Done for handling Edge Cases,
             // Refer the comment in the if-block for more explanation
-            RequestManager::getInstance()->modifyRequestDuration(request->getHandle(), request->getDuration());
+            requestManager->modifyRequestDuration(request->getHandle(), request->getDuration());
         }
 
-        if(!ClientDataManager::getInstance()->clientExists(request->getClientPID(), request->getClientTID())) {
+        if(!clientDataManager->clientExists(request->getClientPID(), request->getClientTID())) {
             // Client does not exist, drop the request
             Request::cleanUpRequest(request);
             return;
@@ -236,7 +236,8 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
     }
 
     if(!rateLimiter->isRateLimitHonored(request->getClientTID())) {
-        LOGI("RTN_SERVER_REQUESTS", "ClientTID: " + std::to_string(request->getClientTID()) + " Rate Limited");
+        TYPELOGV(RATE_LIMITER_RATE_LIMITED, request->getClientTID(), request->getHandle());
+        Request::cleanUpRequest(request);
         return;
     }
 
@@ -247,32 +248,28 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
     // - Check if any of the outstanding requests of this client matches the current request
     if(request->getRequestType() == REQ_RESOURCE_UNTUNING ||
        request->getRequestType() == REQ_RESOURCE_RETUNING) {
-        if(!RequestManager::getInstance()->verifyHandle(request->getHandle())) {
-            LOGD("RTN_SERVER_REQUESTS", "No existing request with this handle found, dropping the request");
+        if(!requestManager->verifyHandle(request->getHandle())) {
+            TYPELOGV(REQUEST_MANAGER_REQUEST_NOT_ACTIVE, request->getHandle());
             Request::cleanUpRequest(request);
         } else {
             if(request->getRequestType() == REQ_RESOURCE_UNTUNING) {
                 // Update the Processing Status for this handle to false
-                RequestManager::getInstance()->disableRequestProcessing(request->getHandle());
+                requestManager->disableRequestProcessing(request->getHandle());
             }
             // Add it to request queue for further processing
-            RequestQueue::getInstance()->addAndWakeup(request);
+            requestQueue->addAndWakeup(request);
         }
 
         return;
     }
 
-    if(isValidated || VerifyIncomingRequest(request)) {
+    if(VerifyIncomingRequest(request)) {
         TYPELOGV(VERIFIER_REQUEST_VALIDATED, request->getHandle());
 
-        if(RequestManager::getInstance()->shouldRequestBeAdded(request)) {
-            RequestManager::getInstance()->addRequest(request);
-
+        if(addToRequestManager(request)) {
             // Add this request to the RequestQueue
-            RequestQueue::getInstance()->addAndWakeup(request);
-
+            requestQueue->addAndWakeup(request);
         } else {
-            LOGD("RTN_SERVER_REQUESTS", "Duplicate found, dropping request.");
             Request::cleanUpRequest(request);
         }
 
@@ -350,14 +347,12 @@ void RequestQueue::orderedQueueConsumerHook() {
 
         // This is a custom Request used to clean up the Server.
         if(message->getPriority() == SERVER_CLEANUP_TRIGGER_PRIORITY) {
-            LOGI("RTN_SERVER_REQUESTS", "Called Cleanup Request");
+            LOGI("RESTUNE_SERVER_REQUESTS", "Called Cleanup Request");
             return;
         }
 
         Request* req = dynamic_cast<Request*>(message);
         if(req == nullptr) {
-            LOGD("RTN_SERVER_REQUESTS",
-                 "Message is Malformed, Downcasting to Request Type Failed");
             continue;
         }
 
@@ -365,12 +360,12 @@ void RequestQueue::orderedQueueConsumerHook() {
         uint8_t currentMode = ResourceTunerSettings::targetConfigs.currMode;
         if((currentMode == MODE_DISPLAY_OFF || currentMode == MODE_DOZE) && !req->isBackgroundProcessingEnabled()) {
             // Cannot continue with this Request
-            LOGD("RTN_SERVER_REQUESTS", "Request cannot be processed in current mode");
+            LOGD("RESTUNE_SERVER_REQUESTS", "Request cannot be processed in current mode");
             continue;
         }
 
         if(req->getRequestType() == REQ_RESOURCE_TUNING) {
-            int64_t requestProcessingStatus = RequestManager::getInstance()->getRequestProcessingStatus(req->getHandle());
+            int64_t requestProcessingStatus = requestManager->getRequestProcessingStatus(req->getHandle());
             // Find better status code
             if(requestProcessingStatus == REQ_CANCELLED || requestProcessingStatus == REQ_COMPLETED) {
                 // Request has already been untuned or expired (Edge Cases)
@@ -378,7 +373,7 @@ void RequestQueue::orderedQueueConsumerHook() {
                 continue;
             }
 
-            RequestManager::getInstance()->markRequestAsComplete(req->getHandle());
+            requestManager->markRequestAsComplete(req->getHandle());
             if(!cocoTable->insertRequest(req)) {
                 // Request could not be inserted, clean it up.
                 Request::cleanUpRequest(req);
@@ -390,12 +385,14 @@ void RequestQueue::orderedQueueConsumerHook() {
 
             if(correspondingTuneRequest == nullptr) {
                 // Note by this point, the Client is ascertained to be in the Client Data Manager Table
-                LOGD("RTN_SERVER_REQUESTS", "Corresponding Tune Request Not Found, Dropping");
+                LOGD("RESTUNE_SERVER_REQUESTS", "Corresponding Tune Request Not Found, Dropping");
+
+                Request::cleanUpRequest(req);
                 continue;
             }
 
             if(correspondingTuneRequest->getClientPID() != req->getClientPID()) {
-                LOGI("RTN_SERVER_REQUESTS",
+                LOGI("RESTUNE_SERVER_REQUESTS",
                      "Corresponding Tune Request issued by different Client, Dropping Request.");
 
                 // Free Up the Request
@@ -404,10 +401,8 @@ void RequestQueue::orderedQueueConsumerHook() {
             }
 
             if(req->getRequestType() == REQ_RESOURCE_UNTUNING) {
-                LOGI("RTN_SERVER_REQUESTS", "Untune Request");
-
                 cocoTable->removeRequest(correspondingTuneRequest);
-                RequestManager::getInstance()->removeRequest(correspondingTuneRequest);
+                requestManager->removeRequest(correspondingTuneRequest);
 
                 // Free Up the Untune Request
                 Request::cleanUpRequest(req);
@@ -416,8 +411,6 @@ void RequestQueue::orderedQueueConsumerHook() {
                 Request::cleanUpRequest(correspondingTuneRequest);
 
             } else if(req->getRequestType() == REQ_RESOURCE_RETUNING) {
-                LOGI("RTN_SERVER_REQUESTS", "Retune Request");
-
                 int64_t newDuration = req->getDuration();
                 cocoTable->updateRequest(correspondingTuneRequest, newDuration);
 
@@ -430,6 +423,9 @@ void RequestQueue::orderedQueueConsumerHook() {
 
 void* TunerServerThread() {
     std::shared_ptr<RequestQueue> requestQueue = RequestQueue::getInstance();
+
+    // Initialize CocoTable
+    CocoTable::getInstance();
     while(ResourceTunerSettings::isServerOnline()) {
         requestQueue->wait();
     }

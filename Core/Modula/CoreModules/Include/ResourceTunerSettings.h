@@ -27,7 +27,8 @@ typedef struct {
 
 typedef struct {
     std::string targetName;
-    std::uint8_t totalCoreCount;
+    uint8_t totalCoreCount;
+    uint8_t totalClusterCount;
     // Determine whether the system is in Display On or Off / Doze Mode
     // This needs to be tracked, so that only those Requests for which background Processing
     // is Enabled can be processed during Display Off / Doze.
@@ -39,6 +40,21 @@ private:
     static int32_t serverOnlineStatus;
 
 public:
+    static const int32_t desiredThreadCount = 10;
+    static const int32_t maxPendingQueueSize = 12;
+    static const int32_t maxScalingCapacity = 25;
+
+    static const std::string mCommonResourceFilePath;
+    static const std::string mCommonSignalFilePath;
+    static const std::string mInitConfigFilePath;
+    static const std::string mPropertiesFilePath;
+    static const std::string mCustomExtFeaturesFilePath;
+
+    static const std::string mBaseCGroupPath;
+
+    static const std::string mTargetSpecificResourceFilePath;
+    static const std::string mTargetSpecificSignalFilePath;
+
     static std::shared_timed_mutex mModeLock;
     static MetaConfigs metaConfigs;
     static TargetConfigs targetConfigs;

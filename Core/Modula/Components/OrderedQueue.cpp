@@ -21,10 +21,10 @@ void OrderedQueue::addAndWakeup(Message* queueItem) {
         this->mOrderedQueueCondition.notify_one();
 
     } catch(const std::system_error& e) {
-        LOGE("RTN_ORDERED_QUEUE",
+        LOGE("RESTUNE_ORDERED_QUEUE",
              "Call to addAndWakeup failed, error: " + std::string(e.what()));
     } catch(const std::exception& e) {
-        LOGE("RTN_ORDERED_QUEUE",
+        LOGE("RESTUNE_ORDERED_QUEUE",
              "Call to addAndWakeup failed, error: " + std::string(e.what()));
     }
 }
@@ -41,11 +41,11 @@ void OrderedQueue::wait() {
         lock.unlock();
 
     } catch(const std::system_error& e) {
-        LOGE("RTN_ORDERED_QUEUE",
+        LOGE("RESTUNE_ORDERED_QUEUE",
              "Cannot wait on Ordered Queue, error: " + std::string(e.what()));
 
     } catch(const std::exception& e) {
-        LOGE("RTN_ORDERED_QUEUE",
+        LOGE("RESTUNE_ORDERED_QUEUE",
              "Cannot wait on Ordered Queue, error: " + std::string(e.what()));
     }
 }

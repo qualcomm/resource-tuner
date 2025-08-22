@@ -4,34 +4,54 @@
 #include "SignalRegistry.h"
 
 std::shared_ptr<SignalRegistry> SignalRegistry::signalRegistryInstance = nullptr;
-int32_t SignalRegistry::mTotalSignals = 0;
 
 SignalRegistry::SignalRegistry() {
-    this->customerBit = 0;
+    this->mTotalSignals = 0;
 }
 
-void SignalRegistry::initRegistry(int32_t size, int8_t customerBit) {
-    if(mSignalsConfigs.size() == 0 && size > 0) {
-        mSignalsConfigs.resize(size);
-        this->customerBit = customerBit;
+int8_t SignalRegistry::isSignalConfigMalformed(SignalInfo* sConf) {
+    if(sConf == nullptr) return true;
+    if(sConf->mSignalCategory == 0) return true;
+    return false;
+}
+
+void SignalRegistry::registerSignal(SignalInfo* signalInfo, int8_t isBuSpecified) {
+    if(this->isSignalConfigMalformed(signalInfo)) {
+        if(signalInfo != nullptr) {
+            delete signalInfo;
+        }
+        return;
     }
-}
-
-void SignalRegistry::registerSignal(SignalInfo* signalInfo) {
-    if(signalInfo == nullptr) return;
 
     uint32_t signalBitmap = 0;
-    if(this->customerBit) {
-        signalBitmap |= (1 << 31);
-    }
-
-    signalBitmap |= ((uint32_t)signalInfo->mSignalOpId);
+    signalBitmap |= ((uint32_t)signalInfo->mSignalID);
     signalBitmap |= ((uint32_t)signalInfo->mSignalCategory << 16);
 
-    this->mSystemIndependentLayerMappings[signalBitmap] = mTotalSignals;
-    this->mSignalsConfigs[mTotalSignals] = signalInfo;
+    // Check for any conflict
+    if(this->mSystemIndependentLayerMappings.find(signalBitmap) !=
+        this->mSystemIndependentLayerMappings.end()) {
+        // Signal with the specified Category and SigID already exists
+        // Overwrite it.
 
-    mTotalSignals++;
+        int32_t signalTableIndex = getSignalTableIndex(signalBitmap);
+        this->mSignalsConfigs[signalTableIndex] = signalInfo;
+
+        if(isBuSpecified) {
+            this->mSystemIndependentLayerMappings.erase(signalBitmap);
+            signalBitmap |= (1 << 31);
+
+            this->mSystemIndependentLayerMappings[signalBitmap] = signalTableIndex;
+        }
+    } else {
+        if(isBuSpecified) {
+            signalBitmap |= (1 << 31);
+        }
+
+        this->mSystemIndependentLayerMappings[signalBitmap] = this->mTotalSignals;
+        this->mSignalsConfigs.push_back(signalInfo);
+
+        this->mTotalSignals++;
+    }
 }
 
 std::vector<SignalInfo*> SignalRegistry::getSignalConfigs() {
@@ -40,12 +60,12 @@ std::vector<SignalInfo*> SignalRegistry::getSignalConfigs() {
 
 SignalInfo* SignalRegistry::getSignalConfigById(uint32_t signalID) {
     if(this->mSystemIndependentLayerMappings.find(signalID) == this->mSystemIndependentLayerMappings.end()) {
-        LOGE("RTN_RESOURCE_PROCESSOR", "Resource ID not found in the registry");
+        TYPELOGV(SIGNAL_REGISTRY_SIGNAL_NOT_FOUND, signalID);
         return nullptr;
     }
 
-    int32_t mResourceConfigTableIndex = this->mSystemIndependentLayerMappings[signalID];
-    return this->mSignalsConfigs[mResourceConfigTableIndex];
+    int32_t mResourceTableIndex = this->mSystemIndependentLayerMappings[signalID];
+    return this->mSignalsConfigs[mResourceTableIndex];
 }
 
 int32_t SignalRegistry::getSignalsConfigCount() {
@@ -53,15 +73,23 @@ int32_t SignalRegistry::getSignalsConfigCount() {
 }
 
 void SignalRegistry::displaySignals() {
-    for(int32_t i = 0; i < mTotalSignals; i++) {
+    for(int32_t i = 0; i < this->mTotalSignals; i++) {
         auto& signal = this->mSignalsConfigs[i];
 
-        LOGD("RTN_SIGNAL_REGISTRY", "Signal Name: " + signal->mSignalName);
-        LOGD("RTN_SIGNAL_REGISTRY", "Signal OpID: " + std::to_string(signal->mSignalOpId));
-        LOGD("RTN_SIGNAL_REGISTRY", "Signal SignalCategory: " + std::to_string(signal->mSignalCategory));
+        LOGD("RESTUNE_SIGNAL_REGISTRY", "Signal Name: " + signal->mSignalName);
+        LOGD("RESTUNE_SIGNAL_REGISTRY", "Signal OpID: " + std::to_string(signal->mSignalID));
+        LOGD("RESTUNE_SIGNAL_REGISTRY", "Signal SignalCategory: " + std::to_string(signal->mSignalCategory));
 
-        LOGD("RTN_SIGNAL_REGISTRY", "====================================");
+        LOGD("RESTUNE_SIGNAL_REGISTRY", "====================================");
     }
+}
+
+int32_t SignalRegistry::getSignalTableIndex(uint32_t signalID) {
+    if(this->mSystemIndependentLayerMappings.find(signalID) == this->mSystemIndependentLayerMappings.end()) {
+        return -1;
+    }
+
+    return this->mSystemIndependentLayerMappings[signalID];
 }
 
 SignalRegistry::~SignalRegistry() {
@@ -105,72 +133,77 @@ SignalInfoBuilder::SignalInfoBuilder() {
     }
 }
 
-SignalInfoBuilder* SignalInfoBuilder::setOpID(const std::string& signalOpIdString) {
+ErrCode SignalInfoBuilder::setSignalID(const std::string& signalOpIdString) {
     if(this->mSignalInfo == nullptr) {
-        return this;
+        return RC_INVALID_VALUE;
     }
 
-    this->mSignalInfo->mSignalOpId = -1;
+    this->mSignalInfo->mSignalID = 0;
     try {
-        this->mSignalInfo->mSignalOpId = (int16_t)stoi(signalOpIdString, nullptr, 0);
-    } catch(const std::invalid_argument& ex) {
-        LOGE("RTN_SIGNAL_REGISTRY",
-             "Signal Parsing Failed with error: " + std::string(ex.what()));
-    } catch(const std::out_of_range& ex) {
-        LOGE("RTN_SIGNAL_REGISTRY",
-             "Signal Parsing Failed with error: " + std::string(ex.what()));
+        this->mSignalInfo->mSignalID = (uint16_t)stoi(signalOpIdString, nullptr, 0);
+
+    } catch(const std::invalid_argument& e) {
+        TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
+        return RC_INVALID_VALUE;
+
+    } catch(const std::out_of_range& e) {
+        TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
+        return RC_INVALID_VALUE;
     }
-    return this;
+
+    return RC_SUCCESS;
 }
 
-SignalInfoBuilder* SignalInfoBuilder::setCategory(const std::string& categoryString) {
+ErrCode SignalInfoBuilder::setSignalCategory(const std::string& categoryString) {
     if(this->mSignalInfo == nullptr) {
-        return this;
+        return RC_INVALID_VALUE;
     }
 
-    this->mSignalInfo->mSignalCategory = -1;
+    this->mSignalInfo->mSignalCategory = 0;
     try {
-        this->mSignalInfo->mSignalCategory = (int8_t)stoi(categoryString, nullptr, 0);
-    } catch(const std::invalid_argument& ex) {
-        LOGE("RTN_SIGNAL_REGISTRY",
-             "Signal Parsing Failed with error: " + std::string(ex.what()));
-    } catch(const std::out_of_range& ex) {
-        LOGE("RTN_SIGNAL_REGISTRY",
-             "Signal Parsing Failed with error: " + std::string(ex.what()));
+        this->mSignalInfo->mSignalCategory = (uint8_t)stoi(categoryString, nullptr, 0);
+    } catch(const std::invalid_argument& e) {
+        TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
+        return RC_INVALID_VALUE;
+
+    } catch(const std::out_of_range& e) {
+        TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
+        return RC_INVALID_VALUE;
     }
-    return this;
+
+    return RC_SUCCESS;
 }
 
-SignalInfoBuilder* SignalInfoBuilder::setName(const std::string& signalName) {
+ErrCode SignalInfoBuilder::setName(const std::string& signalName) {
     if(this->mSignalInfo == nullptr) {
-        return this;
+        return RC_INVALID_VALUE;
     }
 
     this->mSignalInfo->mSignalName = signalName;
-    return this;
+    return RC_SUCCESS;
 }
 
-SignalInfoBuilder* SignalInfoBuilder::setTimeout(int32_t timeout) {
+ErrCode SignalInfoBuilder::setTimeout(int32_t timeout) {
     if(this->mSignalInfo == nullptr) {
-        return this;
+        return RC_INVALID_VALUE;
     }
 
     this->mSignalInfo->mTimeout = timeout;
-    return this;
+    return RC_SUCCESS;
 }
 
-SignalInfoBuilder* SignalInfoBuilder::setIsEnabled(int8_t isEnabled) {
+ErrCode SignalInfoBuilder::setIsEnabled(int8_t isEnabled) {
     if(this->mSignalInfo == nullptr) {
-        return this;
+        return RC_INVALID_VALUE;
     }
 
     this->mSignalInfo->mIsEnabled = isEnabled;
-    return this;
+    return RC_SUCCESS;
 }
 
-SignalInfoBuilder* SignalInfoBuilder::addPermission(const std::string& permissionString) {
+ErrCode SignalInfoBuilder::addPermission(const std::string& permissionString) {
     if(this->mSignalInfo == nullptr) {
-        return this;
+        return RC_INVALID_VALUE;
     }
 
     if(this->mSignalInfo->mPermissions == nullptr) {
@@ -182,18 +215,28 @@ SignalInfoBuilder* SignalInfoBuilder::addPermission(const std::string& permissio
         permission = PERMISSION_SYSTEM;
     } else if(permissionString == "third_party") {
         permission = PERMISSION_THIRD_PARTY;
+    } else {
+        if(permissionString.length() != 0) {
+            return RC_INVALID_VALUE;
+        }
     }
 
     if(this->mSignalInfo->mPermissions != nullptr) {
-        this->mSignalInfo->mPermissions->push_back(permission);
+        try {
+            this->mSignalInfo->mPermissions->push_back(permission);
+        } catch(const std::bad_alloc& e) {
+            return RC_INVALID_VALUE;
+        }
+    } else {
+        return RC_INVALID_VALUE;
     }
 
-    return this;
+    return RC_SUCCESS;
 }
 
-SignalInfoBuilder* SignalInfoBuilder::addTarget(int8_t isEnabled, const std::string& target) {
+ErrCode SignalInfoBuilder::addTarget(int8_t isEnabled, const std::string& target) {
     if(this->mSignalInfo == nullptr) {
-        return this;
+        return RC_INVALID_VALUE;
     }
 
     std::string targetName(target);
@@ -207,7 +250,10 @@ SignalInfoBuilder* SignalInfoBuilder::addTarget(int8_t isEnabled, const std::str
             std::transform(targetName.begin(), targetName.end(), targetName.begin(),
                 [](unsigned char ch) {return std::tolower(ch);});
             this->mSignalInfo->mTargetsEnabled->insert(targetName);
+        } else {
+            return RC_INVALID_VALUE;
         }
+
     } else {
         if(this->mSignalInfo->mTargetsDisabled == nullptr) {
             this->mSignalInfo->mTargetsDisabled = new(std::nothrow) std::unordered_set<std::string>;
@@ -217,15 +263,17 @@ SignalInfoBuilder* SignalInfoBuilder::addTarget(int8_t isEnabled, const std::str
             std::transform(targetName.begin(), targetName.end(), targetName.begin(),
                 [](unsigned char ch) {return std::tolower(ch);});
             this->mSignalInfo->mTargetsDisabled->insert(targetName);
+        } else {
+            return RC_INVALID_VALUE;
         }
     }
 
-    return this;
+    return RC_SUCCESS;
 }
 
-SignalInfoBuilder* SignalInfoBuilder::addDerivative(const std::string& derivative) {
+ErrCode SignalInfoBuilder::addDerivative(const std::string& derivative) {
     if(this->mSignalInfo == nullptr) {
-        return this;
+        return RC_INVALID_VALUE;
     }
 
     if(this->mSignalInfo->mDerivatives == nullptr) {
@@ -233,14 +281,21 @@ SignalInfoBuilder* SignalInfoBuilder::addDerivative(const std::string& derivativ
     }
 
     if(this->mSignalInfo->mDerivatives != nullptr) {
-        this->mSignalInfo->mDerivatives->push_back(derivative);
+        try {
+            this->mSignalInfo->mDerivatives->push_back(derivative);
+        } catch(const std::bad_alloc& e) {
+            return RC_INVALID_VALUE;
+        }
+    } else {
+        return RC_INVALID_VALUE;
     }
-    return this;
+
+    return RC_SUCCESS;
 }
 
-SignalInfoBuilder* SignalInfoBuilder::addResource(Resource* resource) {
+ErrCode SignalInfoBuilder::addResource(Resource* resource) {
     if(this->mSignalInfo == nullptr) {
-        return this;
+        return RC_INVALID_VALUE;
     }
 
     if(this->mSignalInfo->mSignalResources == nullptr) {
@@ -248,10 +303,16 @@ SignalInfoBuilder* SignalInfoBuilder::addResource(Resource* resource) {
     }
 
     if(this->mSignalInfo->mSignalResources != nullptr) {
-        this->mSignalInfo->mSignalResources->push_back(resource);
+        try {
+            this->mSignalInfo->mSignalResources->push_back(resource);
+        } catch(const std::bad_alloc& e) {
+            return RC_INVALID_VALUE;
+        }
+    } else {
+        return RC_INVALID_VALUE;
     }
 
-    return this;
+    return RC_SUCCESS;
 }
 
 SignalInfo* SignalInfoBuilder::build() {
@@ -259,62 +320,82 @@ SignalInfo* SignalInfoBuilder::build() {
 }
 
 ResourceBuilder::ResourceBuilder() {
-    this->mResource = new Resource;
+    this->mResource = new(std::nothrow) Resource;
 }
 
-ResourceBuilder* ResourceBuilder::setResCode(const std::string& resCodeString) {
-    if(this->mResource == nullptr) return this;
+ErrCode ResourceBuilder::setResCode(const std::string& resCodeString) {
+    if(this->mResource == nullptr) {
+        return RC_INVALID_VALUE;
+    }
 
     uint32_t resourceOpCode = 0;
     try {
         resourceOpCode = (uint32_t)stol(resCodeString, nullptr, 0);
         this->mResource->setOpCode(resourceOpCode);
-    } catch(const std::invalid_argument& ex) {
 
-    } catch(const std::out_of_range& ex) {
+    } catch(const std::invalid_argument& e) {
+        TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
+        return RC_INVALID_VALUE;
 
+    } catch(const std::out_of_range& e) {
+        TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
+        return RC_INVALID_VALUE;
     }
 
-    return this;
+    return RC_SUCCESS;
 }
 
-ResourceBuilder* ResourceBuilder::setOpInfo(const std::string& opInfoString) {
-    if(this->mResource == nullptr) return this;
+ErrCode ResourceBuilder::setOpInfo(const std::string& opInfoString) {
+    if(this->mResource == nullptr) return RC_INVALID_VALUE;
 
     int32_t resourceOpInfo = 0;
     try {
         resourceOpInfo = (int32_t)stoi(opInfoString, nullptr, 0);
         this->mResource->setOperationalInfo(resourceOpInfo);
-    } catch(const std::invalid_argument& ex) {
+    } catch(const std::invalid_argument& e) {
+        TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
+        return RC_INVALID_VALUE;
 
-    } catch(const std::out_of_range& ex) {
-
+    } catch(const std::out_of_range& e) {
+        TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
+        return RC_INVALID_VALUE;
     }
 
-    return this;
+    return RC_SUCCESS;
 }
 
-ResourceBuilder* ResourceBuilder::setNumValues(int32_t valuesCount) {
-    if(this->mResource == nullptr) return this;
+ErrCode ResourceBuilder::setNumValues(int32_t valuesCount) {
+    if(this->mResource == nullptr) {
+        return RC_INVALID_VALUE;
+    }
 
     this->mResource->setNumValues(valuesCount);
 
-    return this;
+    return RC_SUCCESS;
 }
 
-ResourceBuilder* ResourceBuilder::addValue(int32_t value) {
-    if(this->mResource == nullptr) return this;
+ErrCode ResourceBuilder::addValue(int32_t value) {
+    if(this->mResource == nullptr) {
+        return RC_INVALID_VALUE;
+    }
 
     if(this->mResource->getValuesCount() == 1) {
         this->mResource->mConfigValue.singleValue = value;
     } else {
         if(this->mResource->mConfigValue.valueArray == nullptr) {
-            this->mResource->mConfigValue.valueArray = new std::vector<int32_t>;
+            this->mResource->mConfigValue.valueArray = new(std::nothrow) std::vector<int32_t>;
+            if(this->mResource->mConfigValue.valueArray == nullptr) {
+                return RC_INVALID_VALUE;
+            }
         }
-        this->mResource->mConfigValue.valueArray->push_back(value);
+        try {
+            this->mResource->mConfigValue.valueArray->push_back(value);
+        } catch(const std::bad_alloc& e) {
+            return RC_INVALID_VALUE;
+        }
     }
 
-    return this;
+    return RC_SUCCESS;
 }
 
 Resource* ResourceBuilder::build() {

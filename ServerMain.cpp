@@ -13,57 +13,19 @@
 #include "Extensions.h"
 #include "RequestReceiver.h"
 
-static void writeSysFsDefaults() {
-    // Write Defaults
-    std::ifstream file;
+static int8_t terminateServer = false;
 
-    file.open("../sysfsOriginalValues.txt");
-    if(!file.is_open()) {
-        LOGE("RTN_SERVER_INIT", "Failed to open sysfs original values file: sysfsOriginalValues.txt");
-        return;
-    }
+static void handleSIGINT(int32_t sig) {
+    terminateServer = true;
+}
 
-    std::string line;
-    while(std::getline(file, line)) {
-        std::stringstream lineStream(line);
-        std::string token;
+static void handleSIGTSTP(int32_t sig) {
+    toggleDisplayModes();
+}
 
-        int8_t index = 0;
-        std::string sysfsNodePath = "";
-        int32_t sysfsNodeDefaultValue = -1;
-
-        while(std::getline(lineStream, token, ',')) {
-            if(index == 0) {
-                sysfsNodePath = token;
-            } else if(index == 1) {
-                sysfsNodeDefaultValue = std::stoi(token);
-            }
-            index++;
-        }
-
-        if(sysfsNodePath.length() > 0 && sysfsNodeDefaultValue != -1) {
-            // Write To Node
-            std::ofstream sysfsFile(sysfsNodePath, std::ios::out | std::ios::trunc);
-
-            if(!sysfsFile.is_open()) {
-                LOGE("RTN_SERVER_INIT",
-                     "Failed to write default value to sysfs node: " + sysfsNodePath);
-                continue;
-            }
-
-            sysfsFile << std::to_string(sysfsNodeDefaultValue);
-            if(sysfsFile.fail()) {
-                LOGE("RTN_SERVER_INIT",
-                     "Failed to write default value to sysfs node: " + sysfsNodePath);
-                sysfsFile.flush();
-                sysfsFile.close();
-                continue;
-            }
-
-            sysfsFile.flush();
-            sysfsFile.close();
-        }
-    }
+static void serverCleanup() {
+    LOGE("RESTUNE_SERVER_INIT", "Server Stopped, Cleanup Initiated");
+    ResourceTunerSettings::setServerOnlineStatus(false);
 }
 
 static ErrCode createResourceTunerDaemon(int32_t& childProcessID) {
@@ -85,43 +47,25 @@ static ErrCode createResourceTunerDaemon(int32_t& childProcessID) {
             // all the Sysfs Nodes to a Sane State.
             std::this_thread::sleep_for(std::chrono::seconds(1));
             if(getppid() == 1) {
-                writeSysFsDefaults();
+                AuxRoutines::writeSysFsDefaults();
                 break;
             }
         }
 
         // Delete the Sysfs Persistent File
-        remove("../sysfsOriginalValues.txt");
+        AuxRoutines::deleteFile("sysfsOriginalValues.txt");
         exit(EXIT_SUCCESS);
     }
 
     return RC_SUCCESS;
 }
 
-static int8_t terminateServer = false;
-
-static void handleSIGINT(int32_t sig) {
-    terminateServer = true;
-}
-
-static void handleSIGTSTP(int32_t sig) {
-    toggleDisplayModes();
-}
-
-static void serverCleanup() {
-    LOGE("RTN_SERVER_INIT", "Server Stopped, Cleanup Initiated");
-    ResourceTunerSettings::setServerOnlineStatus(false);
-}
-
-/**
- * @brief The main function representing the initialisation of the server.
- * @details The parsing occurs in this stage.
- */
 int32_t main(int32_t argc, char *argv[]) {
+    // PID of the Child Daemon
     int32_t childProcessID = -1;
 
     if(argc != 2) {
-        std::cout << "Usage: " << argv[0] << " <start|stop|test>" << std::endl;
+        std::cout<<"Usage: "<<argv[0]<<" <start|stop|test>"<<std::endl;
         return -1;
     }
 
@@ -144,10 +88,10 @@ int32_t main(int32_t argc, char *argv[]) {
                 break;
             case 't':
                 ResourceTunerSettings::serverInTestMode = true;
-                RTN_REGISTER_CONFIG(PROPERTIES_CONFIG, "../Tests/Configs/testPropertiesConfig.yaml")
-                RTN_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourceConfigs.yaml")
-                RTN_REGISTER_CONFIG(SIGNALS_CONFIG, "../Tests/Configs/testSignalConfigs.yaml")
-                RTN_REGISTER_CONFIG(TARGET_CONFIG, "../Tests/Configs/testTargetConfigs.yaml")
+                RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "../Tests/Configs/testPropertiesConfig.yaml")
+                RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourcesTargetSpecificConfig.yaml")
+                RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, "../Tests/Configs/testSignalsTargetSpecificConfig.yaml")
+                RESTUNE_REGISTER_CONFIG(TARGET_CONFIG, "../Tests/Configs/testTargetConfig.yaml")
                 break;
             case 'h':
                 std::cout<<"Help Options"<<std::endl;
@@ -158,7 +102,7 @@ int32_t main(int32_t argc, char *argv[]) {
         }
     }
 
-    TYPELOGD(NOTIFY_RESOURCE_TUNER_INIT_START);
+    TYPELOGV(NOTIFY_RESOURCE_TUNER_INIT_START, getpid());
 
     // Start Resource Tuner Server Initialization
     // As part of Server Initialization the Configs (Resource / Signals etc.) will be parsed
@@ -178,8 +122,17 @@ int32_t main(int32_t argc, char *argv[]) {
         ResourceTunerSettings::targetConfigs.currMode = MODE_DISPLAY_ON;
 
         try {
-            RequestReceiver::mRequestsThreadPool = new ThreadPool(4, 4, 6);
-            Timer::mTimerThreadPool = new ThreadPool(4, 4, 6);
+            int32_t desiredThreadCapacity = ResourceTunerSettings::desiredThreadCount;
+            int32_t maxPendingQueueSize = ResourceTunerSettings::maxPendingQueueSize;
+            int32_t maxScalingCapacity = ResourceTunerSettings::maxScalingCapacity;
+
+            RequestReceiver::mRequestsThreadPool = new ThreadPool(desiredThreadCapacity,
+                                                                  maxPendingQueueSize,
+                                                                  maxScalingCapacity);
+
+            Timer::mTimerThreadPool = new ThreadPool(desiredThreadCapacity,
+                                                     maxPendingQueueSize,
+                                                     maxScalingCapacity);
 
         } catch(const std::bad_alloc& e) {
             TYPELOGV(THREAD_POOL_CREATION_FAILURE, e.what());
@@ -204,11 +157,11 @@ int32_t main(int32_t argc, char *argv[]) {
 
     if(RC_IS_OK(mOpStatus)) {
         if(ComponentRegistry::isModuleEnabled(MOD_SYSSIGNAL)) {
-            TYPELOGV(NOTIFY_MODULE_ENABLED, "SysSignal");
+            TYPELOGV(NOTIFY_MODULE_ENABLED, "Signal");
             if(RC_IS_OK(mOpStatus)) {
                 mOpStatus = ComponentRegistry::getModuleRegistrationCallback(MOD_SYSSIGNAL)();
                 if(RC_IS_NOTOK(mOpStatus)) {
-                    TYPELOGV(MODULE_INIT_FAILED, "SysSignal");
+                    TYPELOGV(MODULE_INIT_FAILED, "Signal");
                 }
             }
         }
@@ -236,9 +189,14 @@ int32_t main(int32_t argc, char *argv[]) {
     // Create a Listener Thread
     std::thread resourceTunerListener;
     if(RC_IS_OK(mOpStatus)) {
-        LOGI("RTN_SERVER_INIT",
-             "Starting Resource Tuner Listener Thread");
-        resourceTunerListener = std::thread(listenerThreadStartRoutine);
+        try {
+            resourceTunerListener = std::thread(listenerThreadStartRoutine);
+            TYPELOGD(LISTENER_THREAD_CREATION_SUCCESS);
+
+        } catch(const std::system_error& e) {
+            TYPELOGV(SYSTEM_THREAD_CREATION_FAILURE, "Listener", e.what());
+            mOpStatus = RC_MODULE_INIT_FAILURE;
+        }
     }
 
     if(RC_IS_OK(mOpStatus)) {
@@ -252,12 +210,16 @@ int32_t main(int32_t argc, char *argv[]) {
 
         // Listen for Terminal prompts
         while(!terminateServer) {
-            char exitStatus[16];
-            exitStatus[sizeof(exitStatus) - 1] = '\0';
-            ssize_t bytesRead = read(STDIN_FILENO, exitStatus, sizeof(exitStatus) - 1);
-            if(bytesRead > 0) {
-                if(strncmp(exitStatus, "stop", 4) == 0 || strncmp(exitStatus, "exit", 4) == 0) {
-                    terminateServer = true;
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+
+            if(flags != -1) {
+                char exitStatus[16];
+                exitStatus[sizeof(exitStatus) - 1] = '\0';
+                ssize_t bytesRead = read(STDIN_FILENO, exitStatus, sizeof(exitStatus) - 1);
+                if(bytesRead > 0) {
+                    if(strncmp(exitStatus, "stop", 4) == 0) {
+                        terminateServer = true;
+                    }
                 }
             }
         }
@@ -270,7 +232,9 @@ int32_t main(int32_t argc, char *argv[]) {
     // - Killing the child process created to monitor the parent (Server)
     serverCleanup();
 
-    ComponentRegistry::getModuleTeardownCallback(MOD_CORE)();
+    if(ComponentRegistry::isModuleEnabled(MOD_CORE)) {
+        ComponentRegistry::getModuleTeardownCallback(MOD_CORE)();
+    }
 
     if(ComponentRegistry::isModuleEnabled(MOD_SYSSIGNAL)) {
         ComponentRegistry::getModuleTeardownCallback(MOD_SYSSIGNAL)();
@@ -299,7 +263,7 @@ int32_t main(int32_t argc, char *argv[]) {
     }
 
     // Delete the Sysfs Persistent File
-    remove("../sysfsOriginalValues.txt");
+    AuxRoutines::deleteFile("sysfsOriginalValues.txt");
 
     return 0;
 }

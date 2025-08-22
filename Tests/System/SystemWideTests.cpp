@@ -40,6 +40,7 @@ static void TestHandleGeneration() {
 
     int64_t handle = tuneResources(2000, 0, 1, resourceList);
 
+    std::cout<<"["<<__LINE__<<"]"<<" Handle Returned: "<<handle<<std::endl;
     assert(handle == 1);
 
     std::this_thread::sleep_for(std::chrono::seconds(3));
@@ -51,6 +52,7 @@ static void TestHandleGeneration() {
 
     handle = tuneResources(2000, 0, 1, resourceList);
 
+    std::cout<<"["<<__LINE__<<"]"<<" Handle Returned: "<<handle<<std::endl;
     assert(handle == 2);
 
     std::this_thread::sleep_for(std::chrono::seconds(3));
@@ -62,6 +64,7 @@ static void TestHandleGeneration() {
 
     handle = tuneResources(2000, 0, 1, resourceList);
 
+    std::cout<<"["<<__LINE__<<"]"<<" Handle Returned: "<<handle<<std::endl;
     assert(handle == 3);
 
     LOG_END
@@ -186,7 +189,7 @@ namespace ResourceTuningRequestVerification {
         std::string value;
         int32_t originalValue, newValue;
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -200,7 +203,7 @@ namespace ResourceTuningRequestVerification {
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
 
@@ -228,7 +231,7 @@ namespace ResourceTuningRequestVerification {
         std::string value;
         int32_t originalValue, newValue;
 
-        value = readFromNode(validResourceName);
+        value = AuxRoutines::readFromFile(validResourceName);
         originalValue = C_STOI(value);
         assert(originalValue == validResourceOriginalValue);
 
@@ -246,7 +249,7 @@ namespace ResourceTuningRequestVerification {
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        value = readFromNode(validResourceName);
+        value = AuxRoutines::readFromFile(validResourceName);
         newValue = C_STOI(value);
         assert(newValue == validResourceOriginalValue);
 
@@ -272,7 +275,7 @@ namespace ResourceTuningRequestVerification {
         std::string value;
         int32_t originalValue, newValue;
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -285,7 +288,7 @@ namespace ResourceTuningRequestVerification {
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
 
@@ -295,7 +298,7 @@ namespace ResourceTuningRequestVerification {
     /**
     * API under test: Tune
     * - As part of the tune API call, the client specifies the target Logical Cluster and Core, if
-    *   the resource in question has Core Level Conflict Enabled.
+    *   the resource in question has Core Level Conflict.
     * - For such a Resource (part of the Request), Core / Cluster Logical To Physical Translation is
     *   needed.
     * - If the logical Core / Cluster value is invalid, or if translation cannot be performed then the
@@ -313,7 +316,7 @@ namespace ResourceTuningRequestVerification {
         std::string value;
         int32_t originalValue, newValue;
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -329,7 +332,7 @@ namespace ResourceTuningRequestVerification {
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
 
@@ -339,7 +342,7 @@ namespace ResourceTuningRequestVerification {
     /**
     * API under test: Tune
     * - As part of the tune API call, the client specifies the target Logical Cluster and Core, if
-    *   the resource in question has Core Level Conflict Enabled.
+    *   the resource in question has Core Level Conflict.
     * - For such a Resource (part of the Request), Core / Cluster Logical To Physical Translation is
     *   needed.
     * - If the logical Core / Cluster value is invalid, or if translation cannot be performed then the
@@ -357,7 +360,7 @@ namespace ResourceTuningRequestVerification {
         std::string value;
         int32_t originalValue, newValue;
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -372,7 +375,7 @@ namespace ResourceTuningRequestVerification {
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
 
@@ -382,7 +385,7 @@ namespace ResourceTuningRequestVerification {
     /**
     * API under test: Tune
     * - As part of the tune API call, the client specifies the target Logical Cluster and Core, if
-    *   the resource in question has Core Level Conflict Enabled.
+    *   the resource in question has Core Level Conflict.
     * - For such a Resource (part of the Request), Core / Cluster Logical To Physical Translation is
     *   needed.
     * - If the logical Core / Cluster value is invalid, or if translation cannot be performed then the
@@ -401,7 +404,7 @@ namespace ResourceTuningRequestVerification {
         std::string value;
         int32_t originalValue, newValue;
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -417,13 +420,13 @@ namespace ResourceTuningRequestVerification {
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == 2300);
 
         std::this_thread::sleep_for(std::chrono::seconds(5));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
 
@@ -433,7 +436,7 @@ namespace ResourceTuningRequestVerification {
     /**
     * API under test: Tune
     * - As part of the tune API call, the client specifies the target Logical Cluster and Core, if
-    *   the resource in question has Core Level Conflict Enabled.
+    *   the resource in question has Core Level Conflict.
     * - For such a Resource (part of the Request), Core / Cluster Logical To Physical Translation is
     *   needed.
     * - If the logical Core / Cluster value is invalid, or if translation cannot be performed then the
@@ -451,7 +454,7 @@ namespace ResourceTuningRequestVerification {
         std::string value;
         int32_t originalValue, newValue;
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -467,7 +470,7 @@ namespace ResourceTuningRequestVerification {
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
 
@@ -492,7 +495,7 @@ namespace ResourceTuningRequestVerification {
         std::string value;
         int32_t originalValue, newValue;
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -505,7 +508,7 @@ namespace ResourceTuningRequestVerification {
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
 
@@ -529,7 +532,7 @@ namespace ResourceTuningRequestVerification {
         std::string value;
         int32_t originalValue, newValue;
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -542,7 +545,7 @@ namespace ResourceTuningRequestVerification {
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
 
@@ -570,7 +573,7 @@ namespace ResourceTuningRequestVerification {
         std::string value;
         int32_t originalValue, newValue;
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -583,7 +586,7 @@ namespace ResourceTuningRequestVerification {
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
 
@@ -644,8 +647,8 @@ namespace SignalVerification {
 
     std::string __testGroupName = "Signal Requests Verification / Integrity Checks";
     /**
-    * API under test: ACQ
-    * - The client tries to acquire a Signal with a duration of -2.
+    * API under test: tuneSignal
+    * - The client tries to tune a Signal with a duration of -2.
     * - Note a duration of 0 is considered valid for the tuneSignal API.
     * - The Request will fail reliminary tests on the Client side and won't be
     *   submitted to the Server returning -1 to the End-Client.
@@ -661,11 +664,11 @@ namespace SignalVerification {
     }
 
     /**
-    * API under test: ACQ
-    * - A client sends a Signal Request to acquire a Signal for some (possibly inf) duration
+    * API under test: tuneSignal
+    * - A client sends a Signal Request to tune a Signal for some (possibly inf) duration
     * - Each Signal Config has an associated permission, either system or third_party. Here the
     *   Signal in question has system Permissions i.e. only Clients having system permissions
-    *   can acquire this signal.
+    *   can tune this signal.
     * - The client here only has third_party permissions, hence the request should be rejected
     *   by the Signal Verifier
     * - Verify that the Resource Node's value remains unchanged.
@@ -680,16 +683,16 @@ namespace SignalVerification {
         std::string value;
         int32_t originalValue, newValue;
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
         int64_t handle =
-            tuneSignal(GENERATE_RESOURCE_ID(1, 1), 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+            tuneSignal(0x800d0001, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
 
@@ -697,8 +700,8 @@ namespace SignalVerification {
     }
 
     /**
-    * API under test: ACQ
-    * - A client sends a Signal Request to Acquire a Signal for some (possibly inf) duration
+    * API under test: tuneSignal
+    * - A client sends a Signal Request to Tune a Signal for some (possibly inf) duration
     * - Each Resource associated with the Signal Config has an associated Low Threshold (LT) and High Threshold (HT).
     * - If a Signal Config specifies a value which is (< LT) or (> HT) for any Resource, then the Reuqest
     *   should be rejected by the Signal Verifier
@@ -714,16 +717,16 @@ namespace SignalVerification {
         std::string value;
         int32_t originalValue, newValue;
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
         int64_t handle =
-            tuneSignal(GENERATE_RESOURCE_ID(1, 2), 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+            tuneSignal(0x800d0002, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
 
@@ -731,13 +734,13 @@ namespace SignalVerification {
     }
 
     /**
-    * API under test: ACQ
+    * API under test: tuneSignal
     * - Through the Signal Configs, it can be specified for each Signal which target it is supported
     *   on and for which it is not eligible for provisioning.
-    * - If a client tries to acquire a Signal on a Target, where the Signal is not supported, the
+    * - If a client tries to tune a Signal on a Target, where the Signal is not supported, the
     *   request should be rejected by the Signal Verifier.
     * - Verify that the Resource Node's value remains unchanged.
-    * - Here the Signal in question is supported on "sun" and "moon", but the client tries to acquire it
+    * - Here the Signal in question is supported on "sun" and "moon", but the client tries to tune it
     *   on Kodiak. Hence, the Request should be dropped.
     * Cross-Reference id: [E]
     */
@@ -750,16 +753,16 @@ namespace SignalVerification {
         std::string value;
         int32_t originalValue, newValue;
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
         int64_t handle =
-            tuneSignal(GENERATE_RESOURCE_ID(1, 0), 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+            tuneSignal(0x800d0000, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
 
@@ -767,7 +770,7 @@ namespace SignalVerification {
     }
 
     /**
-    * API under test: ACQ
+    * API under test: tuneSignal
     * - If the Enabled Field for the Signal Config is set to false, the Signal should not be provisioned.
     * - Hence, the Request is rejected by the Signal Verifier.
     * - Verify that the Resource Node's value remains unchanged.
@@ -782,16 +785,16 @@ namespace SignalVerification {
         std::string value;
         int32_t originalValue, newValue;
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
         int64_t handle =
-            tuneSignal(GENERATE_RESOURCE_ID(1, 3), 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+            tuneSignal(0x800d0003, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
 
@@ -868,7 +871,7 @@ namespace RequestApplicationTests {
         int32_t testResourceOriginalValue = 300;
 
         // Check the original value for the Resource
-        std::string value = readFromNode(testResourceName);
+        std::string value = AuxRoutines::readFromFile(testResourceName);
         int32_t originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -882,14 +885,14 @@ namespace RequestApplicationTests {
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
         // Check if the new value was successfully written to the node
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         int32_t newValue = C_STOI(value);
         assert(newValue == 980);
 
         std::this_thread::sleep_for(std::chrono::seconds(6));
 
         // Wait for the Request to expire, check if the value resets
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == originalValue);
 
@@ -919,15 +922,15 @@ namespace RequestApplicationTests {
         std::string value;
         int32_t originalValue[3], newValue;
 
-        value = readFromNode(testResourceName1);
+        value = AuxRoutines::readFromFile(testResourceName1);
         originalValue[0] = C_STOI(value);
         assert(originalValue[0] == testResourceOriginalValue1);
 
-        value = readFromNode(testResourceName2);
+        value = AuxRoutines::readFromFile(testResourceName2);
         originalValue[1] = C_STOI(value);
         assert(originalValue[1] == testResourceOriginalValue2);
 
-        value = readFromNode(testResourceName3);
+        value = AuxRoutines::readFromFile(testResourceName3);
         originalValue[2] = C_STOI(value);
         assert(originalValue[2] == testResourceOriginalValue3);
 
@@ -950,30 +953,30 @@ namespace RequestApplicationTests {
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
         // Check if the new value was successfully written to each of the nodes
-        value = readFromNode(testResourceName1);
+        value = AuxRoutines::readFromFile(testResourceName1);
         newValue = C_STOI(value);
         assert(newValue == 765);
 
-        value = readFromNode(testResourceName2);
+        value = AuxRoutines::readFromFile(testResourceName2);
         newValue = C_STOI(value);
         assert(newValue == 617);
 
-        value = readFromNode(testResourceName3);
+        value = AuxRoutines::readFromFile(testResourceName3);
         newValue = C_STOI(value);
         assert(newValue == 889);
 
         std::this_thread::sleep_for(std::chrono::seconds(6));
 
         // Wait for the Request to expire, check if the values reset
-        value = readFromNode(testResourceName1);
+        value = AuxRoutines::readFromFile(testResourceName1);
         newValue = C_STOI(value);
         assert(newValue == originalValue[0]);
 
-        value = readFromNode(testResourceName2);
+        value = AuxRoutines::readFromFile(testResourceName2);
         newValue = C_STOI(value);
         assert(newValue == originalValue[1]);
 
-        value = readFromNode(testResourceName3);
+        value = AuxRoutines::readFromFile(testResourceName3);
         newValue = C_STOI(value);
         assert(newValue == originalValue[2]);
 
@@ -999,7 +1002,7 @@ namespace RequestApplicationTests {
         std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
         int32_t testResourceOriginalValue = 114;
 
-        std::string value = readFromNode(testResourceName);
+        std::string value = AuxRoutines::readFromFile(testResourceName);
         int32_t originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -1026,7 +1029,7 @@ namespace RequestApplicationTests {
             std::this_thread::sleep_for(std::chrono::seconds(2));
 
             // Check if the new value was successfully written to the node
-            value = readFromNode(testResourceName);
+            value = AuxRoutines::readFromFile(testResourceName);
             int32_t newValue = C_STOI(value);
 
             // Note value should be the higher of the 2, since for this resource the
@@ -1036,7 +1039,7 @@ namespace RequestApplicationTests {
             std::this_thread::sleep_for(std::chrono::seconds(8));
 
             // Wait for the Request to expire, check if the value resets
-            value = readFromNode(testResourceName);
+            value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             assert(newValue == originalValue);
         }
@@ -1068,7 +1071,7 @@ namespace RequestApplicationTests {
         std::string value;
         int32_t originalValue, newValue;
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -1097,7 +1100,7 @@ namespace RequestApplicationTests {
             // Check if the new value was successfully written to the node
             // The higher value should be written to the node, since the Resource has
             // Higer is better policy
-            value = readFromNode(testResourceName);
+            value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             assert(newValue == 1176);
 
@@ -1105,13 +1108,13 @@ namespace RequestApplicationTests {
 
             // By this time the Request configuring the value of 1176 should have expired
             // And the Pending Request with a configuration value of 823, should take effect.
-            value = readFromNode(testResourceName);
+            value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             assert(newValue == 823);
 
             std::this_thread::sleep_for(std::chrono::seconds(10));
 
-            value = readFromNode(testResourceName);
+            value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             assert(newValue == originalValue);
         }
@@ -1144,7 +1147,7 @@ namespace RequestApplicationTests {
         std::string value;
         int32_t originalValue, newValue;
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -1165,7 +1168,7 @@ namespace RequestApplicationTests {
             wait(nullptr);
             std::this_thread::sleep_for(std::chrono::seconds(1));
 
-            value = readFromNode(testResourceName);
+            value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             assert(newValue == 578);
 
@@ -1184,7 +1187,7 @@ namespace RequestApplicationTests {
                 wait(nullptr);
                 std::this_thread::sleep_for(std::chrono::seconds(1));
 
-                value = readFromNode(testResourceName);
+                value = AuxRoutines::readFromFile(testResourceName);
                 newValue = C_STOI(value);
                 assert(newValue == 445);
 
@@ -1203,7 +1206,7 @@ namespace RequestApplicationTests {
                     wait(nullptr);
                     std::this_thread::sleep_for(std::chrono::seconds(1));
 
-                    value = readFromNode(testResourceName);
+                    value = AuxRoutines::readFromFile(testResourceName);
                     newValue = C_STOI(value);
                     assert(newValue == 412);
 
@@ -1216,13 +1219,13 @@ namespace RequestApplicationTests {
 
                     std::this_thread::sleep_for(std::chrono::seconds(1));
 
-                    value = readFromNode(testResourceName);
+                    value = AuxRoutines::readFromFile(testResourceName);
                     newValue = C_STOI(value);
                     assert(newValue == 378);
 
                     std::this_thread::sleep_for(std::chrono::seconds(8));
 
-                    value = readFromNode(testResourceName);
+                    value = AuxRoutines::readFromFile(testResourceName);
                     newValue = C_STOI(value);
                     assert(newValue == originalValue);
                 }
@@ -1252,7 +1255,7 @@ namespace RequestApplicationTests {
         std::string value;
         int32_t originalValue, newValue;
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -1282,23 +1285,23 @@ namespace RequestApplicationTests {
             std::this_thread::sleep_for(std::chrono::seconds(1));
 
             // The new Value should be valid for 8 seconds
-            value = readFromNode(testResourceName);
+            value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             assert(newValue == 15);
 
             std::this_thread::sleep_for(std::chrono::seconds(3));
-            value = readFromNode(testResourceName);
+            value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             assert(newValue == 15);
 
             std::this_thread::sleep_for(std::chrono::seconds(8));
-            value = readFromNode(testResourceName);
+            value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             assert(newValue == 18);
 
             std::this_thread::sleep_for(std::chrono::seconds(10));
 
-            value = readFromNode(testResourceName);
+            value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             assert(newValue == originalValue);
         }
@@ -1329,15 +1332,15 @@ namespace RequestApplicationTests {
         std::string value;
         int32_t originalValue, newValue;
 
-        value = readFromNode(testResourceName1);
+        value = AuxRoutines::readFromFile(testResourceName1);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue1);
 
-        value = readFromNode(testResourceName2);
+        value = AuxRoutines::readFromFile(testResourceName2);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue2);
 
-        value = readFromNode(testResourceName3);
+        value = AuxRoutines::readFromFile(testResourceName3);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue3);
 
@@ -1375,30 +1378,30 @@ namespace RequestApplicationTests {
                 std::this_thread::sleep_for(std::chrono::seconds(4));
 
                 // Check if the new value was successfully written to the node
-                value = readFromNode(testResourceName1);
+                value = AuxRoutines::readFromFile(testResourceName1);
                 newValue = C_STOI(value);
                 assert(newValue == 717);
 
-                value = readFromNode(testResourceName2);
+                value = AuxRoutines::readFromFile(testResourceName2);
                 newValue = C_STOI(value);
                 assert(newValue == 800);
 
-                value = readFromNode(testResourceName3);
+                value = AuxRoutines::readFromFile(testResourceName3);
                 newValue = C_STOI(value);
                 assert(newValue == 557);
 
                 // Wait for the Nodes to Reset
                 std::this_thread::sleep_for(std::chrono::seconds(10));
 
-                value = readFromNode(testResourceName1);
+                value = AuxRoutines::readFromFile(testResourceName1);
                 originalValue = C_STOI(value);
                 assert(originalValue == testResourceOriginalValue1);
 
-                value = readFromNode(testResourceName2);
+                value = AuxRoutines::readFromFile(testResourceName2);
                 originalValue = C_STOI(value);
                 assert(originalValue == testResourceOriginalValue2);
 
-                value = readFromNode(testResourceName3);
+                value = AuxRoutines::readFromFile(testResourceName3);
                 originalValue = C_STOI(value);
                 assert(originalValue == testResourceOriginalValue3);
 
@@ -1428,7 +1431,7 @@ namespace RequestApplicationTests {
         std::string value;
         int32_t originalValue, newValue;
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -1447,13 +1450,13 @@ namespace RequestApplicationTests {
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == 917);
 
         std::this_thread::sleep_for(std::chrono::seconds(6));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
 
@@ -1480,7 +1483,7 @@ namespace RequestApplicationTests {
         std::string value;
         int32_t originalValue, newValue;
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -1504,13 +1507,13 @@ namespace RequestApplicationTests {
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == 702);
 
         std::this_thread::sleep_for(std::chrono::seconds(6));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
 
@@ -1540,7 +1543,7 @@ namespace RequestApplicationTests {
         std::string value;
         int32_t originalValue, newValue;
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -1552,7 +1555,7 @@ namespace RequestApplicationTests {
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == 245);
 
@@ -1560,7 +1563,7 @@ namespace RequestApplicationTests {
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
 
@@ -1590,7 +1593,7 @@ namespace RequestApplicationTests {
         std::string value;
         int32_t originalValue, newValue;
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -1603,7 +1606,7 @@ namespace RequestApplicationTests {
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == 245);
 
@@ -1620,7 +1623,7 @@ namespace RequestApplicationTests {
             std::this_thread::sleep_for(std::chrono::seconds(2));
 
             // Verify that there is no change in value
-            value = readFromNode(testResourceName);
+            value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             assert(newValue == 245);
 
@@ -1628,7 +1631,7 @@ namespace RequestApplicationTests {
 
             std::this_thread::sleep_for(std::chrono::seconds(2));
 
-            value = readFromNode(testResourceName);
+            value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             assert(newValue == testResourceOriginalValue);
         }
@@ -1661,7 +1664,7 @@ namespace RequestApplicationTests {
         std::string value;
         int32_t originalValue, newValue;
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -1681,13 +1684,13 @@ namespace RequestApplicationTests {
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == 559);
 
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
 
@@ -1723,7 +1726,7 @@ namespace RequestApplicationTests {
         std::string value;
         int32_t originalValue, newValue;
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -1736,7 +1739,7 @@ namespace RequestApplicationTests {
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == 515);
 
@@ -1751,13 +1754,13 @@ namespace RequestApplicationTests {
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == 559);
 
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
 
@@ -1792,7 +1795,7 @@ namespace RequestApplicationTests {
         std::string value;
         int32_t originalValue, newValue;
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -1806,7 +1809,7 @@ namespace RequestApplicationTests {
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == 645);
 
@@ -1821,13 +1824,13 @@ namespace RequestApplicationTests {
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == 645);
 
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
 
@@ -1854,7 +1857,7 @@ namespace RequestApplicationTests {
         std::string value;
         int32_t originalValue, newValue;
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -1867,7 +1870,7 @@ namespace RequestApplicationTests {
 
         std::this_thread::sleep_for(std::chrono::seconds(4));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == 778);
 
@@ -1879,13 +1882,13 @@ namespace RequestApplicationTests {
 
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == 778);
 
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
 
@@ -1912,7 +1915,7 @@ namespace RequestApplicationTests {
         std::string value;
         int32_t originalValue, newValue;
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -1925,7 +1928,7 @@ namespace RequestApplicationTests {
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == 778);
 
@@ -1936,13 +1939,13 @@ namespace RequestApplicationTests {
 
         // Node value should still be set to the value configured via the Tune Request, as the Retune
         // Request was rejected.
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == 778);
 
         std::this_thread::sleep_for(std::chrono::seconds(6));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == testResourceOriginalValue);
 
@@ -1970,7 +1973,7 @@ namespace RequestApplicationTests {
 
         int64_t handle;
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -1983,7 +1986,7 @@ namespace RequestApplicationTests {
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == 597);
 
@@ -2000,7 +2003,7 @@ namespace RequestApplicationTests {
             // Verify that the value has reset after the original Request duration has expired
             std::this_thread::sleep_for(std::chrono::seconds(10));
 
-            value = readFromNode(testResourceName);
+            value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             assert(newValue == testResourceOriginalValue);
         }
@@ -2061,7 +2064,7 @@ namespace SystemSysfsNodesTests {
         int32_t testResourceOriginalValue = 1024;
 
         // Check the original value for the Resource
-        std::string value = readFromNode(testResourceName);
+        std::string value = AuxRoutines::readFromFile(testResourceName);
         int32_t originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -2075,14 +2078,14 @@ namespace SystemSysfsNodesTests {
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
         // Check if the new value was successfully written to the node
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         int32_t newValue = C_STOI(value);
         assert(newValue == 980);
 
         std::this_thread::sleep_for(std::chrono::seconds(6));
 
         // Wait for the Request to expire, check if the value resets
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == originalValue);
 
@@ -2107,7 +2110,7 @@ namespace SystemSysfsNodesTests {
         int32_t testResourceOriginalValue = 1024;
 
         // Check the original value for the Resource
-        std::string value = readFromNode(testResourceName);
+        std::string value = AuxRoutines::readFromFile(testResourceName);
         int32_t originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -2135,14 +2138,14 @@ namespace SystemSysfsNodesTests {
             std::this_thread::sleep_for(std::chrono::seconds(1));
 
             // Check if the new value was successfully written to the node
-            value = readFromNode(testResourceName);
+            value = AuxRoutines::readFromFile(testResourceName);
             int32_t newValue = C_STOI(value);
             assert(newValue == 887);
 
             std::this_thread::sleep_for(std::chrono::seconds(6));
 
             // Wait for the Request to expire, check if the value resets
-            value = readFromNode(testResourceName);
+            value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             assert(newValue == originalValue);
 
@@ -2174,7 +2177,7 @@ namespace SystemSysfsNodesTests {
         int32_t testResourceOriginalValue = 1024;
 
         // Check the original value for the Resource
-        std::string value = readFromNode(testResourceName);
+        std::string value = AuxRoutines::readFromFile(testResourceName);
         int32_t originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -2202,20 +2205,20 @@ namespace SystemSysfsNodesTests {
             std::this_thread::sleep_for(std::chrono::seconds(1));
 
             // Check if the new value was successfully written to the node
-            value = readFromNode(testResourceName);
+            value = AuxRoutines::readFromFile(testResourceName);
             int32_t newValue = C_STOI(value);
             assert(newValue == 887);
 
             std::this_thread::sleep_for(std::chrono::seconds(6));
 
-            value = readFromNode(testResourceName);
+            value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             assert(newValue == 799);
 
             std::this_thread::sleep_for(std::chrono::seconds(10));
 
             // Wait for the Request to expire, check if the value resets
-            value = readFromNode(testResourceName);
+            value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             assert(newValue == originalValue);
 
@@ -2242,7 +2245,7 @@ namespace SystemSysfsNodesTests {
         int32_t testResourceOriginalValue = 1024;
 
         // Check the original value for the Resource
-        std::string value = readFromNode(testResourceName);
+        std::string value = AuxRoutines::readFromFile(testResourceName);
         int32_t originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -2256,7 +2259,7 @@ namespace SystemSysfsNodesTests {
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
         // Check if the new value was successfully written to the node
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         int32_t newValue = C_STOI(value);
         assert(newValue == 994);
 
@@ -2264,7 +2267,7 @@ namespace SystemSysfsNodesTests {
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
         // Wait for the Request to expire, check if the value resets
-        value = readFromNode(testResourceName);
+        value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         assert(newValue == originalValue);
 
@@ -2290,7 +2293,7 @@ namespace SystemSysfsNodesTests {
         int32_t testResourceOriginalValue = 1024;
 
         // Check the original value for the Resource
-        std::string value = readFromNode(testResourceName);
+        std::string value = AuxRoutines::readFromFile(testResourceName);
         int32_t originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -2318,14 +2321,14 @@ namespace SystemSysfsNodesTests {
             std::this_thread::sleep_for(std::chrono::seconds(1));
 
             // Check if the new value was successfully written to the node
-            value = readFromNode(testResourceName);
+            value = AuxRoutines::readFromFile(testResourceName);
             int32_t newValue = C_STOI(value);
             assert(newValue == 744);
 
             std::this_thread::sleep_for(std::chrono::seconds(6));
 
             // Wait for the Request to expire, check if the value resets
-            value = readFromNode(testResourceName);
+            value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             assert(newValue == originalValue);
 
@@ -2348,6 +2351,128 @@ namespace SystemSysfsNodesTests {
     }
 }
 
+namespace SignalApplicationTests {
+   /*
+    * Description:
+    * This Section contains tests which aim to verify the correctness of Signal (GRAB / FREE) Application.
+    * The tests are enumerated as follows:
+    * => Single Client - Single Signal Tuning [A]
+    */
+    std::string __testGroupName = "Signal Application Checks";
+
+   /**
+    * API under test: tuneSignal
+    * - A client tries to tune a Signal, which tunes a Single Resource
+    * - Verified the Resource Node is updated to the configured value
+    * - Verify that the Resource Node is reset once the Signal timeouts.
+    * Cross-Reference id: [A]
+    */
+    static void TestSingleClientTuneSignal1() {
+        LOG_START
+
+        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
+        int32_t testResourceOriginalValue = 300;
+
+        std::string value;
+        int32_t originalValue, newValue;
+
+        value = AuxRoutines::readFromFile(testResourceName);
+        originalValue = C_STOI(value);
+        assert(originalValue == testResourceOriginalValue);
+
+        int64_t handle =
+            tuneSignal(0x800d0004, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        value = AuxRoutines::readFromFile(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == 917);
+
+        std::this_thread::sleep_for(std::chrono::seconds(8));
+
+        value = AuxRoutines::readFromFile(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == testResourceOriginalValue);
+
+        LOG_END
+    }
+
+   /**
+    * API under test: tuneSignal
+    * - A client tries to tune a Signal, which tunes multiple Resources
+    * - Verified the Resource Node is updated to the configured value
+    * - Verify that the Resource Node is reset once the Signal timeouts.
+    * Cross-Reference id: [A]
+    */
+    static void TestSingleClientTuneSignal2() {
+        LOG_START
+
+        std::string testResourceName1 = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
+        std::string testResourceName2 = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_max";
+        std::string testResourceName3 = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+
+        int originalValues[] = {300, 684, 114};
+
+        std::string value;
+        int32_t originalValue, newValue;
+
+        value = AuxRoutines::readFromFile(testResourceName1);
+        originalValue = C_STOI(value);
+        assert(originalValue == originalValues[0]);
+
+        value = AuxRoutines::readFromFile(testResourceName2);
+        originalValue = C_STOI(value);
+        assert(originalValue == originalValues[1]);
+
+        value = AuxRoutines::readFromFile(testResourceName3);
+        originalValue = C_STOI(value);
+        assert(originalValue == originalValues[2]);
+
+        int64_t handle =
+            tuneSignal(0x800d0005, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        value = AuxRoutines::readFromFile(testResourceName1);
+        newValue = C_STOI(value);
+        assert(newValue == 883);
+
+        value = AuxRoutines::readFromFile(testResourceName2);
+        newValue = C_STOI(value);
+        assert(newValue == 920);
+
+        value = AuxRoutines::readFromFile(testResourceName3);
+        newValue = C_STOI(value);
+        assert(newValue == 1555);
+
+        std::this_thread::sleep_for(std::chrono::seconds(8));
+
+        value = AuxRoutines::readFromFile(testResourceName1);
+        originalValue = C_STOI(value);
+        assert(originalValue == originalValues[0]);
+
+        value = AuxRoutines::readFromFile(testResourceName2);
+        originalValue = C_STOI(value);
+        assert(originalValue == originalValues[1]);
+
+        value = AuxRoutines::readFromFile(testResourceName3);
+        originalValue = C_STOI(value);
+        assert(originalValue == originalValues[2]);
+
+        LOG_END
+    }
+
+    static void RunTestGroup() {
+        std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
+
+        RUN_TEST(TestSingleClientTuneSignal1);
+        RUN_TEST(TestSingleClientTuneSignal2);
+
+        std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
+    }
+}
+
 int32_t main(int32_t argc, const char* argv[]) {
     // Run the Tests
     RUN_TEST(TestHandleGeneration)
@@ -2361,6 +2486,8 @@ int32_t main(int32_t argc, const char* argv[]) {
 
     // Tests on Real Sysfs Nodes (QLI)
     SystemSysfsNodesTests::RunTestGroup();
+
+    SignalApplicationTests::RunTestGroup();
 
     return 0;
 }

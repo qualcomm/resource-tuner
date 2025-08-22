@@ -9,7 +9,17 @@
 #include <unordered_map>
 
 #include "Utils.h"
+#include "Resource.h"
+#include "AuxRoutines.h"
+#include "Extensions.h"
 #include "Logger.h"
+
+enum ResourceApplyType {
+    APPLY_CORE,
+    APPLY_CLUSTER,
+    APPLY_GLOBAL,
+    APPLY_CGROUP
+};
 
 /**
  * @struct ResourceConfigInfo
@@ -19,17 +29,21 @@
  */
 typedef struct {
     /**
-     * @brief Name of the sysfs node.
+     * @brief Name of the Resource (Placeholder).
      */
     std::string mResourceName;
     /**
-     * @brief Type of the Resource, for example: POWER, CPU_DCVS, GPU etc.
+     * @brief Path to the Sysfs node, CGroup controller file or as applicable.
      */
-    int8_t mResourceOptype;
+    std::string mResourcePath;
+    /**
+     * @brief Type of the Resource, for example: LPM, CPU_DCVS, GPU etc.
+     */
+    uint8_t mResourceResType;
     /**
      * @brief Unique opcode associated with the resource.
      */
-    int16_t mResourceOpcode;
+    uint16_t mResourceResID;
     /**
      * @brief Max Possible Value which can be configured for this Resource.
      */
@@ -51,9 +65,10 @@ typedef struct {
      */
     int8_t mSupported;
     /**
-     * @brief boolean flag which is set if the Resource can have different values on different cores.
+     * @brief Application Type Enum, indicating whether the specified value for the Resource
+     *        by a Request, needs to be applied at a per-core, per-cluster or global value.
      */
-    int8_t mCoreLevelConflict;
+    enum ResourceApplyType mApplyType;
     /**
      * @brief Policy by which the resource is governed, for example Higher is Better.
      */
@@ -61,12 +76,18 @@ typedef struct {
     /**
      * @brief Original value of the Resource node, i.e. the value before any Tuning.
      */
-    int32_t mDefaultValue;
+    std::string mDefaultValue;
     /**
      * @brief Optional Custom Resource Applier Callback, it needs to be supplied by
      *        the BU via the Extension Interface.
      */
-    void (*resourceApplierCallback)(void*);
+    ResourceLifecycleCallback mResourceApplierCallback;
+
+    /**
+     * @brief Optional Custom Resource Tear Callback, it needs to be supplied by
+     *        the BU via the Extension Interface.
+     */
+    ResourceLifecycleCallback mResourceTearCallback;
 } ResourceConfigInfo;
 
 /**
@@ -78,7 +99,6 @@ class ResourceRegistry {
 private:
     static std::shared_ptr<ResourceRegistry> resourceRegistryInstance;
     int32_t mTotalResources;
-    int8_t customerBit;
 
     std::vector<ResourceConfigInfo*> mResourceConfig;
 
@@ -96,7 +116,7 @@ private:
 public:
     ~ResourceRegistry();
 
-    void initRegistry(int8_t customerBit);
+    void initRegistry();
 
     /**
      * @brief Used to register a Config specified (through YAML) Resource with Resource Tuner
@@ -104,7 +124,7 @@ public:
      *          Malformed, then it will be freed as part of this routine, else it will
      *          be added to the "mResourceConfig" vector.
      */
-    void registerResource(ResourceConfigInfo* resourceConfigInfo);
+    void registerResource(ResourceConfigInfo* resourceConfigInfo, int8_t isBuSpecified=false);
 
     std::vector<ResourceConfigInfo*> getRegisteredResources();
 
@@ -122,7 +142,7 @@ public:
     int32_t getTotalResourcesCount();
 
     // Merge the Changes provided by the BU with the existing ResourceTable.
-    void pluginModifications(const std::vector<std::pair<int32_t, ResourceApplierCallback>>& modifiedResources);
+    void pluginModifications();
 
     void restoreResourcesToDefaultValues();
 
@@ -143,17 +163,18 @@ private:
 public:
     ResourceConfigInfoBuilder();
 
-    ResourceConfigInfoBuilder* setName(const std::string& resourceName);
-    ResourceConfigInfoBuilder* setOptype(const std::string& opTypeString);
-    ResourceConfigInfoBuilder* setOpcode(const std::string& opCodeString);
-    ResourceConfigInfoBuilder* setHighThreshold(int32_t highThreshold);
-    ResourceConfigInfoBuilder* setLowThreshold(int32_t lowThreshold);
-    ResourceConfigInfoBuilder* setPermissions(const std::string& permissionString);
-    ResourceConfigInfoBuilder* setModes(const std::string& modeString);
-    ResourceConfigInfoBuilder* setSupported(int8_t supported);
-    ResourceConfigInfoBuilder* setPolicy(const std::string& policyString);
-    ResourceConfigInfoBuilder* setCoreLevelConflict(int8_t coreLevelConflict);
-    ResourceConfigInfoBuilder* setDefaultValue(int32_t defaultValue);
+    ErrCode setName(const std::string& resourceName);
+    ErrCode setPath(const std::string& resourcePath);
+    ErrCode setResType(const std::string& resTypeString);
+    ErrCode setResID(const std::string& resIDString);
+    ErrCode setHighThreshold(int32_t highThreshold);
+    ErrCode setLowThreshold(int32_t lowThreshold);
+    ErrCode setPermissions(const std::string& permissionString);
+    ErrCode setModes(const std::string& modeString);
+    ErrCode setSupported(int8_t supported);
+    ErrCode setPolicy(const std::string& policyString);
+    ErrCode setApplyType(const std::string& applyTypeString);
+    ErrCode setDefaultValue(const std::string& defaultValue);
 
     ResourceConfigInfo* build();
 };

@@ -25,7 +25,7 @@ void Timer::implementTimer() {
             }
         } while(mIsRecurring && !mStop.load());
     } catch(const std::exception& e) {
-        LOGE("RTN_TIMER", "Timer Could not be started, Error: " + std::string(e.what()));
+        LOGE("RESTUNE_TIMER", "Timer Could not be started, Error: " + std::string(e.what()));
     }
 }
 
@@ -48,12 +48,12 @@ int8_t Timer::startTimer(int64_t duration) {
         return false;
     }
 
-    LOGD("RTN_TIMER", "Timer started with " + std::to_string(duration));
+    LOGD("RESTUNE_TIMER", "Timer started with " + std::to_string(duration));
     return true;
 }
 
 void Timer::killTimer() {
-    LOGD("RTN_TIMER", "Killing timer");
+    LOGD("RESTUNE_TIMER", "Killing timer");
     mStop.store(true);
     mCv.notify_all();
 }

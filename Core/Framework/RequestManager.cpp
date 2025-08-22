@@ -13,7 +13,7 @@ int8_t RequestManager::isSane(Request* request) {
             throw std::invalid_argument("Request is nullptr");
         }
     } catch(const std::exception& e) {
-        LOGE("RTN_REQUEST_MANAGER",
+        LOGE("RESTUNE_REQUEST_MANAGER",
             "Cannot Check Request Sanity: " +  std::string(e.what()));
         return false;
     }
@@ -207,7 +207,7 @@ void RequestManager::triggerDisplayOffOrDozeMode() {
         try {
             untuneRequest = new (GetBlock<Request>()) Request();
         } catch(const std::bad_alloc& e) {
-            LOGI("RTN_REQUEST_MANAGER"
+            LOGI("RESTUNE_REQUEST_MANAGER"
                 "Failed to create Untune Request for Request: ", std::to_string(request->getHandle()));
         }
 
@@ -255,7 +255,7 @@ void RequestManager::triggerDisplayOnMode() {
         try {
             untuneRequest = new (GetBlock<Request>()) Request();
         } catch(const std::bad_alloc& e) {
-            LOGI("RTN_REQUEST_MANAGER"
+            LOGI("RESTUNE_REQUEST_MANAGER"
                 "Failed to create Untune Request for Request: ", std::to_string(request->getHandle()));
         }
 

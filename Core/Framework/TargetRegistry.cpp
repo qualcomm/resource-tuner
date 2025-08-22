@@ -9,7 +9,7 @@ static std::vector<int8_t> readRelatedCpus(const std::string& policyPath) {
 
     file.open(policyPath + "/related_cpus");
     if(!file.is_open()) {
-        LOGE("RTN_TARGET_REGISTRY",
+        LOGE("RESTUNE_TARGET_REGISTRY",
              "Failed to open file: " + policyPath + "/related_cpus");
         throw std::ifstream::failure("Failed to open file");
     }
@@ -39,7 +39,7 @@ static int32_t getOnlineCpuCount() {
     try {
         file.open(ONLINE_CPU_FILE_PATH);
         if(!file.is_open()) {
-            LOGE("RTN_TARGET_CONFIG_PROCESSOR",
+            LOGE("RESTUNE_TARGET_CONFIG_PROCESSOR",
                  "Failed to Open file: " ONLINE_CPU_FILE_PATH);
             return 0;
         }
@@ -58,19 +58,19 @@ static int32_t getOnlineCpuCount() {
         return cpuIndex + 1;
 
     } catch(const std::invalid_argument& ex) {
-        LOGE("RTN_TARGET_REGISTRY",
+        LOGE("RESTUNE_TARGET_REGISTRY",
              "Dynamic Logical to Physical Mapping Failed,\
              std::invalid_argument::what(): " + std::string(ex.what()));
     } catch(const std::out_of_range& ex) {
-        LOGE("RTN_TARGET_REGISTRY",
+        LOGE("RESTUNE_TARGET_REGISTRY",
              "Dynamic Logical to Physical Mapping Failed,\
              std::out_of_range::what(): " + std::string(ex.what()));
     } catch(const std::ifstream::failure& ex) {
-        LOGE("RTN_TARGET_REGISTRY",
+        LOGE("RESTUNE_TARGET_REGISTRY",
              "Dynamic Logical to Physical Mapping Failed,\
              std::ifstream::failure::what(): " + std::string(ex.what()));
     } catch(const std::exception& ex) {
-        LOGE("RTN_TARGET_REGISTRY",
+        LOGE("RESTUNE_TARGET_REGISTRY",
              "Dynamic Logical to Physical Mapping"\
              "Failed, with error: " + std::string(ex.what()));
     }
@@ -79,7 +79,9 @@ static int32_t getOnlineCpuCount() {
 }
 
 std::shared_ptr<TargetRegistry> TargetRegistry::targetRegistryInstance = nullptr;
-TargetRegistry::TargetRegistry() {}
+TargetRegistry::TargetRegistry() {
+    ResourceTunerSettings::targetConfigs.totalClusterCount = ClusterTypes::TOTAL_CLUSTER_COUNT;
+}
 
 void TargetRegistry::setTargetName(const std::string& targetName) {
     this->mTargetName = targetName;
@@ -91,17 +93,57 @@ void TargetRegistry::setTotalCoreCount(uint8_t totalCoreCount) {
     ResourceTunerSettings::targetConfigs.totalCoreCount = this->mTotalCoreCount;
 }
 
+void TargetRegistry::addCGroupMapping(CGroupConfigInfo* cGroupConfigInfo) {
+    if(cGroupConfigInfo == nullptr) return;
+    if(cGroupConfigInfo->mDefaultValues == nullptr) {
+        delete cGroupConfigInfo;
+        return;
+    }
+
+    if(cGroupConfigInfo->mCgroupID == -1 || cGroupConfigInfo->mCgroupName.length() == 0) {
+        delete cGroupConfigInfo;
+        return;
+    }
+
+    // Fill in defaults
+    std::string basePath = ResourceTunerSettings::mBaseCGroupPath + cGroupConfigInfo->mCgroupName;
+    (*cGroupConfigInfo->mDefaultValues)["cpu.uclamp.min"] =
+                            AuxRoutines::readFromFile(basePath + "/cpu.uclamp.min");
+    (*cGroupConfigInfo->mDefaultValues)["cpu.uclamp.max"] =
+                            AuxRoutines::readFromFile(basePath + "/cpu.uclamp.max");
+    (*cGroupConfigInfo->mDefaultValues)["cpuset.cpus"] =
+                            AuxRoutines::readFromFile(basePath + "/cpuset.cpus");
+    (*cGroupConfigInfo->mDefaultValues)["cpu.idle"] =
+                            AuxRoutines::readFromFile(basePath + "/cpu.idle");
+    (*cGroupConfigInfo->mDefaultValues)["cpu.max"] =
+                            AuxRoutines::readFromFile(basePath + "/cpu.max");
+    (*cGroupConfigInfo->mDefaultValues)["cpu.weight"] =
+                            AuxRoutines::readFromFile(basePath + "/cpu.weight");
+    (*cGroupConfigInfo->mDefaultValues)["memory.max"] =
+                            AuxRoutines::readFromFile(basePath + "/memory.max");
+    (*cGroupConfigInfo->mDefaultValues)["memory.min"] =
+                            AuxRoutines::readFromFile(basePath + "/memory.min");
+    (*cGroupConfigInfo->mDefaultValues)["cgroup.freeze"] =
+                            AuxRoutines::readFromFile(basePath + "/cgroup.freeze");
+    (*cGroupConfigInfo->mDefaultValues)["cpuset.cpus.partition"] =
+                            AuxRoutines::readFromFile(basePath + "/cpuset.cpus.partition");
+    (*cGroupConfigInfo->mDefaultValues)["cpu.latency_nice"] =
+                            AuxRoutines::readFromFile(basePath + "/cpu.latency_nice");
+
+    this->mCGroupMapping[cGroupConfigInfo->mCgroupID] = cGroupConfigInfo;
+}
+
 int8_t TargetRegistry::addMapping(const std::string& clusterName, int8_t physicalClusterId) {
     if((clusterName != "little") &&
        (clusterName != "big") &&
        (clusterName != "prime") &&
        (clusterName != "titanium")) {
-        LOGE("RTN_TARGET_CONFIG_PROCESSOR", "Incorrect cluster info");
+        LOGE("RESTUNE_TARGET_CONFIG_PROCESSOR", "Incorrect cluster info");
         return RC_INVALID_VALUE;
     }
 
     if(physicalClusterId < 0 || physicalClusterId >= CLUSTER_TYPE_COUNT) {
-        LOGE("RTN_TARGET_CONFIG_PROCESSOR", "Incorrect cluster id");
+        LOGE("RESTUNE_TARGET_CONFIG_PROCESSOR", "Incorrect cluster id");
         return RC_INVALID_VALUE;
     }
 
@@ -134,7 +176,7 @@ int8_t TargetRegistry::readPhysicalMapping() {
         try {
             cpus = readRelatedCpus(fullPath);
         } catch(const std::exception& e) {
-            LOGE("RTN_TARGET_CONFIG_PROCESSOR", "Failed to read policy dir: " + fullPath);
+            LOGE("RESTUNE_TARGET_CONFIG_PROCESSOR", "Failed to read policy dir: " + fullPath);
             return RC_FILE_NOT_FOUND;
         }
 
@@ -153,7 +195,7 @@ int8_t TargetRegistry::readPhysicalMapping() {
 
 int8_t TargetRegistry::addClusterSpreadInfo(int8_t physicalClusterId, int32_t coreCount) {
     if(physicalClusterId < 0 || physicalClusterId >= CLUSTER_TYPE_COUNT || coreCount < 0) {
-        LOGE("RTN_TARGET_CONFIG_PROCESSOR", "Invalid Cluster/Core Data id");
+        LOGE("RESTUNE_TARGET_CONFIG_PROCESSOR", "Invalid Cluster/Core Data id");
         return RC_INVALID_VALUE;
     }
     this->mClusterSpreadInfo.push_back({physicalClusterId, coreCount});
@@ -163,7 +205,7 @@ int8_t TargetRegistry::addClusterSpreadInfo(int8_t physicalClusterId, int32_t co
 ErrCode TargetRegistry::readPhysicalCoreClusterInfo() {
     // Check if a Mapping file has been provided
     if(this->mClusterSpreadInfo.size() > 0) {
-        LOGD("RTN_TARGET_CONFIG_PROCESSOR", "Reading Physical Cluster-Core Mapping data from BU-provided Config File");
+        LOGD("RESTUNE_TARGET_CONFIG_PROCESSOR", "Reading Physical Cluster-Core Mapping data from BU-provided Config File");
         std::sort(this->mClusterSpreadInfo.begin(), this->mClusterSpreadInfo.end());
 
         int32_t coreCpuIndex = 0;
@@ -175,19 +217,19 @@ ErrCode TargetRegistry::readPhysicalCoreClusterInfo() {
 
     } else {
         // No Mapping File Provided, Try to obtain the Mapping Dynamically
-        LOGD("RTN_TARGET_CONFIG_PROCESSOR", "Dynamically Reading Physical Cluster-Core Mapping data from /cpufreq/policy/* directories");
+        LOGD("RESTUNE_TARGET_CONFIG_PROCESSOR", "Dynamically Reading Physical Cluster-Core Mapping data from /cpufreq/policy/* directories");
         ResourceTunerSettings::targetConfigs.totalCoreCount = 0;
         int8_t opStatus = readPhysicalMapping();
 
         if(RC_IS_NOTOK(opStatus)) {
-            LOGD("RTN_TARGET_CONFIG_PROCESSOR", "Falling back to Default Heurisitc based core assignment");
+            LOGD("RESTUNE_TARGET_CONFIG_PROCESSOR", "Falling back to Default Heurisitc based core assignment");
 
             // Fallback to a Default Heuristic based assignment
             int32_t totalOnlineCpuCount;
             try {
                 totalOnlineCpuCount = getOnlineCpuCount();
             } catch(const std::exception& e) {
-                LOGE("RTN_TARGET_CONFIG_PROCESSOR", "Failed to read online cpu count");
+                LOGE("RESTUNE_TARGET_CONFIG_PROCESSOR", "Failed to read online cpu count");
                 return RC_FILE_NOT_FOUND;
             }
 
@@ -223,13 +265,13 @@ ErrCode TargetRegistry::readPhysicalCoreClusterInfo() {
     return RC_SUCCESS;
 }
 
-void TargetRegistry::displayLogicalClustersToPhysicalCoresMapping() {
+void TargetRegistry::displayLogicalToPhysicalMapping() {
     for(std::pair<std::string, std::vector<int8_t>> entry: mClusterTypeToPhysicalCores) {
-        LOGD("RTN_LOGICAL_CORE_TRANSLATOR","=============");
+        LOGD("RESTUNE_LOGICAL_CORE_TRANSLATOR","=============");
 
-        LOGD("RTN_LOGICAL_CORE_TRANSLATOR","LogicalClusterId " + entry.first);
+        LOGD("RESTUNE_LOGICAL_CORE_TRANSLATOR","LogicalClusterId " + entry.first);
         for(int8_t cores: entry.second) {
-            LOGD("RTN_LOGICAL_CORE_TRANSLATOR", "Core " + std::to_string(cores));
+            LOGD("RESTUNE_LOGICAL_CORE_TRANSLATOR", "Core " + std::to_string(cores));
         }
     }
 }
@@ -261,4 +303,71 @@ int32_t TargetRegistry::getPhysicalClusterId(int32_t logicalClusterId) const {
     }
     std::string clusterType = this->logicalClustersAPIConvention.at(logicalClusterId);
     return this->mClusterTypeToPhysicalSlotMapping.at(clusterType);
+}
+
+void TargetRegistry::getCGroupConfigs(std::vector<CGroupConfigInfo*>& cGroupConfigs) {
+    for(std::pair<int8_t, CGroupConfigInfo*> cGroup: mCGroupMapping) {
+        cGroupConfigs.push_back(cGroup.second);
+    }
+}
+
+CGroupConfigInfo* TargetRegistry::getCGroupConfig(int8_t cGroupID) {
+    return this->mCGroupMapping[cGroupID];
+}
+
+int32_t TargetRegistry::getCreatedCGroupsCount() {
+    return this->mCGroupMapping.size();
+}
+
+TargetRegistry::~TargetRegistry() {
+    for(std::pair<int8_t, CGroupConfigInfo*> cGroupInfo: this->mCGroupMapping) {
+        if(cGroupInfo.second == nullptr) return;
+
+        if(cGroupInfo.second->mDefaultValues != nullptr) {
+            delete cGroupInfo.second->mDefaultValues;
+            cGroupInfo.second->mDefaultValues = nullptr;
+        }
+
+        if(cGroupInfo.second != nullptr) {
+            delete cGroupInfo.second;
+            cGroupInfo.second = nullptr;
+        }
+    }
+}
+
+CGroupConfigInfoBuilder::CGroupConfigInfoBuilder() {
+    this->mCGroupConfigInfo = new CGroupConfigInfo;
+    this->mCGroupConfigInfo->mDefaultValues =
+        new std::unordered_map<std::string, std::string>;
+}
+
+CGroupConfigInfoBuilder* CGroupConfigInfoBuilder::setCGroupName(const std::string& cGroupName) {
+    if(this->mCGroupConfigInfo == nullptr) {
+        return this;
+    }
+
+    this->mCGroupConfigInfo->mCgroupName = cGroupName;
+    return this;
+}
+
+CGroupConfigInfoBuilder* CGroupConfigInfoBuilder::setCGroupID(int8_t cGroupIdentifier) {
+    if(this->mCGroupConfigInfo == nullptr) {
+        return this;
+    }
+
+    this->mCGroupConfigInfo->mCgroupID = cGroupIdentifier;
+    return this;
+}
+
+CGroupConfigInfoBuilder* CGroupConfigInfoBuilder::setThreaded(int8_t isThreaded) {
+    if(this->mCGroupConfigInfo == nullptr) {
+        return this;
+    }
+
+    this->mCGroupConfigInfo->isThreaded = isThreaded;
+    return this;
+}
+
+CGroupConfigInfo* CGroupConfigInfoBuilder::build() {
+    return this->mCGroupConfigInfo;
 }

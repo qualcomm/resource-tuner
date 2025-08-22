@@ -17,6 +17,8 @@
 
 # Introduction
 
+Resource Tuner is a lightweight daemon that monitors and dynamically regulates CPU, memory, and I/O usage of user-space processes. It leverages kernel interfaces like procfs, sysfs and cgroups to enforce runtime policies, ensuring system stability and performance in embedded and resource-constrained environments.
+
 Gaining control over system resources such as the CPU, caches, and GPU is a powerful capability in any developer’s toolkit. By fine-tuning these components, developers can optimize the system’s operating point to make more efficient use of hardware resources and significantly enhance the user experience.
 
 For example, increasing the CPU's Dynamic Clock and Voltage Scaling (DCVS) minimum frequency to 1 GHz can boost performance during demanding tasks. Conversely, capping the maximum frequency at 1.5 GHz can help conserve power during less intensive operations.
@@ -25,6 +27,48 @@ The Resource Tuner framework supports `Signals` which is dynamic provisioning of
 
 ---
 
+<div style="page-break-after: always;"></div>
+
+# Getting Started
+
+To get started with the project:
+
+1. Clone the repository:
+   \code{.sh}
+   git clone https://github.com/qualcomm/resource-tuner.git
+   \endcode
+
+2. Build the project:
+   \code{.sh}
+   mkdir build && cd build
+   cmake ..
+   make
+   \endcode
+
+3. Run the application:
+   \code{.sh}
+   ./resource_tuner --start
+   \endcode
+
+Refer the **Examples** Tab for guidance on Resource Tuner API usage.
+
+[GitHub Repo](https://github.com/qualcomm/resource-tuner/tree/main)
+
+---
+
+# Project Structure
+
+\verbatim
+/Framework  → Core Resource Provisioning Request Logic
+/Auxiliary  → Common Utilities and Components used across Resource Tuner Modules.
+/Client     → Exposes the Client Facing APIs, and Defines the Client Communication Endpoint
+/Server     → Defines the Server Communication Endpoint and other Common Server-Side Utils.
+/Signals    → Optional Module, exposes Signal Tuning / Relay APIs
+/Tests      → Unit and System Wide Tests
+/docs       → Documentation
+\endverbatim
+
+---
 <div style="page-break-after: always;"></div>
 
 
@@ -40,11 +84,12 @@ The Resource Tuner framework supports `Signals` which is dynamic provisioning of
 - The Extension Interface Provides a way to Customize Resource Tuner Behaviour, by Specifying Custom Resources, Custom Signals and Features.
 - Resource Tuner uses YAML based Config files, for fetching Information relating to Resources / Signals and Properties.
 
+---
 <div style="page-break-after: always;"></div>
 
 # Resource Tuner Features
 
-![alt text](images/design_resource_tuner.png)
+<img src="design_resource_tuner.png" alt="Resource Tuner Design" width="50%"/>
 
 Resource Tuner Architecture is captured above.
 ## Initialization
@@ -71,6 +116,7 @@ Resource Tuner Architecture is captured above.
 - A timer is created and used to keep track of a Request, i.e. check if it has expired. Once it is detected that the Request has expired an Untune Request for the same Handle as this Request, is automatically generated and submitted, it will take care of Resetting the effected Resource Nodes to their Original Values.
 - BUs can Provide their own Custom Appliers for any Resource. The Default Action provided by Resource Tuner is writing to the Resource Sysfs Node.
 
+---
 <div style="page-break-after: always;"></div>
 
 Here is a more detailed explanation of the key features discussed above:
@@ -133,16 +179,14 @@ Resource Tuner provides a MemoryPool component, which allows for pre-allocation 
 
 Further, a ThreadPool component is provided to pre-allocate processing capacity. This is done to improve the efficiency of the system, by reducing the number of thread creation and destruction required during the processing of Requests, further ThreadPool allows for the Threads to be repeatedly reused for processing different tasks.
 
-<div style="page-break-after: always;"></div>
-
-
+---
 <div style="page-break-after: always;"></div>
 
 # Config Files Format
 Resource Tuner utilises YAML files for configuration. This includes the Resources, Signal Config Files. The BUs can provide their own Config Files, which are specific to their use-case through the Extension Interface
 
 ## 1. Resource Configs
-Tunable Resources are specified via the ResourceConfigs.yaml file. Each Resource is defined with the following fields:
+Tunable Resources are specified via the ResourcesConfig.yaml file. Each Resource is defined with the following fields:
 
 #### Fields Description
 
@@ -157,7 +201,7 @@ Tunable Resources are specified via the ResourceConfigs.yaml file. Each Resource
 | `Permissions`   | `string` (Optional)   | Type of client allowed to Provision this Resource (`system` or `third_party`). | `third_party` |
 | `Modes`         | `array` (Optional)    | Display modes applicable (`"display_on"`, `"display_off"`, `"doze"`). | `display_on` |
 | `Policy`        | `string`(Optional)   | Concurrency policy (`"higher_is_better"`, `"lower_is_better"`, `"instant_apply"`, `"lazy_apply"`). | `lazy_apply` |
-| `CoreLevelConflict` | `boolean` (Optional)  | Indicates if the resource can have different values, across different cores. | `False` |
+| `ApplyType` | `string` (Optional)  | Indicates if the resource can have different values, across different cores. | `global` |
 
 <div style="page-break-after: always;"></div>
 
@@ -174,7 +218,6 @@ ResourceConfigs:
     Permissions: "third_party"
     Modes: ["display_on", "doze"]
     Policy: "higher_is_better"
-    CoreLevelConflict: false
 
   - ResType: "0x1"
     ResID: "0x1"
@@ -185,14 +228,13 @@ ResourceConfigs:
     Permissions: "third_party"
     Modes: ["display_on", "doze"]
     Policy: "lower_is_better"
-    CoreLevelConflict: false
 ```
 
 ---
 <div style="page-break-after: always;"></div>
 
 ## 2. Properties Config
-The targetPropertiesConfigs.yaml file stores various properties which are used by the Resource Tuner Modules internally (for example, to allocate sufficient amount of Memory for different Types, or to determine the Pulse Monitor Duration) as well as by the End Client.
+The targetPropertiesConfig.yaml file stores various properties which are used by the Resource Tuner Modules internally (for example, to allocate sufficient amount of Memory for different Types, or to determine the Pulse Monitor Duration) as well as by the End Client.
 
 #### Field Descriptions
 
@@ -218,7 +260,7 @@ PropertyConfigs:
 <div style="page-break-after: always;"></div>
 
 ## 3. Signal Configs
-The file SignalConfigs.yaml defines the Signal Configs.
+The file SignalsConfig.yaml defines the Signal Configs.
 
 #### Field Descriptions
 
@@ -228,10 +270,10 @@ The file SignalConfigs.yaml defines the Signal Configs.
 | `Category`          | `string` (Mandatory)   | Category of the Signal, for example: Generic, App Lifecycle. | Not Applicable |
 | `Name`          | `string` (Optional)  | |`Empty String` |
 | `Enable`          | `boolean` (Optional)   | Indicates if the Signal is Eligible for Provisioning. | `False` |
-| `TargetsEnabled`          | `array` (Optional)   | List of Targets on which this Signal can be Acquired | `Empty List` |
-| `TargetsEnabled`          | `array` (Optional)   | List of Targets on which this Signal cannot be Acquired | `Empty List` |
+| `TargetsEnabled`          | `array` (Optional)   | List of Targets on which this Signal can be Tuned | `Empty List` |
+| `TargetsEnabled`          | `array` (Optional)   | List of Targets on which this Signal cannot be Tuned | `Empty List` |
 | `Permissions`          | `array` (Optional)   | List of acceptable Client Level Permissions for tuning this Signal | `third_party` |
-|`Timeout`              | `integer` (Optional) | Default Signal Acquire Duration to be used in case the Client specifies a value of 0 for duration in the tuneSignal API call. | `1000` |
+|`Timeout`              | `integer` (Optional) | Default Signal Tuning Duration to be used in case the Client specifies a value of 0 for duration in the tuneSignal API call. | `1 (ms)` |
 | `Resources` | `array` (Mandatory) | List of Resources. | Not Applicable |
 
 <div style="page-break-after: always;"></div>
@@ -270,11 +312,11 @@ SignalConfigs:
 
 
 ## 4. (Optional) Target Configs
-The file TargetConfigs.yaml defines the Target Configs, not this an Optional Config, i.e. this
+The file TargetConfig.yaml defines the Target Configs, not this an Optional Config, i.e. this
 file need not necessarily be provided. Resource Tuner can dynamically fetch system info, like Target Name,
 Logical to Physical Core / Cluster Mapping, number of cores etc. Use this file, if you want to
-provide this information explicitly. If the TargetConfigs.yaml is provided, Resource Tuner will always
-Prioritize and use it. Also note, there are no field-level default values available if the TargetConfigs.yaml is provided. Hence if you wish to provide this file, then you'll need to exhaustivly provide
+provide this information explicitly. If the TargetConfig.yaml is provided, Resource Tuner will always
+Prioritize and use it. Also note, there are no field-level default values available if the TargetConfig.yaml is provided. Hence if you wish to provide this file, then you'll need to exhaustivly provide
 all the required information.
 
 #### Field Descriptions
@@ -320,7 +362,7 @@ This API suite allows you to manage system resource provisioning through tuning 
 
 ---
 
-## `tuneResources`
+## tuneResources
 
 **Description:**
 Issues a Resource provisioning (or Tuning) request for a finite or infinite duration.
@@ -351,7 +393,7 @@ int64_t tuneResources(int64_t duration,
 ---
 <div style="page-break-after: always;"></div>
 
-## `retuneResources`
+## retuneResources
 
 **Description:**
 Modifies the duration of an existing Tune request.
@@ -377,7 +419,7 @@ int8_t retuneResources(int64_t handle,
 
 <div style="page-break-after: always;"></div>
 
-## `untuneResources`
+## untuneResources
 
 **Description:**
 Withdraws a previously issued resource provisioning (or Tune) request.
@@ -399,7 +441,7 @@ int8_t untuneResources(int64_t handle);
 ---
 <div style="page-break-after: always;"></div>
 
-## `getprop`
+## getprop
 
 **Description:**
 Gets a property from the Config Store
@@ -427,7 +469,7 @@ int8_t getprop(const char* prop,
 
 <div style="page-break-after: always;"></div>
 
-## `setprop`
+## setprop
 
 **Description:**
 Modifies an already existing property in the Config Store.
@@ -473,9 +515,6 @@ typedef struct Resource {
 
 **OpId**: An unsigned 32-bit unique identifier for the resource. It encodes essential information that is useful in abstracting away the system specific details.
 
-<!-- ![OpId Bitmap] (images/OpId_Bitmap.png) -->
-![OpID Bitmap](images/OpId_Bitmap.png)
-
 **OpInfo**: Encodes operation-specific information such as the Logical cluster and core IDs, and MPAM part ID.
 
 **OptionalInfo**: Additional optional metadata, useful for custom or extended resource configurations.
@@ -506,13 +545,13 @@ Examples:
 
 | Name           | ResType  | Examples |
 |----------------|----------|----------|
-|    POWER       |    `1`   | |
-|    CPU_DCVS    |    `2`   | |
-|    CPU_SCHED   |    `3`   | `/proc/sys/kernel/sched_util_clamp_min` `/proc/sys/kernel/sched_util_clamp_max` |
-|    CPU_FREQ    |    `4`   | `/sys/devices/system/cpu/cpufreq/policy<>/scaling_min_freq` `/sys/devices/system/cpu/cpufreq/policy<>/scaling_max_freq` |
+|    LPM       |    `1`   | |
+|    CACHES    |    `2`   | |
+|    CPU_SCHED   |    `3`   | `/proc/sys/kernel/sched_util_clamp_min`, `/proc/sys/kernel/sched_util_clamp_max` |
+|    CPU_DCVS    |    `4`   | `/sys/devices/system/cpu/cpufreq/policy<>/scaling_min_freq`, `/sys/devices/system/cpu/cpufreq/policy<>/scaling_max_freq` |
 |    GPU         |    `5`   | |
 |    NPU         |    `6`   | |
-|    CACHES      |    `7`   | |
+|    MEMORY      |    `7`   | |
 |    MPAM        |    `8`   | |
 |    MISC        |    `9`   | |
 
@@ -598,7 +637,7 @@ Specifically the Extension Interface provides the following capabilities:
 
 ## Macros
 
-### `RTN_REGISTER_RESOURCE`
+### `RESTUNE_REGISTER_APPLIER_CB`
 
 Registers a custom resource handler with the system. This allows the framework to invoke a user-defined callback when a specific resource opcode is encountered. A function pointer to the callback is to be registered.
 Now, instead of the normal resource handler, this callback function will be called when a Resource Provisioning Request for this particular resource opcode arrives.
@@ -610,18 +649,18 @@ int32_t applyCustomCpuFreqCustom(Resource* res) {
     return 0;
 }
 
-RTN_REGISTER_RESOURCE(0x00010001, applyCustomCpuFreqCustom);
+RESTUNE_REGISTER_APPLIER_CB(0x00010001, applyCustomCpuFreqCustom);
 ```
 
 ---
 
-### `RTN_REGISTER_CONFIG`
+### `RESTUNE_REGISTER_CONFIG`
 
 Registers a custom configuration YAML file. This enables the BU to provide their own Config Files, i.e. allowing them to provide their Own Custom Resources for Example.
 
 ### Usage Example
 ```cpp
-RTN_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/bin/targetResourceConfigCustom.yaml");
+RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/bin/targetResourceConfigCustom.yaml");
 ```
 The above line of code, will indicate to Resource Tuner to Read the Resource Configs from the file
 "/etc/bin/targetResourceConfigCustom.yaml" instead of the Default File. Note, the BUs must honour the structure of the YAML files, for them to be read and registered successfully.
@@ -629,58 +668,83 @@ The above line of code, will indicate to Resource Tuner to Read the Resource Con
 Custom Signal Config File can be specified similarly:
 ### Usage Example
 ```cpp
-RTN_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/bin/targetSignalConfigCustom.yaml");
+RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/bin/targetSignalConfigCustom.yaml");
 ```
 
+---
 <div style="page-break-after: always;"></div>
 
-
-# Server CLI
-The **Resource Tuner Server** runs as a background service, initializing configurations and registering extensions to handle incoming requests.
-
-## Commands
-- `start` Launches the server, loads all configuration files, and prepares for request handling.
-
-- `exit` Gracefully shuts down the server.
-
-- `dump` Displays all currently active requests in the system.
----
-
 # Client CLI
-REDO: NEED TO REWRITE TO MATCH CURRENT IMPLEMENTATION
-
-The **Resource Tuner Client** sends tuning-related requests to the server via command-line interface.
+Resource Tuner provides a minimal CLI to interact with the server. This is provided to help with development and debugging purposes.
 
 ## Usage Examples
 
-### 1. Send Tune Requests from YAML File
+### 1. Send a Tune Request
 ```bash
-./client_ex -j
+./resource_tuner_cli --tune --duration <> --priority <> --num <> --res <>
 ```
-- Reads requests from `SampleRequests.yaml`. TODO:show example.
+Where:
+- `duration`: Duration in milliseconds for the tune request
+- `priority`: Priority level for the tune request (HIGH: 0 or LOW: 1)
+- `num`: Number of Resources
+- `res`: List of resource OpCode, Value pairs to be tuned as part of this request
 
-### 2. Send Tune Request via CLI
+Example:
 ```bash
-./client_ex -i -v 0:567 -d 5000 -p 1
+./resource_tuner_cli --tune --duration 5000 --priority 0 --num 1 --res 65536:700
 ```
-- `-i` : Initiates a tune request  
-- `-v` : Opcode:Value pairs (comma-separated, no spaces)  
-- `-d` : Duration in milliseconds  
-- `-p` : Priority level
 
-### 3. Send Untune Request
+### 2. Send an Untune Request
 ```bash
-./client_ex -u -h 1
+./resource_tuner_cli --untune --handle <>
 ```
-- `-u` : Untune request  
-- `-h` : Handle ID
+Where:
+- `handle`: Handle of the previously issued Tune Request, which needs to be untuned
 
-### 4. Send Retune Request
+Example:
 ```bash
-./client_ex -r -h 1 -d 8000
+./resource_tuner_cli --untune --handle 50
 ```
-- `-r` : Retune request  
-- `-h` : Handle ID  
-- `-d` : New duration in milliseconds
+
+### 3. Send a Retune Request
+```bash
+./resource_tuner_cli --retune --handle <> --duration <>
+```
+Where:
+- `handle`: Handle of the previously issued Tune Request, which needs to be retuned
+- `duration`: The new Duration in milliseconds for the tune request
+
+Example:
+```bash
+./resource_tuner_cli --retune --handle 7 --duration 8000
+```
+
+### 4. Send a getprop Request
+
+```bash
+./resource_tuner_cli --getprop --key <>
+```
+Where:
+- `key`: The Prop Name of which the corresponding value needs to be fetched
+
+Example:
+```bash
+./resource_tuner_cli --getprop --key "resource_tuner.logging.level"
+```
+
+### 5. Send a setprop Request
+
+---
+<div style="page-break-after: always;"></div>
+
+# Contact
+
+For questions, suggestions, or contributions, feel free to reach out:
+
+- **Email**: CSE.Perf@qti.qualcomm.com
+
+# License
+
+This project is licensed under the BSD 3-Clause Clear License.
 
 <div style="page-break-after: always;"></div>

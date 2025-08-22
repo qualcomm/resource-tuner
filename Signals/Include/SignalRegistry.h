@@ -25,12 +25,12 @@ typedef struct {
     /**
      * @brief 16-bit Signal Opcode
      */
-    int16_t mSignalOpId;
+    uint16_t mSignalID;
 
     /**
      * @brief Category of the Signal
      */
-    int8_t mSignalCategory;
+    uint8_t mSignalCategory;
 
     /**
      * @brief Signal Name, for ex: EARLY_WAKEUP
@@ -76,12 +76,16 @@ typedef struct {
 
 } SignalInfo;
 
+/**
+* @brief SignalRegistry
+* @details Stores information Relating to all the Signals available for Tuning.
+*          Note: This information is extracted from Config YAML files.
+*/
 class SignalRegistry {
 private:
     static std::shared_ptr<SignalRegistry> signalRegistryInstance;
-    static int32_t mTotalSignals;
+    int32_t mTotalSignals;
     std::vector<SignalInfo*> mSignalsConfigs;
-    int8_t customerBit;
 
     std::unordered_map<uint32_t, int32_t> mSystemIndependentLayerMappings;
 
@@ -90,24 +94,39 @@ private:
 public:
     ~SignalRegistry();
 
-    void initRegistry(int32_t size, int8_t customerBit);
+    /**
+     * @brief Used to register a Config specified (through YAML) Signal with Resource Tuner
+     * @details The Signal Info is parsed from YAML files. If the SignalInfo provided is
+     *          Malformed, then it will be freed as part of this routine, else it will
+     *          be added to the "mSignalsConfigs" vector.
+     */
+    void registerSignal(SignalInfo* signalInfo, int8_t isBuSpecified=false);
 
-    void registerSignal(SignalInfo* signalInfo);
+    int8_t isSignalConfigMalformed(SignalInfo* sConf);
 
     std::vector<SignalInfo*> getSignalConfigs();
 
+   /**
+    * @brief Get the SignalInfo object corresponding to the given Resource ID.
+    * @param resourceId An unsigned 32 bit integer, representing the Signal ID.
+    * @return SignalInfo*:
+    *          - A pointer to the SignalInfo object
+    *          - nullptr, if no SignalInfo object with the given Signal ID exists.
+    */
     SignalInfo* getSignalConfigById(uint32_t signalID);
 
     int32_t getSignalsConfigCount();
 
     void displaySignals();
 
+    int32_t getSignalTableIndex(uint32_t signalID);
+
     static std::shared_ptr<SignalRegistry> getInstance() {
         if(signalRegistryInstance == nullptr) {
             try {
                 signalRegistryInstance = std::shared_ptr<SignalRegistry>(new SignalRegistry());
             } catch(const std::bad_alloc& e) {
-                LOGE("RTN_SIGNAL_REGISTRY",
+                LOGE("RESTUNE_SIGNAL_REGISTRY",
                      "Failed to allocate memory for SignalRegistry instance: " + std::string(e.what()));
                 return nullptr;
             }
@@ -123,15 +142,15 @@ private:
 public:
     SignalInfoBuilder();
 
-    SignalInfoBuilder* setOpID(const std::string& signalOpIdString);
-    SignalInfoBuilder* setCategory(const std::string& categoryString);
-    SignalInfoBuilder* setName(const std::string& signalName);
-    SignalInfoBuilder* setTimeout(int32_t timeout);
-    SignalInfoBuilder* setIsEnabled(int8_t isEnabled);
-    SignalInfoBuilder* addTarget(int8_t isEnabled, const std::string& target);
-    SignalInfoBuilder* addPermission(const std::string& permissionString);
-    SignalInfoBuilder* addDerivative(const std::string& derivative);
-    SignalInfoBuilder* addResource(Resource* resource);
+    ErrCode setSignalID(const std::string& signalOpIdString);
+    ErrCode setSignalCategory(const std::string& categoryString);
+    ErrCode setName(const std::string& signalName);
+    ErrCode setTimeout(int32_t timeout);
+    ErrCode setIsEnabled(int8_t isEnabled);
+    ErrCode addTarget(int8_t isEnabled, const std::string& target);
+    ErrCode addPermission(const std::string& permissionString);
+    ErrCode addDerivative(const std::string& derivative);
+    ErrCode addResource(Resource* resource);
 
     SignalInfo* build();
 };
@@ -143,10 +162,10 @@ private:
 public:
     ResourceBuilder();
 
-    ResourceBuilder* setResCode(const std::string& resCodeString);
-    ResourceBuilder* setOpInfo(const std::string& opInfoString);
-    ResourceBuilder* setNumValues(int32_t valuesCount);
-    ResourceBuilder* addValue(int32_t value);
+    ErrCode setResCode(const std::string& resCodeString);
+    ErrCode setOpInfo(const std::string& opInfoString);
+    ErrCode setNumValues(int32_t valuesCount);
+    ErrCode addValue(int32_t value);
 
     Resource* build();
 };

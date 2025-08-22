@@ -7,70 +7,80 @@
 std::shared_ptr<ResourceRegistry> ResourceRegistry::resourceRegistryInstance = nullptr;
 
 ResourceRegistry::ResourceRegistry() {
-    this->customerBit = false;
     this->mTotalResources = 0;
-}
-
-void ResourceRegistry::initRegistry(int8_t customerBit) {
-    this->customerBit = customerBit;
 }
 
 int8_t ResourceRegistry::isResourceConfigMalformed(ResourceConfigInfo* rConf) {
     if(rConf == nullptr) return true;
-    if(rConf->mResourceOptype < 0 || rConf->mResourceOpcode < 0) return true;
-    if(rConf->mHighThreshold < 0 || rConf->mLowThreshold < 0) return true;
+    if(rConf->mResourceResType == 0) return true;
     return false;
 }
 
-void ResourceRegistry::registerResource(ResourceConfigInfo* resourceConfigInfo) {
+void ResourceRegistry::registerResource(ResourceConfigInfo* resourceConfigInfo,
+                                        int8_t isBuSpecified) {
     // Invalid Resource, skip.
     if(this->isResourceConfigMalformed(resourceConfigInfo)) {
-        delete resourceConfigInfo;
+        if(resourceConfigInfo != nullptr) {
+            delete resourceConfigInfo;
+        }
         return;
     }
 
     // Persist the Default Values of the Resources in a File.
     // These values will be used to restore the Sysfs nodes in case the Server Process crashes.
-    std::fstream sysfsPersistenceFile("../sysfsOriginalValues.txt", std::ios::out | std::ios::app);
-    std::string resourceData = resourceConfigInfo->mResourceName;
-    resourceData.push_back(',');
-    resourceData.append(std::to_string(resourceConfigInfo->mDefaultValue));
-    resourceData.push_back('\n');
-    sysfsPersistenceFile << resourceData;
+    if(resourceConfigInfo->mDefaultValue.length() != 0) {
+        std::fstream sysfsPersistenceFile("sysfsOriginalValues.txt", std::ios::out | std::ios::app);
+        std::string resourceData = resourceConfigInfo->mResourcePath;
+        resourceData.push_back(',');
+        resourceData.append(resourceConfigInfo->mDefaultValue);
+        resourceData.push_back('\n');
+        sysfsPersistenceFile << resourceData;
+    }
 
     // Create the OpID Bitmap, this will serve as the key for the entry in mSystemIndependentLayerMappings.
     uint32_t resourceBitmap = 0;
-    if(this->customerBit) {
-        resourceBitmap |= (1 << 31);
+    resourceBitmap |= ((uint32_t)resourceConfigInfo->mResourceResID);
+    resourceBitmap |= ((uint32_t)resourceConfigInfo->mResourceResType << 16);
+
+    // Check for any conflict
+    if(this->mSystemIndependentLayerMappings.find(resourceBitmap) !=
+        this->mSystemIndependentLayerMappings.end()) {
+        // Resource with the specified ResType and ResCode already exists
+        // Overwrite it.
+
+        int32_t resourceTableIndex = getResourceTableIndex(resourceBitmap);
+        this->mResourceConfig[resourceTableIndex] = resourceConfigInfo;
+
+        if(isBuSpecified) {
+            this->mSystemIndependentLayerMappings.erase(resourceBitmap);
+            resourceBitmap |= (1 << 31);
+
+            this->mSystemIndependentLayerMappings[resourceBitmap] = resourceTableIndex;
+        }
+    } else {
+        if(isBuSpecified) {
+            resourceBitmap |= (1 << 31);
+        }
+
+        this->mSystemIndependentLayerMappings[resourceBitmap] = this->mTotalResources;
+        this->mResourceConfig.push_back(resourceConfigInfo);
+
+        this->mTotalResources++;
     }
-
-    resourceBitmap |= ((uint32_t)resourceConfigInfo->mResourceOpcode);
-    resourceBitmap |= ((uint32_t)resourceConfigInfo->mResourceOptype << 16);
-
-    this->mSystemIndependentLayerMappings[resourceBitmap] = this->mTotalResources;
-    this->mResourceConfig.push_back(resourceConfigInfo);
-
-    this->mTotalResources++;
 }
 
 void ResourceRegistry::displayResources() {
-    for(int32_t i = 0; i < mTotalResources; i++) {
+    for(int32_t i = 0; i < this->mTotalResources; i++) {
         auto& res = mResourceConfig[i];
 
-        LOGI("RTN_RESOURCE_PROCESSOR", "Resource Name: " + res->mResourceName);
-        LOGI("RTN_RESOURCE_PROCESSOR", "Optype: " + std::to_string(res->mResourceOptype));
-        LOGI("RTN_RESOURCE_PROCESSOR", "Opcode: " + std::to_string(res->mResourceOpcode));
-        LOGI("RTN_RESOURCE_PROCESSOR", "High Threshold: " + std::to_string(res->mHighThreshold));
-        LOGI("RTN_RESOURCE_PROCESSOR", "Low Threshold: " + std::to_string(res->mLowThreshold));
+        LOGI("RESTUNE_RESOURCE_PROCESSOR", "Resource Name: " + res->mResourceName);
+        LOGI("RESTUNE_RESOURCE_PROCESSOR", "Resource Path: " + res->mResourcePath);
+        LOGI("RESTUNE_RESOURCE_PROCESSOR", "Optype: " + std::to_string(res->mResourceResType));
+        LOGI("RESTUNE_RESOURCE_PROCESSOR", "Opcode: " + std::to_string(res->mResourceResID));
+        LOGI("RESTUNE_RESOURCE_PROCESSOR", "High Threshold: " + std::to_string(res->mHighThreshold));
+        LOGI("RESTUNE_RESOURCE_PROCESSOR", "Low Threshold: " + std::to_string(res->mLowThreshold));
 
-        if(res->resourceApplierCallback != nullptr) {
-            LOGI("RTN_RESOURCE_PROCESSOR", "BU has defined its own custom Resource Applier Function");
-            res->resourceApplierCallback(nullptr);
-        } else {
-            LOGI("RTN_RESOURCE_PROCESSOR", "No custom Resource Applier Specified, will use default one");
-        }
-
-        LOGI("RTN_RESOURCE_PROCESSOR", "====================================");
+        LOGI("RESTUNE_RESOURCE_PROCESSOR", "====================================");
     }
 }
 
@@ -80,21 +90,20 @@ std::vector<ResourceConfigInfo*> ResourceRegistry::getRegisteredResources() {
 
 ResourceConfigInfo* ResourceRegistry::getResourceById(uint32_t resourceId) {
     if(this->mSystemIndependentLayerMappings.find(resourceId) == this->mSystemIndependentLayerMappings.end()) {
+        TYPELOGV(RESOURCE_REGISTRY_RESOURCE_NOT_FOUND, resourceId);
         return nullptr;
     }
 
     int32_t resourceTableIndex = this->mSystemIndependentLayerMappings[resourceId];
+    if(resourceTableIndex == -1) {
+        TYPELOGV(RESOURCE_REGISTRY_RESOURCE_NOT_FOUND, resourceId);
+        return nullptr;
+    }
     return this->mResourceConfig[resourceTableIndex];
 }
 
 int32_t ResourceRegistry::getResourceTableIndex(uint32_t resourceId) {
-    try {
-        if(this->mSystemIndependentLayerMappings.find(resourceId) == this->mSystemIndependentLayerMappings.end()) {
-            throw std::out_of_range("Index out of bounds");
-        }
-    } catch(const std::exception& e) {
-        LOGE("RTN_RESOURCE_PROCESSOR",
-             "Resource ID not found in the registry");
+    if(this->mSystemIndependentLayerMappings.find(resourceId) == this->mSystemIndependentLayerMappings.end()) {
         return -1;
     }
 
@@ -105,32 +114,29 @@ int32_t ResourceRegistry::getTotalResourcesCount() {
     return this->mTotalResources;
 }
 
-void ResourceRegistry::pluginModifications(const std::vector<std::pair<int32_t, ResourceApplierCallback>>& modifiedResources) {
-    for(std::pair<int32_t, ResourceApplierCallback> resource: modifiedResources) {
-        this->mResourceConfig[resource.first]->resourceApplierCallback = resource.second;
-    }
-}
+void ResourceRegistry::pluginModifications() {
+    std::vector<std::pair<uint32_t, ResourceLifecycleCallback>> applierCallbacks = Extensions::getResourceApplierCallbacks();
+    std::vector<std::pair<uint32_t, ResourceLifecycleCallback>> tearCallbacks = Extensions::getResourceTearCallbacks();
 
-void writeToNode(const std::string& fName, int32_t fValue) {
-    std::ofstream myFile(fName, std::ios::out | std::ios::trunc);
-
-    if(!myFile.is_open()) {
-        LOGD("RTN_COCO_TABLE", "Failed to open file: "+ fName);
-        return;
+    for(std::pair<uint32_t, ResourceLifecycleCallback> resource: applierCallbacks) {
+        int32_t resourceTableIndex = this->getResourceTableIndex(resource.first);
+        if(resourceTableIndex != -1) {
+            this->mResourceConfig[resourceTableIndex]->mResourceApplierCallback = resource.second;
+        }
     }
 
-    myFile << std::to_string(fValue);
-    if(myFile.fail()) {
-        LOGD("RTN_COCO_TABLE", "Failed to write to file: "+ fName);
+    for(std::pair<uint32_t, ResourceLifecycleCallback> resource: tearCallbacks) {
+        int32_t resourceTableIndex = this->getResourceTableIndex(resource.first);
+        if(resourceTableIndex != -1) {
+            this->mResourceConfig[resourceTableIndex]->mResourceTearCallback = resource.second;
+        }
     }
-    myFile.flush();
-    myFile.close();
 }
 
 void ResourceRegistry::restoreResourcesToDefaultValues() {
     for(ResourceConfigInfo* resourceConfig: this->mResourceConfig) {
-        int32_t defaultValue = resourceConfig->mDefaultValue;
-        writeToNode(resourceConfig->mResourceName, defaultValue);
+        std::string defaultValue = resourceConfig->mDefaultValue;
+        AuxRoutines::writeToFile(resourceConfig->mResourcePath, defaultValue);
     }
 }
 
@@ -149,79 +155,111 @@ ResourceConfigInfoBuilder::ResourceConfigInfoBuilder() {
         return;
     }
 
-    this->mResourceConfigInfo->resourceApplierCallback = nullptr;
+    this->mResourceConfigInfo->mResourceApplierCallback = nullptr;
+    this->mResourceConfigInfo->mResourceTearCallback = nullptr;
     this->mResourceConfigInfo->mModes = 0;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setName(const std::string& name) {
-    if(this->mResourceConfigInfo == nullptr) return this;
+ErrCode ResourceConfigInfoBuilder::setName(const std::string& name) {
+    if(this->mResourceConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
 
     this->mResourceConfigInfo->mResourceName = name;
-    return this;
+    return RC_SUCCESS;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setOptype(const std::string& opTypeString) {
-    if(this->mResourceConfigInfo == nullptr) return this;
-
-    this->mResourceConfigInfo->mResourceOptype = -1;
-    try {
-        this->mResourceConfigInfo->mResourceOptype = (int8_t)stoi(opTypeString, nullptr, 0);
-    } catch(const std::invalid_argument& ex) {
-        LOGE("RTN_RESOURCE_REGISTRY",
-             "Resource Parsing Failed with error: " + std::string(ex.what()));
-    } catch(const std::out_of_range& ex) {
-        LOGE("RTN_RESOURCE_REGISTRY",
-             "Resource Parsing Failed with error: " + std::string(ex.what()));
+ErrCode ResourceConfigInfoBuilder::setPath(const std::string& path) {
+    if(this->mResourceConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
     }
-    return this;
+
+    this->mResourceConfigInfo->mResourcePath = path;
+    return RC_SUCCESS;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setOpcode(const std::string& opCodeString) {
-    if(this->mResourceConfigInfo == nullptr) return this;
-
-    this->mResourceConfigInfo->mResourceOpcode = -1;
-    try {
-        this->mResourceConfigInfo->mResourceOpcode = (int16_t)stoi(opCodeString, nullptr, 0);
-    } catch(const std::invalid_argument& ex) {
-        LOGE("RTN_SIGNAL_REGISTRY",
-             "Signal Parsing Failed with error: " + std::string(ex.what()));
-    } catch(const std::out_of_range& ex) {
-        LOGE("RTN_SIGNAL_REGISTRY",
-             "Signal Parsing Failed with error: " + std::string(ex.what()));
+ErrCode ResourceConfigInfoBuilder::setResType(const std::string& resTypeString) {
+    if(this->mResourceConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
     }
-    return this;
+
+    this->mResourceConfigInfo->mResourceResType = -1;
+    try {
+        this->mResourceConfigInfo->mResourceResType = (uint8_t)stoi(resTypeString, nullptr, 0);
+    } catch(const std::invalid_argument& e) {
+        TYPELOGV(RESOURCE_REGISTRY_PARSING_FAILURE, e.what());
+        return RC_INVALID_VALUE;
+
+    } catch(const std::out_of_range& e) {
+        TYPELOGV(RESOURCE_REGISTRY_PARSING_FAILURE, e.what());
+        return RC_INVALID_VALUE;
+    }
+
+    return RC_SUCCESS;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setHighThreshold(int32_t highThreshold) {
-    if(this->mResourceConfigInfo == nullptr) return this;
+ErrCode ResourceConfigInfoBuilder::setResID(const std::string& resIDString) {
+    if(this->mResourceConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
+
+    this->mResourceConfigInfo->mResourceResID = 0;
+    try {
+        this->mResourceConfigInfo->mResourceResID = (uint16_t)stoi(resIDString, nullptr, 0);
+    } catch(const std::invalid_argument& e) {
+        TYPELOGV(RESOURCE_REGISTRY_PARSING_FAILURE, e.what());
+        return RC_INVALID_VALUE;
+
+    } catch(const std::out_of_range& e) {
+        TYPELOGV(RESOURCE_REGISTRY_PARSING_FAILURE, e.what());
+        return RC_INVALID_VALUE;
+    }
+
+    return RC_SUCCESS;
+}
+
+ErrCode ResourceConfigInfoBuilder::setHighThreshold(int32_t highThreshold) {
+    if(this->mResourceConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
 
     this->mResourceConfigInfo->mHighThreshold = highThreshold;
-    return this;
+    return RC_SUCCESS;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setLowThreshold(int32_t lowThreshold) {
-    if(this->mResourceConfigInfo == nullptr) return this;
+ErrCode ResourceConfigInfoBuilder::setLowThreshold(int32_t lowThreshold) {
+    if(this->mResourceConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
 
     this->mResourceConfigInfo->mLowThreshold = lowThreshold;
-    return this;
+    return RC_SUCCESS;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setPermissions(const std::string& permissionString) {
-    if(this->mResourceConfigInfo == nullptr) return this;
+ErrCode ResourceConfigInfoBuilder::setPermissions(const std::string& permissionString) {
+    if(this->mResourceConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
 
     enum Permissions permissions = PERMISSION_THIRD_PARTY;
     if(permissionString == "system") {
         permissions = PERMISSION_SYSTEM;
     } else if(permissionString == "third_party") {
         permissions = PERMISSION_THIRD_PARTY;
+    } else {
+        if(permissionString.length() != 0) {
+            return RC_INVALID_VALUE;
+        }
     }
 
     this->mResourceConfigInfo->mPermissions = permissions;
-    return this;
+    return RC_SUCCESS;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setModes(const std::string& modeString) {
-    if(this->mResourceConfigInfo == nullptr) return this;
+ErrCode ResourceConfigInfoBuilder::setModes(const std::string& modeString) {
+    if(this->mResourceConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
 
     if(modeString == "display_on") {
         this->mResourceConfigInfo->mModes = this->mResourceConfigInfo->mModes | MODE_DISPLAY_ON;
@@ -229,19 +267,27 @@ ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setModes(const std::string
         this->mResourceConfigInfo->mModes = this->mResourceConfigInfo->mModes | MODE_DISPLAY_OFF;
     } else if(modeString == "doze") {
         this->mResourceConfigInfo->mModes = this->mResourceConfigInfo->mModes | MODE_DOZE;
+    } else {
+        if(modeString.length() != 0) {
+            return RC_INVALID_VALUE;
+        }
     }
-    return this;
+    return RC_SUCCESS;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setSupported(int8_t supported) {
-    if(this->mResourceConfigInfo == nullptr) return this;
+ErrCode ResourceConfigInfoBuilder::setSupported(int8_t supported) {
+    if(this->mResourceConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
 
     this->mResourceConfigInfo->mSupported = supported;
-    return this;
+    return RC_SUCCESS;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setPolicy(const std::string& policyString) {
-    if(this->mResourceConfigInfo == nullptr) return this;
+ErrCode ResourceConfigInfoBuilder::setPolicy(const std::string& policyString) {
+    if(this->mResourceConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
 
     enum Policy policy = LAZY_APPLY;
     if(policyString == "higher_is_better") {
@@ -250,25 +296,48 @@ ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setPolicy(const std::strin
         policy = LOWER_BETTER;
     } else if(policyString == "lazy_apply") {
         policy = LAZY_APPLY;
-    } else {
+    } else if(policyString == "instant_apply") {
         policy = INSTANT_APPLY;
+    } else {
+        if(policyString.length() != 0) {
+            return RC_INVALID_VALUE;
+        }
     }
     this->mResourceConfigInfo->mPolicy = policy;
-    return this;
+    return RC_SUCCESS;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setCoreLevelConflict(int8_t coreLevelConflict) {
-    if(this->mResourceConfigInfo == nullptr) return this;
+ErrCode ResourceConfigInfoBuilder::setApplyType(const std::string& applyTypeString) {
+    if(this->mResourceConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
 
-    this->mResourceConfigInfo->mCoreLevelConflict = coreLevelConflict;
-    return this;
+    enum ResourceApplyType applyType = APPLY_GLOBAL;
+    if(applyTypeString == "global") {
+        applyType = APPLY_GLOBAL;
+    } else if(applyTypeString == "core") {
+        applyType = APPLY_CORE;
+    } else if(applyTypeString == "cluster") {
+        applyType = APPLY_CLUSTER;
+    } else if(applyTypeString == "cgroup") {
+        applyType = APPLY_CGROUP;
+    } else {
+        if(applyTypeString.length() != 0) {
+            return RC_INVALID_VALUE;
+        }
+    }
+
+    this->mResourceConfigInfo->mApplyType = applyType;
+    return RC_SUCCESS;
 }
 
-ResourceConfigInfoBuilder* ResourceConfigInfoBuilder::setDefaultValue(int32_t defaultValue) {
-    if(this->mResourceConfigInfo == nullptr) return this;
+ErrCode ResourceConfigInfoBuilder::setDefaultValue(const std::string& defaultValue) {
+    if(this->mResourceConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
 
     this->mResourceConfigInfo->mDefaultValue = defaultValue;
-    return this;
+    return RC_SUCCESS;
 }
 
 ResourceConfigInfo* ResourceConfigInfoBuilder::build() {

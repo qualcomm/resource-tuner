@@ -3,22 +3,9 @@
 
 #include "SysConfigProcessor.h"
 
-std::shared_ptr<SysConfigProcessor> SysConfigProcessor::sysConfigProcessorInstance = nullptr;
-
-SysConfigProcessor::SysConfigProcessor(const std::string& yamlFilePath) {
-    if(yamlFilePath.length() == 0) {
-        // No Custom Properties File Specified
-        mPropertiesConfigYamlFilePath = SYS_CONFIGS_PROPS_FILE;
-    } else {
-        mPropertiesConfigYamlFilePath = yamlFilePath;
-    }
-}
-
-ErrCode SysConfigProcessor::parseSysConfigs() {
-    const std::string fSysConfigPropsFileName(mPropertiesConfigYamlFilePath);
-
+ErrCode SysConfigProcessor::parseSysConfigs(const std::string& filePath) {
     YAML::Node result;
-    ErrCode rc = YamlParser::parse(fSysConfigPropsFileName, result);
+    ErrCode rc = YamlParser::parse(filePath, result);
 
     if(RC_IS_OK(rc)) {
         if(result[SYS_CONFIGS_ROOT].IsDefined() && result[SYS_CONFIGS_ROOT].IsSequence()) {
@@ -26,7 +13,7 @@ ErrCode SysConfigProcessor::parseSysConfigs() {
                 try {
                     parseYamlNode(sysConfigElement);
                 } catch(const std::invalid_argument& e) {
-                    LOGE("RTN_SYSCONFIG_PROCESSOR", "Error parsing Property Config: " + std::string(e.what()));
+                    LOGE("RESTUNE_SYSCONFIG_PROCESSOR", "Error parsing Property Config: " + std::string(e.what()));
                 }
             }
         }
@@ -43,7 +30,7 @@ void SysConfigProcessor::parseYamlNode(const YAML::Node& item) {
     propVal = safeExtract<std::string>(item[PROP_VALUE]);
 
     if(!SysConfigPropRegistry::getInstance()->createProperty(propKey, propVal)) {
-        LOGE("RTN_SYSCONFIG_PROCESSOR",
+        LOGE("RESTUNE_SYSCONFIG_PROCESSOR",
              "Detected Malformed Property [Name = " + propKey + "] Or Prop with " \
              "this name already exists in the Registry");
     }

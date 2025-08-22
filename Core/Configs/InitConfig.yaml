@@ -1,0 +1,12 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause-Clear
+
+InitConfigs:
+  - CgroupsInfo:
+    - Name: "camera-cgroup"
+      ID: 0
+    - Name: "audio-cgroup"
+      ID: 1
+    - Name: "video-cgroup"
+      IsThreaded: true
+      ID: 2

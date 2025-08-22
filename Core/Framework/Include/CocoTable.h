@@ -10,9 +10,11 @@
 #include <mutex>
 #include <cerrno>
 #include <atomic>
+#include <cstring>
 #include <memory>
 
-#include "ResourceProcessor.h"
+#include "ResourceRegistry.h"
+#include "TargetRegistry.h"
 #include "Request.h"
 #include "RequestQueue.h"
 #include "ResourceTunerSettings.h"
@@ -51,7 +53,7 @@
  * The Concurrency Coordinator needs to honor both, the policy of the resource and the priority of the requests while taking decisions.
  *
  * Algorithm: Create 4 (number of currently supported priorities) doubly linked lists for each resource
- * (or for each core in each resource if core lever conflict exists).
+ * (or for each core in each resource if core level conflict exists).
  * Behavior of each linked list would depend on the policy specified in the resource table.
  *
  * Request Flow:\n\n
@@ -82,8 +84,6 @@
 * @brief CocoTable
 */
 class CocoTable {
-    friend class CocoTableTest;
-
 private:
     static std::shared_ptr<CocoTable> mCocoTableInstance;
     static std::mutex instanceProtectionLock;
@@ -100,6 +100,8 @@ private:
     * @brief Data structure storing the c2urrently applied priority for each resource. It is referred to whenever a new request comes in.
     */
     std::vector<int32_t> mCurrentlyAppliedPriority;
+
+    CocoTable();
 
     void deleteNode(CocoNode* node, int32_t primaryIndex, int32_t secondaryIndex, int8_t priority);
 
@@ -122,15 +124,9 @@ private:
 
     int32_t getCocoTableSecondaryIndex(Resource* resource, int8_t priority);
 
-    /**
-    * @brief This is a private routine called when a timer finishes for a request. It initiates
-    *        an untune request and submits it in the request queue.
-    */
     int32_t timerOver(Request* req);
 
     void triggerDisplayOffOrDozeResetting();
-
-    CocoTable();
 
 public:
     ~CocoTable();
