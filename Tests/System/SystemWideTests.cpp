@@ -2381,7 +2381,7 @@ namespace SignalApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         int64_t handle =
-            tuneSignal(GENERATE_RESOURCE_ID(8, 0), 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+            tuneSignal(0x800d0004, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -2430,7 +2430,7 @@ namespace SignalApplicationTests {
         assert(originalValue == originalValues[2]);
 
         int64_t handle =
-            tuneSignal(GENERATE_RESOURCE_ID(8, 1), 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+            tuneSignal(0x800d0005, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -2487,7 +2487,7 @@ int32_t main(int32_t argc, const char* argv[]) {
     // Tests on Real Sysfs Nodes (QLI)
     SystemSysfsNodesTests::RunTestGroup();
 
-    // SignalApplicationTests::RunTestGroup();
+    SignalApplicationTests::RunTestGroup();
 
     return 0;
 }

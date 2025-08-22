@@ -124,7 +124,7 @@ static void setRunOnCores(void* context) {
                 return;
             }
 
-            controllerFile<<cpusString;
+            controllerFile<<cpusString<<std::endl;
 
             if(controllerFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));
@@ -166,7 +166,7 @@ static void setRunOnCoresExclusively(void* context) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
                 return;
             }
-            controllerFile<<cpusString;
+            controllerFile<<cpusString<<std::endl;
             controllerFile.close();
 
             const std::string cGroupCpusetPartitionFilePath =
@@ -178,9 +178,6 @@ static void setRunOnCoresExclusively(void* context) {
                 return;
             }
 
-            partitionFile<<"root";
-            partitionFile<<"isolated";
-
             partitionFile.close();
         }
     } else {
@@ -188,7 +185,7 @@ static void setRunOnCoresExclusively(void* context) {
     }
 }
 
-static void freezeCgroup(void* context) {
+static void setFreezeCgroup(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
 
@@ -212,7 +209,7 @@ static void freezeCgroup(void* context) {
                 return;
             }
 
-            controllerFile<<freezeStatus;
+            controllerFile<<freezeStatus<<std::endl;
 
             if(controllerFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));
@@ -248,7 +245,7 @@ static void setCpuIdle(void* context) {
                 return;
             }
 
-            controllerFile<<idleStatus;
+            controllerFile<<idleStatus<<std::endl;
 
             if(controllerFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));
@@ -317,7 +314,7 @@ static void setUClampMax(void* context) {
                 return;
             }
 
-            controllerFile<<clampVal;
+            controllerFile<<clampVal<<std::endl;
 
             if(controllerFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));
@@ -352,7 +349,8 @@ static void setRelativeCPUShare(void* context) {
                 return;
             }
 
-            controllerFile<<relativeWeight;
+            controllerFile<<relativeWeight<<std::endl;
+
             if(controllerFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));
             }
@@ -386,7 +384,7 @@ static void setMaxMemoryLimit(void* context) {
                 return;
             }
 
-            controllerFile<<maxMemoryLimit;
+            controllerFile<<maxMemoryLimit<<std::endl;
 
             if(controllerFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));
@@ -421,7 +419,7 @@ static void setMinMemoryFloor(void* context) {
                 return;
             }
 
-            controllerFile<<minMemoryFloor;
+            controllerFile<<minMemoryFloor<<std::endl;
 
             if(controllerFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));
@@ -457,7 +455,7 @@ static void limitCpuTime(void* context) {
                 return;
             }
 
-            controllerFile<<maxUsageMicroseconds<<" "<<periodMicroseconds;
+            controllerFile<<maxUsageMicroseconds<<" "<<periodMicroseconds<<std::endl;
 
             if(controllerFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));
@@ -492,7 +490,7 @@ static void setCpuLatency(void* context) {
                 return;
             }
 
-            controllerFile<<latencyValue;
+            controllerFile<<latencyValue<<std::endl;
 
             if(controllerFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));
@@ -508,7 +506,7 @@ RESTUNE_REGISTER_APPLIER_CB(0x00090000, addProcessToCgroup);
 RESTUNE_REGISTER_APPLIER_CB(0x00090001, addThreadToCgroup);
 RESTUNE_REGISTER_APPLIER_CB(0x00090002, setRunOnCores);
 RESTUNE_REGISTER_APPLIER_CB(0x00090003, setRunOnCoresExclusively);
-RESTUNE_REGISTER_APPLIER_CB(0x00090004, freezeCgroup);
+RESTUNE_REGISTER_APPLIER_CB(0x00090004, setFreezeCgroup);
 RESTUNE_REGISTER_APPLIER_CB(0x00090005, limitCpuTime);
 RESTUNE_REGISTER_APPLIER_CB(0x00090006, setCpuIdle);
 RESTUNE_REGISTER_APPLIER_CB(0x00090007, setUClampMin);
@@ -581,7 +579,6 @@ static void resetRunOnCores(void* context) {
 
     int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
-
     if(cGroupConfig != nullptr && cGroupConfig->mDefaultValues != nullptr) {
         const std::string cGroupName = cGroupConfig->mCgroupName;
 
@@ -594,7 +591,7 @@ static void resetRunOnCores(void* context) {
                 return;
             }
 
-            controllerFile<<(*cGroupConfig->mDefaultValues)["cpuset.cpus"];
+            controllerFile<<(*cGroupConfig->mDefaultValues)["cpuset.cpus"]<<std::endl;
 
             if(controllerFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));
@@ -629,7 +626,7 @@ static void resetRunOnCoresExclusively(void* context) {
                 return;
             }
 
-            controllerFile<<(*cGroupConfig->mDefaultValues)["cpuset.cpus"];
+            controllerFile<<(*cGroupConfig->mDefaultValues)["cpuset.cpus"]<<std::endl;
 
             if(controllerFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));
@@ -685,7 +682,7 @@ static void resetCgroupFreeze(void* context) {
                 return;
             }
 
-            controllerFile<<(*cGroupConfig->mDefaultValues)["cgroup.freeze"];
+            controllerFile<<(*cGroupConfig->mDefaultValues)["cgroup.freeze"]<<std::endl;
 
             if(controllerFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));
@@ -722,7 +719,7 @@ static void resetUClampMin(void* context) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
                 return;
             }
-            controllerFile<<(*cGroupConfig->mDefaultValues)["cpu.uclamp.min"];
+            controllerFile<<(*cGroupConfig->mDefaultValues)["cpu.uclamp.min"]<<std::endl;
 
             if(controllerFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));
@@ -759,7 +756,7 @@ static void resetUClampMax(void* context) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
                 return;
             }
-            controllerFile<<(*cGroupConfig->mDefaultValues)["cpu.uclamp.max"];
+            controllerFile<<(*cGroupConfig->mDefaultValues)["cpu.uclamp.max"]<<std::endl;
 
             if(controllerFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));
@@ -797,7 +794,7 @@ static void resetMaxMemoryLimit(void* context) {
                 return;
             }
 
-            controllerFile<<(*cGroupConfig->mDefaultValues)["memory.max"];
+            controllerFile<<(*cGroupConfig->mDefaultValues)["memory.max"]<<std::endl;
 
             if(controllerFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));
@@ -835,7 +832,7 @@ static void resetMinMemoryFloor(void* context) {
                 return;
             }
 
-            controllerFile<<(*cGroupConfig->mDefaultValues)["memory.min"];
+            controllerFile<<(*cGroupConfig->mDefaultValues)["memory.min"]<<std::endl;
 
             if(controllerFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));
@@ -873,7 +870,7 @@ static void resetCpuTime(void* context) {
                 return;
             }
 
-            controllerFile<<(*cGroupConfig->mDefaultValues)["cpu.max"];
+            controllerFile<<(*cGroupConfig->mDefaultValues)["cpu.max"]<<std::endl;
 
             if(controllerFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));
@@ -888,17 +885,13 @@ static void resetCpuTime(void* context) {
 static void resetCpuIdle(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
-    ResourceConfigInfo* resourceConfigInfo =
-        ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
 
-    if(resourceConfigInfo == nullptr) return;
+    if(resource->getValuesCount() != 2) return;
 
-    if(resource->getValuesCount() != 1) return;
-
-    int32_t cGroupIdentifier = resource->mConfigValue.singleValue;
+    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
-    if(cGroupConfig != nullptr && cGroupConfig->mDefaultValues != nullptr) {
+    if(cGroupConfig != nullptr) {
         const std::string cGroupName = cGroupConfig->mCgroupName;
 
         if(cGroupName.length() > 0) {
@@ -910,7 +903,7 @@ static void resetCpuIdle(void* context) {
                 return;
             }
 
-            controllerFile<<(*cGroupConfig->mDefaultValues)["cpu.idle"];
+            controllerFile<<(*cGroupConfig->mDefaultValues)["cpu.idle"]<<std::endl;
 
             if(controllerFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));
@@ -948,7 +941,7 @@ static void resetRelativeCPUShare(void* context) {
                 return;
             }
 
-            controllerFile<<(*cGroupConfig->mDefaultValues)["cpu.weight"];
+            controllerFile<<(*cGroupConfig->mDefaultValues)["cpu.weight"]<<std::endl;
 
             if(controllerFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));
@@ -982,7 +975,7 @@ static void resetCpuLatency(void* context) {
                 return;
             }
 
-            controllerFile<<(*cGroupConfig->mDefaultValues)["cpu.latency_nice"];;
+            controllerFile<<(*cGroupConfig->mDefaultValues)["cpu.latency_nice"]<<std::endl;
 
             if(controllerFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));

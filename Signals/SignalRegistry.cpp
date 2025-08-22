@@ -222,7 +222,11 @@ ErrCode SignalInfoBuilder::addPermission(const std::string& permissionString) {
     }
 
     if(this->mSignalInfo->mPermissions != nullptr) {
-        this->mSignalInfo->mPermissions->push_back(permission);
+        try {
+            this->mSignalInfo->mPermissions->push_back(permission);
+        } catch(const std::bad_alloc& e) {
+            return RC_INVALID_VALUE;
+        }
     } else {
         return RC_INVALID_VALUE;
     }
@@ -277,7 +281,11 @@ ErrCode SignalInfoBuilder::addDerivative(const std::string& derivative) {
     }
 
     if(this->mSignalInfo->mDerivatives != nullptr) {
-        this->mSignalInfo->mDerivatives->push_back(derivative);
+        try {
+            this->mSignalInfo->mDerivatives->push_back(derivative);
+        } catch(const std::bad_alloc& e) {
+            return RC_INVALID_VALUE;
+        }
     } else {
         return RC_INVALID_VALUE;
     }
@@ -295,7 +303,11 @@ ErrCode SignalInfoBuilder::addResource(Resource* resource) {
     }
 
     if(this->mSignalInfo->mSignalResources != nullptr) {
-        this->mSignalInfo->mSignalResources->push_back(resource);
+        try {
+            this->mSignalInfo->mSignalResources->push_back(resource);
+        } catch(const std::bad_alloc& e) {
+            return RC_INVALID_VALUE;
+        }
     } else {
         return RC_INVALID_VALUE;
     }
@@ -308,7 +320,7 @@ SignalInfo* SignalInfoBuilder::build() {
 }
 
 ResourceBuilder::ResourceBuilder() {
-    this->mResource = new Resource;
+    this->mResource = new(std::nothrow) Resource;
 }
 
 ErrCode ResourceBuilder::setResCode(const std::string& resCodeString) {
@@ -376,7 +388,11 @@ ErrCode ResourceBuilder::addValue(int32_t value) {
                 return RC_INVALID_VALUE;
             }
         }
-        this->mResource->mConfigValue.valueArray->push_back(value);
+        try {
+            this->mResource->mConfigValue.valueArray->push_back(value);
+        } catch(const std::bad_alloc& e) {
+            return RC_INVALID_VALUE;
+        }
     }
 
     return RC_SUCCESS;

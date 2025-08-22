@@ -217,30 +217,63 @@ void ConfigProcessor::parseSignalConfigYamlNode(const YAML::Node& item, int8_t i
 
 void ConfigProcessor::parseExtFeatureConfigYamlNode(const YAML::Node& item) {
     ExtFeatureInfoBuilder extFeatureInfoBuilder;
+    ErrCode rc = RC_SUCCESS;
+    NodeExtractionStatus status;
 
-    extFeatureInfoBuilder.setId(
-        safeExtract<int32_t>(item[EXT_FEATURE_ID])
-    );
+    if(RC_IS_OK(rc)) {
+        rc = extFeatureInfoBuilder.setId(
+            safeExtract<std::string>(item[EXT_FEATURE_ID], "0")
+        );
 
-    extFeatureInfoBuilder.setLib(
-        safeExtract<std::string>(item[EXT_FEATURE_LIB])
-    );
-
-    if(isList(item[EXT_FEATURE_SIGNAL_RANGE])) {
-        uint32_t lowerBound = (uint32_t)safeExtract<uint32_t>(item[EXT_FEATURE_SIGNAL_RANGE][0]);
-        uint32_t upperBound = (uint32_t)safeExtract<uint32_t>(item[EXT_FEATURE_SIGNAL_RANGE][1]);
-
-        for(uint32_t i = lowerBound; i <= upperBound; i++) {
-            extFeatureInfoBuilder.addSignalsSubscribedTo(i);
+        if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
+            rc = RC_INVALID_VALUE;
         }
     }
 
-    if(isList(item[EXT_FEATURE_SIGNAL_INDIVIDUAL])) {
-        for(int32_t i = 0; i < item[EXT_FEATURE_SIGNAL_INDIVIDUAL].size(); i++) {
-            extFeatureInfoBuilder.addSignalsSubscribedTo(
-                (uint32_t)(safeExtract<uint32_t>(item[EXT_FEATURE_SIGNAL_INDIVIDUAL][i]))
-            );
+    if(RC_IS_OK(rc)) {
+        rc = extFeatureInfoBuilder.setLib(
+            safeExtract<std::string>(item[EXT_FEATURE_LIB], "", status)
+        );
+
+        if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
+            rc = RC_INVALID_VALUE;
         }
+    }
+
+    if(RC_IS_OK(rc)) {
+        rc = extFeatureInfoBuilder.setName(
+            safeExtract<std::string>(item[EXT_FEATURE_NAME], "", status)
+        );
+
+        if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
+            rc = RC_INVALID_VALUE;
+        }
+    }
+
+    if(RC_IS_OK(rc)) {
+        if(isList(item[EXT_FEATURE_SUBSCRIBER_LIST])) {
+            for(int32_t i = 0; i < item[EXT_FEATURE_SUBSCRIBER_LIST].size(); i++) {
+                if(RC_IS_OK(rc)) {
+                    rc = extFeatureInfoBuilder.addSignalSubscribedTo(
+                        (safeExtract<std::string>(item[EXT_FEATURE_SUBSCRIBER_LIST][i], "", status))
+                    );
+
+                    if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
+                        rc = RC_INVALID_VALUE;
+                        break;
+                    }
+                } else {
+                    rc = RC_INVALID_VALUE;
+                    break;
+                }
+            }
+        } else {
+            rc = RC_INVALID_VALUE;
+        }
+    }
+
+    if(RC_IS_NOTOK(rc)) {
+        extFeatureInfoBuilder.setLib("");
     }
 
     ExtFeaturesRegistry::getInstance()->registerExtFeature(extFeatureInfoBuilder.build());
@@ -275,13 +308,12 @@ ErrCode ConfigProcessor::parseExtFeaturesConfigs(const std::string& filePath) {
 
     if(RC_IS_OK(rc)) {
         if(result[EXT_FEATURES_CONFIGS_ROOT].IsDefined() && result[EXT_FEATURES_CONFIGS_ROOT].IsSequence()) {
-            int32_t featuresCount = result[EXT_FEATURES_CONFIGS_ROOT].size();
-            ExtFeaturesRegistry::getInstance()->initRegistry(featuresCount);
-
             for(const auto& featureConfig : result[EXT_FEATURES_CONFIGS_ROOT]) {
                 try {
                     parseExtFeatureConfigYamlNode(featureConfig);
                 } catch(const std::invalid_argument& e) {
+                    LOGE("RESTUNE_EXT_FEATURE_PROCESSOR", "Error parsing Ext Feature Config: " + std::string(e.what()));
+                } catch(const std::bad_alloc& e) {
                     LOGE("RESTUNE_EXT_FEATURE_PROCESSOR", "Error parsing Ext Feature Config: " + std::string(e.what()));
                 }
             }

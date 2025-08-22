@@ -165,6 +165,10 @@ ErrCode Request::deserialize(char* buf) {
                     resource->mConfigValue.singleValue = DEREF_AND_INCR(ptr, int32_t);
                 } else {
                     for(int32_t j = 0; j < resource->getValuesCount(); j++) {
+                        if(resource->mConfigValue.valueArray == nullptr) {
+                            resource->mConfigValue.valueArray = new (GetBlock<std::vector<int32_t>>())
+                                                                     std::vector<int32_t>;
+                        }
                         resource->mConfigValue.valueArray->push_back(DEREF_AND_INCR(ptr, int32_t));
                     }
                 }

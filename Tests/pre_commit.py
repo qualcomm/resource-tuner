@@ -105,6 +105,8 @@ def unit_tests():
         return False
     if not run_test(["./Tests/Unit/Build/RateLimiterTests"]):
         return False
+    if not run_test(["./Tests/Unit/Build/ExtensionIntfTests"]):
+        return False
 
     logger.info("All Unit Tests Ran Successfully")
     return True

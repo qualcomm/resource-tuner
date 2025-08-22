@@ -64,6 +64,23 @@ static ErrCode fetchSignals() {
     return opStatus;
 }
 
+static ErrCode fetchExtFeatureConfigs() {
+    ErrCode opStatus = RC_SUCCESS;
+
+    ConfigProcessor configProcessor;
+
+    TYPELOGV(NOTIFY_PARSING_START, "Ext-Features");
+    std::string filePath = ResourceTunerSettings::mCustomExtFeaturesFilePath;
+    opStatus = configProcessor.parseExtFeaturesConfigs(filePath);
+    if(RC_IS_NOTOK(opStatus)) {
+        TYPELOGV(NOTIFY_PARSING_FAILURE, "Ext-Features");
+        return opStatus;
+    }
+
+    TYPELOGV(NOTIFY_PARSING_SUCCESS, "Ext-Features");
+    return opStatus;
+}
+
 ErrCode initSignals() {
     ErrCode opStatus = RC_SUCCESS;
 
@@ -81,6 +98,10 @@ ErrCode initSignals() {
     }
 
     // Fetch and Parse Extension Features Configs
+    opStatus = fetchExtFeatureConfigs();
+    if(RC_IS_NOTOK(opStatus)) {
+        return opStatus;
+    }
 
     // Create Signal Processor thread
     try {

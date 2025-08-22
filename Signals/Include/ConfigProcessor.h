@@ -27,11 +27,11 @@
 #define SIGNAL_RESINFO "ResInfo"
 #define SIGNAL_VALUES "Values"
 
-#define EXT_FEATURES_CONFIGS_ROOT "ExtFeaturesConfigs"
-#define EXT_FEATURE_ID "FeatureId"
-#define EXT_FEATURE_LIB "Lib"
-#define EXT_FEATURE_SIGNAL_RANGE "Range"
-#define EXT_FEATURE_SIGNAL_INDIVIDUAL "Individual"
+#define EXT_FEATURES_CONFIGS_ROOT "FeatureConfigs"
+#define EXT_FEATURE_ID "FeatId"
+#define EXT_FEATURE_LIB "LibPath"
+#define EXT_FEATURE_NAME "Name"
+#define EXT_FEATURE_SUBSCRIBER_LIST "Subscribers"
 
 /**
  * The Signal configuration file (SignalsConfig.yaml) must follow a specific structure.
@@ -51,6 +51,30 @@
  * @endcode
  *
  * @example Signal_Configs
+ * This example shows the expected YAML format for Signal configuration.
+ * For Information on each of these fields as well as some which have been omitted from
+ * this example, refer Config Files Format Documentation.
+*/
+
+/**
+ * The Ext Features configuration file (ExtFeaturesConfig.yaml) must follow a specific structure.
+ * Example YAML configuration:
+ * @code{.yaml}
+ * FeatureConfigs:
+ *   - FeatId: "0x00000001"
+ *     Name: "FEAT-1"
+ *     LibPath: "/usr/lib/libtesttuner.so"
+ *     Description: "Simple Algorithmic Feature, defined by the BU"
+ *     Subscribers: ["0x000dbbca", "0x000a00ff"]
+ *
+ *   - FeatId: "0x00000002"
+ *     Name: "FEAT-2"
+ *     LibPath: "/usr/lib/libpropagate.so"
+ *     Description: "Simple Observer-Observable Feature, defined by the BU"
+ *     Subscribers: ["0x80a105ea", "0x800ccca5"]
+ * @endcode
+ *
+ * @example Ext_Feature_Configs
  * This example shows the expected YAML format for Signal configuration.
  * For Information on each of these fields as well as some which have been omitted from
  * this example, refer Config Files Format Documentation.
