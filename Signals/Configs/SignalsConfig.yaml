@@ -54,3 +54,21 @@ SignalConfigs:
     Permissions: ["system"]
     Resources:
       - {ResCode: "0x00090004", Values: [1]}
+
+  - SigId: "0x0000"
+    Category: "0x05"
+    Name: RELAY_SIGNAL_1
+    Enable: true
+    Permissions: ["third_party"]
+
+  - SigId: "0x0001"
+    Category: "0x05"
+    Name: RELAY_SIGNAL_2
+    Enable: true
+    Permissions: ["third_party"]
+
+  - SigId: "0x0002"
+    Category: "0x05"
+    Name: RELAY_SIGNAL_3
+    Enable: true
+    Permissions: ["third_party"]

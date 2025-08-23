@@ -472,6 +472,20 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             Logger::log(ERROR, "RESTUNE_REQUEST_MANAGER", funcName, std::string(buffer));
             break;
 
+        case CommonMessageTypes::EXT_FEATURE_LIB_OPEN_FAILED:
+            vsnprintf(buffer, sizeof(buffer),
+                      "No lib with the Path: [%s] could not be opened", args);
+
+            Logger::log(ERROR, "RESTUNE_EXT_FEATURES", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::EXT_FEATURE_ROUTINE_NOT_DEFINED:
+            vsnprintf(buffer, sizeof(buffer),
+                      "No Routine with the Name: [%s] defined by the lib: [%s]", args);
+
+            Logger::log(ERROR, "RESTUNE_EXT_FEATURES", funcName, std::string(buffer));
+            break;
+
         default:
             break;
     }

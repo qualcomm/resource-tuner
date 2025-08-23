@@ -518,3 +518,73 @@ int8_t untuneSignal(int64_t handle) {
 
     return -1;
 }
+
+// - Construct a Signal object and populate it with the Signal Request Params
+// - Initiate a connection to the Resource Tuner Server, and send the request to the server
+int8_t relaySignal(uint32_t signalID, int32_t properties) {
+    try {
+        const std::lock_guard<std::mutex> lock(apiLock);
+        const ConnectionManager connMgr(conn);
+
+        char buf[1024];
+        int8_t* ptr8 = (int8_t*)buf;
+        ASSIGN_AND_INCR(ptr8, SIGNAL_RELAY);
+
+        int32_t* ptr = (int32_t*)ptr8;
+        ASSIGN_AND_INCR(ptr, signalID);
+
+        int64_t* ptr64 = (int64_t*)ptr;
+        ASSIGN_AND_INCR(ptr64, 0);
+        ASSIGN_AND_INCR(ptr64, 0);
+
+        const char* charIterator = "";
+        char* charPointer = (char*) ptr64;
+
+        while(*charIterator != '\0') {
+            ASSIGN_AND_INCR(charPointer, *charIterator);
+            charIterator++;
+        }
+
+        ASSIGN_AND_INCR(charPointer, '\0');
+
+        charIterator = "";
+
+        while(*charIterator != '\0') {
+            ASSIGN_AND_INCR(charPointer, *charIterator);
+            charIterator++;
+        }
+
+        ASSIGN_AND_INCR(charPointer, '\0');
+
+        ptr = (int32_t*)charPointer;
+        ASSIGN_AND_INCR(ptr, 0);
+        ASSIGN_AND_INCR(ptr, properties);
+        ASSIGN_AND_INCR(ptr, (int32_t)getpid());
+        ASSIGN_AND_INCR(ptr, (int32_t)gettid());
+
+        if(conn == nullptr || RC_IS_NOTOK(conn->initiateConnection())) {
+            return -1;
+        }
+
+        // Send the request to Resource Tuner Server
+        if(RC_IS_NOTOK(conn->sendMsg(buf, sizeof(buf)))) {
+            return -1;
+        }
+
+        // Get the handle
+        char resultBuffer[64];
+        if(RC_IS_NOTOK(conn->readMsg(resultBuffer, sizeof(resultBuffer)))) {
+            return -1;
+        }
+
+        return 0;
+
+    } catch(const std::invalid_argument& e) {
+        return -1;
+
+    } catch(const std::exception& e) {
+        return -1;
+    }
+
+    return -1;
+}

@@ -24,6 +24,8 @@ typedef struct {
     std::vector<uint32_t>* mSignalsSubscribedTo;
 } ExtFeatureInfo;
 
+typedef void (*ExtFeature)(void);
+
 class ExtFeaturesRegistry {
 private:
     static std::shared_ptr<ExtFeaturesRegistry> extFeaturesRegistryInstance;

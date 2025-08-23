@@ -159,6 +159,7 @@ static int8_t fillDefaults(Signal* signal) {
     uint32_t signalID = signal->getSignalID();
     SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(signalID);
     if(signalInfo == nullptr) return false;
+    if(signalInfo->mSignalResources == nullptr) return true;
 
     int32_t listIndex = 0;
     for(Resource* resource : (*signalInfo->mSignalResources)) {
@@ -232,7 +233,7 @@ static void processIncomingRequest(Signal* signal) {
         return;
     }
 
-    if(signal->getRequestType() == SIGNAL_ACQ || signal->getRequestType() == SIGNAL_RELAY) {
+    if(signal->getRequestType() == SIGNAL_ACQ) {
         if(!VerifyIncomingRequest(signal)) {
             TYPELOGV(VERIFIER_STATUS_FAILURE, signal->getHandle());
             Signal::cleanUpSignal(signal);

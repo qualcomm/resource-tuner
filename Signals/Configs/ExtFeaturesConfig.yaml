@@ -4,12 +4,12 @@
 FeatureConfigs:
   - FeatId: "0x00000001"
     Name: "FEAT-1"
-    LibPath: "/usr/lib/libtesttuner.so"
+    LibPath: "rlib2.so"
     Description: "Simple Algorithmic Feature, defined by the BU"
-    Subscribers: ["0x000dbbca", "0x000a00ff"]
+    Subscribers: ["0x00050000", "0x00050001"]
 
   - FeatId: "0x00000002"
     Name: "FEAT-2"
-    LibPath: "/usr/lib/libpropagate.so"
+    LibPath: "rlib1.so"
     Description: "Simple Observer-Observable Feature, defined by the BU"
-    Subscribers: ["0x80a105ea", "0x800ccca5"]
+    Subscribers: ["0x00050000", "0x00050002"]
