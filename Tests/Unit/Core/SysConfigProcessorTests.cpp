@@ -5,10 +5,10 @@
 #include <cstdint>
 #include <gtest/gtest.h>
 
+#include "Utils.h"
 #include "SysConfigProcessor.h"
 #include "SysConfigPropRegistry.h"
 #include "Extensions.h"
-#include "Utils.h"
 #include "Logger.h"
 
 RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "../Tests/Configs/testPropertiesConfig.yaml")

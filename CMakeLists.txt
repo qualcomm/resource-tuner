@@ -28,7 +28,7 @@ if(BUILD_SIGNALS)
 endif()
 
 if(BUILD_TESTS)
-  #GoogleTest dependency
+  # GoogleTest dependency
   include(FetchContent)
   FetchContent_Declare(
     googletest
@@ -64,6 +64,19 @@ endif()
 
 target_link_libraries(resource_tuner PUBLIC Server Auxiliary SysRequestReceiver)
 
+# Extensions
+# Try to find the plugin library
+find_library(PLUGIN_LIB NAMES plugin PATHS /etc/ResourceTuner/Custom/ NO_DEFAULT_PATH)
+message(STATUS "PLUGIN_LIB = ${PLUGIN_LIB}")
+
+if (PLUGIN_LIB)
+    add_compile_definitions(EXTENSION_PLUGIN_ENABLED)
+    message("Extensions lib: plugin.so found at location: ${PLUGIN_LIB}")
+    target_link_libraries(resource_tuner PUBLIC ${PLUGIN_LIB})
+else()
+    message("Extensions lib: plugin.so not found at build time. Building without it.")
+endif()
+
 # Test Executable
 if(BUILD_TESTS)
   add_executable(resource_tuner_tests ./Tests/System/SystemWideTests.cpp)
@@ -81,6 +94,7 @@ endif()
 
 # Install headers
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/Core/Client/APIs/Include/ DESTINATION include/ResourceTuner)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/Core/Extensions/Include/ DESTINATION include/ResourceTuner)
 
 # Install core config files
 install(

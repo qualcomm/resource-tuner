@@ -6,6 +6,7 @@
 #include <gtest/gtest.h>
 #include <string.h>
 
+#include "Utils.h"
 #include "Extensions.h"
 #include "SysConfigInternal.h"
 #include "SysConfigPropRegistry.h"

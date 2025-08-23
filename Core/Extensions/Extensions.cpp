@@ -1,6 +1,7 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
+#include "Utils.h"
 #include "Extensions.h"
 
 std::vector<std::string> Extensions::mModifiedConfigFiles (TOTAL_CONFIGS_COUNT, "");

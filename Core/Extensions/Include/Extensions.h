@@ -12,7 +12,22 @@
 #include <vector>
 #include <unordered_map>
 
-#include "Utils.h"
+typedef void (*ResourceLifecycleCallback)(void*);
+
+/**
+ * @enum ConfigType
+ * @brief Different Config (via YAML) Types supported.
+ * @details Note, the Config File corresponding to each config type
+ * can be altered via the Extensions interface.
+ */
+enum ConfigType {
+    RESOURCE_CONFIG,
+    PROPERTIES_CONFIG,
+    SIGNALS_CONFIG,
+    EXT_FEATURES_CONFIG,
+    TARGET_CONFIG,
+    TOTAL_CONFIGS_COUNT
+};
 
 /**
 * @brief Extensions

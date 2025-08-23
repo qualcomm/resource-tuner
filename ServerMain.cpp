@@ -13,6 +13,11 @@
 #include "Extensions.h"
 #include "RequestReceiver.h"
 
+#ifdef EXTENSION_PLUGIN_ENABLED
+extern int32_t extensionLibEnabled;
+int32_t* force_link = &extensionLibEnabled;
+#endif
+
 static int8_t terminateServer = false;
 
 static void handleSIGINT(int32_t sig) {

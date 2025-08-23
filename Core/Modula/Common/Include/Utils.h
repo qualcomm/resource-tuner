@@ -102,21 +102,6 @@ enum Policy {
     LAZY_APPLY //!< The requests are applied in a first-in-first-out manner.
 };
 
-/**
- * @enum ConfigType
- * @brief Different Config (via YAML) Types supported.
- * @details Note, the Config File corresponding to each config type
- * can be altered via the Extensions interface.
- */
-enum ConfigType {
-    RESOURCE_CONFIG,
-    PROPERTIES_CONFIG,
-    SIGNALS_CONFIG,
-    EXT_FEATURES_CONFIG,
-    TARGET_CONFIG,
-    TOTAL_CONFIGS_COUNT
-};
-
 enum ClusterTypes {
     BIG = 0,
     LITTLE,
@@ -136,6 +121,5 @@ typedef ErrCode (*ModuleCallback)();
 typedef void (*ModuleMessageHandlerCallback)(void*);
 typedef int8_t (*ServerOnlineCheckCallback)();
 typedef void (*ResourceTunerMessageReceivedCallback)(int32_t, MsgForwardInfo*);
-typedef void (*ResourceLifecycleCallback)(void*);
 
 #endif

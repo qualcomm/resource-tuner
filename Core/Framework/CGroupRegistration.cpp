@@ -3,6 +3,7 @@
 
 #include <unistd.h>
 
+#include "Utils.h"
 #include "Logger.h"
 #include "Extensions.h"
 #include "TargetRegistry.h"
