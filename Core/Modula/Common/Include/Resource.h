@@ -19,13 +19,13 @@ private:
      *        - The next 8 bits (9-16) are used to specify the ResType (type of the Resource)
      *        - In addition for Custom Resources, then the MSB must be set to 1 as well
      */
-    uint32_t mOpCode;
+    uint32_t mResCode;
     /**
      * @brief Holds Logical Core and Cluster Information:
      *        - The last 8 bits (25-32) hold the Logical Core Value
      *        - The next 8 bits (17-24) hold the Logical Cluster Value
      */
-    int32_t mOpInfo;
+    int32_t mResInfo;
     int32_t mOptionalInfo; //!< Field to hold optional information for Request Processing
     /**
      * @brief Number of values to be configured for the Resource,
@@ -35,29 +35,29 @@ private:
 
 public:
     union {
-        int32_t singleValue; //!< Use this field for single Valued Resources
-        std::vector<int32_t>* valueArray; //!< Use this field for Multi Valued Resources
-    } mConfigValue; //!< The value to be Configured for this Resource Node.
+        int32_t value; //!< Use this field for single Valued Resources
+        std::vector<int32_t>* values; //!< Use this field for Multi Valued Resources
+    } mResValue; //!< The value to be Configured for this Resource Node.
 
-    Resource() : mOpCode(0), mOpInfo(0), mOptionalInfo(0), mNumValues(0) {
-        mConfigValue.singleValue = 0;
-        mConfigValue.valueArray = nullptr;
+    Resource() : mResCode(0), mResInfo(0), mOptionalInfo(0), mNumValues(0) {
+        mResValue.value = 0;
+        mResValue.values = nullptr;
     }
     ~Resource() {}
 
     int32_t getCoreValue();
     int32_t getClusterValue();
-    int32_t getOperationalInfo();
+    int32_t getResInfo();
     int32_t getOptionalInfo();
-    uint32_t getOpCode();
+    uint32_t getResCode();
     int32_t getValuesCount();
 
     void setCoreValue(int32_t core);
     void setClusterValue(int32_t cluster);
     void setResourceID(int16_t resID);
     void setResourceType(int8_t resType);
-    void setOpCode(uint32_t opCode);
-    void setOperationalInfo(int32_t opInfo);
+    void setResCode(uint32_t resCode);
+    void setResInfo(int32_t resInfo);
     void setOptionalInfo(int32_t optionalInfo);
     void setNumValues(int32_t numValues);
     void setAsCustom();

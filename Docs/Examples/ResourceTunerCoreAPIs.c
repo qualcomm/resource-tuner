@@ -22,11 +22,11 @@ static void func1() {
 
     SysResource* resourceList = (SysResource*)calloc(1, sizeof(SysResource));
 
-    resourceList[0].mOpCode = 0x00030000;
-    resourceList[0].mOpInfo = 0;
+    resourceList[0].mResCode = 0x00030000;
+    resourceList[0].mResInfo = 0;
     resourceList[0].mOptionalInfo = 0;
     resourceList[0].mNumValues = 1;
-    resourceList[0].mConfigValue.singleValue = 750;
+    resourceList[0].mResValue.value = 750;
 
     int64_t handle = tuneResources(duration, properties, 1, resourceList);
 

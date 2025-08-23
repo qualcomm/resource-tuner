@@ -16,7 +16,7 @@
 */
 class Signal : public Message {
 private:
-    uint32_t mSignalOpCode;  //!< ID of the Signal to be Tuned to be tuned as Part of the Request
+    uint32_t mSignalCode;  //!< ID of the Signal to be Tuned to be tuned as Part of the Request
     std::string mAppName;
     std::string mScenario;
     int32_t mNumArgs; //!< Number of Additional Args
@@ -33,7 +33,7 @@ public:
     uint32_t getListArgAt(int32_t index);
     std::vector<uint32_t>* getListArgs();
 
-    void setSignalOpCode(uint32_t signalID);
+    void setSignalCode(uint32_t signalID);
     void setAppName(const std::string& appName);
     void setScenario(const std::string& scenario);
     void setNumArgs(int32_t numArgs);

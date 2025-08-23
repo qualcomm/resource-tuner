@@ -59,9 +59,9 @@ void sendTuneRequest(int64_t duration, int32_t priority, int32_t count, const st
     SysResource* resourceList = new SysResource[resourcePairs.size()];
 
     for(int32_t i = 0; i < resourcePairs.size(); i++) {
-        resourceList[i].mOpCode = resourcePairs[i].first;
+        resourceList[i].mResCode = resourcePairs[i].first;
         resourceList[i].mNumValues = 1;
-        resourceList[i].mConfigValue.singleValue = resourcePairs[i].second;
+        resourceList[i].mResValue.value = resourcePairs[i].second;
     }
 
     int64_t handle = tuneResources(duration, priority, count, resourceList);

@@ -97,9 +97,9 @@ void dumpRequest(Request* clientReq) {
     for(int32_t i = 0; i < clientReq->getResourcesCount(); i++) {
         Resource* res = clientReq->getResourceAt(i);
         LOGD(LOG_TAG, "Resource " + std::to_string(i + 1) + ":");
-        LOGD(LOG_TAG, "Opcode ID: " + std::to_string(res->getOpCode()));
+        LOGD(LOG_TAG, "Opcode ID: " + std::to_string(res->getResCode()));
         LOGD(LOG_TAG, "Number of Values: " + std::to_string(res->getValuesCount()));
-        LOGD(LOG_TAG, "-- Single Value: " + std::to_string(res->mConfigValue.singleValue));
+        LOGD(LOG_TAG, "-- Single Value: " + std::to_string(res->mResValue.value));
     }
 }
 

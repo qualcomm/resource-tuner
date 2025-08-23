@@ -24,7 +24,7 @@ TEST(MiscTests, TestResourceStructCoreClusterSettingAndExtraction) {
     resource->setResourceID(1);
     resource->setResourceType(1);
 
-    ASSERT_EQ(resource->getOpCode(), (uint32_t)((1 << 16) | (1 << 0)));
+    ASSERT_EQ(resource->getResCode(), (uint32_t)((1 << 16) | (1 << 0)));
 
     delete resource;
 }
@@ -57,16 +57,16 @@ TEST(MiscTests, TestRequestSerializingAndDeserializing) {
                                                             std::vector<Resource*>;
 
         Resource* res1 = (Resource*) GetBlock<Resource>();
-        res1->setOpCode(65536);
+        res1->setResCode(65536);
         res1->setNumValues(1);
-        res1->mConfigValue.singleValue = 754;
+        res1->mResValue.value = 754;
         firstReqResourceList->push_back(res1);
         firstRequest->setResources(firstReqResourceList);
 
         Resource* resource = firstRequest->getResourceAt(0);
-        ASSERT_EQ(resource->getOpCode(), 65536);
+        ASSERT_EQ(resource->getResCode(), 65536);
         ASSERT_EQ(resource->getValuesCount(), 1);
-        ASSERT_EQ(resource->mConfigValue.singleValue, 754);
+        ASSERT_EQ(resource->mResValue.value, 754);
 
         char buf[1024];
 
@@ -100,9 +100,9 @@ TEST(MiscTests, TestRequestSerializingAndDeserializing) {
                 FAIL();
             }
 
-            ASSERT_EQ(firstResource->getOperationalInfo(), secondResource->getOperationalInfo());
+            ASSERT_EQ(firstResource->getResInfo(), secondResource->getResInfo());
             ASSERT_EQ(firstResource->getValuesCount(), secondResource->getValuesCount());
-            ASSERT_EQ(firstResource->mConfigValue.singleValue, secondResource->mConfigValue.singleValue);
+            ASSERT_EQ(firstResource->mResValue.value, secondResource->mResValue.value);
         }
 
         Request::cleanUpRequest(firstRequest);
@@ -128,7 +128,7 @@ TEST(MiscTests, TestSignalSerializingAndDeserializing) {
         firstSignal->setProperties((1 << 8) | (1 << 0));
         firstSignal->setHandle(15);
         firstSignal->setDuration(5600);
-        firstSignal->setSignalOpCode(78099);
+        firstSignal->setSignalCode(78099);
         firstSignal->setNumArgs(1);
         firstSignal->setAppName("example-app-name");
         firstSignal->setScenario("example-scenario-name");

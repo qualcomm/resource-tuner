@@ -64,16 +64,16 @@ int64_t tuneResources(int64_t duration, int32_t properties, int32_t numRes, SysR
         for(int32_t i = 0; i < numRes; i++) {
             SysResource resource = SafeDeref((resourceList + i));
 
-            ASSIGN_AND_INCR(ptr, VALIDATE_GE(resource.mOpCode, 0));
-            ASSIGN_AND_INCR(ptr, VALIDATE_GE(resource.mOpInfo, 0));
+            ASSIGN_AND_INCR(ptr, VALIDATE_GE(resource.mResCode, 0));
+            ASSIGN_AND_INCR(ptr, VALIDATE_GE(resource.mResInfo, 0));
             ASSIGN_AND_INCR(ptr, VALIDATE_GE(resource.mOptionalInfo, 0));
             ASSIGN_AND_INCR(ptr, VALIDATE_GT(resource.mNumValues, 0));
 
             if(resource.mNumValues == 1) {
-                ASSIGN_AND_INCR(ptr, VALIDATE_GE(resource.mConfigValue.singleValue, 0));
+                ASSIGN_AND_INCR(ptr, VALIDATE_GE(resource.mResValue.value, 0));
             } else {
                 for(int32_t j = 0; j < resource.mNumValues; j++) {
-                    ASSIGN_AND_INCR(ptr, VALIDATE_GE(resource.mConfigValue.valueArray[j], 0));
+                    ASSIGN_AND_INCR(ptr, VALIDATE_GE(resource.mResValue.values[j], 0));
                 }
             }
         }

@@ -75,8 +75,8 @@ void ResourceRegistry::displayResources() {
 
         LOGI("RESTUNE_RESOURCE_PROCESSOR", "Resource Name: " + res->mResourceName);
         LOGI("RESTUNE_RESOURCE_PROCESSOR", "Resource Path: " + res->mResourcePath);
-        LOGI("RESTUNE_RESOURCE_PROCESSOR", "Optype: " + std::to_string(res->mResourceResType));
-        LOGI("RESTUNE_RESOURCE_PROCESSOR", "Opcode: " + std::to_string(res->mResourceResID));
+        LOGI("RESTUNE_RESOURCE_PROCESSOR", "ResType: " + std::to_string(res->mResourceResType));
+        LOGI("RESTUNE_RESOURCE_PROCESSOR", "ResID: " + std::to_string(res->mResourceResID));
         LOGI("RESTUNE_RESOURCE_PROCESSOR", "High Threshold: " + std::to_string(res->mHighThreshold));
         LOGI("RESTUNE_RESOURCE_PROCESSOR", "Low Threshold: " + std::to_string(res->mLowThreshold));
 

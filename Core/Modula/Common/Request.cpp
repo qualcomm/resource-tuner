@@ -109,16 +109,16 @@ ErrCode Request::serialize(char* buf) {
                 return RC_INVALID_VALUE;
             }
 
-            ASSIGN_AND_INCR(ptr, resource->getOpCode());
-            ASSIGN_AND_INCR(ptr, resource->getOperationalInfo());
+            ASSIGN_AND_INCR(ptr, resource->getResCode());
+            ASSIGN_AND_INCR(ptr, resource->getResInfo());
             ASSIGN_AND_INCR(ptr, resource->getOptionalInfo());
             ASSIGN_AND_INCR(ptr, resource->getValuesCount());
 
             if(resource->getValuesCount() == 1) {
-                ASSIGN_AND_INCR(ptr, resource->mConfigValue.singleValue);
+                ASSIGN_AND_INCR(ptr, resource->mResValue.value);
             } else {
                 for(int32_t j = 0; j < resource->getValuesCount(); j++) {
-                    ASSIGN_AND_INCR(ptr, (*resource->mConfigValue.valueArray)[j]);
+                    ASSIGN_AND_INCR(ptr, (*resource->mResValue.values)[j]);
                 }
             }
         }
@@ -156,20 +156,20 @@ ErrCode Request::deserialize(char* buf) {
             for(int32_t i = 0; i < this->getResourcesCount(); i++) {
                 Resource* resource = (Resource*) (GetBlock<Resource>());
 
-                resource->setOpCode(DEREF_AND_INCR(ptr, int32_t));
-                resource->setOperationalInfo(DEREF_AND_INCR(ptr, int32_t));
+                resource->setResCode(DEREF_AND_INCR(ptr, int32_t));
+                resource->setResInfo(DEREF_AND_INCR(ptr, int32_t));
                 resource->setOptionalInfo(DEREF_AND_INCR(ptr, int32_t));
                 resource->setNumValues(DEREF_AND_INCR(ptr, int32_t));
 
                 if(resource->getValuesCount() == 1) {
-                    resource->mConfigValue.singleValue = DEREF_AND_INCR(ptr, int32_t);
+                    resource->mResValue.value = DEREF_AND_INCR(ptr, int32_t);
                 } else {
                     for(int32_t j = 0; j < resource->getValuesCount(); j++) {
-                        if(resource->mConfigValue.valueArray == nullptr) {
-                            resource->mConfigValue.valueArray = new (GetBlock<std::vector<int32_t>>())
+                        if(resource->mResValue.values == nullptr) {
+                            resource->mResValue.values = new (GetBlock<std::vector<int32_t>>())
                                                                      std::vector<int32_t>;
                         }
-                        resource->mConfigValue.valueArray->push_back(DEREF_AND_INCR(ptr, int32_t));
+                        resource->mResValue.values->push_back(DEREF_AND_INCR(ptr, int32_t));
                     }
                 }
 

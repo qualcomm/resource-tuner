@@ -50,8 +50,8 @@
 //        return CocoTable::getInstance()->getCocoTablePrimaryIndex(opId);
 //     }
 
-//     int32_t getCocoTableSecondaryIndex(uint32_t opId, int32_t mOpInfo, int32_t priority) {
-//         return CocoTable::getInstance()->getCocoTableSecondaryIndex(opId, mOpInfo, priority);
+//     int32_t getCocoTableSecondaryIndex(uint32_t opId, int32_t mResInfo, int32_t priority) {
+//         return CocoTable::getInstance()->getCocoTableSecondaryIndex(opId, mResInfo, priority);
 //     }
 
 //     CocoNode* getNext(CocoNode* cocoTableNode) {
@@ -78,10 +78,10 @@
 //     int32_t valueToBeWritten = 100;
 
 //     Resource* resource = (Resource*) (GetBlock<Resource>());
-//     resource->mOpCode = (1 << 31) | (1 << 16);
+//     resource->mResCode = (1 << 31) | (1 << 16);
 //     resource->mOptionalInfo = 0;
 //     resource->mNumValues = 1;
-//     resource->mConfigValue.singleValue = valueToBeWritten;
+//     resource->mResValue.value = valueToBeWritten;
 
 //     std::vector<Resource*>* resources =
 //         new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
@@ -111,10 +111,10 @@
 //             new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
-//         resource->mOpCode = testOpId;
+//         resource->mResCode = testOpId;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
-//         resource->mConfigValue.singleValue = values[i];
+//         resource->mResValue.value = values[i];
 
 //         resources->push_back(resource);
 
@@ -135,7 +135,7 @@
 
 //     for(int32_t i = 0; i < values.size(); i++) {
 //         ASSERT_NE(head, nullptr);
-//         EXPECT_EQ(getCocoNodeResource(head)->mConfigValue.singleValue, values[i]);
+//         EXPECT_EQ(getCocoNodeResource(head)->mResValue.value, values[i]);
 //         head = getNext(head);
 //     }
 //     EXPECT_EQ(head, nullptr);
@@ -160,10 +160,10 @@
 //             new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
-//         resource->mOpCode = testOpId;
+//         resource->mResCode = testOpId;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
-//         resource->mConfigValue.singleValue = values[i];
+//         resource->mResValue.value = values[i];
 
 //         resources->push_back(resource);
 
@@ -184,7 +184,7 @@
 
 //     for(int32_t i = 0; i < values.size(); i++) {
 //         ASSERT_NE(head, nullptr);
-//         EXPECT_EQ(getCocoNodeResource(head)->mConfigValue.singleValue, values[i]);
+//         EXPECT_EQ(getCocoNodeResource(head)->mResValue.value, values[i]);
 //         head = getNext(head);
 //     }
 //     EXPECT_EQ(head, nullptr);
@@ -209,10 +209,10 @@
 //             new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
-//         resource->mOpCode = testOpId;
+//         resource->mResCode = testOpId;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
-//         resource->mConfigValue.singleValue = values[i];
+//         resource->mResValue.value = values[i];
 
 //         resources->push_back(resource);
 
@@ -231,7 +231,7 @@
 
 //     for(int32_t i = 0; i < values.size(); i++) {
 //         ASSERT_NE(head, nullptr);
-//         EXPECT_EQ(getCocoNodeResource(head)->mConfigValue.singleValue, values[i]);
+//         EXPECT_EQ(getCocoNodeResource(head)->mResValue.value, values[i]);
 //         head = getNext(head);
 //     }
 //     EXPECT_EQ(head, nullptr);
@@ -256,10 +256,10 @@
 //             new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
-//         resource->mOpCode = testOpId;
+//         resource->mResCode = testOpId;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
-//         resource->mConfigValue.singleValue = values[i];
+//         resource->mResValue.value = values[i];
 
 //         resources->push_back(resource);
 
@@ -280,7 +280,7 @@
 
 //     for(int32_t i = 0; i < values.size(); i++) {
 //         ASSERT_NE(head, nullptr);
-//         EXPECT_EQ(getCocoNodeResource(head)->mConfigValue.singleValue, values[i]);
+//         EXPECT_EQ(getCocoNodeResource(head)->mResValue.value, values[i]);
 //         head = getNext(head);
 //     }
 //     EXPECT_EQ(head, nullptr);
@@ -307,10 +307,10 @@
 //         values.push_back(rand() % 1000);
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
-//         resource->mOpCode = testOpId;
+//         resource->mResCode = testOpId;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
-//         resource->mConfigValue.singleValue = values.back();
+//         resource->mResValue.value = values.back();
 
 //         resources->push_back(resource);
 
@@ -331,7 +331,7 @@
 
 //     for(int32_t i = 0; i < values.size(); i++) {
 //         ASSERT_NE(head, nullptr);
-//         EXPECT_EQ(getCocoNodeResource(head)->mConfigValue.singleValue, values[i]);
+//         EXPECT_EQ(getCocoNodeResource(head)->mResValue.value, values[i]);
 //         head = getNext(head);
 //     }
 //     EXPECT_EQ(head, nullptr);
@@ -357,10 +357,10 @@
 //         values.push_back(rand() % 1000);
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
-//         resource->mOpCode = testOpId;
+//         resource->mResCode = testOpId;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
-//         resource->mConfigValue.singleValue = values.back();
+//         resource->mResValue.value = values.back();
 
 //         resources->push_back(resource);
 
@@ -381,7 +381,7 @@
 
 //     for(int32_t i = 0; i < values.size(); i++) {
 //         ASSERT_NE(head, nullptr);
-//         EXPECT_EQ(getCocoNodeResource(head)->mConfigValue.singleValue, values[i]);
+//         EXPECT_EQ(getCocoNodeResource(head)->mResValue.value, values[i]);
 //         head = getNext(head);
 //     }
 //     EXPECT_EQ(head, nullptr);
@@ -407,10 +407,10 @@
 //         values.push_back(rand() % 1000);
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
-//         resource->mOpCode = testOpId;
+//         resource->mResCode = testOpId;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
-//         resource->mConfigValue.singleValue = values.back();
+//         resource->mResValue.value = values.back();
 
 //         resources->push_back(resource);
 
@@ -429,7 +429,7 @@
 
 //     for(int32_t i = 0; i < values.size(); i++) {
 //         ASSERT_NE(head, nullptr);
-//         EXPECT_EQ(getCocoNodeResource(head)->mConfigValue.singleValue, values[i]);
+//         EXPECT_EQ(getCocoNodeResource(head)->mResValue.value, values[i]);
 //         head = getNext(head);
 //     }
 //     EXPECT_EQ(head, nullptr);
@@ -455,10 +455,10 @@
 //         values.push_back(rand() % 1000);
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
-//         resource->mOpCode = testOpId;
+//         resource->mResCode = testOpId;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
-//         resource->mConfigValue.singleValue = values.back();
+//         resource->mResValue.value = values.back();
 
 //         resources->push_back(resource);
 
@@ -479,7 +479,7 @@
 
 //     for(int32_t i = 0; i < values.size(); i++) {
 //         ASSERT_NE(head, nullptr);
-//         EXPECT_EQ(getCocoNodeResource(head)->mConfigValue.singleValue, values[i]);
+//         EXPECT_EQ(getCocoNodeResource(head)->mResValue.value, values[i]);
 //         head = getNext(head);
 //     }
 //     EXPECT_EQ(head, nullptr);
@@ -504,10 +504,10 @@
 //             new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
 
 //         Resource* resource = (Resource*) (GetBlock<Resource>());
-//         resource->mOpCode = testOpId;
+//         resource->mResCode = testOpId;
 //         resource->mOptionalInfo = 0;
 //         resource->mNumValues = 1;
-//         resource->mConfigValue.singleValue = values[i];
+//         resource->mResValue.value = values[i];
 
 //         resources->push_back(resource);
 
@@ -528,7 +528,7 @@
 
 //     for(int32_t i = 0; i < values.size(); i++) {
 //         ASSERT_NE(head, nullptr);
-//         EXPECT_EQ(getCocoNodeResource(head)->mConfigValue.singleValue, values[i]);
+//         EXPECT_EQ(getCocoNodeResource(head)->mResValue.value, values[i]);
 //         head = getNext(head);
 //     }
 //     EXPECT_EQ(head, nullptr);
@@ -539,11 +539,11 @@
 
 //     head = getCocoTableInternal().at(index).at(1).second;
 //     ASSERT_NE(head, nullptr);
-//     EXPECT_EQ(getCocoNodeResource(head)->mConfigValue.singleValue, 200);
+//     EXPECT_EQ(getCocoNodeResource(head)->mResValue.value, 200);
 //     head = getNext(head);
 
 //     ASSERT_NE(head, nullptr);
-//     EXPECT_EQ(getCocoNodeResource(head)->mConfigValue.singleValue, 100);
+//     EXPECT_EQ(getCocoNodeResource(head)->mResValue.value, 100);
 //     head = getNext(head);
 
 //     EXPECT_EQ(head, nullptr);
@@ -574,10 +574,10 @@
 // //             int32_t val = rand() % 100;
 
 // //             Resource* resource = (Resource*) (GetBlock<Resource>());
-// //             resource->mOpCode = testOpId;
+// //             resource->mResCode = testOpId;
 // //             resource->mOptionalInfo = 0;
 // //             resource->mNumValues = 1;
-// //             resource->mConfigValue.singleValue = val;
+// //             resource->mResValue.value = val;
 
 // //             std::vector<Resource*>* resourceVec =
 // //                 new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
@@ -611,7 +611,7 @@
 
 // //     for(int32_t val : remainingValues) {
 // //         ASSERT_NE(head, nullptr);
-// //         EXPECT_EQ(getCocoNodeResource(head)->mConfigValue.singleValue, val);
+// //         EXPECT_EQ(getCocoNodeResource(head)->mResValue.value, val);
 // //         head = getNext(head);
 // //     }
 // //     EXPECT_EQ(head, nullptr);
@@ -627,10 +627,10 @@
 //         new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
 
 //     Resource* resource = (Resource*) (GetBlock<Resource>());
-//     resource->mOpCode = testOpId;
+//     resource->mResCode = testOpId;
 //     resource->mOptionalInfo = 0;
 //     resource->mNumValues = 1;
-//     resource->mConfigValue.singleValue = 111;
+//     resource->mResValue.value = 111;
 
 //     resources->push_back(resource);
 
@@ -640,7 +640,7 @@
 //     CocoTable::getInstance()->insertRequest(request);
 
 //     EXPECT_EQ(AuxRoutine::readFromFile("../Tests/Configs/sched_util_clamp_min"),
-//               std::to_string(resource->mConfigValue.singleValue));
+//               std::to_string(resource->mResValue.value));
 
 //     CocoTable::getInstance()->removeRequest(request);
 

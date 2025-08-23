@@ -63,18 +63,18 @@ int8_t RequestManager::requestMatch(Request* request) {
             Resource* res1 = request->getResourceAt(i);
             Resource* res2 = targetRequest->getResourceAt(i);
 
-            if(res1->getOpCode() != res2->getOpCode()) return false;
-            if(res1->getOperationalInfo() != res2->getOperationalInfo()) return false;
+            if(res1->getResCode() != res2->getResCode()) return false;
+            if(res1->getResInfo() != res2->getResInfo()) return false;
             if(res1->getOptionalInfo() != res2->getOptionalInfo()) return false;
             if(res1->getValuesCount() != res2->getValuesCount()) return false;
 
             if(res1->getValuesCount() == 1) {
-                if(res1->mConfigValue.singleValue != res2->mConfigValue.singleValue) {
+                if(res1->mResValue.value != res2->mResValue.value) {
                     return false;
                 }
             } else {
                 for(int32_t i = 0; i < res1->getValuesCount(); i++) {
-                    if(res1->mConfigValue.valueArray[i] != res2->mConfigValue.valueArray[i]) return false;
+                    if(res1->mResValue.values[i] != res2->mResValue.values[i]) return false;
                 }
             }
         }

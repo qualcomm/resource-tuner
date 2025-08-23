@@ -84,7 +84,7 @@ void CocoTable::applyAction(CocoNode* currNode, int32_t index, int8_t priority) 
 
     if(this->mCurrentlyAppliedPriority[index] >= priority ||
        this->mCurrentlyAppliedPriority[index] == -1) {
-        ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
+        ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
         if(resourceConfig->mModes & ResourceTunerSettings::targetConfigs.currMode) {
             // Check if a custom Applier (Callback) has been provided for this Resource, if yes, then call it
             // Note for resources with multiple values, the BU will need to provide a custom applier, which provides
@@ -93,9 +93,9 @@ void CocoTable::applyAction(CocoNode* currNode, int32_t index, int8_t priority) 
                 resourceConfig->mResourceApplierCallback(resource);
             } else {
                 // Default Applier
-                AuxRoutines::writeToFile(resourceConfig->mResourcePath, std::to_string(resource->mConfigValue.singleValue));
+                AuxRoutines::writeToFile(resourceConfig->mResourcePath, std::to_string(resource->mResValue.value));
                 LOGI("RESTUNE_COCO_TABLE",
-                     "Value " + std::to_string(resource->mConfigValue.singleValue) + " written in " + resourceConfig->mResourcePath);
+                     "Value " + std::to_string(resource->mResValue.value) + " written in " + resourceConfig->mResourcePath);
             }
             mCurrentlyAppliedPriority[index] = priority;
         }
@@ -104,7 +104,7 @@ void CocoTable::applyAction(CocoNode* currNode, int32_t index, int8_t priority) 
 
 void CocoTable::applyDefaultAction(int32_t index, Resource* resource) {
     if(resource == nullptr) return;
-    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
+    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
     if(resourceConfigInfo != nullptr) {
         if(resourceConfigInfo->mResourceTearCallback != nullptr) {
             resourceConfigInfo->mResourceTearCallback(resource);
@@ -148,8 +148,8 @@ void CocoTable::insertInCocoTableHigherLower(CocoNode* newNode, int32_t primaryI
     while(currNode != nullptr) {
         CocoNode* currNext = currNode->next;
 
-        if(!inserted && comparison(newNode->mResource->mConfigValue.singleValue,
-                                   currNode->mResource->mConfigValue.singleValue, policy)) {
+        if(!inserted && comparison(newNode->mResource->mResValue.value,
+                                   currNode->mResource->mResValue.value, policy)) {
             newNode->next = currNode;
             newNode->prev = currNode->prev;
 
@@ -236,12 +236,12 @@ int32_t CocoTable::getCocoTablePrimaryIndex(uint32_t opId) {
 
 int32_t CocoTable::getCocoTableSecondaryIndex(Resource* resource, int8_t priority) {
     std::shared_ptr<ResourceRegistry> resourceRegistry = ResourceRegistry::getInstance();
-    if(resourceRegistry->getResourceById(resource->getOpCode()) == nullptr) {
+    if(resourceRegistry->getResourceById(resource->getResCode()) == nullptr) {
         return -1;
     }
 
     ResourceConfigInfo* resourceConfigInfo =
-        resourceRegistry->getResourceById(resource->getOpCode());
+        resourceRegistry->getResourceById(resource->getResCode());
 
     if(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_CORE) {
         int32_t physicalCore = resource->getCoreValue();
@@ -254,9 +254,9 @@ int32_t CocoTable::getCocoTableSecondaryIndex(Resource* resource, int8_t priorit
     } else if(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_CGROUP) {
         int32_t cGroupIdentifier = -1;
         if(resource->getValuesCount() == 1) {
-            cGroupIdentifier = resource->mConfigValue.singleValue;
+            cGroupIdentifier = resource->mResValue.value;
         } else {
-            cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
+            cGroupIdentifier = (*resource->mResValue.values)[0];
         }
         if(cGroupIdentifier == -1) return -1;
         return cGroupIdentifier * TOTAL_PRIORITIES + priority;
@@ -269,7 +269,7 @@ int32_t CocoTable::getCocoTableSecondaryIndex(Resource* resource, int8_t priorit
 }
 
 int8_t CocoTable::insertInCocoTable(CocoNode* currNode, Resource* resource, int8_t priority) {
-    int32_t primaryIndex = getCocoTablePrimaryIndex(resource->getOpCode());
+    int32_t primaryIndex = getCocoTablePrimaryIndex(resource->getResCode());
     int32_t secondaryIndex = getCocoTableSecondaryIndex(resource, priority);
 
     if(primaryIndex < 0 || secondaryIndex < 0 ||
@@ -277,7 +277,7 @@ int8_t CocoTable::insertInCocoTable(CocoNode* currNode, Resource* resource, int8
         return false;
     }
 
-    enum Policy policy = ResourceRegistry::getInstance()->getResourceById(resource->getOpCode())->mPolicy;
+    enum Policy policy = ResourceRegistry::getInstance()->getResourceById(resource->getResCode())->mPolicy;
 
     switch(policy) {
         case INSTANT_APPLY:
@@ -426,7 +426,7 @@ int8_t CocoTable::removeRequest(Request* req) {
         Resource* resource = req->getResourceAt(i);
 
         int8_t priority = req->getPriority();
-        int32_t primaryIndex = getCocoTablePrimaryIndex(resource->getOpCode());
+        int32_t primaryIndex = getCocoTablePrimaryIndex(resource->getResCode());
         int32_t secondaryIndex = getCocoTableSecondaryIndex(resource, priority);
 
         // Proceed with CocoNode cleanup,
@@ -445,7 +445,7 @@ int8_t CocoTable::removeRequest(Request* req) {
         if(mCocoTable[primaryIndex][secondaryIndex].second == nullptr) {
             int8_t allListsEmpty = true;
             int32_t reIndexIncrement = 0;
-            ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
+            ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
 
             if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CORE) {
                 reIndexIncrement = getCocoTableSecondaryIndex(resource, SYSTEM_HIGH);

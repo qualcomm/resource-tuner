@@ -30,9 +30,9 @@ Resource* generateResourceForTesting(int32_t seed) {
     Resource* resource = nullptr;
     try {
         resource = (Resource*) GetBlock<Resource>();
-        resource->setOpCode(16 + seed);
+        resource->setResCode(16 + seed);
         resource->setNumValues(1);
-        resource->mConfigValue.singleValue = 2 * seed;
+        resource->mResValue.value = 2 * seed;
     } catch(const std::bad_alloc& e) {
         throw std::bad_alloc();
     }
@@ -42,9 +42,9 @@ Resource* generateResourceForTesting(int32_t seed) {
 
 Resource* generateResourceFromMemoryPoolForTesting(int32_t seed) {
     Resource* resource = new(GetBlock<Resource>()) Resource;
-    resource->setOpCode(16 + seed);
+    resource->setResCode(16 + seed);
     resource->setNumValues(1);
-    resource->mConfigValue.singleValue = 2 * seed;
+    resource->mResValue.value = 2 * seed;
 
     return resource;
 }
@@ -57,9 +57,9 @@ TEST_F(RequestMapTests, TestSingleRequestScenario) {
 
     Resource* resource = (Resource*) GetBlock<Resource>();
 
-    resource->setOpCode(16);
+    resource->setResCode(16);
     resource->setNumValues(1);
-    resource->mConfigValue.singleValue = 8;
+    resource->mResValue.value = 8;
 
     std::vector<Resource*>* resources =
         new (GetBlock<std::vector<Resource*>>())std::vector<Resource*>;
@@ -237,7 +237,7 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario3_1) {
         Resource* resource = generateResourceForTesting(0);
 
         // Slight modification
-        resource->mConfigValue.singleValue = 8 + index;
+        resource->mResValue.value = 8 + index;
 
         std::vector<Resource*>* resources =
             new (GetBlock<std::vector<Resource*>>())std::vector<Resource*>;
@@ -999,10 +999,10 @@ TEST_F(RequestMapTests, TestGetRequestFromMap) {
         FAIL();
     }
 
-    resource->setOpCode(15564);
+    resource->setResCode(15564);
     resource->setOptionalInfo(4445);
     resource->setNumValues(1);
-    resource->mConfigValue.singleValue = 42;
+    resource->mResValue.value = 42;
 
     std::vector<Resource*>* resources;
 

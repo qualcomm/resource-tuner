@@ -34,9 +34,9 @@ static void TestHandleGeneration() {
     LOG_START
 
     SysResource* resourceList = new SysResource[1];
-    resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+    resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
     resourceList[0].mNumValues = 1;
-    resourceList[0].mConfigValue.singleValue = 554;
+    resourceList[0].mResValue.value = 554;
 
     int64_t handle = tuneResources(2000, 0, 1, resourceList);
 
@@ -46,9 +46,9 @@ static void TestHandleGeneration() {
     std::this_thread::sleep_for(std::chrono::seconds(3));
 
     resourceList = new SysResource[1];
-    resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+    resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
     resourceList[0].mNumValues = 1;
-    resourceList[0].mConfigValue.singleValue = 667;
+    resourceList[0].mResValue.value = 667;
 
     handle = tuneResources(2000, 0, 1, resourceList);
 
@@ -58,9 +58,9 @@ static void TestHandleGeneration() {
     std::this_thread::sleep_for(std::chrono::seconds(3));
 
     resourceList = new SysResource[1];
-    resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+    resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
     resourceList[0].mNumValues = 1;
-    resourceList[0].mConfigValue.singleValue = 701;
+    resourceList[0].mResValue.value = 701;
 
     handle = tuneResources(2000, 0, 1, resourceList);
 
@@ -153,7 +153,7 @@ namespace ResourceTuningRequestVerification {
     * - Here a non-null Resources List is passed to the Tune API, however the only Resource part of
     *   the Request is invalid, hence the Request will fail the preliminary tests on the Client side
     *   and won't be submitted to the Server, returning -1 to the End-Client.
-    * - For checking Resource validity, we check basic SysResource params like mOpCode, mOpInfo and verify
+    * - For checking Resource validity, we check basic SysResource params like mResCode, mResInfo and verify
         that these values are sane.
     * Cross-Reference id: [B]
     */
@@ -161,8 +161,8 @@ namespace ResourceTuningRequestVerification {
         LOG_START
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = -1;
-        resourceList[0].mOpInfo = -1;
+        resourceList[0].mResCode = -1;
+        resourceList[0].mResInfo = -1;
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
         assert(handle == RC_REQ_SUBMISSION_FAILURE);
@@ -194,9 +194,9 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 554;
+        resourceList[0].mResValue.value = 554;
 
         // Invalid Priority Value = 2
         int64_t handle = tuneResources(-1, 2, 1, resourceList);
@@ -236,14 +236,14 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == validResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[2];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 554;
+        resourceList[0].mResValue.value = 554;
 
         // No Resource with this ID exists
-        resourceList[1].mOpCode = 12000;
+        resourceList[1].mResCode = 12000;
         resourceList[1].mNumValues = 1;
-        resourceList[1].mConfigValue.singleValue = 597;
+        resourceList[1].mResValue.value = 597;
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 2, resourceList);
 
@@ -280,9 +280,9 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 1200;
+        resourceList[0].mResValue.value = 1200;
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -321,12 +321,12 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 5);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 5);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 2300;
-        resourceList[0].mOpInfo = 0;
-        resourceList[0].mOpInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mOpInfo, 2);
-        resourceList[0].mOpInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mOpInfo, 27);
+        resourceList[0].mResValue.value = 2300;
+        resourceList[0].mResInfo = 0;
+        resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 2);
+        resourceList[0].mResInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mResInfo, 27);
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -365,12 +365,12 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[2];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 5);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 5);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 2300;
-        resourceList[0].mOpInfo = 0;
-        resourceList[0].mOpInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mOpInfo, 5);
-        resourceList[0].mOpInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mOpInfo, 2);
+        resourceList[0].mResValue.value = 2300;
+        resourceList[0].mResInfo = 0;
+        resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 5);
+        resourceList[0].mResInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mResInfo, 2);
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -409,12 +409,12 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 5);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 5);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 2300;
-        resourceList[0].mOpInfo = 0;
-        resourceList[0].mOpInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mOpInfo, 2);
-        resourceList[0].mOpInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mOpInfo, 2);
+        resourceList[0].mResValue.value = 2300;
+        resourceList[0].mResInfo = 0;
+        resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 2);
+        resourceList[0].mResInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mResInfo, 2);
 
         int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -459,12 +459,12 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 5);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 5);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 2300;
-        resourceList[0].mOpInfo = 0;
-        resourceList[0].mOpInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mOpInfo, 1);
-        resourceList[0].mOpInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mOpInfo, 0);
+        resourceList[0].mResValue.value = 2300;
+        resourceList[0].mResInfo = 0;
+        resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 1);
+        resourceList[0].mResInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mResInfo, 0);
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -500,9 +500,9 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 7);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 7);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 653;
+        resourceList[0].mResValue.value = 653;
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -537,9 +537,9 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 6);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 6);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 4670;
+        resourceList[0].mResValue.value = 4670;
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -578,9 +578,9 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 4);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 4);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 460;
+        resourceList[0].mResValue.value = 460;
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -876,9 +876,9 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 0);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 0);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 980;
+        resourceList[0].mResValue.value = 980;
 
         int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -936,17 +936,17 @@ namespace RequestApplicationTests {
 
         SysResource* resourceList = new SysResource[3];
 
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 765;
+        resourceList[0].mResValue.value = 765;
 
-        resourceList[1].mOpCode = GENERATE_RESOURCE_ID(1, 1);
+        resourceList[1].mResCode = GENERATE_RESOURCE_ID(1, 1);
         resourceList[1].mNumValues = 1;
-        resourceList[1].mConfigValue.singleValue = 889;
+        resourceList[1].mResValue.value = 889;
 
-        resourceList[2].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList[2].mResCode = GENERATE_RESOURCE_ID(1, 2);
         resourceList[2].mNumValues = 1;
-        resourceList[2].mConfigValue.singleValue = 617;
+        resourceList[2].mResValue.value = 617;
 
         int64_t handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 3, resourceList);
 
@@ -1009,9 +1009,9 @@ namespace RequestApplicationTests {
         int32_t rc = fork();
         if(rc == 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+            resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
             resourceList[0].mNumValues = 1;
-            resourceList[0].mConfigValue.singleValue = 315;
+            resourceList[0].mResValue.value = 315;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
             exit(EXIT_SUCCESS);
@@ -1020,9 +1020,9 @@ namespace RequestApplicationTests {
             wait(nullptr);
 
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+            resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
             resourceList[0].mNumValues = 1;
-            resourceList[0].mConfigValue.singleValue = 209;
+            resourceList[0].mResValue.value = 209;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1078,9 +1078,9 @@ namespace RequestApplicationTests {
         int32_t rc1 = fork();
         if(rc1 == 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+            resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
             resourceList[0].mNumValues = 1;
-            resourceList[0].mConfigValue.singleValue = 1176;
+            resourceList[0].mResValue.value = 1176;
 
             int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1089,9 +1089,9 @@ namespace RequestApplicationTests {
         } else if(rc1 > 0) {
             wait(nullptr);
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+            resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
             resourceList[0].mNumValues = 1;
-            resourceList[0].mConfigValue.singleValue = 823;
+            resourceList[0].mResValue.value = 823;
 
             int64_t handle = tuneResources(14000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1156,9 +1156,9 @@ namespace RequestApplicationTests {
         int32_t rc1 = fork();
         if(rc1 == 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+            resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
             resourceList[0].mNumValues = 1;
-            resourceList[0].mConfigValue.singleValue = 578;
+            resourceList[0].mResValue.value = 578;
 
             handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1175,9 +1175,9 @@ namespace RequestApplicationTests {
             int32_t rc2 = fork();
             if(rc2 == 0) {
                 SysResource* resourceList = new SysResource[1];
-                resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+                resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
                 resourceList[0].mNumValues = 1;
-                resourceList[0].mConfigValue.singleValue = 445;
+                resourceList[0].mResValue.value = 445;
 
                 handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1194,9 +1194,9 @@ namespace RequestApplicationTests {
                 int32_t rc3 = fork();
                 if(rc3 == 0) {
                     SysResource* resourceList = new SysResource[1];
-                    resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+                    resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
                     resourceList[0].mNumValues = 1;
-                    resourceList[0].mConfigValue.singleValue = 412;
+                    resourceList[0].mResValue.value = 412;
 
                     handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1211,9 +1211,9 @@ namespace RequestApplicationTests {
                     assert(newValue == 412);
 
                     SysResource* resourceList = new SysResource[1];
-                    resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+                    resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
                     resourceList[0].mNumValues = 1;
-                    resourceList[0].mConfigValue.singleValue = 378;
+                    resourceList[0].mResValue.value = 378;
 
                     handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1263,9 +1263,9 @@ namespace RequestApplicationTests {
         int32_t rc1 = fork();
         if(rc1 == 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 8);
+            resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 8);
             resourceList[0].mNumValues = 1;
-            resourceList[0].mConfigValue.singleValue = 15;
+            resourceList[0].mResValue.value = 15;
 
             handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1276,9 +1276,9 @@ namespace RequestApplicationTests {
             std::this_thread::sleep_for(std::chrono::seconds(1));
 
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 8);
+            resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 8);
             resourceList[0].mNumValues = 1;
-            resourceList[0].mConfigValue.singleValue = 18;
+            resourceList[0].mResValue.value = 18;
 
             handle = tuneResources(15000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1347,9 +1347,9 @@ namespace RequestApplicationTests {
         int32_t rc1 = fork();
         if(rc1 == 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+            resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
             resourceList[0].mNumValues = 1;
-            resourceList[0].mConfigValue.singleValue = 717;
+            resourceList[0].mResValue.value = 717;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1359,9 +1359,9 @@ namespace RequestApplicationTests {
             int32_t rc2 = fork();
             if(rc2 == 0) {
                 SysResource* resourceList = new SysResource[1];
-                resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+                resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
                 resourceList[0].mNumValues = 1;
-                resourceList[0].mConfigValue.singleValue = 800;
+                resourceList[0].mResValue.value = 800;
 
                 int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1369,9 +1369,9 @@ namespace RequestApplicationTests {
 
             } else if(rc2 > 0) {
                 SysResource* resourceList = new SysResource[1];
-                resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 1);
+                resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 1);
                 resourceList[0].mNumValues = 1;
-                resourceList[0].mConfigValue.singleValue = 557;
+                resourceList[0].mResValue.value = 557;
 
                 int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1436,14 +1436,14 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList1 = new SysResource[1];
-        resourceList1[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+        resourceList1[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
         resourceList1[0].mNumValues = 1;
-        resourceList1[0].mConfigValue.singleValue = 889;
+        resourceList1[0].mResValue.value = 889;
 
         SysResource* resourceList2 = new SysResource[1];
-        resourceList2[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+        resourceList2[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
         resourceList2[0].mNumValues = 1;
-        resourceList2[0].mConfigValue.singleValue = 917;
+        resourceList2[0].mResValue.value = 917;
 
         handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList1);
         handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList2);
@@ -1489,19 +1489,19 @@ namespace RequestApplicationTests {
 
         std::thread th([&]{
             SysResource* resourceList1 = new SysResource[1];
-            resourceList1[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+            resourceList1[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
             resourceList1[0].mOptionalInfo = 0;
             resourceList1[0].mNumValues = 1;
-            resourceList1[0].mConfigValue.singleValue = 664;
+            resourceList1[0].mResValue.value = 664;
 
             handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList1);
         });
 
         SysResource* resourceList2 = new SysResource[1];
-        resourceList2[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+        resourceList2[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
         resourceList2[0].mOptionalInfo = 0;
         resourceList2[0].mNumValues = 1;
-        resourceList2[0].mConfigValue.singleValue = 702;
+        resourceList2[0].mResValue.value = 702;
 
         handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList2);
 
@@ -1548,9 +1548,9 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 245;
+        resourceList[0].mResValue.value = 245;
         handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -1598,9 +1598,9 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 245;
+        resourceList[0].mResValue.value = 245;
 
         handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1669,16 +1669,16 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList1 = new SysResource[1];
-        resourceList1[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList1[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
         resourceList1[0].mNumValues = 1;
-        resourceList1[0].mConfigValue.singleValue = 515;
+        resourceList1[0].mResValue.value = 515;
 
         handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_LOW, 1, resourceList1);
 
         SysResource* resourceList2 = new SysResource[1];
-        resourceList2[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList2[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
         resourceList2[0].mNumValues = 1;
-        resourceList2[0].mConfigValue.singleValue = 559;
+        resourceList2[0].mResValue.value = 559;
 
         handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList2);
 
@@ -1731,9 +1731,9 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList1 = new SysResource[1];
-        resourceList1[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList1[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
         resourceList1[0].mNumValues = 1;
-        resourceList1[0].mConfigValue.singleValue = 515;
+        resourceList1[0].mResValue.value = 515;
 
         handle = tuneResources(12000, RequestPriority::REQ_PRIORITY_LOW, 1, resourceList1);
 
@@ -1746,9 +1746,9 @@ namespace RequestApplicationTests {
         std::this_thread::sleep_for(std::chrono::seconds(3));
 
         SysResource* resourceList2 = new SysResource[1];
-        resourceList2[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList2[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
         resourceList2[0].mNumValues = 1;
-        resourceList2[0].mConfigValue.singleValue = 559;
+        resourceList2[0].mResValue.value = 559;
 
         handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList2);
 
@@ -1800,10 +1800,10 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList1 = new SysResource[1];
-        resourceList1[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+        resourceList1[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
         resourceList1[0].mOptionalInfo = 0;
         resourceList1[0].mNumValues = 1;
-        resourceList1[0].mConfigValue.singleValue = 645;
+        resourceList1[0].mResValue.value = 645;
 
         handle = tuneResources(10000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList1);
 
@@ -1816,9 +1816,9 @@ namespace RequestApplicationTests {
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
         SysResource* resourceList2 = new SysResource[1];
-        resourceList2[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+        resourceList2[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
         resourceList2[0].mNumValues = 1;
-        resourceList2[0].mConfigValue.singleValue = 716;
+        resourceList2[0].mResValue.value = 716;
 
         handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_LOW, 1, resourceList2);
 
@@ -1862,9 +1862,9 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 778;
+        resourceList[0].mResValue.value = 778;
 
         handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1920,9 +1920,9 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 778;
+        resourceList[0].mResValue.value = 778;
 
         handle = tuneResources(12000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1978,9 +1978,9 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 0);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 0);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 597;
+        resourceList[0].mResValue.value = 597;
 
         handle = tuneResources(7000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -2069,9 +2069,9 @@ namespace SystemSysfsNodesTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(8, 0);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(8, 0);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 980;
+        resourceList[0].mResValue.value = 980;
 
         int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -2117,9 +2117,9 @@ namespace SystemSysfsNodesTests {
         int32_t rc = fork();
         if(rc == 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(8, 0);
+            resourceList[0].mResCode = GENERATE_RESOURCE_ID(8, 0);
             resourceList[0].mNumValues = 1;
-            resourceList[0].mConfigValue.singleValue = 887;
+            resourceList[0].mResValue.value = 887;
 
             int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -2127,9 +2127,9 @@ namespace SystemSysfsNodesTests {
 
         } else if(rc > 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(8, 0);
+            resourceList[0].mResCode = GENERATE_RESOURCE_ID(8, 0);
             resourceList[0].mNumValues = 1;
-            resourceList[0].mConfigValue.singleValue = 799;
+            resourceList[0].mResValue.value = 799;
 
             int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -2184,9 +2184,9 @@ namespace SystemSysfsNodesTests {
         int32_t rc = fork();
         if(rc == 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(8, 0);
+            resourceList[0].mResCode = GENERATE_RESOURCE_ID(8, 0);
             resourceList[0].mNumValues = 1;
-            resourceList[0].mConfigValue.singleValue = 887;
+            resourceList[0].mResValue.value = 887;
 
             int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -2194,9 +2194,9 @@ namespace SystemSysfsNodesTests {
 
         } else if(rc > 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(8, 0);
+            resourceList[0].mResCode = GENERATE_RESOURCE_ID(8, 0);
             resourceList[0].mNumValues = 1;
-            resourceList[0].mConfigValue.singleValue = 799;
+            resourceList[0].mResValue.value = 799;
 
             int64_t handle = tuneResources(15000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -2250,9 +2250,9 @@ namespace SystemSysfsNodesTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(8, 0);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(8, 0);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 994;
+        resourceList[0].mResValue.value = 994;
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -2300,9 +2300,9 @@ namespace SystemSysfsNodesTests {
         int32_t rc = fork();
         if(rc == 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(8, 0);
+            resourceList[0].mResCode = GENERATE_RESOURCE_ID(8, 0);
             resourceList[0].mNumValues = 1;
-            resourceList[0].mConfigValue.singleValue = 744;
+            resourceList[0].mResValue.value = 744;
 
             int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -2310,9 +2310,9 @@ namespace SystemSysfsNodesTests {
 
         } else if(rc > 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(8, 0);
+            resourceList[0].mResCode = GENERATE_RESOURCE_ID(8, 0);
             resourceList[0].mNumValues = 1;
-            resourceList[0].mConfigValue.singleValue = 801;
+            resourceList[0].mResValue.value = 801;
 
             int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_LOW, 1, resourceList);
 

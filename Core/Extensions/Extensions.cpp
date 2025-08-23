@@ -7,11 +7,11 @@ std::vector<std::string> Extensions::mModifiedConfigFiles (TOTAL_CONFIGS_COUNT, 
 std::unordered_map<uint32_t, ResourceLifecycleCallback> Extensions::mResourceApplierCallbacks {};
 std::unordered_map<uint32_t, ResourceLifecycleCallback> Extensions::mResourceTearCallbacks {};
 
-Extensions::Extensions(uint32_t resourceOpcode, int8_t callbackType, ResourceLifecycleCallback callback) {
+Extensions::Extensions(uint32_t resCode, int8_t callbackType, ResourceLifecycleCallback callback) {
     if(callbackType == 0) {
-        mResourceApplierCallbacks[resourceOpcode] = callback;
+        mResourceApplierCallbacks[resCode] = callback;
     } else if(callbackType == 1) {
-        mResourceTearCallbacks[resourceOpcode] = callback;
+        mResourceTearCallbacks[resCode] = callback;
     }
 }
 

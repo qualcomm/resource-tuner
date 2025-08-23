@@ -574,9 +574,9 @@ This example demonstrates the use of tuneResources API for Resource Provisioning
 void sendRequest() {
     // Define resources
     SysResource* resourceList = new SysResource[1];
-    resourceList[0].mOpCode = 65536;
+    resourceList[0].mResCode = 65536;
     resourceList[0].mNumValues = 1;
-    resourceList[0].mConfigValue.singleValue = 980;
+    resourceList[0].mResValue.value = 980;
 
     // Issue the Tune Request
     int64_t handle = tuneResources(5000, 0, 1, resourceList);
