@@ -370,10 +370,13 @@ void SignalQueue::orderedQueueConsumerHook() {
             case SIGNAL_RELAY: {
                 // Get all the subscribed Features
                 std::vector<uint32_t> subscribedFeatures;
-                int8_t featuresExist = SignalExtFeatureMapper::getInstance()->getFeatures(signal->getSignalID(), subscribedFeatures);
+                int8_t featuresExist = SignalExtFeatureMapper::getInstance()->getFeatures(
+                    signal->getSignalID(),
+                    subscribedFeatures
+                );
 
                 if(featuresExist == false) {
-                    break;
+                    continue;
                 }
 
                 for(uint32_t featureId: subscribedFeatures) {
