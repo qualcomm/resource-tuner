@@ -7,10 +7,15 @@
 #include <vector>
 #include <memory>
 #include <unordered_map>
+#include <dlfcn.h>
 
 #include "SignalExtFeatureMapper.h"
 #include "Utils.h"
 #include "Logger.h"
+
+#define INITIALIZE_FEATURE_ROUTINE "initFeature"
+#define TEARDOWN_FEATURE_ROUTINE "tearFeature"
+#define RELAY_FEATURE_ROUTINE "relayFeature"
 
 typedef struct {
     uint32_t mFeatureId;
@@ -41,6 +46,12 @@ public:
     int32_t getExgFeaturesConfigCount();
 
     void displayExtFeatures();
+
+    void initializeFeatures();
+
+    void teardownFeatures();
+
+    ErrCode relayToFeature(uint32_t featureId);
 
     static std::shared_ptr<ExtFeaturesRegistry> getInstance() {
         if(extFeaturesRegistryInstance == nullptr) {

@@ -3,6 +3,14 @@
 
 #include "ExtFeaturesRegistry.h"
 
+static void* openLib(const std::string& libPath) {
+    void* handle = dlopen(libPath.c_str(), RTLD_LAZY);
+    if(handle == nullptr) {
+        return nullptr;
+    }
+    return handle;
+}
+
 std::shared_ptr<ExtFeaturesRegistry> ExtFeaturesRegistry::extFeaturesRegistryInstance = nullptr;
 
 ExtFeaturesRegistry::ExtFeaturesRegistry() {
@@ -62,6 +70,61 @@ void ExtFeaturesRegistry::displayExtFeatures() {
             LOGI("RESTUNE_EXT_FEATURES_REGISTRY", "Ext Feature Signal ID: " + std::to_string(signalID));
         }
     }
+}
+
+void ExtFeaturesRegistry::initializeFeatures() {
+    for(int32_t i = 0; i < this->mExtFeaturesConfigs.size(); i++) {
+        if(this->mExtFeaturesConfigs[i] == nullptr) continue;
+        void* handle = openLib(this->mExtFeaturesConfigs[i]->mFeatureLib);
+
+        if(handle != nullptr) {
+            auto* initCallback = (void (*)(void)) dlsym(handle, INITIALIZE_FEATURE_ROUTINE);
+            if(initCallback != nullptr) {
+                initCallback();
+            }
+        } else {
+            LOGE("RESTUNE_RESOURCE_PROCESSOR", "Error while opening Ext Feature Library");
+        }
+    }
+}
+
+void ExtFeaturesRegistry::teardownFeatures() {
+    for(int32_t i = 0; i < this->mExtFeaturesConfigs.size(); i++) {
+        if(this->mExtFeaturesConfigs[i] == nullptr) continue;
+        void* handle = openLib(this->mExtFeaturesConfigs[i]->mFeatureLib);
+
+        if(handle != nullptr) {
+            auto* tearCallback = (void (*)(void)) dlsym(handle, TEARDOWN_FEATURE_ROUTINE);
+            if(tearCallback != nullptr) {
+                tearCallback();
+            }
+        } else {
+            LOGE("RESTUNE_RESOURCE_PROCESSOR", "Error while opening Ext Feature Library");
+        }
+    }
+}
+
+ErrCode ExtFeaturesRegistry::relayToFeature(uint32_t featureId) {
+    ExtFeatureInfo* extFeatureInfo = this->getExtFeatureConfigById(featureId);
+    if(extFeatureInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
+
+    void* handle = openLib(extFeatureInfo->mFeatureLib);
+
+    if(handle != nullptr) {
+        auto* relayCallback = (void (*)(void)) dlsym(handle, RELAY_FEATURE_ROUTINE);
+        if(relayCallback != nullptr) {
+            relayCallback();
+        }
+
+        return RC_SUCCESS;
+    } else {
+        LOGE("RESTUNE_RESOURCE_PROCESSOR", "Error while opening Ext Feature Library");
+        return RC_INVALID_VALUE;
+    }
+
+    return RC_SUCCESS;
 }
 
 ExtFeaturesRegistry::~ExtFeaturesRegistry() {

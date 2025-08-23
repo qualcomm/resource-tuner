@@ -368,26 +368,18 @@ void SignalQueue::orderedQueueConsumerHook() {
             }
             case SIGNAL_RELAY: {
                 // Get all the subscribed Features
-                std::vector<int32_t> subscribedFeatures;
+                std::vector<uint32_t> subscribedFeatures;
                 int8_t featuresExist = SignalExtFeatureMapper::getInstance()->getFeatures(signal->getSignalID(), subscribedFeatures);
 
-                if(!featuresExist) {
+                if(featuresExist == false) {
                     break;
                 }
 
-                for(int32_t featureId: subscribedFeatures) {
-                    // Fetch This Feature from ExtFeaturesRegistry
-                    ExtFeatureInfo* featureInfo =
-                        ExtFeaturesRegistry::getInstance()->getExtFeatureConfigById(featureId);
-                    if(featureInfo == nullptr) {
-                        continue;
+                for(uint32_t featureId: subscribedFeatures) {
+                    ErrCode opStatus = ExtFeaturesRegistry::getInstance()->relayToFeature(featureId);
+                    if(RC_IS_NOTOK(opStatus)) {
+                        // Log Error Here
                     }
-
-                    // Relay the Signal to all subscribed features.
-                    std::string featureName = featureInfo->mFeatureName;
-                    std::string featureLib = featureInfo->mFeatureLib;
-
-                    // Call the "resourceTunerRelay" function in the lib
                 }
 
                 Signal::cleanUpSignal(signal);

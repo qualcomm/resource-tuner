@@ -103,6 +103,8 @@ ErrCode initSignals() {
         return opStatus;
     }
 
+    ExtFeaturesRegistry::getInstance()->initializeFeatures();
+
     // Create Signal Processor thread
     try {
         signalServerProcessorThread = std::thread(SignalsdServerThread);
@@ -126,6 +128,8 @@ ErrCode terminateSignals() {
     } else {
         TYPELOGV(SYSTEM_THREAD_NOT_JOINABLE, "Signal");
     }
+
+    ExtFeaturesRegistry::getInstance()->teardownFeatures();
     return RC_SUCCESS;
 }
 

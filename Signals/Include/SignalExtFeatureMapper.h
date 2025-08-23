@@ -13,12 +13,12 @@
 class SignalExtFeatureMapper {
 private:
     static std::shared_ptr<SignalExtFeatureMapper> signalExtFeatureMapperInstance;
-    std::unordered_map<uint32_t, std::vector<int32_t>> mSignalTofeaturesMap;
+    std::unordered_map<uint32_t, std::vector<uint32_t>> mSignalTofeaturesMap;
 
 public:
     int8_t addFeature(uint32_t signal, int32_t feature);
 
-    int8_t getFeatures(uint32_t signal, std::vector<int32_t>& features);
+    int8_t getFeatures(uint32_t signal, std::vector<uint32_t>& features);
 
     static std::shared_ptr<SignalExtFeatureMapper> getInstance() {
         if(signalExtFeatureMapperInstance == nullptr) {
