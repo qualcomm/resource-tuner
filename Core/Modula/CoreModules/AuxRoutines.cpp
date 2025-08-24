@@ -9,13 +9,11 @@ std::string AuxRoutines::readFromFile(const std::string& fileName) {
     std::string value = "";
 
     if(!fileStream.is_open()) {
-        std::cout<<"File cannot be openeded, path = "<<fileName<<" error "<<std::strerror(errno)<<std::endl;
         LOGE("RESTUNE_AUX_ROUTINE", "Failed to open file: " + fileName + " Error: " + strerror(errno));
         return "";
     }
 
     if(!getline(fileStream, value)) {
-        std::cout<<"getline returns big error cannot be openeded"<<" "<<fileName<<std::endl;
         LOGE("RESTUNE_AUX_ROUTINE", "Failed to read from file: " + fileName);
         return "";
     }

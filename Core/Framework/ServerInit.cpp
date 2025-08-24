@@ -17,26 +17,6 @@
 
 static std::thread serverThread;
 
-// Create all the CGroups specified via InitConfig.yaml during the init phase.
-static ErrCode createCGroups() {
-    std::vector<CGroupConfigInfo*> cGroupConfigs;
-    TargetRegistry::getInstance()->getCGroupConfigs(cGroupConfigs);
-
-    for(CGroupConfigInfo* cGroupConfig : cGroupConfigs) {
-        if(cGroupConfig == nullptr) continue;
-
-        std::string cGroupPath = ResourceTunerSettings::mBaseCGroupPath + cGroupConfig->mCgroupName;
-        if(mkdir(cGroupPath.c_str(), 0755) == 0) {
-            if(cGroupConfig->isThreaded) {
-                AuxRoutines::writeToFile(cGroupPath + "/cgroup.type", "threaded");
-            }
-        } else {
-            TYPELOGV(ERRNO_LOG, "mkdir", strerror(errno));
-        }
-    }
-    return RC_SUCCESS;
-}
-
 static void preAllocateMemory() {
     // Preallocate Memory for certain frequently used types.
     int32_t concurrentRequestsUB = ResourceTunerSettings::metaConfigs.mMaxConcurrentRequests;
@@ -130,12 +110,12 @@ static ErrCode fetchInitInfo() {
         filePath = ResourceTunerSettings::mCustomTargetFilePath;
         opStatus = configProcessor.parseTargetConfigs(filePath);
         if(RC_IS_NOTOK(opStatus)) {
-            if(opStatus == RC_FILE_NOT_FOUND) {
+            if(opStatus != RC_FILE_NOT_FOUND) {
+                TYPELOGV(NOTIFY_PARSING_FAILURE, "Target");
+                return opStatus;
+            } else {
                 TYPELOGV(NOTIFY_PARSER_FILE_NOT_FOUND, "Target", filePath.c_str());
-                return RC_SUCCESS;
             }
-            TYPELOGV(NOTIFY_PARSING_FAILURE, "Target");
-            return opStatus;
         }
         TYPELOGV(NOTIFY_PARSING_SUCCESS, "Target");
     }
@@ -184,10 +164,6 @@ static ErrCode initServer() {
         return opStatus;
     }
     TYPELOGD(LOGICAL_TO_PHYSICAL_MAPPING_GEN_SUCCESS);
-
-    // Create any specified CGroups
-    // We don't care about the return value here, since it is an optional feature
-    opStatus = createCGroups();
 
     // By this point, all the Extension Appliers / Resources would have been registered.
     ResourceRegistry::getInstance()->pluginModifications();
