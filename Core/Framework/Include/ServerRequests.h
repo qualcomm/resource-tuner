@@ -1,8 +1,8 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#ifndef RESOURCE_TUNER_SERVER_REQUEST_H
-#define RESOURCE_TUNER_SERVER_REQUEST_H
+#ifndef RESTUNE_SERVER_REQUESTS_H
+#define RESTUNE_SERVER_REQUESTS_H
 
 #include "Utils.h"
 #include "RequestQueue.h"

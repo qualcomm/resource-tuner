@@ -40,7 +40,6 @@ public:
     } mResValue; //!< The value to be Configured for this Resource Node.
 
     Resource() : mResCode(0), mResInfo(0), mOptionalInfo(0), mNumValues(0) {
-        mResValue.value = 0;
         mResValue.values = nullptr;
     }
     ~Resource() {}

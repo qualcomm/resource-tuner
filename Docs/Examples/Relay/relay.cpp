@@ -35,4 +35,4 @@ extern "C" void relayFeature() {
  *    in the ExtFeaturesConfig.yaml file.
  * => Make sure the lib file has appropriate permissions:
  *    "sudo chmod o+r <path_to_lib>"
-*/
+ */

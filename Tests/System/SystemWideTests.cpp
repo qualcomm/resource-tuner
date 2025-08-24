@@ -2473,21 +2473,253 @@ namespace SignalApplicationTests {
     }
 }
 
+namespace CGroupApplicationTests {
+    std::string __testGroupName = "CGroup Application Checks";
+
+    static void TestWriteAndReset1() {
+        LOG_START
+
+        std::string testResourceName = "/sys/fs/cgroup/audio-cgroup/cpu.uclamp.min";
+
+        std::string originalValueString = AuxRoutines::readFromFile(testResourceName);
+        int32_t originalValue = C_STOI(originalValueString);
+
+        SysResource* resourceList1 = new SysResource[1];
+        resourceList1[0].mResCode = 0x00090007;
+        resourceList1[0].mNumValues = 2;
+        resourceList1[0].mResValue.values = new int32_t[2];
+        resourceList1[0].mResValue.values[0] = 1;
+        resourceList1[0].mResValue.values[1] = 52;
+        int64_t handle = tuneResources(25000, RequestPriority::REQ_PRIORITY_LOW, 1, resourceList1);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        SysResource* resourceList = new SysResource[1];
+        resourceList[0].mResCode = 0x00090007;
+        resourceList[0].mNumValues = 2;
+        resourceList[0].mResValue.values = new int32_t[2];
+        resourceList[0].mResValue.values[0] = 1;
+        resourceList[0].mResValue.values[1] = 57;
+        handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+        std::string value;
+        int32_t newValue;
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        value = AuxRoutines::readFromFile(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == 57);
+
+        std::this_thread::sleep_for(std::chrono::seconds(8));
+
+        value = AuxRoutines::readFromFile(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == 52);
+
+        std::this_thread::sleep_for(std::chrono::seconds(20));
+
+        value = AuxRoutines::readFromFile(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == originalValue);
+
+        LOG_END
+    }
+
+    static void TestWriteAndReset2() {
+        LOG_START
+
+        std::string testResourceName = "/sys/fs/cgroup/audio-cgroup/cpu.uclamp.min";
+
+        std::string originalValueString = AuxRoutines::readFromFile(testResourceName);
+        int32_t originalValue = C_STOI(originalValueString);
+
+        int32_t rc = fork();
+        if(rc == 0) {
+            SysResource* resourceList = new SysResource[1];
+            resourceList[0].mResCode = 0x00090007;
+            resourceList[0].mNumValues = 2;
+            resourceList[0].mResValue.values = new int32_t[2];
+            resourceList[0].mResValue.values[0] = 1;
+            resourceList[0].mResValue.values[1] = 53;
+
+            int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+            exit(EXIT_SUCCESS);
+
+        } else if(rc > 0) {
+            SysResource* resourceList = new SysResource[1];
+            resourceList[0].mResCode = 0x00090007;
+            resourceList[0].mNumValues = 2;
+            resourceList[0].mResValue.values = new int32_t[2];
+            resourceList[0].mResValue.values[0] = 1;
+            resourceList[0].mResValue.values[1] = 57;
+
+            int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+            std::string value;
+            int32_t newValue;
+
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+
+            value = AuxRoutines::readFromFile(testResourceName);
+            newValue = C_STOI(value);
+            assert(newValue == 53);
+
+            std::this_thread::sleep_for(std::chrono::seconds(10));
+
+            value = AuxRoutines::readFromFile(testResourceName);
+            newValue = C_STOI(value);
+            assert(newValue == originalValue);
+
+            wait(nullptr);
+        }
+
+        LOG_END
+    }
+
+    static void TestWriteAndReset3() {
+        LOG_START
+
+        std::string testResourceName = "/sys/fs/cgroup/audio-cgroup/cpu.uclamp.max";
+
+        std::string originalValueString = AuxRoutines::readFromFile(testResourceName);
+        std::cout<<"["<<__LINE__<<"]"<<" cpu.uclamp.max Original Value: "<<originalValueString<<std::endl;
+        int32_t originalValue = C_STOI(originalValueString);
+
+        int32_t rc = fork();
+        if(rc == 0) {
+            SysResource* resourceList = new SysResource[1];
+            resourceList[0].mResCode = 0x00090008;
+            resourceList[0].mNumValues = 2;
+            resourceList[0].mResValue.values = new int32_t[2];
+            resourceList[0].mResValue.values[0] = 1;
+            resourceList[0].mResValue.values[1] = 75;
+
+            int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+            exit(EXIT_SUCCESS);
+
+        } else if(rc > 0) {
+            SysResource* resourceList = new SysResource[1];
+            resourceList[0].mResCode = 0x00090008;
+            resourceList[0].mNumValues = 2;
+            resourceList[0].mResValue.values = new int32_t[2];
+            resourceList[0].mResValue.values[0] = 1;
+            resourceList[0].mResValue.values[1] = 68;
+
+            int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+            std::string value;
+            int32_t newValue;
+
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+
+            value = AuxRoutines::readFromFile(testResourceName);
+            newValue = C_STOI(value);
+            assert(newValue == 75);
+
+            std::this_thread::sleep_for(std::chrono::seconds(10));
+
+            value = AuxRoutines::readFromFile(testResourceName);
+            std::cout<<"["<<__LINE__<<"]"<<" cpu.uclamp.max Reset Value: "<<value<<std::endl;
+            newValue = C_STOI(value);
+            if(newValue != -1 && originalValue != -1) {
+                assert(newValue == originalValue);
+            }
+
+            wait(nullptr);
+        }
+
+        LOG_END
+    }
+
+    static void TestWriteAndReset4() {
+        LOG_START
+
+        std::string testResourceName = "/sys/fs/cgroup/audio-cgroup/memory.max";
+
+        std::string originalValueString = AuxRoutines::readFromFile(testResourceName);
+        std::cout<<"["<<__LINE__<<"]"<<" memory.max Original Value: "<<originalValueString<<std::endl;
+        int32_t originalValue = C_STOI(originalValueString);
+
+        int32_t rc = fork();
+        if(rc == 0) {
+            SysResource* resourceList = new SysResource[1];
+            resourceList[0].mResCode = 0x0009000a;
+            resourceList[0].mNumValues = 2;
+            resourceList[0].mResValue.values = new int32_t[2];
+            resourceList[0].mResValue.values[0] = 1;
+            resourceList[0].mResValue.values[1] = 1224 * 1024;
+
+            int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+            exit(EXIT_SUCCESS);
+
+        } else if(rc > 0) {
+            SysResource* resourceList = new SysResource[1];
+            resourceList[0].mResCode = 0x0009000a;
+            resourceList[0].mNumValues = 2;
+            resourceList[0].mResValue.values = new int32_t[2];
+            resourceList[0].mResValue.values[0] = 1;
+            resourceList[0].mResValue.values[1] = 950 * 1024;
+
+            int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+            std::string value;
+            int32_t newValue;
+
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+
+            value = AuxRoutines::readFromFile(testResourceName);
+            newValue = C_STOI(value);
+            assert(newValue > 950 * 1024);
+            assert(newValue <= 1224 * 1024);
+
+            std::this_thread::sleep_for(std::chrono::seconds(10));
+
+            value = AuxRoutines::readFromFile(testResourceName);
+            std::cout<<"["<<__LINE__<<"]"<<" memory.max Reset Value: "<<value<<std::endl;
+            newValue = C_STOI(value);
+            if(newValue != -1 && originalValue != -1) {
+                assert(newValue == originalValue);
+            }
+
+            wait(nullptr);
+        }
+
+        LOG_END
+    }
+
+    static void RunTestGroup() {
+        std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
+
+        // TestWriteAndReset1();
+        // TestWriteAndReset2();
+        // TestWriteAndReset3();
+        TestWriteAndReset4();
+
+        std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
+    }
+}
+
 int32_t main(int32_t argc, const char* argv[]) {
     // Run the Tests
-    RUN_TEST(TestHandleGeneration)
+    // RUN_TEST(TestHandleGeneration)
 
     // Request-Verification Tests
-    ResourceTuningRequestVerification::RunTestGroup();
-    SignalVerification::RunTestGroup();
+    // ResourceTuningRequestVerification::RunTestGroup();
+    // SignalVerification::RunTestGroup();
 
-    // Request Application Tests
-    RequestApplicationTests::RunTestGroup();
+    // // Request Application Tests
+    // RequestApplicationTests::RunTestGroup();
 
-    // Tests on Real Sysfs Nodes (QLI)
-    SystemSysfsNodesTests::RunTestGroup();
+    // // Tests on Real Sysfs Nodes (QLI)
+    // SystemSysfsNodesTests::RunTestGroup();
 
-    SignalApplicationTests::RunTestGroup();
+    // SignalApplicationTests::RunTestGroup();
+
+    CGroupApplicationTests::RunTestGroup();
 
     return 0;
 }

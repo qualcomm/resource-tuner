@@ -171,6 +171,7 @@ ResourceConfigs:
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
+    Policy: instant_apply
 
   - ResType: "0x09"
     ResID: "0x0003"
@@ -179,6 +180,7 @@ ResourceConfigs:
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
+    Policy: instant_apply
 
   - ResType: "0x09"
     ResID: "0x0004"

@@ -99,7 +99,7 @@ void dumpRequest(Request* clientReq) {
         LOGD(LOG_TAG, "Resource " + std::to_string(i + 1) + ":");
         LOGD(LOG_TAG, "Opcode ID: " + std::to_string(res->getResCode()));
         LOGD(LOG_TAG, "Number of Values: " + std::to_string(res->getValuesCount()));
-        LOGD(LOG_TAG, "-- Single Value: " + std::to_string(res->mResValue.value));
+        // LOGD(LOG_TAG, "-- Single Value: " + std::to_string(res->mResValue.value));
     }
 }
 
