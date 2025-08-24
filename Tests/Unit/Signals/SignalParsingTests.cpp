@@ -21,19 +21,19 @@ protected:
             firstTest = false;
             ConfigProcessor configProcessor;
 
-            std::string commonSignals = "../Tests/Configs/testSignalsCommonConfig.yaml";
-            std::string targetSpecificSignals = "../Tests/Configs/testSignalsTargetSpecificConfig.yaml";
-            std::string customSignals = "../Tests/Configs/testSignalsCustomConfig.yaml";
+            std::string commonSignals = "/etc/resource-tuner/tests/Configs/SignalsConfigA.yaml";
+            std::string additionalSignalsCatA = "/etc/resource-tuner/tests/Configs/SignalsConfig.yaml";
+            std::string additionalSignalsCatB = "/etc/resource-tuner/tests/Configs/SignalsConfigB.yaml";
 
             if(RC_IS_NOTOK(configProcessor.parseSignalConfigs(commonSignals))) {
                 return;
             }
 
-            if(RC_IS_NOTOK(configProcessor.parseSignalConfigs(targetSpecificSignals))) {
+            if(RC_IS_NOTOK(configProcessor.parseSignalConfigs(additionalSignalsCatA))) {
                 return;
             }
 
-            if(RC_IS_NOTOK(configProcessor.parseSignalConfigs(customSignals, true))) {
+            if(RC_IS_NOTOK(configProcessor.parseSignalConfigs(additionalSignalsCatB, true))) {
                 return;
             }
         }

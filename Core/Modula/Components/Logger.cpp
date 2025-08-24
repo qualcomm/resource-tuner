@@ -398,6 +398,13 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             Logger::log(INFO, "RESTUNE_SERVER_INIT", funcName, std::string(buffer));
             break;
 
+        case CommonMessageTypes::NOTIFY_PARSER_FILE_NOT_FOUND:
+            vsnprintf(buffer, sizeof(buffer),
+                      "[%s] Config Parsing Failed, Expected File: [%s] not found.", args);
+
+            Logger::log(INFO, "RESTUNE_SERVER_INIT", funcName, std::string(buffer));
+            break;
+
         case CommonMessageTypes::LOGICAL_TO_PHYSICAL_MAPPING_GEN_FAILURE:
             Logger::log(ERROR, "RESTUNE_SERVER_INIT", funcName,
                         "Reading Physical Core, Cluster Info Failed, Server Init Failed");

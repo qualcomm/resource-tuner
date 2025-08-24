@@ -34,15 +34,15 @@
 void SetUp() {
     // Make sure all the tests have a sane starting point
 
-    AuxRoutines::writeToFile("../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min", "300");
-    AuxRoutines::writeToFile("../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_max", "684");
-    AuxRoutines::writeToFile("../Tests/Configs/ResourceSysFsNodes/scaling_min_freq", "107");
-    AuxRoutines::writeToFile("../Tests/Configs/ResourceSysFsNodes/scaling_max_freq", "114");
-    AuxRoutines::writeToFile("../Tests/Configs/ResourceSysFsNodes/target_test_resource1", "240");
-    AuxRoutines::writeToFile("../Tests/Configs/ResourceSysFsNodes/target_test_resource2", "333");
-    AuxRoutines::writeToFile("../Tests/Configs/ResourceSysFsNodes/target_test_resource3", "4400");
-    AuxRoutines::writeToFile("../Tests/Configs/ResourceSysFsNodes/target_test_resource4", "516");
-    AuxRoutines::writeToFile("../Tests/Configs/ResourceSysFsNodes/target_test_resource5", "17");
+    AuxRoutines::writeToFile("/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min", "300");
+    AuxRoutines::writeToFile("/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_max", "684");
+    AuxRoutines::writeToFile("/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_min_freq", "107");
+    AuxRoutines::writeToFile("/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_max_freq", "114");
+    AuxRoutines::writeToFile("/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource1", "240");
+    AuxRoutines::writeToFile("/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource2", "333");
+    AuxRoutines::writeToFile("/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource3", "4400");
+    AuxRoutines::writeToFile("/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource4", "516");
+    AuxRoutines::writeToFile("/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource5", "17");
 
     std::this_thread::sleep_for(std::chrono::seconds(3));
 }

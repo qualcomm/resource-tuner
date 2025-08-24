@@ -11,7 +11,7 @@
 #include "Extensions.h"
 #include "Logger.h"
 
-RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "../Tests/Configs/testPropertiesConfig.yaml")
+RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/etc/resource-tuner/tests/Configs/PropertiesConfig.yaml")
 
 #define TOTAL_SYS_CONFIGS_PROPS_COUNT 14
 

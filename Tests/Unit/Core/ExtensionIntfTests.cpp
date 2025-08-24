@@ -7,10 +7,10 @@
 #include "ConfigProcessor.h"
 #include "Extensions.h"
 
-RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourcesTargetSpecificConfig.yaml")
-RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "../Tests/Configs/testPropertiesConfig.yaml")
-RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, "../Tests/Configs/testSignalsTargetSpecificConfig.yaml")
-RESTUNE_REGISTER_CONFIG(TARGET_CONFIG, "../Tests/Configs/testTargetConfig.yaml")
+RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/resource-tuner/tests/Configs/ResourcesConfig.yaml")
+RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/etc/resource-tuner/tests/Configs/PropertiesConfig.yaml")
+RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/resource-tuner/tests/Configs/SignalsConfig.yaml")
+RESTUNE_REGISTER_CONFIG(TARGET_CONFIG, "/etc/resource-tuner/tests/Configs/TargetConfig.yaml")
 
 static int8_t firstTest = true;
 static int8_t funcCalled = false;
@@ -43,28 +43,28 @@ protected:
 TEST_F(ExtensionIntfTests, TestExtensionIntfModifiedResourceConfigPath) {
     ASSERT_EQ(
         Extensions::getResourceConfigFilePath(),
-        "../Tests/Configs/testResourcesTargetSpecificConfig.yaml"
+        "/etc/resource-tuner/tests/Configs/ResourcesConfig.yaml"
     );
 }
 
 TEST_F(ExtensionIntfTests, TestExtensionIntfModifiedPropertiesConfigPath) {
     ASSERT_EQ(
         Extensions::getPropertiesConfigFilePath(),
-        "../Tests/Configs/testPropertiesConfig.yaml"
+        "/etc/resource-tuner/tests/Configs/PropertiesConfig.yaml"
     );
 }
 
 TEST_F(ExtensionIntfTests, TestExtensionIntfModifiedSignalConfigPath) {
     ASSERT_EQ(
         Extensions::getSignalsConfigFilePath(),
-        "../Tests/Configs/testSignalsTargetSpecificConfig.yaml"
+        "/etc/resource-tuner/tests/Configs/SignalsConfig.yaml"
     );
 }
 
 TEST_F(ExtensionIntfTests, TestExtensionIntfModifiedTargetConfigPath) {
     ASSERT_EQ(
         Extensions::getTargetConfigFilePath(),
-        "../Tests/Configs/testTargetConfig.yaml"
+        "/etc/resource-tuner/tests/Configs/TargetConfig.yaml"
     );
 }
 

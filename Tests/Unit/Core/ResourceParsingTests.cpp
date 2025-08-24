@@ -21,19 +21,19 @@ protected:
             firstTest = false;
             ConfigProcessor configProcessor;
 
-            std::string commonResources = "../Tests/Configs/testResourcesCommonConfig.yaml";
-            std::string targetSpecificResources = "../Tests/Configs/testResourcesTargetSpecificConfig.yaml";
-            std::string customResources = "../Tests/Configs/testResourcesCustomConfig.yaml";
+            std::string commonResources = "/etc/resource-tuner/tests/Configs/ResourcesConfigA.yaml";
+            std::string additionalResourcesCatA = "/etc/resource-tuner/tests/Configs/ResourcesConfig.yaml";
+            std::string additionalResourcesCatB =  "/etc/resource-tuner/tests/Configs/ResourcesConfigB.yaml";
 
             if(RC_IS_NOTOK(configProcessor.parseResourceConfigs(commonResources))) {
                 return;
             }
 
-            if(RC_IS_NOTOK(configProcessor.parseResourceConfigs(targetSpecificResources))) {
+            if(RC_IS_NOTOK(configProcessor.parseResourceConfigs(additionalResourcesCatA))) {
                 return;
             }
 
-            if(RC_IS_NOTOK(configProcessor.parseResourceConfigs(customResources, true))) {
+            if(RC_IS_NOTOK(configProcessor.parseResourceConfigs(additionalResourcesCatB, true))) {
                 return;
             }
         }

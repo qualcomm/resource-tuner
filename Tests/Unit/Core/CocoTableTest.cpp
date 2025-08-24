@@ -13,7 +13,7 @@
 // #include "CocoTable.h"
 // #include "ResourceRegistry.h"
 
-// RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourcesConfig.yaml")
+// RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/resource-tuner/tests/Configs/ResourcesConfig.yaml")
 
 // class CocoTableTest : public ::testing::Test {
 // protected:
@@ -93,7 +93,7 @@
 
 //     CocoTable::getInstance()->insertRequest(request);
 
-//     EXPECT_EQ(AuxRoutine::readFromFile("../Tests/Configs/sched_util_clamp_min"),
+//     EXPECT_EQ(AuxRoutine::readFromFile("/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min"),
 //               std::to_string(valueToBeWritten));
 
 //     CocoTable::getInstance()->removeRequest(request);
@@ -639,7 +639,7 @@
 
 //     CocoTable::getInstance()->insertRequest(request);
 
-//     EXPECT_EQ(AuxRoutine::readFromFile("../Tests/Configs/sched_util_clamp_min"),
+//     EXPECT_EQ(AuxRoutine::readFromFile("/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min"),
 //               std::to_string(resource->mResValue.value));
 
 //     CocoTable::getInstance()->removeRequest(request);

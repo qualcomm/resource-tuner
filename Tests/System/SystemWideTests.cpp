@@ -183,7 +183,7 @@ namespace ResourceTuningRequestVerification {
     static void TestClientPriorityAcquisitionVerification() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_min_freq";
         int32_t testResourceOriginalValue = 107;
 
         std::string value;
@@ -225,7 +225,7 @@ namespace ResourceTuningRequestVerification {
         LOG_START
 
         // Create a list of 2 Resources, where only one of them is valid
-        std::string validResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+        std::string validResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_min_freq";
         int32_t validResourceOriginalValue = 107;
 
         std::string value;
@@ -269,7 +269,7 @@ namespace ResourceTuningRequestVerification {
     static void TestOutOfBoundsResourceTuning() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_min_freq";
         int32_t testResourceOriginalValue = 107;
 
         std::string value;
@@ -310,7 +310,7 @@ namespace ResourceTuningRequestVerification {
     static void TestResourceLogicalToPhysicalTranslationVerification1() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/target_test_resource2";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource2";
         int32_t testResourceOriginalValue = 333;
 
         std::string value;
@@ -354,7 +354,7 @@ namespace ResourceTuningRequestVerification {
     static void TestResourceLogicalToPhysicalTranslationVerification2() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/target_test_resource2";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource2";
         int32_t testResourceOriginalValue = 333;
 
         std::string value;
@@ -398,7 +398,7 @@ namespace ResourceTuningRequestVerification {
     static void TestResourceLogicalToPhysicalTranslationVerification3() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/target_test_resource2";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource2";
         int32_t testResourceOriginalValue = 333;
 
         std::string value;
@@ -448,7 +448,7 @@ namespace ResourceTuningRequestVerification {
     static void TestResourceLogicalToPhysicalTranslationVerification4() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/target_test_resource2";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource2";
         int32_t testResourceOriginalValue = 333;
 
         std::string value;
@@ -489,7 +489,7 @@ namespace ResourceTuningRequestVerification {
     static void TestNonSupportedResourceTuningVerification() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/target_test_resource4";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource4";
         int32_t testResourceOriginalValue = 516;
 
         std::string value;
@@ -526,7 +526,7 @@ namespace ResourceTuningRequestVerification {
     static void TestResourceOperationModeVerification() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/target_test_resource3";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource3";
         int32_t testResourceOriginalValue = 4400;
 
         std::string value;
@@ -567,7 +567,7 @@ namespace ResourceTuningRequestVerification {
     static void TestClientPermissionChecksVerification() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/target_test_resource1";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource1";
         int32_t testResourceOriginalValue = 240;
 
         std::string value;
@@ -677,7 +677,7 @@ namespace SignalVerification {
     static void TestClientPermissionChecksVerification() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_max";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_max";
         int32_t testResourceOriginalValue = 684;
 
         std::string value;
@@ -711,7 +711,7 @@ namespace SignalVerification {
     static void TestOutOfBoundsResourceTuning() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
         int32_t testResourceOriginalValue = 300;
 
         std::string value;
@@ -747,7 +747,7 @@ namespace SignalVerification {
     static void TestTargetCompatabilityVerificationChecks() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
         int32_t testResourceOriginalValue = 300;
 
         std::string value;
@@ -779,7 +779,7 @@ namespace SignalVerification {
     static void TestNonSupportedSignalProvisioningVerification() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
         int32_t testResourceOriginalValue = 300;
 
         std::string value;
@@ -867,7 +867,7 @@ namespace RequestApplicationTests {
     static void TestSingleClientTuneRequest() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
         int32_t testResourceOriginalValue = 300;
 
         // Check the original value for the Resource
@@ -911,9 +911,9 @@ namespace RequestApplicationTests {
         LOG_START
 
         // Check the original value for each of the Resource
-        std::string testResourceName1 = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
-        std::string testResourceName2 = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
-        std::string testResourceName3 = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_max";
+        std::string testResourceName1 = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+        std::string testResourceName2 = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+        std::string testResourceName3 = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_max";
 
         int32_t testResourceOriginalValue1 = 114;
         int32_t testResourceOriginalValue2 = 107;
@@ -999,7 +999,7 @@ namespace RequestApplicationTests {
         LOG_START
 
         // Check the original value for the Resource
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_max_freq";
         int32_t testResourceOriginalValue = 114;
 
         std::string value = AuxRoutines::readFromFile(testResourceName);
@@ -1065,7 +1065,7 @@ namespace RequestApplicationTests {
         LOG_START
 
         // Check the original value for the Resource
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_max_freq";
         int32_t testResourceOriginalValue = 114;
 
         std::string value;
@@ -1141,7 +1141,7 @@ namespace RequestApplicationTests {
         LOG_START
 
         // Check the original value for the Resource
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_min_freq";
         int32_t testResourceOriginalValue = 107;
 
         std::string value;
@@ -1249,7 +1249,7 @@ namespace RequestApplicationTests {
     static void TestMultipleClientsLazyApplyPolicy() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/target_test_resource5";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource5";
         int32_t testResourceOriginalValue = 17;
 
         std::string value;
@@ -1321,9 +1321,9 @@ namespace RequestApplicationTests {
         LOG_START
 
         // Check the original value for the Resource
-        std::string testResourceName1 = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
-        std::string testResourceName2 = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
-        std::string testResourceName3 = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_max";
+        std::string testResourceName1 = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+        std::string testResourceName2 = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+        std::string testResourceName3 = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_max";
 
         int32_t testResourceOriginalValue1 = 107;
         int32_t testResourceOriginalValue2 = 114;
@@ -1424,7 +1424,7 @@ namespace RequestApplicationTests {
     static void TestSingleClientSequentialRequests() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_max_freq";
         int32_t testResourceOriginalValue = 114;
         int64_t handle;
 
@@ -1476,7 +1476,7 @@ namespace RequestApplicationTests {
     static void TestMultipleClientTIDsConcurrentRequests() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_max_freq";
         int32_t testResourceOriginalValue = 114;
         int64_t handle;
 
@@ -1536,7 +1536,7 @@ namespace RequestApplicationTests {
     static void TestInfiniteDurationTuneRequestAndValidUntuning() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_min_freq";
         int32_t testResourceOriginalValue = 107;
         int64_t handle;
 
@@ -1586,7 +1586,7 @@ namespace RequestApplicationTests {
     static void TestInfiniteDurationTuneRequestAndInValidUntuning() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_min_freq";
         int32_t testResourceOriginalValue = 107;
         int64_t handle;
 
@@ -1657,7 +1657,7 @@ namespace RequestApplicationTests {
     static void TestPriorityBasedResourceAcquisition1() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_min_freq";
         int32_t testResourceOriginalValue = 107;
         int64_t handle;
 
@@ -1719,7 +1719,7 @@ namespace RequestApplicationTests {
     static void TestPriorityBasedResourceAcquisition2() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_min_freq";
         int32_t testResourceOriginalValue = 107;
         int64_t handle;
 
@@ -1788,7 +1788,7 @@ namespace RequestApplicationTests {
     static void TestPriorityBasedResourceAcquisition3() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_max_freq";
         int32_t testResourceOriginalValue = 114;
         int64_t handle;
 
@@ -1850,7 +1850,7 @@ namespace RequestApplicationTests {
     static void TestRequestValidRetuning() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_max_freq";
         int32_t testResourceOriginalValue = 114;
         int64_t handle;
 
@@ -1908,7 +1908,7 @@ namespace RequestApplicationTests {
     static void TestRequestInvalidRetuning1() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_max_freq";
         int32_t testResourceOriginalValue = 114;
         int64_t handle;
 
@@ -1965,7 +1965,7 @@ namespace RequestApplicationTests {
     static void TestRequestInvalidRetuning2() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
         int32_t testResourceOriginalValue = 300;
 
         std::string value;
@@ -2065,7 +2065,15 @@ namespace SystemSysfsNodesTests {
 
         // Check the original value for the Resource
         std::string value = AuxRoutines::readFromFile(testResourceName);
+        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Original Value: "<<value<<std::endl;
         int32_t originalValue = C_STOI(value);
+
+        if(originalValue == -1) {
+            // Node does not exist on test device, can't proceed with this test
+            std::cout<<"["<<__LINE__<<"]"<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
+            return;
+        }
+
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
@@ -2111,7 +2119,15 @@ namespace SystemSysfsNodesTests {
 
         // Check the original value for the Resource
         std::string value = AuxRoutines::readFromFile(testResourceName);
+        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Original Value: "<<value<<std::endl;
         int32_t originalValue = C_STOI(value);
+
+        if(originalValue == -1) {
+            // Node does not exist on test device, can't proceed with this test
+            std::cout<<"["<<__LINE__<<"]"<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
+            return;
+        }
+
         assert(originalValue == testResourceOriginalValue);
 
         int32_t rc = fork();
@@ -2178,7 +2194,15 @@ namespace SystemSysfsNodesTests {
 
         // Check the original value for the Resource
         std::string value = AuxRoutines::readFromFile(testResourceName);
+        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Original Value: "<<value<<std::endl;
         int32_t originalValue = C_STOI(value);
+
+        if(originalValue == -1) {
+            // Node does not exist on test device, can't proceed with this test
+            std::cout<<"["<<__LINE__<<"]"<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
+            return;
+        }
+
         assert(originalValue == testResourceOriginalValue);
 
         int32_t rc = fork();
@@ -2246,7 +2270,15 @@ namespace SystemSysfsNodesTests {
 
         // Check the original value for the Resource
         std::string value = AuxRoutines::readFromFile(testResourceName);
+        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Original Value: "<<value<<std::endl;
         int32_t originalValue = C_STOI(value);
+
+        if(originalValue == -1) {
+            // Node does not exist on test device, can't proceed with this test
+            std::cout<<"["<<__LINE__<<"]"<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
+            return;
+        }
+
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
@@ -2294,7 +2326,15 @@ namespace SystemSysfsNodesTests {
 
         // Check the original value for the Resource
         std::string value = AuxRoutines::readFromFile(testResourceName);
+        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Original Value: "<<value<<std::endl;
         int32_t originalValue = C_STOI(value);
+
+        if(originalValue == -1) {
+            // Node does not exist on test device, can't proceed with this test
+            std::cout<<"["<<__LINE__<<"]"<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
+            return;
+        }
+
         assert(originalValue == testResourceOriginalValue);
 
         int32_t rc = fork();
@@ -2338,6 +2378,169 @@ namespace SystemSysfsNodesTests {
         LOG_END
     }
 
+    static void TestWriteTo_scaling_min_freq_Node1() {
+        LOG_START
+
+        std::string testResourceName = "/sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq";
+
+        std::string originalValueString = AuxRoutines::readFromFile(testResourceName);
+        std::cout<<"["<<__LINE__<<"]"<<" policy0/scaling_min_freq Original Value: "<<originalValueString<<std::endl;
+        int32_t originalValue = C_STOI(originalValueString);
+
+        if(originalValue == -1) {
+            // Node does not exist on test device, can't proceed with this test
+            std::cout<<"["<<__LINE__<<"]"<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
+            return;
+        }
+
+        SysResource* resourceList = new SysResource[1];
+        resourceList[0].mResCode = 0x00040000;
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mResValue.value = 1504993;
+
+        int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        // Check if the new value was successfully written to the node
+        std::string value = AuxRoutines::readFromFile(testResourceName);
+        int32_t newValue = C_STOI(value);
+        assert(newValue == 1504993);
+
+        std::this_thread::sleep_for(std::chrono::seconds(6));
+
+        // Wait for the Request to expire, check if the value resets
+        value = AuxRoutines::readFromFile(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == originalValue);
+
+        LOG_END
+    }
+
+    static void TestWriteTo_scaling_min_freq_Node2() {
+        LOG_START
+
+        std::string testResourceName = "/sys/devices/system/cpu/cpufreq/policy1/scaling_min_freq";
+
+        std::string originalValueString = AuxRoutines::readFromFile(testResourceName);
+        std::cout<<"["<<__LINE__<<"]"<<" policy1/scaling_min_freq Original Value: "<<originalValueString<<std::endl;
+        int32_t originalValue = C_STOI(originalValueString);
+
+        if(originalValue == -1) {
+            // Node does not exist on test device, can't proceed with this test
+            std::cout<<"["<<__LINE__<<"]"<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
+            return;
+        }
+
+        SysResource* resourceList = new SysResource[1];
+        resourceList[0].mResCode = 0x00040001;
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mResValue.value = 1504993;
+
+        int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        // Check if the new value was successfully written to the node
+        std::string value = AuxRoutines::readFromFile(testResourceName);
+        int32_t newValue = C_STOI(value);
+        assert(newValue == 1504993);
+
+        std::this_thread::sleep_for(std::chrono::seconds(6));
+
+        // Wait for the Request to expire, check if the value resets
+        value = AuxRoutines::readFromFile(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == originalValue);
+
+        LOG_END
+    }
+
+    // More involved than writing to sched_util_clamp_min_Node node
+    // Since the condition sched_util_clamp_min_Node <= sched_util_clamp_max_Node should always
+    // should always be true, else kernel will reject the write request.
+    // Special care to be given while untuning as well, use Reverse Untune Order for
+    // such request.
+    // By defaults both nodes have a value of 1024, to change the value of sched_util_clamp_max_Node
+    // to say 880, we'll first need to lower sched_util_clamp_min_Node to a value < 880.
+    static void TestWriteTo_sched_util_clamp_max_Node1() {
+        LOG_START
+
+        std::string testResourceName1 = "/proc/sys/kernel/sched_util_clamp_min";
+        int32_t testResourceOriginalValue = 1024;
+
+        // Check the original value for the Resource
+        std::string value = AuxRoutines::readFromFile(testResourceName1);
+        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Original Value: "<<value<<std::endl;
+        int32_t originalValue1 = C_STOI(value);
+
+        if(originalValue1 == -1) {
+            // Node does not exist on test device, can't proceed with this test
+            std::cout<<"["<<__LINE__<<"]"<<"Node: "<<testResourceName1<<" not found on test device, Aborting Test Case"<<std::endl;
+            return;
+        }
+
+        assert(originalValue1 == testResourceOriginalValue);
+
+        SysResource* resourceList = new SysResource[1];
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(8, 0);
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mResValue.value = 718;
+
+        int64_t handle = tuneResources(25000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        // Check if the new value was successfully written to the node
+        value = AuxRoutines::readFromFile(testResourceName1);
+        int32_t newValue = C_STOI(value);
+        assert(newValue == 718);
+
+        // Create another request to tune max node
+        std::string testResourceName2 = "/proc/sys/kernel/sched_util_clamp_max";
+
+        // Check the original value for the Resource
+        value = AuxRoutines::readFromFile(testResourceName1);
+        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_max Original Value: "<<value<<std::endl;
+        int32_t originalValue2 = C_STOI(value);
+
+        if(originalValue2 == -1) {
+            // Node does not exist on test device, can't proceed with this test
+            std::cout<<"["<<__LINE__<<"]"<<"Node: "<<testResourceName1<<" not found on test device, Aborting Test Case"<<std::endl;
+            std::this_thread::sleep_for(std::chrono::seconds(30));
+            return;
+        }
+
+        assert(originalValue2 == testResourceOriginalValue);
+
+        SysResource* resourceList2 = new SysResource[1];
+        resourceList2[0].mResCode = GENERATE_RESOURCE_ID(8, 1);
+        resourceList2[0].mNumValues = 1;
+        resourceList2[0].mResValue.value = 880;
+
+        handle = tuneResources(7000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList2);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        // Check if the new value was successfully written to the node
+        value = AuxRoutines::readFromFile(testResourceName2);
+        newValue = C_STOI(value);
+        assert(newValue == 880);
+
+        std::this_thread::sleep_for(std::chrono::seconds(30));
+
+        // Wait for the Request to expire, check if the value resets
+        value = AuxRoutines::readFromFile(testResourceName1);
+        newValue = C_STOI(value);
+        assert(newValue == originalValue1);
+
+        value = AuxRoutines::readFromFile(testResourceName2);
+        newValue = C_STOI(value);
+        assert(newValue == originalValue2);
+
+        LOG_END
+    }
+
     static void RunTestGroup() {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
@@ -2346,6 +2549,9 @@ namespace SystemSysfsNodesTests {
         RUN_TEST(TestConcurrentWriteTo_sched_util_clamp_min_Node2)
         RUN_TEST(TestWriteTo_sched_util_clamp_min_NodeAndUntuning)
         RUN_TEST(TestConcurrentWriteTo_sched_util_clamp_min_Node3)
+        RUN_TEST(TestWriteTo_scaling_min_freq_Node1)
+        RUN_TEST(TestWriteTo_scaling_min_freq_Node2)
+        RUN_TEST(TestWriteTo_sched_util_clamp_max_Node1)
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
     }
@@ -2370,7 +2576,7 @@ namespace SignalApplicationTests {
     static void TestSingleClientTuneSignal1() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
         int32_t testResourceOriginalValue = 300;
 
         std::string value;
@@ -2408,9 +2614,9 @@ namespace SignalApplicationTests {
     static void TestSingleClientTuneSignal2() {
         LOG_START
 
-        std::string testResourceName1 = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
-        std::string testResourceName2 = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_max";
-        std::string testResourceName3 = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+        std::string testResourceName1 = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
+        std::string testResourceName2 = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_max";
+        std::string testResourceName3 = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_max_freq";
 
         int originalValues[] = {300, 684, 114};
 
@@ -2691,6 +2897,66 @@ namespace CGroupApplicationTests {
         LOG_END
     }
 
+    // Multiple CGroups in a single Request
+    static void TestWriteAndReset5() {
+        LOG_START
+
+        std::string testResourceName1 = "/sys/fs/cgroup/camera-cgroup/cpu.uclamp.min";
+        std::string testResourceName2 = "/sys/fs/cgroup/audio-cgroup/cpu.uclamp.min";
+
+        std::string originalValueString = AuxRoutines::readFromFile(testResourceName1);
+        std::cout<<"["<<__LINE__<<"]"<<" 0) cpu.uclamp.min Original Value: "<<originalValueString<<std::endl;
+        int32_t originalValue1 = C_STOI(originalValueString);
+
+        originalValueString = AuxRoutines::readFromFile(testResourceName2);
+        std::cout<<"["<<__LINE__<<"]"<<" 1) cpu.uclamp.min Original Value: "<<originalValueString<<std::endl;
+        int32_t originalValue2 = C_STOI(originalValueString);
+
+        SysResource* resourceList = new SysResource[2];
+        resourceList[0].mResCode = 0x00090007;
+        resourceList[0].mNumValues = 2;
+        resourceList[0].mResValue.values = new int32_t[2];
+        resourceList[0].mResValue.values[0] = 0;
+        resourceList[0].mResValue.values[1] = 55;
+
+        resourceList[1].mResCode = 0x00090007;
+        resourceList[1].mNumValues = 2;
+        resourceList[1].mResValue.values = new int32_t[2];
+        resourceList[1].mResValue.values[0] = 1;
+        resourceList[1].mResValue.values[1] = 58;
+
+        int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_LOW, 2, resourceList);
+
+        std::string value;
+        int32_t newValue;
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        value = AuxRoutines::readFromFile(testResourceName1);
+        newValue = C_STOI(value);
+        assert(newValue == 55);
+
+        value = AuxRoutines::readFromFile(testResourceName2);
+        newValue = C_STOI(value);
+        assert(newValue == 58);
+
+        std::this_thread::sleep_for(std::chrono::seconds(10));
+
+        value = AuxRoutines::readFromFile(testResourceName1);
+        newValue = C_STOI(value);
+        if(newValue != -1 && originalValue1 != -1) {
+            assert(newValue == originalValue1);
+        }
+
+        value = AuxRoutines::readFromFile(testResourceName2);
+        newValue = C_STOI(value);
+        if(newValue != -1 && originalValue2 != -1) {
+            assert(newValue == originalValue2);
+        }
+
+        LOG_END
+    }
+
     static void RunTestGroup() {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
@@ -2698,6 +2964,7 @@ namespace CGroupApplicationTests {
         TestWriteAndReset2();
         TestWriteAndReset3();
         TestWriteAndReset4();
+        TestWriteAndReset5();
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
     }

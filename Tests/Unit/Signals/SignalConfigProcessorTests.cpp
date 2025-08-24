@@ -20,7 +20,7 @@ protected:
             firstTest = false;
             ConfigProcessor configProcessor;
 
-            if(RC_IS_NOTOK(configProcessor.parseSignalConfigs("../Tests/Configs/testSignalsTargetSpecificConfig.yaml"))) {
+            if(RC_IS_NOTOK(configProcessor.parseSignalConfigs("/etc/resource-tuner/tests/Configs/SignalsConfig.yaml"))) {
                 return;
             }
         }

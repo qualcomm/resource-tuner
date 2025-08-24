@@ -436,58 +436,73 @@ int8_t CocoTable::updateRequest(Request* req, int64_t duration) {
     return true;
 }
 
-// Methods for Request Cleanup
-int8_t CocoTable::removeRequest(Request* req) {
-    LOGD("RESTUNE_COCO_TABLE",
-         "Request cleanup for Request Handle " + std::to_string(req->getHandle()) + " initiated");
+void CocoTable::processResourceCleanupAt(Request* request, int32_t index) {
+    Resource* resource = request->getResourceAt(index);
 
-    for(int32_t i = 0; i < req->getResourcesCount(); i++) {
-        Resource* resource = req->getResourceAt(i);
+    int8_t priority = request->getPriority();
+    int32_t primaryIndex = getCocoTablePrimaryIndex(resource->getResCode());
+    int32_t secondaryIndex = getCocoTableSecondaryIndex(resource, priority);
 
-        int8_t priority = req->getPriority();
-        int32_t primaryIndex = getCocoTablePrimaryIndex(resource->getResCode());
-        int32_t secondaryIndex = getCocoTableSecondaryIndex(resource, priority);
+    // Proceed with CocoNode cleanup,
+    // Note the actual allocated CocoNode count might be smaller than the Number of Resources.
+    if(index < request->getCocoNodesCount()) {
+        CocoNode* nodeToDelete = request->getCocoNodeAt(index);
 
-        // Proceed with CocoNode cleanup,
-        // Note the actual allocated CocoNode count might be smaller than the Number of Resources.
-        if(i < req->getCocoNodesCount()) {
-            CocoNode* nodeToDelete = req->getCocoNodeAt(i);
+        if(nodeToDelete != nullptr) {
+            this->deleteNode(nodeToDelete, primaryIndex, secondaryIndex, priority);
+        }
+    }
 
-            if(nodeToDelete != nullptr) {
-                deleteNode(nodeToDelete, primaryIndex, secondaryIndex, priority);
-            }
+    // Reset the Resource Node value or if there are pending Requests for this Resource
+    // then apply those Requests in the order determined by Resource Policy and Priority Level.
+
+    // If the current list becomes empty, start from the highest priority
+    // and look for available requests.
+    // If all lists are empty, apply default action.
+    if(this->mCocoTable[primaryIndex][secondaryIndex].second == nullptr) {
+        int8_t allListsEmpty = true;
+        int32_t reIndexIncrement = 0;
+        ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
+
+        if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CORE ||
+            resourceConfig->mApplyType == ResourceApplyType::APPLY_CLUSTER ||
+            resourceConfig->mApplyType == ResourceApplyType::APPLY_CGROUP) {
+            reIndexIncrement = getCocoTableSecondaryIndex(resource, SYSTEM_HIGH);
+            if(reIndexIncrement == -1) return;
         }
 
-        // If the current list becomes empty, start from the highest priority
-        // and look for available requests.
-        // If all lists are empty, apply default action.
-        if(this->mCocoTable[primaryIndex][secondaryIndex].second == nullptr) {
-            int8_t allListsEmpty = true;
-            int32_t reIndexIncrement = 0;
-            ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
-
-            if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CORE ||
-               resourceConfig->mApplyType == ResourceApplyType::APPLY_CLUSTER ||
-               resourceConfig->mApplyType == ResourceApplyType::APPLY_CGROUP) {
-                reIndexIncrement = getCocoTableSecondaryIndex(resource, SYSTEM_HIGH);
-                if(reIndexIncrement == -1) continue;
+        for(int32_t prioLevel = 0; prioLevel < TOTAL_PRIORITIES; prioLevel++) {
+            if(this->mCocoTable[primaryIndex][prioLevel + reIndexIncrement].second != nullptr) {
+                this->mCurrentlyAppliedPriority[primaryIndex] = prioLevel;
+                this->applyAction(this->mCocoTable[primaryIndex][prioLevel + reIndexIncrement].second,
+                                  primaryIndex, prioLevel);
+                allListsEmpty = false;
+                break;
             }
+        }
+        if(allListsEmpty == true) {
+            this->applyDefaultAction(primaryIndex, resource);
+        }
 
-            for(int32_t p = 0; p < TOTAL_PRIORITIES; p++) {
-                if(this->mCocoTable[primaryIndex][p + reIndexIncrement].second != nullptr) {
-                    this->mCurrentlyAppliedPriority[primaryIndex] = p;
-                    this->applyAction(this->mCocoTable[primaryIndex][p + reIndexIncrement].second, primaryIndex, p);
-                    allListsEmpty = false;
-                    break;
-                }
-            }
-            if(allListsEmpty == true) {
-                applyDefaultAction(primaryIndex, resource);
-            }
+    } else {
+        // Current list is not empty.
+        this->applyAction(this->mCocoTable[primaryIndex][secondaryIndex].second, primaryIndex, priority);
+    }
+}
 
-        } else {
-            // Current list is not empty.
-            applyAction(mCocoTable[primaryIndex][secondaryIndex].second, primaryIndex, priority);
+// Methods for Request Cleanup
+int8_t CocoTable::removeRequest(Request* request) {
+    LOGD("RESTUNE_COCO_TABLE",
+         "Request cleanup for Request Handle " + std::to_string(request->getHandle()) + " initiated");
+
+    if(request->getUntuneProcessingOrder() == 0) {
+        // Forward Pass
+        for(int32_t i = 0; i < request->getResourcesCount(); i++) {
+            this->processResourceCleanupAt(request, i);
+        }
+    } else {
+        for(int32_t i = request->getResourcesCount() - 1; i >= 0; i--) {
+            this->processResourceCleanupAt(request, i);
         }
     }
 

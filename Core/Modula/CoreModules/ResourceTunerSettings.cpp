@@ -10,20 +10,36 @@ MetaConfigs ResourceTunerSettings::metaConfigs{};
 TargetConfigs ResourceTunerSettings::targetConfigs{};
 
 const std::string ResourceTunerSettings::mCommonResourceFilePath =
-                                    "/etc/ResourceTuner/Common/ResourcesConfig.yaml";
-const std::string ResourceTunerSettings::mInitConfigFilePath =
-                                    "/etc/ResourceTuner/Common/InitConfig.yaml";
+                                    "/etc/resource-tuner/common/ResourcesConfig.yaml";
+const std::string ResourceTunerSettings::mCustomResourceFilePath =
+                                    "/etc/resource-tuner/custom/ResourcesConfig.yaml";
+
 const std::string ResourceTunerSettings::mCommonSignalFilePath =
-                                    "/etc/ResourceTuner/Common/SignalsConfig.yaml";
-const std::string ResourceTunerSettings::mTargetSpecificResourceFilePath =
-                                    "/etc/ResourceTuner/ResourcesConfig.yaml";
-const std::string ResourceTunerSettings::mTargetSpecificSignalFilePath =
-                                    "/etc/ResourceTuner/SignalsConfig.yaml";
+                                    "/etc/resource-tuner/common/SignalsConfig.yaml";
+const std::string ResourceTunerSettings::mCustomSignalFilePath =
+                                    "/etc/resource-tuner/custom/SignalsConfig.yaml";
+
+const std::string ResourceTunerSettings::mInitConfigFilePath =
+                                    "/etc/resource-tuner/common/InitConfig.yaml";
 const std::string ResourceTunerSettings::mPropertiesFilePath =
-                                    "/etc/ResourceTuner/Common/PropertiesConfig.yaml";
+                                    "/etc/resource-tuner/common/PropertiesConfig.yaml";
+
 const std::string ResourceTunerSettings::mCustomExtFeaturesFilePath =
-                                    "/etc/ResourceTuner/Custom/ExtFeaturesConfig.yaml";
-const std::string ResourceTunerSettings::mBaseCGroupPath = "/sys/fs/cgroup/";
+                                    "/etc/resource-tuner/custom/ExtFeaturesConfig.yaml";
+const std::string ResourceTunerSettings::mCustomTargetFilePath =
+                                    "/etc/resource-tuner/custom/TargetConfig.yaml";
+
+const std::string ResourceTunerSettings::mTestResourceFilePath =
+                                    "/etc/resource-tuner/tests/Configs/ResourcesConfig.yaml";
+const std::string ResourceTunerSettings::mTestSignalFilePath =
+                                    "/etc/resource-tuner/tests/Configs/SignalsConfig.yaml";
+const std::string ResourceTunerSettings::mTestPropertiesFilePath =
+                                    "/etc/resource-tuner/tests/Configs/PropertiesConfig.yaml";
+const std::string ResourceTunerSettings::mTestTargetConfigFilePath =
+                                    "/etc/resource-tuner/tests/Configs/TargetConfig.yaml";
+
+const std::string ResourceTunerSettings::mBaseCGroupPath =
+                                    "/sys/fs/cgroup/";
 
 int32_t ResourceTunerSettings::isServerOnline() {
     return serverOnlineStatus;

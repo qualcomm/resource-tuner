@@ -66,7 +66,7 @@ target_link_libraries(resource_tuner PUBLIC Server Auxiliary SysRequestReceiver)
 
 # Extensions
 # Try to find the plugin library
-find_library(PLUGIN_LIB NAMES plugin PATHS /etc/ResourceTuner/Custom/ NO_DEFAULT_PATH)
+find_library(PLUGIN_LIB NAMES plugin PATHS /etc/resource-tuner/Custom/ NO_DEFAULT_PATH)
 message(STATUS "PLUGIN_LIB = ${PLUGIN_LIB}")
 
 if (PLUGIN_LIB)
@@ -99,7 +99,7 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/Core/Extensions/Include/ DESTINATION inclu
 # Install core config files
 install(
   DIRECTORY ${CMAKE_SOURCE_DIR}/Core/Configs/
-  DESTINATION /etc/ResourceTuner/Common/
+  DESTINATION /etc/resource-tuner/common/
   FILES_MATCHING
   PATTERN "*.yaml"
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
@@ -108,8 +108,29 @@ install(
 # Install Signal config files
 install(
   DIRECTORY ${CMAKE_SOURCE_DIR}/Signals/Configs/
-  DESTINATION /etc/ResourceTuner/Common/
+  DESTINATION /etc/resource-tuner/common/
   FILES_MATCHING
   PATTERN "*.yaml"
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
+
+# Install Test Configs, if BUILD_TEST is enabled
+if(BUILD_TESTS)
+  install(
+    DIRECTORY ${CMAKE_SOURCE_DIR}/Tests/Configs/
+    DESTINATION /etc/resource-tuner/tests/Configs/
+    FILES_MATCHING
+    PATTERN "*.yaml"
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+  )
+endif()
+
+# Install Custom Resource Nodes, if BUILD_TEST is enabled
+if(BUILD_TESTS)
+  install(
+    DIRECTORY ${CMAKE_SOURCE_DIR}/Tests/Configs/ResourceSysFsNodes/
+    DESTINATION /etc/resource-tuner/tests/Configs/ResourceSysFsNodes/
+    PATTERN "*"
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+  )
+endif()
