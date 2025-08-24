@@ -345,13 +345,13 @@ ErrCode ResourceBuilder::setResCode(const std::string& resCodeString) {
     return RC_SUCCESS;
 }
 
-ErrCode ResourceBuilder::setOpInfo(const std::string& opInfoString) {
+ErrCode ResourceBuilder::setResInfo(const std::string& resInfoString) {
     if(this->mResource == nullptr) return RC_INVALID_VALUE;
 
-    int32_t resourceOpInfo = 0;
+    int32_t resourceResInfo = 0;
     try {
-        resourceOpInfo = (int32_t)stoi(opInfoString, nullptr, 0);
-        this->mResource->setResInfo(resourceOpInfo);
+        resourceResInfo = (int32_t)stoi(resInfoString, nullptr, 0);
+        this->mResource->setResInfo(resourceResInfo);
     } catch(const std::invalid_argument& e) {
         TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
         return RC_INVALID_VALUE;

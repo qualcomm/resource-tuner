@@ -17,7 +17,7 @@
 
 /*
 * TEST RESOURCES DESCRIPTION:
-* | Name                   | Optype | Opcode | Def Value | ApplyType | Enabled | Permissions   | High Threshold | Low Threshold |
+* | Name                   | ResType | ResCode | Def Value | ApplyType | Enabled | Permissions   | High Threshold | Low Threshold |
 * |------------------------|--------|--------|-----------|---------------------|---------------|----------------|---------------|
 * | sched_util_clamp_min   |   01   |   00   |   300     |   global  |  True   | [third_party] |      1024      |      0        |
 * | sched_util_clamp_max   |   01   |   01   |   684     |   global  |  True   | [third_party] |      1024      |      0        |
@@ -65,12 +65,12 @@ do {                    \
     parsedValue;                                                                \
 });
 
-#define GENERATE_RESOURCE_ID(optype, opcode) ({                                \
-    uint32_t resourceBitmap = 0;                                               \
-    resourceBitmap |= (1 << 31);                                               \
-    resourceBitmap |= ((uint32_t)opcode);                                      \
-    resourceBitmap |= ((uint32_t)optype << 16);                                \
-    resourceBitmap;                                                            \
+#define GENERATE_RESOURCE_ID(resType, resCode) ({                               \
+    uint32_t resourceBitmap = 0;                                                \
+    resourceBitmap |= (1 << 31);                                                \
+    resourceBitmap |= ((uint32_t)resCode);                                      \
+    resourceBitmap |= ((uint32_t)resType << 16);                                \
+    resourceBitmap;                                                             \
 })
 
 #define LOG_START std::cout<<"\nRunning Test: "<<__func__<<std::endl;

@@ -23,7 +23,7 @@
  */
 typedef struct {
     /**
-     * @brief 16-bit Signal Opcode
+     * @brief 16-bit Signal ID
      */
     uint16_t mSignalID;
 
@@ -69,7 +69,7 @@ typedef struct {
     std::vector<std::string>* mDerivatives;
 
     /**
-     * @brief List of Actual Resource Opcodes (which will be Provisioned) and the
+     * @brief List of Actual Resource which will be Provisioned and the
      *        Values to be configured for the Resources.
      */
     std::vector<Resource*>* mSignalResources;
@@ -163,7 +163,7 @@ public:
     ResourceBuilder();
 
     ErrCode setResCode(const std::string& resCodeString);
-    ErrCode setOpInfo(const std::string& opInfoString);
+    ErrCode setResInfo(const std::string& resInfoString);
     ErrCode setNumValues(int32_t valuesCount);
     ErrCode addValue(int32_t value);
 

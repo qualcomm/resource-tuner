@@ -190,14 +190,14 @@ ErrCode ExtFeatureInfoBuilder::setLib(const std::string& featureLib) {
     return RC_SUCCESS;
 }
 
-ErrCode ExtFeatureInfoBuilder::addSignalSubscribedTo(const std::string& signalOpCodeString) {
-    if(this->mFeatureInfo == nullptr || signalOpCodeString.length() == 0) {
+ErrCode ExtFeatureInfoBuilder::addSignalSubscribedTo(const std::string& sigCodeString) {
+    if(this->mFeatureInfo == nullptr || sigCodeString.length() == 0) {
         return RC_INVALID_VALUE;
     }
 
-    uint32_t signalOpCode = 0;
+    uint32_t sigCode = 0;
     try {
-        signalOpCode = (uint32_t)stol(signalOpCodeString, nullptr, 0);
+        sigCode = (uint32_t)stol(sigCodeString, nullptr, 0);
     } catch(const std::invalid_argument& e) {
         TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
         return RC_INVALID_VALUE;
@@ -216,7 +216,7 @@ ErrCode ExtFeatureInfoBuilder::addSignalSubscribedTo(const std::string& signalOp
     }
 
     try {
-        this->mFeatureInfo->mSignalsSubscribedTo->push_back(signalOpCode);
+        this->mFeatureInfo->mSignalsSubscribedTo->push_back(sigCode);
     } catch(const std::bad_alloc& e) {
         return RC_INVALID_VALUE;
     }

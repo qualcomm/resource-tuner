@@ -126,6 +126,7 @@ void CocoTable::deleteNode(CocoNode* node, int32_t primaryIndex, int32_t seconda
     if(node->prev) {
         node->prev->next = node->next;
     } else {
+        // Node is at the head
         this->mCocoTable[primaryIndex][secondaryIndex].second = node->next;
         if(this->mCocoTable[primaryIndex][secondaryIndex].second == nullptr) {
             this->mCocoTable[primaryIndex][secondaryIndex].first = nullptr;
@@ -135,6 +136,7 @@ void CocoTable::deleteNode(CocoNode* node, int32_t primaryIndex, int32_t seconda
     if(node->next) {
         node->next->prev = node->prev;
     } else {
+        // Node is at the tail
        this->mCocoTable[primaryIndex][secondaryIndex].first = node->prev;
         if(this->mCocoTable[primaryIndex][secondaryIndex].first == nullptr) {
             this->mCocoTable[primaryIndex][secondaryIndex].second = nullptr;
@@ -219,7 +221,7 @@ void CocoTable::insertInCocoTableLazyApply(CocoNode* newNode, int32_t primaryInd
         mCocoTable[primaryIndex][secondaryIndex].second = newNode;
         newNode->prev = nullptr;
         newNode->next = nullptr;
-        applyAction(newNode, primaryIndex, priority);
+        this->applyAction(newNode, primaryIndex, priority);
     }
 }
 
@@ -415,7 +417,7 @@ int8_t CocoTable::updateRequest(Request* req, int64_t duration) {
     FreeBlock<Timer>(static_cast<void*>(currTimer));
 
     req->setDuration(duration);
-     // Create a time to associate with the request
+    // Create a time to associate with the request
     Timer* requestTimer = nullptr;
     try {
         requestTimer = new (GetBlock<Timer>())
@@ -443,12 +445,16 @@ void CocoTable::processResourceCleanupAt(Request* request, int32_t index) {
     int32_t primaryIndex = getCocoTablePrimaryIndex(resource->getResCode());
     int32_t secondaryIndex = getCocoTableSecondaryIndex(resource, priority);
 
+    int8_t nodeIsHead = false;
     // Proceed with CocoNode cleanup,
     // Note the actual allocated CocoNode count might be smaller than the Number of Resources.
     if(index < request->getCocoNodesCount()) {
         CocoNode* nodeToDelete = request->getCocoNodeAt(index);
 
         if(nodeToDelete != nullptr) {
+            if(nodeToDelete->prev == nullptr) {
+                nodeIsHead = true;
+            }
             this->deleteNode(nodeToDelete, primaryIndex, secondaryIndex, priority);
         }
     }
@@ -486,7 +492,13 @@ void CocoTable::processResourceCleanupAt(Request* request, int32_t index) {
 
     } else {
         // Current list is not empty.
-        this->applyAction(this->mCocoTable[primaryIndex][secondaryIndex].second, primaryIndex, priority);
+        // Check if current node is at the head
+        if(nodeIsHead) {
+            // If it is head, Apply the next node (i.e. the next Request)
+            this->applyAction(this->mCocoTable[primaryIndex][secondaryIndex].second, primaryIndex, priority);
+        }
+        // If node is not head, it implies some other Request is already applied
+        // for this Resource, hence no action is needed here.
     }
 }
 

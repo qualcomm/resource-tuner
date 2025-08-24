@@ -73,7 +73,7 @@ public:
     ErrCode setId(const std::string& featureIdString);
     ErrCode setName(const std::string& featureName);
     ErrCode setLib(const std::string& featureLib);
-    ErrCode addSignalSubscribedTo(const std::string& signalOpCodeString);
+    ErrCode addSignalSubscribedTo(const std::string& sigCodeString);
 
     ExtFeatureInfo* build();
 };

@@ -14,11 +14,11 @@ RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/resource-tuner/tests/Configs/Reso
 
 #define TOTAL_RESOURCE_CONFIGS_COUNT 14
 
-#define GENERATE_RESOURCE_ID(optype, opcode) ({                                \
+#define GENERATE_RESOURCE_ID(restype, rescode) ({                              \
     uint32_t resourceBitmap = 0;                                               \
     resourceBitmap |= (1 << 31);                                               \
-    resourceBitmap |= ((uint32_t)opcode);                                      \
-    resourceBitmap |= ((uint32_t)optype << 16);                                \
+    resourceBitmap |= ((uint32_t)rescode);                                     \
+    resourceBitmap |= ((uint32_t)restype << 16);                               \
     resourceBitmap;                                                            \
 })
 

@@ -1148,6 +1148,7 @@ namespace RequestApplicationTests {
         int32_t originalValue, newValue;
 
         value = AuxRoutines::readFromFile(testResourceName);
+        std::cout<<"["<<__LINE__<<"]"<<" ResourceSysFsNodes/scaling_min_freq Value: "<<value<<std::endl;
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -1169,6 +1170,7 @@ namespace RequestApplicationTests {
             std::this_thread::sleep_for(std::chrono::seconds(1));
 
             value = AuxRoutines::readFromFile(testResourceName);
+            std::cout<<"["<<__LINE__<<"]"<<" ResourceSysFsNodes/scaling_min_freq Value: "<<value<<std::endl;
             newValue = C_STOI(value);
             assert(newValue == 578);
 
@@ -1188,6 +1190,7 @@ namespace RequestApplicationTests {
                 std::this_thread::sleep_for(std::chrono::seconds(1));
 
                 value = AuxRoutines::readFromFile(testResourceName);
+                std::cout<<"["<<__LINE__<<"]"<<" ResourceSysFsNodes/scaling_min_freq Value: "<<value<<std::endl;
                 newValue = C_STOI(value);
                 assert(newValue == 445);
 
@@ -1207,6 +1210,7 @@ namespace RequestApplicationTests {
                     std::this_thread::sleep_for(std::chrono::seconds(1));
 
                     value = AuxRoutines::readFromFile(testResourceName);
+                    std::cout<<"["<<__LINE__<<"]"<<" ResourceSysFsNodes/scaling_min_freq Value: "<<value<<std::endl;
                     newValue = C_STOI(value);
                     assert(newValue == 412);
 
@@ -1220,6 +1224,7 @@ namespace RequestApplicationTests {
                     std::this_thread::sleep_for(std::chrono::seconds(1));
 
                     value = AuxRoutines::readFromFile(testResourceName);
+                    std::cout<<"["<<__LINE__<<"]"<<" ResourceSysFsNodes/scaling_min_freq Value: "<<value<<std::endl;
                     newValue = C_STOI(value);
                     assert(newValue == 378);
 
@@ -2176,7 +2181,7 @@ namespace SystemSysfsNodesTests {
     * - Issue 2 Concurrent Resource Tuner Resource Provisioning Requests, to modify the Resource
     *   sched_util_clamp_min
     * - Verify the Resource Node is Correctly updated to the higher of the 2 values,
-    *   as the Resource has the "higher-is-better" policy.
+    *   as the Resource has the "lower-is-better" policy.
     * - Here the Requests don't have the same duration, and the Request with a smaller config value
     *   has a higher duration.
     * - i.e. R1 (v1, d1) and R2(v2, d2) where v1 > v2 and d1 < d2
@@ -2208,9 +2213,9 @@ namespace SystemSysfsNodesTests {
         int32_t rc = fork();
         if(rc == 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mResCode = GENERATE_RESOURCE_ID(8, 0);
+            resourceList[0].mResCode = 0x00030000;
             resourceList[0].mNumValues = 1;
-            resourceList[0].mResValue.value = 887;
+            resourceList[0].mResValue.value = 799;
 
             int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -2218,31 +2223,34 @@ namespace SystemSysfsNodesTests {
 
         } else if(rc > 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mResCode = GENERATE_RESOURCE_ID(8, 0);
+            resourceList[0].mResCode = 0x00030000;
             resourceList[0].mNumValues = 1;
-            resourceList[0].mResValue.value = 799;
+            resourceList[0].mResValue.value = 887;
 
             int64_t handle = tuneResources(15000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
             // Verify that the higher of the two configured values, i.e. 887 takes
             // effect on the Resource Node.
-            std::this_thread::sleep_for(std::chrono::seconds(1));
+            std::this_thread::sleep_for(std::chrono::seconds(2));
 
             // Check if the new value was successfully written to the node
             value = AuxRoutines::readFromFile(testResourceName);
+            std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Value: "<<value<<std::endl;
             int32_t newValue = C_STOI(value);
-            assert(newValue == 887);
+            assert(newValue == 799);
 
             std::this_thread::sleep_for(std::chrono::seconds(6));
 
             value = AuxRoutines::readFromFile(testResourceName);
+            std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Value: "<<value<<std::endl;
             newValue = C_STOI(value);
-            assert(newValue == 799);
+            assert(newValue == 887);
 
             std::this_thread::sleep_for(std::chrono::seconds(10));
 
             // Wait for the Request to expire, check if the value resets
             value = AuxRoutines::readFromFile(testResourceName);
+            std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Reset Value: "<<value<<std::endl;
             newValue = C_STOI(value);
             assert(newValue == originalValue);
 
@@ -2389,7 +2397,7 @@ namespace SystemSysfsNodesTests {
 
         if(originalValue == -1) {
             // Node does not exist on test device, can't proceed with this test
-            std::cout<<"["<<__LINE__<<"]"<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
+            std::cout<<"["<<__LINE__<<"]"<<" Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
             return;
         }
 
@@ -2428,7 +2436,7 @@ namespace SystemSysfsNodesTests {
 
         if(originalValue == -1) {
             // Node does not exist on test device, can't proceed with this test
-            std::cout<<"["<<__LINE__<<"]"<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
+            std::cout<<"["<<__LINE__<<"]"<<" Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
             return;
         }
 
@@ -2494,19 +2502,20 @@ namespace SystemSysfsNodesTests {
         // Check if the new value was successfully written to the node
         value = AuxRoutines::readFromFile(testResourceName1);
         int32_t newValue = C_STOI(value);
+        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Original value: "<<value<<std::endl;
         assert(newValue == 718);
 
         // Create another request to tune max node
         std::string testResourceName2 = "/proc/sys/kernel/sched_util_clamp_max";
 
         // Check the original value for the Resource
-        value = AuxRoutines::readFromFile(testResourceName1);
+        value = AuxRoutines::readFromFile(testResourceName2);
         std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_max Original Value: "<<value<<std::endl;
         int32_t originalValue2 = C_STOI(value);
 
         if(originalValue2 == -1) {
             // Node does not exist on test device, can't proceed with this test
-            std::cout<<"["<<__LINE__<<"]"<<"Node: "<<testResourceName1<<" not found on test device, Aborting Test Case"<<std::endl;
+            std::cout<<"["<<__LINE__<<"]"<<"Node: "<<testResourceName2<<" not found on test device, Aborting Test Case"<<std::endl;
             std::this_thread::sleep_for(std::chrono::seconds(30));
             return;
         }
@@ -2524,6 +2533,7 @@ namespace SystemSysfsNodesTests {
 
         // Check if the new value was successfully written to the node
         value = AuxRoutines::readFromFile(testResourceName2);
+        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_max value: "<<value<<std::endl;
         newValue = C_STOI(value);
         assert(newValue == 880);
 
@@ -2531,10 +2541,12 @@ namespace SystemSysfsNodesTests {
 
         // Wait for the Request to expire, check if the value resets
         value = AuxRoutines::readFromFile(testResourceName1);
+        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Reset value: "<<value<<std::endl;
         newValue = C_STOI(value);
         assert(newValue == originalValue1);
 
         value = AuxRoutines::readFromFile(testResourceName2);
+        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_max Reset value: "<<value<<std::endl;
         newValue = C_STOI(value);
         assert(newValue == originalValue2);
 
@@ -2933,10 +2945,12 @@ namespace CGroupApplicationTests {
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
         value = AuxRoutines::readFromFile(testResourceName1);
+        std::cout<<"["<<__LINE__<<"]"<<" 0) cpu.uclamp.min value: "<<value<<std::endl;
         newValue = C_STOI(value);
         assert(newValue == 55);
 
         value = AuxRoutines::readFromFile(testResourceName2);
+        std::cout<<"["<<__LINE__<<"]"<<" 1) cpu.uclamp.min value: "<<value<<std::endl;
         newValue = C_STOI(value);
         assert(newValue == 58);
 

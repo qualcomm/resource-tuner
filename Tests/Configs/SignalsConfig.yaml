@@ -55,7 +55,7 @@ SignalConfigs:
     Name: "TEST_SIGNAL-1"
     Enable: true
     TargetsEnabled: ["qli-test"]
-    Permissions: ["third_party"]
+    Permissions: ["third_party", "system"]
     Derivatives: ["solar"]
     Timeout: 4000
     Resources:
@@ -66,7 +66,7 @@ SignalConfigs:
     Name: "TEST_SIGNAL-2"
     Enable: true
     TargetsEnabled: ["qli-test"]
-    Permissions: ["third_party"]
+    Permissions: ["third_party", "system"]
     Derivatives: ["solar"]
     Timeout: 4000
     Resources:

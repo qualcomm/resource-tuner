@@ -65,7 +65,7 @@ void func1() {
     // Initialize Resource struct Fields:
 
     // Field: mResCode:
-    // Resource Opcode is a unsigned 32 bit integer
+    // Resource Code (ResCode) is a unsigned 32 bit integer
     // The last 16 bits (17-32) are used to specify the ResId
     // The next 8 bits (9-16) are used to specify the ResType (type of the Resource)
     // In addition if you are using Custom Resources, then the MSB must be set to 1 as well.

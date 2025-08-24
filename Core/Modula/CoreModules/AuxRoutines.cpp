@@ -2,17 +2,20 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include "AuxRoutines.h"
+#include <cstring>
 
 std::string AuxRoutines::readFromFile(const std::string& fileName) {
     std::ifstream fileStream(fileName, std::ios::in);
     std::string value = "";
 
     if(!fileStream.is_open()) {
+        std::cout<<"File cannot be openeded, path = "<<fileName<<" error "<<std::strerror(errno)<<std::endl;
         LOGE("RESTUNE_AUX_ROUTINE", "Failed to open file: " + fileName + " Error: " + strerror(errno));
         return "";
     }
 
     if(!getline(fileStream, value)) {
+        std::cout<<"getline returns big error cannot be openeded"<<" "<<fileName<<std::endl;
         LOGE("RESTUNE_AUX_ROUTINE", "Failed to read from file: " + fileName);
         return "";
     }
@@ -97,7 +100,7 @@ void dumpRequest(Request* clientReq) {
     for(int32_t i = 0; i < clientReq->getResourcesCount(); i++) {
         Resource* res = clientReq->getResourceAt(i);
         LOGD(LOG_TAG, "Resource " + std::to_string(i + 1) + ":");
-        LOGD(LOG_TAG, "Opcode ID: " + std::to_string(res->getResCode()));
+        LOGD(LOG_TAG, "ResCode: " + std::to_string(res->getResCode()));
         LOGD(LOG_TAG, "Number of Values: " + std::to_string(res->getValuesCount()));
         // LOGD(LOG_TAG, "-- Single Value: " + std::to_string(res->mResValue.value));
     }

@@ -162,7 +162,7 @@ void ConfigProcessor::parseSignalConfigYamlNode(const YAML::Node& item, int8_t i
                 }
 
                 if(RC_IS_OK(rc)) {
-                    rc = resourceBuilder.setOpInfo(
+                    rc = resourceBuilder.setResInfo(
                         // Defaults to 0
                         safeExtract<std::string>(resourceConfig[SIGNAL_RESINFO], "0", status)
                     );
