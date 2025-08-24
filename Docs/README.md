@@ -17,13 +17,13 @@
 
 # Introduction
 
-Resource Tuner is a lightweight daemon that monitors and dynamically regulates CPU, memory, and I/O usage of user-space processes. It leverages kernel interfaces like procfs, sysfs and cgroups to enforce runtime policies, ensuring system stability and performance in embedded and resource-constrained environments.
+Resource-tuner is a lightweight framework that helps to dynamically provision system resources like CPU, memory, Gpu, I/O, etc for user-space processes. It leverages kernel interfaces like procfs, sysfs and cgroups to infleunce the resource usage to ensure power and performance of applications or usecases in embedded and resource-constrained environments.
 
-Gaining control over system resources such as the CPU, caches, and GPU is a powerful capability in any developer’s toolkit. By fine-tuning these components, developers can optimize the system’s operating point to make more efficient use of hardware resources and significantly enhance the user experience.
+Gaining control over system resources such as the CPU, caches, and GPU is a powerful capability in any developer’s toolkit. By fine-tuning these components, developers can optimize the system’s operating point to make more efficient use of hardware resources and significantly enhance the user experience while saving power.
 
-For example, increasing the CPU's Dynamic Clock and Voltage Scaling (DCVS) minimum frequency to 1 GHz can boost performance during demanding tasks. Conversely, capping the maximum frequency at 1.5 GHz can help conserve power during less intensive operations.
+For example, increasing the CPU's dynamic clock and voltage scaling (DCVS) minimum frequency to 1 GHz can boost performance during demanding tasks. Conversely, capping the maximum frequency at 1.5 GHz can help conserve power during less intensive operations.
 
-The Resource Tuner framework supports `Signals` which is dynamic provisioning of system resources in response to specific signals—such as app launches or installations—based on configurations defined in YAML. It allows business units (BUs) to register extensions and add custom functionality tailored to their specific needs.
+Resource-tuner framework supports `Signals` which is dynamic provisioning of system resources in response to specific signals —such as app launches or app installations —based on configurations defined in YAML. It allows other software modules or applications to register extensions and add custom functionality tailored to their specific needs.
 
 ---
 
@@ -50,39 +50,53 @@ To get started with the project:
    ./resource_tuner --start
    \endcode
 
-Refer the **Examples** Tab for guidance on Resource Tuner API usage.
+Refer the **Examples** Tab for guidance on resource-tuner API usage.
 
 [GitHub Repo](https://github.com/qualcomm/resource-tuner/tree/main)
 
 ---
 
+# Flexible Packaging: Packaging required modules
+- Core -> Core module which contains server, client, framwork and helper libraries.
+- Signals -> Contains support for provisioning system for the recieved signal
+- Tests -> Unit tests and module level tests
+- CLI -> Command Line Interface to interact with service for debug and development purpose.
+
+Resource-tuner offers flexibility to select modules through the build system at compile time to make it suitable for devices which have stringent memory requirements. While Tests and Cli are debug and develoment modules which can be removed in the final product config. However Core module is mandatory.
+
+Alter options in corresponding build file like below (ex. cmake options)
+```cmake
+option(BUILD_SIGNALS "Signals" OFF)
+option(BUILD_TESTS "Testing" OFF)
+option(BUILD_CLI "CLI" OFF)
+```
+
 # Project Structure
 
 \verbatim
-/Framework  → Core Resource Provisioning Request Logic
-/Auxiliary  → Common Utilities and Components used across Resource Tuner Modules.
-/Client     → Exposes the Client Facing APIs, and Defines the Client Communication Endpoint
-/Server     → Defines the Server Communication Endpoint and other Common Server-Side Utils.
+/Core/Framework  → Core Resource Provisioning Request Logic
+/Core/Modula  → Common Utilities and Components used across Resource Tuner Modules.
+/Core/Client  → Exposes the Client Facing APIs, and Defines the Client Communication Endpoint
+/Core/Server     → Defines the Server Communication Endpoint and other Common Server-Side Utils.
 /Signals    → Optional Module, exposes Signal Tuning / Relay APIs
 /Tests      → Unit and System Wide Tests
-/docs       → Documentation
+/Docs       → Documentation
 \endverbatim
 
 ---
+
 <div style="page-break-after: always;"></div>
 
-
-# Resource Tuner Key Points
-
-- Resource Tuner exposes a Variery of APIs for Resource Provisioning. These APIs can be directly used
-  by the End-Client.
-- Using these APIs the Client can Tune any System Resource Parameter, like cpu, dcvs, min / max frequencies etc.
-- To provide a Convenient and Transparent Method for Clients to interact with the Resource Tuner Server, a Client Library is Provided, which takes care of Encoding and Sending the Request Message across to the Server for further Processing.
-- A Request in this context, is a Group of Resources which need to Tuned for a certain (or possibly infinite) Duration.
-- Resource Tuner also provides a Signal Framework which is useful for identifying Use Cases and Provisioning according to the Use Case.
-- The Client is returned a Handle, a 64-bit Integer, which uniquely Identifies the Request.
-- The Extension Interface Provides a way to Customize Resource Tuner Behaviour, by Specifying Custom Resources, Custom Signals and Features.
-- Resource Tuner uses YAML based Config files, for fetching Information relating to Resources / Signals and Properties.
+# Resource-tuner Key Points
+- Resource-tuner exposes a variery of APIs for resource provisioning. These APIs can be used by apps, features and other modules.
+- Using these APIs, client can tune any system resource parameters like cpu, dcvs, min / max frequencies etc.
+- A client library is provided, which takes care of encoding and sending the request message across to the server for further processing.
+- Set of Yaml config files provides extensive configuration capability
+- Tuning resources provides control over system resources like CPU, Caches, GPU, etc for. Example changing the operating point of CPU DCVS min-freq to 1GHz to improve performance or limiting its max frequency to 1.5GHz to save power
+- Tuning Signals dynamically provisions the system resources for a use case or scenario such as apps launches, installations, etc. in response to received signal. Resources can be configured in yaml for signals.
+- Signals pick resources related to signal from SignalsConfig.yaml
+- Extension interface provides a way to customize resource-tuner behaviour, by specifying custom resources, custom signals and features.
+- Resource-tuner uses YAML based config files, for fetching information relating to resources/signals and properties.
 
 ---
 <div style="page-break-after: always;"></div>
@@ -91,102 +105,181 @@ Refer the **Examples** Tab for guidance on Resource Tuner API usage.
 
 <img src="design_resource_tuner.png" alt="Resource Tuner Design" width="50%"/>
 
-Resource Tuner Architecture is captured above.
+Resource-tuner architecture is captured above.
+
 ## Initialization
-- During the Server Initialization Phase, the YAML Config Files are Read to build up the Resource Registry, Property Store etc.
-- If the BU has Registered any Custom Resources, Signals or Custom YAML files via the Extension Interface, then these changes are detected during this Phase itself to build up a Consolidated System view, before it can start serving Requests.
-- During the Initialization Phase, Memory is Pre-Allocated for Commonly used types (via Memory Pool), and Worker (Thread) capacity is reserved in advance via the ThreadPool, to avoid any delays during the Request Processing Phase.
-- Resource Tuner will also Fetch the Target Details, like target Name, total Number of Cores, Logical to Physical Cluster / Core Mapping in this phase.
-- If the Signals Module is Plugged In, it will be initialized as well and the Signal Configs will be Parsed similarly to Resource Configs.
-- Once all the Initialization is completed, the Server is Ready to Serve Requests, a new Listener Thread is created for Handling Requests.
+- During the server initialization phase, the YAML config files are read to build up the resource registry, property store etc.
+- If the target chipset has registered any custom resources, signals or custom YAML files via the extension interface, then these changes are detected during this phase itself to build up a consolidated system view, before it can start serving requests.
+- During the initialization phase, memory is pre-allocated for commonly used types (via MemoryPool), and worker (thread) capacity is reserved in advance via the ThreadPool, to avoid any delays during the request processing phase.
+- Resource-tuner will also fetch the target details, like target name, total number of cores, logical to physical cluster / core mapping in this phase.
+- If the Signals module is plugged in, it will be initialized as well and the signal configs will be parsed similarly to resource configs.
+- Once all the initialization is completed, the server is ready to serve requests, a new listener thread is created for handling requests.
 
 <div style="page-break-after: always;"></div>
 
 ## Request Processing
-- The Client Can use the Resource Tuner Client Library to Send their Requests.
-- Resource Tuner Supports Sockets and Binders for Client-Server Communication.
-- As soon as the Request is received on the Server end, a Handle is generated and returned to the Client. This handle uniquely identifies the Request and can be used for subsequent Retune (retuneResources) or Untune (untuneResources) API calls.
-- The Request is submitted to the ThreadPool for async Processing.
-- When the Request is Picked up by a Worker (from the ThreadPool), it will first Decode the Request Message and then Validate the Request.
-- The Request Verifier, will run a series of Checks on the Request like Permission Checks, and on the Resources part of the Request, like Config Value Bounds Check.
-- Once Request is verified, a Duplicate Check is Performed, to verify if the Client has already submitted the same Request before. This is done so as to the improve System Efficiency and Performace.
-- Next the Request is added to an Queue, which is essentially PriorityQueue, which orders Requests based on their Priorities (for more details on Priority Levels, refer the next Section). This is done so that the Request with the highest Priority is always served first.
-- To Handle Concurrent Requests for the same Resource, we maintain Resource Level Linked Lists of Pending Requests, which are ordered according to the Request Priority and Resource Policy. This ensures that the Request with the higher Priority will always be applied first. For 2 Requests with the same Priority, the application Order will depend on Resource Policy. For example, in case of Resource with "Higher is Better" Policy, the Request with a higher Configuration Value for the Resource shall take effect first.
-- Once a Request reaches the head of the Resource Level Linked List, it is applied, i.e. the Config Value specified by this Request for the Resource takes effect on the corresponding Sysfs Node.
-- A timer is created and used to keep track of a Request, i.e. check if it has expired. Once it is detected that the Request has expired an Untune Request for the same Handle as this Request, is automatically generated and submitted, it will take care of Resetting the effected Resource Nodes to their Original Values.
-- BUs can Provide their own Custom Appliers for any Resource. The Default Action provided by Resource Tuner is writing to the Resource Sysfs Node.
+- The client can use the resource-tuner client library to send their requests.
+- Resource-tuner supports sockets and binders for client-server communication.
+- As soon as the request is received on the server end, a handle is generated and returned to the client. This handle uniquely identifies the request and can be used for subsequent retune (retuneResources) or untune (untuneResources) API calls.
+- The request is submitted to the ThreadPool for async processing.
+- When the request is picked up by a worker thread (from the ThreadPool), it will decode the request message and then validate the request.
+- The request verifier, will run a series of checks on the request like permission checks, and on the resources part of the request, like config value bounds check.
+- Once request is verified, a duplicate check is performed, to verify if the client has already submitted the same request before. This is done so as to the improve system efficiency and performace.
+- Next the request is added to an queue, which is essentially PriorityQueue, which orders requests based on their priorities (for more details on Priority Levels, refer the next Section). This is done so that the request with the highest priority is always served first.
+- To handle concurrent requests for the same resource, we maintain resource level linked lists of pending requests, which are ordered according to the request priority and resource policy. This ensures that the request with the higher priority will always be applied first. For two requests with the same priority, the application order will depend on resource policy. For example, in case of resource with "higher is better" policy, the request with a higher configuration value for the resource shall take effect first.
+- Once a request reaches the head of the resource level linked list, it is applied, i.e. the config value specified by this request for the resource takes effect on the corresponding sysfs node.
+- A timer is created and used to keep track of a request, i.e. check if it has expired. Once it is detected that the request has expired an untune request for the same handle as this request, is automatically generated and submitted, it will take care of resetting the effected resource nodes to their original values.
+- Client modules can provide their own custom resource actions for any resource. The default action provided by resource-tuner is writing to the resource sysfs node.
 
 ---
 <div style="page-break-after: always;"></div>
 
 Here is a more detailed explanation of the key features discussed above:
 
-## 1. Permissions
-Certain resources can be tuned only by system clients and some which have no such restrictions and can be tuned even by third party clients. The Client permissions are dynamically determined, the first time it makes a Request. If a client with Third Party Permissions tries to tune a Resource, which allows only clients with System Permissions to tune it, then the Request shall be dropped.
+## 1. Client-Level Permissions
+Certain resources can be tuned only by system clients and some which have no such restrictions and can be tuned even by third party clients. The client permissions are dynamically determined, the first time it makes a request. If a client with third party permissions tries to tune a resource, which allows only clients with system permissions to tune it, then the request shall be dropped.
 
-## 2. Policies
-To ensure efficient and predictable handling of concurrent requests, each system resource is governed by one of four predefined policies.
-Selecting the appropriate policy helps maintain system stability, optimize performance, and align resource behavior with application requirements.
+## 2. Resource-Level Policies
+To ensure efficient and predictable handling of concurrent requests, each system resource is governed by one of four predefined policies. Selecting the appropriate policy helps maintain system stability, optimize performance/power, and align resource behavior with application requirements.
 
-- Instant Apply (or Always Apply): This policy is for resources where the latest request needs to be honored. This is kept as the default policy.
+- Instant Apply: This policy is for resources where the latest request needs to be honored. This is kept as the default policy.
 - Higher is better: This policy honors the request writing the highest value to the node. One of the cases where this makes sense is for resources that describe the upper bound value. By applying the higher-valued request, the lower-valued request is implicitly honored.
-- Lower is better: Self-explanatory. Works exactly opposite of the higher is better policy.
+- Lower is better: Works exactly opposite of the higher is better policy.
 - Lazy Apply: Sometimes, you want the resources to apply requests in a first-in-first-out manner.
 
-## 3. Priorities
-As part of the tuneResources API call, the Client is allowed to specify a desired Priority Level for the Request. Resource Tuner supports 4 priority levels:
+## 3. Request-Level Priorities
+As part of the tuneResources API call, client is allowed to specify a desired priority level for the request. Resource-tuner supports 2 priority levels:
+- High
+- Low
+
+However when multiplexed with client-level permissions, effetive request level priorities would be
 - System High [SH]
 - System Low [SL]
 - Third Party High (or Regular High) [TPH]
 - Third Party Low (or Regular Low) [TPL]
 
-Requests with a higher Priority will always be prioritized, over another Request with a lower priority. Note, the Request Priorities are related to the Client Permissions. A client with System Permission is allowed to acquire any priority Level it wants, however a Client with Third Party Permissions can only acquire either Third Party High (TPH) or Third Party Low (TPL) level of Priorities. If a Client
-with Third Party Permissions tries to acquire a System High or System Low level of Priority, then the
-Request will not be honoured.
+Requests with a higher priority will always be prioritized, over another request with a lower priority. Note, the request priorities are related to the client permissions. A client with system permission is allowed to acquire any priority level it wants, however a client with third party permissions can only acquire either third party high (TPH) or third party low (TPL) level of priorities. If a client with third party permissions tries to acquire a System High or System Low level of priority, then the request will not be honoured.
 
-## 4. Detection of Dead Clients and Subsequent Cleanup
-To improve efficiency and conserve Memory, it is essential to Regularly Check for Dead Clients and Free up any System Resources associated to them. This includes, Untuning all (if any) Ongoing Tune Request issued by this Client and Freeing up the Memory used to store Client Specific Data (Example:
-Client's List of Requests (Handles), Health, Permissions, Threads Associated with the Client etc).
-Resource Tuner Ensures that such clients are detected and Cleaned Up within 90 seconds of the Client Terminating.
+## 4. Pulse Monitor: Detection of Dead Clients and Subsequent Cleanup
+To improve efficiency and conserve memory, it is essential to regularly check for dead clients and free up any system resources associated with them. This includes, untuning all (if any) ongoing tune request issued by this client and freeing up the memory used to store client specific data (Example: client's list of requests (handles), health, permissions, threads associated with the client etc). resource-tuner ensures that such clients are detected and cleaned up within 90 seconds of the client terminated.
 
-Resource Tuner performs these actions by making use of two components:
-- Pulse Monitor: Pulse Monitor scans the list of the Active Clients, and checks if any of the Client (PID) is dead (It does by checking if an entry for that PID exisits in /proc/pid/). If it finds a Dead Client, it schedules the Client for Cleanup by adding this PID to a Queue (called the GC Queue).
-- Client Garbage Collector: When the Garbage Collector runs it iterates over the GC Queue and Performs the Cleanup.
+Resource-tuner performs these actions by making use of two components:
+- Pulse check: scans the list of the active clients, and checks if any of the client (PID) is dead. If it finds a dead client, it schedules the cleanup by adding this PID to a queue.
+- Garbage collection: When the thread runs it iterates over the GC queue and performs the cleanup.
 
-Both Pulse Monitor and Client Garbage Collector run as Daemon Threads.
+Pulse Monitor runs on a seperate thread peroidically.
 
-## 5. Preventing System Abuse
-Resource Tuner has a built in RateLimiter component that prevents abuse of the system by limiting the number of requests a client can make within a given time frame. This helps to prevent clients from overwhelming the system with requests and ensures that the system remains responsive and efficient. RateLimiter works on a Reward / Punishment methodology. Whenever a Client enters the System for the first time, it is assigned a "Health" of 100. A Punishment is incurred if a Client makes subsequent Requests in a very short Time Interval (called Delta, say 5 ms).
-A Reward results in increasing the health of a Client (not above 100), while a Punishment involves decreasing the health of the Client. If at any point this value of Health reaches Zero then any further Requests from this Client wil be dropped. Note the Exact value of Delta, Punishment and Rewards are BU-configurable.
+## 5. Rate Limiter: Preventing System Abuse
+Resource-tuner has rate limiter module that prevents abuse of the system by limiting the number of requests a client can make within a given time frame. This helps to prevent clients from overwhelming the system with requests and ensures that the system remains responsive and efficient. Rate limiter works on a reward/punishment methodology. Whenever a client requests the system for the first time, it is assigned a "Health" of 100. A punishment is handed over if a client makes subsequent new requests in a very short time interval (called delta, say 2 ms).
+A Reward results in increasing the health of a client (not above 100), while a punishment involves decreasing the health of the client. If at any point this value of Health reaches zero then any further requests from this client wil be dropped. Value of delta, punishment and rewards are target-configurable.
 
 ## 6. Duplicate Checking
-Resource Tuner's RequestManager component is Responsible for detecting any duplicate Requests issued by a Client, and dropping them. This is done by maintaining a List of all the Requests issued by a Client. Whenever a new Request is received, it is checked against this List to see if it is a duplicate. If it is, then the Request is dropped. If it is not, then the Request is added to this List and processed. Duplicate Checking helps to improve System Efficiency, by saving wasteful CPU time on processing Duplicates.
+Resource-tuner's RequestManager component is responsible for detecting any duplicate requests issued by a client, and dropping them. This is done by checking against a list of all the requests issued by a clientto identify a duplicate. If it is, then the request is dropped. If it is not, then the request is added and processed. Duplicate checking helps to improve system efficiency, by saving wasteful CPU time on processing duplicates.
 
-## 7. Logical to Physical Mapping
-Logical to Physical Core / Cluster Mapping helps us to achieve achieve decoupling on the Client side, as the Client does not need to be aware of the Physical Topology of the Target to issue Resource Tuning Requests. Instead the Client can specify Logical values for Core and Cluster. Resource Tuner will translate these values to their physical counterparts and apply the Request accordingly. Logical to Physical mapping in essence like System Independent Layer makes the same client code interchangable across different Targets, and Resource Tuner will take care of the mapping.
+## 7. Dynamic Mapper: Logical to Physical Mapping
+Logical to physical core/cluster mapping helps to achieve application code portability across different chipsets on client side. Client can specify logical values for core and cluster. Resource-tuner will translate these values to their physical counterparts and apply the request accordingly. Logical to physical mapping helps to create system independent layer and helps to make the same client code interchangable across different targets.
+
+Logical mapping entries can be found in InitConfig.yaml and can be modified if required.
+
+Logical layer values always arranged from lower to higher cluster capacities.
+If no names assigned to entries in the dynamic mapping table then cluster'number' will be the name of the cluster
+for ex. LgcId 4 named as "cluster4"
+
+below table present in InitConfigs->ClusterMap section
+| LgcId  |     Name   |
+|--------|------------|
+|   0    |   "little" |
+|   1    |   "big"    |
+|   2    | "titanium" |
+|   3    |    "prime" |
+
+resource-tuner reads machine topology and prepares logical to physical table dynamically in the init phase, similar to below one
+| LgcId  |  PhyId | 
+|--------|---------|
+|   0    |     0   |
+|   1    |     1   |
+|   2    |     3   |
+|   3    |     2   |
+
 
 ## 8. Display-Aware Operational Modes
-The system's operational modes are influenced by the state of the device's display. To conserve power, certain system resources are optimized only when the display is active. However, for critical components that require consistent performance—such as during background processing or time-sensitive tasks, resource tuning can still be applied even when the display is off, including during low-power states like Doze mode. This ensures that essential operations maintain responsiveness without compromising overall energy efficiency.
+The system's operational modes are influenced by the state of the device's display. To conserve power, certain system resources are optimized only when the display is active. However, for critical components that require consistent performance—such as during background processing or time-sensitive tasks, resource tuning can still be applied even when the display is off, including during low-power states like doze mode. This ensures that essential operations maintain responsiveness without compromising overall energy efficiency.
 
 ## 9. Crash Recovery
-In case of Server Crash, Resource Tuner ensures that all the Resource Sysfs Nodes are restored to a Sane State, i.e. they are reset to their Original Values. This is done by maintaining a List of all the Resource Sysfs Nodes and their Original Values, before any modification was made on behalf of the Clients by Resource Tuner. In the event of Server crash, this File is read and all Sysfs Nodes are reset to their Original Values.
+In case of server crash, resource-tuner ensures that all the resource sysfs nodes are restored to a sane state, i.e. they are reset to their original values. This is done by maintaining a backup of all the resource's original values, before any modification was made on behalf of the clients by resource tuner. In the event of server crash, reset to their original values in the backup.
 
 ## 10. Flexible Packaging
-The Users are free to pick and Choose the Resource Tuner Modules they want for their use-case and which fit their constraints. The Framework Module is the core / central module, however if the Users choose they can add on top of it other Modules: Signals and Profiles.
+The Users are free to pick and choose the resource-tuner modules they want for their use-case and which fit their constraints. The Framework Module is the core/central module, however if the users choose they can add on top of it other Modules: signals and profiles.
 
 ## 11. Pre-Allocate Capacity for efficiency
-Resource Tuner provides a MemoryPool component, which allows for pre-allocation of memory for certain commonly used type at the time of Server initialization. This is done to improve the efficiency of the system, by reducing the number of memory allocations and deallocations that are required during the processing of Requests. The allocated memory is managed as a series of blocks which can be recycled without any system call overhead. This reduces the overhead of memory allocation and deallocation, and improves the performance of the system.
+Resource Tuner provides a MemoryPool component, which allows for pre-allocation of memory for certain commonly used type at the time of server initialization. This is done to improve the efficiency of the system, by reducing the number of memory allocations and deallocations that are required during the processing of requests. The allocated memory is managed as a series of blocks which can be recycled without any system call overhead. This reduces the overhead of memory allocation and deallocation, and improves the performance of the system.
 
-Further, a ThreadPool component is provided to pre-allocate processing capacity. This is done to improve the efficiency of the system, by reducing the number of thread creation and destruction required during the processing of Requests, further ThreadPool allows for the Threads to be repeatedly reused for processing different tasks.
+Further, a ThreadPool component is provided to pre-allocate processing capacity. This is done to improve the efficiency of the system, by reducing the number of thread creation and destruction required during the processing of Requests, further ThreadPool allows for the threads to be repeatedly reused for processing different tasks.
 
 ---
 <div style="page-break-after: always;"></div>
 
 # Config Files Format
-Resource Tuner utilises YAML files for configuration. This includes the Resources, Signal Config Files. The BUs can provide their own Config Files, which are specific to their use-case through the Extension Interface
+Resource-tuner utilises YAML files for configuration. This includes the resources, signal config files. Target can provide their own config files, which are specific to their use-case through the extension interface
 
-## 1. Resource Configs
-Tunable Resources are specified via the ResourcesConfig.yaml file. Each Resource is defined with the following fields:
+## 1. Initialization Configs
+Initialisation configs are mentioned in InitConfig.yaml file. This config enables resource-tuner to setup the required settings at the time of initialisation before any request processing happens. 
+
+### Common Initialization Configs
+Common initialization configs are defined in <base_dir>/common/InitConfig.yml, typical <base_dir> is /etc/resource-tuner but can be configured differently.
+
+### Overriding Initialization Configs
+Targets can override initialization cofigs (complements common init configs, i.e. overrides specific configs) by simply pushing its own InitConfig.yml into <base_dir>/custom/InitConfig.yml
+
+### Overiding with Custom Extension File 
+RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/bin/InitConfigCustom.yaml");
+
+Right now InitConfigs.yml added below configs
+### 1. Logical Cluster Map
+Configs of cluster map in InitConfigs->ClusterMap section
+| LgcId  |     Name   |
+|--------|------------|
+|   0    |   "little" |
+|   1    |   "big"    |
+|   2    | "titanium" |
+|   3    |    "prime" |
+
+### 2. Cgroups map
+Configs of cgroups map in InitConfigs->CgroupsInfo section
+| Lgc Cgrp No | Cgrp Name  |
+|-------------|------------|
+|       0     |  "default" |
+|       1     |  "bg-app"  |
+|       2     |  "top-app" |
+|       3     |"camera-app"|
+
+### 3. Mpam Groups Map
+Configs of mpam grp map in InitConfigs->MpamGroupsInfo section
+
+| Num Cache Blocks  |    Cache Type  | Prio Aware|
+|-------------------|----------------|-----------|
+|         2         |      "L2"      |     0     |
+|         1         |      "L3"      |     1     |
+
+| LgcId  |    Mpam grp Name  | prio |
+|--------|-------------------|------|
+|   0    |      "default"    |   0  |
+|   1    |       "video"     |   1  |
+|   2    |       "camera"    |   2  |
+
+## 2. Resource Configs
+Tunable resources are specified via ResourcesConfig.yaml file. 
+
+### Common Resource Configs
+Common resource configs are defined in <base_dir>/common/ResourceConfig.yml, typical <base_dir> is /etc/resource-tuner but can be configured differently.
+
+### Overriding Resource Configs
+Targets can override resource cofigs (can fully override or selective resources) by simply pushing its own ResourceConfig.yml into <base_dir>/custom/ResourceConfig.yml
+
+### Overiding with Custom Extension File 
+RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/bin/targetResourceConfigCustom.yaml");
+
+Each resource is defined with the following fields:
 
 #### Fields Description
 
@@ -194,7 +287,8 @@ Tunable Resources are specified via the ResourcesConfig.yaml file. Each Resource
 |----------------|------------|-------------|-----------------|
 | `ResID`        | `string` (Mandatory)   | 16-bit Resource Identifier, unique within the Resource Type. | Not Applicable |
 | `ResType`       | `string` (Mandatory)  | 8-bit Type of the Resource, for example: cpu / dcvs | Not Applicable |
-| `Name`          | `string` (Optional)   | Path to the system sysfs node. | `Empty String` |
+| `Name`          | `string` (Optional)   | Descriptive name | `Empty String` |
+| `Path`          | `string` (Optional)   | Path to the system sysfs node. | `Empty String` |
 | `Supported`     | `boolean` (Optional)  | Indicates if the Resource is Eligible for Provisioning. | `False` |
 | `HighThreshold` | `integer (int32_t)` (Mandatory)   | Upper threshold value for the resource. | Not Applicable |
 | `LowThreshold`  | `integer (int32_t)` (Mandatory)   | Lower threshold value for the resource. | Not Applicable |
@@ -211,7 +305,8 @@ Tunable Resources are specified via the ResourcesConfig.yaml file. Each Resource
 ResourceConfigs:
   - ResType: "0x1"
     ResID: "0x0"
-    Name: "/proc/sys/kernel/sched_util_clamp_min"
+    Name: "RESTUNE_SCHED_UTIL_CLAMP_MIN"
+    Path: "/proc/sys/kernel/sched_util_clamp_min"
     Supported: true
     HighThreshold: 1024
     LowThreshold: 0
@@ -221,7 +316,8 @@ ResourceConfigs:
 
   - ResType: "0x1"
     ResID: "0x1"
-    Name: "/proc/sys/kernel/sched_util_clamp_max"
+    Name: "RESTUNE_SCHED_UTIL_CLAMP_MAX"
+    Path: "/proc/sys/kernel/sched_util_clamp_max"
     Supported: true
     HighThreshold: 1024
     LowThreshold: 0
@@ -233,8 +329,17 @@ ResourceConfigs:
 ---
 <div style="page-break-after: always;"></div>
 
-## 2. Properties Config
-The targetPropertiesConfig.yaml file stores various properties which are used by the Resource Tuner Modules internally (for example, to allocate sufficient amount of Memory for different Types, or to determine the Pulse Monitor Duration) as well as by the End Client.
+## 3. Properties Config
+PropertiesConfig.yaml file stores various properties which are used by resource-tuner modules internally. For example, to allocate sufficient amount of memory for different types, or to determine the Pulse Monitor duration. Client can also use this as a property store to store their properties which gives it flexibility to control properties depending on the target.
+
+### Common Properties Configs
+Common resource configs are defined in <base_dir>/common/PropertiesConfig.yml, typical <base_dir> is /etc/resource-tuner but can be configured differently.
+
+### Overriding Resource Configs
+Targets can override resource cofigs (can fully override or selective resources) by simply pushing its own PropertiesConfig.yml into <base_dir>/custom/PropertiesConfig.yml
+
+### Overiding with Custom Extension File 
+RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/bin/targetPropertiesConfigCustom.yaml"); if Client have no specific extensions like custom resources or features only want to change the config then the above method (using the same file name and pushing it to custom folder) is the best method to go for.
 
 #### Field Descriptions
 
@@ -259,8 +364,8 @@ PropertyConfigs:
 ```
 <div style="page-break-after: always;"></div>
 
-## 3. Signal Configs
-The file SignalsConfig.yaml defines the Signal Configs.
+## 4. Signal Configs
+The file SignalsConfig.yaml defines the signal configs.
 
 #### Field Descriptions
 
@@ -311,13 +416,12 @@ SignalConfigs:
 <div style="page-break-after: always;"></div>
 
 
-## 4. (Optional) Target Configs
-The file TargetConfig.yaml defines the Target Configs, not this an Optional Config, i.e. this
-file need not necessarily be provided. Resource Tuner can dynamically fetch system info, like Target Name,
-Logical to Physical Core / Cluster Mapping, number of cores etc. Use this file, if you want to
-provide this information explicitly. If the TargetConfig.yaml is provided, Resource Tuner will always
-Prioritize and use it. Also note, there are no field-level default values available if the TargetConfig.yaml is provided. Hence if you wish to provide this file, then you'll need to exhaustivly provide
-all the required information.
+## 5. (Optional) Target Configs
+The file TargetConfig.yaml defines the target configs, note this is an optional config, i.e. this
+file need not necessarily be provided. Resource-tuner can dynamically fetch system info, like target name,
+logical to physical core / cluster mapping, number of cores etc. Use this file, if you want to
+provide this information explicitly. If the TargetConfig.yaml is provided, resource-tuner will always
+overide default dynamically generated target information and use it. Also note, there are no field-level default values available if the TargetConfig.yaml is provided. Hence if you wish to provide this file, then you'll need to provide all the complete required information.
 
 #### Field Descriptions
 
@@ -334,7 +438,7 @@ all the required information.
 
 ```yaml
 TargetConfig:
-  - TargetName: qli
+  - TargetName: sun
     ClusterInfo:
       - Id: 0
         Type: big
@@ -365,7 +469,7 @@ This API suite allows you to manage system resource provisioning through tuning 
 ## tuneResources
 
 **Description:**
-Issues a Resource provisioning (or Tuning) request for a finite or infinite duration.
+Issues a resource provisioning (or tuning) request for a finite or infinite duration.
 
 **Function Signature:**
 ```cpp
@@ -396,7 +500,7 @@ int64_t tuneResources(int64_t duration,
 ## retuneResources
 
 **Description:**
-Modifies the duration of an existing Tune request.
+Modifies the duration of an existing tune request.
 
 **Function Signature:**
 ```cpp
@@ -422,7 +526,7 @@ int8_t retuneResources(int64_t handle,
 ## untuneResources
 
 **Description:**
-Withdraws a previously issued resource provisioning (or Tune) request.
+Withdraws a previously issued resource provisioning (or tune) request.
 
 **Function Signature:**
 ```cpp
@@ -444,7 +548,7 @@ int8_t untuneResources(int64_t handle);
 ## getprop
 
 **Description:**
-Gets a property from the Config Store
+Gets a property from the config store
 
 **Function Signature:**
 ```cpp
@@ -482,7 +586,7 @@ int8_t setprop(const char* prop,
 
 **Parameters:**
 
-- `prop` (`const char*`): Name of the Property to be fetched.
+- `prop` (`const char*`): Name of the property to be fetched.
 - `value` (`const char*`): A buffer holding the new the property value.
 
 **Returns:**
@@ -500,8 +604,8 @@ a List of `Resource` structures. The format of the `Resource` structure is as fo
 
 ```c
 typedef struct Resource {
-    uint32_t OpId;
-    uint32_t OpInfo;
+    uint32_t ResId;
+    uint32_t ResInfo;
     uint32_t OptionalInfo;
     uint16_t NumValues;
     union {
@@ -513,9 +617,9 @@ typedef struct Resource {
 
 ---
 
-**OpId**: An unsigned 32-bit unique identifier for the resource. It encodes essential information that is useful in abstracting away the system specific details.
+**ResId**: An unsigned 32-bit unique identifier for the resource. It encodes essential information that is useful in abstracting away the system specific details.
 
-**OpInfo**: Encodes operation-specific information such as the Logical cluster and core IDs, and MPAM part ID.
+**ResInfo**: Encodes operation-specific information such as the Logical cluster and core IDs, and MPAM part ID.
 
 **OptionalInfo**: Additional optional metadata, useful for custom or extended resource configurations.
 
@@ -525,17 +629,16 @@ typedef struct Resource {
 
 <div style="page-break-after: always;"></div>
 
-## Notes on Resource Opcode
+## Notes on Resource ResId
 
-As mentioned above, the Resource OpCode is an unsigned 32 bit integer. This section describes how this OpCode can be generated.
-Resource Tuner implements a System Independent Layer (SIL) which Provides a Transparent and Consistent way for Indexing Resources. This makes it easy for the Clients to Identify the Resource they want to provision, without needing to worry about Compatability Issues across Targets or about the Order in which the Resources are defined in the YAML files.
+As mentioned above, the resource code is an unsigned 32 bit integer. This section describes how this code can be constructed. Resource-tuner implements a System Independent Layer(SIL) which provides a transparent and consistent way for indexing resources. This makes it easy for the clients to identify the resource they want to provision, without needing to worry about portability issues across targets or about the order in which the resources are defined in the YAML files.
 
-Essentially, the Resource Opcode (unsigned 32 bit) is composed of two fields:
+Essentially, the resource code (unsigned 32 bit) is composed of two fields:
 - ResID (last 16 bits, 17 - 32)
 - ResType (next 8 bits, 9 - 16)
-- [Additionally if the BU is providing it's own Custom Resource Config Files, then the MSB must be set to "1", Indicating this is a Custom Resource else it shall be treated as a Default Resource].
+- Additionally MSB can be set to '1' if customer or other modules or target chipset is providing it's own custom resource config files, indicating this is a custom resource else it shall be treated as a default resource. This bit doesn't influence resource processing, just to aid debugging and development.
 
-These fields can uniquely identify a Resource across targets, hence making the code operating on these Resources interchangable. In Essence, we ensure that the Resource with OpCode "x", refers to the same Tunable Resource across different Targets.
+These fields can uniquely identify a resource across targets, hence making the code operating on these resources interchangable. In essence, we ensure that the resource with code "x", refers to the same tunable resource across different targets.
 
 Examples:
 - The Resource OpCode: 65536 [00000000 00000001 00000000 00000000], Refers to the Default Resource with ResID 0 and ResType 1.
@@ -563,10 +666,10 @@ Examples:
 
 ## tuneResources
 
-Note the following code snippets showcase the use of Resource Tuner APIs. For more in-depth examples
-refer "link to Examples dir"
+Note the following code snippets showcase the use of resource-tuner APIs. For more in-depth examples
+refer "link to examples dir"
 
-This example demonstrates the use of tuneResources API for Resource Provisioning.
+This example demonstrates the use of tuneResources API for resource provisioning.
 ```cpp
 #include <iostream>
 #include <ResourceTuner/ResourceTunerAPIs.h>
@@ -596,14 +699,14 @@ this API should not free this memory.
 
 ## retuneResources
 
-The below example demonstrates the use of the retuneResources API for modifying a Request's duration.
+The below example demonstrates the use of the retuneResources API for modifying a request's duration.
 ```cpp
 void sendRequest() {
     // Modify the duration of a previously issued Tune Request to 20 seconds
     // Let's say we stored the handle returned by the tuneResources API in
     // a variable called "handle". Then the retuneResources API can be simply called like:
     if(retuneResources(20000, handle) < 0) {
-		std::cerr<<"Failed to Send retune request to Resource Tuner Server"<<std::endl;
+    std::cerr<<"Failed to Send retune request to Resource Tuner Server"<<std::endl;
     }
 }
 ```
@@ -612,12 +715,12 @@ void sendRequest() {
 
 ## untuneResources
 
-The below example demonstrates the use of the untuneResources API for untuning a previously issued Tune Request.
+The below example demonstrates the use of the untuneResources API for untuning a previously issued tune Request.
 ```cpp
 void sendRequest() {
     // Withdraw a Previously issued tuning request
     if(untuneResources(handle) == -1) {
-		std::cerr<<"Failed to Send untune request to Resource Tuner Server"<<std::endl;
+    std::cerr<<"Failed to Send untune request to Resource Tuner Server"<<std::endl;
     }
 }
 ```
@@ -626,16 +729,15 @@ void sendRequest() {
 
 # Extension Interface
 
-The Resource Tuner framework allows business units (BUs) to extend its functionality and customize it to their use-case. Extension Interface essentially provides a series of hooks to the BUs to add their own custom behaviour.
-This is achieved through a lightweight extension interface using macros. This happens in the initialisation phase before the service is ready for requests.
+The Resource-tuner framework allows target chipsets to extend its functionality and customize it to their use-case. Extension interface essentially provides a series of hooks to the targets or other modules to add their own custom behaviour. This is achieved through a lightweight extension interface. This happens in the initialisation phase before the service is ready for requests.
 
-Specifically the Extension Interface provides the following capabilities:
+Specifically the extension interface provides the following capabilities:
 - Registering custom resource handlers
-- Registering Custom Configuration Files (This includes Resource Configs, Signal Configs and Property Configs). This allows, for example the specification of Custom Resources.
+- Registering custom configuration files (This includes resource configs, signal configs and property configs). This allows, for example the specification of custom resources.
 
 ---
 
-## Macros
+## Extension APIs
 
 ### `RESTUNE_REGISTER_APPLIER_CB`
 
@@ -656,16 +758,17 @@ RESTUNE_REGISTER_APPLIER_CB(0x00010001, applyCustomCpuFreqCustom);
 
 ### `RESTUNE_REGISTER_CONFIG`
 
-Registers a custom configuration YAML file. This enables the BU to provide their own Config Files, i.e. allowing them to provide their Own Custom Resources for Example.
+Registers a custom configuration YAML file. This enables target chipset to provide their own config files, i.e. allowing them to provide their own custom resources for example.
 
 ### Usage Example
 ```cpp
 RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/bin/targetResourceConfigCustom.yaml");
 ```
-The above line of code, will indicate to Resource Tuner to Read the Resource Configs from the file
-"/etc/bin/targetResourceConfigCustom.yaml" instead of the Default File. Note, the BUs must honour the structure of the YAML files, for them to be read and registered successfully.
+The above line of code, will indicate to resource-tuner to read the resource configs from the file
+"/etc/bin/targetResourceConfigCustom.yaml" instead of the default file. note, the target chipset must honour the structure of the YAML files, for them to be read and registered successfully.
 
-Custom Signal Config File can be specified similarly:
+Custom signal config file can be specified similarly:
+
 ### Usage Example
 ```cpp
 RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/bin/targetSignalConfigCustom.yaml");
@@ -675,7 +778,7 @@ RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/bin/targetSignalConfigCustom.yaml"
 <div style="page-break-after: always;"></div>
 
 # Client CLI
-Resource Tuner provides a minimal CLI to interact with the server. This is provided to help with development and debugging purposes.
+Resource-tuner provides a minimal CLI to interact with the server. This is provided to help with development and debugging purposes.
 
 ## Usage Examples
 
@@ -686,8 +789,8 @@ Resource Tuner provides a minimal CLI to interact with the server. This is provi
 Where:
 - `duration`: Duration in milliseconds for the tune request
 - `priority`: Priority level for the tune request (HIGH: 0 or LOW: 1)
-- `num`: Number of Resources
-- `res`: List of resource OpCode, Value pairs to be tuned as part of this request
+- `num`: Number of resources
+- `res`: List of resource OpId, Values to be tuned as part of this request
 
 Example:
 ```bash
@@ -699,7 +802,7 @@ Example:
 ./resource_tuner_cli --untune --handle <>
 ```
 Where:
-- `handle`: Handle of the previously issued Tune Request, which needs to be untuned
+- `handle`: Handle of the previously issued tune request, which needs to be untuned
 
 Example:
 ```bash
@@ -711,8 +814,8 @@ Example:
 ./resource_tuner_cli --retune --handle <> --duration <>
 ```
 Where:
-- `handle`: Handle of the previously issued Tune Request, which needs to be retuned
-- `duration`: The new Duration in milliseconds for the tune request
+- `handle`: Handle of the previously issued tune request, which needs to be retuned
+- `duration`: The new duration in milliseconds for the tune request
 
 Example:
 ```bash
@@ -725,7 +828,7 @@ Example:
 ./resource_tuner_cli --getprop --key <>
 ```
 Where:
-- `key`: The Prop Name of which the corresponding value needs to be fetched
+- `key`: The Prop name of which the corresponding value needs to be fetched
 
 Example:
 ```bash

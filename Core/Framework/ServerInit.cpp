@@ -70,7 +70,6 @@ ErrCode fetchProperties() {
 
 static ErrCode fetchResources() {
     ErrCode opStatus = RC_SUCCESS;
-
     ConfigProcessor configProcessor;
 
     TYPELOGV(NOTIFY_PARSING_START, "Common-Resource");
@@ -81,31 +80,26 @@ static ErrCode fetchResources() {
         return opStatus;
     }
 
-    TYPELOGV(NOTIFY_PARSING_START, "Target-Specific Resource");
-    filePath = ResourceTunerSettings::mTargetSpecificResourceFilePath;
-    opStatus = configProcessor.parseResourceConfigs(filePath);
-    if(RC_IS_NOTOK(opStatus)) {
-        if(opStatus != RC_FILE_NOT_FOUND) {
-            // Additional check for ErrCode, as it is possible that there is
-            // no target-specific Configs at all for a given target. This
-            // case should not result in a failure.
-            TYPELOGV(NOTIFY_PARSING_FAILURE, "Target-Specific Resource");
-            return opStatus;
-
-        } else {
-            // Reset opStatus
-            opStatus = RC_SUCCESS;
-        }
-    }
-
     filePath = Extensions::getResourceConfigFilePath();
     if(filePath.length() > 0) {
-        // Custom Resource Config file has been provided by BU
         TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, "Resource", filePath.c_str());
         TYPELOGV(NOTIFY_PARSING_START, "Custom-Resource");
         opStatus = configProcessor.parseResourceConfigs(filePath, true);
         if(RC_IS_NOTOK(opStatus)) {
             TYPELOGV(NOTIFY_PARSING_FAILURE, "Custom-Resource");
+            return opStatus;
+        }
+    } else {
+        TYPELOGV(NOTIFY_PARSING_START, "Custom-Resource");
+        filePath = ResourceTunerSettings::mCustomResourceFilePath;
+        opStatus = configProcessor.parseResourceConfigs(filePath, true);
+        if(RC_IS_NOTOK(opStatus)) {
+            if(opStatus == RC_FILE_NOT_FOUND) {
+                TYPELOGV(NOTIFY_PARSER_FILE_NOT_FOUND, "Custom-Resource", filePath.c_str());
+                TYPELOGV(NOTIFY_PARSING_SUCCESS, "Resource");
+                return RC_SUCCESS;
+            }
+            TYPELOGV(NOTIFY_PARSING_FAILURE, "Resource");
             return opStatus;
         }
     }
@@ -119,19 +113,31 @@ static ErrCode fetchInitInfo() {
 
     // Target Configs is optional, i.e. file TargetConfig.yaml need not be provided.
     // Resource Tuner will dynamically fetch mapping data in such cases
-
     ConfigProcessor configProcessor;
-    const std::string targetConfigFilePath = Extensions::getTargetConfigFilePath();
-    if(targetConfigFilePath.length() > 0) {
+    std::string filePath = Extensions::getTargetConfigFilePath();
+    if(filePath.length() > 0) {
         // Custom Target Config file has been provided by BU
-        TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, "Target", targetConfigFilePath.c_str());
-        opStatus = configProcessor.parseTargetConfigs(targetConfigFilePath);
+        TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, "Target", filePath.c_str());
+        opStatus = configProcessor.parseTargetConfigs(filePath);
         if(RC_IS_NOTOK(opStatus)) {
             TYPELOGV(NOTIFY_PARSING_FAILURE, "Target");
             return opStatus;
         } else {
             TYPELOGV(NOTIFY_PARSING_SUCCESS, "Target");
         }
+    } else {
+        TYPELOGV(NOTIFY_PARSING_START, "Target");
+        filePath = ResourceTunerSettings::mCustomTargetFilePath;
+        opStatus = configProcessor.parseTargetConfigs(filePath);
+        if(RC_IS_NOTOK(opStatus)) {
+            if(opStatus == RC_FILE_NOT_FOUND) {
+                TYPELOGV(NOTIFY_PARSER_FILE_NOT_FOUND, "Target", filePath.c_str());
+                return RC_SUCCESS;
+            }
+            TYPELOGV(NOTIFY_PARSING_FAILURE, "Target");
+            return opStatus;
+        }
+        TYPELOGV(NOTIFY_PARSING_SUCCESS, "Target");
     }
 
     TYPELOGV(NOTIFY_PARSING_START, "Init");

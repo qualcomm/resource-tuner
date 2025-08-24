@@ -398,6 +398,13 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             Logger::log(INFO, "RESTUNE_SERVER_INIT", funcName, std::string(buffer));
             break;
 
+        case CommonMessageTypes::NOTIFY_PARSER_FILE_NOT_FOUND:
+            vsnprintf(buffer, sizeof(buffer),
+                      "[%s] Config Parsing Failed, Expected File: [%s] not found.", args);
+
+            Logger::log(INFO, "RESTUNE_SERVER_INIT", funcName, std::string(buffer));
+            break;
+
         case CommonMessageTypes::LOGICAL_TO_PHYSICAL_MAPPING_GEN_FAILURE:
             Logger::log(ERROR, "RESTUNE_SERVER_INIT", funcName,
                         "Reading Physical Core, Cluster Info Failed, Server Init Failed");
@@ -470,6 +477,20 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
                       "No existing request with handle [%ld] found, Dropping this Request", args);
 
             Logger::log(ERROR, "RESTUNE_REQUEST_MANAGER", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::EXT_FEATURE_LIB_OPEN_FAILED:
+            vsnprintf(buffer, sizeof(buffer),
+                      "No lib with the Path: [%s] could not be opened", args);
+
+            Logger::log(ERROR, "RESTUNE_EXT_FEATURES", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::EXT_FEATURE_ROUTINE_NOT_DEFINED:
+            vsnprintf(buffer, sizeof(buffer),
+                      "No Routine with the Name: [%s] defined by the lib: [%s]", args);
+
+            Logger::log(ERROR, "RESTUNE_EXT_FEATURES", funcName, std::string(buffer));
             break;
 
         default:

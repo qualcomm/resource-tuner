@@ -32,7 +32,11 @@ int32_t Message::getProperties() {
 }
 
 int8_t Message::isBackgroundProcessingEnabled() {
-    return ((this->mProperties >> 8) & (((int32_t) 1 << 8)) - 1);
+    return (int8_t)((this->mProperties >> 8) & (((int32_t) 1 << 8)) - 1);
+}
+
+int8_t Message::getUntuneProcessingOrder() {
+    return (int8_t)((this->mProperties >> 16) & (((int32_t) 1 << 8)) - 1);
 }
 
 void Message::setRequestType(int8_t reqType) {
@@ -65,4 +69,8 @@ void Message::setPriority(int8_t priority) {
 
 void Message::setBackgroundProcessing(int8_t backgroundProcessing) {
     this->mProperties |= ((int32_t) backgroundProcessing << 8);
+}
+
+void Message::setUntuneProcessingOrder(int8_t untuneProcessingOrder) {
+    this->mProperties |= ((int32_t) untuneProcessingOrder << 16);
 }

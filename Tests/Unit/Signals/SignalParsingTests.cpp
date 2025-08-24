@@ -21,19 +21,19 @@ protected:
             firstTest = false;
             ConfigProcessor configProcessor;
 
-            std::string commonSignals = "../Tests/Configs/testSignalsCommonConfig.yaml";
-            std::string targetSpecificSignals = "../Tests/Configs/testSignalsTargetSpecificConfig.yaml";
-            std::string customSignals = "../Tests/Configs/testSignalsCustomConfig.yaml";
+            std::string commonSignals = "/etc/resource-tuner/tests/Configs/SignalsConfigA.yaml";
+            std::string additionalSignalsCatA = "/etc/resource-tuner/tests/Configs/SignalsConfig.yaml";
+            std::string additionalSignalsCatB = "/etc/resource-tuner/tests/Configs/SignalsConfigB.yaml";
 
             if(RC_IS_NOTOK(configProcessor.parseSignalConfigs(commonSignals))) {
                 return;
             }
 
-            if(RC_IS_NOTOK(configProcessor.parseSignalConfigs(targetSpecificSignals))) {
+            if(RC_IS_NOTOK(configProcessor.parseSignalConfigs(additionalSignalsCatA))) {
                 return;
             }
 
-            if(RC_IS_NOTOK(configProcessor.parseSignalConfigs(customSignals, true))) {
+            if(RC_IS_NOTOK(configProcessor.parseSignalConfigs(additionalSignalsCatB, true))) {
                 return;
             }
         }
@@ -77,10 +77,10 @@ TEST_F(SignalParsingTests, TestSignalParsingSignalsMerged1) {
     ASSERT_EQ(strcmp((const char*)signalInfo->mDerivatives->at(0).data(), "test-derivative"), 0);
 
     Resource* resource1 = signalInfo->mSignalResources->at(0);
-    ASSERT_EQ(resource1->getOpCode(), 0x80dbaaa0);
+    ASSERT_EQ(resource1->getResCode(), 0x80dbaaa0);
     ASSERT_EQ(resource1->getValuesCount(), 1);
-    ASSERT_EQ(resource1->mConfigValue.singleValue, 887);
-    ASSERT_EQ(resource1->getOperationalInfo(), 0x000776aa);
+    ASSERT_EQ(resource1->mResValue.value, 887);
+    ASSERT_EQ(resource1->getResInfo(), 0x000776aa);
 }
 
 TEST_F(SignalParsingTests, TestSignalParsingSignalsMerged2) {
@@ -105,21 +105,21 @@ TEST_F(SignalParsingTests, TestSignalParsingSignalsMerged2) {
     ASSERT_EQ(signalInfo->mPermissions->at(0), PERMISSION_THIRD_PARTY);
 
     Resource* resource1 = signalInfo->mSignalResources->at(0);
-    ASSERT_EQ(resource1->getOpCode(), 0x000900aa);
+    ASSERT_EQ(resource1->getResCode(), 0x000900aa);
     ASSERT_EQ(resource1->getValuesCount(), 3);
-    ASSERT_EQ((*resource1->mConfigValue.valueArray)[0], 1);
-    ASSERT_EQ((*resource1->mConfigValue.valueArray)[1], -1);
-    ASSERT_EQ((*resource1->mConfigValue.valueArray)[2], 68);
-    ASSERT_EQ(resource1->getOperationalInfo(), 0);
+    ASSERT_EQ((*resource1->mResValue.values)[0], 1);
+    ASSERT_EQ((*resource1->mResValue.values)[1], -1);
+    ASSERT_EQ((*resource1->mResValue.values)[2], 68);
+    ASSERT_EQ(resource1->getResInfo(), 0);
 
     Resource* resource2 = signalInfo->mSignalResources->at(1);
-    ASSERT_EQ(resource2->getOpCode(), 0x000900dc);
+    ASSERT_EQ(resource2->getResCode(), 0x000900dc);
     ASSERT_EQ(resource2->getValuesCount(), 4);
-    ASSERT_EQ((*resource2->mConfigValue.valueArray)[0], 1);
-    ASSERT_EQ((*resource2->mConfigValue.valueArray)[1], -1);
-    ASSERT_EQ((*resource2->mConfigValue.valueArray)[2], 50);
-    ASSERT_EQ((*resource2->mConfigValue.valueArray)[3], 512);
-    ASSERT_EQ(resource2->getOperationalInfo(), 0);
+    ASSERT_EQ((*resource2->mResValue.values)[0], 1);
+    ASSERT_EQ((*resource2->mResValue.values)[1], -1);
+    ASSERT_EQ((*resource2->mResValue.values)[2], 50);
+    ASSERT_EQ((*resource2->mResValue.values)[3], 512);
+    ASSERT_EQ(resource2->getResInfo(), 0);
 }
 
 TEST_F(SignalParsingTests, TestSignalParsingSignalsMerged3) {
@@ -152,17 +152,17 @@ TEST_F(SignalParsingTests, TestSignalParsingSignalsMerged3) {
     ASSERT_EQ(strcmp((const char*)signalInfo->mDerivatives->at(0).data(), "derivative-device1"), 0);
 
     Resource* resource1 = signalInfo->mSignalResources->at(0);
-    ASSERT_EQ(resource1->getOpCode(), 0x80f10000);
+    ASSERT_EQ(resource1->getResCode(), 0x80f10000);
     ASSERT_EQ(resource1->getValuesCount(), 1);
-    ASSERT_EQ(resource1->mConfigValue.singleValue, 665);
-    ASSERT_EQ(resource1->getOperationalInfo(), 0x0a00f000);
+    ASSERT_EQ(resource1->mResValue.value, 665);
+    ASSERT_EQ(resource1->getResInfo(), 0x0a00f000);
 
     Resource* resource2 = signalInfo->mSignalResources->at(1);
-    ASSERT_EQ(resource2->getOpCode(), 0x800100d0);
+    ASSERT_EQ(resource2->getResCode(), 0x800100d0);
     ASSERT_EQ(resource2->getValuesCount(), 2);
-    ASSERT_EQ((*resource2->mConfigValue.valueArray)[0], 679);
-    ASSERT_EQ((*resource2->mConfigValue.valueArray)[1], 812);
-    ASSERT_EQ(resource2->getOperationalInfo(), 0x00100112);
+    ASSERT_EQ((*resource2->mResValue.values)[0], 679);
+    ASSERT_EQ((*resource2->mResValue.values)[1], 812);
+    ASSERT_EQ(resource2->getResInfo(), 0x00100112);
 }
 
 TEST_F(SignalParsingTests, TestSignalParsingSignalsMerged4) {
@@ -198,17 +198,17 @@ TEST_F(SignalParsingTests, TestSignalParsingSignalsMerged5) {
     ASSERT_EQ(signalInfo->mPermissions->at(0), PERMISSION_SYSTEM);
 
     Resource* resource1 = signalInfo->mSignalResources->at(0);
-    ASSERT_EQ(resource1->getOpCode(), 0x80d9aa00);
+    ASSERT_EQ(resource1->getResCode(), 0x80d9aa00);
     ASSERT_EQ(resource1->getValuesCount(), 2);
-    ASSERT_EQ((*resource1->mConfigValue.valueArray)[0], 1);
-    ASSERT_EQ((*resource1->mConfigValue.valueArray)[1], 556);
-    ASSERT_EQ(resource1->getOperationalInfo(), 0);
+    ASSERT_EQ((*resource1->mResValue.values)[0], 1);
+    ASSERT_EQ((*resource1->mResValue.values)[1], 556);
+    ASSERT_EQ(resource1->getResInfo(), 0);
 
     Resource* resource2 = signalInfo->mSignalResources->at(1);
-    ASSERT_EQ(resource2->getOpCode(), 0x80c6500f);
+    ASSERT_EQ(resource2->getResCode(), 0x80c6500f);
     ASSERT_EQ(resource2->getValuesCount(), 3);
-    ASSERT_EQ((*resource2->mConfigValue.valueArray)[0], 1);
-    ASSERT_EQ((*resource2->mConfigValue.valueArray)[1], 900);
-    ASSERT_EQ((*resource2->mConfigValue.valueArray)[2], 965);
-    ASSERT_EQ(resource2->getOperationalInfo(), 0);
+    ASSERT_EQ((*resource2->mResValue.values)[0], 1);
+    ASSERT_EQ((*resource2->mResValue.values)[1], 900);
+    ASSERT_EQ((*resource2->mResValue.values)[2], 965);
+    ASSERT_EQ(resource2->getResInfo(), 0);
 }

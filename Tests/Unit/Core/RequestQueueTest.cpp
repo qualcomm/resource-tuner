@@ -34,9 +34,9 @@
 //     for(int32_t count = 0; count < requestCount; count++) {
 //         Resource* resource = (Resource*) GetBlock<Resource>();
 
-//         resource->setOpCode(16);
+//         resource->setResCode(16);
 //         resource->mNumValues = 1;
-//         resource->mConfigValue.singleValue = 8;
+//         resource->mResValue.value = 8;
 
 //         std::vector<Resource*>* resources =
 //             new (GetBlock<std::vector<Resource*>>())std::vector<Resource*>;

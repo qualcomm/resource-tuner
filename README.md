@@ -18,8 +18,8 @@ It leverages kernel interfaces like procfs, sysfs and cgroups to enforce runtime
 ## Requirements
 
 This project depends on the following external libraries:
-* yaml-cpp – Used for parsing and handling JSON configuration files.
-* Installing jsoncpp:
+* yaml-cpp – Used for parsing and handling YAML configuration files.
+* Installing yamlcpp:
   * Yocto: Add the following to your recipe or image
     ```bash
     DEPENDS += "yaml-cpp"

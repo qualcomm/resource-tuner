@@ -28,6 +28,7 @@ public:
     int64_t getHandle();
     int8_t getPriority();
     int8_t isBackgroundProcessingEnabled();
+    int8_t getUntuneProcessingOrder();
     int32_t getProperties();
 
     void setRequestType(int8_t reqType);
@@ -36,6 +37,7 @@ public:
     void setClientTID(int32_t clientTID);
     void setProperties(int32_t properties);
     void setPriority(int8_t priority);
+    void setUntuneProcessingOrder(int8_t untuneProcessingOrder);
     void setHandle(int64_t handle);
     void setBackgroundProcessing(int8_t backgroundProcessing);
 

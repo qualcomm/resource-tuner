@@ -8,7 +8,7 @@ void ConfigProcessor::parseResourceConfigYamlNode(const YAML::Node& item, int8_t
     ResourceConfigInfoBuilder resourceConfigInfoBuilder;
     NodeExtractionStatus status;
 
-    // No Defaults Available, a Resource with Invalid OpType is considered Malformed
+    // No Defaults Available, a Resource with Invalid ResType is considered Malformed
     if(RC_IS_OK(rc)) {
         rc = resourceConfigInfoBuilder.setResType(
             safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCE_TYPE], "0")

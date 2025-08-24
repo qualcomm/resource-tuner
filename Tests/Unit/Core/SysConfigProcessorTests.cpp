@@ -5,13 +5,13 @@
 #include <cstdint>
 #include <gtest/gtest.h>
 
+#include "Utils.h"
 #include "SysConfigProcessor.h"
 #include "SysConfigPropRegistry.h"
 #include "Extensions.h"
-#include "Utils.h"
 #include "Logger.h"
 
-RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "../Tests/Configs/testPropertiesConfig.yaml")
+RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/etc/resource-tuner/tests/Configs/PropertiesConfig.yaml")
 
 #define TOTAL_SYS_CONFIGS_PROPS_COUNT 14
 

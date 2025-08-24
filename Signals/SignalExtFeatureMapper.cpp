@@ -13,10 +13,11 @@ int8_t SignalExtFeatureMapper::addFeature(uint32_t signalID, int32_t feature) {
     return true;
 }
 
-int8_t SignalExtFeatureMapper::getFeatures(uint32_t signalID, std::vector<int32_t>& features) {
+int8_t SignalExtFeatureMapper::getFeatures(uint32_t signalID, std::vector<uint32_t>& features) {
     if(this->mSignalTofeaturesMap.find(signalID) == this->mSignalTofeaturesMap.end()) {
         return false;
     }
+
     features = mSignalTofeaturesMap[signalID];
     return true;
 }

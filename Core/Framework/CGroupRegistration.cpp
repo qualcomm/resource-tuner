@@ -3,6 +3,7 @@
 
 #include <unistd.h>
 
+#include "Utils.h"
 #include "Logger.h"
 #include "Extensions.h"
 #include "TargetRegistry.h"
@@ -12,7 +13,7 @@
 
 static std::string getCGroupControllerFilePath(Resource* resource, const std::string& cGroupName) {
     ResourceConfigInfo* resourceConfig =
-        ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
+        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
 
     std::string controllerFilePath = resourceConfig->mResourcePath;
 
@@ -29,10 +30,10 @@ static void addProcessToCgroup(void* context) {
     Resource* resource = static_cast<Resource*>(context);
 
     if(resource->getValuesCount() != 2) return;
-    if(resource->mConfigValue.valueArray == nullptr) return;
+    if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
-    int32_t pid = (*resource->mConfigValue.valueArray)[1];
+    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
+    int32_t pid = (*resource->mResValue.values)[1];
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
@@ -64,10 +65,10 @@ static void addThreadToCgroup(void* context) {
     Resource* resource = static_cast<Resource*>(context);
 
     if(resource->getValuesCount() != 2) return;
-    if(resource->mConfigValue.valueArray == nullptr) return;
+    if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
-    int32_t tid = (*resource->mConfigValue.valueArray)[1];
+    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
+    int32_t tid = (*resource->mResValue.values)[1];
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
@@ -99,9 +100,9 @@ static void setRunOnCores(void* context) {
     Resource* resource = static_cast<Resource*>(context);
 
     if(resource->getValuesCount() < 2) return;
-    if(resource->mConfigValue.valueArray == nullptr) return;
+    if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
+    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
@@ -110,7 +111,7 @@ static void setRunOnCores(void* context) {
         if(cGroupName.length() > 0) {
             std::string cpusString = "";
             for(int32_t i = 1; i < resource->getValuesCount(); i++) {
-                cpusString += std::to_string((*resource->mConfigValue.valueArray)[i]);
+                cpusString += std::to_string((*resource->mResValue.values)[i]);
                 if(resource->getValuesCount() > 2 && i < resource->getValuesCount() - 1) {
                     cpusString.push_back(',');
                 }
@@ -141,9 +142,9 @@ static void setRunOnCoresExclusively(void* context) {
     Resource* resource = static_cast<Resource*>(context);
 
     if(resource->getValuesCount() < 2) return;
-    if(resource->mConfigValue.valueArray == nullptr) return;
+    if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
+    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
@@ -155,7 +156,7 @@ static void setRunOnCoresExclusively(void* context) {
 
             std::string cpusString = "";
             for(int32_t i = 1; i < resource->getValuesCount(); i++) {
-                cpusString += std::to_string((*resource->mConfigValue.valueArray)[i]);
+                cpusString += std::to_string((*resource->mResValue.values)[i]);
                 if(resource->getValuesCount() > 2 && i < resource->getValuesCount() - 1) {
                     cpusString.push_back(',');
                 }
@@ -191,8 +192,8 @@ static void setFreezeCgroup(void* context) {
 
     if(resource->getValuesCount() != 2) return;
 
-    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
-    int32_t freezeStatus = (*resource->mConfigValue.valueArray)[1];
+    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
+    int32_t freezeStatus = (*resource->mResValue.values)[1];
 
     if(freezeStatus != 0 && freezeStatus != 1) return;
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
@@ -227,8 +228,8 @@ static void setCpuIdle(void* context) {
 
     if(resource->getValuesCount() != 2) return;
 
-    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
-    int32_t idleStatus = (*resource->mConfigValue.valueArray)[1];
+    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
+    int32_t idleStatus = (*resource->mResValue.values)[1];
 
     if(idleStatus != 0 && idleStatus != 1) return;
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
@@ -262,10 +263,10 @@ static void setUClampMin(void* context) {
     Resource* resource = static_cast<Resource*>(context);
 
     if(resource->getValuesCount() != 2) return;
-    if(resource->mConfigValue.valueArray == nullptr) return;
+    if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
-    int32_t clampVal = (*resource->mConfigValue.valueArray)[1];
+    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
+    int32_t clampVal = (*resource->mResValue.values)[1];
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
@@ -296,10 +297,10 @@ static void setUClampMax(void* context) {
     Resource* resource = static_cast<Resource*>(context);
 
     if(resource->getValuesCount() != 2) return;
-    if(resource->mConfigValue.valueArray == nullptr) return;
+    if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
-    int32_t clampVal = (*resource->mConfigValue.valueArray)[1];
+    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
+    int32_t clampVal = (*resource->mResValue.values)[1];
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
@@ -331,10 +332,10 @@ static void setRelativeCPUShare(void* context) {
     Resource* resource = static_cast<Resource*>(context);
 
     if(resource->getValuesCount() != 2) return;
-    if(resource->mConfigValue.valueArray == nullptr) return;
+    if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
-    int32_t relativeWeight = (*resource->mConfigValue.valueArray)[1];
+    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
+    int32_t relativeWeight = (*resource->mResValue.values)[1];
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
@@ -366,10 +367,10 @@ static void setMaxMemoryLimit(void* context) {
     Resource* resource = static_cast<Resource*>(context);
 
     if(resource->getValuesCount() != 2) return;
-    if(resource->mConfigValue.valueArray == nullptr) return;
+    if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
-    int64_t maxMemoryLimit = (*resource->mConfigValue.valueArray)[1];
+    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
+    int64_t maxMemoryLimit = (*resource->mResValue.values)[1];
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
@@ -401,10 +402,10 @@ static void setMinMemoryFloor(void* context) {
     Resource* resource = static_cast<Resource*>(context);
 
     if(resource->getValuesCount() != 2) return;
-    if(resource->mConfigValue.valueArray == nullptr) return;
+    if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
-    int64_t minMemoryFloor = (*resource->mConfigValue.valueArray)[1];
+    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
+    int64_t minMemoryFloor = (*resource->mResValue.values)[1];
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
@@ -436,11 +437,11 @@ static void limitCpuTime(void* context) {
     Resource* resource = static_cast<Resource*>(context);
 
     if(resource->getValuesCount() != 3) return;
-    if(resource->mConfigValue.valueArray == nullptr) return;
+    if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
-    int32_t maxUsageMicroseconds = (*resource->mConfigValue.valueArray)[1];
-    int32_t periodMicroseconds = (*resource->mConfigValue.valueArray)[2];
+    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
+    int32_t maxUsageMicroseconds = (*resource->mResValue.values)[1];
+    int32_t periodMicroseconds = (*resource->mResValue.values)[2];
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
@@ -472,10 +473,10 @@ static void setCpuLatency(void* context) {
     Resource* resource = static_cast<Resource*>(context);
 
     if(resource->getValuesCount() != 2) return;
-    if(resource->mConfigValue.valueArray == nullptr) return;
+    if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
-    int64_t latencyValue = (*resource->mConfigValue.valueArray)[1];
+    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
+    int64_t latencyValue = (*resource->mResValue.values)[1];
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
@@ -521,9 +522,9 @@ static void removeProcessFromCGroup(void* context) {
     Resource* resource = static_cast<Resource*>(context);
 
     if(resource->getValuesCount() != 2) return;
-    if(resource->mConfigValue.valueArray == nullptr) return;
+    if(resource->mResValue.values == nullptr) return;
 
-    int32_t pid = (*resource->mConfigValue.valueArray)[1];
+    int32_t pid = (*resource->mResValue.values)[1];
 
     std::string parentCGroupProcsPath = "/sys/fs/cgroup/cgroup.procs";
     std::ofstream controllerFile(parentCGroupProcsPath, std::ios::app);
@@ -546,9 +547,9 @@ static void removeThreadFromCGroup(void* context) {
     Resource* resource = static_cast<Resource*>(context);
 
     if(resource->getValuesCount() != 2) return;
-    if(resource->mConfigValue.valueArray == nullptr) return;
+    if(resource->mResValue.values == nullptr) return;
 
-    int32_t tid = (*resource->mConfigValue.valueArray)[1];
+    int32_t tid = (*resource->mResValue.values)[1];
 
     std::string parentCGroupProcsPath = "/sys/fs/cgroup/cgroup.threads";
     std::ofstream controllerFile(parentCGroupProcsPath, std::ios::app);
@@ -570,14 +571,14 @@ static void resetRunOnCores(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
     ResourceConfigInfo* resourceConfigInfo =
-        ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
+        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
 
     if(resourceConfigInfo == nullptr) return;
 
     if(resource->getValuesCount() < 2) return;
-    if(resource->mConfigValue.valueArray == nullptr) return;
+    if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
+    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
     if(cGroupConfig != nullptr && cGroupConfig->mDefaultValues != nullptr) {
         const std::string cGroupName = cGroupConfig->mCgroupName;
@@ -608,9 +609,9 @@ static void resetRunOnCoresExclusively(void* context) {
     Resource* resource = static_cast<Resource*>(context);
 
     if(resource->getValuesCount() < 2) return;
-    if(resource->mConfigValue.valueArray == nullptr) return;
+    if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
+    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr && cGroupConfig->mDefaultValues != nullptr) {
@@ -658,14 +659,14 @@ static void resetCgroupFreeze(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
     ResourceConfigInfo* resourceConfigInfo =
-        ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
+        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
 
     if(resourceConfigInfo == nullptr) return;
 
     if(resource->getValuesCount() != 2) return;
 
-    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
-    int32_t freezeStatus = (*resource->mConfigValue.valueArray)[1];
+    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
+    int32_t freezeStatus = (*resource->mResValue.values)[1];
 
     if(freezeStatus != 0 && freezeStatus != 1) return;
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
@@ -698,14 +699,14 @@ static void resetUClampMin(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
     ResourceConfigInfo* resourceConfigInfo =
-        ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
+        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
 
     if(resourceConfigInfo == nullptr) return;
 
     if(resource->getValuesCount() != 2) return;
-    if(resource->mConfigValue.valueArray == nullptr) return;
+    if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
+    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr && cGroupConfig->mDefaultValues != nullptr) {
@@ -735,14 +736,14 @@ static void resetUClampMax(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
     ResourceConfigInfo* resourceConfigInfo =
-        ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
+        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
 
     if(resourceConfigInfo == nullptr) return;
 
     if(resource->getValuesCount() != 2) return;
-    if(resource->mConfigValue.valueArray == nullptr) return;
+    if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
+    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr && cGroupConfig->mDefaultValues != nullptr) {
@@ -772,14 +773,14 @@ static void resetMaxMemoryLimit(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
     ResourceConfigInfo* resourceConfigInfo =
-        ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
+        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
 
     if(resourceConfigInfo == nullptr) return;
 
     if(resource->getValuesCount() != 2) return;
-    if(resource->mConfigValue.valueArray == nullptr) return;
+    if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
+    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr && cGroupConfig->mDefaultValues != nullptr) {
@@ -810,14 +811,14 @@ static void resetMinMemoryFloor(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
     ResourceConfigInfo* resourceConfigInfo =
-        ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
+        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
 
     if(resourceConfigInfo == nullptr) return;
 
     if(resource->getValuesCount() != 2) return;
-    if(resource->mConfigValue.valueArray == nullptr) return;
+    if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
+    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr && cGroupConfig->mDefaultValues != nullptr) {
@@ -848,14 +849,14 @@ static void resetCpuTime(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
     ResourceConfigInfo* resourceConfigInfo =
-        ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
+        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
 
     if(resourceConfigInfo == nullptr) return;
 
     if(resource->getValuesCount() != 3) return;
-    if(resource->mConfigValue.valueArray == nullptr) return;
+    if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
+    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr && cGroupConfig->mDefaultValues != nullptr) {
@@ -888,7 +889,7 @@ static void resetCpuIdle(void* context) {
 
     if(resource->getValuesCount() != 2) return;
 
-    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
+    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
@@ -919,14 +920,14 @@ static void resetRelativeCPUShare(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
     ResourceConfigInfo* resourceConfigInfo =
-        ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
+        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
 
     if(resourceConfigInfo == nullptr) return;
 
     if(resource->getValuesCount() != 2) return;
-    if(resource->mConfigValue.valueArray == nullptr) return;
+    if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
+    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr && cGroupConfig->mDefaultValues != nullptr) {
@@ -958,9 +959,9 @@ static void resetCpuLatency(void* context) {
     Resource* resource = static_cast<Resource*>(context);
 
     if(resource->getValuesCount() != 2) return;
-    if(resource->mConfigValue.valueArray == nullptr) return;
+    if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
+    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr && cGroupConfig->mDefaultValues != nullptr) {

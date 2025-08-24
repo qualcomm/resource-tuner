@@ -99,23 +99,23 @@ static int8_t VerifyIncomingRequest(Request* req) {
             return false;
         }
 
-        ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
+        ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
 
-        // Basic sanity: Invalid resource Opcode
+        // Basic sanity: Invalid ResCode
         if(resourceConfig == nullptr) {
-            TYPELOGV(VERIFIER_INVALID_OPCODE, resource->getOpCode());
+            TYPELOGV(VERIFIER_INVALID_OPCODE, resource->getResCode());
             return false;
         }
 
         if(resource->getValuesCount() == 1) {
             // Verify value is in the range [LT, HT]
-            int32_t configValue = resource->mConfigValue.singleValue;
+            int32_t configValue = resource->mResValue.value;
             int32_t lowThreshold = resourceConfig->mLowThreshold;
             int32_t highThreshold = resourceConfig->mHighThreshold;
 
             if((lowThreshold != -1 && highThreshold != -1) &&
                 (configValue < lowThreshold || configValue > highThreshold)) {
-                TYPELOGV(VERIFIER_VALUE_OUT_OF_BOUNDS, configValue, resource->getOpCode());
+                TYPELOGV(VERIFIER_VALUE_OUT_OF_BOUNDS, configValue, resource->getResCode());
                 return false;
             }
         } else {
@@ -129,7 +129,7 @@ static int8_t VerifyIncomingRequest(Request* req) {
 
         // Check for Client permissions
         if(resourceConfig->mPermissions == PERMISSION_SYSTEM && clientPermissions == PERMISSION_THIRD_PARTY) {
-            TYPELOGV(VERIFIER_NOT_SUFFICIENT_PERMISSION, resource->getOpCode());
+            TYPELOGV(VERIFIER_NOT_SUFFICIENT_PERMISSION, resource->getResCode());
             return false;
         }
 
@@ -143,9 +143,9 @@ static int8_t VerifyIncomingRequest(Request* req) {
             if(coreValue <= 0 || clusterValue < 0) return false;
 
             // Perform logical to physical mapping here, as part of which verification can happen
-            // Replace mOpInfo with the Physical values here:
+            // Replace mResInfo with the Physical values here:
             if(!performPhysicalMapping(coreValue, clusterValue)) {
-                TYPELOGV(VERIFIER_LOGICAL_TO_PHYSICAL_MAPPING_FAILED, resource->getOpCode());
+                TYPELOGV(VERIFIER_LOGICAL_TO_PHYSICAL_MAPPING_FAILED, resource->getResCode());
                 return false;
             }
 

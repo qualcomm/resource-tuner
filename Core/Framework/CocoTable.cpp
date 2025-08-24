@@ -84,7 +84,7 @@ void CocoTable::applyAction(CocoNode* currNode, int32_t index, int8_t priority) 
 
     if(this->mCurrentlyAppliedPriority[index] >= priority ||
        this->mCurrentlyAppliedPriority[index] == -1) {
-        ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
+        ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
         if(resourceConfig->mModes & ResourceTunerSettings::targetConfigs.currMode) {
             // Check if a custom Applier (Callback) has been provided for this Resource, if yes, then call it
             // Note for resources with multiple values, the BU will need to provide a custom applier, which provides
@@ -93,9 +93,13 @@ void CocoTable::applyAction(CocoNode* currNode, int32_t index, int8_t priority) 
                 resourceConfig->mResourceApplierCallback(resource);
             } else {
                 // Default Applier
-                AuxRoutines::writeToFile(resourceConfig->mResourcePath, std::to_string(resource->mConfigValue.singleValue));
-                LOGI("RESTUNE_COCO_TABLE",
-                     "Value " + std::to_string(resource->mConfigValue.singleValue) + " written in " + resourceConfig->mResourcePath);
+                if(resource->getValuesCount() == 1) {
+                    AuxRoutines::writeToFile(resourceConfig->mResourcePath, std::to_string(resource->mResValue.value));
+                    LOGI("RESTUNE_COCO_TABLE",
+                         "Value " + std::to_string(resource->mResValue.value) + " written in " + resourceConfig->mResourcePath);
+                } else {
+                    // Multi-Valued Resource with no applier provided, skip.
+                }
             }
             mCurrentlyAppliedPriority[index] = priority;
         }
@@ -104,7 +108,7 @@ void CocoTable::applyAction(CocoNode* currNode, int32_t index, int8_t priority) 
 
 void CocoTable::applyDefaultAction(int32_t index, Resource* resource) {
     if(resource == nullptr) return;
-    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
+    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
     if(resourceConfigInfo != nullptr) {
         if(resourceConfigInfo->mResourceTearCallback != nullptr) {
             resourceConfigInfo->mResourceTearCallback(resource);
@@ -122,18 +126,20 @@ void CocoTable::deleteNode(CocoNode* node, int32_t primaryIndex, int32_t seconda
     if(node->prev) {
         node->prev->next = node->next;
     } else {
-        mCocoTable[primaryIndex][secondaryIndex].second = node->next;
-        if(mCocoTable[primaryIndex][secondaryIndex].second == nullptr) {
-            mCocoTable[primaryIndex][secondaryIndex].first = nullptr;
+        // Node is at the head
+        this->mCocoTable[primaryIndex][secondaryIndex].second = node->next;
+        if(this->mCocoTable[primaryIndex][secondaryIndex].second == nullptr) {
+            this->mCocoTable[primaryIndex][secondaryIndex].first = nullptr;
         }
     }
 
     if(node->next) {
         node->next->prev = node->prev;
     } else {
-        mCocoTable[primaryIndex][secondaryIndex].first = node->prev;
-        if(mCocoTable[primaryIndex][secondaryIndex].first == nullptr) {
-            mCocoTable[primaryIndex][secondaryIndex].second = nullptr;
+        // Node is at the tail
+       this->mCocoTable[primaryIndex][secondaryIndex].first = node->prev;
+        if(this->mCocoTable[primaryIndex][secondaryIndex].first == nullptr) {
+            this->mCocoTable[primaryIndex][secondaryIndex].second = nullptr;
         }
     }
 }
@@ -142,21 +148,35 @@ void CocoTable::insertInCocoTableHigherLower(CocoNode* newNode, int32_t primaryI
                                              int32_t policy, int8_t priority) {
     if(newNode == nullptr) return;
 
-    CocoNode* currNode = mCocoTable[primaryIndex][secondaryIndex].second;
+    CocoNode* currNode = this->mCocoTable[primaryIndex][secondaryIndex].second;
     int8_t inserted = false;
 
     while(currNode != nullptr) {
         CocoNode* currNext = currNode->next;
 
-        if(!inserted && comparison(newNode->mResource->mConfigValue.singleValue,
-                                   currNode->mResource->mConfigValue.singleValue, policy)) {
+        int32_t newValue;
+        int32_t curValue;
+
+        if(newNode->mResource->getValuesCount() == 1) {
+            newValue = newNode->mResource->mResValue.value;
+        } else {
+            newValue = (*newNode->mResource->mResValue.values)[1];
+        }
+
+        if(currNode->mResource->getValuesCount() == 1) {
+            curValue = currNode->mResource->mResValue.value;
+        } else {
+            curValue = (*currNode->mResource->mResValue.values)[1];
+        }
+
+        if(!inserted && comparison(newValue, curValue, policy)) {
             newNode->next = currNode;
             newNode->prev = currNode->prev;
 
             if(currNode->prev == nullptr) {
                 currNode->prev = newNode;
-                mCocoTable[primaryIndex][secondaryIndex].second = newNode;
-                applyAction(newNode, primaryIndex, priority);
+                this->mCocoTable[primaryIndex][secondaryIndex].second = newNode;
+                this->applyAction(newNode, primaryIndex, priority);
 
             } else {
                 currNode->prev->next = newNode;
@@ -175,11 +195,11 @@ void CocoTable::insertInCocoTableHigherLower(CocoNode* newNode, int32_t primaryI
         if(tail) {
             tail->next = newNode;
         } else {
-            mCocoTable[primaryIndex][secondaryIndex].second = newNode;
-            applyAction(newNode, primaryIndex, priority);
+            this->mCocoTable[primaryIndex][secondaryIndex].second = newNode;
+            this->applyAction(newNode, primaryIndex, priority);
         }
 
-        mCocoTable[primaryIndex][secondaryIndex].first = newNode;
+        this->mCocoTable[primaryIndex][secondaryIndex].first = newNode;
     }
 }
 
@@ -201,7 +221,7 @@ void CocoTable::insertInCocoTableLazyApply(CocoNode* newNode, int32_t primaryInd
         mCocoTable[primaryIndex][secondaryIndex].second = newNode;
         newNode->prev = nullptr;
         newNode->next = nullptr;
-        applyAction(newNode, primaryIndex, priority);
+        this->applyAction(newNode, primaryIndex, priority);
     }
 }
 
@@ -212,18 +232,18 @@ void CocoTable::insertInCocoTableInstantApply(CocoNode* newNode, int32_t primary
     CocoNode* head = mCocoTable[primaryIndex][secondaryIndex].second;
 
     if(head != nullptr) {
-        mCocoTable[primaryIndex][secondaryIndex].second = newNode;
+        this->mCocoTable[primaryIndex][secondaryIndex].second = newNode;
         newNode->next = head;
         newNode->prev = nullptr;
         head->prev = newNode;
     } else {
         newNode->prev = nullptr;
         newNode->next = nullptr;
-        mCocoTable[primaryIndex][secondaryIndex].second = newNode;
-        mCocoTable[primaryIndex][secondaryIndex].first = newNode;
+        this->mCocoTable[primaryIndex][secondaryIndex].second = newNode;
+        this->mCocoTable[primaryIndex][secondaryIndex].first = newNode;
     }
 
-    applyAction(newNode, primaryIndex, priority);
+    this->applyAction(newNode, primaryIndex, priority);
 }
 
 int32_t CocoTable::getCocoTablePrimaryIndex(uint32_t opId) {
@@ -236,12 +256,12 @@ int32_t CocoTable::getCocoTablePrimaryIndex(uint32_t opId) {
 
 int32_t CocoTable::getCocoTableSecondaryIndex(Resource* resource, int8_t priority) {
     std::shared_ptr<ResourceRegistry> resourceRegistry = ResourceRegistry::getInstance();
-    if(resourceRegistry->getResourceById(resource->getOpCode()) == nullptr) {
+    if(resourceRegistry->getResourceById(resource->getResCode()) == nullptr) {
         return -1;
     }
 
     ResourceConfigInfo* resourceConfigInfo =
-        resourceRegistry->getResourceById(resource->getOpCode());
+        resourceRegistry->getResourceById(resource->getResCode());
 
     if(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_CORE) {
         int32_t physicalCore = resource->getCoreValue();
@@ -254,10 +274,11 @@ int32_t CocoTable::getCocoTableSecondaryIndex(Resource* resource, int8_t priorit
     } else if(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_CGROUP) {
         int32_t cGroupIdentifier = -1;
         if(resource->getValuesCount() == 1) {
-            cGroupIdentifier = resource->mConfigValue.singleValue;
+            cGroupIdentifier = resource->mResValue.value;
         } else {
-            cGroupIdentifier = (*resource->mConfigValue.valueArray)[0];
+            cGroupIdentifier = (*resource->mResValue.values)[0];
         }
+
         if(cGroupIdentifier == -1) return -1;
         return cGroupIdentifier * TOTAL_PRIORITIES + priority;
 
@@ -269,7 +290,7 @@ int32_t CocoTable::getCocoTableSecondaryIndex(Resource* resource, int8_t priorit
 }
 
 int8_t CocoTable::insertInCocoTable(CocoNode* currNode, Resource* resource, int8_t priority) {
-    int32_t primaryIndex = getCocoTablePrimaryIndex(resource->getOpCode());
+    int32_t primaryIndex = getCocoTablePrimaryIndex(resource->getResCode());
     int32_t secondaryIndex = getCocoTableSecondaryIndex(resource, priority);
 
     if(primaryIndex < 0 || secondaryIndex < 0 ||
@@ -277,18 +298,18 @@ int8_t CocoTable::insertInCocoTable(CocoNode* currNode, Resource* resource, int8
         return false;
     }
 
-    enum Policy policy = ResourceRegistry::getInstance()->getResourceById(resource->getOpCode())->mPolicy;
+    enum Policy policy = ResourceRegistry::getInstance()->getResourceById(resource->getResCode())->mPolicy;
 
     switch(policy) {
         case INSTANT_APPLY:
-            insertInCocoTableInstantApply(currNode, primaryIndex, secondaryIndex, priority);
+            this->insertInCocoTableInstantApply(currNode, primaryIndex, secondaryIndex, priority);
             break;
         case HIGHER_BETTER:
         case LOWER_BETTER:
-            insertInCocoTableHigherLower(currNode, primaryIndex, secondaryIndex, policy, priority);
+            this->insertInCocoTableHigherLower(currNode, primaryIndex, secondaryIndex, policy, priority);
             break;
         case LAZY_APPLY:
-            insertInCocoTableLazyApply(currNode, primaryIndex, secondaryIndex, priority);
+            this->insertInCocoTableLazyApply(currNode, primaryIndex, secondaryIndex, priority);
             break;
         default:
             return false;
@@ -375,7 +396,7 @@ int8_t CocoTable::insertRequest(Request* req) {
             Resource* resource = currNode->mResource;
 
             // Insert the request in the CocoTable
-            insertInCocoTable(currNode, resource, req->getPriority());
+            this->insertInCocoTable(currNode, resource, req->getPriority());
         }
     }
 
@@ -396,7 +417,7 @@ int8_t CocoTable::updateRequest(Request* req, int64_t duration) {
     FreeBlock<Timer>(static_cast<void*>(currTimer));
 
     req->setDuration(duration);
-     // Create a time to associate with the request
+    // Create a time to associate with the request
     Timer* requestTimer = nullptr;
     try {
         requestTimer = new (GetBlock<Timer>())
@@ -417,55 +438,83 @@ int8_t CocoTable::updateRequest(Request* req, int64_t duration) {
     return true;
 }
 
-// Methods for Request Cleanup
-int8_t CocoTable::removeRequest(Request* req) {
-    LOGD("RESTUNE_COCO_TABLE",
-         "Request cleanup for Request Handle " + std::to_string(req->getHandle()) + " initiated");
+void CocoTable::processResourceCleanupAt(Request* request, int32_t index) {
+    Resource* resource = request->getResourceAt(index);
 
-    for(int32_t i = 0; i < req->getResourcesCount(); i++) {
-        Resource* resource = req->getResourceAt(i);
+    int8_t priority = request->getPriority();
+    int32_t primaryIndex = getCocoTablePrimaryIndex(resource->getResCode());
+    int32_t secondaryIndex = getCocoTableSecondaryIndex(resource, priority);
 
-        int8_t priority = req->getPriority();
-        int32_t primaryIndex = getCocoTablePrimaryIndex(resource->getOpCode());
-        int32_t secondaryIndex = getCocoTableSecondaryIndex(resource, priority);
+    int8_t nodeIsHead = false;
+    // Proceed with CocoNode cleanup,
+    // Note the actual allocated CocoNode count might be smaller than the Number of Resources.
+    if(index < request->getCocoNodesCount()) {
+        CocoNode* nodeToDelete = request->getCocoNodeAt(index);
 
-        // Proceed with CocoNode cleanup,
-        // Note the actual allocated CocoNode count might be smaller than the Number of Resources.
-        if(i < req->getCocoNodesCount()) {
-            CocoNode* nodeToDelete = req->getCocoNodeAt(i);
-
-            if(nodeToDelete != nullptr) {
-                deleteNode(nodeToDelete, primaryIndex, secondaryIndex, priority);
+        if(nodeToDelete != nullptr) {
+            if(nodeToDelete->prev == nullptr) {
+                nodeIsHead = true;
             }
+            this->deleteNode(nodeToDelete, primaryIndex, secondaryIndex, priority);
+        }
+    }
+
+    // Reset the Resource Node value or if there are pending Requests for this Resource
+    // then apply those Requests in the order determined by Resource Policy and Priority Level.
+
+    // If the current list becomes empty, start from the highest priority
+    // and look for available requests.
+    // If all lists are empty, apply default action.
+    if(this->mCocoTable[primaryIndex][secondaryIndex].second == nullptr) {
+        int8_t allListsEmpty = true;
+        int32_t reIndexIncrement = 0;
+        ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
+
+        if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CORE ||
+            resourceConfig->mApplyType == ResourceApplyType::APPLY_CLUSTER ||
+            resourceConfig->mApplyType == ResourceApplyType::APPLY_CGROUP) {
+            reIndexIncrement = getCocoTableSecondaryIndex(resource, SYSTEM_HIGH);
+            if(reIndexIncrement == -1) return;
         }
 
-        // If the current list becomes empty, start from the highest priority
-        // and look for available requests.
-        // If all lists are empty, apply default action.
-        if(mCocoTable[primaryIndex][secondaryIndex].second == nullptr) {
-            int8_t allListsEmpty = true;
-            int32_t reIndexIncrement = 0;
-            ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
-
-            if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CORE) {
-                reIndexIncrement = getCocoTableSecondaryIndex(resource, SYSTEM_HIGH);
+        for(int32_t prioLevel = 0; prioLevel < TOTAL_PRIORITIES; prioLevel++) {
+            if(this->mCocoTable[primaryIndex][prioLevel + reIndexIncrement].second != nullptr) {
+                this->mCurrentlyAppliedPriority[primaryIndex] = prioLevel;
+                this->applyAction(this->mCocoTable[primaryIndex][prioLevel + reIndexIncrement].second,
+                                  primaryIndex, prioLevel);
+                allListsEmpty = false;
+                break;
             }
+        }
+        if(allListsEmpty == true) {
+            this->applyDefaultAction(primaryIndex, resource);
+        }
 
-            for(int32_t p = 0; p < TOTAL_PRIORITIES; p++) {
-                if(mCocoTable[primaryIndex][p + reIndexIncrement].second != nullptr) {
-                    mCurrentlyAppliedPriority[primaryIndex] = p;
-                    applyAction(mCocoTable[primaryIndex][p + reIndexIncrement].second, primaryIndex, p);
-                    allListsEmpty = false;
-                    break;
-                }
-            }
-            if(allListsEmpty == true) {
-                applyDefaultAction(primaryIndex, resource);
-            }
+    } else {
+        // Current list is not empty.
+        // Check if current node is at the head
+        if(nodeIsHead) {
+            // If it is head, Apply the next node (i.e. the next Request)
+            this->applyAction(this->mCocoTable[primaryIndex][secondaryIndex].second, primaryIndex, priority);
+        }
+        // If node is not head, it implies some other Request is already applied
+        // for this Resource, hence no action is needed here.
+    }
+}
 
-        } else {
-            // Current list is not empty.
-            applyAction(mCocoTable[primaryIndex][secondaryIndex].second, primaryIndex, priority);
+// Methods for Request Cleanup
+int8_t CocoTable::removeRequest(Request* request) {
+    LOGD("RESTUNE_COCO_TABLE",
+         "Request cleanup for Request Handle " + std::to_string(request->getHandle()) + " initiated");
+
+    if(request->getUntuneProcessingOrder() == 0) {
+        // Forward Pass
+        for(int32_t i = 0; i < request->getResourcesCount(); i++) {
+            this->processResourceCleanupAt(request, i);
+        }
+    } else {
+        for(int32_t i = request->getResourcesCount() - 1; i >= 0; i--) {
+            this->processResourceCleanupAt(request, i);
         }
     }
 

@@ -3,6 +3,15 @@
 
 #include "ExtFeaturesRegistry.h"
 
+static void* openLib(const std::string& libPath) {
+    void* handle = dlopen(libPath.c_str(), RTLD_LAZY);
+    if(handle == nullptr) {
+        TYPELOGV(EXT_FEATURE_LIB_OPEN_FAILED, libPath.c_str());
+        return nullptr;
+    }
+    return handle;
+}
+
 std::shared_ptr<ExtFeaturesRegistry> ExtFeaturesRegistry::extFeaturesRegistryInstance = nullptr;
 
 ExtFeaturesRegistry::ExtFeaturesRegistry() {
@@ -38,7 +47,7 @@ std::vector<ExtFeatureInfo*> ExtFeaturesRegistry::getExtFeaturesConfigs() {
 
 ExtFeatureInfo* ExtFeaturesRegistry::getExtFeatureConfigById(int32_t featureId) {
     if(this->mSystemIndependentLayerMappings.find(featureId) == this->mSystemIndependentLayerMappings.end()) {
-        LOGE("RESTUNE_RESOURCE_PROCESSOR", "Ext Feature ID not found in the registry");
+        LOGE("RESTUNE_EXT_FEATURES", "Ext Feature ID not found in the registry");
         return nullptr;
     }
 
@@ -62,6 +71,74 @@ void ExtFeaturesRegistry::displayExtFeatures() {
             LOGI("RESTUNE_EXT_FEATURES_REGISTRY", "Ext Feature Signal ID: " + std::to_string(signalID));
         }
     }
+}
+
+void ExtFeaturesRegistry::initializeFeatures() {
+    for(int32_t i = 0; i < this->mExtFeaturesConfigs.size(); i++) {
+        if(this->mExtFeaturesConfigs[i] == nullptr) continue;
+        void* handle = openLib(this->mExtFeaturesConfigs[i]->mFeatureLib);
+
+        if(handle != nullptr) {
+            ExtFeature initCallback = (ExtFeature) dlsym(handle, INITIALIZE_FEATURE_ROUTINE);
+            if(initCallback != nullptr) {
+                initCallback();
+            } else {
+                TYPELOGV(EXT_FEATURE_ROUTINE_NOT_DEFINED,
+                         INITIALIZE_FEATURE_ROUTINE,
+                         this->mExtFeaturesConfigs[i]->mFeatureLib.c_str());
+            }
+        } else {
+            LOGE("RESTUNE_EXT_FEATURES", "Error while opening Ext Feature Library");
+        }
+    }
+}
+
+void ExtFeaturesRegistry::teardownFeatures() {
+    for(int32_t i = 0; i < this->mExtFeaturesConfigs.size(); i++) {
+        if(this->mExtFeaturesConfigs[i] == nullptr) continue;
+        void* handle = openLib(this->mExtFeaturesConfigs[i]->mFeatureLib);
+
+        if(handle != nullptr) {
+            ExtFeature tearCallback = (ExtFeature) dlsym(handle, TEARDOWN_FEATURE_ROUTINE);
+            if(tearCallback != nullptr) {
+                tearCallback();
+            } else {
+                TYPELOGV(EXT_FEATURE_ROUTINE_NOT_DEFINED,
+                         TEARDOWN_FEATURE_ROUTINE,
+                         this->mExtFeaturesConfigs[i]->mFeatureLib.c_str());
+            }
+        } else {
+            LOGE("RESTUNE_EXT_FEATURES", "Error while opening Ext Feature Library");
+        }
+    }
+}
+
+ErrCode ExtFeaturesRegistry::relayToFeature(uint32_t featureId) {
+    ExtFeatureInfo* extFeatureInfo = this->getExtFeatureConfigById(featureId);
+    if(extFeatureInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
+
+    void* handle = openLib(extFeatureInfo->mFeatureLib);
+
+    if(handle != nullptr) {
+        ExtFeature relayCallback = (ExtFeature) dlsym(handle, RELAY_FEATURE_ROUTINE);
+        if(relayCallback != nullptr) {
+            relayCallback();
+        } else {
+            TYPELOGV(EXT_FEATURE_ROUTINE_NOT_DEFINED,
+                     RELAY_FEATURE_ROUTINE,
+                     extFeatureInfo->mFeatureLib.c_str());
+        }
+
+        return RC_SUCCESS;
+
+    } else {
+        LOGE("RESTUNE_EXT_FEATURES", "Error while opening Ext Feature Library");
+        return RC_INVALID_VALUE;
+    }
+
+    return RC_SUCCESS;
 }
 
 ExtFeaturesRegistry::~ExtFeaturesRegistry() {
@@ -113,14 +190,14 @@ ErrCode ExtFeatureInfoBuilder::setLib(const std::string& featureLib) {
     return RC_SUCCESS;
 }
 
-ErrCode ExtFeatureInfoBuilder::addSignalSubscribedTo(const std::string& signalOpCodeString) {
-    if(this->mFeatureInfo == nullptr || signalOpCodeString.length() == 0) {
+ErrCode ExtFeatureInfoBuilder::addSignalSubscribedTo(const std::string& sigCodeString) {
+    if(this->mFeatureInfo == nullptr || sigCodeString.length() == 0) {
         return RC_INVALID_VALUE;
     }
 
-    uint32_t signalOpCode = 0;
+    uint32_t sigCode = 0;
     try {
-        signalOpCode = (uint32_t)stol(signalOpCodeString, nullptr, 0);
+        sigCode = (uint32_t)stol(sigCodeString, nullptr, 0);
     } catch(const std::invalid_argument& e) {
         TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
         return RC_INVALID_VALUE;
@@ -139,7 +216,7 @@ ErrCode ExtFeatureInfoBuilder::addSignalSubscribedTo(const std::string& signalOp
     }
 
     try {
-        this->mFeatureInfo->mSignalsSubscribedTo->push_back(signalOpCode);
+        this->mFeatureInfo->mSignalsSubscribedTo->push_back(sigCode);
     } catch(const std::bad_alloc& e) {
         return RC_INVALID_VALUE;
     }

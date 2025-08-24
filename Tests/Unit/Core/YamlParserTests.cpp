@@ -14,7 +14,7 @@ TEST(YamlParserTests, TestYamlParserFileNotFound) {
 
 TEST(YamlParserTests, TestYamlParserInvalidSyntax) {
     // A YAML with Malformed or Invalid Syntax
-    const std::string fileName = "testYamlInvalidSyntax.yaml";
+    const std::string fileName = "/etc/resource-tuner/tests/Configs/InvalidSyntax.yaml";
     YAML::Node result;
     ErrCode rc = YamlParser::parse(fileName, result);
     ASSERT_EQ(rc, RC_YAML_INVALID_SYNTAX);

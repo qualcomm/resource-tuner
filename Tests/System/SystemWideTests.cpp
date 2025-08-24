@@ -34,9 +34,9 @@ static void TestHandleGeneration() {
     LOG_START
 
     SysResource* resourceList = new SysResource[1];
-    resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+    resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
     resourceList[0].mNumValues = 1;
-    resourceList[0].mConfigValue.singleValue = 554;
+    resourceList[0].mResValue.value = 554;
 
     int64_t handle = tuneResources(2000, 0, 1, resourceList);
 
@@ -46,9 +46,9 @@ static void TestHandleGeneration() {
     std::this_thread::sleep_for(std::chrono::seconds(3));
 
     resourceList = new SysResource[1];
-    resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+    resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
     resourceList[0].mNumValues = 1;
-    resourceList[0].mConfigValue.singleValue = 667;
+    resourceList[0].mResValue.value = 667;
 
     handle = tuneResources(2000, 0, 1, resourceList);
 
@@ -58,9 +58,9 @@ static void TestHandleGeneration() {
     std::this_thread::sleep_for(std::chrono::seconds(3));
 
     resourceList = new SysResource[1];
-    resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+    resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
     resourceList[0].mNumValues = 1;
-    resourceList[0].mConfigValue.singleValue = 701;
+    resourceList[0].mResValue.value = 701;
 
     handle = tuneResources(2000, 0, 1, resourceList);
 
@@ -153,7 +153,7 @@ namespace ResourceTuningRequestVerification {
     * - Here a non-null Resources List is passed to the Tune API, however the only Resource part of
     *   the Request is invalid, hence the Request will fail the preliminary tests on the Client side
     *   and won't be submitted to the Server, returning -1 to the End-Client.
-    * - For checking Resource validity, we check basic SysResource params like mOpCode, mOpInfo and verify
+    * - For checking Resource validity, we check basic SysResource params like mResCode, mResInfo and verify
         that these values are sane.
     * Cross-Reference id: [B]
     */
@@ -161,8 +161,8 @@ namespace ResourceTuningRequestVerification {
         LOG_START
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = -1;
-        resourceList[0].mOpInfo = -1;
+        resourceList[0].mResCode = -1;
+        resourceList[0].mResInfo = -1;
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
         assert(handle == RC_REQ_SUBMISSION_FAILURE);
@@ -183,7 +183,7 @@ namespace ResourceTuningRequestVerification {
     static void TestClientPriorityAcquisitionVerification() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_min_freq";
         int32_t testResourceOriginalValue = 107;
 
         std::string value;
@@ -194,9 +194,9 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 554;
+        resourceList[0].mResValue.value = 554;
 
         // Invalid Priority Value = 2
         int64_t handle = tuneResources(-1, 2, 1, resourceList);
@@ -225,7 +225,7 @@ namespace ResourceTuningRequestVerification {
         LOG_START
 
         // Create a list of 2 Resources, where only one of them is valid
-        std::string validResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+        std::string validResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_min_freq";
         int32_t validResourceOriginalValue = 107;
 
         std::string value;
@@ -236,14 +236,14 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == validResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[2];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 554;
+        resourceList[0].mResValue.value = 554;
 
         // No Resource with this ID exists
-        resourceList[1].mOpCode = 12000;
+        resourceList[1].mResCode = 12000;
         resourceList[1].mNumValues = 1;
-        resourceList[1].mConfigValue.singleValue = 597;
+        resourceList[1].mResValue.value = 597;
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 2, resourceList);
 
@@ -269,7 +269,7 @@ namespace ResourceTuningRequestVerification {
     static void TestOutOfBoundsResourceTuning() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_min_freq";
         int32_t testResourceOriginalValue = 107;
 
         std::string value;
@@ -280,9 +280,9 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 1200;
+        resourceList[0].mResValue.value = 1200;
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -310,7 +310,7 @@ namespace ResourceTuningRequestVerification {
     static void TestResourceLogicalToPhysicalTranslationVerification1() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/target_test_resource2";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource2";
         int32_t testResourceOriginalValue = 333;
 
         std::string value;
@@ -321,12 +321,12 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 5);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 5);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 2300;
-        resourceList[0].mOpInfo = 0;
-        resourceList[0].mOpInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mOpInfo, 2);
-        resourceList[0].mOpInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mOpInfo, 27);
+        resourceList[0].mResValue.value = 2300;
+        resourceList[0].mResInfo = 0;
+        resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 2);
+        resourceList[0].mResInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mResInfo, 27);
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -354,7 +354,7 @@ namespace ResourceTuningRequestVerification {
     static void TestResourceLogicalToPhysicalTranslationVerification2() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/target_test_resource2";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource2";
         int32_t testResourceOriginalValue = 333;
 
         std::string value;
@@ -365,12 +365,12 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[2];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 5);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 5);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 2300;
-        resourceList[0].mOpInfo = 0;
-        resourceList[0].mOpInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mOpInfo, 5);
-        resourceList[0].mOpInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mOpInfo, 2);
+        resourceList[0].mResValue.value = 2300;
+        resourceList[0].mResInfo = 0;
+        resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 5);
+        resourceList[0].mResInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mResInfo, 2);
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -398,7 +398,7 @@ namespace ResourceTuningRequestVerification {
     static void TestResourceLogicalToPhysicalTranslationVerification3() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/target_test_resource2";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource2";
         int32_t testResourceOriginalValue = 333;
 
         std::string value;
@@ -409,12 +409,12 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 5);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 5);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 2300;
-        resourceList[0].mOpInfo = 0;
-        resourceList[0].mOpInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mOpInfo, 2);
-        resourceList[0].mOpInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mOpInfo, 2);
+        resourceList[0].mResValue.value = 2300;
+        resourceList[0].mResInfo = 0;
+        resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 2);
+        resourceList[0].mResInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mResInfo, 2);
 
         int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -448,7 +448,7 @@ namespace ResourceTuningRequestVerification {
     static void TestResourceLogicalToPhysicalTranslationVerification4() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/target_test_resource2";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource2";
         int32_t testResourceOriginalValue = 333;
 
         std::string value;
@@ -459,12 +459,12 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 5);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 5);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 2300;
-        resourceList[0].mOpInfo = 0;
-        resourceList[0].mOpInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mOpInfo, 1);
-        resourceList[0].mOpInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mOpInfo, 0);
+        resourceList[0].mResValue.value = 2300;
+        resourceList[0].mResInfo = 0;
+        resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 1);
+        resourceList[0].mResInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mResInfo, 0);
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -489,7 +489,7 @@ namespace ResourceTuningRequestVerification {
     static void TestNonSupportedResourceTuningVerification() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/target_test_resource4";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource4";
         int32_t testResourceOriginalValue = 516;
 
         std::string value;
@@ -500,9 +500,9 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 7);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 7);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 653;
+        resourceList[0].mResValue.value = 653;
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -526,7 +526,7 @@ namespace ResourceTuningRequestVerification {
     static void TestResourceOperationModeVerification() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/target_test_resource3";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource3";
         int32_t testResourceOriginalValue = 4400;
 
         std::string value;
@@ -537,9 +537,9 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 6);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 6);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 4670;
+        resourceList[0].mResValue.value = 4670;
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -567,7 +567,7 @@ namespace ResourceTuningRequestVerification {
     static void TestClientPermissionChecksVerification() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/target_test_resource1";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource1";
         int32_t testResourceOriginalValue = 240;
 
         std::string value;
@@ -578,9 +578,9 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 4);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 4);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 460;
+        resourceList[0].mResValue.value = 460;
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -677,7 +677,7 @@ namespace SignalVerification {
     static void TestClientPermissionChecksVerification() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_max";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_max";
         int32_t testResourceOriginalValue = 684;
 
         std::string value;
@@ -711,7 +711,7 @@ namespace SignalVerification {
     static void TestOutOfBoundsResourceTuning() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
         int32_t testResourceOriginalValue = 300;
 
         std::string value;
@@ -747,7 +747,7 @@ namespace SignalVerification {
     static void TestTargetCompatabilityVerificationChecks() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
         int32_t testResourceOriginalValue = 300;
 
         std::string value;
@@ -779,7 +779,7 @@ namespace SignalVerification {
     static void TestNonSupportedSignalProvisioningVerification() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
         int32_t testResourceOriginalValue = 300;
 
         std::string value;
@@ -867,7 +867,7 @@ namespace RequestApplicationTests {
     static void TestSingleClientTuneRequest() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
         int32_t testResourceOriginalValue = 300;
 
         // Check the original value for the Resource
@@ -876,9 +876,9 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 0);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 0);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 980;
+        resourceList[0].mResValue.value = 980;
 
         int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -911,9 +911,9 @@ namespace RequestApplicationTests {
         LOG_START
 
         // Check the original value for each of the Resource
-        std::string testResourceName1 = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
-        std::string testResourceName2 = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
-        std::string testResourceName3 = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_max";
+        std::string testResourceName1 = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+        std::string testResourceName2 = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+        std::string testResourceName3 = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_max";
 
         int32_t testResourceOriginalValue1 = 114;
         int32_t testResourceOriginalValue2 = 107;
@@ -936,17 +936,17 @@ namespace RequestApplicationTests {
 
         SysResource* resourceList = new SysResource[3];
 
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 765;
+        resourceList[0].mResValue.value = 765;
 
-        resourceList[1].mOpCode = GENERATE_RESOURCE_ID(1, 1);
+        resourceList[1].mResCode = GENERATE_RESOURCE_ID(1, 1);
         resourceList[1].mNumValues = 1;
-        resourceList[1].mConfigValue.singleValue = 889;
+        resourceList[1].mResValue.value = 889;
 
-        resourceList[2].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList[2].mResCode = GENERATE_RESOURCE_ID(1, 2);
         resourceList[2].mNumValues = 1;
-        resourceList[2].mConfigValue.singleValue = 617;
+        resourceList[2].mResValue.value = 617;
 
         int64_t handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 3, resourceList);
 
@@ -999,7 +999,7 @@ namespace RequestApplicationTests {
         LOG_START
 
         // Check the original value for the Resource
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_max_freq";
         int32_t testResourceOriginalValue = 114;
 
         std::string value = AuxRoutines::readFromFile(testResourceName);
@@ -1009,9 +1009,9 @@ namespace RequestApplicationTests {
         int32_t rc = fork();
         if(rc == 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+            resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
             resourceList[0].mNumValues = 1;
-            resourceList[0].mConfigValue.singleValue = 315;
+            resourceList[0].mResValue.value = 315;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
             exit(EXIT_SUCCESS);
@@ -1020,9 +1020,9 @@ namespace RequestApplicationTests {
             wait(nullptr);
 
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+            resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
             resourceList[0].mNumValues = 1;
-            resourceList[0].mConfigValue.singleValue = 209;
+            resourceList[0].mResValue.value = 209;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1065,7 +1065,7 @@ namespace RequestApplicationTests {
         LOG_START
 
         // Check the original value for the Resource
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_max_freq";
         int32_t testResourceOriginalValue = 114;
 
         std::string value;
@@ -1078,9 +1078,9 @@ namespace RequestApplicationTests {
         int32_t rc1 = fork();
         if(rc1 == 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+            resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
             resourceList[0].mNumValues = 1;
-            resourceList[0].mConfigValue.singleValue = 1176;
+            resourceList[0].mResValue.value = 1176;
 
             int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1089,9 +1089,9 @@ namespace RequestApplicationTests {
         } else if(rc1 > 0) {
             wait(nullptr);
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+            resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
             resourceList[0].mNumValues = 1;
-            resourceList[0].mConfigValue.singleValue = 823;
+            resourceList[0].mResValue.value = 823;
 
             int64_t handle = tuneResources(14000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1141,13 +1141,14 @@ namespace RequestApplicationTests {
         LOG_START
 
         // Check the original value for the Resource
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_min_freq";
         int32_t testResourceOriginalValue = 107;
 
         std::string value;
         int32_t originalValue, newValue;
 
         value = AuxRoutines::readFromFile(testResourceName);
+        std::cout<<"["<<__LINE__<<"]"<<" ResourceSysFsNodes/scaling_min_freq Value: "<<value<<std::endl;
         originalValue = C_STOI(value);
         assert(originalValue == testResourceOriginalValue);
 
@@ -1156,9 +1157,9 @@ namespace RequestApplicationTests {
         int32_t rc1 = fork();
         if(rc1 == 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+            resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
             resourceList[0].mNumValues = 1;
-            resourceList[0].mConfigValue.singleValue = 578;
+            resourceList[0].mResValue.value = 578;
 
             handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1169,15 +1170,16 @@ namespace RequestApplicationTests {
             std::this_thread::sleep_for(std::chrono::seconds(1));
 
             value = AuxRoutines::readFromFile(testResourceName);
+            std::cout<<"["<<__LINE__<<"]"<<" ResourceSysFsNodes/scaling_min_freq Value: "<<value<<std::endl;
             newValue = C_STOI(value);
             assert(newValue == 578);
 
             int32_t rc2 = fork();
             if(rc2 == 0) {
                 SysResource* resourceList = new SysResource[1];
-                resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+                resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
                 resourceList[0].mNumValues = 1;
-                resourceList[0].mConfigValue.singleValue = 445;
+                resourceList[0].mResValue.value = 445;
 
                 handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1188,15 +1190,16 @@ namespace RequestApplicationTests {
                 std::this_thread::sleep_for(std::chrono::seconds(1));
 
                 value = AuxRoutines::readFromFile(testResourceName);
+                std::cout<<"["<<__LINE__<<"]"<<" ResourceSysFsNodes/scaling_min_freq Value: "<<value<<std::endl;
                 newValue = C_STOI(value);
                 assert(newValue == 445);
 
                 int32_t rc3 = fork();
                 if(rc3 == 0) {
                     SysResource* resourceList = new SysResource[1];
-                    resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+                    resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
                     resourceList[0].mNumValues = 1;
-                    resourceList[0].mConfigValue.singleValue = 412;
+                    resourceList[0].mResValue.value = 412;
 
                     handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1207,19 +1210,21 @@ namespace RequestApplicationTests {
                     std::this_thread::sleep_for(std::chrono::seconds(1));
 
                     value = AuxRoutines::readFromFile(testResourceName);
+                    std::cout<<"["<<__LINE__<<"]"<<" ResourceSysFsNodes/scaling_min_freq Value: "<<value<<std::endl;
                     newValue = C_STOI(value);
                     assert(newValue == 412);
 
                     SysResource* resourceList = new SysResource[1];
-                    resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+                    resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
                     resourceList[0].mNumValues = 1;
-                    resourceList[0].mConfigValue.singleValue = 378;
+                    resourceList[0].mResValue.value = 378;
 
                     handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
                     std::this_thread::sleep_for(std::chrono::seconds(1));
 
                     value = AuxRoutines::readFromFile(testResourceName);
+                    std::cout<<"["<<__LINE__<<"]"<<" ResourceSysFsNodes/scaling_min_freq Value: "<<value<<std::endl;
                     newValue = C_STOI(value);
                     assert(newValue == 378);
 
@@ -1249,7 +1254,7 @@ namespace RequestApplicationTests {
     static void TestMultipleClientsLazyApplyPolicy() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/target_test_resource5";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource5";
         int32_t testResourceOriginalValue = 17;
 
         std::string value;
@@ -1263,9 +1268,9 @@ namespace RequestApplicationTests {
         int32_t rc1 = fork();
         if(rc1 == 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 8);
+            resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 8);
             resourceList[0].mNumValues = 1;
-            resourceList[0].mConfigValue.singleValue = 15;
+            resourceList[0].mResValue.value = 15;
 
             handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1276,9 +1281,9 @@ namespace RequestApplicationTests {
             std::this_thread::sleep_for(std::chrono::seconds(1));
 
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 8);
+            resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 8);
             resourceList[0].mNumValues = 1;
-            resourceList[0].mConfigValue.singleValue = 18;
+            resourceList[0].mResValue.value = 18;
 
             handle = tuneResources(15000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1321,9 +1326,9 @@ namespace RequestApplicationTests {
         LOG_START
 
         // Check the original value for the Resource
-        std::string testResourceName1 = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
-        std::string testResourceName2 = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
-        std::string testResourceName3 = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_max";
+        std::string testResourceName1 = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+        std::string testResourceName2 = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+        std::string testResourceName3 = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_max";
 
         int32_t testResourceOriginalValue1 = 107;
         int32_t testResourceOriginalValue2 = 114;
@@ -1347,9 +1352,9 @@ namespace RequestApplicationTests {
         int32_t rc1 = fork();
         if(rc1 == 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+            resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
             resourceList[0].mNumValues = 1;
-            resourceList[0].mConfigValue.singleValue = 717;
+            resourceList[0].mResValue.value = 717;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1359,9 +1364,9 @@ namespace RequestApplicationTests {
             int32_t rc2 = fork();
             if(rc2 == 0) {
                 SysResource* resourceList = new SysResource[1];
-                resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+                resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
                 resourceList[0].mNumValues = 1;
-                resourceList[0].mConfigValue.singleValue = 800;
+                resourceList[0].mResValue.value = 800;
 
                 int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1369,9 +1374,9 @@ namespace RequestApplicationTests {
 
             } else if(rc2 > 0) {
                 SysResource* resourceList = new SysResource[1];
-                resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 1);
+                resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 1);
                 resourceList[0].mNumValues = 1;
-                resourceList[0].mConfigValue.singleValue = 557;
+                resourceList[0].mResValue.value = 557;
 
                 int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1424,7 +1429,7 @@ namespace RequestApplicationTests {
     static void TestSingleClientSequentialRequests() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_max_freq";
         int32_t testResourceOriginalValue = 114;
         int64_t handle;
 
@@ -1436,14 +1441,14 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList1 = new SysResource[1];
-        resourceList1[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+        resourceList1[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
         resourceList1[0].mNumValues = 1;
-        resourceList1[0].mConfigValue.singleValue = 889;
+        resourceList1[0].mResValue.value = 889;
 
         SysResource* resourceList2 = new SysResource[1];
-        resourceList2[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+        resourceList2[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
         resourceList2[0].mNumValues = 1;
-        resourceList2[0].mConfigValue.singleValue = 917;
+        resourceList2[0].mResValue.value = 917;
 
         handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList1);
         handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList2);
@@ -1476,7 +1481,7 @@ namespace RequestApplicationTests {
     static void TestMultipleClientTIDsConcurrentRequests() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_max_freq";
         int32_t testResourceOriginalValue = 114;
         int64_t handle;
 
@@ -1489,19 +1494,19 @@ namespace RequestApplicationTests {
 
         std::thread th([&]{
             SysResource* resourceList1 = new SysResource[1];
-            resourceList1[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+            resourceList1[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
             resourceList1[0].mOptionalInfo = 0;
             resourceList1[0].mNumValues = 1;
-            resourceList1[0].mConfigValue.singleValue = 664;
+            resourceList1[0].mResValue.value = 664;
 
             handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList1);
         });
 
         SysResource* resourceList2 = new SysResource[1];
-        resourceList2[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+        resourceList2[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
         resourceList2[0].mOptionalInfo = 0;
         resourceList2[0].mNumValues = 1;
-        resourceList2[0].mConfigValue.singleValue = 702;
+        resourceList2[0].mResValue.value = 702;
 
         handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList2);
 
@@ -1536,7 +1541,7 @@ namespace RequestApplicationTests {
     static void TestInfiniteDurationTuneRequestAndValidUntuning() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_min_freq";
         int32_t testResourceOriginalValue = 107;
         int64_t handle;
 
@@ -1548,9 +1553,9 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 245;
+        resourceList[0].mResValue.value = 245;
         handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -1586,7 +1591,7 @@ namespace RequestApplicationTests {
     static void TestInfiniteDurationTuneRequestAndInValidUntuning() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_min_freq";
         int32_t testResourceOriginalValue = 107;
         int64_t handle;
 
@@ -1598,9 +1603,9 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 245;
+        resourceList[0].mResValue.value = 245;
 
         handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1657,7 +1662,7 @@ namespace RequestApplicationTests {
     static void TestPriorityBasedResourceAcquisition1() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_min_freq";
         int32_t testResourceOriginalValue = 107;
         int64_t handle;
 
@@ -1669,16 +1674,16 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList1 = new SysResource[1];
-        resourceList1[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList1[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
         resourceList1[0].mNumValues = 1;
-        resourceList1[0].mConfigValue.singleValue = 515;
+        resourceList1[0].mResValue.value = 515;
 
         handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_LOW, 1, resourceList1);
 
         SysResource* resourceList2 = new SysResource[1];
-        resourceList2[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList2[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
         resourceList2[0].mNumValues = 1;
-        resourceList2[0].mConfigValue.singleValue = 559;
+        resourceList2[0].mResValue.value = 559;
 
         handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList2);
 
@@ -1719,7 +1724,7 @@ namespace RequestApplicationTests {
     static void TestPriorityBasedResourceAcquisition2() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_min_freq";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_min_freq";
         int32_t testResourceOriginalValue = 107;
         int64_t handle;
 
@@ -1731,9 +1736,9 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList1 = new SysResource[1];
-        resourceList1[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList1[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
         resourceList1[0].mNumValues = 1;
-        resourceList1[0].mConfigValue.singleValue = 515;
+        resourceList1[0].mResValue.value = 515;
 
         handle = tuneResources(12000, RequestPriority::REQ_PRIORITY_LOW, 1, resourceList1);
 
@@ -1746,9 +1751,9 @@ namespace RequestApplicationTests {
         std::this_thread::sleep_for(std::chrono::seconds(3));
 
         SysResource* resourceList2 = new SysResource[1];
-        resourceList2[0].mOpCode = GENERATE_RESOURCE_ID(1, 2);
+        resourceList2[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
         resourceList2[0].mNumValues = 1;
-        resourceList2[0].mConfigValue.singleValue = 559;
+        resourceList2[0].mResValue.value = 559;
 
         handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList2);
 
@@ -1788,7 +1793,7 @@ namespace RequestApplicationTests {
     static void TestPriorityBasedResourceAcquisition3() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_max_freq";
         int32_t testResourceOriginalValue = 114;
         int64_t handle;
 
@@ -1800,10 +1805,10 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList1 = new SysResource[1];
-        resourceList1[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+        resourceList1[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
         resourceList1[0].mOptionalInfo = 0;
         resourceList1[0].mNumValues = 1;
-        resourceList1[0].mConfigValue.singleValue = 645;
+        resourceList1[0].mResValue.value = 645;
 
         handle = tuneResources(10000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList1);
 
@@ -1816,9 +1821,9 @@ namespace RequestApplicationTests {
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
         SysResource* resourceList2 = new SysResource[1];
-        resourceList2[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+        resourceList2[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
         resourceList2[0].mNumValues = 1;
-        resourceList2[0].mConfigValue.singleValue = 716;
+        resourceList2[0].mResValue.value = 716;
 
         handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_LOW, 1, resourceList2);
 
@@ -1850,7 +1855,7 @@ namespace RequestApplicationTests {
     static void TestRequestValidRetuning() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_max_freq";
         int32_t testResourceOriginalValue = 114;
         int64_t handle;
 
@@ -1862,9 +1867,9 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 778;
+        resourceList[0].mResValue.value = 778;
 
         handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1908,7 +1913,7 @@ namespace RequestApplicationTests {
     static void TestRequestInvalidRetuning1() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_max_freq";
         int32_t testResourceOriginalValue = 114;
         int64_t handle;
 
@@ -1920,9 +1925,9 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 3);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 778;
+        resourceList[0].mResValue.value = 778;
 
         handle = tuneResources(12000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -1965,7 +1970,7 @@ namespace RequestApplicationTests {
     static void TestRequestInvalidRetuning2() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
         int32_t testResourceOriginalValue = 300;
 
         std::string value;
@@ -1978,9 +1983,9 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(1, 0);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 0);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 597;
+        resourceList[0].mResValue.value = 597;
 
         handle = tuneResources(7000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -2065,13 +2070,21 @@ namespace SystemSysfsNodesTests {
 
         // Check the original value for the Resource
         std::string value = AuxRoutines::readFromFile(testResourceName);
+        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Original Value: "<<value<<std::endl;
         int32_t originalValue = C_STOI(value);
+
+        if(originalValue == -1) {
+            // Node does not exist on test device, can't proceed with this test
+            std::cout<<"["<<__LINE__<<"]"<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
+            return;
+        }
+
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(8, 0);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(8, 0);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 980;
+        resourceList[0].mResValue.value = 980;
 
         int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -2111,15 +2124,23 @@ namespace SystemSysfsNodesTests {
 
         // Check the original value for the Resource
         std::string value = AuxRoutines::readFromFile(testResourceName);
+        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Original Value: "<<value<<std::endl;
         int32_t originalValue = C_STOI(value);
+
+        if(originalValue == -1) {
+            // Node does not exist on test device, can't proceed with this test
+            std::cout<<"["<<__LINE__<<"]"<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
+            return;
+        }
+
         assert(originalValue == testResourceOriginalValue);
 
         int32_t rc = fork();
         if(rc == 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(8, 0);
+            resourceList[0].mResCode = GENERATE_RESOURCE_ID(8, 0);
             resourceList[0].mNumValues = 1;
-            resourceList[0].mConfigValue.singleValue = 887;
+            resourceList[0].mResValue.value = 887;
 
             int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -2127,9 +2148,9 @@ namespace SystemSysfsNodesTests {
 
         } else if(rc > 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(8, 0);
+            resourceList[0].mResCode = GENERATE_RESOURCE_ID(8, 0);
             resourceList[0].mNumValues = 1;
-            resourceList[0].mConfigValue.singleValue = 799;
+            resourceList[0].mResValue.value = 799;
 
             int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -2160,7 +2181,7 @@ namespace SystemSysfsNodesTests {
     * - Issue 2 Concurrent Resource Tuner Resource Provisioning Requests, to modify the Resource
     *   sched_util_clamp_min
     * - Verify the Resource Node is Correctly updated to the higher of the 2 values,
-    *   as the Resource has the "higher-is-better" policy.
+    *   as the Resource has the "lower-is-better" policy.
     * - Here the Requests don't have the same duration, and the Request with a smaller config value
     *   has a higher duration.
     * - i.e. R1 (v1, d1) and R2(v2, d2) where v1 > v2 and d1 < d2
@@ -2178,15 +2199,23 @@ namespace SystemSysfsNodesTests {
 
         // Check the original value for the Resource
         std::string value = AuxRoutines::readFromFile(testResourceName);
+        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Original Value: "<<value<<std::endl;
         int32_t originalValue = C_STOI(value);
+
+        if(originalValue == -1) {
+            // Node does not exist on test device, can't proceed with this test
+            std::cout<<"["<<__LINE__<<"]"<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
+            return;
+        }
+
         assert(originalValue == testResourceOriginalValue);
 
         int32_t rc = fork();
         if(rc == 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(8, 0);
+            resourceList[0].mResCode = 0x00030000;
             resourceList[0].mNumValues = 1;
-            resourceList[0].mConfigValue.singleValue = 887;
+            resourceList[0].mResValue.value = 799;
 
             int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -2194,31 +2223,34 @@ namespace SystemSysfsNodesTests {
 
         } else if(rc > 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(8, 0);
+            resourceList[0].mResCode = 0x00030000;
             resourceList[0].mNumValues = 1;
-            resourceList[0].mConfigValue.singleValue = 799;
+            resourceList[0].mResValue.value = 887;
 
             int64_t handle = tuneResources(15000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
             // Verify that the higher of the two configured values, i.e. 887 takes
             // effect on the Resource Node.
-            std::this_thread::sleep_for(std::chrono::seconds(1));
+            std::this_thread::sleep_for(std::chrono::seconds(2));
 
             // Check if the new value was successfully written to the node
             value = AuxRoutines::readFromFile(testResourceName);
+            std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Value: "<<value<<std::endl;
             int32_t newValue = C_STOI(value);
-            assert(newValue == 887);
+            assert(newValue == 799);
 
             std::this_thread::sleep_for(std::chrono::seconds(6));
 
             value = AuxRoutines::readFromFile(testResourceName);
+            std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Value: "<<value<<std::endl;
             newValue = C_STOI(value);
-            assert(newValue == 799);
+            assert(newValue == 887);
 
             std::this_thread::sleep_for(std::chrono::seconds(10));
 
             // Wait for the Request to expire, check if the value resets
             value = AuxRoutines::readFromFile(testResourceName);
+            std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Reset Value: "<<value<<std::endl;
             newValue = C_STOI(value);
             assert(newValue == originalValue);
 
@@ -2246,13 +2278,21 @@ namespace SystemSysfsNodesTests {
 
         // Check the original value for the Resource
         std::string value = AuxRoutines::readFromFile(testResourceName);
+        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Original Value: "<<value<<std::endl;
         int32_t originalValue = C_STOI(value);
+
+        if(originalValue == -1) {
+            // Node does not exist on test device, can't proceed with this test
+            std::cout<<"["<<__LINE__<<"]"<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
+            return;
+        }
+
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mOpCode = GENERATE_RESOURCE_ID(8, 0);
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(8, 0);
         resourceList[0].mNumValues = 1;
-        resourceList[0].mConfigValue.singleValue = 994;
+        resourceList[0].mResValue.value = 994;
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -2294,15 +2334,23 @@ namespace SystemSysfsNodesTests {
 
         // Check the original value for the Resource
         std::string value = AuxRoutines::readFromFile(testResourceName);
+        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Original Value: "<<value<<std::endl;
         int32_t originalValue = C_STOI(value);
+
+        if(originalValue == -1) {
+            // Node does not exist on test device, can't proceed with this test
+            std::cout<<"["<<__LINE__<<"]"<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
+            return;
+        }
+
         assert(originalValue == testResourceOriginalValue);
 
         int32_t rc = fork();
         if(rc == 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(8, 0);
+            resourceList[0].mResCode = GENERATE_RESOURCE_ID(8, 0);
             resourceList[0].mNumValues = 1;
-            resourceList[0].mConfigValue.singleValue = 744;
+            resourceList[0].mResValue.value = 744;
 
             int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -2310,9 +2358,9 @@ namespace SystemSysfsNodesTests {
 
         } else if(rc > 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mOpCode = GENERATE_RESOURCE_ID(8, 0);
+            resourceList[0].mResCode = GENERATE_RESOURCE_ID(8, 0);
             resourceList[0].mNumValues = 1;
-            resourceList[0].mConfigValue.singleValue = 801;
+            resourceList[0].mResValue.value = 801;
 
             int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_LOW, 1, resourceList);
 
@@ -2338,6 +2386,173 @@ namespace SystemSysfsNodesTests {
         LOG_END
     }
 
+    static void TestWriteTo_scaling_min_freq_Node1() {
+        LOG_START
+
+        std::string testResourceName = "/sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq";
+
+        std::string originalValueString = AuxRoutines::readFromFile(testResourceName);
+        std::cout<<"["<<__LINE__<<"]"<<" policy0/scaling_min_freq Original Value: "<<originalValueString<<std::endl;
+        int32_t originalValue = C_STOI(originalValueString);
+
+        if(originalValue == -1) {
+            // Node does not exist on test device, can't proceed with this test
+            std::cout<<"["<<__LINE__<<"]"<<" Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
+            return;
+        }
+
+        SysResource* resourceList = new SysResource[1];
+        resourceList[0].mResCode = 0x00040000;
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mResValue.value = 1504993;
+
+        int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        // Check if the new value was successfully written to the node
+        std::string value = AuxRoutines::readFromFile(testResourceName);
+        int32_t newValue = C_STOI(value);
+        assert(newValue == 1504993);
+
+        std::this_thread::sleep_for(std::chrono::seconds(6));
+
+        // Wait for the Request to expire, check if the value resets
+        value = AuxRoutines::readFromFile(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == originalValue);
+
+        LOG_END
+    }
+
+    static void TestWriteTo_scaling_min_freq_Node2() {
+        LOG_START
+
+        std::string testResourceName = "/sys/devices/system/cpu/cpufreq/policy1/scaling_min_freq";
+
+        std::string originalValueString = AuxRoutines::readFromFile(testResourceName);
+        std::cout<<"["<<__LINE__<<"]"<<" policy1/scaling_min_freq Original Value: "<<originalValueString<<std::endl;
+        int32_t originalValue = C_STOI(originalValueString);
+
+        if(originalValue == -1) {
+            // Node does not exist on test device, can't proceed with this test
+            std::cout<<"["<<__LINE__<<"]"<<" Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
+            return;
+        }
+
+        SysResource* resourceList = new SysResource[1];
+        resourceList[0].mResCode = 0x00040001;
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mResValue.value = 1504993;
+
+        int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        // Check if the new value was successfully written to the node
+        std::string value = AuxRoutines::readFromFile(testResourceName);
+        int32_t newValue = C_STOI(value);
+        assert(newValue == 1504993);
+
+        std::this_thread::sleep_for(std::chrono::seconds(6));
+
+        // Wait for the Request to expire, check if the value resets
+        value = AuxRoutines::readFromFile(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == originalValue);
+
+        LOG_END
+    }
+
+    // More involved than writing to sched_util_clamp_min_Node node
+    // Since the condition sched_util_clamp_min_Node <= sched_util_clamp_max_Node should always
+    // should always be true, else kernel will reject the write request.
+    // Special care to be given while untuning as well, use Reverse Untune Order for
+    // such request.
+    // By defaults both nodes have a value of 1024, to change the value of sched_util_clamp_max_Node
+    // to say 880, we'll first need to lower sched_util_clamp_min_Node to a value < 880.
+    static void TestWriteTo_sched_util_clamp_max_Node1() {
+        LOG_START
+
+        std::string testResourceName1 = "/proc/sys/kernel/sched_util_clamp_min";
+        int32_t testResourceOriginalValue = 1024;
+
+        // Check the original value for the Resource
+        std::string value = AuxRoutines::readFromFile(testResourceName1);
+        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Original Value: "<<value<<std::endl;
+        int32_t originalValue1 = C_STOI(value);
+
+        if(originalValue1 == -1) {
+            // Node does not exist on test device, can't proceed with this test
+            std::cout<<"["<<__LINE__<<"]"<<"Node: "<<testResourceName1<<" not found on test device, Aborting Test Case"<<std::endl;
+            return;
+        }
+
+        assert(originalValue1 == testResourceOriginalValue);
+
+        SysResource* resourceList = new SysResource[1];
+        resourceList[0].mResCode = GENERATE_RESOURCE_ID(8, 0);
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mResValue.value = 718;
+
+        int64_t handle = tuneResources(25000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        // Check if the new value was successfully written to the node
+        value = AuxRoutines::readFromFile(testResourceName1);
+        int32_t newValue = C_STOI(value);
+        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Original value: "<<value<<std::endl;
+        assert(newValue == 718);
+
+        // Create another request to tune max node
+        std::string testResourceName2 = "/proc/sys/kernel/sched_util_clamp_max";
+
+        // Check the original value for the Resource
+        value = AuxRoutines::readFromFile(testResourceName2);
+        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_max Original Value: "<<value<<std::endl;
+        int32_t originalValue2 = C_STOI(value);
+
+        if(originalValue2 == -1) {
+            // Node does not exist on test device, can't proceed with this test
+            std::cout<<"["<<__LINE__<<"]"<<"Node: "<<testResourceName2<<" not found on test device, Aborting Test Case"<<std::endl;
+            std::this_thread::sleep_for(std::chrono::seconds(30));
+            return;
+        }
+
+        assert(originalValue2 == testResourceOriginalValue);
+
+        SysResource* resourceList2 = new SysResource[1];
+        resourceList2[0].mResCode = GENERATE_RESOURCE_ID(8, 1);
+        resourceList2[0].mNumValues = 1;
+        resourceList2[0].mResValue.value = 880;
+
+        handle = tuneResources(7000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList2);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        // Check if the new value was successfully written to the node
+        value = AuxRoutines::readFromFile(testResourceName2);
+        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_max value: "<<value<<std::endl;
+        newValue = C_STOI(value);
+        assert(newValue == 880);
+
+        std::this_thread::sleep_for(std::chrono::seconds(30));
+
+        // Wait for the Request to expire, check if the value resets
+        value = AuxRoutines::readFromFile(testResourceName1);
+        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Reset value: "<<value<<std::endl;
+        newValue = C_STOI(value);
+        assert(newValue == originalValue1);
+
+        value = AuxRoutines::readFromFile(testResourceName2);
+        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_max Reset value: "<<value<<std::endl;
+        newValue = C_STOI(value);
+        assert(newValue == originalValue2);
+
+        LOG_END
+    }
+
     static void RunTestGroup() {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
@@ -2346,6 +2561,9 @@ namespace SystemSysfsNodesTests {
         RUN_TEST(TestConcurrentWriteTo_sched_util_clamp_min_Node2)
         RUN_TEST(TestWriteTo_sched_util_clamp_min_NodeAndUntuning)
         RUN_TEST(TestConcurrentWriteTo_sched_util_clamp_min_Node3)
+        RUN_TEST(TestWriteTo_scaling_min_freq_Node1)
+        RUN_TEST(TestWriteTo_scaling_min_freq_Node2)
+        RUN_TEST(TestWriteTo_sched_util_clamp_max_Node1)
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
     }
@@ -2370,7 +2588,7 @@ namespace SignalApplicationTests {
     static void TestSingleClientTuneSignal1() {
         LOG_START
 
-        std::string testResourceName = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
         int32_t testResourceOriginalValue = 300;
 
         std::string value;
@@ -2408,9 +2626,9 @@ namespace SignalApplicationTests {
     static void TestSingleClientTuneSignal2() {
         LOG_START
 
-        std::string testResourceName1 = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
-        std::string testResourceName2 = "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_max";
-        std::string testResourceName3 = "../Tests/Configs/ResourceSysFsNodes/scaling_max_freq";
+        std::string testResourceName1 = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
+        std::string testResourceName2 = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_max";
+        std::string testResourceName3 = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_max_freq";
 
         int originalValues[] = {300, 684, 114};
 
@@ -2473,6 +2691,299 @@ namespace SignalApplicationTests {
     }
 }
 
+namespace CGroupApplicationTests {
+    std::string __testGroupName = "CGroup Application Checks";
+
+    static void TestWriteAndReset1() {
+        LOG_START
+
+        std::string testResourceName = "/sys/fs/cgroup/audio-cgroup/cpu.uclamp.min";
+
+        std::string originalValueString = AuxRoutines::readFromFile(testResourceName);
+        int32_t originalValue = C_STOI(originalValueString);
+
+        SysResource* resourceList1 = new SysResource[1];
+        resourceList1[0].mResCode = 0x00090007;
+        resourceList1[0].mNumValues = 2;
+        resourceList1[0].mResValue.values = new int32_t[2];
+        resourceList1[0].mResValue.values[0] = 1;
+        resourceList1[0].mResValue.values[1] = 52;
+        int64_t handle = tuneResources(25000, RequestPriority::REQ_PRIORITY_LOW, 1, resourceList1);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        SysResource* resourceList = new SysResource[1];
+        resourceList[0].mResCode = 0x00090007;
+        resourceList[0].mNumValues = 2;
+        resourceList[0].mResValue.values = new int32_t[2];
+        resourceList[0].mResValue.values[0] = 1;
+        resourceList[0].mResValue.values[1] = 57;
+        handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+        std::string value;
+        int32_t newValue;
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        value = AuxRoutines::readFromFile(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == 57);
+
+        std::this_thread::sleep_for(std::chrono::seconds(8));
+
+        value = AuxRoutines::readFromFile(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == 52);
+
+        std::this_thread::sleep_for(std::chrono::seconds(20));
+
+        value = AuxRoutines::readFromFile(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == originalValue);
+
+        LOG_END
+    }
+
+    static void TestWriteAndReset2() {
+        LOG_START
+
+        std::string testResourceName = "/sys/fs/cgroup/audio-cgroup/cpu.uclamp.min";
+
+        std::string originalValueString = AuxRoutines::readFromFile(testResourceName);
+        int32_t originalValue = C_STOI(originalValueString);
+
+        int32_t rc = fork();
+        if(rc == 0) {
+            SysResource* resourceList = new SysResource[1];
+            resourceList[0].mResCode = 0x00090007;
+            resourceList[0].mNumValues = 2;
+            resourceList[0].mResValue.values = new int32_t[2];
+            resourceList[0].mResValue.values[0] = 1;
+            resourceList[0].mResValue.values[1] = 53;
+
+            int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+            exit(EXIT_SUCCESS);
+
+        } else if(rc > 0) {
+            SysResource* resourceList = new SysResource[1];
+            resourceList[0].mResCode = 0x00090007;
+            resourceList[0].mNumValues = 2;
+            resourceList[0].mResValue.values = new int32_t[2];
+            resourceList[0].mResValue.values[0] = 1;
+            resourceList[0].mResValue.values[1] = 57;
+
+            int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+            std::string value;
+            int32_t newValue;
+
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+
+            value = AuxRoutines::readFromFile(testResourceName);
+            newValue = C_STOI(value);
+            assert(newValue == 53);
+
+            std::this_thread::sleep_for(std::chrono::seconds(10));
+
+            value = AuxRoutines::readFromFile(testResourceName);
+            newValue = C_STOI(value);
+            assert(newValue == originalValue);
+
+            wait(nullptr);
+        }
+
+        LOG_END
+    }
+
+    static void TestWriteAndReset3() {
+        LOG_START
+
+        std::string testResourceName = "/sys/fs/cgroup/audio-cgroup/cpu.uclamp.max";
+
+        std::string originalValueString = AuxRoutines::readFromFile(testResourceName);
+        std::cout<<"["<<__LINE__<<"]"<<" cpu.uclamp.max Original Value: "<<originalValueString<<std::endl;
+        int32_t originalValue = C_STOI(originalValueString);
+
+        int32_t rc = fork();
+        if(rc == 0) {
+            SysResource* resourceList = new SysResource[1];
+            resourceList[0].mResCode = 0x00090008;
+            resourceList[0].mNumValues = 2;
+            resourceList[0].mResValue.values = new int32_t[2];
+            resourceList[0].mResValue.values[0] = 1;
+            resourceList[0].mResValue.values[1] = 75;
+
+            int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+            exit(EXIT_SUCCESS);
+
+        } else if(rc > 0) {
+            SysResource* resourceList = new SysResource[1];
+            resourceList[0].mResCode = 0x00090008;
+            resourceList[0].mNumValues = 2;
+            resourceList[0].mResValue.values = new int32_t[2];
+            resourceList[0].mResValue.values[0] = 1;
+            resourceList[0].mResValue.values[1] = 68;
+
+            int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+            std::string value;
+            int32_t newValue;
+
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+
+            value = AuxRoutines::readFromFile(testResourceName);
+            newValue = C_STOI(value);
+            assert(newValue == 75);
+
+            std::this_thread::sleep_for(std::chrono::seconds(10));
+
+            value = AuxRoutines::readFromFile(testResourceName);
+            std::cout<<"["<<__LINE__<<"]"<<" cpu.uclamp.max Reset Value: "<<value<<std::endl;
+            newValue = C_STOI(value);
+            if(newValue != -1 && originalValue != -1) {
+                assert(newValue == originalValue);
+            }
+
+            wait(nullptr);
+        }
+
+        LOG_END
+    }
+
+    static void TestWriteAndReset4() {
+        LOG_START
+
+        std::string testResourceName = "/sys/fs/cgroup/audio-cgroup/memory.max";
+
+        std::string originalValueString = AuxRoutines::readFromFile(testResourceName);
+        std::cout<<"["<<__LINE__<<"]"<<" memory.max Original Value: "<<originalValueString<<std::endl;
+        int32_t originalValue = C_STOI(originalValueString);
+
+        int32_t rc = fork();
+        if(rc == 0) {
+            SysResource* resourceList = new SysResource[1];
+            resourceList[0].mResCode = 0x0009000a;
+            resourceList[0].mNumValues = 2;
+            resourceList[0].mResValue.values = new int32_t[2];
+            resourceList[0].mResValue.values[0] = 1;
+            resourceList[0].mResValue.values[1] = 1224 * 1024;
+
+            int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+            exit(EXIT_SUCCESS);
+
+        } else if(rc > 0) {
+            SysResource* resourceList = new SysResource[1];
+            resourceList[0].mResCode = 0x0009000a;
+            resourceList[0].mNumValues = 2;
+            resourceList[0].mResValue.values = new int32_t[2];
+            resourceList[0].mResValue.values[0] = 1;
+            resourceList[0].mResValue.values[1] = 950 * 1024;
+
+            int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+            std::string value;
+            int32_t newValue;
+
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+
+            value = AuxRoutines::readFromFile(testResourceName);
+            newValue = C_STOI(value);
+            assert(newValue > 950 * 1024);
+            assert(newValue <= 1224 * 1024);
+
+            std::this_thread::sleep_for(std::chrono::seconds(10));
+
+            value = AuxRoutines::readFromFile(testResourceName);
+            std::cout<<"["<<__LINE__<<"]"<<" memory.max Reset Value: "<<value<<std::endl;
+            newValue = C_STOI(value);
+            if(newValue != -1 && originalValue != -1) {
+                assert(newValue == originalValue);
+            }
+
+            wait(nullptr);
+        }
+
+        LOG_END
+    }
+
+    // Multiple CGroups in a single Request
+    static void TestWriteAndReset5() {
+        LOG_START
+
+        std::string testResourceName1 = "/sys/fs/cgroup/camera-cgroup/cpu.uclamp.min";
+        std::string testResourceName2 = "/sys/fs/cgroup/audio-cgroup/cpu.uclamp.min";
+
+        std::string originalValueString = AuxRoutines::readFromFile(testResourceName1);
+        std::cout<<"["<<__LINE__<<"]"<<" 0) cpu.uclamp.min Original Value: "<<originalValueString<<std::endl;
+        int32_t originalValue1 = C_STOI(originalValueString);
+
+        originalValueString = AuxRoutines::readFromFile(testResourceName2);
+        std::cout<<"["<<__LINE__<<"]"<<" 1) cpu.uclamp.min Original Value: "<<originalValueString<<std::endl;
+        int32_t originalValue2 = C_STOI(originalValueString);
+
+        SysResource* resourceList = new SysResource[2];
+        resourceList[0].mResCode = 0x00090007;
+        resourceList[0].mNumValues = 2;
+        resourceList[0].mResValue.values = new int32_t[2];
+        resourceList[0].mResValue.values[0] = 0;
+        resourceList[0].mResValue.values[1] = 55;
+
+        resourceList[1].mResCode = 0x00090007;
+        resourceList[1].mNumValues = 2;
+        resourceList[1].mResValue.values = new int32_t[2];
+        resourceList[1].mResValue.values[0] = 1;
+        resourceList[1].mResValue.values[1] = 58;
+
+        int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_LOW, 2, resourceList);
+
+        std::string value;
+        int32_t newValue;
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        value = AuxRoutines::readFromFile(testResourceName1);
+        std::cout<<"["<<__LINE__<<"]"<<" 0) cpu.uclamp.min value: "<<value<<std::endl;
+        newValue = C_STOI(value);
+        assert(newValue == 55);
+
+        value = AuxRoutines::readFromFile(testResourceName2);
+        std::cout<<"["<<__LINE__<<"]"<<" 1) cpu.uclamp.min value: "<<value<<std::endl;
+        newValue = C_STOI(value);
+        assert(newValue == 58);
+
+        std::this_thread::sleep_for(std::chrono::seconds(10));
+
+        value = AuxRoutines::readFromFile(testResourceName1);
+        newValue = C_STOI(value);
+        if(newValue != -1 && originalValue1 != -1) {
+            assert(newValue == originalValue1);
+        }
+
+        value = AuxRoutines::readFromFile(testResourceName2);
+        newValue = C_STOI(value);
+        if(newValue != -1 && originalValue2 != -1) {
+            assert(newValue == originalValue2);
+        }
+
+        LOG_END
+    }
+
+    static void RunTestGroup() {
+        std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
+
+        TestWriteAndReset1();
+        TestWriteAndReset2();
+        TestWriteAndReset3();
+        TestWriteAndReset4();
+        TestWriteAndReset5();
+
+        std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
+    }
+}
+
 int32_t main(int32_t argc, const char* argv[]) {
     // Run the Tests
     RUN_TEST(TestHandleGeneration)
@@ -2488,6 +2999,8 @@ int32_t main(int32_t argc, const char* argv[]) {
     SystemSysfsNodesTests::RunTestGroup();
 
     SignalApplicationTests::RunTestGroup();
+
+    CGroupApplicationTests::RunTestGroup();
 
     return 0;
 }

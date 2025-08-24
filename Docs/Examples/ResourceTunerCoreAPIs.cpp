@@ -64,16 +64,16 @@ void func1() {
 
     // Initialize Resource struct Fields:
 
-    // Field: mOpCode:
-    // Resource Opcode is a unsigned 32 bit integer
+    // Field: mResCode:
+    // Resource Code (ResCode) is a unsigned 32 bit integer
     // The last 16 bits (17-32) are used to specify the ResId
     // The next 8 bits (9-16) are used to specify the ResType (type of the Resource)
     // In addition if you are using Custom Resources, then the MSB must be set to 1 as well.
     // In this case we are dealing with Default Resources, so need to set the MSB to 1.
 
-    resourceList[0].mOpCode = 0x00030000;
+    resourceList[0].mResCode = 0x00030000;
 
-    // Field: mOpInfo
+    // Field: mResInfo
     // This field is a 32-bit signed integer, which stores information
     // Regarding the Logical Core and Cluster values.
     // These logical Values will be Translated to their corresponding
@@ -83,7 +83,7 @@ void func1() {
     // Field "ApplyType" is set to "Core".
     // In this case since ApplyType is "global" for R1, hence this field
     // will not be processed by the Resource Tuner Server
-    resourceList[0].mOpInfo = 0;
+    resourceList[0].mResInfo = 0;
     // Note, above line of Code is not necessary, since the field is already initialized
     // to 0 via the Constructor.
 
@@ -99,17 +99,17 @@ void func1() {
     // Here we consider the example for a single Valued Resource:
     resourceList[0].mNumValues = 1;
 
-    // Field: mConfigValue
+    // Field: mResValue
     // The value to be Configured for this Resource Node.
-    // mConfigValue is a union, which contains 2 fields:
-    // int32_t singleValue [Use this field for single Valued Resources]
-    // std::vector<int32_t>* valueArray [Use this field for Multi Valued Resources]
+    // mResValue is a union, which contains 2 fields:
+    // int32_t value [Use this field for single Valued Resources]
+    // std::vector<int32_t>* values [Use this field for Multi Valued Resources]
     // Here since we are dealing with a Single Valued Resource, hence we'll use
-    // the 32 bit integer field (singleValue)
+    // the 32 bit integer field (value)
     // Let's say we want to configure a value of 750 for this Resource,
     // Notice from the Resource Config that the allowed Configurable Range for this
     // Resource is [0 - 1024].
-    resourceList[0].mConfigValue.singleValue = 750;
+    resourceList[0].mResValue.value = 750;
 
     // Now our Resource List is fully constructed
 
@@ -155,13 +155,13 @@ void func2() {
 
     // Initialize Resource struct Fields:
 
-    // Field: mOpCode:
+    // Field: mResCode:
     // Refer func1 for details
-    resourceList[0].mOpCode = 0x00030000;
+    resourceList[0].mResCode = 0x00030000;
 
-    // Field: mOpInfo
+    // Field: mResInfo
     // Refer func1 for details
-    resourceList[0].mOpCode = 0;
+    resourceList[0].mResCode = 0;
     // Note, above line of Code is not necessary, since the field is already initialized
     // to 0 via the Constructor.
 
@@ -177,9 +177,9 @@ void func2() {
     // Here we consider the example for a single Valued Resource:
     resourceList[0].mNumValues = 1;
 
-    // Field: mConfigValue
+    // Field: mResValue
     // Refer func1 for details
-    resourceList[0].mConfigValue.singleValue = 884;
+    resourceList[0].mResValue.value = 884;
 
     // Now our Resource struct is fully constructed
 
@@ -231,13 +231,13 @@ void func3() {
 
     // Initialize Resource struct Fields:
 
-    // Field: mOpCode:
+    // Field: mResCode:
     // Refer func1 for details
-    resourceList[0].mOpCode = 0x00030000;
+    resourceList[0].mResCode = 0x00030000;
 
-    // Field: mOpInfo
+    // Field: mResInfo
     // Refer func1 for details
-    resourceList[0].mOpInfo = 0;
+    resourceList[0].mResInfo = 0;
     // Note, above line of Code is not necessary, since the field is already initialized
     // to 0 via the Constructor.
 
@@ -253,9 +253,9 @@ void func3() {
     // Here we consider the example for a single Valued Resource:
     resourceList[0].mNumValues = 1;
 
-    // Field: mConfigValue
+    // Field: mResValue
     // Refer func1 for details
-    resourceList[0].mConfigValue.singleValue = 884;
+    resourceList[0].mResValue.value = 884;
 
     // Now our Resource struct is fully constructed
 

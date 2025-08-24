@@ -41,7 +41,7 @@ typedef struct {
      */
     uint8_t mResourceResType;
     /**
-     * @brief Unique opcode associated with the resource.
+     * @brief Unique Resource ID associated with the resource.
      */
     uint16_t mResourceResID;
     /**

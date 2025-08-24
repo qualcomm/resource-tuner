@@ -10,15 +10,15 @@
 #include "Extensions.h"
 #include "Utils.h"
 
-RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourcesTargetSpecificConfig.yaml")
+RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/resource-tuner/tests/Configs/ResourcesConfig.yaml")
 
 #define TOTAL_RESOURCE_CONFIGS_COUNT 14
 
-#define GENERATE_RESOURCE_ID(optype, opcode) ({                                \
+#define GENERATE_RESOURCE_ID(restype, rescode) ({                              \
     uint32_t resourceBitmap = 0;                                               \
     resourceBitmap |= (1 << 31);                                               \
-    resourceBitmap |= ((uint32_t)opcode);                                      \
-    resourceBitmap |= ((uint32_t)optype << 16);                                \
+    resourceBitmap |= ((uint32_t)rescode);                                     \
+    resourceBitmap |= ((uint32_t)restype << 16);                               \
     resourceBitmap;                                                            \
 })
 
@@ -52,7 +52,7 @@ TEST_F(ResourceProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity3_1) 
     ASSERT_EQ(resourceConfigInfo->mResourceResType, 1);
     ASSERT_EQ(resourceConfigInfo->mResourceResID, 0);
     ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "TEST_RESOURCE_1"), 0);
-    ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_min"), 0);
+    ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min"), 0);
     ASSERT_EQ(resourceConfigInfo->mHighThreshold, 1024);
     ASSERT_EQ(resourceConfigInfo->mLowThreshold, 0);
     ASSERT_EQ(resourceConfigInfo->mSupported, true);
@@ -69,7 +69,7 @@ TEST_F(ResourceProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity3_2) 
     ASSERT_EQ(resourceConfigInfo->mResourceResType, 1);
     ASSERT_EQ(resourceConfigInfo->mResourceResID, 1);
     ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "TEST_RESOURCE_2"), 0);
-    ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "../Tests/Configs/ResourceSysFsNodes/sched_util_clamp_max"), 0);
+    ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_max"), 0);
     ASSERT_EQ(resourceConfigInfo->mHighThreshold, 1024);
     ASSERT_EQ(resourceConfigInfo->mLowThreshold, 512);
     ASSERT_EQ(resourceConfigInfo->mSupported, true);
@@ -86,7 +86,7 @@ TEST_F(ResourceProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity3_3) 
     ASSERT_EQ(resourceConfigInfo->mResourceResType, 1);
     ASSERT_EQ(resourceConfigInfo->mResourceResID, 5);
     ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "TEST_RESOURCE_6"), 0);
-    ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "../Tests/Configs/ResourceSysFsNodes/target_test_resource2"), 0);
+    ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource2"), 0);
     ASSERT_EQ(resourceConfigInfo->mHighThreshold, 6500);
     ASSERT_EQ(resourceConfigInfo->mLowThreshold, 50);
     ASSERT_EQ(resourceConfigInfo->mSupported, true);

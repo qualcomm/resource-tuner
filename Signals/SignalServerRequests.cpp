@@ -43,7 +43,7 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
     // Check if a Signal with the given ID exists in the Registry
     SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(signal->getSignalID());
 
-    // Basic sanity: Invalid resource Opcode
+    // Basic sanity: Invalid ResCode
     if(signalInfo == nullptr) {
         TYPELOGV(VERIFIER_INVALID_OPCODE, signal->getSignalID());
         return false;
@@ -109,23 +109,23 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
     // Perform Resource Level Checking, using the ResourceRegistry
     for(int32_t i = 0; i < signalInfo->mSignalResources->size(); i++) {
         Resource* resource = signalInfo->mSignalResources->at(i);
-        ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->getOpCode());
+        ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
 
-        // Basic sanity: Invalid resource Opcode
+        // Basic sanity: Invalid ResCode
         if(resourceConfig == nullptr) {
-            TYPELOGV(VERIFIER_INVALID_OPCODE, resource->getOpCode());
+            TYPELOGV(VERIFIER_INVALID_OPCODE, resource->getResCode());
             return false;
         }
 
         // Verify value is in the range [LT, HT]
         if(resource->getValuesCount() == 1) {
-            int32_t configValue = resource->mConfigValue.singleValue;
+            int32_t configValue = resource->mResValue.value;
             int32_t lowThreshold = resourceConfig->mLowThreshold;
             int32_t highThreshold = resourceConfig->mHighThreshold;
 
             if((lowThreshold != -1 && highThreshold != -1) &&
                 (configValue < lowThreshold || configValue > highThreshold)) {
-                TYPELOGV(VERIFIER_VALUE_OUT_OF_BOUNDS, configValue, resource->getOpCode());
+                TYPELOGV(VERIFIER_VALUE_OUT_OF_BOUNDS, configValue, resource->getResCode());
                 return false;
             }
         } else {
@@ -137,7 +137,7 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
 
         // Check for Client permissions
         if(resourceConfig->mPermissions == PERMISSION_SYSTEM && clientPermissions == PERMISSION_THIRD_PARTY) {
-            TYPELOGV(VERIFIER_NOT_SUFFICIENT_PERMISSION, resource->getOpCode());
+            TYPELOGV(VERIFIER_NOT_SUFFICIENT_PERMISSION, resource->getResCode());
             return false;
         }
     }
@@ -159,22 +159,23 @@ static int8_t fillDefaults(Signal* signal) {
     uint32_t signalID = signal->getSignalID();
     SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(signalID);
     if(signalInfo == nullptr) return false;
+    if(signalInfo->mSignalResources == nullptr) return true;
 
     int32_t listIndex = 0;
     for(Resource* resource : (*signalInfo->mSignalResources)) {
         int32_t valueCount = resource->getValuesCount();
         if(valueCount == 1) {
-            if(resource->mConfigValue.singleValue == -1) {
+            if(resource->mResValue.value == -1) {
                 if(signal->getListArgs() == nullptr) return false;
-                resource->mConfigValue.singleValue = signal->getListArgAt(listIndex);
+                resource->mResValue.value = signal->getListArgAt(listIndex);
                 listIndex++;
             }
         } else {
             for(int32_t i = 0; i < valueCount; i++) {
-                if((*resource->mConfigValue.valueArray)[i] == -1) {
+                if((*resource->mResValue.values)[i] == -1) {
                     if(signal->getListArgs() == nullptr) return false;
                     if(listIndex >= 0 && listIndex < signal->getNumArgs()) {
-                        (*resource->mConfigValue.valueArray)[i] = signal->getListArgAt(listIndex);
+                        (*resource->mResValue.values)[i] = signal->getListArgAt(listIndex);
                         listIndex++;
                     } else {
                         return false;
@@ -232,7 +233,7 @@ static void processIncomingRequest(Signal* signal) {
         return;
     }
 
-    if(signal->getRequestType() == SIGNAL_ACQ || signal->getRequestType() == SIGNAL_RELAY) {
+    if(signal->getRequestType() == SIGNAL_ACQ) {
         if(!VerifyIncomingRequest(signal)) {
             TYPELOGV(VERIFIER_STATUS_FAILURE, signal->getHandle());
             Signal::cleanUpSignal(signal);
@@ -368,26 +369,21 @@ void SignalQueue::orderedQueueConsumerHook() {
             }
             case SIGNAL_RELAY: {
                 // Get all the subscribed Features
-                std::vector<int32_t> subscribedFeatures;
-                int8_t featuresExist = SignalExtFeatureMapper::getInstance()->getFeatures(signal->getSignalID(), subscribedFeatures);
+                std::vector<uint32_t> subscribedFeatures;
+                int8_t featuresExist = SignalExtFeatureMapper::getInstance()->getFeatures(
+                    signal->getSignalID(),
+                    subscribedFeatures
+                );
 
-                if(!featuresExist) {
-                    break;
+                if(featuresExist == false) {
+                    continue;
                 }
 
-                for(int32_t featureId: subscribedFeatures) {
-                    // Fetch This Feature from ExtFeaturesRegistry
-                    ExtFeatureInfo* featureInfo =
-                        ExtFeaturesRegistry::getInstance()->getExtFeatureConfigById(featureId);
-                    if(featureInfo == nullptr) {
-                        continue;
+                for(uint32_t featureId: subscribedFeatures) {
+                    ErrCode opStatus = ExtFeaturesRegistry::getInstance()->relayToFeature(featureId);
+                    if(RC_IS_NOTOK(opStatus)) {
+                        // Log Error Here
                     }
-
-                    // Relay the Signal to all subscribed features.
-                    std::string featureName = featureInfo->mFeatureName;
-                    std::string featureLib = featureInfo->mFeatureLib;
-
-                    // Call the "resourceTunerRelay" function in the lib
                 }
 
                 Signal::cleanUpSignal(signal);

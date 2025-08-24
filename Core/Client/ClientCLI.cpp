@@ -59,9 +59,9 @@ void sendTuneRequest(int64_t duration, int32_t priority, int32_t count, const st
     SysResource* resourceList = new SysResource[resourcePairs.size()];
 
     for(int32_t i = 0; i < resourcePairs.size(); i++) {
-        resourceList[i].mOpCode = resourcePairs[i].first;
+        resourceList[i].mResCode = resourcePairs[i].first;
         resourceList[i].mNumValues = 1;
-        resourceList[i].mConfigValue.singleValue = resourcePairs[i].second;
+        resourceList[i].mResValue.value = resourcePairs[i].second;
     }
 
     int64_t handle = tuneResources(duration, priority, count, resourceList);
@@ -130,14 +130,14 @@ static int8_t processCommands() {
     if(tokens[0] == "tune") {
         if(tokens.size() != 5) {
             std::cout<<"Invalid number of arguments for tune request"<<std::endl;
-            std::cout<<"Usage: tune <duration> <priority> <numRes> <opcode>:<value>,<opcode>:<value>...."<<std::endl;
+            std::cout<<"Usage: tune <duration> <priority> <numRes> <resCode>:<value>,<resCode>:<value>...."<<std::endl;
             std::cout<<"Example: tune 4000 3 2 1:1,2:2"<<std::endl;
             return true;
         }
 
         if(tokens[1].find(":") == std::string::npos) {
             std::cout<<"Invalid tune request"<<std::endl;
-            std::cout<<"Usage: tune <duration> <priority> <numRes> <opcode>:<value>,<opcode>:<value>"<<std::endl;
+            std::cout<<"Usage: tune <duration> <priority> <numRes> <resCode>:<value>,<resCode>:<value>"<<std::endl;
             std::cout<<"Example: tune 4000 3 2 1:1,2:2"<<std::endl;
             return true;
         }
@@ -148,7 +148,7 @@ static int8_t processCommands() {
 
         if(duration < -1 || duration == 0 || count <= 0) {
             std::cout<<"Invalid Params for Retune request" <<std::endl;
-            std::cout<<"Usage: tune <duration> <priority> <numRes> <opcode>:<value>,<opcode>:<value>"<<std::endl;
+            std::cout<<"Usage: tune <duration> <priority> <numRes> <resCode>:<value>,<resCode>:<value>"<<std::endl;
             return true;
         } else {
             sendTuneRequest(duration, priority, count, tokens[4]);
@@ -295,7 +295,7 @@ int32_t main(int32_t argc, char* argv[]) {
             if(duration == 0 || duration < -1 || numResources <= 0 || priority == -1 ||
                resources == nullptr) {
                 std::cout<<"Invalid Params for Tune Request"<<std::endl;
-                std::cout<<"Usage: --tune --duration <duration> --priority <priority> --num <numRes> -- res <opcode>:<value>,<opcode>:<value>"<<std::endl;
+                std::cout<<"Usage: --tune --duration <duration> --priority <priority> --num <numRes> -- res <resCode>:<value>,<resCode>:<value>"<<std::endl;
                 break;
             }
             if(resources != nullptr) {

@@ -12,7 +12,22 @@
 #include <vector>
 #include <unordered_map>
 
-#include "Utils.h"
+typedef void (*ResourceLifecycleCallback)(void*);
+
+/**
+ * @enum ConfigType
+ * @brief Different Config (via YAML) Types supported.
+ * @details Note, the Config File corresponding to each config type
+ * can be altered via the Extensions interface.
+ */
+enum ConfigType {
+    RESOURCE_CONFIG,
+    PROPERTIES_CONFIG,
+    SIGNALS_CONFIG,
+    EXT_FEATURES_CONFIG,
+    TARGET_CONFIG,
+    TOTAL_CONFIGS_COUNT
+};
 
 /**
 * @brief Extensions
@@ -27,7 +42,7 @@ private:
     static std::unordered_map<uint32_t, ResourceLifecycleCallback> mResourceTearCallbacks;
 
 public:
-    Extensions(uint32_t resourceOpcode, int8_t callbackType, ResourceLifecycleCallback callback);
+    Extensions(uint32_t resCode, int8_t callbackType, ResourceLifecycleCallback callback);
     Extensions(ConfigType configType, std::string yamlFile);
 
     static std::vector<std::pair<uint32_t, ResourceLifecycleCallback>> getResourceApplierCallbacks();
@@ -43,18 +58,18 @@ public:
 #define CONCAT(a, b) a ## b
 
 /**
- * \def RESTUNE_REGISTER_APPLIER_CB(resourceOpcode, resourceApplierCallback)
- * \brief Register a Customer Resource Applier for a particular Opcode
- * \param optionalInfo An unsigned 32-bit integer representing the Resource Opcode.
+ * \def RESTUNE_REGISTER_APPLIER_CB(resCode, resourceApplierCallback)
+ * \brief Register a Customer Resource Applier for a particular ResCide
+ * \param optionalInfo An unsigned 32-bit integer representing the Resource ResCode.
  * \param resourceApplierCallback A function Pointer to the Custom Applier.
  *
  * \note This macro must be used in the Global Scope.
  */
-#define RESTUNE_REGISTER_APPLIER_CB(resourceOpcode, resourceApplierCallback) \
-        static Extensions CONCAT(_resourceApplier, resourceOpcode)(resourceOpcode, 0, resourceApplierCallback);
+#define RESTUNE_REGISTER_APPLIER_CB(resCode, resourceApplierCallback) \
+        static Extensions CONCAT(_resourceApplier, resCode)(resCode, 0, resourceApplierCallback);
 
-#define RESTUNE_REGISTER_TEAR_CB(resourceOpcode, resourceApplierCallback) \
-        static Extensions CONCAT(_resourceTear, resourceOpcode)(resourceOpcode, 1, resourceApplierCallback);
+#define RESTUNE_REGISTER_TEAR_CB(resCode, resourceApplierCallback) \
+        static Extensions CONCAT(_resourceTear, resCode)(resCode, 1, resourceApplierCallback);
 
 /**
  * \def RESTUNE_REGISTER_CONFIG(configType, yamlFile)

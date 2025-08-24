@@ -13,6 +13,11 @@
 #include "Extensions.h"
 #include "RequestReceiver.h"
 
+#ifdef EXTENSION_PLUGIN_ENABLED
+extern int32_t extensionLibEnabled;
+int32_t* force_link = &extensionLibEnabled;
+#endif
+
 static int8_t terminateServer = false;
 
 static void handleSIGINT(int32_t sig) {
@@ -88,10 +93,10 @@ int32_t main(int32_t argc, char *argv[]) {
                 break;
             case 't':
                 ResourceTunerSettings::serverInTestMode = true;
-                RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "../Tests/Configs/testPropertiesConfig.yaml")
-                RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "../Tests/Configs/testResourcesTargetSpecificConfig.yaml")
-                RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, "../Tests/Configs/testSignalsTargetSpecificConfig.yaml")
-                RESTUNE_REGISTER_CONFIG(TARGET_CONFIG, "../Tests/Configs/testTargetConfig.yaml")
+                RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/etc/resource-tuner/tests/Configs/PropertiesConfig.yaml")
+                RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/resource-tuner/tests/Configs/ResourcesConfig.yaml")
+                RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/resource-tuner/tests/Configs/SignalsConfig.yaml")
+                RESTUNE_REGISTER_CONFIG(TARGET_CONFIG, "/etc/resource-tuner/tests/Configs/TargetConfig.yaml")
                 break;
             case 'h':
                 std::cout<<"Help Options"<<std::endl;

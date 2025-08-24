@@ -6,13 +6,14 @@
 #include <gtest/gtest.h>
 #include <string.h>
 
+#include "Utils.h"
 #include "Extensions.h"
 #include "SysConfigInternal.h"
 #include "SysConfigPropRegistry.h"
 #include "SysConfigProcessor.h"
 #include "Logger.h"
 
-RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "../Tests/Configs/testPropertiesConfig.yaml")
+RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/etc/resource-tuner/tests/Configs/PropertiesConfig.yaml")
 
 class SysConfigAPITests: public::testing::Test {
 protected:

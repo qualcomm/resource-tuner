@@ -32,30 +32,26 @@ static ErrCode fetchSignals() {
         return opStatus;
     }
 
-    TYPELOGV(NOTIFY_PARSING_START, "Target-Specific Signal");
-    filePath = ResourceTunerSettings::mTargetSpecificSignalFilePath;
-    opStatus = configProcessor.parseSignalConfigs(filePath);
-    if(RC_IS_NOTOK(opStatus)) {
-        if(opStatus != RC_FILE_NOT_FOUND) {
-            // Additional check for ErrCode, as it is possible that there is
-            // no target-specific Configs at all for a given target. This
-            // case should not result in a failure.
-            TYPELOGV(NOTIFY_PARSING_FAILURE, "Target-Specific Signal");
-            return opStatus;
-        } else {
-            // Reset opStatus
-            opStatus = RC_SUCCESS;
-        }
-    }
-
     filePath = Extensions::getSignalsConfigFilePath();
     if(filePath.length() > 0) {
-        // Custom Resource Config file has been provided by BU
         TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, "Signal", filePath.c_str());
         TYPELOGV(NOTIFY_PARSING_START, "Custom-Signal");
         opStatus = configProcessor.parseSignalConfigs(filePath, true);
         if(RC_IS_NOTOK(opStatus)) {
             TYPELOGV(NOTIFY_PARSING_FAILURE, "Custom-Signal");
+            return opStatus;
+        }
+    } else {
+        TYPELOGV(NOTIFY_PARSING_START, "Custom-Signal");
+        filePath = ResourceTunerSettings::mCustomSignalFilePath;
+        opStatus = configProcessor.parseSignalConfigs(filePath, true);
+        if(RC_IS_NOTOK(opStatus)) {
+            if(opStatus == RC_FILE_NOT_FOUND) {
+                TYPELOGV(NOTIFY_PARSER_FILE_NOT_FOUND, "Custom-Signal", filePath.c_str());
+                TYPELOGV(NOTIFY_PARSING_SUCCESS, "Signal");
+                return RC_SUCCESS;
+            }
+            TYPELOGV(NOTIFY_PARSING_FAILURE, "Signal");
             return opStatus;
         }
     }
@@ -64,20 +60,39 @@ static ErrCode fetchSignals() {
     return opStatus;
 }
 
+// Since this is a Custom (Optional) Config, hence if the expected Config file is
+// not found, we simply return Success.
 static ErrCode fetchExtFeatureConfigs() {
     ErrCode opStatus = RC_SUCCESS;
 
     ConfigProcessor configProcessor;
+    std::string filePath = Extensions::getExtFeaturesConfigFilePath();
+    if(filePath.length() > 0) {
+        // Custom Resource Config file has been provided by BU
+        TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, "Ext-Features", filePath.c_str());
+        TYPELOGV(NOTIFY_PARSING_START, "Ext-Features");
+        opStatus = configProcessor.parseExtFeaturesConfigs(filePath);
+        if(RC_IS_NOTOK(opStatus)) {
+            TYPELOGV(NOTIFY_PARSING_FAILURE, "Ext-Features");
+            return opStatus;
+        }
 
-    TYPELOGV(NOTIFY_PARSING_START, "Ext-Features");
-    std::string filePath = ResourceTunerSettings::mCustomExtFeaturesFilePath;
-    opStatus = configProcessor.parseExtFeaturesConfigs(filePath);
-    if(RC_IS_NOTOK(opStatus)) {
-        TYPELOGV(NOTIFY_PARSING_FAILURE, "Ext-Features");
-        return opStatus;
+    } else {
+        TYPELOGV(NOTIFY_PARSING_START, "Ext-Features");
+        filePath = ResourceTunerSettings::mCustomExtFeaturesFilePath;
+        opStatus = configProcessor.parseExtFeaturesConfigs(filePath);
+        if(RC_IS_NOTOK(opStatus)) {
+            if(opStatus == RC_FILE_NOT_FOUND) {
+                TYPELOGV(NOTIFY_PARSER_FILE_NOT_FOUND, "Ext-Features", filePath.c_str());
+                TYPELOGV(NOTIFY_PARSING_SUCCESS, "Ext-Features");
+                return RC_SUCCESS;
+            }
+            TYPELOGV(NOTIFY_PARSING_FAILURE, "Ext-Features");
+            return opStatus;
+        }
+        TYPELOGV(NOTIFY_PARSING_SUCCESS, "Ext-Features");
     }
 
-    TYPELOGV(NOTIFY_PARSING_SUCCESS, "Ext-Features");
     return opStatus;
 }
 
@@ -103,6 +118,8 @@ ErrCode initSignals() {
         return opStatus;
     }
 
+    ExtFeaturesRegistry::getInstance()->initializeFeatures();
+
     // Create Signal Processor thread
     try {
         signalServerProcessorThread = std::thread(SignalsdServerThread);
@@ -126,6 +143,8 @@ ErrCode terminateSignals() {
     } else {
         TYPELOGV(SYSTEM_THREAD_NOT_JOINABLE, "Signal");
     }
+
+    ExtFeaturesRegistry::getInstance()->teardownFeatures();
     return RC_SUCCESS;
 }
 

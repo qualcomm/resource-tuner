@@ -80,9 +80,9 @@ public:
     /**
     * @brief Called by the Verifier to get the physical core ID corresponding to the Logical Core ID value.
     * @details This routine performs Logical to Physical Core Translation.
-    * @param logicalClusterId The Logical Cluster ID, passed via the mOpInfo field (part of the Resource struct)
+    * @param logicalClusterId The Logical Cluster ID, passed via the mResInfo field (part of the Resource struct)
     *                         when issuing a tuneResources API call.
-    * @param logicalCoreId The Logical Core ID, passed via the mOpInfo field (part of the Resource struct)
+    * @param logicalCoreId The Logical Core ID, passed via the mResInfo field (part of the Resource struct)
     *                         when issuing a tuneResources API call.
     * @return: int32_t
     *              A Non-Negative Integer, representing the corresponding physical Core ID.
@@ -93,7 +93,7 @@ public:
     /**
     * @brief Called by the Verifier to get the physical Cluster ID corresponding to the Logical Cluster ID value.
     * @details This routine performs Logical to Physical Cluster Translation.
-    * @param logicalClusterId The Logical Cluster ID, passed via the mOpInfo field (part of the Resource struct)
+    * @param logicalClusterId The Logical Cluster ID, passed via the mResInfo field (part of the Resource struct)
     *                         when issuing a tuneResources API call.
     * @return: int32_t
     *              A Non-Negative Integer, representing the corresponding physical Cluster ID.

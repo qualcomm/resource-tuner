@@ -328,10 +328,10 @@ ErrCode ResourceBuilder::setResCode(const std::string& resCodeString) {
         return RC_INVALID_VALUE;
     }
 
-    uint32_t resourceOpCode = 0;
+    uint32_t resCode = 0;
     try {
-        resourceOpCode = (uint32_t)stol(resCodeString, nullptr, 0);
-        this->mResource->setOpCode(resourceOpCode);
+        resCode = (uint32_t)stol(resCodeString, nullptr, 0);
+        this->mResource->setResCode(resCode);
 
     } catch(const std::invalid_argument& e) {
         TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
@@ -345,13 +345,13 @@ ErrCode ResourceBuilder::setResCode(const std::string& resCodeString) {
     return RC_SUCCESS;
 }
 
-ErrCode ResourceBuilder::setOpInfo(const std::string& opInfoString) {
+ErrCode ResourceBuilder::setResInfo(const std::string& resInfoString) {
     if(this->mResource == nullptr) return RC_INVALID_VALUE;
 
-    int32_t resourceOpInfo = 0;
+    int32_t resourceResInfo = 0;
     try {
-        resourceOpInfo = (int32_t)stoi(opInfoString, nullptr, 0);
-        this->mResource->setOperationalInfo(resourceOpInfo);
+        resourceResInfo = (int32_t)stoi(resInfoString, nullptr, 0);
+        this->mResource->setResInfo(resourceResInfo);
     } catch(const std::invalid_argument& e) {
         TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
         return RC_INVALID_VALUE;
@@ -380,16 +380,16 @@ ErrCode ResourceBuilder::addValue(int32_t value) {
     }
 
     if(this->mResource->getValuesCount() == 1) {
-        this->mResource->mConfigValue.singleValue = value;
+        this->mResource->mResValue.value = value;
     } else {
-        if(this->mResource->mConfigValue.valueArray == nullptr) {
-            this->mResource->mConfigValue.valueArray = new(std::nothrow) std::vector<int32_t>;
-            if(this->mResource->mConfigValue.valueArray == nullptr) {
+        if(this->mResource->mResValue.values == nullptr) {
+            this->mResource->mResValue.values = new(std::nothrow) std::vector<int32_t>;
+            if(this->mResource->mResValue.values == nullptr) {
                 return RC_INVALID_VALUE;
             }
         }
         try {
-            this->mResource->mConfigValue.valueArray->push_back(value);
+            this->mResource->mResValue.values->push_back(value);
         } catch(const std::bad_alloc& e) {
             return RC_INVALID_VALUE;
         }

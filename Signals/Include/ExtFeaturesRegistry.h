@@ -7,10 +7,15 @@
 #include <vector>
 #include <memory>
 #include <unordered_map>
+#include <dlfcn.h>
 
 #include "SignalExtFeatureMapper.h"
 #include "Utils.h"
 #include "Logger.h"
+
+#define INITIALIZE_FEATURE_ROUTINE "initFeature"
+#define TEARDOWN_FEATURE_ROUTINE "tearFeature"
+#define RELAY_FEATURE_ROUTINE "relayFeature"
 
 typedef struct {
     uint32_t mFeatureId;
@@ -18,6 +23,8 @@ typedef struct {
     std::string mFeatureName;
     std::vector<uint32_t>* mSignalsSubscribedTo;
 } ExtFeatureInfo;
+
+typedef void (*ExtFeature)(void);
 
 class ExtFeaturesRegistry {
 private:
@@ -42,6 +49,12 @@ public:
 
     void displayExtFeatures();
 
+    void initializeFeatures();
+
+    void teardownFeatures();
+
+    ErrCode relayToFeature(uint32_t featureId);
+
     static std::shared_ptr<ExtFeaturesRegistry> getInstance() {
         if(extFeaturesRegistryInstance == nullptr) {
             extFeaturesRegistryInstance = std::shared_ptr<ExtFeaturesRegistry> (new ExtFeaturesRegistry());
@@ -60,7 +73,7 @@ public:
     ErrCode setId(const std::string& featureIdString);
     ErrCode setName(const std::string& featureName);
     ErrCode setLib(const std::string& featureLib);
-    ErrCode addSignalSubscribedTo(const std::string& signalOpCodeString);
+    ErrCode addSignalSubscribedTo(const std::string& sigCodeString);
 
     ExtFeatureInfo* build();
 };
