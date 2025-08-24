@@ -2694,9 +2694,9 @@ namespace CGroupApplicationTests {
     static void RunTestGroup() {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
-        // TestWriteAndReset1();
-        // TestWriteAndReset2();
-        // TestWriteAndReset3();
+        TestWriteAndReset1();
+        TestWriteAndReset2();
+        TestWriteAndReset3();
         TestWriteAndReset4();
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
@@ -2705,19 +2705,19 @@ namespace CGroupApplicationTests {
 
 int32_t main(int32_t argc, const char* argv[]) {
     // Run the Tests
-    // RUN_TEST(TestHandleGeneration)
+    RUN_TEST(TestHandleGeneration)
 
     // Request-Verification Tests
-    // ResourceTuningRequestVerification::RunTestGroup();
-    // SignalVerification::RunTestGroup();
+    ResourceTuningRequestVerification::RunTestGroup();
+    SignalVerification::RunTestGroup();
 
-    // // Request Application Tests
-    // RequestApplicationTests::RunTestGroup();
+    // Request Application Tests
+    RequestApplicationTests::RunTestGroup();
 
-    // // Tests on Real Sysfs Nodes (QLI)
-    // SystemSysfsNodesTests::RunTestGroup();
+    // Tests on Real Sysfs Nodes (QLI)
+    SystemSysfsNodesTests::RunTestGroup();
 
-    // SignalApplicationTests::RunTestGroup();
+    SignalApplicationTests::RunTestGroup();
 
     CGroupApplicationTests::RunTestGroup();
 
