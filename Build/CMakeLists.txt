@@ -94,11 +94,11 @@ endif()
 
 # Install headers
 install(DIRECTORY ../Core/Client/APIs/Include/ DESTINATION include/ResourceTuner)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}../Core/Extensions/Include/ DESTINATION include/ResourceTuner)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/../Core/Extensions/Include/ DESTINATION include/ResourceTuner)
 
 # Install core config files
 install(
-  DIRECTORY ${CMAKE_SOURCE_DIR}/Core/Configs/
+  DIRECTORY ${CMAKE_SOURCE_DIR}/../Core/Configs/
   DESTINATION /etc/resource-tuner/common/
   FILES_MATCHING
   PATTERN "*.yaml"
@@ -107,7 +107,7 @@ install(
 
 # Install Signal config files
 install(
-  DIRECTORY ${CMAKE_SOURCE_DIR}/Signals/Configs/
+  DIRECTORY ${CMAKE_SOURCE_DIR}/../Signals/Configs/
   DESTINATION /etc/resource-tuner/common/
   FILES_MATCHING
   PATTERN "*.yaml"
@@ -117,7 +117,7 @@ install(
 # Install Test Configs, if BUILD_TEST is enabled
 if(BUILD_TESTS)
   install(
-    DIRECTORY ${CMAKE_SOURCE_DIR}/Tests/Configs/
+    DIRECTORY ${CMAKE_SOURCE_DIR}/../Tests/Configs/
     DESTINATION /etc/resource-tuner/tests/Configs/
     FILES_MATCHING
     PATTERN "*.yaml"
@@ -128,7 +128,7 @@ endif()
 # Install Custom Resource Nodes, if BUILD_TEST is enabled
 if(BUILD_TESTS)
   install(
-    DIRECTORY ${CMAKE_SOURCE_DIR}/Tests/Configs/ResourceSysFsNodes/
+    DIRECTORY ${CMAKE_SOURCE_DIR}/../Tests/Configs/ResourceSysFsNodes/
     DESTINATION /etc/resource-tuner/tests/Configs/ResourceSysFsNodes/
     PATTERN "*"
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
