@@ -94,7 +94,7 @@ endif()
 
 # Install headers
 install(DIRECTORY ../Core/Client/APIs/Include/ DESTINATION include/ResourceTuner)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/../Core/Extensions/Include/ DESTINATION include/ResourceTuner)
+install(DIRECTORY ../Core/Extensions/Include/ DESTINATION include/ResourceTuner)
 
 # Install core config files
 install(
