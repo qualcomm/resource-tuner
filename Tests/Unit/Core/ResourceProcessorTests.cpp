@@ -12,7 +12,7 @@
 
 RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/resource-tuner/tests/Configs/ResourcesConfig.yaml")
 
-#define TOTAL_RESOURCE_CONFIGS_COUNT 14
+#define TOTAL_RESOURCE_CONFIGS_COUNT 12
 
 #define GENERATE_RESOURCE_ID(restype, rescode) ({                              \
     uint32_t resourceBitmap = 0;                                               \

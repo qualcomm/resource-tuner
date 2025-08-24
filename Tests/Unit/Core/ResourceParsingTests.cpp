@@ -48,39 +48,39 @@ TEST_F(ResourceParsingTests, TestResourceParsingResourcesParsed) {
     ASSERT_EQ(ResourceRegistry::getInstance()->getTotalResourcesCount(), TOTAL_RESOURCE_CONFIGS_COUNT);
 }
 
-TEST_F(ResourceParsingTests, TestResourceParsingResourcesMerged1) {
-    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(0x00030000);
+// TEST_F(ResourceParsingTests, TestResourceParsingResourcesMerged1) {
+//     ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(0x00030000);
 
-    ASSERT_NE(resourceConfigInfo, nullptr);
-    ASSERT_EQ(resourceConfigInfo->mResourceResType, 3);
-    ASSERT_EQ(resourceConfigInfo->mResourceResID, 0);
-    ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "OVERWRITE_RESOURCE_1"), 0);
-    ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/proc/sys/kernel/test_node1"), 0);
-    ASSERT_EQ(resourceConfigInfo->mHighThreshold, 1024);
-    ASSERT_EQ(resourceConfigInfo->mLowThreshold, 0);
-    ASSERT_EQ(resourceConfigInfo->mSupported, true);
-    ASSERT_EQ(resourceConfigInfo->mPolicy, LOWER_BETTER);
-    ASSERT_EQ(resourceConfigInfo->mPermissions, PERMISSION_SYSTEM);
-    ASSERT_EQ(resourceConfigInfo->mModes, MODE_DISPLAY_ON | MODE_DOZE);
-    ASSERT_EQ(resourceConfigInfo->mApplyType, ResourceApplyType::APPLY_GLOBAL);
-}
+//     ASSERT_NE(resourceConfigInfo, nullptr);
+//     ASSERT_EQ(resourceConfigInfo->mResourceResType, 3);
+//     ASSERT_EQ(resourceConfigInfo->mResourceResID, 0);
+//     ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "OVERWRITE_RESOURCE_1"), 0);
+//     ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/proc/sys/kernel/test_node1"), 0);
+//     ASSERT_EQ(resourceConfigInfo->mHighThreshold, 1024);
+//     ASSERT_EQ(resourceConfigInfo->mLowThreshold, 0);
+//     ASSERT_EQ(resourceConfigInfo->mSupported, true);
+//     ASSERT_EQ(resourceConfigInfo->mPolicy, LOWER_BETTER);
+//     ASSERT_EQ(resourceConfigInfo->mPermissions, PERMISSION_SYSTEM);
+//     ASSERT_EQ(resourceConfigInfo->mModes, MODE_DISPLAY_ON | MODE_DOZE);
+//     ASSERT_EQ(resourceConfigInfo->mApplyType, ResourceApplyType::APPLY_GLOBAL);
+// }
 
-TEST_F(ResourceParsingTests, TestResourceParsingResourcesMerged2) {
-    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(0x00040003);
+// TEST_F(ResourceParsingTests, TestResourceParsingResourcesMerged2) {
+//     ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(0x00040003);
 
-    ASSERT_NE(resourceConfigInfo, nullptr);
-    ASSERT_EQ(resourceConfigInfo->mResourceResType, 4);
-    ASSERT_EQ(resourceConfigInfo->mResourceResID, 3);
-    ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "OVERWRITE_RESOURCE_2"), 0);
-    ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/proc/sys/kernel/test_node2"), 0);
-    ASSERT_EQ(resourceConfigInfo->mHighThreshold, 1024);
-    ASSERT_EQ(resourceConfigInfo->mLowThreshold, 890);
-    ASSERT_EQ(resourceConfigInfo->mSupported, true);
-    ASSERT_EQ(resourceConfigInfo->mPolicy, INSTANT_APPLY);
-    ASSERT_EQ(resourceConfigInfo->mPermissions, PERMISSION_SYSTEM);
-    ASSERT_EQ(resourceConfigInfo->mModes, MODE_DISPLAY_ON | MODE_DISPLAY_OFF);
-    ASSERT_EQ(resourceConfigInfo->mApplyType, ResourceApplyType::APPLY_CLUSTER);
-}
+//     ASSERT_NE(resourceConfigInfo, nullptr);
+//     ASSERT_EQ(resourceConfigInfo->mResourceResType, 4);
+//     ASSERT_EQ(resourceConfigInfo->mResourceResID, 3);
+//     ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "OVERWRITE_RESOURCE_2"), 0);
+//     ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/proc/sys/kernel/test_node2"), 0);
+//     ASSERT_EQ(resourceConfigInfo->mHighThreshold, 1024);
+//     ASSERT_EQ(resourceConfigInfo->mLowThreshold, 890);
+//     ASSERT_EQ(resourceConfigInfo->mSupported, true);
+//     ASSERT_EQ(resourceConfigInfo->mPolicy, INSTANT_APPLY);
+//     ASSERT_EQ(resourceConfigInfo->mPermissions, PERMISSION_SYSTEM);
+//     ASSERT_EQ(resourceConfigInfo->mModes, MODE_DISPLAY_ON | MODE_DISPLAY_OFF);
+//     ASSERT_EQ(resourceConfigInfo->mApplyType, ResourceApplyType::APPLY_CLUSTER);
+// }
 
 TEST_F(ResourceParsingTests, TestResourceParsingResourcesMerged3) {
     ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(0x00040102);

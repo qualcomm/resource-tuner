@@ -78,6 +78,22 @@ static int32_t getOnlineCpuCount() {
     return 0;
 }
 
+// Create all the CGroups specified via InitConfig.yaml during the init phase.
+static ErrCode createCGroup(CGroupConfigInfo* cGroupConfig) {
+    if(cGroupConfig == nullptr) return RC_BAD_ARG;
+
+    std::string cGroupPath = ResourceTunerSettings::mBaseCGroupPath + cGroupConfig->mCgroupName;
+    if(mkdir(cGroupPath.c_str(), 0755) == 0) {
+        if(cGroupConfig->isThreaded) {
+            AuxRoutines::writeToFile(cGroupPath + "/cgroup.type", "threaded");
+        }
+    } else {
+        TYPELOGV(ERRNO_LOG, "mkdir", strerror(errno));
+    }
+
+    return RC_SUCCESS;
+}
+
 std::shared_ptr<TargetRegistry> TargetRegistry::targetRegistryInstance = nullptr;
 TargetRegistry::TargetRegistry() {
     ResourceTunerSettings::targetConfigs.totalClusterCount = ClusterTypes::TOTAL_CLUSTER_COUNT;
@@ -102,6 +118,13 @@ void TargetRegistry::addCGroupMapping(CGroupConfigInfo* cGroupConfigInfo) {
 
     if(cGroupConfigInfo->mCgroupID == -1 || cGroupConfigInfo->mCgroupName.length() == 0) {
         delete cGroupConfigInfo;
+        return;
+    }
+
+    int32_t cGroupIdentifier = cGroupConfigInfo->mCgroupID;
+    ErrCode opStatus = createCGroup(cGroupConfigInfo);
+
+    if(RC_IS_NOTOK(opStatus)) {
         return;
     }
 
