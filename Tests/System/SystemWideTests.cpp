@@ -616,7 +616,7 @@ namespace ResourceTuningRequestVerification {
 
 /*
 * =========================================================
-*   TEST CATEGORY - II: "SYSSIGNAL REQUEST-VERIFICATION"
+*   TEST CATEGORY - II: "SIGNAL REQUEST-VERIFICATION"
 * =========================================================
 */
 
@@ -1161,8 +1161,11 @@ namespace RequestApplicationTests {
             resourceList[0].mNumValues = 1;
             resourceList[0].mResValue.value = 578;
 
-            handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+            handle = tuneResources(15000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
+            // Give enough time for Resource Tuner to read process status
+            // Else the Request will be dropped
+            std::this_thread::sleep_for(std::chrono::seconds(3));
             exit(EXIT_SUCCESS);
 
         } else if(rc1 > 0) {
@@ -1181,8 +1184,9 @@ namespace RequestApplicationTests {
                 resourceList[0].mNumValues = 1;
                 resourceList[0].mResValue.value = 445;
 
-                handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+                handle = tuneResources(15000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
+                std::this_thread::sleep_for(std::chrono::seconds(3));
                 exit(EXIT_SUCCESS);
 
             } else if(rc2 > 0) {
@@ -1201,8 +1205,9 @@ namespace RequestApplicationTests {
                     resourceList[0].mNumValues = 1;
                     resourceList[0].mResValue.value = 412;
 
-                    handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+                    handle = tuneResources(15000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
+                    std::this_thread::sleep_for(std::chrono::seconds(3));
                     exit(EXIT_SUCCESS);
 
                 } else if(rc3 > 0) {
@@ -1219,7 +1224,7 @@ namespace RequestApplicationTests {
                     resourceList[0].mNumValues = 1;
                     resourceList[0].mResValue.value = 378;
 
-                    handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+                    handle = tuneResources(15000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
                     std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -1228,7 +1233,7 @@ namespace RequestApplicationTests {
                     newValue = C_STOI(value);
                     assert(newValue == 378);
 
-                    std::this_thread::sleep_for(std::chrono::seconds(8));
+                    std::this_thread::sleep_for(std::chrono::seconds(30));
 
                     value = AuxRoutines::readFromFile(testResourceName);
                     newValue = C_STOI(value);
