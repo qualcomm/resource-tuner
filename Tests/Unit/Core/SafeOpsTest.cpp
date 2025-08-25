@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include <iostream>
-
+#include <cstdint>
 #include "SafeOps.h"
 
 #define RUN_TEST(test)                                              \

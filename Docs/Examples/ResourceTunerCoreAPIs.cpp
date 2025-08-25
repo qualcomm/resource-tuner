@@ -14,6 +14,12 @@
 
 #include <ResourceTuner/ResourceTunerAPIs.h>
 
+#define UCLAMP_MIN_RES 0x00030000
+#define UCLAMP_BOOST_VAL 750
+#define TUNE_DURATION 5000 #duration in msec
+#define FAIL -1
+
+
 // EXAMPLE #1
 // In the following Example the Client Sends:
 // - A Resource Provisioning (Tune) Request to Tune 1 Resource
@@ -58,62 +64,18 @@ void func1() {
     // To set the Background Processing Status as True
     properties |= (1 << 8);
 
-    // Create the List of Resources which need to be Provisioned
-    // Resource Struct Creation
-    SysResource* resourceList = new SysResource[1];
+    SysResource resourceList[] = {
+        {
+            .mResCode = UCLAMP_MIN_RES,
+            .mResInfo = 0,
+            .mOptionalInfo = 0,
+            .mNumValues = 1,
+            .mResValue = {
+                .value = UCLAMP_BOOST_VAL,
+            }
+        }
+    };
 
-    // Initialize Resource struct Fields:
-
-    // Field: mResCode:
-    // Resource Code (ResCode) is a unsigned 32 bit integer
-    // The last 16 bits (17-32) are used to specify the ResId
-    // The next 8 bits (9-16) are used to specify the ResType (type of the Resource)
-    // In addition if you are using Custom Resources, then the MSB must be set to 1 as well.
-    // In this case we are dealing with Default Resources, so need to set the MSB to 1.
-
-    resourceList[0].mResCode = 0x00030000;
-
-    // Field: mResInfo
-    // This field is a 32-bit signed integer, which stores information
-    // Regarding the Logical Core and Cluster values.
-    // These logical Values will be Translated to their corresponding
-    // Physical values in the background and the configured Resource Values
-    // will only take effect on the Specified Physical Core and Cluster.
-    // Note this Value is only meaningful for Resources for which the Config
-    // Field "ApplyType" is set to "Core".
-    // In this case since ApplyType is "global" for R1, hence this field
-    // will not be processed by the Resource Tuner Server
-    resourceList[0].mResInfo = 0;
-    // Note, above line of Code is not necessary, since the field is already initialized
-    // to 0 via the Constructor.
-
-    // Field: mOptionalInfo
-    // TODO
-    resourceList[0].mOptionalInfo = 0;
-    // Note, above line of Code is not necessary, since the field is already initialized
-    // to 0 via the Constructor.
-
-    // Field: mNumValues
-    // Number of Values to be Configured for this Resource
-    // Resource Tuner supports both Single and Multi Valued Resources
-    // Here we consider the example for a single Valued Resource:
-    resourceList[0].mNumValues = 1;
-
-    // Field: mResValue
-    // The value to be Configured for this Resource Node.
-    // mResValue is a union, which contains 2 fields:
-    // int32_t value [Use this field for single Valued Resources]
-    // std::vector<int32_t>* values [Use this field for Multi Valued Resources]
-    // Here since we are dealing with a Single Valued Resource, hence we'll use
-    // the 32 bit integer field (value)
-    // Let's say we want to configure a value of 750 for this Resource,
-    // Notice from the Resource Config that the allowed Configurable Range for this
-    // Resource is [0 - 1024].
-    resourceList[0].mResValue.value = 750;
-
-    // Now our Resource List is fully constructed
-
-    // Finally we can issue the Resource Provisioning (or Tune) Request
     int64_t handle = tuneResources(duration, properties, 1, resourceList);
 
     // Check the Returned Handle
