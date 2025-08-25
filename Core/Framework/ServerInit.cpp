@@ -59,6 +59,7 @@ static ErrCode fetchResources() {
         TYPELOGV(NOTIFY_PARSING_FAILURE, "Common-Resource");
         return opStatus;
     }
+    TYPELOGV(NOTIFY_PARSING_SUCCESS, "Common-Resource");
 
     filePath = Extensions::getResourceConfigFilePath();
     if(filePath.length() > 0) {
@@ -69,6 +70,8 @@ static ErrCode fetchResources() {
             TYPELOGV(NOTIFY_PARSING_FAILURE, "Custom-Resource");
             return opStatus;
         }
+        TYPELOGV(NOTIFY_PARSING_SUCCESS, "Custom-Resource");
+
     } else {
         TYPELOGV(NOTIFY_PARSING_START, "Custom-Resource");
         filePath = ResourceTunerSettings::mCustomResourceFilePath;
@@ -76,15 +79,14 @@ static ErrCode fetchResources() {
         if(RC_IS_NOTOK(opStatus)) {
             if(opStatus == RC_FILE_NOT_FOUND) {
                 TYPELOGV(NOTIFY_PARSER_FILE_NOT_FOUND, "Custom-Resource", filePath.c_str());
-                TYPELOGV(NOTIFY_PARSING_SUCCESS, "Resource");
                 return RC_SUCCESS;
             }
-            TYPELOGV(NOTIFY_PARSING_FAILURE, "Resource");
+            TYPELOGV(NOTIFY_PARSING_FAILURE, "Custom-Resource");
             return opStatus;
         }
+        TYPELOGV(NOTIFY_PARSING_SUCCESS, "Custom-Resource");
     }
 
-    TYPELOGV(NOTIFY_PARSING_SUCCESS, "Resource");
     return opStatus;
 }
 
@@ -102,9 +104,9 @@ static ErrCode fetchInitInfo() {
         if(RC_IS_NOTOK(opStatus)) {
             TYPELOGV(NOTIFY_PARSING_FAILURE, "Target");
             return opStatus;
-        } else {
-            TYPELOGV(NOTIFY_PARSING_SUCCESS, "Target");
         }
+        TYPELOGV(NOTIFY_PARSING_SUCCESS, "Target");
+
     } else {
         TYPELOGV(NOTIFY_PARSING_START, "Target");
         filePath = ResourceTunerSettings::mCustomTargetFilePath;
@@ -115,21 +117,42 @@ static ErrCode fetchInitInfo() {
                 return opStatus;
             } else {
                 TYPELOGV(NOTIFY_PARSER_FILE_NOT_FOUND, "Target", filePath.c_str());
+                opStatus = RC_SUCCESS;
             }
+        } else {
+            TYPELOGV(NOTIFY_PARSING_SUCCESS, "Target");
         }
-        TYPELOGV(NOTIFY_PARSING_SUCCESS, "Target");
     }
 
-    TYPELOGV(NOTIFY_PARSING_START, "Init");
+    // Init Configs is optional, i.e. file InitConfig.yaml need not be provided.
+    filePath = Extensions::getInitConfigFilePath();
+    if(filePath.length() > 0) {
+        // Custom Target Config file has been provided by BU
+        TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, "Init", filePath.c_str());
+        opStatus = configProcessor.parseTargetConfigs(filePath);
+        if(RC_IS_NOTOK(opStatus)) {
+            TYPELOGV(NOTIFY_PARSING_FAILURE, "Init");
+            return opStatus;
+        }
+        TYPELOGV(NOTIFY_PARSING_SUCCESS, "Init");
 
-    const std::string initConfigFilePath = ResourceTunerSettings::mInitConfigFilePath;
-    opStatus = configProcessor.parseInitConfigs(initConfigFilePath);
-    if(RC_IS_NOTOK(opStatus)) {
-        TYPELOGV(NOTIFY_PARSING_FAILURE, "Init");
-        return opStatus;
+    } else {
+        TYPELOGV(NOTIFY_PARSING_START, "Init");
+        filePath = ResourceTunerSettings::mInitConfigFilePath;
+        opStatus = configProcessor.parseTargetConfigs(filePath);
+        if(RC_IS_NOTOK(opStatus)) {
+            if(opStatus != RC_FILE_NOT_FOUND) {
+                TYPELOGV(NOTIFY_PARSING_FAILURE, "Init");
+                return opStatus;
+            } else {
+                TYPELOGV(NOTIFY_PARSER_FILE_NOT_FOUND, "Init", filePath.c_str());
+                opStatus = RC_SUCCESS;
+            }
+        } else {
+            TYPELOGV(NOTIFY_PARSING_SUCCESS, "Init");
+        }
     }
 
-    TYPELOGV(NOTIFY_PARSING_SUCCESS, "Init");
     return opStatus;
 }
 

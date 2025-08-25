@@ -92,7 +92,7 @@ void sendUntuneRequest(int64_t handle) {
 
 static void sendSysConfigRequest(const char* prop) {
     char buffer[1024];
-    int8_t status = getprop(prop, buffer, sizeof(buffer), "prop_not_found");
+    int8_t status = getProp(prop, buffer, sizeof(buffer), "prop_not_found");
     if(status == 0) {
         std::cout<<"Prop Retrieved, value is: "<<buffer<<std::endl;
     } else if(status == -1) {
@@ -228,7 +228,7 @@ int32_t main(int32_t argc, char* argv[]) {
         {"priority", required_argument, nullptr, 'p'},
         {"res", required_argument, nullptr, 'l'},
         {"num", required_argument, nullptr, 'n'},
-        {"getprop", no_argument, nullptr, 'g'},
+        {"getProp", no_argument, nullptr, 'g'},
         {"key", required_argument, nullptr, 'k'},
         {"persistent", no_argument, nullptr, 's'},
         {nullptr, no_argument, nullptr, 0}
@@ -324,7 +324,7 @@ int32_t main(int32_t argc, char* argv[]) {
         case REQ_SYSCONFIG_GET_PROP:
             if(propKey == nullptr) {
                 std::cout<<"Invalid Params for Get Prop request"<< std::endl;
-                std::cout<<"Usage: --getprop --key <key>"<<std::endl;
+                std::cout<<"Usage: --getProp --key <key>"<<std::endl;
                 break;
             }
             sendSysConfigRequest(propKey);

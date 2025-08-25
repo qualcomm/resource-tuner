@@ -53,13 +53,14 @@ public:
     static const std::string mCustomSignalFilePath;
 
     // Only Support Common
-    static const std::string mInitConfigFilePath;
     static const std::string mPropertiesFilePath;
 
     // Only Custom Config is supported for Ext Features Config
     static const std::string mCustomExtFeaturesFilePath;
     // Only Custom Config is supported for Target Config
     static const std::string mCustomTargetFilePath;
+    // Only Custom Config is supported for Target Config
+    static const std::string mInitConfigFilePath;
 
     static const std::string mExtensionsPluginLibPath;
 

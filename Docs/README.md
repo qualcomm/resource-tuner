@@ -545,14 +545,14 @@ int8_t untuneResources(int64_t handle);
 ---
 <div style="page-break-after: always;"></div>
 
-## getprop
+## getProp
 
 **Description:**
 Gets a property from the config store
 
 **Function Signature:**
 ```cpp
-int8_t getprop(const char* prop,
+int8_t getProp(const char* prop,
                char* buffer,
                size_t buffer_size,
                const char* def_value);
@@ -822,17 +822,17 @@ Example:
 ./resource_tuner_cli --retune --handle 7 --duration 8000
 ```
 
-### 4. Send a getprop Request
+### 4. Send a getProp Request
 
 ```bash
-./resource_tuner_cli --getprop --key <>
+./resource_tuner_cli --getProp --key <>
 ```
 Where:
 - `key`: The Prop name of which the corresponding value needs to be fetched
 
 Example:
 ```bash
-./resource_tuner_cli --getprop --key "resource_tuner.logging.level"
+./resource_tuner_cli --getProp --key "resource_tuner.logging.level"
 ```
 
 ### 5. Send a setprop Request

@@ -31,7 +31,7 @@
 #define EXT_FEATURE_ID "FeatId"
 #define EXT_FEATURE_LIB "LibPath"
 #define EXT_FEATURE_NAME "Name"
-#define EXT_FEATURE_SUBSCRIBER_LIST "Subscribers"
+#define EXT_FEATURE_SUBSCRIBER_LIST "Signals"
 
 /**
  * The Signal configuration file (SignalsConfig.yaml) must follow a specific structure.
@@ -65,13 +65,13 @@
  *     Name: "FEAT-1"
  *     LibPath: "/usr/lib/libtesttuner.so"
  *     Description: "Simple Algorithmic Feature, defined by the BU"
- *     Subscribers: ["0x000dbbca", "0x000a00ff"]
+ *     Signals: ["0x000dbbca", "0x000a00ff"]
  *
  *   - FeatId: "0x00000002"
  *     Name: "FEAT-2"
  *     LibPath: "/usr/lib/libpropagate.so"
  *     Description: "Simple Observer-Observable Feature, defined by the BU"
- *     Subscribers: ["0x80a105ea", "0x800ccca5"]
+ *     Signals: ["0x80a105ea", "0x800ccca5"]
  * @endcode
  *
  * @example Ext_Feature_Configs

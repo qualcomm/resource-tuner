@@ -38,21 +38,25 @@ std::vector<std::pair<uint32_t, ResourceLifecycleCallback>> Extensions::getResou
 }
 
 std::string Extensions::getResourceConfigFilePath() {
-    return mModifiedConfigFiles[RESOURCE_CONFIG];
+    return mModifiedConfigFiles[ConfigType::RESOURCE_CONFIG];
 }
 
 std::string Extensions::getPropertiesConfigFilePath() {
-    return mModifiedConfigFiles[PROPERTIES_CONFIG];
+    return mModifiedConfigFiles[ConfigType::PROPERTIES_CONFIG];
 }
 
 std::string Extensions::getSignalsConfigFilePath() {
-    return mModifiedConfigFiles[SIGNALS_CONFIG];
+    return mModifiedConfigFiles[ConfigType::SIGNALS_CONFIG];
 }
 
 std::string Extensions::getExtFeaturesConfigFilePath() {
-    return mModifiedConfigFiles[EXT_FEATURES_CONFIG];
+    return mModifiedConfigFiles[ConfigType::EXT_FEATURES_CONFIG];
 }
 
 std::string Extensions::getTargetConfigFilePath() {
-    return mModifiedConfigFiles[TARGET_CONFIG];
+    return mModifiedConfigFiles[ConfigType::TARGET_CONFIG];
+}
+
+std::string Extensions::getTargetConfigFilePath() {
+    return mModifiedConfigFiles[ConfigType::INIT_CONFIG];
 }
