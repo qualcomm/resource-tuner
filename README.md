@@ -1,11 +1,3 @@
-**After repository creation:**
-- [* ] Update this `README.md`. Update the Project Name, description, and all sections. Remove this checklist.
-- [* ] If required, update `LICENSE.txt` and the License section with your project's approved license
-- [* ] Search this repo for "REPLACE-ME" and update all instances accordingly
-- [* ] Update `CONTRIBUTING.md` as needed
-- [* ] Review the workflows in `.github/workflows`, updating as needed. See https://docs.github.com/en/actions for information on what these files do and how they work.
-- [ ] Review and update the suggested Issue and PR templates as needed in `.github/ISSUE_TEMPLATE` and `.github/PULL_REQUEST_TEMPLATE`
-
 # Resouce Tuner
 
 Resource Tuner is a lightweight daemon that monitors and dynamically regulates CPU, memory, and I/O usage of user-space processes.
@@ -44,12 +36,8 @@ sudo cmake --install .
 ```
 * Install to a custom temporary directory
 ```bash
-cmake --install . --prefix /tmp/systune-install
+cmake --install . --prefix /tmp/ResourceTune-install
 ```
-
-## Usage
-
-Describe how to use the project.
 
 ## Development
 
