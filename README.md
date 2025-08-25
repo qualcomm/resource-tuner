@@ -49,7 +49,7 @@ How to contact maintainers. E.g. GitHub Issues, GitHub Discussions could be indi
 
 * [Report an Issue on GitHub](../../issues)
 * [Open a Discussion on GitHub](../../discussions)
-* [E-mail us](mailto:CSE.Perf.dev@qti.qualcomm.com) for general questions
+* [E-mail us](mailto:maintainers.resource-tuner-moderator@qti.qualcomm.com) for general questions
 
 ## License
 
