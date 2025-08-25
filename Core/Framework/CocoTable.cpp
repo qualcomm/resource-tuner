@@ -106,7 +106,7 @@ void CocoTable::applyAction(CocoNode* currNode, int32_t index, int8_t priority) 
     }
 }
 
-void CocoTable::applyDefaultAction(int32_t index, Resource* resource) {
+void CocoTable::removeAction(int32_t index, Resource* resource) {
     if(resource == nullptr) return;
     ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
     if(resourceConfigInfo != nullptr) {
@@ -487,7 +487,7 @@ void CocoTable::processResourceCleanupAt(Request* request, int32_t index) {
             }
         }
         if(allListsEmpty == true) {
-            this->applyDefaultAction(primaryIndex, resource);
+            this->removeAction(primaryIndex, resource);
         }
 
     } else {

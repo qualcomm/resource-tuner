@@ -104,7 +104,7 @@ private:
     CocoTable();
 
     void applyAction(CocoNode* currNode, int32_t index, int8_t priority);
-    void applyDefaultAction(int32_t index, Resource* resource);
+    void removeAction(int32_t index, Resource* resource);
     void processResourceCleanupAt(Request* request, int32_t index);
     int32_t getCocoTablePrimaryIndex(uint32_t opId);
     int32_t getCocoTableSecondaryIndex(Resource* resource, int8_t priority);

@@ -1,22 +1,8 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
+#include "TestUtils.h"
 #include "MemoryPool.h"
-
-#define RUN_TEST(test)                                              \
-do {                                                                \
-    std::cout<<"Running Test: "<<#test<<std::endl;                  \
-    test();                                                         \
-    std::cout<<#test<<": Run Successful"<<std::endl;                \
-    std::cout<<"-------------------------------------"<<std::endl;  \
-} while(false);                                                     \
-
-#define C_ASSERT(cond)                                                               \
-    if(cond == false) {                                                              \
-        std::cerr<<"Condition Check on line:["<<__LINE__<<"]  failed"<<std::endl;    \
-        std::cerr<<"Test: ["<<__func__<<"] Failed, Terminating Suite\n"<<std::endl;  \
-        exit(EXIT_FAILURE);                                                          \
-    }                                                                                \
 
 // Test structure, used for allocation testing
 struct TestBuffer {
