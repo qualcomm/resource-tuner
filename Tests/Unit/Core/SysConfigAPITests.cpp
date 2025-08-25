@@ -1,90 +1,97 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <thread>
 #include <cstdint>
-#include <gtest/gtest.h>
 #include <string.h>
+#include <thread>
 
 #include "Utils.h"
-#include "Extensions.h"
 #include "SysConfigInternal.h"
 #include "SysConfigPropRegistry.h"
 #include "SysConfigProcessor.h"
-#include "Logger.h"
 
-RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/etc/resource-tuner/tests/Configs/PropertiesConfig.yaml")
+#define TOTAL_SYS_CONFIGS_PROPS_COUNT 14
 
-class SysConfigAPITests: public::testing::Test {
-protected:
-    void SetUp() override {
-        static int8_t firstTest = true;
-        if(firstTest) {
-            firstTest = false;
+#define RUN_TEST(test)                                              \
+do {                                                                \
+    std::cout<<"Running Test: "<<#test<<std::endl;                  \
+    test();                                                         \
+    std::cout<<#test<<": Run Successful"<<std::endl;                \
+    std::cout<<"-------------------------------------"<<std::endl;  \
+} while(false);                                                     \
 
-            SysConfigProcessor sysConfigProcessor;
+#define C_ASSERT(cond)                                                              \
+    if(cond == false) {                                                             \
+        std::cerr<<"Condition Check on line:["<<__LINE__<<"]  failed"<<std::endl; \
+        std::cerr<<"Test: ["<<__func__<<"] Failed, Terminating Suite\n"<<std::endl;  \
+        exit(EXIT_FAILURE);                                                         \
+    }                                                                               \
 
-            if(RC_IS_NOTOK(sysConfigProcessor.parseSysConfigs(Extensions::getPropertiesConfigFilePath()))) {
-                return;
-            }
-        }
+static void Init() {
+    SysConfigProcessor sysConfigProcessor;
+    if(RC_IS_NOTOK(sysConfigProcessor.parseSysConfigs("/etc/resource-tuner/tests/Configs/PropertiesConfig.yaml"))) {
+        return;
     }
-};
-
-TEST_F(SysConfigAPITests, TestSysConfigPropertiesParsing) {
-    ASSERT_EQ(SysConfigPropRegistry::getInstance()->getPropertiesCount(), 14);
 }
 
-TEST_F(SysConfigAPITests, TestSysConfigGetPropSimpleRetrieval1) {
+static void TestSysConfigProcessorYAMLDataIntegrity1() {
+    C_ASSERT(SysConfigPropRegistry::getInstance() != nullptr);
+}
+
+static void TestSysConfigPropertiesParsing() {
+    C_ASSERT(SysConfigPropRegistry::getInstance()->getPropertiesCount() == TOTAL_SYS_CONFIGS_PROPS_COUNT);
+}
+
+static void TestSysConfigGetPropSimpleRetrieval1() {
     std::string resultBuffer;
 
     int8_t propFound = sysConfigGetProp("test.debug.enabled", resultBuffer, sizeof(resultBuffer), "false");
 
-    ASSERT_EQ(propFound, true);
-    ASSERT_EQ(strcmp(resultBuffer.c_str(), "true"), 0);
+    C_ASSERT(propFound == true);
+    C_ASSERT(strcmp(resultBuffer.c_str(), "true") == 0);
 }
 
-TEST_F(SysConfigAPITests, TestSysConfigGetPropSimpleRetrieval2) {
+static void TestSysConfigGetPropSimpleRetrieval2() {
     std::string resultBuffer;
 
     int8_t propFound = sysConfigGetProp("test.current.worker_thread.count", resultBuffer, sizeof(resultBuffer), "false");
 
-    ASSERT_EQ(propFound, true);
-    ASSERT_EQ(strcmp(resultBuffer.c_str(), "125"), 0);
+    C_ASSERT(propFound == true);
+    C_ASSERT(strcmp(resultBuffer.c_str(), "125") == 0);
 }
 
-TEST_F(SysConfigAPITests, TestSysConfigGetPropSimpleRetrievalInvalidProperty) {
+static void TestSysConfigGetPropSimpleRetrievalInvalidProperty() {
     std::string resultBuffer;
 
     int8_t propFound = sysConfigGetProp("test.historic.worker_thread.count", resultBuffer, sizeof(resultBuffer), "5");
 
-    ASSERT_EQ(propFound, false);
-    ASSERT_EQ(strcmp(resultBuffer.c_str(), "5"), 0);
+    C_ASSERT(propFound == false);
+    C_ASSERT(strcmp(resultBuffer.c_str(), "5") == 0);
 }
 
-TEST_F(SysConfigAPITests, TestSysConfigGetPropConcurrentRetrieval) {
+static void TestSysConfigGetPropConcurrentRetrieval() {
     std::thread th1([&]{
         std::string resultBuffer;
         int8_t propFound = sysConfigGetProp("test.current.worker_thread.count", resultBuffer, sizeof(resultBuffer), "false");
 
-        ASSERT_EQ(propFound, true);
-        ASSERT_EQ(strcmp(resultBuffer.c_str(), "125"), 0);
+        C_ASSERT(propFound == true);
+        C_ASSERT(strcmp(resultBuffer.c_str(), "125") == 0);
     });
 
     std::thread th2([&]{
         std::string resultBuffer;
         int8_t propFound = sysConfigGetProp("test.debug.enabled", resultBuffer, sizeof(resultBuffer), "false");
 
-        ASSERT_EQ(propFound, true);
-        ASSERT_EQ(strcmp(resultBuffer.c_str(), "true"), 0);
+        C_ASSERT(propFound == true);
+        C_ASSERT(strcmp(resultBuffer.c_str(), "true") == 0);
     });
 
     std::thread th3([&]{
         std::string resultBuffer;
         int8_t propFound = sysConfigGetProp("test.doc.build.mode.enabled", resultBuffer, sizeof(resultBuffer), "false");
 
-        ASSERT_EQ(propFound, true);
-        ASSERT_EQ(strcmp(resultBuffer.c_str(), "false"), 0);
+        C_ASSERT(propFound == true);
+        C_ASSERT(strcmp(resultBuffer.c_str(), "false") == 0);
     });
 
     th1.join();
@@ -92,20 +99,35 @@ TEST_F(SysConfigAPITests, TestSysConfigGetPropConcurrentRetrieval) {
     th3.join();
 }
 
-TEST_F(SysConfigAPITests, TestSysConfigSetPropSimpleModification) {
+static void TestSysConfigSetPropSimpleModification() {
     std::string resultBuffer;
 
     int8_t propFound = sysConfigGetProp("test.current.worker_thread.count", resultBuffer, sizeof(resultBuffer), "0");
 
-    ASSERT_EQ(propFound, true);
-    ASSERT_EQ(strcmp(resultBuffer.c_str(), "125"), 0);
+    C_ASSERT(propFound == true);
+    C_ASSERT(strcmp(resultBuffer.c_str(), "125") == 0);
 
     int8_t modificationStatus = sysConfigSetProp("test.current.worker_thread.count", "144");
 
-    ASSERT_EQ(modificationStatus, true);
+    C_ASSERT(modificationStatus == true);
 
     propFound = sysConfigGetProp("test.current.worker_thread.count", resultBuffer, sizeof(resultBuffer), "0");
 
-    ASSERT_EQ(propFound, true);
-    ASSERT_EQ(strcmp(resultBuffer.c_str(), "144"), 0);
+    C_ASSERT(propFound == true);
+    C_ASSERT(strcmp(resultBuffer.c_str(), "144") == 0);
+}
+
+int32_t main() {
+    std::cout<<"Running SysConfig API Test Suite\n"<<std::endl;
+
+    Init();
+    RUN_TEST(TestSysConfigPropertiesParsing);
+    RUN_TEST(TestSysConfigProcessorYAMLDataIntegrity1);
+    RUN_TEST(TestSysConfigGetPropSimpleRetrieval1);
+    RUN_TEST(TestSysConfigGetPropSimpleRetrieval2);
+    RUN_TEST(TestSysConfigGetPropSimpleRetrievalInvalidProperty);
+    RUN_TEST(TestSysConfigGetPropConcurrentRetrieval);
+    RUN_TEST(TestSysConfigSetPropSimpleModification);
+
+    std::cout<<"\nAll Tests from the suite SysConfig API Tests, executed successfully"<<std::endl;
 }

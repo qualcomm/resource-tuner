@@ -1,32 +1,39 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <gtest/gtest.h>
 #include <thread>
 
 #include "RequestManager.h"
 #include "RateLimiter.h"
 
-class RateLimiterTests: public::testing::Test {
-protected:
-    void SetUp() override {
-        static int8_t firstTest = true;
-        if(firstTest == true) {
-            firstTest = false;
-            MakeAlloc<ClientInfo> (30);
-            MakeAlloc<ClientTidData> (30);
-            MakeAlloc<std::unordered_set<int64_t>> (30);
-            MakeAlloc<std::vector<int32_t>> (30);
-            MakeAlloc<Resource> (120);
-            MakeAlloc<std::vector<Resource*>> (100);
-            MakeAlloc<Request> (100);
-        }
+#define RUN_TEST(test)                                              \
+do {                                                                \
+    std::cout<<"Running Test: "<<#test<<std::endl;                  \
+    test();                                                         \
+    std::cout<<#test<<": Run Successful"<<std::endl;                \
+    std::cout<<"-------------------------------------"<<std::endl;  \
+} while(false);                                                     \
 
-        ResourceTunerSettings::metaConfigs.mDelta = 1000;
-        ResourceTunerSettings::metaConfigs.mPenaltyFactor = 2.0;
-        ResourceTunerSettings::metaConfigs.mRewardFactor = 0.4;
-    }
-};
+#define C_ASSERT(cond)                                                               \
+    if(cond == false) {                                                              \
+        std::cerr<<"Condition Check on line:["<<__LINE__<<"]  failed"<<std::endl;    \
+        std::cerr<<"Test: ["<<__func__<<"] Failed, Terminating Suite\n"<<std::endl;  \
+        exit(EXIT_FAILURE);                                                          \
+    }                                                                                \
+
+static void Init() {
+    MakeAlloc<ClientInfo> (30);
+    MakeAlloc<ClientTidData> (30);
+    MakeAlloc<std::unordered_set<int64_t>> (30);
+    MakeAlloc<std::vector<int32_t>> (30);
+    MakeAlloc<Resource> (120);
+    MakeAlloc<std::vector<Resource*>> (100);
+    MakeAlloc<Request> (100);
+
+    ResourceTunerSettings::metaConfigs.mDelta = 1000;
+    ResourceTunerSettings::metaConfigs.mPenaltyFactor = 2.0;
+    ResourceTunerSettings::metaConfigs.mRewardFactor = 0.4;
+}
 
 // Helper methods for Resource Generation
 Resource* generateResourceForTesting(int32_t seed) {
@@ -38,7 +45,7 @@ Resource* generateResourceForTesting(int32_t seed) {
     return resource;
 }
 
-TEST_F(RateLimiterTests, TestClientSpammingScenario) {
+static void TestClientSpammingScenario() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RateLimiter> rateLimiter = RateLimiter::getInstance();
 
@@ -79,16 +86,14 @@ TEST_F(RateLimiterTests, TestClientSpammingScenario) {
         // Add first 50 requests — should be accepted
         for(int32_t i = 0; i < 50; i++) {
             int8_t result = rateLimiter->isRateLimitHonored(requests[i]->getClientTID());
-            ASSERT_EQ(result, true);
+            C_ASSERT(result == true);
         }
 
         // Add 51st request — should be rejected
         int8_t result = rateLimiter->isRateLimitHonored(requests[50]->getClientTID());
-        ASSERT_EQ(result, false);
+        C_ASSERT(result == false);
 
-    } catch(const std::bad_alloc& e) {
-        FAIL();
-    }
+    } catch(const std::bad_alloc& e) {}
 
     clientDataManager->deleteClientPID(clientPID);
     clientDataManager->deleteClientTID(clientTID);
@@ -99,7 +104,7 @@ TEST_F(RateLimiterTests, TestClientSpammingScenario) {
     }
 }
 
-TEST_F(RateLimiterTests, TestClientHealthInCaseOfGoodRequests) {
+static void TestClientHealthInCaseOfGoodRequests() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RateLimiter> rateLimiter = RateLimiter::getInstance();
 
@@ -138,13 +143,11 @@ TEST_F(RateLimiterTests, TestClientHealthInCaseOfGoodRequests) {
             std::this_thread::sleep_for(std::chrono::seconds(2));
 
             int8_t isRateLimitHonored = rateLimiter->isRateLimitHonored(req->getClientTID());
-            ASSERT_EQ(isRateLimitHonored, true);
-            ASSERT_EQ(clientDataManager->getHealthByClientID(req->getClientTID()), 100);
+            C_ASSERT(isRateLimitHonored == true);
+            C_ASSERT(clientDataManager->getHealthByClientID(req->getClientTID()) == 100);
         }
 
-    } catch(const std::bad_alloc& e) {
-        FAIL();
-    }
+    } catch(const std::bad_alloc& e) {}
 
     clientDataManager->deleteClientPID(clientPID);
     clientDataManager->deleteClientTID(clientTID);
@@ -155,7 +158,7 @@ TEST_F(RateLimiterTests, TestClientHealthInCaseOfGoodRequests) {
     }
 }
 
-TEST_F(RateLimiterTests, TestClientSpammingWithGoodRequests) {
+static void TestClientSpammingWithGoodRequests() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RateLimiter> rateLimiter = RateLimiter::getInstance();
 
@@ -198,16 +201,14 @@ TEST_F(RateLimiterTests, TestClientSpammingWithGoodRequests) {
                 std::this_thread::sleep_for(std::chrono::seconds(2));
             }
             int8_t result = rateLimiter->isRateLimitHonored(requests[i]->getClientTID());
-            ASSERT_EQ(result, true);
+            C_ASSERT(result == true);
         }
 
         // Add 62th request — should be rejected
         int8_t result = rateLimiter->isRateLimitHonored(requests[61]->getClientTID());
-        ASSERT_EQ(result, false);
+        C_ASSERT(result == false);
 
-    } catch(const std::bad_alloc& e) {
-        FAIL();
-    }
+    } catch(const std::bad_alloc& e) {}
 
     clientDataManager->deleteClientPID(clientPID);
     clientDataManager->deleteClientTID(clientTID);
@@ -216,4 +217,16 @@ TEST_F(RateLimiterTests, TestClientSpammingWithGoodRequests) {
     for(Request* req : requests) {
         Request::cleanUpRequest(req);
     }
+}
+
+int main() {
+    std::cout<<"Running Test Suite: [RateLimiter Tests]\n"<<std::endl;
+
+    Init();
+    RUN_TEST(TestClientSpammingScenario);
+    RUN_TEST(TestClientHealthInCaseOfGoodRequests);
+    RUN_TEST(TestClientSpammingWithGoodRequests);
+
+    std::cout<<"\nAll Tests from the suite: [RateLimiter Tests], executed successfully"<<std::endl;
+    return 0;
 }

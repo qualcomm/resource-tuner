@@ -3,14 +3,26 @@
 
 #include <thread>
 #include <cstdint>
-#include <gtest/gtest.h>
 
 #include "ConfigProcessor.h"
 #include "ResourceRegistry.h"
 #include "Extensions.h"
 #include "Utils.h"
 
-RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/resource-tuner/tests/Configs/ResourcesConfig.yaml")
+#define RUN_TEST(test)                                              \
+do {                                                                \
+    std::cout<<"Running Test: "<<#test<<std::endl;                  \
+    test();                                                         \
+    std::cout<<#test<<": Run Successful"<<std::endl;                \
+    std::cout<<"-------------------------------------"<<std::endl;  \
+} while(false);                                                     \
+
+#define C_ASSERT(cond)                                                               \
+    if(cond == false) {                                                              \
+        std::cerr<<"Condition Check on line:["<<__LINE__<<"]  failed"<<std::endl;    \
+        std::cerr<<"Test: ["<<__func__<<"] Failed, Terminating Suite\n"<<std::endl;  \
+        exit(EXIT_FAILURE);                                                          \
+    }                                                                                \
 
 #define TOTAL_RESOURCE_CONFIGS_COUNT 12
 
@@ -22,76 +34,83 @@ RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/resource-tuner/tests/Configs/Reso
     resourceBitmap;                                                            \
 })
 
-class ResourceProcessorTests: public::testing::Test {
-protected:
-    void SetUp() override {
-        static int8_t firstTest = true;
-        if(firstTest) {
-            firstTest = false;
-            ConfigProcessor configProcessor;
+static void Init() {
+    ConfigProcessor configProcessor;
 
-            if(RC_IS_NOTOK(configProcessor.parseResourceConfigs(Extensions::getResourceConfigFilePath(), true))) {
-                return;
-            }
-        }
+    if(RC_IS_NOTOK(configProcessor.parseResourceConfigs("/etc/resource-tuner/tests/Configs/ResourcesConfig.yaml", true))) {
+        return;
     }
-};
-
-TEST_F(ResourceProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity1) {
-    ASSERT_NE(ResourceRegistry::getInstance(), nullptr);
 }
 
-TEST_F(ResourceProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity2) {
-    ASSERT_EQ(ResourceRegistry::getInstance()->getTotalResourcesCount(), TOTAL_RESOURCE_CONFIGS_COUNT);
+static void TestResourceConfigProcessorYAMLDataIntegrity1() {
+    C_ASSERT(ResourceRegistry::getInstance() != nullptr);
 }
 
-TEST_F(ResourceProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity3_1) {
+static void TestResourceConfigProcessorYAMLDataIntegrity2() {
+    C_ASSERT(ResourceRegistry::getInstance()->getTotalResourcesCount() == TOTAL_RESOURCE_CONFIGS_COUNT);
+}
+
+static void TestResourceConfigProcessorYAMLDataIntegrity3_1() {
     ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(GENERATE_RESOURCE_ID(1, 0));
 
-    ASSERT_NE(resourceConfigInfo, nullptr);
-    ASSERT_EQ(resourceConfigInfo->mResourceResType, 1);
-    ASSERT_EQ(resourceConfigInfo->mResourceResID, 0);
-    ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "TEST_RESOURCE_1"), 0);
-    ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min"), 0);
-    ASSERT_EQ(resourceConfigInfo->mHighThreshold, 1024);
-    ASSERT_EQ(resourceConfigInfo->mLowThreshold, 0);
-    ASSERT_EQ(resourceConfigInfo->mSupported, true);
-    ASSERT_EQ(resourceConfigInfo->mPolicy, HIGHER_BETTER);
-    ASSERT_EQ(resourceConfigInfo->mPermissions, PERMISSION_THIRD_PARTY);
-    ASSERT_EQ(resourceConfigInfo->mModes, MODE_DISPLAY_ON | MODE_DOZE);
-    ASSERT_EQ(resourceConfigInfo->mApplyType, ResourceApplyType::APPLY_GLOBAL);
+    C_ASSERT(resourceConfigInfo != nullptr);
+    C_ASSERT(resourceConfigInfo->mResourceResType == 1);
+    C_ASSERT(resourceConfigInfo->mResourceResID == 0);
+    C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "TEST_RESOURCE_1") == 0);
+    C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min") == 0);
+    C_ASSERT(resourceConfigInfo->mHighThreshold == 1024);
+    C_ASSERT(resourceConfigInfo->mLowThreshold == 0);
+    C_ASSERT(resourceConfigInfo->mSupported == true);
+    C_ASSERT(resourceConfigInfo->mPolicy == HIGHER_BETTER);
+    C_ASSERT(resourceConfigInfo->mPermissions == PERMISSION_THIRD_PARTY);
+    C_ASSERT(resourceConfigInfo->mModes == MODE_DISPLAY_ON | MODE_DOZE);
+    C_ASSERT(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_GLOBAL);
 }
 
-TEST_F(ResourceProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity3_2) {
+static void TestResourceConfigProcessorYAMLDataIntegrity3_2() {
     ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(GENERATE_RESOURCE_ID(1, 1));
 
-    ASSERT_NE(resourceConfigInfo, nullptr);
-    ASSERT_EQ(resourceConfigInfo->mResourceResType, 1);
-    ASSERT_EQ(resourceConfigInfo->mResourceResID, 1);
-    ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "TEST_RESOURCE_2"), 0);
-    ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_max"), 0);
-    ASSERT_EQ(resourceConfigInfo->mHighThreshold, 1024);
-    ASSERT_EQ(resourceConfigInfo->mLowThreshold, 512);
-    ASSERT_EQ(resourceConfigInfo->mSupported, true);
-    ASSERT_EQ(resourceConfigInfo->mPolicy, HIGHER_BETTER);
-    ASSERT_EQ(resourceConfigInfo->mPermissions, PERMISSION_THIRD_PARTY);
-    ASSERT_EQ(resourceConfigInfo->mModes, MODE_DISPLAY_ON | MODE_DOZE);
-    ASSERT_EQ(resourceConfigInfo->mApplyType, ResourceApplyType::APPLY_GLOBAL);
+    C_ASSERT(resourceConfigInfo != nullptr);
+    C_ASSERT(resourceConfigInfo->mResourceResType == 1);
+    C_ASSERT(resourceConfigInfo->mResourceResID == 1);
+    C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "TEST_RESOURCE_2") == 0);
+    C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_max") == 0);
+    C_ASSERT(resourceConfigInfo->mHighThreshold == 1024);
+    C_ASSERT(resourceConfigInfo->mLowThreshold == 512);
+    C_ASSERT(resourceConfigInfo->mSupported == true);
+    C_ASSERT(resourceConfigInfo->mPolicy == HIGHER_BETTER);
+    C_ASSERT(resourceConfigInfo->mPermissions == PERMISSION_THIRD_PARTY);
+    C_ASSERT(resourceConfigInfo->mModes == MODE_DISPLAY_ON | MODE_DOZE);
+    C_ASSERT(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_GLOBAL);
 }
 
-TEST_F(ResourceProcessorTests, TestResourceConfigProcessorYAMLDataIntegrity3_3) {
+static void TestResourceConfigProcessorYAMLDataIntegrity3_3() {
     ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(GENERATE_RESOURCE_ID(1, 5));
 
-    ASSERT_NE(resourceConfigInfo, nullptr);
-    ASSERT_EQ(resourceConfigInfo->mResourceResType, 1);
-    ASSERT_EQ(resourceConfigInfo->mResourceResID, 5);
-    ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "TEST_RESOURCE_6"), 0);
-    ASSERT_EQ(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource2"), 0);
-    ASSERT_EQ(resourceConfigInfo->mHighThreshold, 6500);
-    ASSERT_EQ(resourceConfigInfo->mLowThreshold, 50);
-    ASSERT_EQ(resourceConfigInfo->mSupported, true);
-    ASSERT_EQ(resourceConfigInfo->mPolicy, HIGHER_BETTER);
-    ASSERT_EQ(resourceConfigInfo->mPermissions, PERMISSION_THIRD_PARTY);
-    ASSERT_EQ(resourceConfigInfo->mModes, MODE_DISPLAY_ON);
-    ASSERT_EQ(resourceConfigInfo->mApplyType, ResourceApplyType::APPLY_CORE);
+    C_ASSERT(resourceConfigInfo != nullptr);
+    C_ASSERT(resourceConfigInfo->mResourceResType == 1);
+    C_ASSERT(resourceConfigInfo->mResourceResID == 5);
+    C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "TEST_RESOURCE_6") == 0);
+    C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource2") == 0);
+    C_ASSERT(resourceConfigInfo->mHighThreshold == 6500);
+    C_ASSERT(resourceConfigInfo->mLowThreshold == 50);
+    C_ASSERT(resourceConfigInfo->mSupported == true);
+    C_ASSERT(resourceConfigInfo->mPolicy == HIGHER_BETTER);
+    C_ASSERT(resourceConfigInfo->mPermissions == PERMISSION_THIRD_PARTY);
+    C_ASSERT(resourceConfigInfo->mModes == MODE_DISPLAY_ON);
+    C_ASSERT(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_CORE);
+}
+
+int main() {
+    std::cout<<"Running Test Suite: [Resource Processor Tests]\n"<<std::endl;
+
+    Init();
+    RUN_TEST(TestResourceConfigProcessorYAMLDataIntegrity1);
+    RUN_TEST(TestResourceConfigProcessorYAMLDataIntegrity2);
+    RUN_TEST(TestResourceConfigProcessorYAMLDataIntegrity3_1);
+    RUN_TEST(TestResourceConfigProcessorYAMLDataIntegrity3_2);
+    RUN_TEST(TestResourceConfigProcessorYAMLDataIntegrity3_3);
+
+    std::cout<<"\nAll Tests from the suite: [Resource Processor Tests], executed successfully"<<std::endl;
+    return 0;
 }

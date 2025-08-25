@@ -3,33 +3,47 @@
 
 #include <thread>
 #include <cstdint>
-#include <gtest/gtest.h>
 
 #include "MemoryPool.h"
 #include "Request.h"
 #include "SysConfig.h"
 #include "Signal.h"
 
+#define RUN_TEST(test)                                              \
+do {                                                                \
+    std::cout<<"Running Test: "<<#test<<std::endl;                  \
+    test();                                                         \
+    std::cout<<#test<<": Run Successful"<<std::endl;                \
+    std::cout<<"-------------------------------------"<<std::endl;  \
+} while(false);                                                     \
+
+#define C_ASSERT(cond)                                                               \
+    if(cond == false) {                                                              \
+        std::cerr<<"Condition Check on line:["<<__LINE__<<"]  failed"<<std::endl;    \
+        std::cerr<<"Test: ["<<__func__<<"] Failed, Terminating Suite\n"<<std::endl;  \
+        exit(EXIT_FAILURE);                                                          \
+    }                                                                                \
+
 // Request Cleanup Tests
-TEST(MiscTests, TestResourceStructCoreClusterSettingAndExtraction) {
+static void TestResourceStructCoreClusterSettingAndExtraction() {
     Resource* resource = new Resource;
-    ASSERT_NE(resource, nullptr);
+    C_ASSERT(resource != nullptr);
 
     resource->setCoreValue(2);
     resource->setClusterValue(1);
 
-    ASSERT_EQ(resource->getCoreValue(), 2);
-    ASSERT_EQ(resource->getClusterValue(), 1);
+    C_ASSERT(resource->getCoreValue() == 2);
+    C_ASSERT(resource->getClusterValue() == 1);
 
     resource->setResourceID(1);
     resource->setResourceType(1);
 
-    ASSERT_EQ(resource->getResCode(), (uint32_t)((1 << 16) | (1 << 0)));
+    C_ASSERT(resource->getResCode() == (uint32_t)((1 << 16) | (1 << 0)));
 
     delete resource;
 }
 
-TEST(MiscTests, TestRequestSerializingAndDeserializing) {
+static void TestRequestSerializingAndDeserializing() {
     try {
         MakeAlloc<Request> (5);
         MakeAlloc<Resource> (10);
@@ -44,14 +58,14 @@ TEST(MiscTests, TestRequestSerializingAndDeserializing) {
         firstRequest->setHandle(15);
         firstRequest->setDuration(5600);
 
-        ASSERT_EQ(firstRequest->getRequestType(), REQ_RESOURCE_TUNING);
-        ASSERT_EQ(firstRequest->getClientPID(), 1003);
-        ASSERT_EQ(firstRequest->getClientTID(), 1009);
-        ASSERT_EQ(firstRequest->getHandle(), 15);
-        ASSERT_EQ(firstRequest->getResourcesCount(), 1);
-        ASSERT_EQ(firstRequest->getDuration(), 5600);
-        ASSERT_EQ(firstRequest->isBackgroundProcessingEnabled(), 1);
-        ASSERT_EQ(firstRequest->getPriority(), 1);
+        C_ASSERT(firstRequest->getRequestType() == REQ_RESOURCE_TUNING);
+        C_ASSERT(firstRequest->getClientPID() == 1003);
+        C_ASSERT(firstRequest->getClientTID() == 1009);
+        C_ASSERT(firstRequest->getHandle() == 15);
+        C_ASSERT(firstRequest->getResourcesCount() == 1);
+        C_ASSERT(firstRequest->getDuration() == 5600);
+        C_ASSERT(firstRequest->isBackgroundProcessingEnabled() == 1);
+        C_ASSERT(firstRequest->getPriority() == 1);
 
         std::vector<Resource*>* firstReqResourceList = new (GetBlock<std::vector<Resource*>>())
                                                             std::vector<Resource*>;
@@ -64,59 +78,55 @@ TEST(MiscTests, TestRequestSerializingAndDeserializing) {
         firstRequest->setResources(firstReqResourceList);
 
         Resource* resource = firstRequest->getResourceAt(0);
-        ASSERT_EQ(resource->getResCode(), 65536);
-        ASSERT_EQ(resource->getValuesCount(), 1);
-        ASSERT_EQ(resource->mResValue.value, 754);
+        C_ASSERT(resource->getResCode() == 65536);
+        C_ASSERT(resource->getValuesCount() == 1);
+        C_ASSERT(resource->mResValue.value == 754);
 
         char buf[1024];
 
         // Serializing the Request
         ErrCode rc = firstRequest->serialize(buf);
-        ASSERT_EQ(rc, RC_SUCCESS);
+        C_ASSERT(rc == RC_SUCCESS);
 
         // Deserialize to another Request Object
         Request* secondRequest = new (GetBlock<Request>()) Request();
         rc = secondRequest->deserialize(buf);
-        ASSERT_EQ(rc, RC_SUCCESS);
+        C_ASSERT(rc == RC_SUCCESS);
 
-        ASSERT_EQ(firstRequest->getRequestType(), secondRequest->getRequestType());
-        ASSERT_EQ(firstRequest->getClientPID(), secondRequest->getClientPID());
-        ASSERT_EQ(firstRequest->getClientTID(), secondRequest->getClientTID());
-        ASSERT_EQ(firstRequest->getResourcesCount(), secondRequest->getResourcesCount());
-        ASSERT_EQ(firstRequest->getProperties(), secondRequest->getProperties());
-        ASSERT_EQ(firstRequest->getPriority(), secondRequest->getPriority());
-        ASSERT_EQ(firstRequest->getHandle(), secondRequest->getHandle());
-        ASSERT_EQ(firstRequest->getDuration(), secondRequest->getDuration());
-        ASSERT_EQ(firstRequest->isBackgroundProcessingEnabled(), secondRequest->isBackgroundProcessingEnabled());
-        ASSERT_EQ(firstRequest->getPriority(), secondRequest->getPriority());
+        C_ASSERT(firstRequest->getRequestType() == secondRequest->getRequestType());
+        C_ASSERT(firstRequest->getClientPID() == secondRequest->getClientPID());
+        C_ASSERT(firstRequest->getClientTID() == secondRequest->getClientTID());
+        C_ASSERT(firstRequest->getResourcesCount() == secondRequest->getResourcesCount());
+        C_ASSERT(firstRequest->getProperties() == secondRequest->getProperties());
+        C_ASSERT(firstRequest->getPriority() == secondRequest->getPriority());
+        C_ASSERT(firstRequest->getHandle() == secondRequest->getHandle());
+        C_ASSERT(firstRequest->getDuration() == secondRequest->getDuration());
+        C_ASSERT(firstRequest->isBackgroundProcessingEnabled() == secondRequest->isBackgroundProcessingEnabled());
+        C_ASSERT(firstRequest->getPriority() == secondRequest->getPriority());
 
-        ASSERT_EQ(firstRequest->getResourcesCount(), secondRequest->getResourcesCount());
+        C_ASSERT(firstRequest->getResourcesCount() == secondRequest->getResourcesCount());
 
         for(int32_t i = 0; i < firstRequest->getResources()->size(); i++) {
             Resource* firstResource = firstRequest->getResourceAt(i);
             Resource* secondResource = secondRequest->getResourceAt(i);
 
             if(secondResource == nullptr) {
-                FAIL();
+                return;
             }
 
-            ASSERT_EQ(firstResource->getResInfo(), secondResource->getResInfo());
-            ASSERT_EQ(firstResource->getValuesCount(), secondResource->getValuesCount());
-            ASSERT_EQ(firstResource->mResValue.value, secondResource->mResValue.value);
+            C_ASSERT(firstResource->getResInfo() == secondResource->getResInfo());
+            C_ASSERT(firstResource->getValuesCount() == secondResource->getValuesCount());
+            C_ASSERT(firstResource->mResValue.value == secondResource->mResValue.value);
         }
 
         Request::cleanUpRequest(firstRequest);
         Request::cleanUpRequest(secondRequest);
 
     } catch(const std::bad_alloc& e) {
-        FAIL();
-
-    } catch(const std::exception& e) {
-        FAIL();
-    }
+    } catch(const std::exception& e) {}
 }
 
-TEST(MiscTests, TestSignalSerializingAndDeserializing) {
+static void TestSignalSerializingAndDeserializing() {
     try {
         MakeAlloc<Signal> (5);
         MakeAlloc<std::vector<uint32_t>> (5);
@@ -133,17 +143,17 @@ TEST(MiscTests, TestSignalSerializingAndDeserializing) {
         firstSignal->setAppName("example-app-name");
         firstSignal->setScenario("example-scenario-name");
 
-        ASSERT_EQ(firstSignal->getRequestType(), REQ_RESOURCE_TUNING);
-        ASSERT_EQ(firstSignal->getClientPID(), 1003);
-        ASSERT_EQ(firstSignal->getClientTID(), 1009);
-        ASSERT_EQ(firstSignal->getHandle(), 15);
-        ASSERT_EQ(firstSignal->getSignalID(), 78099);
-        ASSERT_EQ(firstSignal->getDuration(), 5600);
-        ASSERT_EQ(firstSignal->isBackgroundProcessingEnabled(), 1);
-        ASSERT_EQ(firstSignal->getPriority(), 1);
-        ASSERT_EQ(firstSignal->getNumArgs(), 1);
-        ASSERT_EQ(firstSignal->getAppName(), "example-app-name");
-        ASSERT_EQ(firstSignal->getScenario(), "example-scenario-name");
+        C_ASSERT(firstSignal->getRequestType() == REQ_RESOURCE_TUNING);
+        C_ASSERT(firstSignal->getClientPID() == 1003);
+        C_ASSERT(firstSignal->getClientTID() == 1009);
+        C_ASSERT(firstSignal->getHandle() == 15);
+        C_ASSERT(firstSignal->getSignalID() == 78099);
+        C_ASSERT(firstSignal->getDuration() == 5600);
+        C_ASSERT(firstSignal->isBackgroundProcessingEnabled() == 1);
+        C_ASSERT(firstSignal->getPriority() == 1);
+        C_ASSERT(firstSignal->getNumArgs() == 1);
+        C_ASSERT(firstSignal->getAppName() == "example-app-name");
+        C_ASSERT(firstSignal->getScenario() == "example-scenario-name");
 
         std::vector<uint32_t>* listArgs = new (GetBlock<std::vector<uint32_t>>())
                                                std::vector<uint32_t>;
@@ -152,47 +162,43 @@ TEST(MiscTests, TestSignalSerializingAndDeserializing) {
         firstSignal->setList(listArgs);
 
         uint32_t firstListArg = firstSignal->getListArgAt(0);
-        ASSERT_EQ(firstListArg, 23);
+        C_ASSERT(firstListArg == 23);
 
         char buf[1024];
 
         // Serializing the Signal
         ErrCode rc = firstSignal->serialize(buf);
-        ASSERT_EQ(rc, RC_SUCCESS);
+        C_ASSERT(rc == RC_SUCCESS);
 
         // Deserialize to another Signal Object
         Signal* secondSignal = new (GetBlock<Signal>()) Signal();
         rc = secondSignal->deserialize(buf);
-        ASSERT_EQ(rc, RC_SUCCESS);
+        C_ASSERT(rc == RC_SUCCESS);
 
-        ASSERT_EQ(firstSignal->getRequestType(), secondSignal->getRequestType());
-        ASSERT_EQ(firstSignal->getClientPID(), secondSignal->getClientPID());
-        ASSERT_EQ(firstSignal->getClientTID(), secondSignal->getClientTID());
-        ASSERT_EQ(firstSignal->getPriority(), secondSignal->getPriority());
-        ASSERT_EQ(firstSignal->getHandle(), secondSignal->getHandle());
-        ASSERT_EQ(firstSignal->getDuration(), secondSignal->getDuration());
-        ASSERT_EQ(firstSignal->getProperties(), secondSignal->getProperties());
-        ASSERT_EQ(firstSignal->isBackgroundProcessingEnabled(), secondSignal->isBackgroundProcessingEnabled());
-        ASSERT_EQ(firstSignal->getPriority(), secondSignal->getPriority());
+        C_ASSERT(firstSignal->getRequestType() == secondSignal->getRequestType());
+        C_ASSERT(firstSignal->getClientPID() == secondSignal->getClientPID());
+        C_ASSERT(firstSignal->getClientTID() == secondSignal->getClientTID());
+        C_ASSERT(firstSignal->getPriority() == secondSignal->getPriority());
+        C_ASSERT(firstSignal->getHandle() == secondSignal->getHandle());
+        C_ASSERT(firstSignal->getDuration() == secondSignal->getDuration());
+        C_ASSERT(firstSignal->getProperties() == secondSignal->getProperties());
+        C_ASSERT(firstSignal->isBackgroundProcessingEnabled() == secondSignal->isBackgroundProcessingEnabled());
+        C_ASSERT(firstSignal->getPriority() == secondSignal->getPriority());
 
-        ASSERT_EQ(firstSignal->getNumArgs(), secondSignal->getNumArgs());
+        C_ASSERT(firstSignal->getNumArgs() == secondSignal->getNumArgs());
 
         for(int32_t i = 0; i < firstSignal->getNumArgs(); i++) {
-            ASSERT_EQ(firstSignal->getListArgAt(i), secondSignal->getListArgAt(i));
+            C_ASSERT(firstSignal->getListArgAt(i) == secondSignal->getListArgAt(i));
         }
 
         Signal::cleanUpSignal(firstSignal);
         Signal::cleanUpSignal(secondSignal);
 
     } catch(const std::bad_alloc& e) {
-        FAIL();
-
-    } catch(const std::exception& e) {
-        FAIL();
-    }
+    } catch(const std::exception& e) {}
 }
 
-TEST(MiscTests, TestSysConfigSerializingAndDeserializing) {
+static void TestSysConfigSerializingAndDeserializing() {
  try {
         MakeAlloc<SysConfig> (5);
 
@@ -205,37 +211,45 @@ TEST(MiscTests, TestSysConfigSerializingAndDeserializing) {
         firstConfig->setDefaultValue("67");
         firstConfig->setBufferSize(1445);
 
-        ASSERT_EQ(firstConfig->getRequestType(), REQ_SYSCONFIG_GET_PROP);
-        ASSERT_EQ(firstConfig->getClientPID(), 1003);
-        ASSERT_EQ(firstConfig->getClientTID(), 1009);
-        ASSERT_EQ(firstConfig->getProp(), "resourceTuner.rate_limiter.min_health");
-        ASSERT_EQ(firstConfig->getValue(), "104");
-        ASSERT_EQ(firstConfig->getDefaultValue(), "67");
-        ASSERT_EQ(firstConfig->getBufferSize(), 1445);
+        C_ASSERT(firstConfig->getRequestType() == REQ_SYSCONFIG_GET_PROP);
+        C_ASSERT(firstConfig->getClientPID() == 1003);
+        C_ASSERT(firstConfig->getClientTID() == 1009);
+        C_ASSERT(firstConfig->getProp() == "resourceTuner.rate_limiter.min_health");
+        C_ASSERT(firstConfig->getValue() == "104");
+        C_ASSERT(firstConfig->getDefaultValue() == "67");
+        C_ASSERT(firstConfig->getBufferSize() == 1445);
 
         char buf[1024];
 
         // Serializing the SysConfig struct
         ErrCode rc = firstConfig->serialize(buf);
-        ASSERT_EQ(rc, RC_SUCCESS);
+        C_ASSERT(rc == RC_SUCCESS);
 
         // Deserialize to another SysConfig Object
         SysConfig* secondConfig = new (GetBlock<SysConfig>()) SysConfig();
         rc = secondConfig->deserialize(buf);
-        ASSERT_EQ(rc, RC_SUCCESS);
+        C_ASSERT(rc == RC_SUCCESS);
 
-        ASSERT_EQ(firstConfig->getRequestType(), secondConfig->getRequestType());
-        ASSERT_EQ(firstConfig->getClientPID(), secondConfig->getClientPID());
-        ASSERT_EQ(firstConfig->getClientTID(), secondConfig->getClientTID());
-        ASSERT_EQ(firstConfig->getProp(), secondConfig->getProp());
-        ASSERT_EQ(firstConfig->getValue(), secondConfig->getValue());
-        ASSERT_EQ(firstConfig->getDefaultValue(), secondConfig->getDefaultValue());
-        ASSERT_EQ(firstConfig->getBufferSize(), secondConfig->getBufferSize());
+        C_ASSERT(firstConfig->getRequestType() == secondConfig->getRequestType());
+        C_ASSERT(firstConfig->getClientPID() == secondConfig->getClientPID());
+        C_ASSERT(firstConfig->getClientTID() == secondConfig->getClientTID());
+        C_ASSERT(firstConfig->getProp() == secondConfig->getProp());
+        C_ASSERT(firstConfig->getValue() == secondConfig->getValue());
+        C_ASSERT(firstConfig->getDefaultValue() == secondConfig->getDefaultValue());
+        C_ASSERT(firstConfig->getBufferSize() == secondConfig->getBufferSize());
 
     } catch(const std::bad_alloc& e) {
-        FAIL();
+    } catch(const std::exception& e) {}
+}
 
-    } catch(const std::exception& e) {
-        FAIL();
-    }
+int main() {
+    std::cout<<"Running Test Suite: [Misc Tests]\n"<<std::endl;
+
+    RUN_TEST(TestResourceStructCoreClusterSettingAndExtraction);
+    RUN_TEST(TestRequestSerializingAndDeserializing);
+    RUN_TEST(TestSignalSerializingAndDeserializing);
+    RUN_TEST(TestSysConfigSerializingAndDeserializing);
+
+    std::cout<<"\nAll Tests from the suite: [Misc Tests], executed successfully"<<std::endl;
+    return 0;
 }

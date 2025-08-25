@@ -1,58 +1,70 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <gtest/gtest.h>
+#include <cmath>
+
 #include "Timer.h"
+
+#define RUN_TEST(test)                                              \
+do {                                                                \
+    std::cout<<"Running Test: "<<#test<<std::endl;                  \
+    test();                                                         \
+    std::cout<<#test<<": Run Successful"<<std::endl;                \
+    std::cout<<"-------------------------------------"<<std::endl;  \
+} while(false);                                                     \
+
+#define C_ASSERT(cond)                                                               \
+    if(cond == false) {                                                              \
+        std::cerr<<"Condition Check on line:["<<__LINE__<<"]  failed"<<std::endl;    \
+        std::cerr<<"Test: ["<<__func__<<"] Failed, Terminating Suite\n"<<std::endl;  \
+        exit(EXIT_FAILURE);                                                          \
+    }                                                                                \
+
+#define C_ASSERT_NEAR(val1, val2, tol)                                               \
+    if (std::fabs((val1) - (val2)) > (tol)) {                                        \
+        std::cerr<<"Condition Check on line:["<<__LINE__<<"]  failed"<<std::endl;    \
+        std::cerr<<"Test: ["<<__func__<<"] Failed, Terminating Suite\n"<<std::endl;  \
+        exit(EXIT_FAILURE);                                                          \
+    }                                                                                \
 
 static std::shared_ptr<ThreadPool> tpoolInstance = std::shared_ptr<ThreadPool> (new ThreadPool(4, 4, 5));
 
-class TimerTest : public testing::Test {
-protected:
-    Timer* timer;
-    Timer* recurringTimer;
-    std::atomic<int8_t> isFinished;
+static Timer* timer;
+static Timer* recurringTimer;
+static std::atomic<int8_t> isFinished;
 
-    void SetUp() override {
-        static int8_t firstTest = true;
-        if(firstTest) {
-            Timer::mTimerThreadPool = tpoolInstance.get();
-            MakeAlloc<Timer>(10);
-            firstTest = false;
-        }
+static void afterTimer(void*) {
+    isFinished.store(true);
+}
 
-        isFinished.store(false);
-        timer = new Timer(std::bind(&TimerTest::afterTimer, this));
-        recurringTimer = new Timer(std::bind(&TimerTest::afterTimer, this), true);
+static void Init() {
+    Timer::mTimerThreadPool = tpoolInstance.get();
+    MakeAlloc<Timer>(10);
+
+    isFinished.store(false);
+    timer = new Timer(afterTimer);
+    recurringTimer = new Timer(afterTimer, true);
+}
+
+static void simulateWork() {
+    while(!isFinished.load()){
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
+}
 
-    int32_t afterTimer() {
-        isFinished.store(true);
-        return 0;
-    }
-
-    void simulateWork() {
-        while(!isFinished.load()){
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        }
-    }
-
-public:
-    ~TimerTest() {}
-};
-
-TEST_F(TimerTest, BaseCase) {
-    ASSERT_NE(timer, nullptr);
+static void BaseCase() {
+    C_ASSERT(timer != nullptr);
     auto start = std::chrono::high_resolution_clock::now();
     timer->startTimer(200);
     simulateWork();
     auto finish = std::chrono::high_resolution_clock::now();
     auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
 
-    EXPECT_NEAR(dur, 200, 25); //some tolerance
+    C_ASSERT_NEAR(dur, 200, 25); //some tolerance
 }
 
-TEST_F(TimerTest, killBeforeCompletion) {
-    ASSERT_NE(timer, nullptr);
+static void killBeforeCompletion() {
+    C_ASSERT(timer != nullptr);
     auto start = std::chrono::high_resolution_clock::now();
     timer->startTimer(200);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -60,11 +72,11 @@ TEST_F(TimerTest, killBeforeCompletion) {
     auto finish = std::chrono::high_resolution_clock::now();
     auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
 
-    EXPECT_NEAR(dur, 100, 25); //some tolerance
+    C_ASSERT_NEAR(dur, 100, 25); //some tolerance
 }
 
-TEST_F(TimerTest, killAfterCompletion) {
-    ASSERT_NE(timer, nullptr);
+static void killAfterCompletion() {
+    C_ASSERT(timer != nullptr);
     auto start = std::chrono::high_resolution_clock::now();
     timer->startTimer(200);
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
@@ -72,11 +84,11 @@ TEST_F(TimerTest, killAfterCompletion) {
     auto finish = std::chrono::high_resolution_clock::now();
     auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
 
-    EXPECT_NEAR(dur, 300, 25); //some tolerance
+    C_ASSERT_NEAR(dur, 300, 25); //some tolerance
 }
 
-TEST_F(TimerTest, RecurringTimer) {
-    ASSERT_NE(recurringTimer, nullptr);
+static void RecurringTimer() {
+    C_ASSERT(recurringTimer != nullptr);
 
     auto start = std::chrono::high_resolution_clock::now();
     recurringTimer->startTimer(200);
@@ -89,11 +101,11 @@ TEST_F(TimerTest, RecurringTimer) {
     auto finish = std::chrono::high_resolution_clock::now();
     auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
 
-    EXPECT_NEAR(dur, 600, 25); //some tolerance
+    C_ASSERT_NEAR(dur, 600, 25); //some tolerance
 }
 
-TEST_F(TimerTest, RecurringTimerPreMatureKill) {
-    ASSERT_NE(recurringTimer, nullptr);
+static void RecurringTimerPreMatureKill() {
+    C_ASSERT(recurringTimer != nullptr);
 
     auto start = std::chrono::high_resolution_clock::now();
     recurringTimer->startTimer(200);
@@ -106,5 +118,18 @@ TEST_F(TimerTest, RecurringTimerPreMatureKill) {
     auto finish = std::chrono::high_resolution_clock::now();
     auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
 
-    EXPECT_NEAR(dur, 500, 25); //some tolerance
+    C_ASSERT_NEAR(dur, 500, 25); //some tolerance
+}
+
+int main() {
+    std::cout<<"Running Test Suite: [TimerTest]\n"<<std::endl;
+
+    RUN_TEST(BaseCase);
+    RUN_TEST(killBeforeCompletion);
+    RUN_TEST(killAfterCompletion);
+    RUN_TEST(RecurringTimer);
+    RUN_TEST(RecurringTimerPreMatureKill);
+
+    std::cout<<"\nAll Tests from the suite: [TimerTest], executed successfully"<<std::endl;
+    return 0;
 }

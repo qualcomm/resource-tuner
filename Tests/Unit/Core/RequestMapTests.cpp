@@ -1,29 +1,36 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <gtest/gtest.h>
 #include <thread>
 
 #include "RequestManager.h"
 #include "RateLimiter.h"
 #include "MemoryPool.h"
 
-class RequestMapTests: public::testing::Test {
-protected:
-    void SetUp() override {
-        static int8_t firstTest = true;
-        if(firstTest == true) {
-            MakeAlloc<ClientInfo> (30);
-            MakeAlloc<ClientTidData> (30);
-            MakeAlloc<std::vector<int32_t>> (30);
-            MakeAlloc<std::unordered_set<int64_t>> (30);
-            MakeAlloc<Resource> (30);
-            MakeAlloc<std::vector<Resource*>> (30);
-            MakeAlloc<Request> (30);
-            firstTest = false;
-        }
-    }
-};
+#define RUN_TEST(test)                                              \
+do {                                                                \
+    std::cout<<"Running Test: "<<#test<<std::endl;                  \
+    test();                                                         \
+    std::cout<<#test<<": Run Successful"<<std::endl;                \
+    std::cout<<"-------------------------------------"<<std::endl;  \
+} while(false);                                                     \
+
+#define C_ASSERT(cond)                                                               \
+    if(cond == false) {                                                              \
+        std::cerr<<"Condition Check on line:["<<__LINE__<<"]  failed"<<std::endl;    \
+        std::cerr<<"Test: ["<<__func__<<"] Failed, Terminating Suite\n"<<std::endl;  \
+        exit(EXIT_FAILURE);                                                          \
+    }                                                                                \
+
+static void Init() {
+    MakeAlloc<ClientInfo> (30);
+    MakeAlloc<ClientTidData> (30);
+    MakeAlloc<std::vector<int32_t>> (30);
+    MakeAlloc<std::unordered_set<int64_t>> (30);
+    MakeAlloc<Resource> (30);
+    MakeAlloc<std::vector<Resource*>> (30);
+    MakeAlloc<Request> (30);
+}
 
 // Helper methods for Resource Generation
 Resource* generateResourceForTesting(int32_t seed) {
@@ -51,7 +58,7 @@ Resource* generateResourceFromMemoryPoolForTesting(int32_t seed) {
 
 // No prior requests in the map, add a new one
 // The request should be accepted
-TEST_F(RequestMapTests, TestSingleRequestScenario) {
+static void TestSingleRequestScenario() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RequestManager> requestMap = RequestManager::getInstance();
 
@@ -82,7 +89,7 @@ TEST_F(RequestMapTests, TestSingleRequestScenario) {
 
     int8_t result = requestMap->shouldRequestBeAdded(request);
 
-    ASSERT_EQ(result, true);
+    C_ASSERT(result == true);
 
     clientDataManager->deleteClientPID(request->getClientPID());
     clientDataManager->deleteClientTID(request->getClientTID());
@@ -91,7 +98,7 @@ TEST_F(RequestMapTests, TestSingleRequestScenario) {
 }
 
 // Add duplicate requests. The second request should not be accepted
-TEST_F(RequestMapTests, TestDuplicateRequestScenario1) {
+static void TestDuplicateRequestScenario1() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RequestManager> requestMap = RequestManager::getInstance();
 
@@ -142,8 +149,8 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario1) {
         requestMap->addRequest(secondRequest);
     }
 
-    ASSERT_EQ(resultFirst, true);
-    ASSERT_EQ(resultSecond, false);
+    C_ASSERT(resultFirst == true);
+    C_ASSERT(resultSecond == false);
 
     requestMap->removeRequest(firstRequest);
     requestMap->removeRequest(secondRequest);
@@ -156,7 +163,7 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario1) {
 }
 
 // Add duplicate requests with multiple resources. The second request should not be accepted
-TEST_F(RequestMapTests, TestDuplicateRequestScenario2) {
+static void TestDuplicateRequestScenario2() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RequestManager> requestMap = RequestManager::getInstance();
 
@@ -212,8 +219,8 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario2) {
         requestMap->addRequest(secondRequest);
     }
 
-    ASSERT_EQ(resultFirst, true);
-    ASSERT_EQ(resultSecond, false);
+    C_ASSERT(resultFirst == true);
+    C_ASSERT(resultSecond == false);
 
     requestMap->removeRequest(firstRequest);
     requestMap->removeRequest(secondRequest);
@@ -227,7 +234,7 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario2) {
 
 // For 2 requests to be considered duplicate, each and every one of their
 // attributes should match. Else the request should be accepted
-TEST_F(RequestMapTests, TestDuplicateRequestScenario3_1) {
+static void TestDuplicateRequestScenario3_1() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RequestManager> requestMap = RequestManager::getInstance();
 
@@ -262,7 +269,7 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario3_1) {
         requestsCreated.push_back(request);
 
         int8_t requestCheck = requestMap->shouldRequestBeAdded(request);
-        ASSERT_EQ(requestCheck, true);
+        C_ASSERT(requestCheck == true);
         requestMap->addRequest(request);
     }
 
@@ -277,7 +284,7 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario3_1) {
 
 // Duplicate Verification check, where the number of resources itself is different
 // in the second request, hence it should be accepted.
-TEST_F(RequestMapTests, TestDuplicateRequestScenario3_2) {
+static void TestDuplicateRequestScenario3_2() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RequestManager> requestMap = RequestManager::getInstance();
 
@@ -287,14 +294,14 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario3_2) {
         duplicateResource1 = generateResourceForTesting(1);
         resource2 = generateResourceForTesting(2);
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
 
     std::vector<Resource*>* resources1;
     try {
         resources1 = new (GetBlock<std::vector<Resource*>>())std::vector<Resource*>;
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
 
     resources1->push_back(resource1);
@@ -303,7 +310,7 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario3_2) {
     try {
         resources2 = new (GetBlock<std::vector<Resource*>>())std::vector<Resource*>;
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
 
     resources2->push_back(duplicateResource1);
@@ -313,7 +320,7 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario3_2) {
     try {
         firstRequest = new (GetBlock<Request>()) Request;
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
 
     firstRequest->setRequestType(REQ_RESOURCE_TUNING);
@@ -328,7 +335,7 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario3_2) {
 
     if(!clientDataManager->clientExists(firstRequest->getClientPID(), firstRequest->getClientTID())) {
         if(!clientDataManager->createNewClient(firstRequest->getClientPID(), firstRequest->getClientTID())) {
-            FAIL();
+            return;
         }
     }
 
@@ -341,7 +348,7 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario3_2) {
     try {
         secondRequest = new (GetBlock<Request>()) Request;
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
 
     secondRequest->setRequestType(REQ_RESOURCE_TUNING);
@@ -356,7 +363,7 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario3_2) {
 
     if(!clientDataManager->clientExists(secondRequest->getClientPID(), secondRequest->getClientTID())) {
         if(!clientDataManager->createNewClient(secondRequest->getClientPID(), secondRequest->getClientTID())) {
-            FAIL();
+            return;
         }
     }
 
@@ -365,8 +372,8 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario3_2) {
         requestMap->addRequest(secondRequest);
     }
 
-    ASSERT_EQ(resultFirst, true);
-    ASSERT_EQ(resultSecond, true);
+    C_ASSERT(resultFirst == true);
+    C_ASSERT(resultSecond == true);
 
     requestMap->removeRequest(firstRequest);
     requestMap->removeRequest(secondRequest);
@@ -381,7 +388,7 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario3_2) {
 
 // Add requests from the same client with multiple resources, where not all resources are identical.
 // Both requests should be accepted
-TEST_F(RequestMapTests, TestDuplicateRequestScenario4) {
+static void TestDuplicateRequestScenario4() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RequestManager> requestMap = RequestManager::getInstance();
 
@@ -396,21 +403,21 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario4) {
         resource2 = generateResourceForTesting(2);
         resource3 = generateResourceForTesting(3);
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
 
     std::vector<Resource*>* resources1;
     try {
         resources1 = new (GetBlock<std::vector<Resource*>>())std::vector<Resource*>;
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
 
     std::vector<Resource*>* resources2;
     try {
         resources2 = new (GetBlock<std::vector<Resource*>>())std::vector<Resource*>;
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
 
     resources1->push_back(resource1);
@@ -423,7 +430,7 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario4) {
     try {
         firstRequest = new (GetBlock<Request>()) Request();
     } catch(const std::bad_alloc &e) {
-        FAIL();
+        return;
     }
 
     firstRequest->setRequestType(REQ_RESOURCE_TUNING);
@@ -438,7 +445,7 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario4) {
 
     if(!clientDataManager->clientExists(firstRequest->getClientPID(), firstRequest->getClientTID())) {
         if(!clientDataManager->createNewClient(firstRequest->getClientPID(), firstRequest->getClientTID())) {
-            FAIL();
+            return;
         }
     }
 
@@ -451,7 +458,7 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario4) {
     try {
         secondRequest = new (GetBlock<Request>()) Request();
     } catch(const std::bad_alloc &e) {
-        FAIL();
+        return;
     }
 
     secondRequest->setRequestType(REQ_RESOURCE_TUNING);
@@ -466,7 +473,7 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario4) {
 
     if(!clientDataManager->clientExists(secondRequest->getClientPID(), secondRequest->getClientTID())) {
         if(!clientDataManager->createNewClient(secondRequest->getClientPID(), secondRequest->getClientTID())) {
-            FAIL();
+            return;
         }
     }
 
@@ -475,8 +482,8 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario4) {
         requestMap->addRequest(secondRequest);
     }
 
-    ASSERT_EQ(resultFirst, true);
-    ASSERT_EQ(resultSecond, true);
+    C_ASSERT(resultFirst == true);
+    C_ASSERT(resultSecond == true);
 
     requestMap->removeRequest(firstRequest);
     requestMap->removeRequest(secondRequest);
@@ -491,7 +498,7 @@ TEST_F(RequestMapTests, TestDuplicateRequestScenario4) {
 // Multiple clients try to add requests which are duplicates of each other in
 // terms of resources.
 // All request should still be accepted, since clients are different
-TEST_F(RequestMapTests, TestMultipleClientsScenario5) {
+static void TestMultipleClientsScenario5() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RequestManager> requestMap = RequestManager::getInstance();
 
@@ -508,28 +515,28 @@ TEST_F(RequestMapTests, TestMultipleClientsScenario5) {
         resource2.push_back(generateResourceForTesting(2));
 
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
 
     std::vector<Resource*>* resources1;
     try {
         resources1 = new (GetBlock<std::vector<Resource*>>())std::vector<Resource*>;
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
 
     std::vector<Resource*>* resources2;
     try {
         resources2 = new (GetBlock<std::vector<Resource*>>())std::vector<Resource*>;
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
 
     std::vector<Resource*>* resources3;
     try {
         resources3 = new (GetBlock<std::vector<Resource*>>())std::vector<Resource*>;
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
 
     resources1->push_back(resource1[0]);
@@ -551,7 +558,7 @@ TEST_F(RequestMapTests, TestMultipleClientsScenario5) {
         thirdRequest = new (GetBlock<Request>()) Request();
 
     } catch(const std::bad_alloc &e) {
-        FAIL();
+        return;
     }
 
     firstRequest->setRequestType(REQ_RESOURCE_TUNING);
@@ -586,19 +593,19 @@ TEST_F(RequestMapTests, TestMultipleClientsScenario5) {
 
     if(!clientDataManager->clientExists(firstRequest->getClientPID(), firstRequest->getClientTID())) {
         if(!clientDataManager->createNewClient(firstRequest->getClientPID(), firstRequest->getClientTID())) {
-            FAIL();
+            return;
         }
     }
 
     if(!clientDataManager->clientExists(secondRequest->getClientPID(), secondRequest->getClientTID())) {
         if(!clientDataManager->createNewClient(secondRequest->getClientPID(), secondRequest->getClientTID())) {
-            FAIL();
+            return;
         }
     }
 
     if(!clientDataManager->clientExists(thirdRequest->getClientPID(), thirdRequest->getClientTID())) {
         if(!clientDataManager->createNewClient(thirdRequest->getClientPID(), thirdRequest->getClientTID())) {
-            FAIL();
+            return;
         }
     }
 
@@ -617,9 +624,9 @@ TEST_F(RequestMapTests, TestMultipleClientsScenario5) {
         requestMap->addRequest(thirdRequest);
     }
 
-    ASSERT_EQ(resultFirst, true);
-    ASSERT_EQ(resultSecond, true);
-    ASSERT_EQ(resultThird, true);
+    C_ASSERT(resultFirst == true);
+    C_ASSERT(resultSecond == true);
+    C_ASSERT(resultThird == true);
 
     requestMap->removeRequest(firstRequest);
     requestMap->removeRequest(secondRequest);
@@ -639,7 +646,7 @@ TEST_F(RequestMapTests, TestMultipleClientsScenario5) {
 
 // For retune / untune APIs, request with specified handle should be
 // present in the RequestMap
-TEST_F(RequestMapTests, TestRequestWithHandleExists1) {
+static void TestRequestWithHandleExists1() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RequestManager> requestMap = RequestManager::getInstance();
 
@@ -647,14 +654,14 @@ TEST_F(RequestMapTests, TestRequestWithHandleExists1) {
     try {
         resource = generateResourceForTesting(1);
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
 
     std::vector<Resource*>* resources;
     try {
         resources = new (GetBlock<std::vector<Resource*>>())std::vector<Resource*>;
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
     resources->push_back(resource);
 
@@ -662,7 +669,7 @@ TEST_F(RequestMapTests, TestRequestWithHandleExists1) {
     try {
         request = new (GetBlock<Request>()) Request();
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
 
     request->setRequestType(REQ_RESOURCE_TUNING);
@@ -677,7 +684,7 @@ TEST_F(RequestMapTests, TestRequestWithHandleExists1) {
 
     if(!clientDataManager->clientExists(request->getClientPID(), request->getClientTID())) {
         if(!clientDataManager->createNewClient(request->getClientPID(), request->getClientTID())) {
-            FAIL();
+            return;
         }
     }
 
@@ -685,10 +692,10 @@ TEST_F(RequestMapTests, TestRequestWithHandleExists1) {
     if(requestCheck) {
         requestMap->addRequest(request);
     }
-    ASSERT_EQ(requestCheck, true);
+    C_ASSERT(requestCheck == true);
 
     int8_t result = requestMap->verifyHandle(20);
-    ASSERT_EQ(result, true);
+    C_ASSERT(result == true);
 
     requestMap->removeRequest(request);
 
@@ -698,7 +705,7 @@ TEST_F(RequestMapTests, TestRequestWithHandleExists1) {
     Request::cleanUpRequest(request);
 }
 
-TEST_F(RequestMapTests, TestRequestWithHandleExists2) {
+static void TestRequestWithHandleExists2() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RequestManager> requestMap = RequestManager::getInstance();
 
@@ -706,14 +713,14 @@ TEST_F(RequestMapTests, TestRequestWithHandleExists2) {
     try {
         resource = generateResourceForTesting(1);
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
 
     std::vector<Resource*>* resources;
     try {
         resources = new (GetBlock<std::vector<Resource*>>())std::vector<Resource*>;
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
     resources->push_back(resource);
 
@@ -721,7 +728,7 @@ TEST_F(RequestMapTests, TestRequestWithHandleExists2) {
     try {
         request = new (GetBlock<Request>()) Request();
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
 
     request->setRequestType(REQ_RESOURCE_TUNING);
@@ -736,7 +743,7 @@ TEST_F(RequestMapTests, TestRequestWithHandleExists2) {
 
     if(!clientDataManager->clientExists(request->getClientPID(), request->getClientTID())) {
         if(!clientDataManager->createNewClient(request->getClientPID(), request->getClientTID())) {
-            FAIL();
+            return;
         }
     }
 
@@ -744,10 +751,10 @@ TEST_F(RequestMapTests, TestRequestWithHandleExists2) {
     if(requestCheck) {
         requestMap->addRequest(request);
     }
-    ASSERT_EQ(requestCheck, true);
+    C_ASSERT(requestCheck == true);
 
     int8_t result = requestMap->verifyHandle(64);
-    ASSERT_EQ(result, false);
+    C_ASSERT(result == false);
 
     requestMap->removeRequest(request);
 
@@ -761,7 +768,7 @@ TEST_F(RequestMapTests, TestRequestWithHandleExists2) {
 // Check if a request with that handle exists
 // free the request from the RequestMap
 // Verify that no request with that handle exists in the map now.
-TEST_F(RequestMapTests, TestRequestDeletion1) {
+static void TestRequestDeletion1() {
     int32_t testClientPID = 321;
     int32_t testClientTID = 321;
 
@@ -773,7 +780,7 @@ TEST_F(RequestMapTests, TestRequestDeletion1) {
         resource = generateResourceFromMemoryPoolForTesting(1);
 
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
 
     std::vector<Resource*>* resources;
@@ -781,7 +788,7 @@ TEST_F(RequestMapTests, TestRequestDeletion1) {
     try {
         resources = new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
 
     resources->push_back(resource);
@@ -790,7 +797,7 @@ TEST_F(RequestMapTests, TestRequestDeletion1) {
     try {
         request = new(GetBlock<Request>()) Request();
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
 
     request->setRequestType(REQ_RESOURCE_TUNING);
@@ -805,7 +812,7 @@ TEST_F(RequestMapTests, TestRequestDeletion1) {
 
     if(!clientDataManager->clientExists(request->getClientPID(), request->getClientTID())) {
         if(!clientDataManager->createNewClient(request->getClientPID(), request->getClientTID())) {
-            FAIL();
+            return;
         }
     }
 
@@ -813,11 +820,11 @@ TEST_F(RequestMapTests, TestRequestDeletion1) {
     if(requestCheck) {
         requestMap->addRequest(request);
     }
-    ASSERT_EQ(requestCheck, true);
+    C_ASSERT(requestCheck == true);
 
-    ASSERT_EQ(requestMap->verifyHandle(25), true);
+    C_ASSERT(requestMap->verifyHandle(25) == true);
     requestMap->removeRequest(request);
-    ASSERT_EQ(requestMap->verifyHandle(25), false);
+    C_ASSERT(requestMap->verifyHandle(25) == false);
 
     clientDataManager->deleteClientPID(testClientPID);
     clientDataManager->deleteClientTID(testClientTID);
@@ -829,7 +836,7 @@ TEST_F(RequestMapTests, TestRequestDeletion1) {
 // Try adding R again, the operation should fail
 // free(Request R from the map
 // Now try adding R back to the RequestMap, the operation should succeed.
-TEST_F(RequestMapTests, TestRequestDeletion2) {
+static void TestRequestDeletion2() {
     int32_t testClientPID = 321;
     int32_t testClientTID = 321;
 
@@ -843,7 +850,7 @@ TEST_F(RequestMapTests, TestRequestDeletion2) {
         resource = generateResourceFromMemoryPoolForTesting(1);
         duplicateResource = generateResourceFromMemoryPoolForTesting(1);
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
 
     std::vector<Resource*>* resources1;
@@ -853,7 +860,7 @@ TEST_F(RequestMapTests, TestRequestDeletion2) {
         resources1 = new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
         resources2 = new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
 
     resources1->push_back(resource);
@@ -864,7 +871,7 @@ TEST_F(RequestMapTests, TestRequestDeletion2) {
         request = new(GetBlock<Request>()) Request();
         duplicateRequest = new(GetBlock<Request>()) Request();
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
 
     request->setRequestType(REQ_RESOURCE_TUNING);
@@ -889,7 +896,7 @@ TEST_F(RequestMapTests, TestRequestDeletion2) {
 
     if(!clientDataManager->clientExists(request->getClientPID(), request->getClientTID())) {
         if(!clientDataManager->createNewClient(request->getClientPID(), request->getClientTID())) {
-            FAIL();
+            return;
         }
     }
 
@@ -897,13 +904,13 @@ TEST_F(RequestMapTests, TestRequestDeletion2) {
     if(requestCheck) {
         requestMap->addRequest(request);
     }
-    ASSERT_EQ(requestCheck, true);
+    C_ASSERT(requestCheck == true);
 
     requestCheck = requestMap->shouldRequestBeAdded(duplicateRequest);
     if(requestCheck) {
         requestMap->addRequest(duplicateRequest);
     }
-    ASSERT_EQ(requestCheck, false);
+    C_ASSERT(requestCheck == false);
 
     requestMap->removeRequest(request);
 
@@ -911,7 +918,7 @@ TEST_F(RequestMapTests, TestRequestDeletion2) {
     if(requestCheck) {
         requestMap->addRequest(duplicateRequest);
     }
-    ASSERT_EQ(requestCheck, true);
+    C_ASSERT(requestCheck == true);
 
     requestMap->removeRequest(duplicateRequest);
 
@@ -927,14 +934,14 @@ TEST_F(RequestMapTests, TestRequestDeletion2) {
 // with one or more resources being null.
 // For such cases, RequestMap rejects the request,
 // No need to futher process such a malformed request.
-TEST_F(RequestMapTests, TestNullRequestAddition) {
+static void TestNullRequestAddition() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RequestManager> requestMap = RequestManager::getInstance();
 
-    ASSERT_EQ(requestMap->shouldRequestBeAdded(nullptr), false);
+    C_ASSERT(requestMap->shouldRequestBeAdded(nullptr) == false);
 }
 
-TEST_F(RequestMapTests, TestRequestWithNullResourcesAddition) {
+static void TestRequestWithNullResourcesAddition() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RequestManager> requestMap = RequestManager::getInstance();
 
@@ -944,7 +951,7 @@ TEST_F(RequestMapTests, TestRequestWithNullResourcesAddition) {
         resources = new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
 
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
 
     resources->push_back(nullptr);
@@ -953,7 +960,7 @@ TEST_F(RequestMapTests, TestRequestWithNullResourcesAddition) {
     try {
         request = new(GetBlock<Request>()) Request();
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
 
     request->setRequestType(REQ_RESOURCE_TUNING);
@@ -968,7 +975,7 @@ TEST_F(RequestMapTests, TestRequestWithNullResourcesAddition) {
 
     if(!clientDataManager->clientExists(request->getClientPID(), request->getClientTID())) {
         if(!clientDataManager->createNewClient(request->getClientPID(), request->getClientTID())) {
-            FAIL();
+            return;
         }
     }
 
@@ -976,7 +983,7 @@ TEST_F(RequestMapTests, TestRequestWithNullResourcesAddition) {
     if(requestCheck) {
         requestMap->addRequest(request);
     }
-    ASSERT_EQ(requestCheck, false);
+    C_ASSERT(requestCheck == false);
 
     clientDataManager->deleteClientPID(request->getClientPID());
     clientDataManager->deleteClientTID(request->getClientTID());
@@ -984,7 +991,7 @@ TEST_F(RequestMapTests, TestRequestWithNullResourcesAddition) {
     Request::cleanUpRequest(request);
 }
 
-TEST_F(RequestMapTests, TestGetRequestFromMap) {
+static void TestGetRequestFromMap() {
     int32_t testClientPID = 321;
     int32_t testClientTID = 321;
 
@@ -996,7 +1003,7 @@ TEST_F(RequestMapTests, TestGetRequestFromMap) {
     try {
         resource = generateResourceFromMemoryPoolForTesting(1);
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
 
     resource->setResCode(15564);
@@ -1009,7 +1016,7 @@ TEST_F(RequestMapTests, TestGetRequestFromMap) {
     try {
         resources = new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
 
     resources->push_back(resource);
@@ -1018,7 +1025,7 @@ TEST_F(RequestMapTests, TestGetRequestFromMap) {
     try {
         request = new(GetBlock<Request>()) Request();
     } catch(const std::bad_alloc& e) {
-        FAIL();
+        return;
     }
 
     request->setRequestType(REQ_RESOURCE_TUNING);
@@ -1033,7 +1040,7 @@ TEST_F(RequestMapTests, TestGetRequestFromMap) {
 
     if(!clientDataManager->clientExists(request->getClientPID(), request->getClientTID())) {
         if(!clientDataManager->createNewClient(request->getClientPID(), request->getClientTID())) {
-            FAIL();
+            return;
         }
     }
 
@@ -1042,24 +1049,47 @@ TEST_F(RequestMapTests, TestGetRequestFromMap) {
         requestMap->addRequest(request);
     }
 
-    ASSERT_EQ(result, true);
+    C_ASSERT(result == true);
 
     // Retrieve request and check it's integrity
     Request* fetchedRequest = requestMap->getRequestFromMap(325);
 
-    ASSERT_NE(fetchedRequest, nullptr);
-    ASSERT_EQ(fetchedRequest->getDuration(), -1);
-    ASSERT_EQ(fetchedRequest->getClientPID(), testClientPID);
-    ASSERT_EQ(fetchedRequest->getClientTID(), testClientTID);
-    ASSERT_EQ(fetchedRequest->getResourcesCount(), 1);
+    C_ASSERT(fetchedRequest != nullptr);
+    C_ASSERT(fetchedRequest->getDuration() == -1);
+    C_ASSERT(fetchedRequest->getClientPID() == testClientPID);
+    C_ASSERT(fetchedRequest->getClientTID() == testClientTID);
+    C_ASSERT(fetchedRequest->getResourcesCount() == 1);
 
     requestMap->removeRequest(request);
 
     fetchedRequest = requestMap->getRequestFromMap(325);
-    ASSERT_EQ(fetchedRequest, nullptr);
+    C_ASSERT(fetchedRequest == nullptr);
 
     clientDataManager->deleteClientPID(testClientPID);
     clientDataManager->deleteClientTID(testClientTID);
 
     Request::cleanUpRequest(request);
+}
+
+int main() {
+    std::cout<<"Running Test Suite: [RequestMap Tests]\n"<<std::endl;
+
+    Init();
+    RUN_TEST(TestSingleRequestScenario);
+    RUN_TEST(TestDuplicateRequestScenario1);
+    RUN_TEST(TestDuplicateRequestScenario2);
+    RUN_TEST(TestDuplicateRequestScenario3_1);
+    RUN_TEST(TestDuplicateRequestScenario3_2);
+    RUN_TEST(TestDuplicateRequestScenario4);
+    RUN_TEST(TestMultipleClientsScenario5);
+    RUN_TEST(TestRequestWithHandleExists1);
+    RUN_TEST(TestRequestWithHandleExists2);
+    RUN_TEST(TestRequestDeletion1);
+    RUN_TEST(TestRequestDeletion2);
+    RUN_TEST(TestNullRequestAddition);
+    RUN_TEST(TestRequestWithNullResourcesAddition);
+    RUN_TEST(TestGetRequestFromMap);
+
+    std::cout<<"\nAll Tests from the suite: [RequestMap Tests], executed successfully"<<std::endl;
+    return 0;
 }

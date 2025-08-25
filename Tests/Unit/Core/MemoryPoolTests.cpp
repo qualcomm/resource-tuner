@@ -1,8 +1,22 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <gtest/gtest.h>
 #include "MemoryPool.h"
+
+#define RUN_TEST(test)                                              \
+do {                                                                \
+    std::cout<<"Running Test: "<<#test<<std::endl;                  \
+    test();                                                         \
+    std::cout<<#test<<": Run Successful"<<std::endl;                \
+    std::cout<<"-------------------------------------"<<std::endl;  \
+} while(false);                                                     \
+
+#define C_ASSERT(cond)                                                               \
+    if(cond == false) {                                                              \
+        std::cerr<<"Condition Check on line:["<<__LINE__<<"]  failed"<<std::endl;    \
+        std::cerr<<"Test: ["<<__func__<<"] Failed, Terminating Suite\n"<<std::endl;  \
+        exit(EXIT_FAILURE);                                                          \
+    }                                                                                \
 
 // Test structure, used for allocation testing
 struct TestBuffer {
@@ -11,23 +25,23 @@ struct TestBuffer {
     int8_t isDuplicate;
 };
 
-TEST(MemoryPoolAllocationTests, TestMemoryPoolBasicAllocation1) {
+static void TestMemoryPoolBasicAllocation1() {
     MakeAlloc<TestBuffer>(1);
 
     void* block = GetBlock<TestBuffer>();
-    ASSERT_NE(block, nullptr);
+    C_ASSERT(block != nullptr);
 
     FreeBlock<TestBuffer>(static_cast<void*>(block));
 }
 
-TEST(MemoryPoolAllocationTests, TestMemoryPoolBasicAllocation2) {
+static void TestMemoryPoolBasicAllocation2() {
     MakeAlloc<char[250]>(2);
 
     void* firstBlock = GetBlock<char[250]>();
-    ASSERT_NE(firstBlock, nullptr);
+    C_ASSERT(firstBlock != nullptr);
 
     void* secondBlock = GetBlock<char[250]>();
-    ASSERT_NE(secondBlock, nullptr);
+    C_ASSERT(secondBlock != nullptr);
 
     FreeBlock<char[250]>(firstBlock);
     FreeBlock<char[250]>(secondBlock);
@@ -38,14 +52,14 @@ struct ListNode {
     ListNode* next;
 };
 
-TEST(MemoryPoolAllocationTests, TestMemoryPoolBasicAllocation3) {
+static void TestMemoryPoolBasicAllocation3() {
     MakeAlloc<ListNode>(10);
     ListNode* head = nullptr;
     ListNode* cur = nullptr;
 
     for(int32_t i = 0; i < 10; i++) {
         ListNode* node = (ListNode*)GetBlock<ListNode>();
-        ASSERT_NE(node, nullptr);
+        C_ASSERT(node != nullptr);
 
         node->val = i + 1;
         node->next = nullptr;
@@ -62,7 +76,7 @@ TEST(MemoryPoolAllocationTests, TestMemoryPoolBasicAllocation3) {
     cur = head;
     int32_t counter = 1;
     while(cur != nullptr) {
-        ASSERT_EQ(cur->val, counter);
+        C_ASSERT(cur->val == counter);
         ListNode* next = cur->next;
         FreeBlock<ListNode>(static_cast<void*>(cur));
 
@@ -76,19 +90,18 @@ struct Request {
     int64_t requestTimestamp;
 };
 
-TEST(MemoryPoolAllocationTests, TestMemoryPoolBasicAllocation4) {
+static void TestMemoryPoolBasicAllocation4() {
     MakeAlloc<std::vector<Request*>>(1);
     MakeAlloc<Request>(20);
 
     std::vector<Request*>* requests =
             (std::vector<Request*>*) GetBlock<std::vector<Request*>>();
 
-    ASSERT_NE(requests, nullptr);
+    C_ASSERT(requests != nullptr);
 
-    // Add some elements to the vector
     for(int32_t i = 0; i < 15; i++) {
         Request* request = (Request*) GetBlock<Request>();
-        ASSERT_NE(request, nullptr);
+        C_ASSERT(request != nullptr);
 
         request->requestID = i + 1;
         request->requestTimestamp = 100 * (i + 3);
@@ -96,8 +109,8 @@ TEST(MemoryPoolAllocationTests, TestMemoryPoolBasicAllocation4) {
     }
 
     for(int32_t i = 0; i < requests->size(); i++) {
-        ASSERT_EQ((*requests)[i]->requestID, i + 1);
-        ASSERT_EQ((*requests)[i]->requestTimestamp, 100 * (i + 3));
+        C_ASSERT((*requests)[i]->requestID == i + 1);
+        C_ASSERT((*requests)[i]->requestTimestamp == 100 * (i + 3));
 
         FreeBlock<Request>(static_cast<void*>((*requests)[i]));
     }
@@ -118,82 +131,72 @@ public:
     }
 };
 
-TEST(MemoryPoolAllocationTests, TestMemoryPoolBasicAllocation5) {
+static void TestMemoryPoolBasicAllocation5() {
     MakeAlloc<DataHub>(1);
 
-    // Create an object of DataHub with the parametrized constructor
     DataHub* dataHubObj = new(GetBlock<DataHub>()) DataHub(30, 17, "XYZ-co");
 
-    ASSERT_NE(dataHubObj, nullptr);
+    C_ASSERT(dataHubObj != nullptr);
 
     FreeBlock<DataHub>(static_cast<void*>(dataHubObj));
 }
 
-TEST(MemoryPoolAllocationTests, TestMemoryPoolBasicAllocation6) {
+static void TestMemoryPoolBasicAllocation6() {
     int8_t allocationFailed = false;
     void* block = nullptr;
 
     try {
         block = GetBlock<char[120]>();
-
     } catch(const std::bad_alloc& e) {
         allocationFailed = true;
     }
 
-    ASSERT_EQ(block, nullptr);
-    ASSERT_EQ(allocationFailed, true);
+    C_ASSERT(block == nullptr);
+    C_ASSERT(allocationFailed == true);
 }
 
-// Test that Items are Indexed and Allocated based on their type (T)
-// and not the size of the Item (T).
-TEST(MemoryPoolAllocationTests, TestMemoryPoolBasicAllocation7) {
+static void TestMemoryPoolBasicAllocation7() {
     MakeAlloc<int64_t>(1);
 
     void* block = nullptr;
     try {
         block = GetBlock<int64_t>();
-
     } catch(const std::bad_alloc& e) {
-        FAIL();
     }
 
-    ASSERT_NE(block, nullptr);
+    C_ASSERT(block != nullptr);
 
     block = nullptr;
     try {
         block = GetBlock<char[8]>();
-
     } catch(const std::bad_alloc& e) {}
 
-    ASSERT_EQ(block, nullptr);
+    C_ASSERT(block == nullptr);
 }
 
-TEST(MemoryPoolFreeTests, TestMemoryPoolFreeingMemory1) {
+static void TestMemoryPoolFreeingMemory1() {
     MakeAlloc<char[125]>(2);
 
     void* firstBlock = GetBlock<char[125]>();
-    ASSERT_NE(firstBlock, nullptr);
+    C_ASSERT(firstBlock != nullptr);
 
     void* secondBlock = GetBlock<char[125]>();
-    ASSERT_NE(secondBlock, nullptr);
+    C_ASSERT(secondBlock != nullptr);
 
-    // Free one of the blocks
     FreeBlock<char[125]>(static_cast<void*>(firstBlock));
 
-    // The call for another allocation should not return null, since currently
-    // only one block is allocated.
     void* thirdBlock = GetBlock<char[125]>();
-    ASSERT_NE(thirdBlock, nullptr);
+    C_ASSERT(thirdBlock != nullptr);
 }
 
-TEST(MemoryPoolFreeTests, TestMemoryPoolFreeingMemory2) {
+static void TestMemoryPoolFreeingMemory2() {
     MakeAlloc<char[200]>(5);
 
     std::vector<void*> allocatedBlocks;
 
     for(int32_t i = 0; i < 5; i++) {
         allocatedBlocks.push_back(GetBlock<char[200]>());
-        ASSERT_NE(allocatedBlocks.back(), nullptr);
+        C_ASSERT(allocatedBlocks.back() != nullptr);
     }
 
     for(int32_t i = 0; i < 5; i++) {
@@ -206,21 +209,19 @@ TEST(MemoryPoolFreeTests, TestMemoryPoolFreeingMemory2) {
             allocationFailed = true;
         }
 
-        ASSERT_EQ(block, nullptr);
-        ASSERT_EQ(allocationFailed, true);
+        C_ASSERT(block == nullptr);
+        C_ASSERT(allocationFailed == true);
     }
 
-    // Free all the allocated blocks
     for(int32_t i = 0; i < 5; i++) {
         FreeBlock<char[200]>(static_cast<void*>(allocatedBlocks[i]));
     }
 
     for(int32_t i = 0; i < 5; i++) {
         allocatedBlocks[i] = GetBlock<char[200]>();
-        ASSERT_NE(allocatedBlocks[i], nullptr);
+        C_ASSERT(allocatedBlocks[i] != nullptr);
     }
 
-    // Free all the allocated blocks
     for(int32_t i = 0; i < 5; i++) {
         FreeBlock<char[200]>(static_cast<void*>(allocatedBlocks[i]));
     }
@@ -240,7 +241,7 @@ public:
     }
 };
 
-TEST(MemoryPoolFreeTests, TestMemoryPoolFreeingMemory3) {
+static void TestMemoryPoolFreeingMemory3() {
     MakeAlloc<CustomDataType>(1);
 
     int8_t* destructorCalled = (int8_t*) malloc(sizeof(int8_t));
@@ -250,5 +251,22 @@ TEST(MemoryPoolFreeTests, TestMemoryPoolFreeingMemory3) {
         new(GetBlock<CustomDataType>()) CustomDataType(destructorCalled);
 
     FreeBlock<CustomDataType>(static_cast<void*>(customDTObject));
-    ASSERT_EQ(*destructorCalled, true);
+    C_ASSERT(*destructorCalled == true);
+}
+
+int32_t main() {
+    std::cout<<"Running Test Suite: [Memory Pool Tests]\n"<<std::endl;
+
+    RUN_TEST(TestMemoryPoolBasicAllocation1);
+    RUN_TEST(TestMemoryPoolBasicAllocation2);
+    RUN_TEST(TestMemoryPoolBasicAllocation3);
+    RUN_TEST(TestMemoryPoolBasicAllocation4);
+    RUN_TEST(TestMemoryPoolBasicAllocation5);
+    RUN_TEST(TestMemoryPoolBasicAllocation6);
+    RUN_TEST(TestMemoryPoolBasicAllocation7);
+    RUN_TEST(TestMemoryPoolFreeingMemory1);
+    RUN_TEST(TestMemoryPoolFreeingMemory2);
+    RUN_TEST(TestMemoryPoolFreeingMemory3);
+
+    std::cout<<"\nAll Tests from the suite: [Memory Pool Tests], executed successfully"<<std::endl;
 }

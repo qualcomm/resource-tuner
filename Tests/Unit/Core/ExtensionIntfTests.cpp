@@ -1,11 +1,24 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <gtest/gtest.h>
-
 #include "ResourceRegistry.h"
 #include "ConfigProcessor.h"
 #include "Extensions.h"
+
+#define RUN_TEST(test)                                              \
+do {                                                                \
+    std::cout<<"Running Test: "<<#test<<std::endl;                  \
+    test();                                                         \
+    std::cout<<#test<<": Run Successful"<<std::endl;                \
+    std::cout<<"-------------------------------------"<<std::endl;  \
+} while(false);                                                     \
+
+#define C_ASSERT(cond)                                                               \
+    if(cond == false) {                                                              \
+        std::cerr<<"Condition Check on line:["<<__LINE__<<"]  failed"<<std::endl;    \
+        std::cerr<<"Test: ["<<__func__<<"] Failed, Terminating Suite\n"<<std::endl;  \
+        exit(EXIT_FAILURE);                                                          \
+    }                                                                                \
 
 RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/resource-tuner/tests/Configs/ResourcesConfig.yaml")
 RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/etc/resource-tuner/tests/Configs/PropertiesConfig.yaml")
@@ -26,62 +39,57 @@ void customTear(void* context) {
 RESTUNE_REGISTER_APPLIER_CB(0x80010000, customApplier)
 RESTUNE_REGISTER_TEAR_CB(0x80010001, customTear)
 
-class ExtensionIntfTests: public::testing::Test {
-protected:
-    void SetUp() override {
-        if(firstTest) {
-            firstTest = false;
-            ConfigProcessor configProcessor;
+static void Init() {
+    ConfigProcessor configProcessor;
 
-            configProcessor.parseResourceConfigs(Extensions::getResourceConfigFilePath(), true);
-            ResourceRegistry::getInstance()->pluginModifications();
-        }
-    }
-};
-
-
-TEST_F(ExtensionIntfTests, TestExtensionIntfModifiedResourceConfigPath) {
-    ASSERT_EQ(
-        Extensions::getResourceConfigFilePath(),
-        "/etc/resource-tuner/tests/Configs/ResourcesConfig.yaml"
-    );
+    configProcessor.parseResourceConfigs(Extensions::getResourceConfigFilePath(), true);
+    ResourceRegistry::getInstance()->pluginModifications();
 }
 
-TEST_F(ExtensionIntfTests, TestExtensionIntfModifiedPropertiesConfigPath) {
-    ASSERT_EQ(
-        Extensions::getPropertiesConfigFilePath(),
-        "/etc/resource-tuner/tests/Configs/PropertiesConfig.yaml"
-    );
+static void TestExtensionIntfModifiedResourceConfigPath() {
+    C_ASSERT(Extensions::getResourceConfigFilePath() == "/etc/resource-tuner/tests/Configs/ResourcesConfig.yaml");
 }
 
-TEST_F(ExtensionIntfTests, TestExtensionIntfModifiedSignalConfigPath) {
-    ASSERT_EQ(
-        Extensions::getSignalsConfigFilePath(),
-        "/etc/resource-tuner/tests/Configs/SignalsConfig.yaml"
-    );
+static void TestExtensionIntfModifiedPropertiesConfigPath() {
+    C_ASSERT(Extensions::getPropertiesConfigFilePath() == "/etc/resource-tuner/tests/Configs/PropertiesConfig.yaml");
 }
 
-TEST_F(ExtensionIntfTests, TestExtensionIntfModifiedTargetConfigPath) {
-    ASSERT_EQ(
-        Extensions::getTargetConfigFilePath(),
-        "/etc/resource-tuner/tests/Configs/TargetConfig.yaml"
-    );
+static void TestExtensionIntfModifiedSignalConfigPath() {
+    C_ASSERT(Extensions::getSignalsConfigFilePath() == "/etc/resource-tuner/tests/Configs/SignalsConfig.yaml");
 }
 
-TEST_F(ExtensionIntfTests, TestExtensionIntfCustomResourceApplier) {
+static void TestExtensionIntfModifiedTargetConfigPath() {
+    C_ASSERT(Extensions::getTargetConfigFilePath() == "/etc/resource-tuner/tests/Configs/TargetConfig.yaml");
+}
+
+static void TestExtensionIntfCustomResourceApplier() {
     ResourceConfigInfo* info = ResourceRegistry::getInstance()->getResourceById(0x80010000);
-    ASSERT_NE(info, nullptr);
+    C_ASSERT(info != nullptr);
     funcCalled = false;
-    ASSERT_NE(info->mResourceApplierCallback, nullptr);
+    C_ASSERT(info->mResourceApplierCallback != nullptr);
     info->mResourceApplierCallback(nullptr);
-    ASSERT_EQ(funcCalled, true);
+    C_ASSERT(funcCalled == true);
 }
 
-TEST_F(ExtensionIntfTests, TestExtensionIntfCustomResourceTear) {
+static void TestExtensionIntfCustomResourceTear() {
     ResourceConfigInfo* info = ResourceRegistry::getInstance()->getResourceById(0x80010001);
-    ASSERT_NE(info, nullptr);
+    C_ASSERT(info != nullptr);
     funcCalled = false;
-    ASSERT_NE(info->mResourceTearCallback, nullptr);
+    C_ASSERT(info->mResourceTearCallback != nullptr);
     info->mResourceTearCallback(nullptr);
-    ASSERT_EQ(funcCalled, true);
+    C_ASSERT(funcCalled == true);
+}
+
+int32_t main() {
+     std::cout<<"Running Test Suite: [ExtensionIntfTests]\n"<<std::endl;
+
+    Init();
+    RUN_TEST(TestExtensionIntfModifiedResourceConfigPath);
+    RUN_TEST(TestExtensionIntfModifiedPropertiesConfigPath);
+    RUN_TEST(TestExtensionIntfModifiedSignalConfigPath);
+    RUN_TEST(TestExtensionIntfModifiedTargetConfigPath);
+    RUN_TEST(TestExtensionIntfCustomResourceApplier);
+    RUN_TEST(TestExtensionIntfCustomResourceTear);
+
+    std::cout<<"\nAll Tests from the suite: [ExtensionIntfTests], executed successfully"<<std::endl;
 }

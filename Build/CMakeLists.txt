@@ -28,15 +28,6 @@ if(BUILD_SIGNALS)
 endif()
 
 if(BUILD_TESTS)
-  # GoogleTest dependency
-  include(FetchContent)
-  FetchContent_Declare(
-    googletest
-    URL https://github.com/google/googletest/archive/refs/heads/main.zip
-  )
-  FetchContent_MakeAvailable(googletest)
-
-  enable_testing()
   add_subdirectory(../Tests/Unit/Build ${CMAKE_BINARY_DIR}/TestBuild)
 endif()
 

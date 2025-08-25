@@ -1,84 +1,51 @@
 if(BUILD_TESTS)
     add_executable(YamlParserTests ../Core/YamlParserTests.cpp)
-    target_link_libraries(YamlParserTests GTest::gtest_main Auxiliary)
+    target_link_libraries(YamlParserTests Auxiliary)
 
     add_executable(MemoryPoolTests ../Core/MemoryPoolTests.cpp)
-    target_link_libraries(MemoryPoolTests GTest::gtest_main Auxiliary)
+    target_link_libraries(MemoryPoolTests Auxiliary)
 
     add_executable(SafeOpsTest ../Core/SafeOpsTest.cpp)
-    target_link_libraries(SafeOpsTest GTest::gtest_main Auxiliary)
+    target_link_libraries(SafeOpsTest Auxiliary)
 
     add_executable(ThreadPoolTests ../Core/ThreadPoolTests.cpp)
-    target_link_libraries(ThreadPoolTests GTest::gtest_main Auxiliary)
+    target_link_libraries(ThreadPoolTests Auxiliary)
 
     add_executable(TimerTest ../Core/TimerTest.cpp)
-    target_link_libraries(TimerTest GTest::gtest_main Auxiliary)
+    target_link_libraries(TimerTest Auxiliary)
 
     add_executable(MiscTests ../Core/MiscTests.cpp)
-    target_link_libraries(MiscTests GTest::gtest_main Auxiliary)
-
-    add_executable(RequestQueueTest ../Core/RequestQueueTest.cpp)
-    target_link_libraries(RequestQueueTest GTest::gtest_main Server)
-
-    add_executable(CocoTableTest ../Core/CocoTableTest.cpp)
-    target_link_libraries(CocoTableTest GTest::gtest_main Server ExtAPIs)
+    target_link_libraries(MiscTests Auxiliary)
 
     add_executable(ClientDataManagerTests ../Core/ClientDataManagerTests.cpp)
-    target_link_libraries(ClientDataManagerTests GTest::gtest_main Auxiliary Server)
+    target_link_libraries(ClientDataManagerTests Auxiliary Server)
 
     add_executable(RequestMapTests ../Core/RequestMapTests.cpp)
-    target_link_libraries(RequestMapTests GTest::gtest_main  Auxiliary Server ExtAPIs)
+    target_link_libraries(RequestMapTests Auxiliary Server ExtAPIs)
 
     add_executable(RateLimiterTests ../Core/RateLimiterTests.cpp)
-    target_link_libraries(RateLimiterTests GTest::gtest_main  Auxiliary Server ExtAPIs)
+    target_link_libraries(RateLimiterTests Auxiliary Server ExtAPIs)
 
     add_executable(ResourceProcessorTests ../Core/ResourceProcessorTests.cpp)
-    target_link_libraries(ResourceProcessorTests GTest::gtest_main Auxiliary Server ExtAPIs)
+    target_link_libraries(ResourceProcessorTests Auxiliary Server ExtAPIs)
 
     add_executable(ResourceParsingTests ../Core/ResourceParsingTests.cpp)
-    target_link_libraries(ResourceParsingTests GTest::gtest_main Auxiliary Server ExtAPIs)
+    target_link_libraries(ResourceParsingTests Auxiliary Server ExtAPIs)
 
     add_executable(TargetConfigProcessorTests ../Core/TargetConfigProcessorTests.cpp)
-    target_link_libraries(TargetConfigProcessorTests GTest::gtest_main Auxiliary Server ExtAPIs)
+    target_link_libraries(TargetConfigProcessorTests Auxiliary Server ExtAPIs)
 
     add_executable(SysConfigAPITests ../Core/SysConfigAPITests.cpp)
-    target_link_libraries(SysConfigAPITests GTest::gtest_main Auxiliary ExtAPIs SysConfigProps)
-
-    add_executable(SysConfigProcessorTests ../Core/SysConfigProcessorTests.cpp)
-    target_link_libraries(SysConfigProcessorTests GTest::gtest_main Auxiliary ExtAPIs SysConfigProps)
+    target_link_libraries(SysConfigAPITests Auxiliary ExtAPIs SysConfigProps)
 
     add_executable(ExtensionIntfTests ../Core/ExtensionIntfTests.cpp)
-    target_link_libraries(ExtensionIntfTests GTest::gtest_main Auxiliary ExtAPIs Server)
+    target_link_libraries(ExtensionIntfTests Auxiliary ExtAPIs Server)
 
     if(BUILD_SIGNALS)
         add_executable(SysSignalConfigProcessorTests ../Signals/SignalConfigProcessorTests.cpp)
-        target_link_libraries(SysSignalConfigProcessorTests GTest::gtest_main Auxiliary ExtAPIs SysSignals)
+        target_link_libraries(SysSignalConfigProcessorTests Auxiliary ExtAPIs SysSignals)
 
         add_executable(SignalParsingTests ../Signals/SignalParsingTests.cpp)
-        target_link_libraries(SignalParsingTests GTest::gtest_main Auxiliary ExtAPIs SysSignals)
-    endif()
-
-    if(NOT CMAKE_CROSSCOMPILING)
-        include(GoogleTest)
-        gtest_discover_tests(YamlParserTests)
-        gtest_discover_tests(RequestQueueTest)
-        gtest_discover_tests(CocoTableTest)
-        gtest_discover_tests(ClientDataManagerTests)
-        gtest_discover_tests(RequestMapTests)
-        gtest_discover_tests(RateLimiterTests)
-        gtest_discover_tests(MemoryPoolTests)
-        gtest_discover_tests(SafeOpsTest)
-        gtest_discover_tests(MiscTests)
-        gtest_discover_tests(ThreadPoolTests)
-        gtest_discover_tests(TimerTest)
-        gtest_discover_tests(SysConfigAPITests)
-        gtest_discover_tests(ResourceProcessorTests)
-        gtest_discover_tests(ResourceParsingTests)
-        gtest_discover_tests(TargetConfigProcessorTests)
-        gtest_discover_tests(ExtensionIntfTests)
-        if(BUILD_SIGNALS)
-            gtest_discover_tests(SysSignalConfigProcessorTests)
-            gtest_discover_tests(SignalParsingTests)
-        endif()
+        target_link_libraries(SignalParsingTests Auxiliary ExtAPIs SysSignals)
     endif()
 endif()

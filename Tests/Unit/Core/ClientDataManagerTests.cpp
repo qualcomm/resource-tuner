@@ -3,40 +3,47 @@
 
 #include <thread>
 #include <cstdint>
-#include <gtest/gtest.h>
 
 #include "ClientDataManager.h"
 
-class ClientDataManagerTests: public::testing::Test {
-protected:
-    void SetUp() override {
-        static int8_t firstTest = true;
-        if(firstTest) {
-            firstTest = false;
-            MakeAlloc<ClientInfo> (30);
-            MakeAlloc<ClientTidData> (30);
-            MakeAlloc<std::unordered_set<int64_t>> (30);
-            MakeAlloc<std::vector<int32_t>> (30);
-        }
-    }
-};
+#define RUN_TEST(test)                                              \
+do {                                                                \
+    std::cout<<"Running Test: "<<#test<<std::endl;                  \
+    test();                                                         \
+    std::cout<<#test<<": Run Successful"<<std::endl;                \
+    std::cout<<"-------------------------------------"<<std::endl;  \
+} while(false);                                                     \
 
-TEST_F(ClientDataManagerTests, TestClientDataManagerClientEntryCreation1) {
+#define C_ASSERT(cond)                                                               \
+    if(cond == false) {                                                              \
+        std::cerr<<"Condition Check on line:["<<__LINE__<<"]  failed"<<std::endl;    \
+        std::cerr<<"Test: ["<<__func__<<"] Failed, Terminating Suite\n"<<std::endl;  \
+        exit(EXIT_FAILURE);                                                          \
+    }                                                                                \
+
+static void Init() {
+    MakeAlloc<ClientInfo> (30);
+    MakeAlloc<ClientTidData> (30);
+    MakeAlloc<std::unordered_set<int64_t>> (30);
+    MakeAlloc<std::vector<int32_t>> (30);
+}
+
+static void TestClientDataManagerClientEntryCreation1() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
 
     int32_t testClientPID = 252;
     int32_t testClientTID = 252;
 
-    ASSERT_EQ(clientDataManager->clientExists(testClientPID, testClientTID), false);
+    C_ASSERT(clientDataManager->clientExists(testClientPID, testClientTID) == false);
     clientDataManager->createNewClient(testClientPID, testClientTID);
-    ASSERT_EQ(clientDataManager->clientExists(testClientPID, testClientTID), true);
+    C_ASSERT(clientDataManager->clientExists(testClientPID, testClientTID) == true);
 
     clientDataManager->deleteClientPID(testClientPID);
     clientDataManager->deleteClientTID(testClientTID);
 }
 
 // Use threads to simulate different clients (PIDs essentially)
-TEST_F(ClientDataManagerTests, TestClientDataManagerClientEntryCreation2) {
+static void TestClientDataManagerClientEntryCreation2() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
 
     std::vector<std::thread> threads;
@@ -46,9 +53,9 @@ TEST_F(ClientDataManagerTests, TestClientDataManagerClientEntryCreation2) {
         auto threadRoutine = [&] (void* arg) {
             int32_t id = *(int32_t*) arg;
 
-            ASSERT_EQ(clientDataManager->clientExists(id, id), false);
+            C_ASSERT(clientDataManager->clientExists(id, id) == false);
             clientDataManager->createNewClient(id, id);
-            ASSERT_EQ(clientDataManager->clientExists(id, id), true);
+            C_ASSERT(clientDataManager->clientExists(id, id) == true);
 
             free(arg);
         };
@@ -70,95 +77,95 @@ TEST_F(ClientDataManagerTests, TestClientDataManagerClientEntryCreation2) {
     }
 }
 
-TEST_F(ClientDataManagerTests, TestClientDataManagerClientEntryDeletion) {
+static void TestClientDataManagerClientEntryDeletion() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
 
     int32_t testClientPID = 252;
     int32_t testClientTID = 252;
 
-    ASSERT_EQ(clientDataManager->clientExists(testClientPID, testClientTID), false);
+    C_ASSERT(clientDataManager->clientExists(testClientPID, testClientTID) == false);
     clientDataManager->createNewClient(testClientPID, testClientTID);
-    ASSERT_EQ(clientDataManager->clientExists(testClientPID, testClientTID), true);
+    C_ASSERT(clientDataManager->clientExists(testClientPID, testClientTID) == true);
 
     clientDataManager->deleteClientPID(testClientPID);
     clientDataManager->deleteClientTID(testClientTID);
-    ASSERT_EQ(clientDataManager->clientExists(testClientPID, testClientTID), false);
+    C_ASSERT(clientDataManager->clientExists(testClientPID, testClientTID) == false);
 }
 
-TEST_F(ClientDataManagerTests, TestClientDataManagerRateLimiterUtilsHealth) {
+static void TestClientDataManagerRateLimiterUtilsHealth() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
 
     int32_t testClientPID = 252;
     int32_t testClientTID = 252;
 
-    ASSERT_EQ(clientDataManager->clientExists(testClientPID, testClientTID), false);
+    C_ASSERT(clientDataManager->clientExists(testClientPID, testClientTID) == false);
     clientDataManager->createNewClient(testClientPID, testClientTID);
-    ASSERT_EQ(clientDataManager->clientExists(testClientPID, testClientTID), true);
+    C_ASSERT(clientDataManager->clientExists(testClientPID, testClientTID) == true);
 
     double health = clientDataManager->getHealthByClientID(testClientTID);
-    ASSERT_EQ(health, 100.0);
+    C_ASSERT(health == 100.0);
 
     clientDataManager->deleteClientPID(testClientPID);
     clientDataManager->deleteClientTID(testClientTID);
 }
 
-TEST_F(ClientDataManagerTests, TestClientDataManagerRateLimiterUtilsHealthSetGet) {
+static void TestClientDataManagerRateLimiterUtilsHealthSetGet() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
 
     int32_t testClientPID = 252;
     int32_t testClientTID = 252;
 
-    ASSERT_EQ(clientDataManager->clientExists(testClientPID, testClientTID), false);
+    C_ASSERT(clientDataManager->clientExists(testClientPID, testClientTID) == false);
     clientDataManager->createNewClient(testClientPID, testClientTID);
-    ASSERT_EQ(clientDataManager->clientExists(testClientPID, testClientTID), true);
+    C_ASSERT(clientDataManager->clientExists(testClientPID, testClientTID) == true);
 
     clientDataManager->updateHealthByClientID(testClientTID, 55);
     double health = clientDataManager->getHealthByClientID(testClientTID);
 
-    ASSERT_EQ(health, 55.0);
+    C_ASSERT(health == 55.0);
 
     clientDataManager->deleteClientPID(testClientPID);
     clientDataManager->deleteClientTID(testClientTID);
 }
 
-TEST_F(ClientDataManagerTests, TestClientDataManagerRateLimiterUtilsLastRequestTimestampSetGet) {
+static void TestClientDataManagerRateLimiterUtilsLastRequestTimestampSetGet() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
 
     int32_t testClientPID = 252;
     int32_t testClientTID = 252;
 
-    ASSERT_EQ(clientDataManager->clientExists(testClientPID, testClientTID), false);
+    C_ASSERT(clientDataManager->clientExists(testClientPID, testClientTID) == false);
     clientDataManager->createNewClient(testClientPID, testClientTID);
-    ASSERT_EQ(clientDataManager->clientExists(testClientPID, testClientTID), true);
+    C_ASSERT(clientDataManager->clientExists(testClientPID, testClientTID) == true);
 
     int64_t currentMillis = ResourceTunerSettings::getCurrentTimeInMilliseconds();
 
     clientDataManager->updateLastRequestTimestampByClientID(testClientTID, currentMillis);
     int64_t lastRequestTimestamp = clientDataManager->getLastRequestTimestampByClientID(testClientTID);
 
-    ASSERT_EQ(lastRequestTimestamp, currentMillis);
+    C_ASSERT(lastRequestTimestamp == currentMillis);
 
     clientDataManager->deleteClientPID(testClientPID);
     clientDataManager->deleteClientTID(testClientTID);
 }
 
-TEST_F(ClientDataManagerTests, TestClientDataManagerPulseMonitorClientListFetch) {
+static void TestClientDataManagerPulseMonitorClientListFetch() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
 
     // Insert a few clients into the table
     for(int32_t i = 100; i < 120; i++) {
-        ASSERT_EQ(clientDataManager->clientExists(i, i), false);
+        C_ASSERT(clientDataManager->clientExists(i, i) == false);
         clientDataManager->createNewClient(i, i);
-        ASSERT_EQ(clientDataManager->clientExists(i, i), true);
+        C_ASSERT(clientDataManager->clientExists(i, i) == true);
     }
 
     std::vector<int32_t> clientList;
     clientDataManager->getActiveClientList(clientList);
 
-    ASSERT_EQ(clientList.size(), 20);
+    C_ASSERT(clientList.size() == 20);
     for(int32_t clientPID: clientList) {
-        ASSERT_LT(clientPID, 120);
-        ASSERT_GE(clientPID, 100);
+        C_ASSERT(clientPID < 120);
+        C_ASSERT(clientPID >= 100);
     }
 
     for(int32_t i = 100; i < 120; i++) {
@@ -167,15 +174,15 @@ TEST_F(ClientDataManagerTests, TestClientDataManagerPulseMonitorClientListFetch)
     }
 }
 
-TEST_F(ClientDataManagerTests, TestClientDataManagerRequestMapInsertion) {
+static void TestClientDataManagerRequestMapInsertion() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
 
     int32_t testClientPID = 252;
     int32_t testClientTID = 252;
 
-    ASSERT_EQ(clientDataManager->clientExists(testClientPID, testClientTID), false);
+    C_ASSERT(clientDataManager->clientExists(testClientPID, testClientTID) == false);
     clientDataManager->createNewClient(testClientPID, testClientTID);
-    ASSERT_EQ(clientDataManager->clientExists(testClientPID, testClientTID), true);
+    C_ASSERT(clientDataManager->clientExists(testClientPID, testClientTID) == true);
 
     for(int32_t i = 0; i < 20; i++) {
         clientDataManager->insertRequestByClientId(testClientTID, i + 1);
@@ -184,8 +191,8 @@ TEST_F(ClientDataManagerTests, TestClientDataManagerRequestMapInsertion) {
     std::unordered_set<int64_t>* clientRequests =
                     clientDataManager->getRequestsByClientID(testClientTID);
 
-    ASSERT_NE(clientRequests, nullptr);
-    ASSERT_EQ(clientRequests->size(), 20);
+    C_ASSERT(clientRequests != nullptr);
+    C_ASSERT(clientRequests->size() == 20);
 
     for(int32_t i = 0; i < 20; i++) {
         clientDataManager->deleteRequestByClientId(testClientTID, i + 1);
@@ -194,10 +201,10 @@ TEST_F(ClientDataManagerTests, TestClientDataManagerRequestMapInsertion) {
     clientDataManager->deleteClientPID(testClientPID);
     clientDataManager->deleteClientTID(testClientTID);
 
-    ASSERT_EQ(clientRequests->size(), 0);
+    C_ASSERT(clientRequests->size() == 0);
 }
 
-TEST_F(ClientDataManagerTests, TestClientDataManagerClientThreadTracking1) {
+static void TestClientDataManagerClientThreadTracking1() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
 
     int32_t testClientPID = 252;
@@ -206,9 +213,9 @@ TEST_F(ClientDataManagerTests, TestClientDataManagerClientThreadTracking1) {
     for(int32_t i = 0; i < 20; i++) {
         auto threadRoutine = [&](void* arg) {
             int32_t threadID = *(int32_t*)arg;
-            ASSERT_EQ(clientDataManager->clientExists(testClientPID, threadID), false);
+            C_ASSERT(clientDataManager->clientExists(testClientPID, threadID) == false);
             clientDataManager->createNewClient(testClientPID, threadID);
-            ASSERT_EQ(clientDataManager->clientExists(testClientPID, threadID), true);
+            C_ASSERT(clientDataManager->clientExists(testClientPID, threadID) == true);
 
             free(arg);
         };
@@ -223,8 +230,8 @@ TEST_F(ClientDataManagerTests, TestClientDataManagerClientThreadTracking1) {
     }
 
     std::vector<int32_t>* threadIds = clientDataManager->getThreadsByClientId(testClientPID);
-    ASSERT_NE(threadIds, nullptr);
-    ASSERT_EQ(threadIds->size(), 20);
+    C_ASSERT(threadIds != nullptr);
+    C_ASSERT(threadIds->size() == 20);
 
     clientDataManager->deleteClientPID(testClientPID);
 
@@ -233,20 +240,20 @@ TEST_F(ClientDataManagerTests, TestClientDataManagerClientThreadTracking1) {
     }
 }
 
-TEST_F(ClientDataManagerTests, TestClientDataManagerClientThreadTracking2) {
+static void TestClientDataManagerClientThreadTracking2() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
 
     int32_t testClientPID = 252;
 
     for(int32_t i = 0; i < 20; i++) {
-        ASSERT_EQ(clientDataManager->clientExists(testClientPID, i + 1), false);
+        C_ASSERT(clientDataManager->clientExists(testClientPID, i + 1) == false);
         clientDataManager->createNewClient(testClientPID, i + 1);
-        ASSERT_EQ(clientDataManager->clientExists(testClientPID, i + 1), true);
+        C_ASSERT(clientDataManager->clientExists(testClientPID, i + 1) == true);
     }
 
     std::vector<int32_t>* threadIds = clientDataManager->getThreadsByClientId(testClientPID);
-    ASSERT_NE(threadIds, nullptr);
-    ASSERT_EQ(threadIds->size(), 20);
+    C_ASSERT(threadIds != nullptr);
+    C_ASSERT(threadIds->size() == 20);
 
     for(int32_t i = 0; i < 20; i++) {
         clientDataManager->insertRequestByClientId(i + 1, 5 * i + 7);
@@ -256,8 +263,8 @@ TEST_F(ClientDataManagerTests, TestClientDataManagerClientThreadTracking2) {
         std::unordered_set<int64_t>* clientRequests =
                     clientDataManager->getRequestsByClientID(i + 1);
 
-        ASSERT_NE(clientRequests, nullptr);
-        ASSERT_EQ(clientRequests->size(), 1);
+        C_ASSERT(clientRequests != nullptr);
+        C_ASSERT(clientRequests->size() == 1);
 
         clientDataManager->deleteRequestByClientId(i + 1, 5 * i + 7);
     }
@@ -266,8 +273,8 @@ TEST_F(ClientDataManagerTests, TestClientDataManagerClientThreadTracking2) {
         std::unordered_set<int64_t>* clientRequests =
                 clientDataManager->getRequestsByClientID(i + 1);
 
-        ASSERT_NE(clientRequests, nullptr);
-        ASSERT_EQ(clientRequests->size(), 0);
+        C_ASSERT(clientRequests != nullptr);
+        C_ASSERT(clientRequests->size() == 0);
     }
 
     clientDataManager->deleteClientPID(testClientPID);
@@ -275,4 +282,24 @@ TEST_F(ClientDataManagerTests, TestClientDataManagerClientThreadTracking2) {
     for(int32_t i = 0; i < 20; i++) {
         clientDataManager->deleteClientTID(i + 1);
     }
+}
+
+
+int main() {
+    std::cout<<"Running Test Suite: [ClientDataManager Tests]\n"<<std::endl;
+    Init();
+
+    RUN_TEST(TestClientDataManagerClientEntryCreation1);
+    RUN_TEST(TestClientDataManagerClientEntryCreation2);
+    RUN_TEST(TestClientDataManagerClientEntryDeletion);
+    RUN_TEST(TestClientDataManagerRateLimiterUtilsHealth);
+    RUN_TEST(TestClientDataManagerRateLimiterUtilsHealthSetGet);
+    RUN_TEST(TestClientDataManagerRateLimiterUtilsLastRequestTimestampSetGet);
+    RUN_TEST(TestClientDataManagerPulseMonitorClientListFetch);
+    RUN_TEST(TestClientDataManagerRequestMapInsertion);
+    RUN_TEST(TestClientDataManagerClientThreadTracking1);
+    RUN_TEST(TestClientDataManagerClientThreadTracking2);
+
+    std::cout<<"\nAll Tests from the suite: [ClientDataManager Tests], executed successfully"<<std::endl;
+    return 0;
 }
