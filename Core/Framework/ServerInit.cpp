@@ -165,6 +165,8 @@ static ErrCode initServer() {
     }
     TYPELOGD(LOGICAL_TO_PHYSICAL_MAPPING_GEN_SUCCESS);
 
+    TargetRegistry::getInstance()->displayLogicalToPhysicalMapping();
+
     // By this point, all the Extension Appliers / Resources would have been registered.
     ResourceRegistry::getInstance()->pluginModifications();
 
@@ -194,6 +196,6 @@ static ErrCode terminateServer() {
 }
 
 RESTUNE_REGISTER_MODULE(MOD_CORE,
-                    initServer,
-                    terminateServer,
-                    submitResourceProvisioningRequest);
+                        initServer,
+                        terminateServer,
+                        submitResourceProvisioningRequest);

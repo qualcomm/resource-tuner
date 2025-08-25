@@ -30,7 +30,7 @@ enum RequestType {
 
 /**
  * @enum SignalType
- * @brief Enumeration for different types of SysSignal requests.
+ * @brief Enumeration for different types of Signal requests.
  */
 enum SignalRequestType {
     SIGNAL_ACQ = 10,

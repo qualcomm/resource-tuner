@@ -346,7 +346,7 @@ int8_t setprop(const char* prop, const char* value) {
     return -1;
 }
 
-// - Construct a Signal object and populate it with the SysSignal Request Params
+// - Construct a Signal object and populate it with the Signal Request Params
 // - Initiate a connection to the Resource Tuner Server, and send the request to the server
 // - Wait for the response from the server, and return the response to the caller (end-client).
 int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t properties,
@@ -455,7 +455,7 @@ int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t properties,
     return -1;
 }
 
-// - Construct a Signal object and populate it with the SysSignal Request Params
+// - Construct a Signal object and populate it with the Signal Request Params
 // - Initiate a connection to the Resource Tuner Server, and send the request to the server
 int8_t untuneSignal(int64_t handle) {
     try {

@@ -61,6 +61,8 @@ public:
     // Only Custom Config is supported for Target Config
     static const std::string mCustomTargetFilePath;
 
+    static const std::string mExtensionsPluginLibPath;
+
     static const std::string mBaseCGroupPath;
 
     static const std::string mTestResourceFilePath;

@@ -80,7 +80,7 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
 
             FreeBlock<SysConfig>(sysConfig);
         }
-        // SysSignal Requests
+        // Signal Requests
         case SIGNAL_ACQ: {
             if(!ComponentRegistry::isModuleEnabled(MOD_SYSSIGNAL)) {
                 TYPELOGV(NOTIFY_MODULE_NOT_ENABLED, "Signals");

@@ -10,6 +10,8 @@ static uint8_t isRootProcess(pid_t pid) {
     std::string line;
 
     if(!file.is_open()) {
+        // File could not be opened, indicating Client is dead.
+        // TBD: Drop This Request
         LOGE("RESTUNE_CLIENT_DATA_MANAGER", "Failed to open: " + statusFile);
         return PERMISSION_THIRD_PARTY;
     }

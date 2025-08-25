@@ -4,21 +4,16 @@
 #include <csignal>
 #include <fcntl.h>
 #include <sys/wait.h>
-#include <getopt.h>
+#include <dlfcn.h>
 
 #include "ComponentRegistry.h"
 #include "ServerInternal.h"
 #include "ClientGarbageCollector.h"
 #include "PulseMonitor.h"
-#include "Extensions.h"
 #include "RequestReceiver.h"
 
-#ifdef EXTENSION_PLUGIN_ENABLED
-extern int32_t extensionLibEnabled;
-int32_t* force_link = &extensionLibEnabled;
-#endif
-
 static int8_t terminateServer = false;
+static void* extensionsLibHandle = nullptr;
 
 static void handleSIGINT(int32_t sig) {
     terminateServer = true;
@@ -28,9 +23,42 @@ static void handleSIGTSTP(int32_t sig) {
     toggleDisplayModes();
 }
 
-static void serverCleanup() {
-    LOGE("RESTUNE_SERVER_INIT", "Server Stopped, Cleanup Initiated");
-    ResourceTunerSettings::setServerOnlineStatus(false);
+static ErrCode parseServerStartupCLIOpts(int32_t argCount, char *argStrings[]) {
+    if(argCount != 2) {
+        std::cout<<"Usage: "<<argStrings[0]<<" <start|stop|test>"<<std::endl;
+        return RC_MODULE_INIT_FAILURE;
+    }
+
+    const char* shortPrompts = "sth";
+    const struct option longPrompts[] = {
+        {"start", no_argument, nullptr, 's'},
+        {"test", no_argument, nullptr, 't'},
+        {"help", no_argument, nullptr, 'h'},
+        {nullptr, no_argument, nullptr, 0}
+    };
+
+    int32_t c;
+    while ((c = getopt_long(argCount, argStrings, shortPrompts, longPrompts, nullptr)) != -1) {
+        switch (c) {
+            case 's':
+                ResourceTunerSettings::serverInTestMode = false;
+                break;
+            case 't':
+                ResourceTunerSettings::serverInTestMode = true;
+                RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/etc/resource-tuner/tests/Configs/PropertiesConfig.yaml")
+                RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/resource-tuner/tests/Configs/ResourcesConfig.yaml")
+                RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/resource-tuner/tests/Configs/SignalsConfig.yaml")
+                RESTUNE_REGISTER_CONFIG(TARGET_CONFIG, "/etc/resource-tuner/tests/Configs/TargetConfig.yaml")
+                break;
+            case 'h':
+                std::cout<<"Help Options"<<std::endl;
+                return RC_MODULE_INIT_FAILURE;
+            default:
+                std::cout<<"Invalid CLI Option specified"<<std::endl;
+                return RC_MODULE_INIT_FAILURE;
+        }
+    }
+    return RC_SUCCESS;
 }
 
 static ErrCode createResourceTunerDaemon(int32_t& childProcessID) {
@@ -65,45 +93,67 @@ static ErrCode createResourceTunerDaemon(int32_t& childProcessID) {
     return RC_SUCCESS;
 }
 
+// Load the Extensions Plugin lib if it is available
+// If the lib is not present, we simply return Success. Since this lib is optional
+static ErrCode loadExtensionsLib() {
+    std::string libPath = ResourceTunerSettings::mExtensionsPluginLibPath;
+
+    // Check if the library file exists
+    if(!AuxRoutines::fileExists(libPath)) {
+        TYPELOGD(NOTIFY_EXTENSIONS_LIB_NOT_PRESENT);
+        return RC_SUCCESS;  // Not an error if the library is not specified
+    }
+
+    extensionsLibHandle = dlopen(libPath.c_str(), RTLD_NOW);
+    if (extensionsLibHandle == nullptr) {
+        TYPELOGV(NOTIFY_EXTENSIONS_LOAD_FAILED, dlerror());
+        return RC_MODULE_INIT_FAILURE;  // Error if the library exists but can't be loaded
+    }
+
+    TYPELOGD(NOTIFY_EXTENSIONS_LIB_LOADED_SUCCESS);
+    return RC_SUCCESS;
+}
+
+// Initialize Request and Timer ThreadPools
+static ErrCode preAllocateWorkers() {
+    int32_t desiredThreadCapacity = ResourceTunerSettings::desiredThreadCount;
+    int32_t maxPendingQueueSize = ResourceTunerSettings::maxPendingQueueSize;
+    int32_t maxScalingCapacity = ResourceTunerSettings::maxScalingCapacity;
+
+    try {
+        RequestReceiver::mRequestsThreadPool = new ThreadPool(desiredThreadCapacity,
+                                                              maxPendingQueueSize,
+                                                              maxScalingCapacity);
+
+        Timer::mTimerThreadPool = new ThreadPool(desiredThreadCapacity,
+                                                 maxPendingQueueSize,
+                                                 maxScalingCapacity);
+
+    } catch(const std::bad_alloc& e) {
+        TYPELOGV(THREAD_POOL_CREATION_FAILURE, e.what());
+        return RC_MODULE_INIT_FAILURE;
+    }
+
+    return RC_SUCCESS;
+}
+
+static void serverCleanup() {
+    LOGE("RESTUNE_SERVER_INIT", "Server Stopped, Cleanup Initiated");
+    ResourceTunerSettings::setServerOnlineStatus(false);
+}
+
 int32_t main(int32_t argc, char *argv[]) {
     // PID of the Child Daemon
+    ErrCode opStatus = RC_SUCCESS;
     int32_t childProcessID = -1;
-
-    if(argc != 2) {
-        std::cout<<"Usage: "<<argv[0]<<" <start|stop|test>"<<std::endl;
-        return -1;
-    }
 
     std::signal(SIGINT, handleSIGINT);
     std::signal(SIGTSTP, handleSIGTSTP);
 
-    const char* shortPrompts = "sth";
-    const struct option longPrompts[] = {
-        {"start", no_argument, nullptr, 's'},
-        {"test", no_argument, nullptr, 't'},
-        {"help", no_argument, nullptr, 'h'},
-        {nullptr, no_argument, nullptr, 0}
-    };
-
-    int32_t c;
-    while ((c = getopt_long(argc, argv, shortPrompts, longPrompts, nullptr)) != -1) {
-        switch (c) {
-            case 's':
-                ResourceTunerSettings::serverInTestMode = false;
-                break;
-            case 't':
-                ResourceTunerSettings::serverInTestMode = true;
-                RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/etc/resource-tuner/tests/Configs/PropertiesConfig.yaml")
-                RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/resource-tuner/tests/Configs/ResourcesConfig.yaml")
-                RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/resource-tuner/tests/Configs/SignalsConfig.yaml")
-                RESTUNE_REGISTER_CONFIG(TARGET_CONFIG, "/etc/resource-tuner/tests/Configs/TargetConfig.yaml")
-                break;
-            case 'h':
-                std::cout<<"Help Options"<<std::endl;
-                return 0;
-            default:
-                std::cout<<"Invalid CLI Option specified"<<std::endl;
-                return 0;
+    if(RC_IS_OK(opStatus)) {
+        opStatus = parseServerStartupCLIOpts(argc, argv);
+        if(RC_IS_NOTOK(opStatus)) {
+            return 0;
         }
     }
 
@@ -114,58 +164,45 @@ int32_t main(int32_t argc, char *argv[]) {
     // If any of mandatory Configs cannot be parsed then initialization will fail.
     // Mandatory Configs include: Properties Configs, Resource Configs and Signal Configs (if Signal
     // module is plugged in)
-    ErrCode mOpStatus = RC_SUCCESS;
-    if(RC_IS_OK(mOpStatus)) {
-        mOpStatus = createResourceTunerDaemon(childProcessID);
-        if(RC_IS_NOTOK(mOpStatus)) {
+    if(RC_IS_OK(opStatus)) {
+        opStatus = createResourceTunerDaemon(childProcessID);
+        if(RC_IS_NOTOK(opStatus)) {
             TYPELOGD(RESOURCE_TUNER_DAEMON_CREATION_FAILURE);
         }
     }
 
-    if(RC_IS_OK(mOpStatus)) {
-        ResourceTunerSettings::setServerOnlineStatus(true);
-        ResourceTunerSettings::targetConfigs.currMode = MODE_DISPLAY_ON;
-
-        try {
-            int32_t desiredThreadCapacity = ResourceTunerSettings::desiredThreadCount;
-            int32_t maxPendingQueueSize = ResourceTunerSettings::maxPendingQueueSize;
-            int32_t maxScalingCapacity = ResourceTunerSettings::maxScalingCapacity;
-
-            RequestReceiver::mRequestsThreadPool = new ThreadPool(desiredThreadCapacity,
-                                                                  maxPendingQueueSize,
-                                                                  maxScalingCapacity);
-
-            Timer::mTimerThreadPool = new ThreadPool(desiredThreadCapacity,
-                                                     maxPendingQueueSize,
-                                                     maxScalingCapacity);
-
-        } catch(const std::bad_alloc& e) {
-            TYPELOGV(THREAD_POOL_CREATION_FAILURE, e.what());
-            mOpStatus = RC_MODULE_INIT_FAILURE;
-        }
+    if(RC_IS_OK(opStatus)) {
+        // Check if Extensions Plugin lib is available
+        opStatus = loadExtensionsLib();
     }
 
-    if(RC_IS_OK(mOpStatus)) {
-        mOpStatus = fetchProperties();
-        if(RC_IS_NOTOK(mOpStatus)) {
+    if(RC_IS_OK(opStatus)) {
+        ResourceTunerSettings::setServerOnlineStatus(true);
+        ResourceTunerSettings::targetConfigs.currMode = MODE_DISPLAY_ON;
+        opStatus = preAllocateWorkers();
+    }
+
+    if(RC_IS_OK(opStatus)) {
+        opStatus = fetchProperties();
+        if(RC_IS_NOTOK(opStatus)) {
             TYPELOGD(PROPERTY_RETRIEVAL_FAILED);
         }
     }
 
     // Check which modules are plugged In and Initialize them
-    if(RC_IS_OK(mOpStatus)) {
-        mOpStatus = ComponentRegistry::getModuleRegistrationCallback(MOD_CORE)();
-        if(RC_IS_NOTOK(mOpStatus)) {
+    if(RC_IS_OK(opStatus)) {
+        opStatus = ComponentRegistry::getModuleRegistrationCallback(MOD_CORE)();
+        if(RC_IS_NOTOK(opStatus)) {
             TYPELOGV(MODULE_INIT_FAILED, "Core");
         }
     }
 
-    if(RC_IS_OK(mOpStatus)) {
+    if(RC_IS_OK(opStatus)) {
         if(ComponentRegistry::isModuleEnabled(MOD_SYSSIGNAL)) {
             TYPELOGV(NOTIFY_MODULE_ENABLED, "Signal");
-            if(RC_IS_OK(mOpStatus)) {
-                mOpStatus = ComponentRegistry::getModuleRegistrationCallback(MOD_SYSSIGNAL)();
-                if(RC_IS_NOTOK(mOpStatus)) {
+            if(RC_IS_OK(opStatus)) {
+                opStatus = ComponentRegistry::getModuleRegistrationCallback(MOD_SYSSIGNAL)();
+                if(RC_IS_NOTOK(opStatus)) {
                     TYPELOGV(MODULE_INIT_FAILED, "Signal");
                 }
             }
@@ -174,18 +211,18 @@ int32_t main(int32_t argc, char *argv[]) {
 
     if(!ResourceTunerSettings::serverInTestMode) {
         // Start the Pulse Monitor and Garbage Collector Daemon Threads
-        if(RC_IS_OK(mOpStatus)) {
-            mOpStatus = startPulseMonitorDaemon();
+        if(RC_IS_OK(opStatus)) {
+            opStatus = startPulseMonitorDaemon();
 
-            if(RC_IS_NOTOK(mOpStatus)) {
+            if(RC_IS_NOTOK(opStatus)) {
                 TYPELOGD(PULSE_MONITOR_INIT_FAILED);
             }
         }
 
-        if(RC_IS_OK(mOpStatus)) {
-            mOpStatus = startClientGarbageCollectorDaemon();
+        if(RC_IS_OK(opStatus)) {
+            opStatus = startClientGarbageCollectorDaemon();
 
-            if(RC_IS_NOTOK(mOpStatus)) {
+            if(RC_IS_NOTOK(opStatus)) {
                 TYPELOGD(GARBAGE_COLLECTOR_INIT_FAILED);
             }
         }
@@ -193,18 +230,18 @@ int32_t main(int32_t argc, char *argv[]) {
 
     // Create a Listener Thread
     std::thread resourceTunerListener;
-    if(RC_IS_OK(mOpStatus)) {
+    if(RC_IS_OK(opStatus)) {
         try {
             resourceTunerListener = std::thread(listenerThreadStartRoutine);
             TYPELOGD(LISTENER_THREAD_CREATION_SUCCESS);
 
         } catch(const std::system_error& e) {
             TYPELOGV(SYSTEM_THREAD_CREATION_FAILURE, "Listener", e.what());
-            mOpStatus = RC_MODULE_INIT_FAILURE;
+            opStatus = RC_MODULE_INIT_FAILURE;
         }
     }
 
-    if(RC_IS_OK(mOpStatus)) {
+    if(RC_IS_OK(opStatus)) {
         // Make Stdin Non-Blocking
         int32_t flags = fcntl(STDIN_FILENO, F_GETFL, 0);
         if(flags == -1) {
@@ -247,6 +284,8 @@ int32_t main(int32_t argc, char *argv[]) {
 
     if(resourceTunerListener.joinable()) {
         resourceTunerListener.join();
+    } else {
+        TYPELOGV(SYSTEM_THREAD_NOT_JOINABLE, "Listener");
     }
 
     // Restore all the Resources to Original Values
@@ -269,6 +308,10 @@ int32_t main(int32_t argc, char *argv[]) {
 
     // Delete the Sysfs Persistent File
     AuxRoutines::deleteFile("sysfsOriginalValues.txt");
+
+    if(extensionsLibHandle != nullptr) {
+        dlclose(extensionsLibHandle);
+    }
 
     return 0;
 }

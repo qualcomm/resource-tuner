@@ -38,6 +38,9 @@ const std::string ResourceTunerSettings::mTestPropertiesFilePath =
 const std::string ResourceTunerSettings::mTestTargetConfigFilePath =
                                     "/etc/resource-tuner/tests/Configs/TargetConfig.yaml";
 
+const std::string ResourceTunerSettings::mExtensionsPluginLibPath =
+                                    "/etc/resource-tuner/custom/libPlugin.so";
+
 const std::string ResourceTunerSettings::mBaseCGroupPath =
                                     "/sys/fs/cgroup/";
 

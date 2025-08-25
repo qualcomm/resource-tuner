@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include "AuxRoutines.h"
-#include <cstring>
 
 std::string AuxRoutines::readFromFile(const std::string& fileName) {
     std::ifstream fileStream(fileName, std::ios::in);
@@ -78,6 +77,10 @@ void AuxRoutines::writeSysFsDefaults() {
 
 void AuxRoutines::deleteFile(const std::string& fileName) {
     remove(fileName.c_str());
+}
+
+int8_t AuxRoutines::fileExists(const std::string& filePath) {
+    return access(filePath.c_str(), F_OK) == 0;
 }
 
 void dumpRequest(Request* clientReq) {
