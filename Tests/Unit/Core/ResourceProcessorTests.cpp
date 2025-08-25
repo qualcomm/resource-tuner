@@ -4,25 +4,11 @@
 #include <thread>
 #include <cstdint>
 
+#include "TestUtils.h"
 #include "ConfigProcessor.h"
 #include "ResourceRegistry.h"
 #include "Extensions.h"
 #include "Utils.h"
-
-#define RUN_TEST(test)                                              \
-do {                                                                \
-    std::cout<<"Running Test: "<<#test<<std::endl;                  \
-    test();                                                         \
-    std::cout<<#test<<": Run Successful"<<std::endl;                \
-    std::cout<<"-------------------------------------"<<std::endl;  \
-} while(false);                                                     \
-
-#define C_ASSERT(cond)                                                               \
-    if(cond == false) {                                                              \
-        std::cerr<<"Condition Check on line:["<<__LINE__<<"]  failed"<<std::endl;    \
-        std::cerr<<"Test: ["<<__func__<<"] Failed, Terminating Suite\n"<<std::endl;  \
-        exit(EXIT_FAILURE);                                                          \
-    }                                                                                \
 
 #define TOTAL_RESOURCE_CONFIGS_COUNT 12
 
