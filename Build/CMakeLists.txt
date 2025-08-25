@@ -72,6 +72,7 @@ endif()
 if(BUILD_TESTS)
   add_executable(resource_tuner_tests ../Tests/System/SystemWideTests.cpp)
   target_link_libraries(resource_tuner_tests PUBLIC Auxiliary ClientAPIs)
+  install(TARGETS resource_tuner_tests RUNTIME DESTINATION bin)
 endif()
 
 # Install libs
