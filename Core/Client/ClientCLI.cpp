@@ -33,7 +33,7 @@ int8_t parseResources(const std::string& resources, std::vector<std::pair<uint32
                 }
 
                 if(index == 0) {
-                    resourcePair.first = std::stoi(resourcePairItem);
+                    resourcePair.first = (uint32_t)std::stol(resourcePairItem, nullptr, 0);
                 } else {
                     resourcePair.second = std::stoi(resourcePairItem);
                 }
