@@ -57,6 +57,6 @@ std::string Extensions::getTargetConfigFilePath() {
     return mModifiedConfigFiles[ConfigType::TARGET_CONFIG];
 }
 
-std::string Extensions::getTargetConfigFilePath() {
+std::string Extensions::getInitConfigFilePath() {
     return mModifiedConfigFiles[ConfigType::INIT_CONFIG];
 }

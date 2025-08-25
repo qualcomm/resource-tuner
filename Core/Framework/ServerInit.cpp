@@ -3,14 +3,17 @@
 
 #include <csignal>
 #include <fcntl.h>
+#include <sys/utsname.h>
 
 #include "ServerRequests.h"
 #include "ConfigProcessor.h"
 #include "ResourceTunerSettings.h"
 #include "Extensions.h"
 #include "SysConfigProcessor.h"
-#include "ServerUtils.h"
+#include "MemoryPool.h"
+
 #include "Utils.h"
+#include "SysConfigInternal.h"
 #include "ErrCodes.h"
 #include "Logger.h"
 #include "ComponentRegistry.h"
@@ -34,6 +37,72 @@ static void preAllocateMemory() {
     MakeAlloc<std::vector<Resource*>> (concurrentRequestsUB * resourcesPerRequestUB);
     MakeAlloc<std::vector<int32_t>> (concurrentRequestsUB * resourcesPerRequestUB);
     MakeAlloc<std::vector<CocoNode*>> (concurrentRequestsUB * resourcesPerRequestUB);
+}
+
+static ErrCode fetchMetaConfigs() {
+    std::string resultBuffer;
+
+    try {
+        // Fetch target Name
+        struct utsname sysInfo;
+        if(uname(&sysInfo) == -1) {
+            TYPELOGV(ERRNO_LOG, "uname", strerror(errno));
+            return RC_PROP_PARSING_ERROR;
+        }
+
+        ResourceTunerSettings::targetConfigs.targetName = sysInfo.nodename;
+
+        sysConfigGetProp("resource_tuner.maximum.concurrent.requests", resultBuffer, sizeof(resultBuffer), "120");
+        ResourceTunerSettings::metaConfigs.mMaxConcurrentRequests = (uint32_t)std::stol(resultBuffer);
+
+        sysConfigGetProp("resource_tuner.maximum.resources.per.request", resultBuffer, sizeof(resultBuffer), "5");
+        ResourceTunerSettings::metaConfigs.mMaxResourcesPerRequest = (uint32_t)std::stol(resultBuffer);
+
+        // Hard Code this value, as it should not be end-client customisable
+        ResourceTunerSettings::metaConfigs.mListeningPort = 12000;
+
+        sysConfigGetProp("resource_tuner.pulse.duration", resultBuffer, sizeof(resultBuffer), "60000");
+        ResourceTunerSettings::metaConfigs.mPulseDuration = (uint32_t)std::stol(resultBuffer);
+
+        sysConfigGetProp("resource_tuner.garbage_collection.duration", resultBuffer, sizeof(resultBuffer), "83000");
+        ResourceTunerSettings::metaConfigs.mClientGarbageCollectorDuration = (uint32_t)std::stol(resultBuffer);
+
+        sysConfigGetProp("resource_tuner.rate_limiter.delta", resultBuffer, sizeof(resultBuffer), "5");
+        ResourceTunerSettings::metaConfigs.mDelta = (uint32_t)std::stol(resultBuffer);
+
+        sysConfigGetProp("resource_tuner.penalty.factor", resultBuffer, sizeof(resultBuffer), "2.0");
+        ResourceTunerSettings::metaConfigs.mPenaltyFactor = std::stod(resultBuffer);
+
+        sysConfigGetProp("resource_tuner.reward.factor", resultBuffer, sizeof(resultBuffer), "0.4");
+        ResourceTunerSettings::metaConfigs.mRewardFactor = std::stod(resultBuffer);
+
+        sysConfigGetProp("resource_tuner.logging.level", resultBuffer, sizeof(resultBuffer), "2");
+        int8_t logLevel = (int8_t)std::stoi(resultBuffer);
+
+        int8_t levelSpecificLogging = false;
+        sysConfigGetProp("resource_tuner.logging.level.exact", resultBuffer, sizeof(resultBuffer), "false");
+        if(resultBuffer == "true") {
+            levelSpecificLogging = true;
+        }
+
+        RedirectOptions redirectOutputTo = LOG_FILE;
+        sysConfigGetProp("resource_tuner.logging.redirect_to", resultBuffer, sizeof(resultBuffer), "1");
+        if((int8_t)std::stoi(resultBuffer) == 0) {
+            redirectOutputTo = FTRACE;
+        }
+
+        Logger::configure(logLevel, levelSpecificLogging, redirectOutputTo);
+
+    } catch(const std::invalid_argument& e) {
+        TYPELOGV(META_CONFIG_PARSE_FAILURE, e.what());
+        return RC_PROP_PARSING_ERROR;
+
+    } catch(const std::out_of_range& e) {
+        TYPELOGV(META_CONFIG_PARSE_FAILURE, e.what());
+        return RC_PROP_PARSING_ERROR;
+    }
+
+    return RC_SUCCESS;
 }
 
 ErrCode fetchProperties() {

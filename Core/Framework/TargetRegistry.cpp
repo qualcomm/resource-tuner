@@ -130,27 +130,27 @@ void TargetRegistry::addCGroupMapping(CGroupConfigInfo* cGroupConfigInfo) {
 
     // Fill in defaults
     std::string basePath = ResourceTunerSettings::mBaseCGroupPath + cGroupConfigInfo->mCgroupName;
-    (*cGroupConfigInfo->mDefaultValues)["cpu.uclamp.min"] =
+    (*cGroupConfigInfo->mDefaultValues)[basePath + "/cpu.uclamp.min"] =
                             AuxRoutines::readFromFile(basePath + "/cpu.uclamp.min");
-    (*cGroupConfigInfo->mDefaultValues)["cpu.uclamp.max"] =
+    (*cGroupConfigInfo->mDefaultValues)[basePath + "/cpu.uclamp.max"] =
                             AuxRoutines::readFromFile(basePath + "/cpu.uclamp.max");
-    (*cGroupConfigInfo->mDefaultValues)["cpuset.cpus"] =
+    (*cGroupConfigInfo->mDefaultValues)[basePath + "/cpuset.cpus"] =
                             AuxRoutines::readFromFile(basePath + "/cpuset.cpus");
-    (*cGroupConfigInfo->mDefaultValues)["cpu.idle"] =
+    (*cGroupConfigInfo->mDefaultValues)[basePath + "/cpu.idle"] =
                             AuxRoutines::readFromFile(basePath + "/cpu.idle");
-    (*cGroupConfigInfo->mDefaultValues)["cpu.max"] =
+    (*cGroupConfigInfo->mDefaultValues)[basePath + "/cpu.max"] =
                             AuxRoutines::readFromFile(basePath + "/cpu.max");
-    (*cGroupConfigInfo->mDefaultValues)["cpu.weight"] =
+    (*cGroupConfigInfo->mDefaultValues)[basePath + "/cpu.weight"] =
                             AuxRoutines::readFromFile(basePath + "/cpu.weight");
-    (*cGroupConfigInfo->mDefaultValues)["memory.max"] =
+    (*cGroupConfigInfo->mDefaultValues)[basePath + "/memory.max"] =
                             AuxRoutines::readFromFile(basePath + "/memory.max");
-    (*cGroupConfigInfo->mDefaultValues)["memory.min"] =
+    (*cGroupConfigInfo->mDefaultValues)[basePath + "/memory.min"] =
                             AuxRoutines::readFromFile(basePath + "/memory.min");
-    (*cGroupConfigInfo->mDefaultValues)["cgroup.freeze"] =
+    (*cGroupConfigInfo->mDefaultValues)[basePath + "/cgroup.freeze"] =
                             AuxRoutines::readFromFile(basePath + "/cgroup.freeze");
-    (*cGroupConfigInfo->mDefaultValues)["cpuset.cpus.partition"] =
+    (*cGroupConfigInfo->mDefaultValues)[basePath + "/cpuset.cpus.partition"] =
                             AuxRoutines::readFromFile(basePath + "/cpuset.cpus.partition");
-    (*cGroupConfigInfo->mDefaultValues)["cpu.latency_nice"] =
+    (*cGroupConfigInfo->mDefaultValues)[basePath + "/cpu.latency_nice"] =
                             AuxRoutines::readFromFile(basePath + "/cpu.latency_nice");
 
     this->mCGroupMapping[cGroupConfigInfo->mCgroupID] = cGroupConfigInfo;

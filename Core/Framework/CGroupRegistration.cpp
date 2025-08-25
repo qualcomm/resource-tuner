@@ -25,15 +25,15 @@ static std::string getCGroupControllerFilePath(Resource* resource, const std::st
     return controllerFilePath;
 }
 
-static void addProcessToCgroup(void* context) {
+static void cGroupDefaultApplyCallback(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
 
     if(resource->getValuesCount() != 2) return;
-    if(resource->mResValue.values == nullptr) return;
 
     int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
-    int32_t pid = (*resource->mResValue.values)[1];
+    int32_t valueToBeWritten = (*resource->mResValue.values)[1];
+
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
@@ -41,14 +41,14 @@ static void addProcessToCgroup(void* context) {
 
         if(cGroupName.length() > 0) {
             std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
+            std::ofstream controllerFile(controllerFilePath);
 
-            std::ofstream controllerFile(controllerFilePath, std::ios::app);
             if(!controllerFile.is_open()) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
                 return;
             }
 
-            controllerFile<<pid<<std::endl;
+            controllerFile<<valueToBeWritten<<std::endl;
 
             if(controllerFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));
@@ -60,30 +60,32 @@ static void addProcessToCgroup(void* context) {
     }
 }
 
-static void addThreadToCgroup(void* context) {
+static void cGroupDefaultResetCallback(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
+    ResourceConfigInfo* resourceConfigInfo =
+        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
+
+    if(resourceConfigInfo == nullptr) return;
 
     if(resource->getValuesCount() != 2) return;
     if(resource->mResValue.values == nullptr) return;
 
     int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
-    int32_t tid = (*resource->mResValue.values)[1];
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
-    if(cGroupConfig != nullptr) {
+    if(cGroupConfig != nullptr && cGroupConfig->mDefaultValues != nullptr) {
         const std::string cGroupName = cGroupConfig->mCgroupName;
 
         if(cGroupName.length() > 0) {
             std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
-            std::ofstream controllerFile(controllerFilePath, std::ios::app);
+            std::ofstream controllerFile(controllerFilePath);
 
             if(!controllerFile.is_open()) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
                 return;
             }
-
-            controllerFile<<tid<<std::endl;
+            controllerFile<<(*cGroupConfig->mDefaultValues)[controllerFilePath]<<std::endl;
 
             if(controllerFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));
@@ -186,252 +188,6 @@ static void setRunOnCoresExclusively(void* context) {
     }
 }
 
-static void setFreezeCgroup(void* context) {
-    if(context == nullptr) return;
-    Resource* resource = static_cast<Resource*>(context);
-
-    if(resource->getValuesCount() != 2) return;
-
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
-    int32_t freezeStatus = (*resource->mResValue.values)[1];
-
-    if(freezeStatus != 0 && freezeStatus != 1) return;
-    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
-
-    if(cGroupConfig != nullptr) {
-        const std::string cGroupName = cGroupConfig->mCgroupName;
-
-        if(cGroupName.length() > 0) {
-            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
-            std::ofstream controllerFile(controllerFilePath);
-
-            if(!controllerFile.is_open()) {
-                TYPELOGV(ERRNO_LOG, "open", strerror(errno));
-                return;
-            }
-
-            controllerFile<<freezeStatus<<std::endl;
-
-            if(controllerFile.fail()) {
-                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-            }
-            controllerFile.close();
-        }
-    } else {
-        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
-    }
-}
-
-static void setCpuIdle(void* context) {
-    if(context == nullptr) return;
-    Resource* resource = static_cast<Resource*>(context);
-
-    if(resource->getValuesCount() != 2) return;
-
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
-    int32_t idleStatus = (*resource->mResValue.values)[1];
-
-    if(idleStatus != 0 && idleStatus != 1) return;
-    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
-
-    if(cGroupConfig != nullptr) {
-        const std::string cGroupName = cGroupConfig->mCgroupName;
-
-        if(cGroupName.length() > 0) {
-            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
-            std::ofstream controllerFile(controllerFilePath);
-
-            if(!controllerFile.is_open()) {
-                TYPELOGV(ERRNO_LOG, "open", strerror(errno));
-                return;
-            }
-
-            controllerFile<<idleStatus<<std::endl;
-
-            if(controllerFile.fail()) {
-                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-            }
-            controllerFile.close();
-        }
-    } else {
-        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
-    }
-}
-
-static void setUClampMin(void* context) {
-    if(context == nullptr) return;
-    Resource* resource = static_cast<Resource*>(context);
-
-    if(resource->getValuesCount() != 2) return;
-    if(resource->mResValue.values == nullptr) return;
-
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
-    int32_t clampVal = (*resource->mResValue.values)[1];
-    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
-
-    if(cGroupConfig != nullptr) {
-        const std::string cGroupName = cGroupConfig->mCgroupName;
-
-        if(cGroupName.length() > 0) {
-            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
-            std::ofstream controllerFile(controllerFilePath);
-
-            if(!controllerFile.is_open()) {
-                TYPELOGV(ERRNO_LOG, "open", strerror(errno));
-                return;
-            }
-            controllerFile << clampVal;
-
-            if(controllerFile.fail()) {
-                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-            }
-            controllerFile.close();
-        }
-    } else {
-        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
-    }
-}
-
-static void setUClampMax(void* context) {
-    if(context == nullptr) return;
-    Resource* resource = static_cast<Resource*>(context);
-
-    if(resource->getValuesCount() != 2) return;
-    if(resource->mResValue.values == nullptr) return;
-
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
-    int32_t clampVal = (*resource->mResValue.values)[1];
-    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
-
-    if(cGroupConfig != nullptr) {
-        const std::string cGroupName = cGroupConfig->mCgroupName;
-
-        if(cGroupName.length() > 0) {
-            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
-            std::ofstream controllerFile(controllerFilePath);
-
-            if(!controllerFile.is_open()) {
-                TYPELOGV(ERRNO_LOG, "open", strerror(errno));
-                return;
-            }
-
-            controllerFile<<clampVal<<std::endl;
-
-            if(controllerFile.fail()) {
-                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-            }
-            controllerFile.close();
-        }
-    } else {
-        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
-    }
-}
-
-static void setRelativeCPUShare(void* context) {
-    if(context == nullptr) return;
-    Resource* resource = static_cast<Resource*>(context);
-
-    if(resource->getValuesCount() != 2) return;
-    if(resource->mResValue.values == nullptr) return;
-
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
-    int32_t relativeWeight = (*resource->mResValue.values)[1];
-    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
-
-    if(cGroupConfig != nullptr) {
-        const std::string cGroupName = cGroupConfig->mCgroupName;
-
-        if(cGroupName.length() > 0) {
-            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
-            std::ofstream controllerFile(controllerFilePath);
-
-            if(!controllerFile.is_open()) {
-                TYPELOGV(ERRNO_LOG, "open", strerror(errno));
-                return;
-            }
-
-            controllerFile<<relativeWeight<<std::endl;
-
-            if(controllerFile.fail()) {
-                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-            }
-            controllerFile.close();
-        }
-    } else {
-        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
-    }
-}
-
-static void setMaxMemoryLimit(void* context) {
-    if(context == nullptr) return;
-    Resource* resource = static_cast<Resource*>(context);
-
-    if(resource->getValuesCount() != 2) return;
-    if(resource->mResValue.values == nullptr) return;
-
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
-    int64_t maxMemoryLimit = (*resource->mResValue.values)[1];
-    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
-
-    if(cGroupConfig != nullptr) {
-        const std::string cGroupName = cGroupConfig->mCgroupName;
-
-        if(cGroupName.length() > 0) {
-            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
-            std::ofstream controllerFile(controllerFilePath);
-
-            if(!controllerFile.is_open()) {
-                TYPELOGV(ERRNO_LOG, "open", strerror(errno));
-                return;
-            }
-
-            controllerFile<<maxMemoryLimit<<std::endl;
-
-            if(controllerFile.fail()) {
-                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-            }
-            controllerFile.close();
-        }
-    } else {
-        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
-    }
-}
-
-static void setMinMemoryFloor(void* context) {
-    if(context == nullptr) return;
-    Resource* resource = static_cast<Resource*>(context);
-
-    if(resource->getValuesCount() != 2) return;
-    if(resource->mResValue.values == nullptr) return;
-
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
-    int64_t minMemoryFloor = (*resource->mResValue.values)[1];
-    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
-
-    if(cGroupConfig != nullptr) {
-        const std::string cGroupName = cGroupConfig->mCgroupName;
-
-        if(cGroupName.length() > 0) {
-            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
-            std::ofstream controllerFile(controllerFilePath);
-
-            if(!controllerFile.is_open()) {
-                TYPELOGV(ERRNO_LOG, "open", strerror(errno));
-                return;
-            }
-
-            controllerFile<<minMemoryFloor<<std::endl;
-
-            if(controllerFile.fail()) {
-                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-            }
-            controllerFile.close();
-        }
-    } else {
-        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
-    }
-}
-
 static void limitCpuTime(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
@@ -468,54 +224,19 @@ static void limitCpuTime(void* context) {
     }
 }
 
-static void setCpuLatency(void* context) {
-    if(context == nullptr) return;
-    Resource* resource = static_cast<Resource*>(context);
-
-    if(resource->getValuesCount() != 2) return;
-    if(resource->mResValue.values == nullptr) return;
-
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
-    int64_t latencyValue = (*resource->mResValue.values)[1];
-    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
-
-    if(cGroupConfig != nullptr) {
-        const std::string cGroupName = cGroupConfig->mCgroupName;
-
-        if(cGroupName.length() > 0) {
-            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
-            std::ofstream controllerFile(controllerFilePath);
-
-            if(!controllerFile.is_open()) {
-                TYPELOGV(ERRNO_LOG, "open", strerror(errno));
-                return;
-            }
-
-            controllerFile<<latencyValue<<std::endl;
-
-            if(controllerFile.fail()) {
-                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-            }
-            controllerFile.close();
-        }
-    } else {
-        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
-    }
-}
-
-RESTUNE_REGISTER_APPLIER_CB(0x00090000, addProcessToCgroup);
-RESTUNE_REGISTER_APPLIER_CB(0x00090001, addThreadToCgroup);
+RESTUNE_REGISTER_APPLIER_CB(0x00090000, cGroupDefaultApplyCallback);
+RESTUNE_REGISTER_APPLIER_CB(0x00090001, cGroupDefaultApplyCallback);
 RESTUNE_REGISTER_APPLIER_CB(0x00090002, setRunOnCores);
 RESTUNE_REGISTER_APPLIER_CB(0x00090003, setRunOnCoresExclusively);
-RESTUNE_REGISTER_APPLIER_CB(0x00090004, setFreezeCgroup);
+RESTUNE_REGISTER_APPLIER_CB(0x00090004, cGroupDefaultApplyCallback);
 RESTUNE_REGISTER_APPLIER_CB(0x00090005, limitCpuTime);
-RESTUNE_REGISTER_APPLIER_CB(0x00090006, setCpuIdle);
-RESTUNE_REGISTER_APPLIER_CB(0x00090007, setUClampMin);
-RESTUNE_REGISTER_APPLIER_CB(0x00090008, setUClampMax);
-RESTUNE_REGISTER_APPLIER_CB(0x00090009, setRelativeCPUShare);
-RESTUNE_REGISTER_APPLIER_CB(0x0009000a, setMaxMemoryLimit);
-RESTUNE_REGISTER_APPLIER_CB(0x0009000b, setMinMemoryFloor);
-RESTUNE_REGISTER_APPLIER_CB(0x0009000c, setCpuLatency);
+RESTUNE_REGISTER_APPLIER_CB(0x00090006, cGroupDefaultApplyCallback);
+RESTUNE_REGISTER_APPLIER_CB(0x00090007, cGroupDefaultApplyCallback);
+RESTUNE_REGISTER_APPLIER_CB(0x00090008, cGroupDefaultApplyCallback);
+RESTUNE_REGISTER_APPLIER_CB(0x00090009, cGroupDefaultApplyCallback);
+RESTUNE_REGISTER_APPLIER_CB(0x0009000a, cGroupDefaultApplyCallback);
+RESTUNE_REGISTER_APPLIER_CB(0x0009000b, cGroupDefaultApplyCallback);
+RESTUNE_REGISTER_APPLIER_CB(0x0009000c, cGroupDefaultApplyCallback);
 
 static void removeProcessFromCGroup(void* context) {
     if(context == nullptr) return;
@@ -567,43 +288,6 @@ static void removeThreadFromCGroup(void* context) {
     controllerFile.close();
 }
 
-static void resetRunOnCores(void* context) {
-    if(context == nullptr) return;
-    Resource* resource = static_cast<Resource*>(context);
-    ResourceConfigInfo* resourceConfigInfo =
-        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
-
-    if(resourceConfigInfo == nullptr) return;
-
-    if(resource->getValuesCount() < 2) return;
-    if(resource->mResValue.values == nullptr) return;
-
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
-    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
-    if(cGroupConfig != nullptr && cGroupConfig->mDefaultValues != nullptr) {
-        const std::string cGroupName = cGroupConfig->mCgroupName;
-
-        if(cGroupName.length() > 0) {
-            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
-            std::ofstream controllerFile(controllerFilePath);
-
-            if(!controllerFile.is_open()) {
-                TYPELOGV(ERRNO_LOG, "open", strerror(errno));
-                return;
-            }
-
-            controllerFile<<(*cGroupConfig->mDefaultValues)["cpuset.cpus"]<<std::endl;
-
-            if(controllerFile.fail()) {
-                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-            }
-            controllerFile.close();
-        }
-    } else {
-        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
-    }
-}
-
 static void resetRunOnCoresExclusively(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
@@ -618,16 +302,16 @@ static void resetRunOnCoresExclusively(void* context) {
         const std::string cGroupName = cGroupConfig->mCgroupName;
 
         if(cGroupName.length() > 0) {
-            const std::string cGroupControllerFilePath =
+            const std::string cGroupCpuSetFilePath =
                 ResourceTunerSettings::mBaseCGroupPath + cGroupName + "/cpuset.cpus";
 
-            std::ofstream controllerFile(cGroupControllerFilePath);
+            std::ofstream controllerFile(cGroupCpuSetFilePath);
             if(!controllerFile.is_open()) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
                 return;
             }
 
-            controllerFile<<(*cGroupConfig->mDefaultValues)["cpuset.cpus"]<<std::endl;
+            controllerFile<<(*cGroupConfig->mDefaultValues)[cGroupCpuSetFilePath]<<std::endl;
 
             if(controllerFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));
@@ -643,7 +327,7 @@ static void resetRunOnCoresExclusively(void* context) {
                 return;
             }
 
-            partitionFile<<(*cGroupConfig->mDefaultValues)["cpuset.cpus.partition"];
+            partitionFile<<(*cGroupConfig->mDefaultValues)[cGroupCpusetPartitionFilePath];
 
             if(partitionFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));
@@ -655,349 +339,16 @@ static void resetRunOnCoresExclusively(void* context) {
     }
 }
 
-static void resetCgroupFreeze(void* context) {
-    if(context == nullptr) return;
-    Resource* resource = static_cast<Resource*>(context);
-    ResourceConfigInfo* resourceConfigInfo =
-        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
-
-    if(resourceConfigInfo == nullptr) return;
-
-    if(resource->getValuesCount() != 2) return;
-
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
-    int32_t freezeStatus = (*resource->mResValue.values)[1];
-
-    if(freezeStatus != 0 && freezeStatus != 1) return;
-    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
-
-    if(cGroupConfig != nullptr && cGroupConfig->mDefaultValues != nullptr) {
-        const std::string cGroupName = cGroupConfig->mCgroupName;
-
-        if(cGroupName.length() > 0) {
-            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
-            std::ofstream controllerFile(controllerFilePath);
-
-            if(!controllerFile.is_open()) {
-                TYPELOGV(ERRNO_LOG, "open", strerror(errno));
-                return;
-            }
-
-            controllerFile<<(*cGroupConfig->mDefaultValues)["cgroup.freeze"]<<std::endl;
-
-            if(controllerFile.fail()) {
-                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-            }
-            controllerFile.close();
-        }
-    } else {
-        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
-    }
-}
-
-static void resetUClampMin(void* context) {
-    if(context == nullptr) return;
-    Resource* resource = static_cast<Resource*>(context);
-    ResourceConfigInfo* resourceConfigInfo =
-        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
-
-    if(resourceConfigInfo == nullptr) return;
-
-    if(resource->getValuesCount() != 2) return;
-    if(resource->mResValue.values == nullptr) return;
-
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
-    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
-
-    if(cGroupConfig != nullptr && cGroupConfig->mDefaultValues != nullptr) {
-        const std::string cGroupName = cGroupConfig->mCgroupName;
-
-        if(cGroupName.length() > 0) {
-            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
-            std::ofstream controllerFile(controllerFilePath);
-
-            if(!controllerFile.is_open()) {
-                TYPELOGV(ERRNO_LOG, "open", strerror(errno));
-                return;
-            }
-            controllerFile<<(*cGroupConfig->mDefaultValues)["cpu.uclamp.min"]<<std::endl;
-
-            if(controllerFile.fail()) {
-                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-            }
-            controllerFile.close();
-        }
-    } else {
-        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
-    }
-}
-
-static void resetUClampMax(void* context) {
-    if(context == nullptr) return;
-    Resource* resource = static_cast<Resource*>(context);
-    ResourceConfigInfo* resourceConfigInfo =
-        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
-
-    if(resourceConfigInfo == nullptr) return;
-
-    if(resource->getValuesCount() != 2) return;
-    if(resource->mResValue.values == nullptr) return;
-
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
-    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
-
-    if(cGroupConfig != nullptr && cGroupConfig->mDefaultValues != nullptr) {
-        const std::string cGroupName = cGroupConfig->mCgroupName;
-
-        if(cGroupName.length() > 0) {
-            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
-            std::ofstream controllerFile(controllerFilePath);
-
-            if(!controllerFile.is_open()) {
-                TYPELOGV(ERRNO_LOG, "open", strerror(errno));
-                return;
-            }
-            controllerFile<<(*cGroupConfig->mDefaultValues)["cpu.uclamp.max"]<<std::endl;
-
-            if(controllerFile.fail()) {
-                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-            }
-            controllerFile.close();
-        }
-    } else {
-        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
-    }
-}
-
-static void resetMaxMemoryLimit(void* context) {
-    if(context == nullptr) return;
-    Resource* resource = static_cast<Resource*>(context);
-    ResourceConfigInfo* resourceConfigInfo =
-        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
-
-    if(resourceConfigInfo == nullptr) return;
-
-    if(resource->getValuesCount() != 2) return;
-    if(resource->mResValue.values == nullptr) return;
-
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
-    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
-
-    if(cGroupConfig != nullptr && cGroupConfig->mDefaultValues != nullptr) {
-        const std::string cGroupName = cGroupConfig->mCgroupName;
-
-        if(cGroupName.length() > 0) {
-            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
-            std::ofstream controllerFile(controllerFilePath);
-
-            if(!controllerFile.is_open()) {
-                TYPELOGV(ERRNO_LOG, "open", strerror(errno));
-                return;
-            }
-
-            controllerFile<<(*cGroupConfig->mDefaultValues)["memory.max"]<<std::endl;
-
-            if(controllerFile.fail()) {
-                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-            }
-            controllerFile.close();
-        }
-    } else {
-        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
-    }
-}
-
-static void resetMinMemoryFloor(void* context) {
-    if(context == nullptr) return;
-    Resource* resource = static_cast<Resource*>(context);
-    ResourceConfigInfo* resourceConfigInfo =
-        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
-
-    if(resourceConfigInfo == nullptr) return;
-
-    if(resource->getValuesCount() != 2) return;
-    if(resource->mResValue.values == nullptr) return;
-
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
-    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
-
-    if(cGroupConfig != nullptr && cGroupConfig->mDefaultValues != nullptr) {
-        const std::string cGroupName = cGroupConfig->mCgroupName;
-
-        if(cGroupName.length() > 0) {
-            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
-            std::ofstream controllerFile(controllerFilePath);
-
-            if(!controllerFile.is_open()) {
-                TYPELOGV(ERRNO_LOG, "open", strerror(errno));
-                return;
-            }
-
-            controllerFile<<(*cGroupConfig->mDefaultValues)["memory.min"]<<std::endl;
-
-            if(controllerFile.fail()) {
-                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-            }
-            controllerFile.close();
-        }
-    } else {
-        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
-    }
-}
-
-static void resetCpuTime(void* context) {
-    if(context == nullptr) return;
-    Resource* resource = static_cast<Resource*>(context);
-    ResourceConfigInfo* resourceConfigInfo =
-        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
-
-    if(resourceConfigInfo == nullptr) return;
-
-    if(resource->getValuesCount() != 3) return;
-    if(resource->mResValue.values == nullptr) return;
-
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
-    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
-
-    if(cGroupConfig != nullptr && cGroupConfig->mDefaultValues != nullptr) {
-        const std::string cGroupName = cGroupConfig->mCgroupName;
-
-        if(cGroupName.length() > 0) {
-            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
-            std::ofstream controllerFile(controllerFilePath);
-
-            if(!controllerFile.is_open()) {
-                TYPELOGV(ERRNO_LOG, "open", strerror(errno));
-                return;
-            }
-
-            controllerFile<<(*cGroupConfig->mDefaultValues)["cpu.max"]<<std::endl;
-
-            if(controllerFile.fail()) {
-                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-            }
-            controllerFile.close();
-        }
-    } else {
-        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
-    }
-}
-
-static void resetCpuIdle(void* context) {
-    if(context == nullptr) return;
-    Resource* resource = static_cast<Resource*>(context);
-
-    if(resource->getValuesCount() != 2) return;
-
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
-    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
-
-    if(cGroupConfig != nullptr) {
-        const std::string cGroupName = cGroupConfig->mCgroupName;
-
-        if(cGroupName.length() > 0) {
-            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
-            std::ofstream controllerFile(controllerFilePath);
-
-            if(!controllerFile.is_open()) {
-                TYPELOGV(ERRNO_LOG, "open", strerror(errno));
-                return;
-            }
-
-            controllerFile<<(*cGroupConfig->mDefaultValues)["cpu.idle"]<<std::endl;
-
-            if(controllerFile.fail()) {
-                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-            }
-            controllerFile.close();
-        }
-    } else {
-        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
-    }
-}
-
-static void resetRelativeCPUShare(void* context) {
-    if(context == nullptr) return;
-    Resource* resource = static_cast<Resource*>(context);
-    ResourceConfigInfo* resourceConfigInfo =
-        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
-
-    if(resourceConfigInfo == nullptr) return;
-
-    if(resource->getValuesCount() != 2) return;
-    if(resource->mResValue.values == nullptr) return;
-
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
-    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
-
-    if(cGroupConfig != nullptr && cGroupConfig->mDefaultValues != nullptr) {
-        const std::string cGroupName = cGroupConfig->mCgroupName;
-
-        if(cGroupName.length() > 0) {
-            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
-            std::ofstream controllerFile(controllerFilePath);
-
-            if(!controllerFile.is_open()) {
-                TYPELOGV(ERRNO_LOG, "open", strerror(errno));
-                return;
-            }
-
-            controllerFile<<(*cGroupConfig->mDefaultValues)["cpu.weight"]<<std::endl;
-
-            if(controllerFile.fail()) {
-                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-            }
-            controllerFile.close();
-        }
-    } else {
-        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
-    }
-}
-
-static void resetCpuLatency(void* context) {
-    if(context == nullptr) return;
-    Resource* resource = static_cast<Resource*>(context);
-
-    if(resource->getValuesCount() != 2) return;
-    if(resource->mResValue.values == nullptr) return;
-
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
-    CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
-
-    if(cGroupConfig != nullptr && cGroupConfig->mDefaultValues != nullptr) {
-        const std::string cGroupName = cGroupConfig->mCgroupName;
-
-        if(cGroupName.length() > 0) {
-            std::string controllerFilePath = getCGroupControllerFilePath(resource, cGroupName);
-            std::ofstream controllerFile(controllerFilePath);
-
-            if(!controllerFile.is_open()) {
-                TYPELOGV(ERRNO_LOG, "open", strerror(errno));
-                return;
-            }
-
-            controllerFile<<(*cGroupConfig->mDefaultValues)["cpu.latency_nice"]<<std::endl;
-
-            if(controllerFile.fail()) {
-                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-            }
-            controllerFile.close();
-        }
-    } else {
-        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
-    }
-}
-
 RESTUNE_REGISTER_TEAR_CB(0x00090000, removeProcessFromCGroup);
 RESTUNE_REGISTER_TEAR_CB(0x00090001, removeThreadFromCGroup);
-RESTUNE_REGISTER_TEAR_CB(0x00090002, resetRunOnCores);
+RESTUNE_REGISTER_TEAR_CB(0x00090002, cGroupDefaultResetCallback);
 RESTUNE_REGISTER_TEAR_CB(0x00090003, resetRunOnCoresExclusively);
-RESTUNE_REGISTER_TEAR_CB(0x00090004, resetCgroupFreeze);
-RESTUNE_REGISTER_TEAR_CB(0x00090005, resetCpuTime);
-RESTUNE_REGISTER_TEAR_CB(0x00090006, resetCpuIdle);
-RESTUNE_REGISTER_TEAR_CB(0x00090007, resetUClampMin);
-RESTUNE_REGISTER_TEAR_CB(0x00090008, resetUClampMax);
-RESTUNE_REGISTER_TEAR_CB(0x00090009, resetRelativeCPUShare);
-RESTUNE_REGISTER_TEAR_CB(0x0009000a, resetMaxMemoryLimit);
-RESTUNE_REGISTER_TEAR_CB(0x0009000b, resetMinMemoryFloor);
-RESTUNE_REGISTER_TEAR_CB(0x0009000c, resetCpuLatency);
+RESTUNE_REGISTER_TEAR_CB(0x00090004, cGroupDefaultResetCallback);
+RESTUNE_REGISTER_TEAR_CB(0x00090005, cGroupDefaultResetCallback);
+RESTUNE_REGISTER_TEAR_CB(0x00090006, cGroupDefaultResetCallback);
+RESTUNE_REGISTER_TEAR_CB(0x00090007, cGroupDefaultResetCallback);
+RESTUNE_REGISTER_TEAR_CB(0x00090008, cGroupDefaultResetCallback);
+RESTUNE_REGISTER_TEAR_CB(0x00090009, cGroupDefaultResetCallback);
+RESTUNE_REGISTER_TEAR_CB(0x0009000a, cGroupDefaultResetCallback);
+RESTUNE_REGISTER_TEAR_CB(0x0009000b, cGroupDefaultResetCallback);
+RESTUNE_REGISTER_TEAR_CB(0x0009000c, cGroupDefaultResetCallback);
