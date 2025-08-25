@@ -36,7 +36,7 @@ sudo cmake --install .
 ```
 * Install to a custom temporary directory
 ```bash
-cmake --install . --prefix /tmp/ResourceTune-install
+cmake --install . --prefix /tmp/ResourceTuner-install
 ```
 
 ## Development
