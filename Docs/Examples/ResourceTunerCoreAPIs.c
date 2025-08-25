@@ -12,26 +12,31 @@
 
 #include <ResourceTuner/ResourceTunerAPIs.h>
 
-static void func1() {
-    // Refer ResourceTunerCoreAPIs.cpp func1 for details regarding each of
-    // the following fields.
-    int64_t duration = 5000;
+#define UCLAMP_MIN_RES 0x00030000
+#define UCLAMP_BOOST_VAL 750
+#define TUNE_DURATION 5000 #duration in msec
+#define FAIL -1
+
+static void tune_uclamp_min() {
     int32_t properties = 0;
+
     properties |= (1 << 0);
     properties |= (1 << 8);
 
-    SysResource* resourceList = (SysResource*)calloc(1, sizeof(SysResource));
+    SysResource resourceList[] = {
+        {
+            .mResCode = UCLAMP_MIN_RES,
+            .mResInfo = 0,
+            .mOptionalInfo = 0,
+            .mNumValues = 1,
+            .mResValue = {
+                .value = UCLAMP_BOOST_VAL,
+            }
+        }
+    };
 
-    resourceList[0].mResCode = 0x00030000;
-    resourceList[0].mResInfo = 0;
-    resourceList[0].mOptionalInfo = 0;
-    resourceList[0].mNumValues = 1;
-    resourceList[0].mResValue.value = 750;
-
-    int64_t handle = tuneResources(duration, properties, 1, resourceList);
-
-    // Check the Returned Handle
-    if(handle == -1) {
+    int64_t handle = tuneResources(TUNE_DURATION, properties, 1, resourceList);
+    if( handle == FAIL) {
         printf("Request Could not be Sent to the Resource Tuner Server\n");
     } else {
         printf("Handle Returned is: %ld\n", handle);
@@ -41,7 +46,7 @@ static void func1() {
 // Similary other ResourceTuner APIs can be used as well by C-based programs.
 
 int32_t main(int32_t argc, char* argv[]) {
-    func1();
+    tune_uclamp_min();
 }
 
 // Compilation Notes:
