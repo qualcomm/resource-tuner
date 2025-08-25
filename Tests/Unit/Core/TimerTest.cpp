@@ -8,8 +8,6 @@
 
 static std::shared_ptr<ThreadPool> tpoolInstance = std::shared_ptr<ThreadPool> (new ThreadPool(4, 4, 5));
 
-static Timer* timer;
-static Timer* recurringTimer;
 static std::atomic<int8_t> isFinished;
 
 static void afterTimer(void*) {
@@ -19,10 +17,6 @@ static void afterTimer(void*) {
 static void Init() {
     Timer::mTimerThreadPool = tpoolInstance.get();
     MakeAlloc<Timer>(10);
-
-    isFinished.store(false);
-    timer = new Timer(afterTimer);
-    recurringTimer = new Timer(afterTimer, true);
 }
 
 static void simulateWork() {
@@ -32,6 +26,9 @@ static void simulateWork() {
 }
 
 static void BaseCase() {
+    Timer* timer = new Timer(afterTimer);
+    isFinished.store(false);
+
     C_ASSERT(timer != nullptr);
     auto start = std::chrono::high_resolution_clock::now();
     timer->startTimer(200);
@@ -40,9 +37,13 @@ static void BaseCase() {
     auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
 
     C_ASSERT_NEAR(dur, 200, 25); //some tolerance
+    delete timer;
 }
 
 static void killBeforeCompletion() {
+    Timer* timer = new Timer(afterTimer);
+    isFinished.store(false);
+
     C_ASSERT(timer != nullptr);
     auto start = std::chrono::high_resolution_clock::now();
     timer->startTimer(200);
@@ -52,9 +53,13 @@ static void killBeforeCompletion() {
     auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
 
     C_ASSERT_NEAR(dur, 100, 25); //some tolerance
+    delete timer;
 }
 
 static void killAfterCompletion() {
+    Timer* timer = new Timer(afterTimer);
+    isFinished.store(false);
+
     C_ASSERT(timer != nullptr);
     auto start = std::chrono::high_resolution_clock::now();
     timer->startTimer(200);
@@ -64,9 +69,13 @@ static void killAfterCompletion() {
     auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
 
     C_ASSERT_NEAR(dur, 300, 25); //some tolerance
+    delete timer;
 }
 
 static void RecurringTimer() {
+    Timer* recurringTimer = new Timer(afterTimer, true);
+    isFinished.store(false);
+
     C_ASSERT(recurringTimer != nullptr);
 
     auto start = std::chrono::high_resolution_clock::now();
@@ -81,9 +90,13 @@ static void RecurringTimer() {
     auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
 
     C_ASSERT_NEAR(dur, 600, 25); //some tolerance
+    delete recurringTimer;
 }
 
 static void RecurringTimerPreMatureKill() {
+    Timer* recurringTimer = new Timer(afterTimer, true);
+    isFinished.store(false);
+
     C_ASSERT(recurringTimer != nullptr);
 
     auto start = std::chrono::high_resolution_clock::now();
@@ -103,6 +116,7 @@ static void RecurringTimerPreMatureKill() {
 int main() {
     std::cout<<"Running Test Suite: [TimerTest]\n"<<std::endl;
 
+    Init();
     RUN_TEST(BaseCase);
     RUN_TEST(killBeforeCompletion);
     RUN_TEST(killAfterCompletion);
