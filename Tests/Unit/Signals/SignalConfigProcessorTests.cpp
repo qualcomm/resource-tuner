@@ -20,12 +20,12 @@ do {                                                                \
     std::cout<<"-------------------------------------"<<std::endl;  \
 } while(false);                                                     \
 
-#define C_ASSERT(cond)                                                               \
-    if(cond == false) {                                                              \
-        std::cerr<<"Condition Check on line:["<<__LINE__<<"]  failed"<<std::endl;    \
-        std::cerr<<"Test: ["<<__func__<<"] Failed, Terminating Suite\n"<<std::endl;  \
-        exit(EXIT_FAILURE);                                                          \
-    }                                                                                \
+#define C_ASSERT(cond)                                                                          \
+    if(cond == false) {                                                                         \
+        std::cerr<<"Assertion failed at line [" << __LINE__ << "]: "<<#cond<<std::endl;         \
+        std::cerr<<"Test: ["<<__func__<<"] Failed, Terminating Suite\n"<<std::endl;             \
+        exit(EXIT_FAILURE);                                                                     \
+    }                                                                                           \
 
 static void Init() {
     ConfigProcessor configProcessor;
