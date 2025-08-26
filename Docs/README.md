@@ -32,7 +32,7 @@ Resource-tuner framework supports `Signals` which is dynamic provisioning of sys
 # Getting Started
 
 To get started with the project:
-[Build and install](../README.md)
+[Build and install](../README.md#build-and-install-instructions)
 
 Refer the [Examples](./Examples) for guidance on resource-tuner API usage.
 
