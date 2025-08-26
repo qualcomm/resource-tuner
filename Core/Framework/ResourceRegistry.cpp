@@ -53,6 +53,7 @@ void ResourceRegistry::registerResource(ResourceConfigInfo* resourceConfigInfo,
 
         if(isBuSpecified) {
             this->mSystemIndependentLayerMappings.erase(resourceBitmap);
+            // Set the MSB
             resourceBitmap |= (1 << 31);
 
             this->mSystemIndependentLayerMappings[resourceBitmap] = resourceTableIndex;

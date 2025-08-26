@@ -36,7 +36,7 @@ static void tune_uclamp_min() {
     };
 
     int64_t handle = tuneResources(TUNE_DURATION, properties, 1, resourceList);
-    if( handle == FAIL) {
+    if(handle == FAIL) {
         printf("Request Could not be Sent to the Resource Tuner Server\n");
     } else {
         printf("Handle Returned is: %ld\n", handle);
