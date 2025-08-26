@@ -1,4 +1,3 @@
-<div style="page-break-after: always;"></div>
 # 1. How to add a custom resource
 Resource tuner is configured with default [Resources](../Core/Configs/ResourcesConfig.yaml)  
 The common resources are available on device at /etc/resource-tuner/common/ResourcesConfig.yaml.  
@@ -62,7 +61,8 @@ Supported policies: higher_is_better, lower_is_better, instant_apply, lazy_apply
 ##### ApplyType
 Supported types: global, core, cluster, cgroup.
 
-<div style="page-break-after: always;"></div>
+---
+
 # 2. How to override the Resource tune and untune functionalities.
 Resource tuner provides the default tune and untune functions.
 However, developer can customize the resource tune and untune functionalities.
@@ -70,10 +70,12 @@ These overrides can be achieved by writing a new shared lib <>.so.<version>
 These shared libs are expected to be present on the device at: /etc/resource-tuner/custom/
 Please refer to [sample code](Examples/Extensions/plugin.cpp)
 
-<div style="page-break-after: always;"></div>
+---
+
 # 3. How to add property
 
-<div style="page-break-after: always;"></div>
+---
+
 # 4. How to add init configs
 Resource tuner supports Cgroups as well, the default cgroup configs are defined [InitConfig](../Core/Configs/InitConfig.yaml)
 Thes config file is used to create the Cgroups during the service startup.
@@ -83,8 +85,8 @@ Developer can supply additional init configs file via /etc/resource-tuner/custom
       - CgroupsInfo:
         - Name: "camera-cgroup"
           ID: 0
+---
 
-<div style="page-break-after: always;"></div>
 # 5. How to enforce CPU architecture details
 CPU architecture refers to
 * No of clusters in the system
@@ -114,3 +116,5 @@ The override config file is expected at /etc/resource-tuner/custom/DeviceConfig.
             NumCores: 4
           - PhyId: 3
             NumCores: 4
+---
+
