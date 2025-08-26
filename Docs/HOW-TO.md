@@ -1,5 +1,7 @@
 # 1. How to add a custom resource
+Resource tuner is configured with default [Resources](../Core/Configs/ResourcesConfig.yaml)  
 The common resources are available on device at /etc/resource-tuner/common/ResourcesConfig.yaml.  
+Developer can add new resources.  
 Custom resource files are expected to be present on the device at /etc/resource-tuner/custom/ResourcesConfig.yaml.
 
 ## Sample Resource config file with two resources.
@@ -29,36 +31,37 @@ Custom resource files are expected to be present on the device at /etc/resource-
         ApplyType: "global"
 
 ##### ResType - Resource Type
-16 bit Resoure Type representing a Class of resources.
+8 bit Resoure Type representing a Class of resources.
 | Code    | Resource Type       | Description                        |
 |---------|---------------------|------------------------------------|
 | `0x03`  | Sched               | Scheduling-related resources       |
 | `0x04`  | Power               | Power management resources         |
+| `0x05`  | MPAM                | Memory Partitioning and Monitoring |
 | `0x09`  | Cgroup              | Control group based resources      |
-| `    `  | MPAM                | Memory Partitioning and Monitoring |
 
 ##### ResID - Resource ID
-8 bit unique idenetifier represents a resource within the ResType group.
+16 bit unique idenetifier represents a resource within the ResType group.
 ##### Name
 Unique string representing the Resource
 ##### Path
 Full resource path of sysfs or procfs file path (if applicable).
 ##### HighThreshold
-Maximum value the can be set via resource-tuner.
+Maximum value the can be set to this resource via resource-tuner.
 ##### LowThreshold
-Minimum value the can be set via resource-tuner.
+Minimum value the can be set to this resource via resource-tuner.
 ##### Permissions
 Type of clients allowed to Provision this Resource.
 Supported Permissions: system, third_party.
 ##### Modes
 Mention the modes which this resouce is applicable for.
-Supported modes: display_on, doze. (Bydefault the mode is display_on).
+Supported modes: display_off, display_on, doze. (Bydefault the mode is display_on).
 ##### Policy
 Policy to reolve conflict during the concurrent requests.
 Supported policies: higher_is_better, lower_is_better, instant_apply, lazy_apply.
 ##### ApplyType
+Supported types: global, core, cluster, cgroup.
     
-# 2. How to add a new feature ? TODO: How to override the Resource tune and untune functionalities.
+# 2. How to override the Resource tune and untune functionalities.
 Resource tuner provides the default tune and untune functions.
 However, developer can customize the resource tune and untune functionalities.
 These overrides can be modified using <>.so.<version>
@@ -66,7 +69,14 @@ These overrides can be modified using <>.so.<version>
 # 3. How to add property
 
 # 4. How to add init configs
-MPAM, Cgroups.
+Resource tuner supports Cgroups as well, the default cgroup configs are defined [InitConfig](../Core/Configs/InitConfig.yaml)
+Thes config file is used to create the Cgroups during the service startup.
+Developer can supply additional init configs file via /etc/resource-tuner/custom/InitConfig.yaml
+## Sample Cgroup config
+    InitConfigs:
+      - CgroupsInfo:
+        - Name: "camera-cgroup"
+          ID: 0
 
 # 5. How to enforce CPU architecture details
 CPU architecture refers to
