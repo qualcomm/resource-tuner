@@ -1,4 +1,4 @@
-# How to add a custom resource
+# 1. How to add a custom resource
 The common resources are available at /etc/resource-tuner/common/ResourcesConfig.yaml
 
 ## Sample Resource config file with two resources.
@@ -27,35 +27,40 @@ The common resources are available at /etc/resource-tuner/common/ResourcesConfig
         Policy: higher_is_better
         ApplyType: "global"
 
-### ResType - Resource Type
+##### ResType - Resource Type
+16 bit Resoure Type representing a Class of resources.
 | Code    | Resource Type       | Description                        |
 |---------|---------------------|------------------------------------|
 | `0x03`  | Sched               | Scheduling-related resources       |
 | `0x04`  | Power               | Power management resources         |
-| `0x09`  | Cgroup              | Control group-based resources      |
-| —       | MPAM                | Memory Partitioning and Monitoring |
+| `0x09`  | Cgroup              | Control group based resources      |
+| `    `  | MPAM                | Memory Partitioning and Monitoring |
 
-### ResID - Resource ID
-    Unique Idenetifier represents a resource within the ResType group.
-### Name 
-    Unique string representing the Resource
-### Path
-    sysfs or procfs file path if applicable.
-### HighThreshold 
-
-### LowThreshold
-### Permissions
-### Modes
-### Policy
-### ApplyType
+##### ResID - Resource ID
+8 bit unique idenetifier represents a resource within the ResType group.
+##### Name
+Unique string representing the Resource
+##### Path
+Full resource path of sysfs or procfs file path (if applicable).
+##### HighThreshold
+Maximum value the can be set via resource-tuner.
+##### LowThreshold
+Minimum value the can be set via resource-tuner.
+##### Permissions
+Type of clients allowed to Provision this Resource.
+Supported Permissions: system, third_party.
+##### Modes
+Mention the modes which this resouce is applicable for.
+Supported modes: display_on, doze. (Bydefault the mode is display_on).
+##### Policy
+Policy to reolve conflict during the concurrent requests.
+Supported policies: higher_is_better, lower_is_better, instant_apply, lazy_apply.
+##### ApplyType
     
+# 2. How to add a new feature
 
+# 3. How to add property
 
+# 4. How to add init configs
 
-# How to add a new feature
-
-# How to add property
-
-# how to add init configs
-
-# How to enforce cpu arch details
+# 5. How to enforce cpu arch details
