@@ -69,10 +69,14 @@ These overrides can be modified using <>.so.<version>
 MPAM, Cgroups.
 
 # 5. How to enforce CPU architecture details
+CPU architecture refers to
+* No of clusters in the system
+* No of cores in the each cluster 
+
 Resource Tuner detects the CPU architecture based on cpu_capacity.
 Developer can override this by providing the CPU architecture details via yaml file.
 The override config file is expected at /etc/resource-tuner/custom/DeviceConfig.yaml
-Sample DeviceConfig file
+## Sample Device Config file
     TargetConfig:
       - TargetName: [QCS9100, QCS6300]
         ClusterInfo:
