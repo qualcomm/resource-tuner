@@ -1,30 +1,7 @@
 # How to add a custom resource
 The common resources are available at /etc/resource-tuner/common/ResourcesConfig.yaml
 
-Please follow below steps to add a new resource  
-1. Create 
-
-ResType =>
-### Resource Type Codes
-
-| Code    | Resource Type       | Description                        |
-|---------|---------------------|------------------------------------|
-| `0x03`  | Sched               | Scheduling-related resources       |
-| `0x04`  | Power               | Power management resources         |
-| `0x09`  | Cgroup              | Control group-based resources      |
-| —       | MPAM                | Memory Partitioning and Monitoring |
-
-
-ResID =>
-        Unique Idenetifier represents a resource within the ResType group.
-        Developer can 
-Name => Unique string representing the Resource
-
-Path => sysfs or procfs file path if applicable.
-
-HighThreshold => 
-
-
+## Sample Resource config file with two resources.
     ResourceConfigs:
       - ResType: "0x03"
         ResID: "0x0000"
@@ -49,6 +26,31 @@ HighThreshold =>
         Modes: ["display_on", "doze"]
         Policy: higher_is_better
         ApplyType: "global"
+
+### ResType - Resource Type
+| Code    | Resource Type       | Description                        |
+|---------|---------------------|------------------------------------|
+| `0x03`  | Sched               | Scheduling-related resources       |
+| `0x04`  | Power               | Power management resources         |
+| `0x09`  | Cgroup              | Control group-based resources      |
+| —       | MPAM                | Memory Partitioning and Monitoring |
+
+### ResID - Resource ID
+    Unique Idenetifier represents a resource within the ResType group.
+### Name 
+    Unique string representing the Resource
+### Path
+    sysfs or procfs file path if applicable.
+### HighThreshold 
+
+### LowThreshold
+### Permissions
+### Modes
+### Policy
+### ApplyType
+    
+
+
 
 # How to add a new feature
 
