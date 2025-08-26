@@ -1,5 +1,6 @@
 # 1. How to add a custom resource
-The common resources are available at /etc/resource-tuner/common/ResourcesConfig.yaml
+The common resources are available on device at /etc/resource-tuner/common/ResourcesConfig.yaml
+Custom resource files are expected to be present on the device at /etc/resource-tuner/custom/ResourcesConfig.yaml
 
 ## Sample Resource config file with two resources.
     ResourceConfigs:
@@ -57,10 +58,15 @@ Policy to reolve conflict during the concurrent requests.
 Supported policies: higher_is_better, lower_is_better, instant_apply, lazy_apply.
 ##### ApplyType
     
-# 2. How to add a new feature
+# 2. How to add a new feature ? TODO: How to override the Resource tune and untune functionalities.
+Resource tuner provides the default tune and untune functions.
+However, developer can customize the resource tune and untune functionalities.
+These overrides can be modified using <>.so.<version>
 
 # 3. How to add property
 
 # 4. How to add init configs
+MPAM, Cgroups.
 
 # 5. How to enforce cpu arch details
+
