@@ -68,5 +68,28 @@ These overrides can be modified using <>.so.<version>
 # 4. How to add init configs
 MPAM, Cgroups.
 
-# 5. How to enforce cpu arch details
-
+# 5. How to enforce CPU architecture details
+Resource Tuner detects the CPU architecture based on cpu_capacity.
+Developer can override this by providing the CPU architecture details via yaml file.
+The override config file is expected at /etc/resource-tuner/custom/DeviceConfig.yaml
+Sample DeviceConfig file
+    TargetConfig:
+      - TargetName: [QCS9100, QCS6300]
+        ClusterInfo:
+          - LgcId: 0
+            PhyId: 1
+          - LgcId: 1
+            PhyId: 0
+          - LgcId: 2
+            PhyId: 2
+          - LgcId: 3
+            PhyId: 3
+        ClusterSpread:
+          - PhyId: 0
+            NumCores: 4
+          - PhyId: 1
+            NumCores: 4
+          - PhyId: 2
+            NumCores: 4
+          - PhyId: 3
+            NumCores: 4
