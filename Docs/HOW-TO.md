@@ -1,6 +1,6 @@
 # 1. How to add a custom resource
-The common resources are available on device at /etc/resource-tuner/common/ResourcesConfig.yaml
-Custom resource files are expected to be present on the device at /etc/resource-tuner/custom/ResourcesConfig.yaml
+The common resources are available on device at /etc/resource-tuner/common/ResourcesConfig.yaml.  
+Custom resource files are expected to be present on the device at /etc/resource-tuner/custom/ResourcesConfig.yaml.
 
 ## Sample Resource config file with two resources.
     ResourceConfigs:
