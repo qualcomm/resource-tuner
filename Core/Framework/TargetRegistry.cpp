@@ -157,8 +157,6 @@ void TargetRegistry::getClusterIdBasedMapping() {
 
     std::unordered_map<int32_t, std::vector<int32_t>> clusterToCoreMap;
 
-    std::cout<<"reached line 160"<<std::endl;
-
     struct dirent* entry;
     while((entry = readdir(dir)) != nullptr) {
         if(entry->d_type == DT_DIR) {
@@ -184,15 +182,12 @@ void TargetRegistry::getClusterIdBasedMapping() {
         }
     }
 
-    std::cout<<"reached line 187"<<std::endl;
-
     closedir(dir);
 
     ResourceTunerSettings::targetConfigs.totalClusterCount = clusterToCoreMap.size();
 
     for(std::pair<int32_t, std::vector<int32_t>> entry: clusterToCoreMap) {
         int32_t clusterID = entry.first;
-        std::cout<<"cluster id: "<<clusterID<<std::endl;
         ClusterInfo* clusterInfo = new ClusterInfo;
         clusterInfo->mPhysicalID = clusterID;
         clusterInfo->mNumCpus = entry.second.size();
@@ -209,8 +204,6 @@ void TargetRegistry::getClusterIdBasedMapping() {
         this->mPhysicalClusters[clusterID] = clusterInfo;
     }
 
-    std::cout<<"reached line 209"<<std::endl;
-
     // Next, get the list of cpus corresponding to each cluster
     std::vector<std::pair<int32_t, ClusterInfo*>> clusterConfigs;
 
@@ -224,8 +217,6 @@ void TargetRegistry::getClusterIdBasedMapping() {
         }
         clusterConfigs.push_back({clusterCapacity, entry.second});
     }
-
-    std::cout<<"reached line 227"<<std::endl;
 
     std::sort(clusterConfigs.begin(), clusterConfigs.end());
 

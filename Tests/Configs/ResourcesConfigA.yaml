@@ -2,261 +2,175 @@
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 
 ResourceConfigs:
-  - ResType: "0x03"
+  - ResType: "0xff"
     ResID: "0x0000"
-    Name: "SCHED_UTIL_CLAMP_MIN"
-    Path: "/proc/sys/kernel/sched_util_clamp_min"
+    Name: "TEST_RESOURCE_1"
+    Path: "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min"
     Supported: true
     HighThreshold: 1024
     LowThreshold: 0
     Permissions: "third_party"
     Modes: ["display_on", "doze"]
-    Policy: "lower_is_better"
+    Policy: "higher_is_better"
     ApplyType: "global"
 
-  - ResType: "0x03"
+  - ResType: "0xff"
     ResID: "0x0001"
-    Name: "SCHED_UTIL_CLAMP_MAX"
-    Path: "/proc/sys/kernel/sched_util_clamp_max"
+    Name: "TEST_RESOURCE_2"
+    Path: "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_max"
+    Supported: true
+    HighThreshold: 1024
+    LowThreshold: 512
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: "higher_is_better"
+    ApplyType: "global"
+
+  - ResType: "0xff"
+    ResID: "0x0002"
+    Name: "TEST_RESOURCE_3"
+    Path: "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_min_freq"
     Supported: true
     HighThreshold: 1024
     LowThreshold: 0
-    Permissions: third_party
-    Modes: ["display_on", "doze"]
-    Policy: higher_is_better
+    Permissions: "third_party"
+    Modes: ["display_on", "display_off"]
+    Policy: "lower_is_better"
     ApplyType: "global"
 
-  - ResType: "0x04"
-    ResID: "0x0000"
-    Name: "SCALING_MIN_FREQ"
-    Path: "/sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq"
-    Supported: true
-    HighThreshold: 1939200
-    LowThreshold: 1267200
-    Permissions: third_party
-    Modes: ["display_on", "doze"]
-    Policy: lower_is_better
-    ApplyType: "global"
-
-  - ResType: "0x04"
-    ResID: "0x0001"
-    Name: "SCALING_MIN_FREQ"
-    Path: "/sys/devices/system/cpu/cpufreq/policy1/scaling_min_freq"
-    Supported: true
-    HighThreshold: 1939200
-    LowThreshold: 1267200
-    Permissions: third_party
-    Modes: ["display_on", "doze"]
-    Policy: lower_is_better
-    ApplyType: "global"
-
-  - ResType: "0x04"
-    ResID: "0x0002"
-    Name: "SCALING_MIN_FREQ"
-    Path: "/sys/devices/system/cpu/cpufreq/policy2/scaling_min_freq"
-    Supported: true
-    HighThreshold: 1939200
-    LowThreshold: 1267200
-    Permissions: third_party
-    Modes: ["display_on", "doze"]
-    Policy: lower_is_better
-    ApplyType: "global"
-
-  - ResType: "0x04"
+  - ResType: "0xff"
     ResID: "0x0003"
-    Name: "SCALING_MIN_FREQ"
-    Path: "/sys/devices/system/cpu/cpufreq/policy3/scaling_min_freq"
+    Name: "TEST_RESOURCE_4"
+    Path: "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_max_freq"
     Supported: true
-    HighThreshold: 1939200
-    LowThreshold: 1267200
-    Permissions: third_party
-    Modes: ["display_on", "doze"]
-    Policy: lower_is_better
+    HighThreshold: 2048
+    LowThreshold: 0
+    Permissions: "third_party"
+    Modes: ["display_on", "display_off"]
+    Policy: "higher_is_better"
     ApplyType: "global"
 
-  - ResType: "0x04"
-    ResID: "0x0100"
-    Name: "SCALING_MAX_FREQ"
-    Path: "/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq"
-    Supported: true
-    HighThreshold: 1939200
-    LowThreshold: 1267200
-    Permissions: third_party
-    Modes: ["display_on", "doze"]
-    Policy: higher_is_better
-    ApplyType: "global"
-
-  - ResType: "0x04"
-    ResID: "0x0101"
-    Name: "SCALING_MAX_FREQ"
-    Path: "/sys/devices/system/cpu/cpufreq/policy1/scaling_max_freq"
-    Supported: true
-    HighThreshold: 1939200
-    LowThreshold: 1267200
-    Permissions: third_party
-    Modes: ["display_on", "doze"]
-    Policy: higher_is_better
-    ApplyType: "global"
-
-  - ResType: "0x04"
-    ResID: "0x0102"
-    Name: "SCALING_MAX_FREQ"
-    Path: "/sys/devices/system/cpu/cpufreq/policy2/scaling_max_freq"
-    Supported: true
-    HighThreshold: 1939200
-    LowThreshold: 1267200
-    Permissions: third_party
-    Modes: ["display_on", "doze"]
-    Policy: higher_is_better
-    ApplyType: "global"
-
-  - ResType: "0x04"
-    ResID: "0x0103"
-    Name: "SCALING_MAX_FREQ"
-    Path: "/sys/devices/system/cpu/cpufreq/policy3/scaling_max_freq"
-    Supported: true
-    HighThreshold: 1939200
-    LowThreshold: 1267200
-    Permissions: third_party
-    Modes: ["display_on", "doze"]
-    Policy: higher_is_better
-    ApplyType: "global"
-
-  - ResType: "0x04"
-    ResID: "0x0200"
-    Name: "SCALING_MIN_FREQ_GENERIC"
-    Path: "/sys/devices/system/cpu/cpufreq/policy%d/scaling_min_freq"
-    Supported: true
-    HighThreshold: 1939200
-    LowThreshold: 1267200
-    Permissions: third_party
-    Modes: ["display_on", "doze"]
-    Policy: lower_is_better
-    ApplyType: "cluster"
-
-  - ResType: "0x04"
-    ResID: "0x0201"
-    Name: "SCALING_MAX_FREQ_GENERIC"
-    Path: "/sys/devices/system/cpu/cpufreq/policy%d/scaling_max_freq"
-    Supported: true
-    HighThreshold: 1939200
-    LowThreshold: 1267200
-    Permissions: third_party
-    Modes: ["display_on", "doze"]
-    Policy: higher_is_better
-    ApplyType: "cluster"
-
-  - ResType: "0x09"
-    ResID: "0x0000"
-    Name: "RES_TUNER_CGROUP_MOVE_PID"
-    Path: "/sys/fs/cgroup/%s/cgroup.procs"
-    Supported: true
-    Permissions: "system"
-    ApplyType: "cgroup"
-    Policy: instant_apply
-
-  - ResType: "0x09"
-    ResID: "0x0001"
-    Name: "RES_TUNER_CGROUP_MOVE_TID"
-    Path: "/sys/fs/cgroup/%s/cgroup.threads"
-    Supported: true
-    Permissions: "system"
-    ApplyType: "cgroup"
-    Policy: instant_apply
-
-  - ResType: "0x09"
-    ResID: "0x0002"
-    Name: "RES_TUNER_CGROUP_RUN_ON_CORES"
-    Path: "/sys/fs/cgroup/%s/cpuset.cpus"
-    Supported: true
-    Permissions: "system"
-    ApplyType: "cgroup"
-
-  - ResType: "0x09"
-    ResID: "0x0003"
-    Name: "RES_TUNER_CGROUP_RUN_ON_CORES_EXCLUSIVELY"
-    Path: ""
-    Supported: true
-    Permissions: "system"
-    ApplyType: "cgroup"
-
-  - ResType: "0x09"
+  - ResType: "0xff"
     ResID: "0x0004"
-    Name: "RES_TUNER_CGROUP_FREEZE"
-    Path: "/sys/fs/cgroup/%s/cgroup.freeze"
+    Name: "TEST_RESOURCE_5"
+    Path: "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource1"
     Supported: true
+    HighThreshold: 400
+    LowThreshold: 0
     Permissions: "system"
-    ApplyType: "cgroup"
-    Policy: instant_apply
+    Modes: ["display_on", "display_off"]
+    Policy: "higher_is_better"
+    ApplyType: "global"
 
-  - ResType: "0x09"
+  - ResType: "0xff"
     ResID: "0x0005"
-    Name: "RES_TUNER_CGROUP_LIMIT_CPU_TIME"
-    Path: "/sys/fs/cgroup/%s/cpu.max"
+    Name: "TEST_RESOURCE_6"
+    Path: "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource2"
     Supported: true
-    Permissions: "system"
-    ApplyType: "cgroup"
-    Policy: higher_is_better
+    HighThreshold: 6500
+    LowThreshold: 50
+    Permissions: "third_party"
+    Modes: ["display_on"]
+    Policy: "higher_is_better"
+    ApplyType: "core"
 
-  - ResType: "0x09"
+  - ResType: "0xff"
     ResID: "0x0006"
-    Name: "RES_TUNER_CGROUP_RUN_WHEN_CPU_IDLE"
-    Path: "/sys/fs/cgroup/%s/cpu.idle"
+    Name: "TEST_RESOURCE_7"
+    Path: "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource3"
     Supported: true
-    Permissions: "system"
-    ApplyType: "cgroup"
-    Policy: instant_apply
+    HighThreshold: 5511
+    LowThreshold: 4000
+    Permissions: "third_party"
+    Modes: ["display_off"]
+    Policy: "higher_is_better"
+    ApplyType: "global"
 
-  - ResType: "0x09"
+  - ResType: "0xff"
     ResID: "0x0007"
-    Name: "RES_TUNER_CGROUP_UCLAMP_MIN"
-    Path: "/sys/fs/cgroup/%s/cpu.uclamp.min"
-    Supported: true
-    Permissions: "system"
-    ApplyType: "cgroup"
-    Policy: lower_is_better
+    Name: "TEST_RESOURCE_8"
+    Path: "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource4"
+    Supported: false
+    HighThreshold: 900
+    LowThreshold: 300
+    Permissions: "third_party"
+    Modes: ["display_on"]
+    Policy: "higher_is_better"
+    ApplyType: "global"
 
-  - ResType: "0x09"
+  - ResType: "0xff"
     ResID: "0x0008"
-    Name: "RES_TUNER_CGROUP_UCLAMP_MAX"
-    Path: "/sys/fs/cgroup/%s/cpu.uclamp.max"
+    Name: "TEST_RESOURCE_9"
+    Path: "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource5"
     Supported: true
-    Permissions: "system"
-    ApplyType: "cgroup"
-    Policy: higher_is_better
+    HighThreshold: 20
+    LowThreshold: 0
+    Permissions: "third_party"
+    Modes: ["display_on"]
+    Policy: "lazy_apply"
+    ApplyType: "global"
 
-  - ResType: "0x09"
+  - ResType: "0xff"
     ResID: "0x0009"
-    Name: "RES_TUNER_CGROUP_RELATIVE_CPU_WEIGHT"
-    Path: "/sys/fs/cgroup/%s/cpu.weight"
-    Supported: true
-    Permissions: "system"
-    ApplyType: "cgroup"
-    Policy: instant_apply
+    Name: "DEFAULT_VALUES_TEST"
 
-  - ResType: "0x09"
+  - ResType: "0xff"
     ResID: "0x000a"
-    Name: "RES_TUNER_CGROUP_MAX_MEMORY"
-    Path: "/sys/fs/cgroup/%s/memory.max"
+    Name: "TEST_RESOURCE_10_CLUSTER"
+    Path: "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/cluster_type_resource%d/cluster_id"
     Supported: true
-    Permissions: "system"
-    ApplyType: "cgroup"
-    Policy: higher_is_better
+    HighThreshold: 2048
+    LowThreshold: 0
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: "higher_is_better"
+    ApplyType: "cluster"
 
-  - ResType: "0x09"
+  - ResType: "0xff"
     ResID: "0x000b"
-    Name: "RES_TUNER_CGROUP_MIN_MEMORY"
-    Path: "/sys/fs/cgroup/%s/memory.min"
+    Name: "OVERRIDE_RESOURCE_1"
+    Path: "/etc/resouce-tuner/tests/Configs/pathA"
     Supported: true
-    Permissions: "system"
-    ApplyType: "cgroup"
-    Policy: lower_is_better
+    HighThreshold: 160
+    LowThreshold: 110
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: "higher_is_better"
+    ApplyType: "global"
 
-  - ResType: "0x09"
+  - ResType: "0xff"
     ResID: "0x000c"
-    Name: "RES_TUNER_CGROUP_CPU_LATENCY"
-    Path: "/sys/fs/cgroup/%s/cpu.latency_nice"
+    Name: "OVERRIDE_RESOURCE_2"
+    Path: "/proc/dummy/path/kernel/clamp.pid"
     Supported: true
+    HighThreshold: 66788
+    LowThreshold: 25568
     Permissions: "system"
-    ApplyType: "cgroup"
-    Policy: lower_is_better
+    Modes: ["display_on", "doze"]
+    Policy: "lazy_apply"
+    ApplyType: "cluster"
+
+  # Some totally Invalid Resources, to make sure the Parser is correctly rejecting them
+  - ResType: "yx1"
+    ResID: "zzo"
+    Name: "INVALID_RESOURCE_1"
+    Path: "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/invalidResource"
+    Supported: true
+    HighThreshold: y
+    LowThreshold: "vb"
+    Permissions: 2
+    Modes: {"display_on"}
+    Policy: "lazy_apply"
+    ApplyType: what
+
+  - ResType: -1
+    ResID: "index"
+    Name: "INVALID_RESOURCE_2"
+    Path: "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/invalidResource"
+    Supported: 6.65
+    HighThreshold: "X"
+    LowThreshold: "vb"
+    Permissions: -5
+    Modes: -3
+    Policy: false
+    ApplyType: 50.8

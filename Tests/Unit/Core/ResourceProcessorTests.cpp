@@ -10,20 +10,12 @@
 #include "Extensions.h"
 #include "Utils.h"
 
-#define TOTAL_RESOURCE_CONFIGS_COUNT 12
-
-#define GENERATE_RESOURCE_ID(restype, rescode) ({                              \
-    uint32_t resourceBitmap = 0;                                               \
-    resourceBitmap |= (1 << 31);                                               \
-    resourceBitmap |= ((uint32_t)rescode);                                     \
-    resourceBitmap |= ((uint32_t)restype << 16);                               \
-    resourceBitmap;                                                            \
-})
+#define TOTAL_RESOURCE_CONFIGS_COUNT 13
 
 static void Init() {
     ConfigProcessor configProcessor;
 
-    if(RC_IS_NOTOK(configProcessor.parseResourceConfigs("/etc/resource-tuner/tests/Configs/ResourcesConfig.yaml", true))) {
+    if(RC_IS_NOTOK(configProcessor.parseResourceConfigs("/etc/resource-tuner/tests/Configs/ResourcesConfigA.yaml", true))) {
         return;
     }
 }
@@ -37,10 +29,10 @@ static void TestResourceConfigProcessorYAMLDataIntegrity2() {
 }
 
 static void TestResourceConfigProcessorYAMLDataIntegrity3_1() {
-    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(GENERATE_RESOURCE_ID(1, 0));
+    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(0x80ff0000);
 
     C_ASSERT(resourceConfigInfo != nullptr);
-    C_ASSERT(resourceConfigInfo->mResourceResType == 1);
+    C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
     C_ASSERT(resourceConfigInfo->mResourceResID == 0);
     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "TEST_RESOURCE_1") == 0);
     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min") == 0);
@@ -54,10 +46,10 @@ static void TestResourceConfigProcessorYAMLDataIntegrity3_1() {
 }
 
 static void TestResourceConfigProcessorYAMLDataIntegrity3_2() {
-    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(GENERATE_RESOURCE_ID(1, 1));
+    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(0x80ff0001);
 
     C_ASSERT(resourceConfigInfo != nullptr);
-    C_ASSERT(resourceConfigInfo->mResourceResType == 1);
+    C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
     C_ASSERT(resourceConfigInfo->mResourceResID == 1);
     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "TEST_RESOURCE_2") == 0);
     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_max") == 0);
@@ -71,10 +63,10 @@ static void TestResourceConfigProcessorYAMLDataIntegrity3_2() {
 }
 
 static void TestResourceConfigProcessorYAMLDataIntegrity3_3() {
-    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(GENERATE_RESOURCE_ID(1, 5));
+    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(0x80ff0005);
 
     C_ASSERT(resourceConfigInfo != nullptr);
-    C_ASSERT(resourceConfigInfo->mResourceResType == 1);
+    C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
     C_ASSERT(resourceConfigInfo->mResourceResID == 5);
     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "TEST_RESOURCE_6") == 0);
     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource2") == 0);

@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 
 ResourceConfigs:
-  - ResType: "0x04"
-    ResID: "0x0102"
+  - ResType: "0xff"
+    ResID: "0x1000"
     Name: "CUSTOM_SCALING_FREQ"
     Path: "/usr/local/customfreq/node"
     Supported: true
@@ -14,8 +14,8 @@ ResourceConfigs:
     Policy: lazy_apply
     ApplyType: "core"
 
-  - ResType: "0x0a"
-    ResID: "0x00aa"
+  - ResType: "0xff"
+    ResID: "0x1001"
     Name: "CUSTOM_RESOURCE_ADDED_BY_BU"
     Path: "/some/bu/specific/node/path/customized_to_usecase"
     Supported: true
@@ -25,6 +25,9 @@ ResourceConfigs:
     Modes: ["display_on"]
     Policy: lower_is_better
     ApplyType: "global"
+
+  # All of the following Resources are invalid, none of them should be accepted
+  # by the Resource Registry.
 
   - ResType: -1
     ResID: 9.8
@@ -204,4 +207,28 @@ ResourceConfigs:
     Permissions: unknown
     Modes: ["display_on"]
     Policy: lower_is_better
+    ApplyType: "global"
+
+  - ResType: "0xff"
+    ResID: "0x000b"
+    Name: "OVERRIDE_RESOURCE_1"
+    Path: "/etc/resouce-tuner/tests/Configs/pathB/overwrite"
+    Supported: true
+    HighThreshold: 220
+    LowThreshold: 150
+    Permissions: "system"
+    Modes: ["display_on", "doze"]
+    Policy: "lower_is_better"
+    ApplyType: "core"
+
+  - ResType: "0xff"
+    ResID: "0x000c"
+    Name: "OVERRIDE_RESOURCE_2"
+    Path: "/proc/kernel/tid/kernel/uclamp.tid.sched/rt"
+    Supported: true
+    HighThreshold: 100022
+    LowThreshold: 87755
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: "instant_apply"
     ApplyType: "global"

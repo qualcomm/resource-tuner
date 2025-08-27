@@ -10,24 +10,19 @@
 #include "Extensions.h"
 #include "Utils.h"
 
-#define TOTAL_RESOURCE_CONFIGS_COUNT 38
+#define TOTAL_RESOURCE_CONFIGS_COUNT 15
 
 static void Init() {
     ConfigProcessor configProcessor;
 
-    std::string commonResources = "/etc/resource-tuner/tests/Configs/ResourcesConfigA.yaml";
-    std::string additionalResourcesCatA = "/etc/resource-tuner/tests/Configs/ResourcesConfig.yaml";
-    std::string additionalResourcesCatB =  "/etc/resource-tuner/tests/Configs/ResourcesConfigB.yaml";
+    std::string resourcesClassA = "/etc/resource-tuner/tests/Configs/ResourcesConfigA.yaml";
+    std::string resourcesClassB = "/etc/resource-tuner/tests/Configs/ResourcesConfigB.yaml";
 
-    if(RC_IS_NOTOK(configProcessor.parseResourceConfigs(commonResources))) {
+    if(RC_IS_NOTOK(configProcessor.parseResourceConfigs(resourcesClassA))) {
         return;
     }
 
-    if(RC_IS_NOTOK(configProcessor.parseResourceConfigs(additionalResourcesCatA))) {
-        return;
-    }
-
-    if(RC_IS_NOTOK(configProcessor.parseResourceConfigs(additionalResourcesCatB, true))) {
+    if(RC_IS_NOTOK(configProcessor.parseResourceConfigs(resourcesClassB, true))) {
         return;
     }
 }
@@ -40,52 +35,29 @@ static void TestResourceParsingResourcesParsed() {
     C_ASSERT(ResourceRegistry::getInstance()->getTotalResourcesCount() == TOTAL_RESOURCE_CONFIGS_COUNT);
 }
 
-// static void TestResourceParsingResourcesMerged1() {
-//     ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(0x00030000);
-
-//     C_ASSERT(resourceConfigInfo != nullptr);
-//     C_ASSERT(resourceConfigInfo->mResourceResType == 3);
-//     C_ASSERT(resourceConfigInfo->mResourceResID == 0);
-//     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "OVERWRITE_RESOURCE_1") == 0);
-//     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/proc/sys/kernel/test_node1") == 0);
-//     C_ASSERT(resourceConfigInfo->mHighThreshold == 1024);
-//     C_ASSERT(resourceConfigInfo->mLowThreshold == 0);
-//     C_ASSERT(resourceConfigInfo->mSupported == true);
-//     C_ASSERT(resourceConfigInfo->mPolicy == LOWER_BETTER);
-//     C_ASSERT(resourceConfigInfo->mPermissions == PERMISSION_SYSTEM);
-//     C_ASSERT(resourceConfigInfo->mModes == MODE_DISPLAY_ON | MODE_DOZE);
-//     C_ASSERT(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_GLOBAL);
-// }
-
-// static void TestResourceParsingResourcesMerged2() {
-//     ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(0x00040003);
-
-//     C_ASSERT(resourceConfigInfo != nullptr);
-//     C_ASSERT(resourceConfigInfo->mResourceResType == 4);
-//     C_ASSERT(resourceConfigInfo->mResourceResID == 3);
-//     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "OVERWRITE_RESOURCE_2") == 0);
-//     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/proc/sys/kernel/test_node2") == 0);
-//     C_ASSERT(resourceConfigInfo->mHighThreshold == 1024);
-//     C_ASSERT(resourceConfigInfo->mLowThreshold == 890);
-//     C_ASSERT(resourceConfigInfo->mSupported == true);
-//     C_ASSERT(resourceConfigInfo->mPolicy == INSTANT_APPLY);
-//     C_ASSERT(resourceConfigInfo->mPermissions == PERMISSION_SYSTEM);
-//     C_ASSERT(resourceConfigInfo->mModes == MODE_DISPLAY_ON | MODE_DISPLAY_OFF);
-//     C_ASSERT(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_CLUSTER);
-// }
-
-static void TestResourceParsingResourcesMerged3() {
-    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(0x00040102);
-
-    C_ASSERT(resourceConfigInfo == nullptr);
-}
-
-static void TestResourceParsingResourcesMerged4() {
-    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(0x80040102);
+static void TestResourceParsingResourcesMerged1() {
+    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(0x80ff000b);
 
     C_ASSERT(resourceConfigInfo != nullptr);
-    C_ASSERT(resourceConfigInfo->mResourceResType == 4);
-    C_ASSERT(resourceConfigInfo->mResourceResID == 258);
+    C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
+    C_ASSERT(resourceConfigInfo->mResourceResID == 0x000b);
+    C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "OVERRIDE_RESOURCE_1") == 0);
+    C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resouce-tuner/tests/Configs/pathB/overwrite") == 0);
+    C_ASSERT(resourceConfigInfo->mHighThreshold == 220);
+    C_ASSERT(resourceConfigInfo->mLowThreshold == 150);
+    C_ASSERT(resourceConfigInfo->mSupported == true);
+    C_ASSERT(resourceConfigInfo->mPolicy == LOWER_BETTER);
+    C_ASSERT(resourceConfigInfo->mPermissions == PERMISSION_SYSTEM);
+    C_ASSERT(resourceConfigInfo->mModes == MODE_DISPLAY_ON | MODE_DOZE);
+    C_ASSERT(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_CORE);
+}
+
+static void TestResourceParsingResourcesMerged2() {
+    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(0x80ff1000);
+
+    C_ASSERT(resourceConfigInfo != nullptr);
+    C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
+    C_ASSERT(resourceConfigInfo->mResourceResID == 0x1000);
     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "CUSTOM_SCALING_FREQ") == 0);
     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/usr/local/customfreq/node") == 0);
     C_ASSERT(resourceConfigInfo->mHighThreshold == 90);
@@ -97,12 +69,12 @@ static void TestResourceParsingResourcesMerged4() {
     C_ASSERT(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_CORE);
 }
 
-static void TestResourceParsingResourcesMerged5() {
-    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(0x800a00aa);
+static void TestResourceParsingResourcesMerged3() {
+    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(0x80ff1001);
 
     C_ASSERT(resourceConfigInfo != nullptr);
-    C_ASSERT(resourceConfigInfo->mResourceResType == 0x0a);
-    C_ASSERT(resourceConfigInfo->mResourceResID == 0x00aa);
+    C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
+    C_ASSERT(resourceConfigInfo->mResourceResID == 0x1001);
     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "CUSTOM_RESOURCE_ADDED_BY_BU") == 0);
     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/some/bu/specific/node/path/customized_to_usecase") == 0);
     C_ASSERT(resourceConfigInfo->mHighThreshold == 512);
@@ -114,12 +86,29 @@ static void TestResourceParsingResourcesMerged5() {
     C_ASSERT(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_GLOBAL);
 }
 
-static void TestResourceParsingResourcesDefaultValuesCheck() {
-    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(0x00efffff);
+static void TestResourceParsingResourcesMerged4() {
+    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(0x80ff000c);
 
     C_ASSERT(resourceConfigInfo != nullptr);
-    C_ASSERT(resourceConfigInfo->mResourceResType == 0xef);
-    C_ASSERT(resourceConfigInfo->mResourceResID == 0xffff);
+    C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
+    C_ASSERT(resourceConfigInfo->mResourceResID == 0x000c);
+    C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "OVERRIDE_RESOURCE_2") == 0);
+    C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/proc/kernel/tid/kernel/uclamp.tid.sched/rt") == 0);
+    C_ASSERT(resourceConfigInfo->mHighThreshold == 100022);
+    C_ASSERT(resourceConfigInfo->mLowThreshold == 87755);
+    C_ASSERT(resourceConfigInfo->mSupported == true);
+    C_ASSERT(resourceConfigInfo->mPolicy == INSTANT_APPLY);
+    C_ASSERT(resourceConfigInfo->mPermissions == PERMISSION_THIRD_PARTY);
+    C_ASSERT(resourceConfigInfo->mModes == MODE_DISPLAY_ON | MODE_DISPLAY_OFF);
+    C_ASSERT(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_GLOBAL);
+}
+
+static void TestResourceParsingResourcesDefaultValuesCheck() {
+    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(0x00ff0009);
+
+    C_ASSERT(resourceConfigInfo != nullptr);
+    C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
+    C_ASSERT(resourceConfigInfo->mResourceResID == 0x0009);
     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "DEFAULT_VALUES_TEST") == 0);
     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "") == 0);
     C_ASSERT(resourceConfigInfo->mHighThreshold == -1);
@@ -137,9 +126,10 @@ int main() {
     Init();
     RUN_TEST(TestResourceParsingSanity);
     RUN_TEST(TestResourceParsingResourcesParsed);
+    RUN_TEST(TestResourceParsingResourcesMerged1);
+    RUN_TEST(TestResourceParsingResourcesMerged2);
     RUN_TEST(TestResourceParsingResourcesMerged3);
     RUN_TEST(TestResourceParsingResourcesMerged4);
-    RUN_TEST(TestResourceParsingResourcesMerged5);
     RUN_TEST(TestResourceParsingResourcesDefaultValuesCheck);
 
     std::cout<<"\nAll Tests from the suite: [Resource Parsing Test], executed successfully"<<std::endl;
