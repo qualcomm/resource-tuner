@@ -334,6 +334,27 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             Logger::log(ERROR, "RESTUNE_SYSCALL_FAILURE", funcName, std::string(buffer));
             break;
 
+        case CommonMessageTypes::CORE_COUNT_EXTRACTION_FAILED:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Failed to get Online Core Count, Error: %s", args);
+
+            Logger::log(ERROR, "RESTUNE_TARGET_REGISTRY", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::CLUSTER_CPU_LIST_EXTRACTION_FAILED:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Failed to get the list of CPUs for cluster [%s], Error: %s", args);
+
+            Logger::log(ERROR, "RESTUNE_TARGET_REGISTRY", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::CLUSTER_CPU_CAPACITY_EXTRACTION_FAILED:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Failed to get the capacity for CPU [%d], Error: %s", args);
+
+            Logger::log(ERROR, "RESTUNE_TARGET_REGISTRY", funcName, std::string(buffer));
+            break;
+
         case CommonMessageTypes::VERIFIER_INVALID_OPCODE:
             vsnprintf(buffer, sizeof(buffer),
                       "Invalid Opcode [%u], Dropping Request.", args);

@@ -78,9 +78,6 @@ public:
 
     static int32_t isServerOnline();
     static void setServerOnlineStatus(int32_t isOnline);
-
-    static int64_t generateUniqueHandle();
-    static int64_t getCurrentTimeInMilliseconds();
 };
 
 #endif

@@ -191,17 +191,17 @@ int32_t main(int32_t argc, char *argv[]) {
 
     // Check which modules are plugged In and Initialize them
     if(RC_IS_OK(opStatus)) {
-        opStatus = ComponentRegistry::getModuleRegistrationCallback(MOD_CORE)();
+        opStatus = ComponentRegistry::getModuleRegistrationCallback(ModuleIdentifier::MOD_CORE)();
         if(RC_IS_NOTOK(opStatus)) {
             TYPELOGV(MODULE_INIT_FAILED, "Core");
         }
     }
 
     if(RC_IS_OK(opStatus)) {
-        if(ComponentRegistry::isModuleEnabled(MOD_SYSSIGNAL)) {
+        if(ComponentRegistry::isModuleEnabled(ModuleIdentifier::MOD_SYSSIGNAL)) {
             TYPELOGV(NOTIFY_MODULE_ENABLED, "Signal");
             if(RC_IS_OK(opStatus)) {
-                opStatus = ComponentRegistry::getModuleRegistrationCallback(MOD_SYSSIGNAL)();
+                opStatus = ComponentRegistry::getModuleRegistrationCallback(ModuleIdentifier::MOD_SYSSIGNAL)();
                 if(RC_IS_NOTOK(opStatus)) {
                     TYPELOGV(MODULE_INIT_FAILED, "Signal");
                 }
@@ -274,12 +274,12 @@ int32_t main(int32_t argc, char *argv[]) {
     // - Killing the child process created to monitor the parent (Server)
     serverCleanup();
 
-    if(ComponentRegistry::isModuleEnabled(MOD_CORE)) {
-        ComponentRegistry::getModuleTeardownCallback(MOD_CORE)();
+    if(ComponentRegistry::isModuleEnabled(ModuleIdentifier::MOD_CORE)) {
+        ComponentRegistry::getModuleTeardownCallback(ModuleIdentifier::MOD_CORE)();
     }
 
-    if(ComponentRegistry::isModuleEnabled(MOD_SYSSIGNAL)) {
-        ComponentRegistry::getModuleTeardownCallback(MOD_SYSSIGNAL)();
+    if(ComponentRegistry::isModuleEnabled(ModuleIdentifier::MOD_SYSSIGNAL)) {
+        ComponentRegistry::getModuleTeardownCallback(ModuleIdentifier::MOD_SYSSIGNAL)();
     }
 
     if(resourceTunerListener.joinable()) {

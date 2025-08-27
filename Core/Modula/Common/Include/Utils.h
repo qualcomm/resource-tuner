@@ -102,14 +102,6 @@ enum Policy {
     LAZY_APPLY //!< The requests are applied in a first-in-first-out manner.
 };
 
-enum ClusterTypes {
-    BIG = 0,
-    LITTLE,
-    PRIME,
-    TITANIUM,
-    TOTAL_CLUSTER_COUNT
-};
-
 typedef struct {
     char* buffer;
     uint64_t bufferSize;

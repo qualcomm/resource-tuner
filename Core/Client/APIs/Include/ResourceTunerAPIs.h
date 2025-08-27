@@ -78,8 +78,7 @@ typedef struct {
 *                   - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
 *                   - The Next 8 bits [17 - 24] represent a Boolean Flag, which indicates
 *                     if the Request should be processed in the background (in case of Display Off or Doze Mode).
-*                   - The Next 8 bits [9 - 16] represent the order in which the Resources part of this Request
-*                     should be untuned. Possible values are: Forward Order [0] (default) and Reverse Order [1]
+*
 * @param numRes Number of Resources to be tuned as part of the Request
 * @param resourceList List of Resources to be provisioned as part of the Request
 * @return int64_t :
@@ -144,8 +143,6 @@ int8_t setprop(const char* prop, const char* value);
  *                   - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
  *                   - The Next 8 bits [17 - 24] represent a Boolean Flag, which indicates
  *                     if the Request should be processed in the background (in case of Display Off or Doze Mode).
- *                   - The Next 8 bits [9 - 16] represent the order in which the Resources part of this Request
- *                     should be untuned. Possible values are: Forward Order [0] (default) and Reverse Order [1]
  *
  * @param appName Name of the Application that is issuing the Request
  * @param scenario Name of the Scenario that is issuing the Request

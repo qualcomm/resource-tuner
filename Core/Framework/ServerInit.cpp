@@ -124,6 +124,7 @@ static ErrCode fetchResources() {
     TYPELOGV(NOTIFY_PARSING_START, "Common-Resource");
     std::string filePath = ResourceTunerSettings::mCommonResourceFilePath;
     opStatus = configProcessor.parseResourceConfigs(filePath);
+
     if(RC_IS_NOTOK(opStatus)) {
         TYPELOGV(NOTIFY_PARSING_FAILURE, "Common-Resource");
         return opStatus;
@@ -134,6 +135,7 @@ static ErrCode fetchResources() {
     if(filePath.length() > 0) {
         TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, "Resource", filePath.c_str());
         TYPELOGV(NOTIFY_PARSING_START, "Custom-Resource");
+
         opStatus = configProcessor.parseResourceConfigs(filePath, true);
         if(RC_IS_NOTOK(opStatus)) {
             TYPELOGV(NOTIFY_PARSING_FAILURE, "Custom-Resource");
@@ -145,11 +147,13 @@ static ErrCode fetchResources() {
         TYPELOGV(NOTIFY_PARSING_START, "Custom-Resource");
         filePath = ResourceTunerSettings::mCustomResourceFilePath;
         opStatus = configProcessor.parseResourceConfigs(filePath, true);
+
         if(RC_IS_NOTOK(opStatus)) {
             if(opStatus == RC_FILE_NOT_FOUND) {
                 TYPELOGV(NOTIFY_PARSER_FILE_NOT_FOUND, "Custom-Resource", filePath.c_str());
                 return RC_SUCCESS;
             }
+
             TYPELOGV(NOTIFY_PARSING_FAILURE, "Custom-Resource");
             return opStatus;
         }
@@ -198,7 +202,7 @@ static ErrCode fetchInitInfo() {
     if(filePath.length() > 0) {
         // Custom Target Config file has been provided by BU
         TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, "Init", filePath.c_str());
-        opStatus = configProcessor.parseTargetConfigs(filePath);
+        opStatus = configProcessor.parseInitConfigs(filePath);
         if(RC_IS_NOTOK(opStatus)) {
             TYPELOGV(NOTIFY_PARSING_FAILURE, "Init");
             return opStatus;
@@ -208,7 +212,7 @@ static ErrCode fetchInitInfo() {
     } else {
         TYPELOGV(NOTIFY_PARSING_START, "Init");
         filePath = ResourceTunerSettings::mInitConfigFilePath;
-        opStatus = configProcessor.parseTargetConfigs(filePath);
+        opStatus = configProcessor.parseInitConfigs(filePath);
         if(RC_IS_NOTOK(opStatus)) {
             if(opStatus != RC_FILE_NOT_FOUND) {
                 TYPELOGV(NOTIFY_PARSING_FAILURE, "Init");
@@ -231,16 +235,6 @@ static ErrCode initServer() {
     // Pre-Allocate Memory for Commonly used Types via Memory Pool
     preAllocateMemory();
 
-    // Fetch and Parse Resource Configs
-    // Resource Parsing which will be considered:
-    // - Common Resource Configs
-    // - Target Specific Resource Configs
-    // - Custom Resource Configs (if present)
-    opStatus = fetchResources();
-    if(RC_IS_NOTOK(opStatus)) {
-        return opStatus;
-    }
-
     // Fetch and Parse:
     // - Custom Target Configs (if present)
     // - Init Configs
@@ -250,14 +244,22 @@ static ErrCode initServer() {
     }
 
     // Perform Logical To Physical (Core / Cluster) Mapping
-    opStatus = TargetRegistry::getInstance()->readPhysicalCoreClusterInfo();
+    // Note we don't perform error-checking here since the behaviour of this
+    // routine is target / architecture specific, and the initialization flow
+    // needs to be generic enough to accomodate them.
+    TargetRegistry::getInstance()->readTargetInfo();
+    TargetRegistry::getInstance()->displayTargetInfo();
+
+    // Fetch and Parse Resource Configs
+    // Resource Parsing which will be considered:
+    // - Common Resource Configs
+    // - Target Specific Resource Configs
+    // - Custom Resource Configs (if present)
+    // Note by this point, we will know the Target Info, i.e. number of Core, Clusters etc.
+    opStatus = fetchResources();
     if(RC_IS_NOTOK(opStatus)) {
-        TYPELOGD(LOGICAL_TO_PHYSICAL_MAPPING_GEN_FAILURE);
         return opStatus;
     }
-    TYPELOGD(LOGICAL_TO_PHYSICAL_MAPPING_GEN_SUCCESS);
-
-    TargetRegistry::getInstance()->displayLogicalToPhysicalMapping();
 
     // By this point, all the Extension Appliers / Resources would have been registered.
     ResourceRegistry::getInstance()->pluginModifications();

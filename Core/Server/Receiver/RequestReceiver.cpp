@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include "RequestReceiver.h"
-#include "SysConfigInternal.h"
 
 std::shared_ptr<RequestReceiver> RequestReceiver::mRequestReceiverInstance = nullptr;
 ThreadPool* RequestReceiver::mRequestsThreadPool = nullptr;
@@ -18,7 +17,7 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
                 TYPELOGV(NOTIFY_MODULE_NOT_ENABLED, "Core");
                 return;
             }
-            msgForwardInfo->handle = ResourceTunerSettings::generateUniqueHandle();
+            msgForwardInfo->handle = AuxRoutines::generateUniqueHandle();
             if(msgForwardInfo->handle < 0) {
                 // Handle Generation Failure
                 return;
@@ -86,7 +85,7 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
                 TYPELOGV(NOTIFY_MODULE_NOT_ENABLED, "Signals");
                 return;
             }
-            msgForwardInfo->handle = ResourceTunerSettings::generateUniqueHandle();
+            msgForwardInfo->handle = AuxRoutines::generateUniqueHandle();
             if(msgForwardInfo->handle < 0) {
                 // Handle Generation Failure
                 return;
@@ -136,9 +135,9 @@ void OnResourceTunerMessageReceiverCallback(int32_t clientSocket, MsgForwardInfo
 void listenerThreadStartRoutine() {
     ResourceTunerSocketServer* connection;
     try {
-        connection = new ResourceTunerSocketServer(12000,
-                                             CheckServerOnlineStatus,
-                                             OnResourceTunerMessageReceiverCallback);
+        connection = new ResourceTunerSocketServer(ResourceTunerSettings::metaConfigs.mListeningPort,
+                                                   CheckServerOnlineStatus,
+                                                   OnResourceTunerMessageReceiverCallback);
     } catch(const std::bad_alloc& e) {
         LOGE("RESTUNE_REQUEST_RECEIVER",
              "Failed to allocate memory for Resource Tuner Socket Server-Endpoint, Resource Tuner\

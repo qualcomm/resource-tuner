@@ -91,14 +91,6 @@ void CocoTable::applyAction(CocoNode* currNode, int32_t index, int8_t priority) 
             // the aggregation / selection logic.
             if(resourceConfig->mResourceApplierCallback != nullptr) {
                 resourceConfig->mResourceApplierCallback(resource);
-            } else {
-                // Default Applier
-                if(resource->getValuesCount() == 1) {
-                    TYPELOGV(NOTIFY_COCO_TABLE_WRITE, resource->mResValue.value, resourceConfig->mResourcePath.c_str());
-                    AuxRoutines::writeToFile(resourceConfig->mResourcePath, std::to_string(resource->mResValue.value));
-                } else {
-                    // Multi-Valued Resource with no applier provided, skip.
-                }
             }
             this->mCurrentlyAppliedPriority[index] = priority;
         }
@@ -111,11 +103,6 @@ void CocoTable::removeAction(int32_t index, Resource* resource) {
     if(resourceConfigInfo != nullptr) {
         if(resourceConfigInfo->mResourceTearCallback != nullptr) {
             resourceConfigInfo->mResourceTearCallback(resource);
-        } else {
-            // Default Tear Callback
-            LOGI("RESTUNE_COCO_TABLE" ,
-                 "Value " + resourceConfigInfo->mDefaultValue + " written in " + resourceConfigInfo->mResourcePath);
-            AuxRoutines::writeToFile(resourceConfigInfo->mResourcePath, resourceConfigInfo->mDefaultValue);
         }
         this->mCurrentlyAppliedPriority[index] = -1;
     }

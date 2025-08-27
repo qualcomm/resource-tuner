@@ -35,6 +35,8 @@
 #define TARGET_CONFIGS_ROOT "TargetConfig"
 #define TARGET_NAME "TargetName"
 #define TARGET_CLUSTER_INFO "ClusterInfo"
+#define TARGET_CLUSTER_INFO_LOGICAL_ID "LgcId"
+#define TARGET_CLUSTER_INFO_PHYSICAL_ID "PhyId"
 #define TARGET_CLUSTER_SPREAD "ClusterSpread"
 #define TARGET_PER_CLUSTER_CORE_COUNT "NumCores"
 #define TARGET_TOTAL_CORE_COUNT "TotalCoreCount"
@@ -74,26 +76,26 @@
  * Example YAML configuration:
  * @code{.yaml}
  * TargetConfig:
- *   - TargetName: qli
- *     ClusterInfo:
- *       - Id: 0
- *         Type: big
- *       - Id: 1
- *         Type: little
- *       - Id: 2
- *         Type: prime
- *       - Id: 3
- *         Type: titanium
- *     ClusterSpread:
- *       - Id: 0
- *         NumCores: 4
- *       - Id: 1
- *         NumCores: 4
- *       - Id: 2
- *         NumCores: 4
- *       - Id: 3
- *         NumCores: 4
- *     TotalCoreCount: 16
+ *  - TargetName: QCS9100
+ *    # overide physical clustermap
+ *    ClusterInfo:
+ *      - LgcId: 0
+ *        PhyId: 1
+ *      - LgcId: 1
+ *        PhyId: 0
+ *      - LgcId: 2
+ *        PhyId: 2
+ *      - LgcId: 3
+ *        PhyId: 3
+ *    ClusterSpread:
+ *      - PhyId: 0
+ *        NumCores: 4
+ *      - PhyId: 1
+ *        NumCores: 4
+ *      - PhyId: 2
+ *        NumCores: 4
+ *      - PhyId: 3
+ *        NumCores: 4
  * @endcode
  *
  * @example Target_Configs

@@ -143,3 +143,19 @@ std::string AuxRoutines::requestTypeToString(int32_t requestType) {
 
     return "UNKNOWN";
 }
+
+int64_t AuxRoutines::generateUniqueHandle() {
+    static int64_t handleGenerator = 0;
+    OperationStatus opStatus;
+    int64_t nextHandle = Add(handleGenerator, (int64_t)1, opStatus);
+    if(opStatus == SUCCESS) {
+        handleGenerator = nextHandle;
+        return nextHandle;
+    }
+    return -1;
+}
+
+int64_t AuxRoutines::getCurrentTimeInMilliseconds() {
+    auto now = std::chrono::system_clock::now();
+    return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+}

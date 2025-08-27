@@ -4,6 +4,7 @@
 #include <thread>
 #include <cstdint>
 
+#include "AuxRoutines.h"
 #include "ClientDataManager.h"
 
 #define RUN_TEST(test)                                              \
@@ -138,7 +139,7 @@ static void TestClientDataManagerRateLimiterUtilsLastRequestTimestampSetGet() {
     clientDataManager->createNewClient(testClientPID, testClientTID);
     C_ASSERT(clientDataManager->clientExists(testClientPID, testClientTID) == true);
 
-    int64_t currentMillis = ResourceTunerSettings::getCurrentTimeInMilliseconds();
+    int64_t currentMillis = AuxRoutines::getCurrentTimeInMilliseconds();
 
     clientDataManager->updateLastRequestTimestampByClientID(testClientTID, currentMillis);
     int64_t lastRequestTimestamp = clientDataManager->getLastRequestTimestampByClientID(testClientTID);
