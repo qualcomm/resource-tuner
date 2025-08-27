@@ -16,7 +16,9 @@ jobs:
 
     - name: Build project
       run: |
+        cd Build
         mkdir build
         cd build
         cmake .. -DBUILD_SIGNALS=ON -DBUILD_CLI=ON -DBUILD_TESTS=ON
         cmake --build .
+

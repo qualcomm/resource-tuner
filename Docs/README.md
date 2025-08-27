@@ -32,27 +32,9 @@ Resource-tuner framework supports `Signals` which is dynamic provisioning of sys
 # Getting Started
 
 To get started with the project:
+[Build and install](../README.md#build-and-install-instructions)
 
-1. Clone the repository:
-   \code{.sh}
-   git clone https://github.com/qualcomm/resource-tuner.git
-   \endcode
-
-2. Build the project:
-   \code{.sh}
-   mkdir build && cd build
-   cmake ..
-   make
-   \endcode
-
-3. Run the application:
-   \code{.sh}
-   ./resource_tuner --start
-   \endcode
-
-Refer the **Examples** Tab for guidance on resource-tuner API usage.
-
-[GitHub Repo](https://github.com/qualcomm/resource-tuner/tree/main)
+Refer the [Examples](./Examples) for guidance on resource-tuner API usage.
 
 ---
 
