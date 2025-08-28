@@ -92,8 +92,6 @@ void sendTuneRequest(int64_t duration, int32_t priority, int32_t count, const st
         }
     }
 
-    return;
-
     int64_t handle = tuneResources(duration, priority, count, resourceList);
     if(handle == -1) {
         std::cout<<"Failed to send Tune Request"<<std::endl;
@@ -330,6 +328,7 @@ int32_t main(int32_t argc, char* argv[]) {
             }
             if(resources != nullptr) {
                 sendTuneRequest(duration, priority, numResources, resources);
+                std::this_thread::sleep_for(std::chrono::seconds(3));
             }
             break;
 

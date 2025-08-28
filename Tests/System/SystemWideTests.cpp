@@ -3020,6 +3020,38 @@ namespace CGroupApplicationTests {
         LOG_END
     }
 
+    static void TestCgroupWriteAndReset6() {
+        LOG_START
+
+        std::string testResourceName = "/sys/fs/cgroup/audio-cgroup/cpuset.cpus";
+
+        std::string originalValueString = AuxRoutines::readFromFile(testResourceName);
+
+        SysResource* resourceList1 = new SysResource[1];
+        resourceList1[0].mResCode = 0x00090002;
+        resourceList1[0].mNumValues = 4;
+        resourceList1[0].mResValue.values = new int32_t[resourceList1[0].mNumValues];
+        resourceList1[0].mResValue.values[0] = 1;
+        resourceList1[0].mResValue.values[1] = 0;
+        resourceList1[0].mResValue.values[2] = 1;
+        resourceList1[0].mResValue.values[3] = 3;
+        int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList1);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        std::string value;
+
+        value = AuxRoutines::readFromFile(testResourceName);
+        assert(value == "0-1,3");
+
+        std::this_thread::sleep_for(std::chrono::seconds(10));
+
+        value = AuxRoutines::readFromFile(testResourceName);
+        assert(value == originalValueString);
+
+        LOG_END
+    }
+
     static void RunTestGroup() {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
@@ -3029,6 +3061,7 @@ namespace CGroupApplicationTests {
         RUN_TEST(TestCgroupWriteAndReset3)
         RUN_TEST(TestCgroupWriteAndReset4)
         // RUN_TEST(TestCgroupWriteAndReset5)
+        RUN_TEST(TestCgroupWriteAndReset6)
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
     }
