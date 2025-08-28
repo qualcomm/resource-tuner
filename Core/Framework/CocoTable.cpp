@@ -439,6 +439,11 @@ void CocoTable::processResourceCleanupAt(Request* request, int32_t index) {
     int32_t primaryIndex = this->getCocoTablePrimaryIndex(resource->getResCode());
     int32_t secondaryIndex = this->getCocoTableSecondaryIndex(resource, priority);
 
+    if(primaryIndex < 0 || secondaryIndex < 0 ||
+       primaryIndex >= this->mCocoTable.size() || secondaryIndex >= this->mCocoTable[primaryIndex].size()) {
+        return;
+    }
+
     int8_t nodeIsHead = false;
     // Proceed with CocoNode cleanup,
     // Note the actual allocated CocoNode count might be smaller than the Number of Resources.

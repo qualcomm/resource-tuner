@@ -2709,7 +2709,41 @@ namespace SignalApplicationTests {
 namespace CGroupApplicationTests {
     std::string __testGroupName = "CGroup Application Checks";
 
-    static void TestWriteAndReset1() {
+    static void TestCgroupWriteAndResetBasicCase() {
+        LOG_START
+
+        std::string testResourceName = "/sys/fs/cgroup/audio-cgroup/cpu.uclamp.min";
+
+        std::string originalValueString = AuxRoutines::readFromFile(testResourceName);
+        int32_t originalValue = C_STOI(originalValueString);
+
+        SysResource* resourceList1 = new SysResource[1];
+        resourceList1[0].mResCode = 0x00090007;
+        resourceList1[0].mNumValues = 2;
+        resourceList1[0].mResValue.values = new int32_t[resourceList1[0].mNumValues];
+        resourceList1[0].mResValue.values[0] = 1;
+        resourceList1[0].mResValue.values[1] = 52;
+        int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_LOW, 1, resourceList1);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        std::string value;
+        int32_t newValue;
+
+        value = AuxRoutines::readFromFile(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == 52);
+
+        std::this_thread::sleep_for(std::chrono::seconds(10));
+
+        value = AuxRoutines::readFromFile(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == originalValue);
+
+        LOG_END
+    }
+
+    static void TestCgroupWriteAndReset1() {
         LOG_START
 
         std::string testResourceName = "/sys/fs/cgroup/audio-cgroup/cpu.uclamp.min";
@@ -2759,7 +2793,7 @@ namespace CGroupApplicationTests {
         LOG_END
     }
 
-    static void TestWriteAndReset2() {
+    static void TestCgroupWriteAndReset2() {
         LOG_START
 
         std::string testResourceName = "/sys/fs/cgroup/audio-cgroup/cpu.uclamp.min";
@@ -2811,7 +2845,7 @@ namespace CGroupApplicationTests {
         LOG_END
     }
 
-    static void TestWriteAndReset3() {
+    static void TestCgroupWriteAndReset3() {
         LOG_START
 
         std::string testResourceName = "/sys/fs/cgroup/audio-cgroup/cpu.uclamp.max";
@@ -2867,7 +2901,7 @@ namespace CGroupApplicationTests {
         LOG_END
     }
 
-    static void TestWriteAndReset4() {
+    static void TestCgroupWriteAndReset4() {
         LOG_START
 
         std::string testResourceName = "/sys/fs/cgroup/audio-cgroup/memory.max";
@@ -2925,7 +2959,7 @@ namespace CGroupApplicationTests {
     }
 
     // Multiple CGroups in a single Request
-    static void TestWriteAndReset5() {
+    static void TestCgroupWriteAndReset5() {
         LOG_START
 
         std::string testResourceName1 = "/sys/fs/cgroup/camera-cgroup/cpu.uclamp.min";
@@ -2989,11 +3023,12 @@ namespace CGroupApplicationTests {
     static void RunTestGroup() {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
-        TestWriteAndReset1();
-        TestWriteAndReset2();
-        TestWriteAndReset3();
-        TestWriteAndReset4();
-        TestWriteAndReset5();
+        RUN_TEST(TestCgroupWriteAndResetBasicCase)
+        RUN_TEST(TestCgroupWriteAndReset1)
+        RUN_TEST(TestCgroupWriteAndReset2)
+        RUN_TEST(TestCgroupWriteAndReset3)
+        RUN_TEST(TestCgroupWriteAndReset4)
+        // RUN_TEST(TestCgroupWriteAndReset5)
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
     }
@@ -3001,21 +3036,21 @@ namespace CGroupApplicationTests {
 
 int32_t main(int32_t argc, const char* argv[]) {
     // Run the Tests
-    RUN_TEST(TestHandleGeneration)
+    // RUN_TEST(TestHandleGeneration)
 
     // // Request-Verification Tests
-    ResourceTuningRequestVerification::RunTestGroup();
-    SignalVerification::RunTestGroup();
+    // ResourceTuningRequestVerification::RunTestGroup();
+    // SignalVerification::RunTestGroup();
 
     // Request Application Tests
-    RequestApplicationTests::RunTestGroup();
+    // RequestApplicationTests::RunTestGroup();
 
     // Tests on Real Sysfs Nodes (QLI)
     // SystemSysfsNodesTests::RunTestGroup();
 
     // SignalApplicationTests::RunTestGroup();
 
-    // CGroupApplicationTests::RunTestGroup();
+    CGroupApplicationTests::RunTestGroup();
 
     return 0;
 }

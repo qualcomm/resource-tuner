@@ -59,7 +59,7 @@ SignalConfigs:
     Derivatives: ["solar"]
     Timeout: 4000
     Resources:
-    - {ResCode: "0x80010000", ResInfo: "0x00000000", Values: [917]}
+    - {ResCode: "0x80ff0000", ResInfo: "0x00000000", Values: [917]}
 
   - SigId: "0x0005"
     Category: "0x0d"
@@ -70,9 +70,9 @@ SignalConfigs:
     Derivatives: ["solar"]
     Timeout: 4000
     Resources:
-    - {ResCode: "0x80010000", ResInfo: "0x00000000", Values: [883]}
-    - {ResCode: "0x80010001", ResInfo: "0x00000000", Values: [920]}
-    - {ResCode: "0x80010003", ResInfo: "0x00000000", Values: [1555]}
+    - {ResCode: "0x80ff0000", ResInfo: "0x00000000", Values: [883]}
+    - {ResCode: "0x80ff0001", ResInfo: "0x00000000", Values: [920]}
+    - {ResCode: "0x80ff0003", ResInfo: "0x00000000", Values: [1555]}
 
   - SigId: HEX
     Category: 4.9
