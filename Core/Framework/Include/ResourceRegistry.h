@@ -181,6 +181,6 @@ void defaultCoreLevelTearCb(void* context);
 void defaultCGroupLevelApplierCb(void* context);
 void defaultCGroupLevelTearCb(void* context);
 void defaultGlobalLevelApplierCb(void* context);
-void defaultGlobalLevelApplierCb(void* context);
+void defaultGlobalLevelTearCb(void* context);
 
 #endif

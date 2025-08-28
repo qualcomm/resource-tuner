@@ -102,9 +102,11 @@ int64_t tuneResources(int64_t duration, int32_t properties, int32_t numRes, SysR
         return handleReceived;
 
     } catch(const std::invalid_argument& e) {
+        std::cerr<<"Failed to send Request to Server, Error: "<<e.what()<<std::endl;
         return -1;
 
     } catch(const std::exception& e) {
+        std::cerr<<"Failed to send Request to Server, Error: "<<e.what()<<std::endl;
         return -1;
     }
 

@@ -15,54 +15,84 @@
 #include "Utils.h"
 #include "ResourceTunerAPIs.h"
 
-int8_t parseResources(const std::string& resources, std::vector<std::pair<uint32_t, int32_t>>& resourcePairs) {
-    std::stringstream resourceStream(resources);
-    std::string resourcePair;
+#include <string>
+#include <unordered_map>
+#include <vector>
+#include <sstream>
 
-    while(getline(resourceStream, resourcePair, ',')) {
-        std::stringstream resourcePairStream(resourcePair);
-        std::string resourcePairItem;
-        std::pair<uint32_t, int32_t> resourcePair;
+int8_t parseResources(const std::string& input, std::vector<std::pair<uint32_t, std::vector<int32_t>>>& resourceVec) {
+    std::unordered_map<uint32_t, std::vector<int>> resourceMap;
+    std::istringstream resourceStream(input);
+    std::string token;
 
-        int8_t index = 0;
-
-        try {
-            while(getline(resourcePairStream, resourcePairItem, ':')) {
-                if(index > 2) {
-                    return -1;
-                }
-
-                if(index == 0) {
-                    resourcePair.first = (uint32_t)std::stol(resourcePairItem, nullptr, 0);
-                } else {
-                    resourcePair.second = std::stoi(resourcePairItem);
-                }
-                index++;
-            }
-
-        } catch(const std::exception& ex) {
-            return -1;
+    while(std::getline(resourceStream, token, ',')) {
+        size_t colonPos = token.find(':');
+        if (colonPos == std::string::npos) {
+            return false;
         }
 
-        resourcePairs.push_back(resourcePair);
+        std::string opCode = token.substr(0, colonPos);
+        std::string valuesStr = token.substr(colonPos + 1);
+
+        std::istringstream valuesStream(valuesStr);
+        std::string value;
+        while (std::getline(valuesStream, value, '|')) {
+            try {
+                resourceMap[(uint32_t)stol(opCode, nullptr, 0)].push_back(std::stoi(value));
+            } catch (const std::invalid_argument&) {
+                return false;
+            } catch (const std::out_of_range&) {
+                return false;
+            }
+        }
     }
-    return 0;
+
+    for(std::pair<uint32_t, std::vector<int32_t>> entry: resourceMap) {
+        resourceVec.push_back({entry.first, entry.second});
+    }
+
+    return true;
 }
 
 void sendTuneRequest(int64_t duration, int32_t priority, int32_t count, const std::string& resourceInfo) {
-    std::vector<std::pair<uint32_t, int32_t>> resourcePairs;
-    if(parseResources(resourceInfo, resourcePairs) == -1) {
+    std::vector<std::pair<uint32_t, std::vector<int32_t>>> resourceVec;
+    if(parseResources(resourceInfo, resourceVec) == -1) {
         std::cout<<"Failed to parse Resource List"<<std::endl;
         return;
     }
 
-    SysResource* resourceList = new SysResource[resourcePairs.size()];
+    SysResource* resourceList = new SysResource[resourceVec.size()];
 
-    for(int32_t i = 0; i < resourcePairs.size(); i++) {
-        resourceList[i].mResCode = resourcePairs[i].first;
-        resourceList[i].mNumValues = 1;
-        resourceList[i].mResValue.value = resourcePairs[i].second;
+    for(int32_t i = 0; i < resourceVec.size(); i++) {
+        resourceList[i].mResCode = resourceVec[i].first;
+        resourceList[i].mNumValues = resourceVec[i].second.size();
+        if(resourceList[i].mNumValues == 1) {
+            resourceList[i].mResValue.value = resourceVec[i].second[0];
+        } else {
+            resourceList[i].mResValue.values = new int32_t[resourceList[i].mNumValues];
+            for(int32_t k = 0; k < resourceList[i].mNumValues; k++) {
+                resourceList[i].mResValue.values[k] = resourceVec[i].second[k];
+            }
+        }
     }
+
+    // Log the resources
+    for(int32_t idx = 0; idx < count; idx++) {
+        std::cout<<"Printing Resource at index = "<<idx<<std::endl;
+        std::cout<<"Opcode for this Resource = "<<resourceList[idx].mResCode<<std::endl;
+        std::cout<<"Number of Values for this Resource = "<<resourceList[idx].mNumValues<<std::endl;
+
+        std::cout<<"Printing values"<<std::endl;
+        if(resourceList[idx].mNumValues == 1) {
+            std::cout<<resourceList[idx].mResValue.value<<std::endl;
+        } else {
+            for(int32_t j = 0; j < resourceList[idx].mNumValues; j++) {
+                std::cout<<resourceList[idx].mResValue.values[j]<<std::endl;
+            }
+        }
+    }
+
+    return;
 
     int64_t handle = tuneResources(duration, priority, count, resourceList);
     if(handle == -1) {

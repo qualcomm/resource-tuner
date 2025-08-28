@@ -31,7 +31,7 @@ void ResourceRegistry::setLifeCycleCallbacks(ResourceConfigInfo* resourceConfigI
             break;
         case APPLY_GLOBAL:
             resourceConfigInfo->mResourceApplierCallback = defaultGlobalLevelApplierCb;
-            resourceConfigInfo->mResourceTearCallback = defaultGlobalLevelApplierCb;
+            resourceConfigInfo->mResourceTearCallback = defaultGlobalLevelTearCb;
             break;
     }
 }
