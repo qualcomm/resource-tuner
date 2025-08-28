@@ -67,19 +67,20 @@ void defaultClusterLevelApplierCb(void* context) {
     // Get the Cluster ID
     int32_t clusterID = resource->getClusterValue();
     std::string resourceNodePath = getClusterTypeResourceNodePath(resource, clusterID);
-    std::ofstream controllerFile(resourceNodePath);
+    std::ofstream resourceFileStream(resourceNodePath);
 
-    if(!controllerFile.is_open()) {
+    if(!resourceFileStream.is_open()) {
         TYPELOGV(ERRNO_LOG, "open", strerror(errno));
         return;
     }
 
-    controllerFile<<resource->mResValue.value<<std::endl;
+    TYPELOGV(NOTIFY_NODE_WRITE, resourceNodePath.c_str(), resource->mResValue.value);
+    resourceFileStream<<resource->mResValue.value<<std::endl;
 
-    if(controllerFile.fail()) {
+    if(resourceFileStream.fail()) {
         TYPELOGV(ERRNO_LOG, "write", strerror(errno));
     }
-    controllerFile.close();
+    resourceFileStream.close();
 }
 
 void defaultClusterLevelTearCb(void* context) {
@@ -89,9 +90,9 @@ void defaultClusterLevelTearCb(void* context) {
     // Get the Cluster ID
     int32_t clusterID = resource->getClusterValue();
     std::string resourceNodePath = getClusterTypeResourceNodePath(resource, clusterID);
-    std::ofstream controllerFile(resourceNodePath);
+    std::ofstream resourceFileStream(resourceNodePath);
 
-    if(!controllerFile.is_open()) {
+    if(!resourceFileStream.is_open()) {
         TYPELOGV(ERRNO_LOG, "open", strerror(errno));
         return;
     }
@@ -99,12 +100,12 @@ void defaultClusterLevelTearCb(void* context) {
     std::string defaultValue =
         ResourceRegistry::getInstance()->getDefaultValue(resourceNodePath);
 
-    controllerFile<<defaultValue<<std::endl;
+    resourceFileStream<<defaultValue<<std::endl;
 
-    if(controllerFile.fail()) {
+    if(resourceFileStream.fail()) {
         TYPELOGV(ERRNO_LOG, "write", strerror(errno));
     }
-    controllerFile.close();
+    resourceFileStream.close();
 }
 
 void defaultCoreLevelApplierCb(void* context) {
@@ -114,19 +115,20 @@ void defaultCoreLevelApplierCb(void* context) {
     // Get the Core ID
     int32_t coreID = resource->getCoreValue();
     std::string resourceNodePath = getCoreTypeResourceNodePath(resource, coreID);
-    std::ofstream controllerFile(resourceNodePath);
+    std::ofstream resourceFileStream(resourceNodePath);
 
-    if(!controllerFile.is_open()) {
+    if(!resourceFileStream.is_open()) {
         TYPELOGV(ERRNO_LOG, "open", strerror(errno));
         return;
     }
 
-    controllerFile<<resource->mResValue.value<<std::endl;
+    TYPELOGV(NOTIFY_NODE_WRITE, resourceNodePath.c_str(), resource->mResValue.value);
+    resourceFileStream<<resource->mResValue.value<<std::endl;
 
-    if(controllerFile.fail()) {
+    if(resourceFileStream.fail()) {
         TYPELOGV(ERRNO_LOG, "write", strerror(errno));
     }
-    controllerFile.close();
+    resourceFileStream.close();
 }
 
 void defaultCoreLevelTearCb(void* context) {
@@ -180,6 +182,7 @@ void defaultCGroupLevelApplierCb(void* context) {
                 return;
             }
 
+            TYPELOGV(NOTIFY_NODE_WRITE, controllerFilePath.c_str(), valueToBeWritten);
             controllerFile<<valueToBeWritten<<std::endl;
 
             if(controllerFile.fail()) {
@@ -245,6 +248,7 @@ void defaultGlobalLevelApplierCb(void* context) {
         ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
 
     if(resourceConfig != nullptr) {
+        TYPELOGV(NOTIFY_NODE_WRITE, resourceConfig->mResourcePath.c_str(), resource->mResValue.value);
         AuxRoutines::writeToFile(resourceConfig->mResourcePath, std::to_string(resource->mResValue.value));
     }
 }

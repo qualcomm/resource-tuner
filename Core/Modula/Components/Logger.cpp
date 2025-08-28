@@ -444,6 +444,13 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             Logger::log(ERROR, "RESTUNE_REQUEST_VERIFIER", funcName, std::string(buffer));
             break;
 
+        case CommonMessageTypes::NOTIFY_NODE_WRITE:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Writing to Node: [%s], Value: [%d]", args);
+
+            Logger::log(INFO, "RESTUNE_COCI_TABLE", funcName, std::string(buffer));
+            break;
+
         case CommonMessageTypes::RATE_LIMITER_RATE_LIMITED:
             vsnprintf(buffer, sizeof(buffer),
                       "Client TID: [%d] Rate Limited, Dropping Request [%lld].", args);
