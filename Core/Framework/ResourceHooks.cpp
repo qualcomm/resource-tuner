@@ -199,7 +199,6 @@ void defaultCGroupLevelTearCb(void* context) {
         ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
 
     if(resourceConfigInfo == nullptr) return;
-
     if(resource->mResValue.values == nullptr) return;
 
     int32_t cGroupIdentifier = (*resource->mResValue.values)[0];

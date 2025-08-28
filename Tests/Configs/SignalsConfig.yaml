@@ -54,7 +54,7 @@ SignalConfigs:
     Category: "0x0d"
     Name: "TEST_SIGNAL-1"
     Enable: true
-    TargetsEnabled: ["qli-test"]
+    TargetsDisabled: ["qli-test"]
     Permissions: ["third_party", "system"]
     Derivatives: ["solar"]
     Timeout: 4000
@@ -65,7 +65,7 @@ SignalConfigs:
     Category: "0x0d"
     Name: "TEST_SIGNAL-2"
     Enable: true
-    TargetsEnabled: ["qli-test"]
+    TargetsDisabled: ["qli-test"]
     Permissions: ["third_party", "system"]
     Derivatives: ["solar"]
     Timeout: 4000
