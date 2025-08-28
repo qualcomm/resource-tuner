@@ -1,6 +1,7 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
+#include <pthread.h>
 #include "RequestReceiver.h"
 
 std::shared_ptr<RequestReceiver> RequestReceiver::mRequestReceiverInstance = nullptr;
@@ -134,6 +135,7 @@ void OnResourceTunerMessageReceiverCallback(int32_t clientSocket, MsgForwardInfo
 
 void listenerThreadStartRoutine() {
     ResourceTunerSocketServer* connection;
+    pthread_setname_np(pthread_self(), "listenerThread");
     try {
         connection = new ResourceTunerSocketServer(ResourceTunerSettings::metaConfigs.mListeningPort,
                                                    CheckServerOnlineStatus,
