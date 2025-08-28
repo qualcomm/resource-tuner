@@ -1,6 +1,7 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
+#include <pthread.h>
 #include "ThreadPool.h"
 
 TaskNode::TaskNode() {
@@ -153,6 +154,7 @@ int8_t ThreadPool::addNewThread(int8_t isCoreThread) {
 
     try {
         auto threadStartRoutine = ([this](int8_t isCoreThread) {
+            pthread_setname_np(pthread_self(), "ThreadPool");
             while(true) {
                 static int8_t firstTask = true;
                 if(threadRoutineHelper(isCoreThread, firstTask)) {

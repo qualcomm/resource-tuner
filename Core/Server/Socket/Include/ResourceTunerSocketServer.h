@@ -22,6 +22,7 @@
 #include "ErrCodes.h"
 #include "Logger.h"
 
+static const uint32_t maxEvents = 128;
 static const int32_t requestBufferSize = 1024;
 
 class ResourceTunerSocketServer : public ServerEndpoint {

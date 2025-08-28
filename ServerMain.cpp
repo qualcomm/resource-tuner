@@ -19,6 +19,10 @@ static void handleSIGINT(int32_t sig) {
     terminateServer = true;
 }
 
+static void handleSIGTERM(int32_t sig) {
+    terminateServer = true;
+}
+
 static void handleSIGTSTP(int32_t sig) {
     toggleDisplayModes();
 }
@@ -149,6 +153,7 @@ int32_t main(int32_t argc, char *argv[]) {
 
     std::signal(SIGINT, handleSIGINT);
     std::signal(SIGTSTP, handleSIGTSTP);
+    std::signal(SIGTERM, handleSIGTERM);
 
     if(RC_IS_OK(opStatus)) {
         opStatus = parseServerStartupCLIOpts(argc, argv);

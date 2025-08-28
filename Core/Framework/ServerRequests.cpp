@@ -1,6 +1,7 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
+#include <pthread.h>
 #include "ServerRequests.h"
 
 static int8_t getRequestPriority(int8_t clientPermissions, int8_t reqSpecifiedPriority) {
@@ -422,6 +423,7 @@ void RequestQueue::orderedQueueConsumerHook() {
 }
 
 void* TunerServerThread() {
+    pthread_setname_np(pthread_self(), "TunerServer");
     std::shared_ptr<RequestQueue> requestQueue = RequestQueue::getInstance();
 
     // Initialize CocoTable
