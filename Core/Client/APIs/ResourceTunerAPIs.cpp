@@ -43,7 +43,6 @@ int64_t tuneResources(int64_t duration, int32_t properties, int32_t numRes, SysR
         // These are some basic checks done at the Client end itself to detect
         // Potentially Malformed Reqeusts, to prevent wastage of Server-End Resources.
         if(resourceList == nullptr || numRes <= 0 || duration == 0 || duration < -1) {
-            delete resourceList;
             return -1;
         }
 
@@ -79,20 +78,17 @@ int64_t tuneResources(int64_t duration, int32_t properties, int32_t numRes, SysR
         }
 
         if(conn == nullptr || RC_IS_NOTOK(conn->initiateConnection())) {
-            delete resourceList;
             return -1;
         }
 
         // Send the request to Resource Tuner Server
         if(RC_IS_NOTOK(conn->sendMsg(buf, sizeof(buf)))) {
-            delete resourceList;
             return -1;
         }
 
         // Get the handle
         char resultBuf[64];
         if(RC_IS_NOTOK(conn->readMsg(resultBuf, sizeof(resultBuf)))) {
-            delete resourceList;
             return -1;
         }
 
@@ -103,15 +99,14 @@ int64_t tuneResources(int64_t duration, int32_t properties, int32_t numRes, SysR
             std::cerr<<"Failed to read Handle, Error: "<<e.what()<<std::endl;
         }
 
-        delete resourceList;
         return handleReceived;
 
     } catch(const std::invalid_argument& e) {
-        delete resourceList;
+        std::cerr<<"Failed to send Request to Server, Error: "<<e.what()<<std::endl;
         return -1;
 
     } catch(const std::exception& e) {
-        delete resourceList;
+        std::cerr<<"Failed to send Request to Server, Error: "<<e.what()<<std::endl;
         return -1;
     }
 
@@ -205,7 +200,7 @@ int8_t untuneResources(int64_t handle) {
 // - Construct a SysConfig object and populate it with the SysConfig Request Params
 // - Initiate a connection to the Resource Tuner Server, and send the request to the server
 // - Wait for the response from the server, and return the response to the caller (end-client).
-int8_t getprop(const char* prop, char* buffer, size_t bufferSize, const char* defValue) {
+int8_t getProp(const char* prop, char* buffer, size_t bufferSize, const char* defValue) {
     try {
         const std::lock_guard<std::mutex> lock(apiLock);
         const ConnectionManager connMgr(conn);
@@ -346,7 +341,7 @@ int8_t setprop(const char* prop, const char* value) {
     return -1;
 }
 
-// - Construct a Signal object and populate it with the SysSignal Request Params
+// - Construct a Signal object and populate it with the Signal Request Params
 // - Initiate a connection to the Resource Tuner Server, and send the request to the server
 // - Wait for the response from the server, and return the response to the caller (end-client).
 int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t properties,
@@ -357,9 +352,6 @@ int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t properties,
         const ConnectionManager connMgr(conn);
 
         if(duration < -1) {
-            if(list != nullptr) {
-                delete list;
-            }
             return -1;
         }
 
@@ -405,26 +397,17 @@ int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t properties,
         }
 
         if(conn == nullptr || RC_IS_NOTOK(conn->initiateConnection())) {
-            if(list != nullptr) {
-                delete list;
-            }
             return -1;
         }
 
         // Send the request to Resource Tuner Server
         if(RC_IS_NOTOK(conn->sendMsg(buf, sizeof(buf)))) {
-            if(list != nullptr) {
-                delete list;
-            }
             return -1;
         }
 
         // Get the handle
         char resultBuffer[64];
         if(RC_IS_NOTOK(conn->readMsg(resultBuffer, sizeof(resultBuffer)))) {
-            if(list != nullptr) {
-                delete list;
-            }
             return -1;
         }
 
@@ -434,28 +417,19 @@ int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t properties,
 
         } catch(const std::invalid_argument& e) {}
 
-        if(list != nullptr) {
-            delete list;
-        }
         return handleReceived;
 
     } catch(const std::invalid_argument& e) {
-        if(list != nullptr) {
-            delete list;
-        }
         return -1;
 
     } catch(const std::exception& e) {
-        if(list != nullptr) {
-            delete list;
-        }
         return -1;
     }
 
     return -1;
 }
 
-// - Construct a Signal object and populate it with the SysSignal Request Params
+// - Construct a Signal object and populate it with the Signal Request Params
 // - Initiate a connection to the Resource Tuner Server, and send the request to the server
 int8_t untuneSignal(int64_t handle) {
     try {
@@ -521,10 +495,15 @@ int8_t untuneSignal(int64_t handle) {
 
 // - Construct a Signal object and populate it with the Signal Request Params
 // - Initiate a connection to the Resource Tuner Server, and send the request to the server
-int8_t relaySignal(uint32_t signalID, int32_t properties) {
+int8_t relaySignal(uint32_t signalID, int64_t duration, int32_t properties,
+                   const char* appName, const char* scenario, int32_t numArgs, uint32_t* list) {
     try {
         const std::lock_guard<std::mutex> lock(apiLock);
         const ConnectionManager connMgr(conn);
+
+        if(duration < -1) {
+            return -1;
+        }
 
         char buf[1024];
         int8_t* ptr8 = (int8_t*)buf;
@@ -535,9 +514,9 @@ int8_t relaySignal(uint32_t signalID, int32_t properties) {
 
         int64_t* ptr64 = (int64_t*)ptr;
         ASSIGN_AND_INCR(ptr64, 0);
-        ASSIGN_AND_INCR(ptr64, 0);
+        ASSIGN_AND_INCR(ptr64, duration);
 
-        const char* charIterator = "";
+        const char* charIterator = appName;
         char* charPointer = (char*) ptr64;
 
         while(*charIterator != '\0') {
@@ -547,7 +526,7 @@ int8_t relaySignal(uint32_t signalID, int32_t properties) {
 
         ASSIGN_AND_INCR(charPointer, '\0');
 
-        charIterator = "";
+        charIterator = scenario;
 
         while(*charIterator != '\0') {
             ASSIGN_AND_INCR(charPointer, *charIterator);
@@ -557,10 +536,15 @@ int8_t relaySignal(uint32_t signalID, int32_t properties) {
         ASSIGN_AND_INCR(charPointer, '\0');
 
         ptr = (int32_t*)charPointer;
-        ASSIGN_AND_INCR(ptr, 0);
-        ASSIGN_AND_INCR(ptr, properties);
+        ASSIGN_AND_INCR(ptr, VALIDATE_GE(numArgs, 0));
+        ASSIGN_AND_INCR(ptr, VALIDATE_GE(properties, 0));
         ASSIGN_AND_INCR(ptr, (int32_t)getpid());
         ASSIGN_AND_INCR(ptr, (int32_t)gettid());
+
+        for(int32_t i = 0; i < numArgs; i++) {
+            uint32_t arg = list[i];
+            ASSIGN_AND_INCR(ptr, arg)
+        }
 
         if(conn == nullptr || RC_IS_NOTOK(conn->initiateConnection())) {
             return -1;
@@ -577,7 +561,13 @@ int8_t relaySignal(uint32_t signalID, int32_t properties) {
             return -1;
         }
 
-        return 0;
+        int64_t handleReceived = -1;
+        try {
+            handleReceived = (int64_t)(SafeDeref(resultBuffer));
+
+        } catch(const std::invalid_argument& e) {}
+
+        return handleReceived;
 
     } catch(const std::invalid_argument& e) {
         return -1;

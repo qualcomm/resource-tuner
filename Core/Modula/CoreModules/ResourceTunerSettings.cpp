@@ -20,7 +20,7 @@ const std::string ResourceTunerSettings::mCustomSignalFilePath =
                                     "/etc/resource-tuner/custom/SignalsConfig.yaml";
 
 const std::string ResourceTunerSettings::mInitConfigFilePath =
-                                    "/etc/resource-tuner/common/InitConfig.yaml";
+                                    "/etc/resource-tuner/custom/InitConfig.yaml";
 const std::string ResourceTunerSettings::mPropertiesFilePath =
                                     "/etc/resource-tuner/common/PropertiesConfig.yaml";
 
@@ -38,6 +38,9 @@ const std::string ResourceTunerSettings::mTestPropertiesFilePath =
 const std::string ResourceTunerSettings::mTestTargetConfigFilePath =
                                     "/etc/resource-tuner/tests/Configs/TargetConfig.yaml";
 
+const std::string ResourceTunerSettings::mExtensionsPluginLibPath =
+                                    "/etc/resource-tuner/custom/libPlugin.so";
+
 const std::string ResourceTunerSettings::mBaseCGroupPath =
                                     "/sys/fs/cgroup/";
 
@@ -47,20 +50,4 @@ int32_t ResourceTunerSettings::isServerOnline() {
 
 void ResourceTunerSettings::setServerOnlineStatus(int32_t isOnline) {
     serverOnlineStatus = isOnline;
-}
-
-int64_t ResourceTunerSettings::generateUniqueHandle() {
-    static int64_t handleGenerator = 0;
-    OperationStatus opStatus;
-    int64_t nextHandle = Add(handleGenerator, (int64_t)1, opStatus);
-    if(opStatus == SUCCESS) {
-        handleGenerator = nextHandle;
-        return nextHandle;
-    }
-    return -1;
-}
-
-int64_t ResourceTunerSettings::getCurrentTimeInMilliseconds() {
-    auto now = std::chrono::system_clock::now();
-    return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
 }

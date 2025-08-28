@@ -8,17 +8,17 @@ if(BUILD_TESTS)
     target_link_libraries(MemoryPoolTests Auxiliary)
     install(TARGETS MemoryPoolTests DESTINATION bin)
 
-    add_executable(SafeOpsTest ../Core/SafeOpsTest.cpp)
-    target_link_libraries(SafeOpsTest Auxiliary)
-    install(TARGETS SafeOpsTest DESTINATION bin)
+    add_executable(SafeOpsTests ../Core/SafeOpsTests.cpp)
+    target_link_libraries(SafeOpsTests Auxiliary)
+    install(TARGETS SafeOpsTests DESTINATION bin)
 
     add_executable(ThreadPoolTests ../Core/ThreadPoolTests.cpp)
     target_link_libraries(ThreadPoolTests Auxiliary)
     install(TARGETS ThreadPoolTests DESTINATION bin)
 
-    add_executable(TimerTest ../Core/TimerTest.cpp)
-    target_link_libraries(TimerTest Auxiliary)
-    install(TARGETS TimerTest DESTINATION bin)
+    add_executable(TimerTests ../Core/TimerTests.cpp)
+    target_link_libraries(TimerTests Auxiliary)
+    install(TARGETS TimerTests DESTINATION bin)
 
     add_executable(MiscTests ../Core/MiscTests.cpp)
     target_link_libraries(MiscTests Auxiliary)

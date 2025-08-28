@@ -18,48 +18,37 @@ static void Init() {
         return;
     }
 
-    if(RC_IS_NOTOK(TargetRegistry::getInstance()->readPhysicalCoreClusterInfo())) {
-        return;
-    }
+    TargetRegistry::getInstance()->readTargetInfo();
 }
 
 static void TestTargetConfigProcessorYAMLDataIntegrity1() {
     C_ASSERT(TargetRegistry::getInstance() != nullptr);
 }
 
-static void TestResourceConfigProcessorYAMLDataIntegrity2() {
-    C_ASSERT(ResourceTunerSettings::targetConfigs.totalCoreCount == 16);
+static void TestTargetConfigProcessorYAMLDataIntegrity2() {
+    C_ASSERT(ResourceTunerSettings::targetConfigs.totalCoreCount == 10);
 }
 
-static void TestResourceConfigProcessorYAMLDataIntegrity3() {
-    C_ASSERT(strcmp(ResourceTunerSettings::targetConfigs.targetName.c_str(), "qli-test") == 0);
+static void TestTargetConfigProcessorYAMLDataIntegrity3() {
+    C_ASSERT(TargetRegistry::getInstance()->getPhysicalClusterId(0) == 4);
+    C_ASSERT(TargetRegistry::getInstance()->getPhysicalClusterId(1) == 0);
+    C_ASSERT(TargetRegistry::getInstance()->getPhysicalClusterId(2) == 9);
+    C_ASSERT(TargetRegistry::getInstance()->getPhysicalClusterId(3) == 7);
 }
 
-static void TestResourceConfigProcessorYAMLDataIntegrity4() {
-    C_ASSERT(TargetRegistry::getInstance()->getPhysicalClusterId(BIG) == 1);
-    C_ASSERT(TargetRegistry::getInstance()->getPhysicalClusterId(LITTLE) == 3);
-    C_ASSERT(TargetRegistry::getInstance()->getPhysicalClusterId(PRIME) == 0);
-    C_ASSERT(TargetRegistry::getInstance()->getPhysicalClusterId(TITANIUM) == 2);
-}
+static void TestTargetConfigProcessorYAMLDataIntegrity4() {
+    // Distribution of physical clusters
+    // 1:0 => 0, 1, 2, 3
+    // 0:4 => 4, 5, 6
+    // 3:7 => 7, 8
+    // 2:9 => 9
+    C_ASSERT(TargetRegistry::getInstance()->getPhysicalCoreId(1, 3) == 2);
 
-static void TestResourceConfigProcessorYAMLDataIntegrity5() {
-    // Distribution
-    // 0: PRIME => 0, 1, 2, 3
-    // 1: BIG => 4, 5, 6, 7
-    // 2: TITANIUM => 8, 9, 10, 11
-    // 3: LITTLE => 12, 13, 14, 15
+    C_ASSERT(TargetRegistry::getInstance()->getPhysicalCoreId(0, 2) == 5);
 
-    // Get the first Core in the Big Cluster
-    C_ASSERT(TargetRegistry::getInstance()->getPhysicalCoreId(BIG, 1) == 4);
+    C_ASSERT(TargetRegistry::getInstance()->getPhysicalCoreId(3, 1) == 7);
 
-    // Get the third Core in the Titanium Cluster
-    C_ASSERT(TargetRegistry::getInstance()->getPhysicalCoreId(TITANIUM, 3) == 10);
-
-    // Get the second Core in the Little Cluster
-    C_ASSERT(TargetRegistry::getInstance()->getPhysicalCoreId(LITTLE, 2) == 13);
-
-    // Get the fourth Core in the Prime Cluster
-    C_ASSERT(TargetRegistry::getInstance()->getPhysicalCoreId(PRIME, 4) == 3);
+    C_ASSERT(TargetRegistry::getInstance()->getPhysicalCoreId(2, 1) == 9);
 }
 
 int32_t main() {
@@ -67,10 +56,9 @@ int32_t main() {
 
     Init();
     RUN_TEST(TestTargetConfigProcessorYAMLDataIntegrity1);
-    RUN_TEST(TestResourceConfigProcessorYAMLDataIntegrity2);
-    RUN_TEST(TestResourceConfigProcessorYAMLDataIntegrity3);
-    RUN_TEST(TestResourceConfigProcessorYAMLDataIntegrity4);
-    RUN_TEST(TestResourceConfigProcessorYAMLDataIntegrity5);
+    RUN_TEST(TestTargetConfigProcessorYAMLDataIntegrity2);
+    RUN_TEST(TestTargetConfigProcessorYAMLDataIntegrity3);
+    RUN_TEST(TestTargetConfigProcessorYAMLDataIntegrity4);
 
     std::cout<<"\nAll Tests from the suite: [Target Config Processing], executed successfully"<<std::endl;
 }

@@ -8,6 +8,7 @@
 #include <cstring>
 #include <sstream>
 #include <fstream>
+#include <getopt.h>
 
 #include "Logger.h"
 #include "Request.h"
@@ -19,11 +20,15 @@ public:
     static void writeToFile(const std::string& fileName, const std::string& value);
     static void deleteFile(const std::string& fileName);
     static void writeSysFsDefaults();
+    static int8_t fileExists(const std::string& filePath);
 
     static void dumpRequest(Request* request);
     static void dumpRequest(Signal* signal);
 
     static std::string requestTypeToString(int32_t requestType);
+
+    static int64_t generateUniqueHandle();
+    static int64_t getCurrentTimeInMilliseconds();
 };
 
 #endif

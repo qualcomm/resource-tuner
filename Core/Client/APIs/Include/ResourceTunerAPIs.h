@@ -78,8 +78,7 @@ typedef struct {
 *                   - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
 *                   - The Next 8 bits [17 - 24] represent a Boolean Flag, which indicates
 *                     if the Request should be processed in the background (in case of Display Off or Doze Mode).
-*                   - The Next 8 bits [9 - 16] represent the order in which the Resources part of this Request
-*                     should be untuned. Possible values are: Forward Order [0] (default) and Reverse Order [1]
+*
 * @param numRes Number of Resources to be tuned as part of the Request
 * @param resourceList List of Resources to be provisioned as part of the Request
 * @return int64_t :
@@ -121,7 +120,7 @@ int8_t untuneResources(int64_t handle);
 *              -1: Otherwise\n\n
 * Note: The result of the Query itself is stored in the buffer (IN / OUT arg).
 */
-int8_t getprop(const char* prop, char* buffer, size_t buffer_size, const char* def_value);
+int8_t getProp(const char* prop, char* buffer, size_t buffer_size, const char* def_value);
 
 /**
 * @brief Modifies an already existing property in the Config Store.
@@ -144,8 +143,6 @@ int8_t setprop(const char* prop, const char* value);
  *                   - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
  *                   - The Next 8 bits [17 - 24] represent a Boolean Flag, which indicates
  *                     if the Request should be processed in the background (in case of Display Off or Doze Mode).
- *                   - The Next 8 bits [9 - 16] represent the order in which the Resources part of this Request
- *                     should be untuned. Possible values are: Forward Order [0] (default) and Reverse Order [1]
  *
  * @param appName Name of the Application that is issuing the Request
  * @param scenario Name of the Scenario that is issuing the Request
@@ -159,18 +156,27 @@ int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t properties,
                    const char* appName, const char* scenario, int32_t numArgs, uint32_t* list);
 
 /**
- * @brief Relay to custom Features.
- * @details Use this to forward / relay signals to custom Features, registered against the signal ID.
+ * @brief Tune the signal with the given ID.
+ * @details Use this API to issue Signal Provisioning Requests, for a certain duration of time.
  * @param signalID ID of the Signal to be Tuned.
+ * @param duration Duration (in milliseconds) to provision the Resources for. A value of -1 denotes infinite duration.
  * @param properties A 32 bit signed Integer storing the Properties of the Request.
  *                   - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
  *                   - The Next 8 bits [17 - 24] represent a Boolean Flag, which indicates
  *                     if the Request should be processed in the background (in case of Display Off or Doze Mode).
- * @return int8_t:
- *              0: If the Request was successfully sent to the server.\n
- *              -1: Otherwise
+ *                   - The Next 8 bits [9 - 16] represent the order in which the Resources part of this Request
+ *                     should be untuned. Possible values are: Forward Order [0] (default) and Reverse Order [1]
+ *
+ * @param appName Name of the Application that is issuing the Request
+ * @param scenario Name of the Scenario that is issuing the Request
+ * @param numArgs Number of Additional Arguments to be passed as part of the Request
+ * @param list List of Additional Arguments to be passed as part of the Request
+ * @return int64_t :
+ *              A Positive Unique Handle to identify the issued Request. The handle is used for freeing the Provisioned signal later.\n
+ *              -1: If the Request could not be sent to the server.
  */
-int8_t relaySignal(uint32_t signalID, int32_t properties);
+int8_t relaySignal(uint32_t signalID, int64_t duration, int32_t properties,
+                   const char* appName, const char* scenario, int32_t numArgs, uint32_t* list);
 
 /**
 * @brief Release (or free) the signal with the given handle.

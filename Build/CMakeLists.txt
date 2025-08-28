@@ -55,19 +55,6 @@ endif()
 
 target_link_libraries(resource_tuner PUBLIC Server Auxiliary SysRequestReceiver)
 
-# Extensions
-# Try to find the plugin library
-find_library(PLUGIN_LIB NAMES plugin PATHS /etc/resource-tuner/Custom/ NO_DEFAULT_PATH)
-message(STATUS "PLUGIN_LIB = ${PLUGIN_LIB}")
-
-if (PLUGIN_LIB)
-    add_compile_definitions(EXTENSION_PLUGIN_ENABLED)
-    message("Extensions lib: plugin.so found at location: ${PLUGIN_LIB}")
-    target_link_libraries(resource_tuner PUBLIC ${PLUGIN_LIB})
-else()
-    message("Extensions lib: plugin.so not found at build time. Building without it.")
-endif()
-
 # Test Executable
 if(BUILD_TESTS)
   add_executable(resource_tuner_tests ../Tests/System/SystemWideTests.cpp)
@@ -91,7 +78,7 @@ install(DIRECTORY ../Core/Extensions/Include/ DESTINATION include/ResourceTuner)
 # Install core config files
 install(
   DIRECTORY ${CMAKE_SOURCE_DIR}/../Core/Configs/
-  DESTINATION etc/resource-tuner/common/
+  DESTINATION  /etc/resource-tuner/common/
   FILES_MATCHING
   PATTERN "*.yaml"
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
@@ -100,7 +87,7 @@ install(
 # Install Signal config files
 install(
   DIRECTORY ${CMAKE_SOURCE_DIR}/../Signals/Configs/
-  DESTINATION etc/resource-tuner/common/
+  DESTINATION /etc/resource-tuner/common/
   FILES_MATCHING
   PATTERN "*.yaml"
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
@@ -110,7 +97,7 @@ install(
 if(BUILD_TESTS)
   install(
     DIRECTORY ${CMAKE_SOURCE_DIR}/../Tests/Configs/
-    DESTINATION etc/resource-tuner/tests/Configs/
+    DESTINATION /etc/resource-tuner/tests/Configs/
     FILES_MATCHING
     PATTERN "*.yaml"
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
@@ -121,7 +108,7 @@ endif()
 if(BUILD_TESTS)
   install(
     DIRECTORY ${CMAKE_SOURCE_DIR}/../Tests/Configs/ResourceSysFsNodes/
-    DESTINATION etc/resource-tuner/tests/Configs/ResourceSysFsNodes/
+    DESTINATION /etc/resource-tuner/tests/Configs/ResourceSysFsNodes/
     PATTERN "*"
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
   )

@@ -14,6 +14,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <sys/stat.h>
+#include <regex>
 #include <memory>
 
 #include "ResourceTunerSettings.h"
@@ -21,61 +22,46 @@
 #include "ErrCodes.h"
 #include "Logger.h"
 
-#define CLUSTER_TYPE_COUNT 4
-
 #define POLICY_DIR_PATH "/sys/devices/system/cpu/cpufreq/"
 #define ONLINE_CPU_FILE_PATH "/sys/devices/system/cpu/online"
+#define CPU_CAPACITY_FILE_PATH "/sys/devices/system/cpu/cpu%d/cpu_capacity"
 
 typedef struct {
     std::string mCgroupName;
     int8_t mCgroupID;
     int8_t isThreaded;
-    std::unordered_map<std::string, std::string>* mDefaultValues;
 } CGroupConfigInfo;
+
+typedef struct {
+    int32_t mPhysicalID;
+    int32_t mCapacity;
+    std::vector<int32_t>* mCpuList;
+    int32_t mStartCpu;
+    int32_t mNumCpus;
+} ClusterInfo;
 
 class TargetRegistry {
 private:
     static std::shared_ptr<TargetRegistry> targetRegistryInstance;
 
-    std::string mTargetName;
-    uint8_t mTotalCoreCount;
-    std::unordered_map<std::string, int8_t> mClusterTypeToPhysicalSlotMapping;
-    std::unordered_map<std::string, std::vector<int8_t>> mClusterTypeToPhysicalCores;
-    std::unordered_map<int8_t, std::vector<int8_t>> mPhysicalMapping;
-    std::vector<std::pair<int8_t, int32_t>> mClusterSpreadInfo;
-
-    const std::unordered_map<int8_t, std::string> logicalClustersAPIConvention = {
-        {0, "big"},
-        {1, "little"},
-        {2, "prime"},
-        {3, "titanium"}
-    };
-
-    std::unordered_map<int8_t, CGroupConfigInfo*> mCGroupMapping;
+    std::unordered_map<int32_t, int32_t> mLogicalToPhysicalClusterMapping;
+    std::unordered_map<int32_t, ClusterInfo*> mPhysicalClusters;
+    std::unordered_map<int32_t, CGroupConfigInfo*> mCGroupMapping;
 
     TargetRegistry();
 
-    int8_t readPhysicalMapping();
+    void generatePolicyBasedMapping(std::vector<std::string>& policyDirs);
+    void getClusterIdBasedMapping();
 
 public:
     ~TargetRegistry();
 
-    // Add a new Cluste Type to Physical ID mapping to mClusterTypeToPhysicalSlotMapping
-    int8_t addMapping(const std::string& clusterName, int8_t physicalClusterId);
+    // Methods for adding Target Info via TargetConfig.yaml
+    void addClusterSpreadInfo(int32_t physicalID, int32_t coreCount);
+    void addClusterMapping(int32_t logicalID, int32_t physicalID);
 
-    int8_t addClusterSpreadInfo(int8_t physicalClusterId, int32_t coreCount);
-
-    void setTargetName(const std::string& targetName);
-
-    void setTotalCoreCount(uint8_t totalCoreCount);
-
+    // Method for adding CGroup configs via InitConfig.yaml
     void addCGroupMapping(CGroupConfigInfo* cGroupConfigInfo);
-
-    void getCGroupConfigs(std::vector<CGroupConfigInfo*>& cGroupNames);
-
-    int32_t getCreatedCGroupsCount();
-
-    CGroupConfigInfo* getCGroupConfig(int8_t cGroupID);
 
     /**
     * @brief Called by the Verifier to get the physical core ID corresponding to the Logical Core ID value.
@@ -88,7 +74,7 @@ public:
     *              A Non-Negative Integer, representing the corresponding physical Core ID.
     *              -1: otherwise
     */
-    int32_t getPhysicalCoreId(int32_t logicalClusterId, int32_t logicalCoreId) const;
+    int32_t getPhysicalCoreId(int32_t logicalClusterId, int32_t logicalCoreId);
 
     /**
     * @brief Called by the Verifier to get the physical Cluster ID corresponding to the Logical Cluster ID value.
@@ -99,7 +85,7 @@ public:
     *              A Non-Negative Integer, representing the corresponding physical Cluster ID.
     *              -1: otherwise
     */
-    int32_t getPhysicalClusterId(int32_t logicalClusterId) const;
+    int32_t getPhysicalClusterId(int32_t logicalClusterId);
 
     /**
     * @brief Called during Server Init, to read and Parse the Logical To Physical Core / Cluster Mappings.
@@ -120,11 +106,14 @@ public:
     *               1 If the Data was successfully Read and Parsed.
     *              -1: otherwise
     */
-    ErrCode readPhysicalCoreClusterInfo();
+    void readTargetInfo();
 
-    // Utility to display the Parsed Mapping of Logical Cluster to Physical Cluster
-    // Along with the list of cores, part of each Cluster.
-    void displayLogicalToPhysicalMapping();
+    void getClusterIDs(std::vector<int32_t>& clusterIDs);
+    CGroupConfigInfo* getCGroupConfig(int8_t cGroupID);
+    void getCGroupNames(std::vector<std::string>& cGroupNames);
+    int32_t getCreatedCGroupsCount();
+
+    void displayTargetInfo();
 
     static std::shared_ptr<TargetRegistry> getInstance() {
         if(targetRegistryInstance == nullptr) {

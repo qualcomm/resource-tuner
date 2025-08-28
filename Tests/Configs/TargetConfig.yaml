@@ -2,23 +2,23 @@
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 
 TargetConfig:
-  - TargetName: "qli-test"
+  - TargetName: QCS9100
+    # overide physical clustermap
     ClusterInfo:
-      - Id: 0
-        Type: "prime"
-      - Id: 1
-        Type: "big"
-      - Id: 2
-        Type: "titanium"
-      - Id: 3
-        Type: "little"
+      - LgcId: 0
+        PhyId: 4
+      - LgcId: 1
+        PhyId: 0
+      - LgcId: 2
+        PhyId: 9
+      - LgcId: 3
+        PhyId: 7
     ClusterSpread:
-      - Id: 0
+      - PhyId: 0
         NumCores: 4
-      - Id: 1
-        NumCores: 4
-      - Id: 2
-        NumCores: 4
-      - Id: 3
-        NumCores: 4
-    TotalCoreCount: 16
+      - PhyId: 4
+        NumCores: 3
+      - PhyId: 7
+        NumCores: 2
+      - PhyId: 9
+        NumCores: 1

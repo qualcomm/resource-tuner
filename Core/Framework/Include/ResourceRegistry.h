@@ -4,12 +4,15 @@
 #ifndef RESOURCE_REGISTRY_H
 #define RESOURCE_REGISTRY_H
 
+#include <iostream>
 #include <vector>
 #include <memory>
 #include <unordered_map>
 
 #include "Utils.h"
+#include "TargetRegistry.h"
 #include "Resource.h"
+#include "ResourceTunerSettings.h"
 #include "AuxRoutines.h"
 #include "Extensions.h"
 #include "Logger.h"
@@ -74,10 +77,6 @@ typedef struct {
      */
     enum Policy mPolicy;
     /**
-     * @brief Original value of the Resource node, i.e. the value before any Tuning.
-     */
-    std::string mDefaultValue;
-    /**
      * @brief Optional Custom Resource Applier Callback, it needs to be supplied by
      *        the BU via the Extension Interface.
      */
@@ -101,22 +100,17 @@ private:
     int32_t mTotalResources;
 
     std::vector<ResourceConfigInfo*> mResourceConfig;
-
     std::unordered_map<uint32_t, int32_t> mSystemIndependentLayerMappings;
+    std::unordered_map<std::string, std::string> mDefaultValueStore;
 
     ResourceRegistry();
 
-    /**
-     * @brief Checks if a ResourceConfig is malformed
-     * @details Validates all the mandatory fields form the ResourceConfig and
-     *          checks if they have sane values.
-     */
     int8_t isResourceConfigMalformed(ResourceConfigInfo* resourceConfigInfo);
+    void setLifeCycleCallbacks(ResourceConfigInfo* resourceConfigInfo);
+    void fetchAndStoreDefaults(ResourceConfigInfo* resourceConfigInfo);
 
 public:
     ~ResourceRegistry();
-
-    void initRegistry();
 
     /**
      * @brief Used to register a Config specified (through YAML) Resource with Resource Tuner
@@ -140,6 +134,8 @@ public:
     int32_t getResourceTableIndex(uint32_t resourceId);
 
     int32_t getTotalResourcesCount();
+
+    std::string getDefaultValue(const std::string& fileName);
 
     // Merge the Changes provided by the BU with the existing ResourceTable.
     void pluginModifications();
@@ -174,9 +170,17 @@ public:
     ErrCode setSupported(int8_t supported);
     ErrCode setPolicy(const std::string& policyString);
     ErrCode setApplyType(const std::string& applyTypeString);
-    ErrCode setDefaultValue(const std::string& defaultValue);
 
     ResourceConfigInfo* build();
 };
+
+void defaultClusterLevelApplierCb(void* context);
+void defaultClusterLevelTearCb(void* context);
+void defaultCoreLevelApplierCb(void* context);
+void defaultCoreLevelTearCb(void* context);
+void defaultCGroupLevelApplierCb(void* context);
+void defaultCGroupLevelTearCb(void* context);
+void defaultGlobalLevelApplierCb(void* context);
+void defaultGlobalLevelTearCb(void* context);
 
 #endif

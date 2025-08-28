@@ -32,27 +32,9 @@ Resource-tuner framework supports `Signals` which is dynamic provisioning of sys
 # Getting Started
 
 To get started with the project:
+[Build and install](../README.md#build-and-install-instructions)
 
-1. Clone the repository:
-   \code{.sh}
-   git clone https://github.com/qualcomm/resource-tuner.git
-   \endcode
-
-2. Build the project:
-   \code{.sh}
-   mkdir build && cd build
-   cmake ..
-   make
-   \endcode
-
-3. Run the application:
-   \code{.sh}
-   ./resource_tuner --start
-   \endcode
-
-Refer the **Examples** Tab for guidance on resource-tuner API usage.
-
-[GitHub Repo](https://github.com/qualcomm/resource-tuner/tree/main)
+Refer the [Examples](./Examples) for guidance on resource-tuner API usage.
 
 ---
 
@@ -545,14 +527,14 @@ int8_t untuneResources(int64_t handle);
 ---
 <div style="page-break-after: always;"></div>
 
-## getprop
+## getProp
 
 **Description:**
 Gets a property from the config store
 
 **Function Signature:**
 ```cpp
-int8_t getprop(const char* prop,
+int8_t getProp(const char* prop,
                char* buffer,
                size_t buffer_size,
                const char* def_value);
@@ -822,17 +804,17 @@ Example:
 ./resource_tuner_cli --retune --handle 7 --duration 8000
 ```
 
-### 4. Send a getprop Request
+### 4. Send a getProp Request
 
 ```bash
-./resource_tuner_cli --getprop --key <>
+./resource_tuner_cli --getProp --key <>
 ```
 Where:
 - `key`: The Prop name of which the corresponding value needs to be fetched
 
 Example:
 ```bash
-./resource_tuner_cli --getprop --key "resource_tuner.logging.level"
+./resource_tuner_cli --getProp --key "resource_tuner.logging.level"
 ```
 
 ### 5. Send a setprop Request

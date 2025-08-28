@@ -61,7 +61,7 @@ inline T safeExtract(const YAML::Node& node, T defaultValue) {
     }
 
     LOGE("RESTUNE_YAML_PARSER",
-         "Could not parse Yaml Node as it is Null or Not a Scalar " \
+         "Could not parse Yaml Node as it is Null or Not a Scalar, " \
          "returning specified default Value");
     return defaultValue;
 }
@@ -92,7 +92,7 @@ inline T safeExtract(const YAML::Node& node, T defaultValue, NodeExtractionStatu
 
     status = NODE_PRESENT_VALUE_INVALID;
     LOGE("RESTUNE_YAML_PARSER",
-         "Could not parse Yaml Node as it is Null or Not a Scalar " \
+         "Could not parse Yaml Node as it is Null or Not a Scalar, " \
          "returning specified default Value");
     return defaultValue;
 }

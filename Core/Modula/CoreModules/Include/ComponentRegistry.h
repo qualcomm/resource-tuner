@@ -26,9 +26,9 @@ private:
 
 public:
     ComponentRegistry(ModuleIdentifier moduleIdentifier,
-                   ModuleCallback registrationCallback,
-                   ModuleCallback terardownCallback,
-                   ModuleMessageHandlerCallback messageHandlerCallback);
+                      ModuleCallback registrationCallback,
+                      ModuleCallback terardownCallback,
+                      ModuleMessageHandlerCallback messageHandlerCallback);
 
     static int8_t isModuleEnabled(ModuleIdentifier moduleIdentifier);
     static ModuleCallback getModuleRegistrationCallback(ModuleIdentifier moduleIdentifier);

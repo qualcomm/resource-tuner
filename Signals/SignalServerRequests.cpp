@@ -1,6 +1,7 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
+#include <pthread.h>
 #include "SignalServerPrivate.h"
 
 static int8_t getRequestPriority(int8_t clientPermissions, int8_t reqSpecifiedPriority) {

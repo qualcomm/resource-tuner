@@ -30,7 +30,7 @@ enum RequestType {
 
 /**
  * @enum SignalType
- * @brief Enumeration for different types of SysSignal requests.
+ * @brief Enumeration for different types of Signal requests.
  */
 enum SignalRequestType {
     SIGNAL_ACQ = 10,
@@ -100,14 +100,6 @@ enum Policy {
     HIGHER_BETTER, //!< This policy first applies the request writing the highest value to the node.
     LOWER_BETTER, //!< Self-explanatory. Works exactly opposite of the higher is better policy.
     LAZY_APPLY //!< The requests are applied in a first-in-first-out manner.
-};
-
-enum ClusterTypes {
-    BIG = 0,
-    LITTLE,
-    PRIME,
-    TITANIUM,
-    TOTAL_CLUSTER_COUNT
 };
 
 typedef struct {

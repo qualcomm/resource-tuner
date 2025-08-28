@@ -55,21 +55,6 @@ void ConfigProcessor::parseResourceConfigYamlNode(const YAML::Node& item, int8_t
         }
     }
 
-    if(RC_IS_OK(rc)) {
-        std::string defaultValue = AuxRoutines::readFromFile(
-            safeExtract<std::string>(item[RESOURCE_CONFIGS_ELEM_RESOURCEPATH], "", status)
-        );
-
-        if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
-            rc = RC_INVALID_VALUE;
-        }
-
-        // Defaults to 0
-        if(RC_IS_OK(rc)) {
-            rc = resourceConfigInfoBuilder.setDefaultValue(defaultValue);
-        }
-    }
-
     // No Defaults Available, a Resource with Invalid HT is considered Malformed
     if(RC_IS_OK(rc)) {
         rc = resourceConfigInfoBuilder.setHighThreshold(
@@ -158,35 +143,31 @@ void ConfigProcessor::parseResourceConfigYamlNode(const YAML::Node& item, int8_t
 }
 
 void ConfigProcessor::parseTargetConfigYamlNode(const YAML::Node& item) {
-    TargetRegistry::getInstance()->setTargetName(
-        safeExtract<std::string>(item[TARGET_NAME])
-    );
-
-    TargetRegistry::getInstance()->setTotalCoreCount(
-        (uint8_t)(safeExtract<uint8_t>(item[TARGET_TOTAL_CORE_COUNT]))
-    );
-
     if(isList(item[TARGET_CLUSTER_INFO])) {
         for(const auto& clusterInfo : item[TARGET_CLUSTER_INFO]) {
-            int8_t id;
-            std::string clusterType;
+            int32_t logicalID;
+            int32_t physicalID;
 
-            id = static_cast<int8_t>(safeExtract<int32_t>(clusterInfo[TARGET_CONFIGS_ID]));
-            clusterType = safeExtract<std::string>(clusterInfo[TARGET_CONFIGS_TYPE]);
+            logicalID = safeExtract<int32_t>(clusterInfo[TARGET_CLUSTER_INFO_LOGICAL_ID], -1);
+            physicalID = safeExtract<int32_t>(clusterInfo[TARGET_CLUSTER_INFO_PHYSICAL_ID], -1);
 
-            TargetRegistry::getInstance()->addMapping(clusterType, id);
+            if(logicalID != -1 && physicalID != -1) {
+                TargetRegistry::getInstance()->addClusterMapping(logicalID, physicalID);
+            }
         }
     }
 
     if(isList(item[TARGET_CLUSTER_SPREAD])) {
         for(const auto& clusterSpread : item[TARGET_CLUSTER_SPREAD]) {
-            int8_t id;
+            int32_t physicalID;
             int32_t numCores;
 
-            id = static_cast<int8_t>(safeExtract<int32_t>(clusterSpread[TARGET_CONFIGS_ID]));
-            numCores = safeExtract<int32_t>(clusterSpread[TARGET_PER_CLUSTER_CORE_COUNT]);
+            physicalID = safeExtract<int32_t>(clusterSpread[TARGET_CLUSTER_INFO_PHYSICAL_ID], -1);
+            numCores = safeExtract<int32_t>(clusterSpread[TARGET_PER_CLUSTER_CORE_COUNT], -1);
 
-            TargetRegistry::getInstance()->addClusterSpreadInfo(id, numCores);
+            if(physicalID != -1 && numCores != -1) {
+                TargetRegistry::getInstance()->addClusterSpreadInfo(physicalID, numCores);
+            }
         }
     }
 }

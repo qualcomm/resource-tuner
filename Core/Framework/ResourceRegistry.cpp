@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include "ResourceRegistry.h"
-#include <iostream>
 
 std::shared_ptr<ResourceRegistry> ResourceRegistry::resourceRegistryInstance = nullptr;
 
@@ -16,6 +15,67 @@ int8_t ResourceRegistry::isResourceConfigMalformed(ResourceConfigInfo* rConf) {
     return false;
 }
 
+void ResourceRegistry::setLifeCycleCallbacks(ResourceConfigInfo* resourceConfigInfo) {
+    switch(resourceConfigInfo->mApplyType) {
+        case APPLY_CLUSTER:
+            resourceConfigInfo->mResourceApplierCallback = defaultClusterLevelApplierCb;
+            resourceConfigInfo->mResourceTearCallback = defaultClusterLevelTearCb;
+            break;
+        case APPLY_CORE:
+            resourceConfigInfo->mResourceApplierCallback = defaultCoreLevelApplierCb;
+            resourceConfigInfo->mResourceTearCallback = defaultCoreLevelTearCb;
+            break;
+        case APPLY_CGROUP:
+            resourceConfigInfo->mResourceApplierCallback = defaultCGroupLevelApplierCb;
+            resourceConfigInfo->mResourceTearCallback = defaultCGroupLevelTearCb;
+            break;
+        case APPLY_GLOBAL:
+            resourceConfigInfo->mResourceApplierCallback = defaultGlobalLevelApplierCb;
+            resourceConfigInfo->mResourceTearCallback = defaultGlobalLevelTearCb;
+            break;
+    }
+}
+
+void ResourceRegistry::fetchAndStoreDefaults(ResourceConfigInfo* resourceConfigInfo) {
+    if(resourceConfigInfo == nullptr) return;
+    switch(resourceConfigInfo->mApplyType) {
+        case APPLY_CLUSTER: {
+            std::vector<int32_t> clusterIDs;
+            TargetRegistry::getInstance()->getClusterIDs(clusterIDs);
+            for(int32_t clusterID : clusterIDs) {
+                char filePath[128];
+                snprintf(filePath, sizeof(filePath), resourceConfigInfo->mResourcePath.c_str(), (int32_t)clusterID);
+                this->mDefaultValueStore[std::string(filePath)] = AuxRoutines::readFromFile(filePath);
+            }
+            break;
+        }
+        case APPLY_CGROUP: {
+            std::vector<std::string> cGroupNames;
+            TargetRegistry::getInstance()->getCGroupNames(cGroupNames);
+            for(std::string cGroupName : cGroupNames) {
+                char filePath[128];
+                snprintf(filePath, sizeof(filePath), resourceConfigInfo->mResourcePath.c_str(), cGroupName.c_str());
+                this->mDefaultValueStore[std::string(filePath)] = AuxRoutines::readFromFile(filePath);
+            }
+            break;
+        }
+        case APPLY_CORE: {
+            uint8_t count = ResourceTunerSettings::targetConfigs.totalCoreCount;
+            for(uint8_t coreID = 0; coreID < count; coreID++) {
+                char filePath[128];
+                snprintf(filePath, sizeof(filePath), resourceConfigInfo->mResourcePath.c_str(), (int32_t)coreID);
+                this->mDefaultValueStore[std::string(filePath)] = AuxRoutines::readFromFile(filePath);
+            }
+            break;
+        }
+        case APPLY_GLOBAL: {
+            this->mDefaultValueStore[resourceConfigInfo->mResourcePath] =
+                AuxRoutines::readFromFile(std::string(resourceConfigInfo->mResourcePath));
+            break;
+        }
+    }
+}
+
 void ResourceRegistry::registerResource(ResourceConfigInfo* resourceConfigInfo,
                                         int8_t isBuSpecified) {
     // Invalid Resource, skip.
@@ -24,17 +84,6 @@ void ResourceRegistry::registerResource(ResourceConfigInfo* resourceConfigInfo,
             delete resourceConfigInfo;
         }
         return;
-    }
-
-    // Persist the Default Values of the Resources in a File.
-    // These values will be used to restore the Sysfs nodes in case the Server Process crashes.
-    if(resourceConfigInfo->mDefaultValue.length() != 0) {
-        std::fstream sysfsPersistenceFile("sysfsOriginalValues.txt", std::ios::out | std::ios::app);
-        std::string resourceData = resourceConfigInfo->mResourcePath;
-        resourceData.push_back(',');
-        resourceData.append(resourceConfigInfo->mDefaultValue);
-        resourceData.push_back('\n');
-        sysfsPersistenceFile << resourceData;
     }
 
     // Create the OpID Bitmap, this will serve as the key for the entry in mSystemIndependentLayerMappings.
@@ -53,6 +102,7 @@ void ResourceRegistry::registerResource(ResourceConfigInfo* resourceConfigInfo,
 
         if(isBuSpecified) {
             this->mSystemIndependentLayerMappings.erase(resourceBitmap);
+            // Set the MSB
             resourceBitmap |= (1 << 31);
 
             this->mSystemIndependentLayerMappings[resourceBitmap] = resourceTableIndex;
@@ -67,6 +117,9 @@ void ResourceRegistry::registerResource(ResourceConfigInfo* resourceConfigInfo,
 
         this->mTotalResources++;
     }
+
+    this->setLifeCycleCallbacks(resourceConfigInfo);
+    this->fetchAndStoreDefaults(resourceConfigInfo);
 }
 
 void ResourceRegistry::displayResources() {
@@ -114,6 +167,10 @@ int32_t ResourceRegistry::getTotalResourcesCount() {
     return this->mTotalResources;
 }
 
+std::string ResourceRegistry::getDefaultValue(const std::string& filePath) {
+    return this->mDefaultValueStore[filePath];
+}
+
 void ResourceRegistry::pluginModifications() {
     std::vector<std::pair<uint32_t, ResourceLifecycleCallback>> applierCallbacks = Extensions::getResourceApplierCallbacks();
     std::vector<std::pair<uint32_t, ResourceLifecycleCallback>> tearCallbacks = Extensions::getResourceTearCallbacks();
@@ -134,10 +191,7 @@ void ResourceRegistry::pluginModifications() {
 }
 
 void ResourceRegistry::restoreResourcesToDefaultValues() {
-    for(ResourceConfigInfo* resourceConfig: this->mResourceConfig) {
-        std::string defaultValue = resourceConfig->mDefaultValue;
-        AuxRoutines::writeToFile(resourceConfig->mResourcePath, defaultValue);
-    }
+
 }
 
 ResourceRegistry::~ResourceRegistry() {
@@ -328,15 +382,6 @@ ErrCode ResourceConfigInfoBuilder::setApplyType(const std::string& applyTypeStri
     }
 
     this->mResourceConfigInfo->mApplyType = applyType;
-    return RC_SUCCESS;
-}
-
-ErrCode ResourceConfigInfoBuilder::setDefaultValue(const std::string& defaultValue) {
-    if(this->mResourceConfigInfo == nullptr) {
-        return RC_INVALID_VALUE;
-    }
-
-    this->mResourceConfigInfo->mDefaultValue = defaultValue;
     return RC_SUCCESS;
 }
 

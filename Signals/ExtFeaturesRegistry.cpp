@@ -107,6 +107,7 @@ void ExtFeaturesRegistry::teardownFeatures() {
                          TEARDOWN_FEATURE_ROUTINE,
                          this->mExtFeaturesConfigs[i]->mFeatureLib.c_str());
             }
+            dlclose(handle);
         } else {
             LOGE("RESTUNE_EXT_FEATURES", "Error while opening Ext Feature Library");
         }

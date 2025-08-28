@@ -174,6 +174,14 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
 
             break;
 
+        case CommonMessageTypes::TIMER_START_FAILURE:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Failed to start Timer for Request [%ld], Dropping Request.", args);
+
+            Logger::log(ERROR, "RESTUNE_COCO_TABLE", funcName, std::string(buffer));
+
+            break;
+
         case CommonMessageTypes::NOTIFY_RESOURCE_TUNER_INIT_START:
             vsnprintf(buffer, sizeof(buffer),
                       "Starting Resource Tuner Server, PID = [%d]", args);
@@ -233,6 +241,65 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             Logger::log(ERROR, "RESTUNE_SERVER_INIT", funcName, std::string(buffer));
             break;
 
+        case CommonMessageTypes::NOTIFY_EXTENSIONS_LIB_NOT_PRESENT:
+            Logger::log(INFO, "RESTUNE_SERVER_INIT", funcName,
+                        "Extension library not present at expected path — ignoring");
+            break;
+
+        case CommonMessageTypes::NOTIFY_EXTENSIONS_LOAD_FAILED:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Error loading extension lib, Error: %s", args);
+
+            Logger::log(ERROR, "RESTUNE_SERVER_INIT", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::NOTIFY_EXTENSIONS_LIB_LOADED_SUCCESS:
+            Logger::log(INFO, "RESTUNE_SERVER_INIT", funcName,
+                        "Extension library present and successfully loaded");
+            break;
+
+        case CommonMessageTypes::NOTIFY_COCO_TABLE_INSERT_START:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Inserting in CocoTable: Request Handle: [%ld]", args);
+
+            Logger::log(DEBUG, "RESTUNE_COCO_TABLE", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::NOTIFY_COCO_TABLE_INSERT_SUCCESS:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Request Handle: [%ld] Successfully inserted in CocoTable", args);
+
+            Logger::log(DEBUG, "RESTUNE_COCO_TABLE", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::NOTIFY_COCO_TABLE_UPDATE_START:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Updating Request Handle: [%ld], to New Duration: [%ld]", args);
+
+            Logger::log(DEBUG, "RESTUNE_COCO_TABLE", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::NOTIFY_COCO_TABLE_REMOVAL_START:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Request cleanup for Request Handle: [%ld] initiated", args);
+
+            Logger::log(DEBUG, "RESTUNE_COCO_TABLE", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::NOTIFY_COCO_TABLE_REQUEST_EXPIRY:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Timer over for Request Handle: [%ld]", args);
+
+            Logger::log(DEBUG, "RESTUNE_COCO_TABLE", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::NOTIFY_COCO_TABLE_WRITE:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Writing value: [%d], to node [%s]", args);
+
+            Logger::log(DEBUG, "RESTUNE_COCO_TABLE", funcName, std::string(buffer));
+            break;
+
         case CommonMessageTypes::REQUEST_MEMORY_ALLOCATION_FAILURE:
             vsnprintf(buffer, sizeof(buffer),
                       "Memory allocation for Incoming Request. " \
@@ -265,6 +332,27 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
                       "Call to %s, Failed with Error: %s", args);
 
             Logger::log(ERROR, "RESTUNE_SYSCALL_FAILURE", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::CORE_COUNT_EXTRACTION_FAILED:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Failed to get Online Core Count, Error: %s", args);
+
+            Logger::log(ERROR, "RESTUNE_TARGET_REGISTRY", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::CLUSTER_CPU_LIST_EXTRACTION_FAILED:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Failed to get the list of CPUs for cluster [%s], Error: %s", args);
+
+            Logger::log(ERROR, "RESTUNE_TARGET_REGISTRY", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::CLUSTER_CPU_CAPACITY_EXTRACTION_FAILED:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Failed to get the capacity for CPU [%d], Error: %s", args);
+
+            Logger::log(ERROR, "RESTUNE_TARGET_REGISTRY", funcName, std::string(buffer));
             break;
 
         case CommonMessageTypes::VERIFIER_INVALID_OPCODE:
@@ -354,6 +442,13 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
                       "Verification Failed for Request [%lld], Dropping Request.", args);
 
             Logger::log(ERROR, "RESTUNE_REQUEST_VERIFIER", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::NOTIFY_NODE_WRITE:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Writing to Node: [%s], Value: [%d]", args);
+
+            Logger::log(INFO, "RESTUNE_COCI_TABLE", funcName, std::string(buffer));
             break;
 
         case CommonMessageTypes::RATE_LIMITER_RATE_LIMITED:

@@ -26,6 +26,7 @@ enum ConfigType {
     SIGNALS_CONFIG,
     EXT_FEATURES_CONFIG,
     TARGET_CONFIG,
+    INIT_CONFIG,
     TOTAL_CONFIGS_COUNT
 };
 
@@ -53,6 +54,7 @@ public:
     static std::string getSignalsConfigFilePath();
     static std::string getExtFeaturesConfigFilePath();
     static std::string getTargetConfigFilePath();
+    static std::string getInitConfigFilePath();
 };
 
 #define CONCAT(a, b) a ## b

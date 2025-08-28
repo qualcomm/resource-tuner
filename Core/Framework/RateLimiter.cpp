@@ -22,7 +22,7 @@ int8_t RateLimiter::shouldBeProcessed(int32_t clientTID) {
         return false;
     }
 
-    int64_t currentMillis = ResourceTunerSettings::getCurrentTimeInMilliseconds();
+    int64_t currentMillis = AuxRoutines::getCurrentTimeInMilliseconds();
     // If this is the First Request, don't update the Health
     if(ClientDataManager::getInstance()->getLastRequestTimestampByClientID(clientTID) != 0) {
         int64_t requestDelta = currentMillis - ClientDataManager::getInstance()->getLastRequestTimestampByClientID(clientTID);

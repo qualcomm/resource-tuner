@@ -34,38 +34,47 @@ static void TestHandleGeneration() {
     LOG_START
 
     SysResource* resourceList = new SysResource[1];
-    resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
+    memset(&resourceList[0], 0, sizeof(SysResource));
+    resourceList[0].mResCode = 0x80ff0002;
     resourceList[0].mNumValues = 1;
     resourceList[0].mResValue.value = 554;
 
     int64_t handle = tuneResources(2000, 0, 1, resourceList);
 
+    delete resourceList;
+
     std::cout<<"["<<__LINE__<<"]"<<" Handle Returned: "<<handle<<std::endl;
-    assert(handle == 1);
+    assert(handle > 0);
 
     std::this_thread::sleep_for(std::chrono::seconds(3));
 
     resourceList = new SysResource[1];
-    resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
+    memset(&resourceList[0], 0, sizeof(SysResource));
+    resourceList[0].mResCode = 0x80ff0002;
     resourceList[0].mNumValues = 1;
     resourceList[0].mResValue.value = 667;
 
     handle = tuneResources(2000, 0, 1, resourceList);
 
+    delete resourceList;
+
     std::cout<<"["<<__LINE__<<"]"<<" Handle Returned: "<<handle<<std::endl;
-    assert(handle == 2);
+    assert(handle > 0);
 
     std::this_thread::sleep_for(std::chrono::seconds(3));
 
     resourceList = new SysResource[1];
-    resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
+    memset(&resourceList[0], 0, sizeof(SysResource));
+    resourceList[0].mResCode = 0x800f0002;
     resourceList[0].mNumValues = 1;
     resourceList[0].mResValue.value = 701;
 
     handle = tuneResources(2000, 0, 1, resourceList);
 
+    delete resourceList;
+
     std::cout<<"["<<__LINE__<<"]"<<" Handle Returned: "<<handle<<std::endl;
-    assert(handle == 3);
+    assert(handle > 0);
 
     LOG_END
 }
@@ -161,6 +170,7 @@ namespace ResourceTuningRequestVerification {
         LOG_START
 
         SysResource* resourceList = new SysResource[1];
+        memset(&resourceList[0], 0, sizeof(SysResource));
         resourceList[0].mResCode = -1;
         resourceList[0].mResInfo = -1;
 
@@ -194,7 +204,8 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
+        memset(&resourceList[0], 0, sizeof(SysResource));
+        resourceList[0].mResCode = 0x80ff0002;
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 554;
 
@@ -236,11 +247,13 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == validResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[2];
-        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
+        memset(&resourceList[0], 0, sizeof(SysResource));
+        resourceList[0].mResCode = 0x80ff0002;
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 554;
 
         // No Resource with this ID exists
+        memset(&resourceList[1], 0, sizeof(SysResource));
         resourceList[1].mResCode = 12000;
         resourceList[1].mNumValues = 1;
         resourceList[1].mResValue.value = 597;
@@ -280,7 +293,8 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
+        memset(&resourceList[0], 0, sizeof(SysResource));
+        resourceList[0].mResCode = 0x80ff0002;
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 1200;
 
@@ -321,7 +335,8 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 5);
+        memset(&resourceList[0], 0, sizeof(SysResource));
+        resourceList[0].mResCode = 0x80ff0005;
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 2300;
         resourceList[0].mResInfo = 0;
@@ -365,7 +380,8 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[2];
-        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 5);
+        memset(&resourceList[0], 0, sizeof(SysResource));
+        resourceList[0].mResCode = 0x80ff0005;
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 2300;
         resourceList[0].mResInfo = 0;
@@ -409,11 +425,12 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 5);
+        memset(&resourceList[0], 0, sizeof(SysResource));
+        resourceList[0].mResCode = 0x80ff0005;
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 2300;
         resourceList[0].mResInfo = 0;
-        resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 2);
+        resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 1);
         resourceList[0].mResInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mResInfo, 2);
 
         int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
@@ -459,7 +476,8 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 5);
+        memset(&resourceList[0], 0, sizeof(SysResource));
+        resourceList[0].mResCode = 0x80ff0005;
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 2300;
         resourceList[0].mResInfo = 0;
@@ -500,7 +518,8 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 7);
+        memset(&resourceList[0], 0, sizeof(SysResource));
+        resourceList[0].mResCode = 0x80ff0007;
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 653;
 
@@ -537,7 +556,8 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 6);
+        memset(&resourceList[0], 0, sizeof(SysResource));
+        resourceList[0].mResCode = 0x80ff0006;
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 4670;
 
@@ -578,7 +598,8 @@ namespace ResourceTuningRequestVerification {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 4);
+        memset(&resourceList[0], 0, sizeof(SysResource));
+        resourceList[0].mResCode = 0x80ff0004;
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 460;
 
@@ -616,7 +637,7 @@ namespace ResourceTuningRequestVerification {
 
 /*
 * =========================================================
-*   TEST CATEGORY - II: "SYSSIGNAL REQUEST-VERIFICATION"
+*   TEST CATEGORY - II: "SIGNAL REQUEST-VERIFICATION"
 * =========================================================
 */
 
@@ -876,7 +897,8 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 0);
+        memset(&resourceList[0], 0, sizeof(SysResource));
+        resourceList[0].mResCode = 0x80ff0000;
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 980;
 
@@ -935,16 +957,18 @@ namespace RequestApplicationTests {
         assert(originalValue[2] == testResourceOriginalValue3);
 
         SysResource* resourceList = new SysResource[3];
-
-        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
+        memset(&resourceList[0], 0, sizeof(SysResource));
+        resourceList[0].mResCode = 0x80ff0003;
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 765;
 
-        resourceList[1].mResCode = GENERATE_RESOURCE_ID(1, 1);
+        memset(&resourceList[1], 0, sizeof(SysResource));
+        resourceList[1].mResCode = 0x80ff0001;
         resourceList[1].mNumValues = 1;
         resourceList[1].mResValue.value = 889;
 
-        resourceList[2].mResCode = GENERATE_RESOURCE_ID(1, 2);
+        memset(&resourceList[2], 0, sizeof(SysResource));
+        resourceList[2].mResCode = 0x80ff0002;
         resourceList[2].mNumValues = 1;
         resourceList[2].mResValue.value = 617;
 
@@ -1009,7 +1033,8 @@ namespace RequestApplicationTests {
         int32_t rc = fork();
         if(rc == 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
+            memset(&resourceList[0], 0, sizeof(SysResource));
+            resourceList[0].mResCode = 0x80ff0003;
             resourceList[0].mNumValues = 1;
             resourceList[0].mResValue.value = 315;
 
@@ -1020,7 +1045,8 @@ namespace RequestApplicationTests {
             wait(nullptr);
 
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
+            memset(&resourceList[0], 0, sizeof(SysResource));
+            resourceList[0].mResCode = 0x80ff0003;
             resourceList[0].mNumValues = 1;
             resourceList[0].mResValue.value = 209;
 
@@ -1078,7 +1104,8 @@ namespace RequestApplicationTests {
         int32_t rc1 = fork();
         if(rc1 == 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
+            memset(&resourceList[0], 0, sizeof(SysResource));
+            resourceList[0].mResCode = 0x80ff0003;
             resourceList[0].mNumValues = 1;
             resourceList[0].mResValue.value = 1176;
 
@@ -1089,7 +1116,8 @@ namespace RequestApplicationTests {
         } else if(rc1 > 0) {
             wait(nullptr);
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
+            memset(&resourceList[0], 0, sizeof(SysResource));
+            resourceList[0].mResCode = 0x80ff0003;
             resourceList[0].mNumValues = 1;
             resourceList[0].mResValue.value = 823;
 
@@ -1157,12 +1185,16 @@ namespace RequestApplicationTests {
         int32_t rc1 = fork();
         if(rc1 == 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
+            memset(&resourceList[0], 0, sizeof(SysResource));
+            resourceList[0].mResCode = 0x80ff0002;
             resourceList[0].mNumValues = 1;
             resourceList[0].mResValue.value = 578;
 
-            handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+            handle = tuneResources(15000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
+            // Give enough time for Resource Tuner to read process status
+            // Else the Request will be dropped
+            std::this_thread::sleep_for(std::chrono::seconds(3));
             exit(EXIT_SUCCESS);
 
         } else if(rc1 > 0) {
@@ -1177,12 +1209,14 @@ namespace RequestApplicationTests {
             int32_t rc2 = fork();
             if(rc2 == 0) {
                 SysResource* resourceList = new SysResource[1];
-                resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
+                memset(&resourceList[0], 0, sizeof(SysResource));
+                resourceList[0].mResCode = 0x80ff0002;
                 resourceList[0].mNumValues = 1;
                 resourceList[0].mResValue.value = 445;
 
-                handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+                handle = tuneResources(15000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
+                std::this_thread::sleep_for(std::chrono::seconds(3));
                 exit(EXIT_SUCCESS);
 
             } else if(rc2 > 0) {
@@ -1197,12 +1231,14 @@ namespace RequestApplicationTests {
                 int32_t rc3 = fork();
                 if(rc3 == 0) {
                     SysResource* resourceList = new SysResource[1];
-                    resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
+                    memset(&resourceList[0], 0, sizeof(SysResource));
+                    resourceList[0].mResCode = 0x80ff0002;
                     resourceList[0].mNumValues = 1;
                     resourceList[0].mResValue.value = 412;
 
-                    handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+                    handle = tuneResources(15000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
+                    std::this_thread::sleep_for(std::chrono::seconds(3));
                     exit(EXIT_SUCCESS);
 
                 } else if(rc3 > 0) {
@@ -1215,11 +1251,12 @@ namespace RequestApplicationTests {
                     assert(newValue == 412);
 
                     SysResource* resourceList = new SysResource[1];
-                    resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
+                    memset(&resourceList[0], 0, sizeof(SysResource));
+                    resourceList[0].mResCode = 0x80ff0002;
                     resourceList[0].mNumValues = 1;
                     resourceList[0].mResValue.value = 378;
 
-                    handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+                    handle = tuneResources(15000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
                     std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -1228,7 +1265,7 @@ namespace RequestApplicationTests {
                     newValue = C_STOI(value);
                     assert(newValue == 378);
 
-                    std::this_thread::sleep_for(std::chrono::seconds(8));
+                    std::this_thread::sleep_for(std::chrono::seconds(30));
 
                     value = AuxRoutines::readFromFile(testResourceName);
                     newValue = C_STOI(value);
@@ -1268,7 +1305,8 @@ namespace RequestApplicationTests {
         int32_t rc1 = fork();
         if(rc1 == 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 8);
+            memset(&resourceList[0], 0, sizeof(SysResource));
+            resourceList[0].mResCode = 0x80ff0008;
             resourceList[0].mNumValues = 1;
             resourceList[0].mResValue.value = 15;
 
@@ -1281,7 +1319,8 @@ namespace RequestApplicationTests {
             std::this_thread::sleep_for(std::chrono::seconds(1));
 
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 8);
+            memset(&resourceList[0], 0, sizeof(SysResource));
+            resourceList[0].mResCode = 0x80ff0008;
             resourceList[0].mNumValues = 1;
             resourceList[0].mResValue.value = 18;
 
@@ -1352,7 +1391,8 @@ namespace RequestApplicationTests {
         int32_t rc1 = fork();
         if(rc1 == 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
+            memset(&resourceList[0], 0, sizeof(SysResource));
+            resourceList[0].mResCode = 0x80ff0002;
             resourceList[0].mNumValues = 1;
             resourceList[0].mResValue.value = 717;
 
@@ -1364,7 +1404,8 @@ namespace RequestApplicationTests {
             int32_t rc2 = fork();
             if(rc2 == 0) {
                 SysResource* resourceList = new SysResource[1];
-                resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
+                memset(&resourceList[0], 0, sizeof(SysResource));
+                resourceList[0].mResCode = 0x80ff0003;
                 resourceList[0].mNumValues = 1;
                 resourceList[0].mResValue.value = 800;
 
@@ -1374,7 +1415,8 @@ namespace RequestApplicationTests {
 
             } else if(rc2 > 0) {
                 SysResource* resourceList = new SysResource[1];
-                resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 1);
+                memset(&resourceList[0], 0, sizeof(SysResource));
+                resourceList[0].mResCode = 0x80ff0001;
                 resourceList[0].mNumValues = 1;
                 resourceList[0].mResValue.value = 557;
 
@@ -1441,12 +1483,14 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList1 = new SysResource[1];
-        resourceList1[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
+        memset(&resourceList1[0], 0, sizeof(SysResource));
+        resourceList1[0].mResCode = 0x80ff0003;
         resourceList1[0].mNumValues = 1;
         resourceList1[0].mResValue.value = 889;
 
         SysResource* resourceList2 = new SysResource[1];
-        resourceList2[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
+        memset(&resourceList2[0], 0, sizeof(SysResource));
+        resourceList2[0].mResCode = 0x80ff0003;
         resourceList2[0].mNumValues = 1;
         resourceList2[0].mResValue.value = 917;
 
@@ -1494,7 +1538,8 @@ namespace RequestApplicationTests {
 
         std::thread th([&]{
             SysResource* resourceList1 = new SysResource[1];
-            resourceList1[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
+            memset(&resourceList1[0], 0, sizeof(SysResource));
+            resourceList1[0].mResCode = 0x80ff0003;
             resourceList1[0].mOptionalInfo = 0;
             resourceList1[0].mNumValues = 1;
             resourceList1[0].mResValue.value = 664;
@@ -1503,7 +1548,8 @@ namespace RequestApplicationTests {
         });
 
         SysResource* resourceList2 = new SysResource[1];
-        resourceList2[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
+        memset(&resourceList2[0], 0, sizeof(SysResource));
+        resourceList2[0].mResCode = 0x80ff0003;
         resourceList2[0].mOptionalInfo = 0;
         resourceList2[0].mNumValues = 1;
         resourceList2[0].mResValue.value = 702;
@@ -1553,10 +1599,15 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
-        resourceList[0].mNumValues = 1;
-        resourceList[0].mResValue.value = 245;
+        memset(&resourceList[0], 0, sizeof(SysResource));
+        SysResource resource = {0};
+        resource.mResCode = 0x80ff0002;
+        resource.mNumValues = 1;
+        resource.mResValue.value = 245;
+        resourceList[0] = resource;
         handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+        std::cout<<"["<<__LINE__<<"]"<<" handle returned is: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1603,7 +1654,8 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
+        memset(&resourceList[0], 0, sizeof(SysResource));
+        resourceList[0].mResCode = 0x80ff0002;
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 245;
 
@@ -1674,14 +1726,16 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList1 = new SysResource[1];
-        resourceList1[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
+        memset(&resourceList1[0], 0, sizeof(SysResource));
+        resourceList1[0].mResCode = 0x80ff0002;
         resourceList1[0].mNumValues = 1;
         resourceList1[0].mResValue.value = 515;
 
         handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_LOW, 1, resourceList1);
 
         SysResource* resourceList2 = new SysResource[1];
-        resourceList2[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
+        memset(&resourceList2[0], 0, sizeof(SysResource));
+        resourceList2[0].mResCode = 0x80ff0002;
         resourceList2[0].mNumValues = 1;
         resourceList2[0].mResValue.value = 559;
 
@@ -1736,7 +1790,8 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList1 = new SysResource[1];
-        resourceList1[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
+        memset(&resourceList1[0], 0, sizeof(SysResource));
+        resourceList1[0].mResCode = 0x80ff0002;
         resourceList1[0].mNumValues = 1;
         resourceList1[0].mResValue.value = 515;
 
@@ -1751,7 +1806,8 @@ namespace RequestApplicationTests {
         std::this_thread::sleep_for(std::chrono::seconds(3));
 
         SysResource* resourceList2 = new SysResource[1];
-        resourceList2[0].mResCode = GENERATE_RESOURCE_ID(1, 2);
+        memset(&resourceList2[0], 0, sizeof(SysResource));
+        resourceList2[0].mResCode = 0x80ff0002;
         resourceList2[0].mNumValues = 1;
         resourceList2[0].mResValue.value = 559;
 
@@ -1805,7 +1861,8 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList1 = new SysResource[1];
-        resourceList1[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
+        memset(&resourceList1[0], 0, sizeof(SysResource));
+        resourceList1[0].mResCode = 0x80ff0003;
         resourceList1[0].mOptionalInfo = 0;
         resourceList1[0].mNumValues = 1;
         resourceList1[0].mResValue.value = 645;
@@ -1821,7 +1878,8 @@ namespace RequestApplicationTests {
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
         SysResource* resourceList2 = new SysResource[1];
-        resourceList2[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
+        memset(&resourceList2[0], 0, sizeof(SysResource));
+        resourceList2[0].mResCode = 0x80ff0003;
         resourceList2[0].mNumValues = 1;
         resourceList2[0].mResValue.value = 716;
 
@@ -1867,7 +1925,8 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
+        memset(&resourceList[0], 0, sizeof(SysResource));
+        resourceList[0].mResCode = 0x80ff0003;
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 778;
 
@@ -1925,7 +1984,8 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 3);
+        memset(&resourceList[0], 0, sizeof(SysResource));
+        resourceList[0].mResCode = 0x80ff0003;
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 778;
 
@@ -1983,7 +2043,8 @@ namespace RequestApplicationTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mResCode = GENERATE_RESOURCE_ID(1, 0);
+        memset(&resourceList[0], 0, sizeof(SysResource));
+        resourceList[0].mResCode = 0x80ff0000;
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 597;
 
@@ -2082,7 +2143,8 @@ namespace SystemSysfsNodesTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mResCode = GENERATE_RESOURCE_ID(8, 0);
+        memset(&resourceList[0], 0, sizeof(SysResource));
+        resourceList[0].mResCode = 0x00030000;
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 980;
 
@@ -2110,8 +2172,8 @@ namespace SystemSysfsNodesTests {
     * - Issue 2 Concurrent Resource Tuner Resource Provisioning Requests, to modify the Resource
     *   sched_util_clamp_min
     * - Verify the Resource Node is Correctly updated to the higher of the 2 values,
-    *   as the Resource has the "higher-is-better" policy.
-    * - Verify that the Resource Node is reset once the Requests Expire (here both the Requests,
+    *   as the Resource has the "lower-is-better" policy.
+    * - Verify that the Resource Node is reset once the Requests Expires (here both the Requests,
     *   have exactly the same duration).
     * - Note these Tests need to be run with Root Privleges (sudo)
     * Cross-Reference id: ['E2']
@@ -2138,7 +2200,8 @@ namespace SystemSysfsNodesTests {
         int32_t rc = fork();
         if(rc == 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mResCode = GENERATE_RESOURCE_ID(8, 0);
+            memset(&resourceList[0], 0, sizeof(SysResource));
+            resourceList[0].mResCode = 0x00030000;
             resourceList[0].mNumValues = 1;
             resourceList[0].mResValue.value = 887;
 
@@ -2148,7 +2211,8 @@ namespace SystemSysfsNodesTests {
 
         } else if(rc > 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mResCode = GENERATE_RESOURCE_ID(8, 0);
+            memset(&resourceList[0], 0, sizeof(SysResource));
+            resourceList[0].mResCode = 0x00030000;
             resourceList[0].mNumValues = 1;
             resourceList[0].mResValue.value = 799;
 
@@ -2161,7 +2225,7 @@ namespace SystemSysfsNodesTests {
             // Check if the new value was successfully written to the node
             value = AuxRoutines::readFromFile(testResourceName);
             int32_t newValue = C_STOI(value);
-            assert(newValue == 887);
+            assert(newValue == 799);
 
             std::this_thread::sleep_for(std::chrono::seconds(6));
 
@@ -2213,6 +2277,7 @@ namespace SystemSysfsNodesTests {
         int32_t rc = fork();
         if(rc == 0) {
             SysResource* resourceList = new SysResource[1];
+            memset(&resourceList[0], 0, sizeof(SysResource));
             resourceList[0].mResCode = 0x00030000;
             resourceList[0].mNumValues = 1;
             resourceList[0].mResValue.value = 799;
@@ -2223,6 +2288,7 @@ namespace SystemSysfsNodesTests {
 
         } else if(rc > 0) {
             SysResource* resourceList = new SysResource[1];
+            memset(&resourceList[0], 0, sizeof(SysResource));
             resourceList[0].mResCode = 0x00030000;
             resourceList[0].mNumValues = 1;
             resourceList[0].mResValue.value = 887;
@@ -2290,7 +2356,8 @@ namespace SystemSysfsNodesTests {
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mResCode = GENERATE_RESOURCE_ID(8, 0);
+        memset(&resourceList[0], 0, sizeof(SysResource));
+        resourceList[0].mResCode = 0x00030000;
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 994;
 
@@ -2348,7 +2415,8 @@ namespace SystemSysfsNodesTests {
         int32_t rc = fork();
         if(rc == 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mResCode = GENERATE_RESOURCE_ID(8, 0);
+            memset(&resourceList[0], 0, sizeof(SysResource));
+            resourceList[0].mResCode = 0x00030000;
             resourceList[0].mNumValues = 1;
             resourceList[0].mResValue.value = 744;
 
@@ -2358,7 +2426,8 @@ namespace SystemSysfsNodesTests {
 
         } else if(rc > 0) {
             SysResource* resourceList = new SysResource[1];
-            resourceList[0].mResCode = GENERATE_RESOURCE_ID(8, 0);
+            memset(&resourceList[0], 0, sizeof(SysResource));
+            resourceList[0].mResCode = 0x00030000;
             resourceList[0].mNumValues = 1;
             resourceList[0].mResValue.value = 801;
 
@@ -2402,6 +2471,7 @@ namespace SystemSysfsNodesTests {
         }
 
         SysResource* resourceList = new SysResource[1];
+        memset(&resourceList[0], 0, sizeof(SysResource));
         resourceList[0].mResCode = 0x00040000;
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 1504993;
@@ -2441,6 +2511,7 @@ namespace SystemSysfsNodesTests {
         }
 
         SysResource* resourceList = new SysResource[1];
+        memset(&resourceList[0], 0, sizeof(SysResource));
         resourceList[0].mResCode = 0x00040001;
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 1504993;
@@ -2491,7 +2562,8 @@ namespace SystemSysfsNodesTests {
         assert(originalValue1 == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
-        resourceList[0].mResCode = GENERATE_RESOURCE_ID(8, 0);
+        memset(&resourceList[0], 0, sizeof(SysResource));
+        resourceList[0].mResCode = 0x00030000;
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 718;
 
@@ -2523,7 +2595,8 @@ namespace SystemSysfsNodesTests {
         assert(originalValue2 == testResourceOriginalValue);
 
         SysResource* resourceList2 = new SysResource[1];
-        resourceList2[0].mResCode = GENERATE_RESOURCE_ID(8, 1);
+        memset(&resourceList2[0], 0, sizeof(SysResource));
+        resourceList2[0].mResCode = 0x00030001;
         resourceList2[0].mNumValues = 1;
         resourceList2[0].mResValue.value = 880;
 
@@ -2694,7 +2767,7 @@ namespace SignalApplicationTests {
 namespace CGroupApplicationTests {
     std::string __testGroupName = "CGroup Application Checks";
 
-    static void TestWriteAndReset1() {
+    static void TestCgroupWriteAndResetBasicCase() {
         LOG_START
 
         std::string testResourceName = "/sys/fs/cgroup/audio-cgroup/cpu.uclamp.min";
@@ -2703,6 +2776,42 @@ namespace CGroupApplicationTests {
         int32_t originalValue = C_STOI(originalValueString);
 
         SysResource* resourceList1 = new SysResource[1];
+        memset(&resourceList1[0], 0, sizeof(SysResource));
+        resourceList1[0].mResCode = 0x00090007;
+        resourceList1[0].mNumValues = 2;
+        resourceList1[0].mResValue.values = new int32_t[resourceList1[0].mNumValues];
+        resourceList1[0].mResValue.values[0] = 1;
+        resourceList1[0].mResValue.values[1] = 52;
+        int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_LOW, 1, resourceList1);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        std::string value;
+        int32_t newValue;
+
+        value = AuxRoutines::readFromFile(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == 52);
+
+        std::this_thread::sleep_for(std::chrono::seconds(10));
+
+        value = AuxRoutines::readFromFile(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == originalValue);
+
+        LOG_END
+    }
+
+    static void TestCgroupWriteAndReset1() {
+        LOG_START
+
+        std::string testResourceName = "/sys/fs/cgroup/audio-cgroup/cpu.uclamp.min";
+
+        std::string originalValueString = AuxRoutines::readFromFile(testResourceName);
+        int32_t originalValue = C_STOI(originalValueString);
+
+        SysResource* resourceList1 = new SysResource[1];
+        memset(&resourceList1[0], 0, sizeof(SysResource));
         resourceList1[0].mResCode = 0x00090007;
         resourceList1[0].mNumValues = 2;
         resourceList1[0].mResValue.values = new int32_t[2];
@@ -2713,6 +2822,7 @@ namespace CGroupApplicationTests {
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
         SysResource* resourceList = new SysResource[1];
+        memset(&resourceList[0], 0, sizeof(SysResource));
         resourceList[0].mResCode = 0x00090007;
         resourceList[0].mNumValues = 2;
         resourceList[0].mResValue.values = new int32_t[2];
@@ -2744,7 +2854,7 @@ namespace CGroupApplicationTests {
         LOG_END
     }
 
-    static void TestWriteAndReset2() {
+    static void TestCgroupWriteAndReset2() {
         LOG_START
 
         std::string testResourceName = "/sys/fs/cgroup/audio-cgroup/cpu.uclamp.min";
@@ -2755,6 +2865,7 @@ namespace CGroupApplicationTests {
         int32_t rc = fork();
         if(rc == 0) {
             SysResource* resourceList = new SysResource[1];
+            memset(&resourceList[0], 0, sizeof(SysResource));
             resourceList[0].mResCode = 0x00090007;
             resourceList[0].mNumValues = 2;
             resourceList[0].mResValue.values = new int32_t[2];
@@ -2767,6 +2878,7 @@ namespace CGroupApplicationTests {
 
         } else if(rc > 0) {
             SysResource* resourceList = new SysResource[1];
+            memset(&resourceList[0], 0, sizeof(SysResource));
             resourceList[0].mResCode = 0x00090007;
             resourceList[0].mNumValues = 2;
             resourceList[0].mResValue.values = new int32_t[2];
@@ -2796,7 +2908,7 @@ namespace CGroupApplicationTests {
         LOG_END
     }
 
-    static void TestWriteAndReset3() {
+    static void TestCgroupWriteAndReset3() {
         LOG_START
 
         std::string testResourceName = "/sys/fs/cgroup/audio-cgroup/cpu.uclamp.max";
@@ -2808,6 +2920,7 @@ namespace CGroupApplicationTests {
         int32_t rc = fork();
         if(rc == 0) {
             SysResource* resourceList = new SysResource[1];
+            memset(&resourceList[0], 0, sizeof(SysResource));
             resourceList[0].mResCode = 0x00090008;
             resourceList[0].mNumValues = 2;
             resourceList[0].mResValue.values = new int32_t[2];
@@ -2820,6 +2933,7 @@ namespace CGroupApplicationTests {
 
         } else if(rc > 0) {
             SysResource* resourceList = new SysResource[1];
+            memset(&resourceList[0], 0, sizeof(SysResource));
             resourceList[0].mResCode = 0x00090008;
             resourceList[0].mNumValues = 2;
             resourceList[0].mResValue.values = new int32_t[2];
@@ -2852,7 +2966,7 @@ namespace CGroupApplicationTests {
         LOG_END
     }
 
-    static void TestWriteAndReset4() {
+    static void TestCgroupWriteAndReset4() {
         LOG_START
 
         std::string testResourceName = "/sys/fs/cgroup/audio-cgroup/memory.max";
@@ -2864,6 +2978,7 @@ namespace CGroupApplicationTests {
         int32_t rc = fork();
         if(rc == 0) {
             SysResource* resourceList = new SysResource[1];
+            memset(&resourceList[0], 0, sizeof(SysResource));
             resourceList[0].mResCode = 0x0009000a;
             resourceList[0].mNumValues = 2;
             resourceList[0].mResValue.values = new int32_t[2];
@@ -2876,6 +2991,7 @@ namespace CGroupApplicationTests {
 
         } else if(rc > 0) {
             SysResource* resourceList = new SysResource[1];
+            memset(&resourceList[0], 0, sizeof(SysResource));
             resourceList[0].mResCode = 0x0009000a;
             resourceList[0].mNumValues = 2;
             resourceList[0].mResValue.values = new int32_t[2];
@@ -2910,7 +3026,7 @@ namespace CGroupApplicationTests {
     }
 
     // Multiple CGroups in a single Request
-    static void TestWriteAndReset5() {
+    static void TestCgroupWriteAndReset5() {
         LOG_START
 
         std::string testResourceName1 = "/sys/fs/cgroup/camera-cgroup/cpu.uclamp.min";
@@ -2925,12 +3041,14 @@ namespace CGroupApplicationTests {
         int32_t originalValue2 = C_STOI(originalValueString);
 
         SysResource* resourceList = new SysResource[2];
+        memset(&resourceList[0], 0, sizeof(SysResource));
         resourceList[0].mResCode = 0x00090007;
         resourceList[0].mNumValues = 2;
         resourceList[0].mResValue.values = new int32_t[2];
         resourceList[0].mResValue.values[0] = 0;
         resourceList[0].mResValue.values[1] = 55;
 
+        memset(&resourceList[1], 0, sizeof(SysResource));
         resourceList[1].mResCode = 0x00090007;
         resourceList[1].mNumValues = 2;
         resourceList[1].mResValue.values = new int32_t[2];
@@ -2971,14 +3089,49 @@ namespace CGroupApplicationTests {
         LOG_END
     }
 
+    static void TestCgroupWriteAndReset6() {
+        LOG_START
+
+        std::string testResourceName = "/sys/fs/cgroup/audio-cgroup/cpuset.cpus";
+
+        std::string originalValueString = AuxRoutines::readFromFile(testResourceName);
+
+        SysResource* resourceList1 = new SysResource[1];
+        memset(&resourceList1[0], 0, sizeof(SysResource));
+        resourceList1[0].mResCode = 0x00090002;
+        resourceList1[0].mNumValues = 4;
+        resourceList1[0].mResValue.values = new int32_t[resourceList1[0].mNumValues];
+        resourceList1[0].mResValue.values[0] = 1;
+        resourceList1[0].mResValue.values[1] = 0;
+        resourceList1[0].mResValue.values[2] = 1;
+        resourceList1[0].mResValue.values[3] = 3;
+        int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList1);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        std::string value;
+
+        value = AuxRoutines::readFromFile(testResourceName);
+        assert(value == "0-1,3");
+
+        std::this_thread::sleep_for(std::chrono::seconds(10));
+
+        value = AuxRoutines::readFromFile(testResourceName);
+        assert(value == originalValueString);
+
+        LOG_END
+    }
+
     static void RunTestGroup() {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
-        TestWriteAndReset1();
-        TestWriteAndReset2();
-        TestWriteAndReset3();
-        TestWriteAndReset4();
-        TestWriteAndReset5();
+        RUN_TEST(TestCgroupWriteAndResetBasicCase)
+        RUN_TEST(TestCgroupWriteAndReset1)
+        RUN_TEST(TestCgroupWriteAndReset2)
+        RUN_TEST(TestCgroupWriteAndReset3)
+        RUN_TEST(TestCgroupWriteAndReset4)
+        RUN_TEST(TestCgroupWriteAndReset5)
+        RUN_TEST(TestCgroupWriteAndReset6)
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
     }
@@ -2998,8 +3151,10 @@ int32_t main(int32_t argc, const char* argv[]) {
     // Tests on Real Sysfs Nodes (QLI)
     SystemSysfsNodesTests::RunTestGroup();
 
+    // // Signal Application
     SignalApplicationTests::RunTestGroup();
 
+    // Tests for CGroup Resources
     CGroupApplicationTests::RunTestGroup();
 
     return 0;

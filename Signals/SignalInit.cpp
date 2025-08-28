@@ -31,6 +31,7 @@ static ErrCode fetchSignals() {
         TYPELOGV(NOTIFY_PARSING_FAILURE, "Common-Signal");
         return opStatus;
     }
+    TYPELOGV(NOTIFY_PARSING_SUCCESS, "Common-Signal");
 
     filePath = Extensions::getSignalsConfigFilePath();
     if(filePath.length() > 0) {
@@ -41,6 +42,8 @@ static ErrCode fetchSignals() {
             TYPELOGV(NOTIFY_PARSING_FAILURE, "Custom-Signal");
             return opStatus;
         }
+        TYPELOGV(NOTIFY_PARSING_SUCCESS, "Custom-Signal");
+
     } else {
         TYPELOGV(NOTIFY_PARSING_START, "Custom-Signal");
         filePath = ResourceTunerSettings::mCustomSignalFilePath;
@@ -48,15 +51,14 @@ static ErrCode fetchSignals() {
         if(RC_IS_NOTOK(opStatus)) {
             if(opStatus == RC_FILE_NOT_FOUND) {
                 TYPELOGV(NOTIFY_PARSER_FILE_NOT_FOUND, "Custom-Signal", filePath.c_str());
-                TYPELOGV(NOTIFY_PARSING_SUCCESS, "Signal");
                 return RC_SUCCESS;
             }
-            TYPELOGV(NOTIFY_PARSING_FAILURE, "Signal");
+            TYPELOGV(NOTIFY_PARSING_FAILURE, "Custom-Signal");
             return opStatus;
         }
+        TYPELOGV(NOTIFY_PARSING_SUCCESS, "Custom-Signal");
     }
 
-    TYPELOGV(NOTIFY_PARSING_SUCCESS, "Signal");
     return opStatus;
 }
 
@@ -71,6 +73,7 @@ static ErrCode fetchExtFeatureConfigs() {
         // Custom Resource Config file has been provided by BU
         TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, "Ext-Features", filePath.c_str());
         TYPELOGV(NOTIFY_PARSING_START, "Ext-Features");
+
         opStatus = configProcessor.parseExtFeaturesConfigs(filePath);
         if(RC_IS_NOTOK(opStatus)) {
             TYPELOGV(NOTIFY_PARSING_FAILURE, "Ext-Features");
@@ -81,10 +84,10 @@ static ErrCode fetchExtFeatureConfigs() {
         TYPELOGV(NOTIFY_PARSING_START, "Ext-Features");
         filePath = ResourceTunerSettings::mCustomExtFeaturesFilePath;
         opStatus = configProcessor.parseExtFeaturesConfigs(filePath);
+
         if(RC_IS_NOTOK(opStatus)) {
             if(opStatus == RC_FILE_NOT_FOUND) {
                 TYPELOGV(NOTIFY_PARSER_FILE_NOT_FOUND, "Ext-Features", filePath.c_str());
-                TYPELOGV(NOTIFY_PARSING_SUCCESS, "Ext-Features");
                 return RC_SUCCESS;
             }
             TYPELOGV(NOTIFY_PARSING_FAILURE, "Ext-Features");
