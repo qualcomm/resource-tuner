@@ -54,6 +54,12 @@ static std::string getCGroupTypeResourceNodePath(Resource* resource, const std::
     return filePath;
 }
 
+static void truncateFile(const std::string& filePath) {
+    std::ofstream ofStream(filePath, std::ofstream::out | std::ofstream::trunc);
+    ofStream<<""<<std::endl;
+    ofStream.close();
+}
+
 void defaultClusterLevelApplierCb(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
@@ -194,26 +200,33 @@ void defaultCGroupLevelTearCb(void* context) {
 
     if(resourceConfigInfo == nullptr) return;
 
-    if(resource->getValuesCount() != 2) return;
     if(resource->mResValue.values == nullptr) return;
 
     int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
     CGroupConfigInfo* cGroupConfig =
         TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
-    if(cGroupConfig != nullptr) {
-        const std::string cGroupName = cGroupConfig->mCgroupName;
+    if(cGroupConfig == nullptr) {
+        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
+        return;
+    }
 
-        if(cGroupName.length() > 0) {
-            std::string controllerFilePath = getCGroupTypeResourceNodePath(resource, cGroupName);
+    const std::string cGroupName = cGroupConfig->mCgroupName;
+
+    if(cGroupName.length() > 0) {
+        std::string controllerFilePath = getCGroupTypeResourceNodePath(resource, cGroupName);
+        std::string defaultValue =
+            ResourceRegistry::getInstance()->getDefaultValue(controllerFilePath);
+
+        if(defaultValue.length() == 0) {
+            truncateFile(controllerFilePath);
+        } else {
             std::ofstream controllerFile(controllerFilePath);
 
             if(!controllerFile.is_open()) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
                 return;
             }
-            std::string defaultValue =
-                ResourceRegistry::getInstance()->getDefaultValue(controllerFilePath);
 
             controllerFile<<defaultValue<<std::endl;
 
@@ -222,8 +235,6 @@ void defaultCGroupLevelTearCb(void* context) {
             }
             controllerFile.close();
         }
-    } else {
-        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
     }
 }
 
@@ -339,6 +350,7 @@ static void setRunOnCoresExclusively(void* context) {
                 return;
             }
 
+            partitionFile<<"isolated"<<std::endl;
             partitionFile.close();
         }
     } else {
@@ -455,7 +467,10 @@ static void resetRunOnCoresExclusively(void* context) {
                 return;
             }
 
-            // controllerFile<<(*cGroupConfig->mDefaultValues)[cGroupCpuSetFilePath]<<std::endl;
+            std::string defaultValue =
+                ResourceRegistry::getInstance()->getDefaultValue(cGroupCpuSetFilePath);
+
+            controllerFile<<defaultValue<<std::endl;
 
             if(controllerFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));
@@ -471,7 +486,9 @@ static void resetRunOnCoresExclusively(void* context) {
                 return;
             }
 
-            // partitionFile<<(*cGroupConfig->mDefaultValues)[cGroupCpusetPartitionFilePath];
+            defaultValue = ResourceRegistry::getInstance()->getDefaultValue(cGroupCpusetPartitionFilePath);
+
+            partitionFile<<defaultValue<<std::endl;
 
             if(partitionFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));
