@@ -53,6 +53,7 @@ static ErrCode parseServerStartupCLIOpts(int32_t argCount, char *argStrings[]) {
                 RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/resource-tuner/tests/Configs/ResourcesConfigA.yaml")
                 RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/resource-tuner/tests/Configs/SignalsConfig.yaml")
                 RESTUNE_REGISTER_CONFIG(TARGET_CONFIG, "/etc/resource-tuner/tests/Configs/TargetConfig.yaml")
+                RESTUNE_REGISTER_CONFIG(INIT_CONFIG, "/etc/resource-tuner/tests/Configs/InitConfig.yaml")
                 break;
             case 'h':
                 std::cout<<"Help Options"<<std::endl;
