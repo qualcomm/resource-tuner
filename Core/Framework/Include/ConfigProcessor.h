@@ -48,6 +48,9 @@
 #define INIT_CONFIGS_CGROUP_NAME "Name"
 #define INIT_CONFIGS_CGROUP_IDENTIFIER "ID"
 #define INIT_CONFIGS_CGROUP_THREADED "IsThreaded"
+#define INIT_CONFIGS_CLUSTER_MAP "ClusterMap"
+#define INIT_CONFIGS_CLUSTER_MAP_CLUSTER_ID "Id"
+#define INIT_CONFIGS_CLUSTER_MAP_CLUSTER_TYPE "Type"
 
 /**
  * The Resource Config file (ResourcesConfig.yaml) must follow a specific structure.
@@ -77,7 +80,7 @@
  * @code{.yaml}
  * TargetConfig:
  *  - TargetName: QCS9100
- *    # overide physical clustermap
+ *    # overide physical cluster info
  *    ClusterInfo:
  *      - LgcId: 0
  *        PhyId: 1

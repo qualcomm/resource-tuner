@@ -3,7 +3,7 @@
 
 TargetConfig:
   - TargetName: QCS9100
-    # overide physical clustermap
+    # overide physical cluster info
     ClusterInfo:
       - LgcId: 0
         PhyId: 4

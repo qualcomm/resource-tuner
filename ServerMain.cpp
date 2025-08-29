@@ -301,11 +301,6 @@ int32_t main(int32_t argc, char *argv[]) {
         delete RequestReceiver::mRequestsThreadPool;
     }
 
-    // TBF
-    // if(Timer::mTimerThreadPool != nullptr) {
-    //     delete Timer::mTimerThreadPool;
-    // }
-
     if(childProcessID != -1) {
         kill(childProcessID, SIGKILL);
         // Wait for the Child Process to terminate

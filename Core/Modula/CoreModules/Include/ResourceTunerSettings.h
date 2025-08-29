@@ -27,8 +27,8 @@ typedef struct {
 
 typedef struct {
     std::string targetName;
-    uint8_t totalCoreCount;
-    uint8_t totalClusterCount;
+    int32_t totalCoreCount;
+    int32_t totalClusterCount;
     // Determine whether the system is in Display On or Off / Doze Mode
     // This needs to be tracked, so that only those Requests for which background Processing
     // is Enabled can be processed during Display Off / Doze.

@@ -204,7 +204,7 @@ Further, a ThreadPool component is provided to pre-allocate processing capacity.
 Resource-tuner utilises YAML files for configuration. This includes the resources, signal config files. Target can provide their own config files, which are specific to their use-case through the extension interface
 
 ## 1. Initialization Configs
-Initialisation configs are mentioned in InitConfig.yaml file. This config enables resource-tuner to setup the required settings at the time of initialisation before any request processing happens. 
+Initialisation configs are mentioned in InitConfig.yaml file. This config enables resource-tuner to setup the required settings at the time of initialisation before any request processing happens.
 
 ### Common Initialization Configs
 Common initialization configs are defined in /etc/resource-tuner/common/InitConfig.yaml
