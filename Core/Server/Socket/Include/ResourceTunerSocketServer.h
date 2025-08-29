@@ -33,7 +33,8 @@ private:
     ResourceTunerMessageReceivedCallback mResourceTunerMessageRecvCb;
 
 public:
-    ResourceTunerSocketServer(uint32_t mListeningPort,
+    ResourceTunerSocketServer(
+                        uint32_t mListeningPort,
                         ServerOnlineCheckCallback mServerOnlineCheckCb,
                         ResourceTunerMessageReceivedCallback mResourceTunerMessageRecvCb);
 

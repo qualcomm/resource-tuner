@@ -93,7 +93,4 @@ public:
 #define RESTUNE_REGISTER_CONFIG(configType, yamlFile) \
         static Extensions CONCAT(_regConfig, configType)(configType, yamlFile);
 
-#define RESTUNE_REGISTER_SIGNALS_CALLBACK(signalsInitCallback, signalsListenerCallback) \
-        static Extensions _signalsConfigInit(signalsInitCallback, signalsListenerCallback);
-
 #endif

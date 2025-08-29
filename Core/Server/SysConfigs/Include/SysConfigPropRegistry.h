@@ -9,6 +9,10 @@
 #include <memory>
 #include <shared_mutex>
 
+/**
+* @brief SysConfigPropRegistry
+* @details Stores and manages all the properties parsed from the Properties Config files.
+*/
 class SysConfigPropRegistry {
 private:
     static std::shared_ptr<SysConfigPropRegistry> sysConfigPropRegistryInstance;
@@ -20,9 +24,43 @@ private:
 public:
     ~SysConfigPropRegistry();
 
+    /**
+     * @brief Create a property with the given name (key) and value.
+     * @param propertyName Property Name or Key
+     * @param propertyValue Property Value
+     * @return: int8_t
+     *             1: if the property was successfully created
+     *             0: otherwise
+     */
     int8_t createProperty(const std::string& propertyName, const std::string& propertyValue);
+
+    /**
+     * @brief Get the Property value corresponding to the given key
+     * @param propertyName Property Name or Key
+     * @param result If the property exists, the value will be stored in this argument
+     * @return: int8_t
+     *             1: if a property with the given name was found
+     *             0: otherwise
+     */
     int8_t queryProperty(const std::string& propertyName, std::string& result);
+
+    /**
+     * @brief Modify the value of the property with the given name
+     * @param propertyName Property Name or Key
+     * @param propertyValue New Property Value
+     * @return: int8_t
+     *             1: if a property was successfully modified
+     *             0: otherwise
+     */
     int8_t modifyProperty(const std::string& propertyName, const std::string& propertyValue);
+
+    /**
+     * @brief Delete the Property with the given name (key)
+     * @param propertyName Property Name or Key
+     * @return: int8_t
+     *             1: if a property was successfully deleted
+     *             0: otherwise
+     */
     int8_t deleteProperty(const std::string& propertyName);
 
     int32_t getPropertiesCount();

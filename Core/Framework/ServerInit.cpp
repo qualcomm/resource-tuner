@@ -107,8 +107,47 @@ static ErrCode fetchMetaConfigs() {
 
 ErrCode fetchProperties() {
     // Initialize SysConfigs
+    ErrCode opStatus = RC_SUCCESS;
     SysConfigProcessor sysConfigProcessor;
-    ErrCode opStatus = sysConfigProcessor.parseSysConfigs(ResourceTunerSettings::mPropertiesFilePath);
+
+    TYPELOGV(NOTIFY_PARSING_START, "Common-Properties");
+    std::string filePath = ResourceTunerSettings::mCommonPropertiesFilePath;
+    opStatus = sysConfigProcessor.parseSysConfigs(filePath);
+
+    if(RC_IS_NOTOK(opStatus)) {
+        TYPELOGV(NOTIFY_PARSING_FAILURE, "Common-Properties");
+        return opStatus;
+    }
+    TYPELOGV(NOTIFY_PARSING_SUCCESS, "Common-Properties");
+
+    filePath = Extensions::getPropertiesConfigFilePath();
+    if(filePath.length() > 0) {
+        TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, "Properties", filePath.c_str());
+        TYPELOGV(NOTIFY_PARSING_START, "Custom-Properties");
+
+        opStatus = sysConfigProcessor.parseSysConfigs(filePath);
+        if(RC_IS_NOTOK(opStatus)) {
+            TYPELOGV(NOTIFY_PARSING_FAILURE, "Custom-Properties");
+            return opStatus;
+        }
+        TYPELOGV(NOTIFY_PARSING_SUCCESS, "Custom-Properties");
+
+    } else {
+        TYPELOGV(NOTIFY_PARSING_START, "Custom-Properties");
+        filePath = ResourceTunerSettings::mCustomPropertiesFilePath;
+        opStatus = sysConfigProcessor.parseSysConfigs(filePath);
+
+        if(RC_IS_NOTOK(opStatus)) {
+            if(opStatus == RC_FILE_NOT_FOUND) {
+                TYPELOGV(NOTIFY_PARSER_FILE_NOT_FOUND, "Custom-Properties", filePath.c_str());
+                return RC_SUCCESS;
+            }
+
+            TYPELOGV(NOTIFY_PARSING_FAILURE, "Custom-Properties");
+            return opStatus;
+        }
+        TYPELOGV(NOTIFY_PARSING_SUCCESS, "Custom-Properties");
+    }
 
     if(RC_IS_OK(opStatus)) {
         opStatus = fetchMetaConfigs();
@@ -197,32 +236,41 @@ static ErrCode fetchInitInfo() {
         }
     }
 
-    // Init Configs is optional, i.e. file InitConfig.yaml need not be provided.
+    TYPELOGV(NOTIFY_PARSING_START, "Common-Init");
+    filePath = ResourceTunerSettings::mCommonInitConfigFilePath;
+    opStatus = configProcessor.parseInitConfigs(filePath);
+
+    if(RC_IS_NOTOK(opStatus)) {
+        TYPELOGV(NOTIFY_PARSING_FAILURE, "Common-Init");
+        return opStatus;
+    }
+    TYPELOGV(NOTIFY_PARSING_SUCCESS, "Common-Init");
+
     filePath = Extensions::getInitConfigFilePath();
     if(filePath.length() > 0) {
         // Custom Target Config file has been provided by BU
         TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, "Init", filePath.c_str());
         opStatus = configProcessor.parseInitConfigs(filePath);
         if(RC_IS_NOTOK(opStatus)) {
-            TYPELOGV(NOTIFY_PARSING_FAILURE, "Init");
+            TYPELOGV(NOTIFY_PARSING_FAILURE, "Custom-Init");
             return opStatus;
         }
-        TYPELOGV(NOTIFY_PARSING_SUCCESS, "Init");
+        TYPELOGV(NOTIFY_PARSING_SUCCESS, "Custom-Init");
 
     } else {
-        TYPELOGV(NOTIFY_PARSING_START, "Init");
-        filePath = ResourceTunerSettings::mInitConfigFilePath;
+        TYPELOGV(NOTIFY_PARSING_START, "Custom-Init");
+        filePath = ResourceTunerSettings::mCustomInitConfigFilePath;
         opStatus = configProcessor.parseInitConfigs(filePath);
         if(RC_IS_NOTOK(opStatus)) {
             if(opStatus != RC_FILE_NOT_FOUND) {
-                TYPELOGV(NOTIFY_PARSING_FAILURE, "Init");
+                TYPELOGV(NOTIFY_PARSING_FAILURE, "Custom-Init");
                 return opStatus;
             } else {
-                TYPELOGV(NOTIFY_PARSER_FILE_NOT_FOUND, "Init", filePath.c_str());
+                TYPELOGV(NOTIFY_PARSER_FILE_NOT_FOUND, "Custom-Init", filePath.c_str());
                 opStatus = RC_SUCCESS;
             }
         } else {
-            TYPELOGV(NOTIFY_PARSING_SUCCESS, "Init");
+            TYPELOGV(NOTIFY_PARSING_SUCCESS, "Custom-Init");
         }
     }
 

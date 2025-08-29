@@ -19,6 +19,12 @@
 
 #include <memory>
 
+/**
+ * @brief RequestReceiver
+ * @details Handles incoming client-requests, by forwarding the request to the
+ *          appropriate module, using that module's registered callback.
+ *          Note, the callback is invoked on a separate thread (taken from the ThreadPool)
+ */
 class RequestReceiver {
 private:
     static std::shared_ptr<RequestReceiver> mRequestReceiverInstance;

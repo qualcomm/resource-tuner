@@ -10,9 +10,7 @@ int8_t SysConfigPropRegistry::createProperty(const std::string& propertyName, co
     if(propertyName.length() == 0 || propertyValue.length() == 0) {
         return false;
     }
-    if(this->mProperties.find(propertyName) != this->mProperties.end()) {
-        return false;
-    }
+
     this->mProperties[propertyName] = propertyValue;
     return true;
 }
