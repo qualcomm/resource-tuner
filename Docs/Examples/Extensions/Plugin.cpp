@@ -1,6 +1,15 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
+/**
+ * @brief Sample Usage of Resource Tuner's Extension APIs.
+ *
+ * @example Plugin.cpp
+ * This files covers examples of the following APIs:
+ * - RESTUNE_REGISTER_APPLIER_CB
+ * - RESTUNE_REGISTER_CONFIG
+ */
+
 #include "Extensions.h"
 
 void customApplyCB(void* context) {

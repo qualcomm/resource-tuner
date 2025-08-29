@@ -84,7 +84,7 @@ option(BUILD_CLI "CLI" OFF)
 
 # Resource Tuner Features
 
-<img src="design_resource_tuner.png" alt="Resource Tuner Design" width="50%"/>
+<img src="design_resource_tuner.png" alt="Resource Tuner Design" width="70%"/>
 
 Resource-tuner architecture is captured above.
 
@@ -207,15 +207,14 @@ Resource-tuner utilises YAML files for configuration. This includes the resource
 Initialisation configs are mentioned in InitConfig.yaml file. This config enables resource-tuner to setup the required settings at the time of initialisation before any request processing happens. 
 
 ### Common Initialization Configs
-Common initialization configs are defined in <base_dir>/common/InitConfig.yml, typical <base_dir> is /etc/resource-tuner but can be configured differently.
+Common initialization configs are defined in /etc/resource-tuner/common/InitConfig.yaml
 
 ### Overriding Initialization Configs
-Targets can override initialization cofigs (complements common init configs, i.e. overrides specific configs) by simply pushing its own InitConfig.yml into <base_dir>/custom/InitConfig.yml
+Targets can override initialization configs (in addition to common init configs, i.e. overrides specific configs) by simply pushing its own InitConfig.yaml into /etc/resource-tuner/custom/InitConfig.yaml
 
-### Overiding with Custom Extension File 
-RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/bin/InitConfigCustom.yaml");
+### Overiding with Custom Extension File
+RESTUNE_REGISTER_CONFIG(INIT_CONFIG, "/bin/InitConfigCustom.yaml");
 
-Right now InitConfigs.yml added below configs
 ### 1. Logical Cluster Map
 Configs of cluster map in InitConfigs->ClusterMap section
 | LgcId  |     Name   |
@@ -249,15 +248,15 @@ Configs of mpam grp map in InitConfigs->MpamGroupsInfo section
 |   2    |       "camera"    |   2  |
 
 ## 2. Resource Configs
-Tunable resources are specified via ResourcesConfig.yaml file. 
+Tunable resources are specified via ResourcesConfig.yaml file.
 
 ### Common Resource Configs
-Common resource configs are defined in <base_dir>/common/ResourceConfig.yml, typical <base_dir> is /etc/resource-tuner but can be configured differently.
+Common resource configs are defined in /etc/resource-tuner/common/ResourcesConfig.yaml.
 
 ### Overriding Resource Configs
-Targets can override resource cofigs (can fully override or selective resources) by simply pushing its own ResourceConfig.yml into <base_dir>/custom/ResourceConfig.yml
+Targets can override resource cofigs (can fully override or selective resources) by simply pushing its own ResourcesConfig.yaml into /etc/resource-tuner/custom/ResourcesConfig.yaml
 
-### Overiding with Custom Extension File 
+### Overiding with Custom Extension File
 RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/bin/targetResourceConfigCustom.yaml");
 
 Each resource is defined with the following fields:
@@ -314,20 +313,20 @@ ResourceConfigs:
 PropertiesConfig.yaml file stores various properties which are used by resource-tuner modules internally. For example, to allocate sufficient amount of memory for different types, or to determine the Pulse Monitor duration. Client can also use this as a property store to store their properties which gives it flexibility to control properties depending on the target.
 
 ### Common Properties Configs
-Common resource configs are defined in <base_dir>/common/PropertiesConfig.yml, typical <base_dir> is /etc/resource-tuner but can be configured differently.
+Common resource configs are defined in /etc/resource-tuner/common/PropertiesConfig.yaml.
 
-### Overriding Resource Configs
-Targets can override resource cofigs (can fully override or selective resources) by simply pushing its own PropertiesConfig.yml into <base_dir>/custom/PropertiesConfig.yml
+### Overriding Properties Configs
+Targets can override Properties cofigs (can fully override or selective resources) by simply pushing its own PropertiesConfig.yaml into /etc/resource-tuner/custom/PropertiesConfig.yaml
 
-### Overiding with Custom Extension File 
-RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/bin/targetPropertiesConfigCustom.yaml"); if Client have no specific extensions like custom resources or features only want to change the config then the above method (using the same file name and pushing it to custom folder) is the best method to go for.
+### Overiding with Custom Properties File
+RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/bin/targetPropertiesConfigCustom.yaml"); if Client have no specific extensions like custom resources or features only want to change the config then the above method (using the same file name and pushing it to custom folder) is the best method to go for.
 
 #### Field Descriptions
 
-| Field           | Type       | Description | Default Value  |
+| Field          | Type       | Description | Default Value  |
 |----------------|------------|-------------|----------------|
-| `Name`          | `string` (Mandatory)   | Unique name of the parameter | Not Applicable
-| `Value`          | `integer` (Mandatory)   | The value for the parameter. | Not Applicable
+| `Name`         | `string` (Mandatory)   | Unique name of the parameter | Not Applicable
+| `Value`        | `integer` (Mandatory)   | The value for the parameter. | Not Applicable
 
 
 #### Example
@@ -396,7 +395,6 @@ SignalConfigs:
 ```
 <div style="page-break-after: always;"></div>
 
-
 ## 5. (Optional) Target Configs
 The file TargetConfig.yaml defines the target configs, note this is an optional config, i.e. this
 file need not necessarily be provided. Resource-tuner can dynamically fetch system info, like target name,
@@ -408,10 +406,9 @@ overide default dynamically generated target information and use it. Also note, 
 
 | Field           | Type       | Description | Default Value |
 |----------------|------------|-------------|---------------|
-| `TargetName`          | `string` (Mandatory)   | Target Identifier | Not Applicable |
-| `ClusterInfo`          | `array` (Mandatory)   | Cluster ID to Type Mapping | Not Applicable |
-| `ClusterSpread`          | `array` (Mandatory)  |  Cluster ID to Per Cluster Core Count Mapping | Not Applicable |
-| `TotalCoreCount`          | `integer` (Mandatory)   | Total Number of Cores available. | Not Applicable |
+| `TargetName`          | `string` | Target Identifier | Not Applicable |
+| `ClusterInfo`          | `array` | Cluster ID to Type Mapping | Not Applicable |
+| `ClusterSpread`          | `array` |  Cluster ID to Per Cluster Core Count Mapping | Not Applicable |
 
 <div style="page-break-after: always;"></div>
 
@@ -419,26 +416,62 @@ overide default dynamically generated target information and use it. Also note, 
 
 ```yaml
 TargetConfig:
-  - TargetName: sun
+  - TargetName: QCS9100
     ClusterInfo:
-      - Id: 0
-        Type: big
-      - Id: 1
-        Type: little
-      - Id: 2
-        Type: prime
-      - Id: 3
-        Type: titanium
+      - LgcId: 0
+        PhyId: 4
+      - LgcId: 1
+        PhyId: 0
+      - LgcId: 2
+        PhyId: 9
+      - LgcId: 3
+        PhyId: 7
     ClusterSpread:
-      - Id: 0
+      - PhyId: 0
         NumCores: 4
-      - Id: 1
-        NumCores: 4
-      - Id: 2
-        NumCores: 4
-      - Id: 3
-        NumCores: 4
-    TotalCoreCount: 16
+      - PhyId: 4
+        NumCores: 3
+      - PhyId: 7
+        NumCores: 2
+      - PhyId: 9
+        NumCores: 1
+```
+<div style="page-break-after: always;"></div>
+
+## 6. (Optional) ExtFeatures Configs
+The file ExtFeaturesConfig.yaml defines the Extension Features, note this is an optional config, i.e. this
+file need not necessarily be provided. Use this file to specify your own custom features. Each feature is associated with it's own library and an associated list of signals. Whenever a relaySignal API request is received for any of these signals, resource-tuner will forward the request to the corresponding library.
+The library is required to implement the following 3 functions:
+- initFeature
+- tearFeature
+- relayFeature
+Refer the Examples section for more details on how to use the relaySignal API.
+
+#### Field Descriptions
+
+| Field           | Type       | Description | Default Value |
+|----------------|------------|-------------|---------------|
+| `FeatId`          | `string` | Unique Feature Identifier | Not Applicable |
+| `LibPath`         | `string` | Path to the associated library | Not Applicable |
+| `Signals`         | `array` |  List of signals to subscribe the feature to | Not Applicable |
+
+<div style="page-break-after: always;"></div>
+
+#### Example
+
+```yaml
+FeatureConfigs:
+  - FeatId: "0x00000001"
+    Name: "FEAT-1"
+    LibPath: "rlib2.so"
+    Description: "Simple Algorithmic Feature, defined by the BU"
+    Signals: ["0x00050000", "0x00050001"]
+
+  - FeatId: "0x00000002"
+    Name: "FEAT-2"
+    LibPath: "rlib1.so"
+    Description: "Simple Observer-Observable Feature, defined by the BU"
+    Subscribers: ["0x00050000", "0x00050002"]
 ```
 <div style="page-break-after: always;"></div>
 
@@ -496,7 +529,6 @@ int8_t retuneResources(int64_t handle,
 **Parameters:**
 
 - `handle` (`int64_t`): Handle of the original request, returned by the call to `tuneResources`.
-
 - `duration` (`int64_t`): New duration in milliseconds. Use `-1` for an infinite duration.
 
 **Returns:**
@@ -682,7 +714,7 @@ typedef struct {
 
 <div style="page-break-after: always;"></div>
 
-## Notes on Resource ResId
+## Notes on Resource ResCode
 
 As mentioned above, the resource code is an unsigned 32 bit integer. This section describes how this code can be constructed. Resource-tuner implements a System Independent Layer(SIL) which provides a transparent and consistent way for indexing resources. This makes it easy for the clients to identify the resource they want to provision, without needing to worry about portability issues across targets or about the order in which the resources are defined in the YAML files.
 
@@ -794,8 +826,8 @@ Specifically the extension interface provides the following capabilities:
 
 ### RESTUNE_REGISTER_APPLIER_CB
 
-Registers a custom resource handler with the system. This allows the framework to invoke a user-defined callback when a specific resource opcode is encountered. A function pointer to the callback is to be registered.
-Now, instead of the normal resource handler, this callback function will be called when a Resource Provisioning Request for this particular resource opcode arrives.
+Registers a custom resource Applier handler with the system. This allows the framework to invoke a user-defined callback when a tune request for a specific resource opcode is encountered. A function pointer to the callback is to be registered.
+Now, instead of the default resource handler (provided by resource-tuner), this callback function will be called when a Resource Provisioning Request for this particular resource opcode arrives.
 
 ### Usage Example
 ```cpp
@@ -805,6 +837,21 @@ int32_t applyCustomCpuFreqCustom(Resource* res) {
 }
 
 RESTUNE_REGISTER_APPLIER_CB(0x00010001, applyCustomCpuFreqCustom);
+```
+
+### RESTUNE_REGISTER_TEAR_CB
+
+Registers a custom resource teardown handler with the system. This allows the framework to invoke a user-defined callback when an untune request for a specific resource opcode is encountered. A function pointer to the callback is to be registered.
+Now, instead of the normal resource handler (provided by resource-tuner), this callback function will be called when a Resource Deprovisioning Request for this particular resource opcode arrives.
+
+### Usage Example
+```cpp
+int32_t resetCustomCpuFreqCustom(Resource* res) {
+    // Custom logic to clear currently applied CPU frequency
+    return 0;
+}
+
+RESTUNE_REGISTER_TEAR_CB(0x00010001, resetCustomCpuFreqCustom);
 ```
 
 ---
