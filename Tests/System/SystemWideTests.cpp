@@ -2077,6 +2077,80 @@ namespace RequestApplicationTests {
         LOG_END
     }
 
+    static void TestClusterTypeResourceTuneRequest1() {
+        LOG_START
+
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/cluster_type_resource_4_cluster_id";
+        int32_t testResourceOriginalValue = 180;
+
+        std::string value;
+        int32_t originalValue, newValue;
+
+        value = AuxRoutines::readFromFile(testResourceName);
+        originalValue = C_STOI(value);
+        assert(originalValue == testResourceOriginalValue);
+
+        SysResource* resourceList = new SysResource[1];
+        memset(&resourceList[0], 0, sizeof(SysResource));
+        resourceList[0].mResCode = 0x80ff000a;
+        resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 0);
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mResValue.value = 440;
+
+        int64_t handle = tuneResources(7000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        value = AuxRoutines::readFromFile(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == 440);
+
+        std::this_thread::sleep_for(std::chrono::seconds(10));
+
+        value = AuxRoutines::readFromFile(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == testResourceOriginalValue);
+
+        LOG_END
+    }
+
+    static void TestClusterTypeResourceTuneRequest2() {
+        LOG_START
+
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/cluster_type_resource_7_cluster_id";
+        int32_t testResourceOriginalValue = 180;
+
+        std::string value;
+        int32_t originalValue, newValue;
+
+        value = AuxRoutines::readFromFile(testResourceName);
+        originalValue = C_STOI(value);
+        assert(originalValue == testResourceOriginalValue);
+
+        SysResource* resourceList = new SysResource[1];
+        memset(&resourceList[0], 0, sizeof(SysResource));
+        resourceList[0].mResCode = 0x80ff000a;
+        resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 3);
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mResValue.value = 440;
+
+        int64_t handle = tuneResources(7000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        value = AuxRoutines::readFromFile(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == 440);
+
+        std::this_thread::sleep_for(std::chrono::seconds(10));
+
+        value = AuxRoutines::readFromFile(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == testResourceOriginalValue);
+
+        LOG_END
+    }
+
     static void RunTestGroup() {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
@@ -2096,6 +2170,8 @@ namespace RequestApplicationTests {
         RUN_TEST(TestPriorityBasedResourceAcquisition3)
         RUN_TEST(TestRequestValidRetuning)
         RUN_TEST(TestRequestInvalidRetuning1)
+        RUN_TEST(TestClusterTypeResourceTuneRequest1)
+        RUN_TEST(TestClusterTypeResourceTuneRequest2)
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
     }
@@ -3151,7 +3227,7 @@ int32_t main(int32_t argc, const char* argv[]) {
     // Tests on Real Sysfs Nodes (QLI)
     SystemSysfsNodesTests::RunTestGroup();
 
-    // // Signal Application
+    // Signal Application
     SignalApplicationTests::RunTestGroup();
 
     // Tests for CGroup Resources

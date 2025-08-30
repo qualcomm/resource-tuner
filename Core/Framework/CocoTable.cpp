@@ -20,6 +20,14 @@ CocoTable::CocoTable() {
 
     this->mCurrentlyAppliedPriority.resize(totalResources, -1);
 
+    std::vector<int32_t> clusterIDs;
+    TargetRegistry::getInstance()->getClusterIDs(clusterIDs);
+
+    for(int32_t clusterID : clusterIDs) {
+        int32_t index = this->mFlatClusterMap.size();
+        this->mFlatClusterMap[clusterID] = index;
+    }
+
     /*
         Initialize the CocoTable, the table will contain a vector corresponding to each Resource from the ResourceTable
         For the Resource if there is no level of conflict (i.e. apply type is "global"), then a vector of size 4 will be
@@ -262,7 +270,9 @@ int32_t CocoTable::getCocoTableSecondaryIndex(Resource* resource, int8_t priorit
 
     } else if(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_CLUSTER) {
         int32_t physicalCluster = resource->getClusterValue();
-        return physicalCluster * TOTAL_PRIORITIES + priority;
+        if(physicalCluster == -1) return -1;
+        int32_t index = this->mFlatClusterMap[physicalCluster];
+        return index * TOTAL_PRIORITIES + priority;
 
     } else if(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_CGROUP) {
         int32_t cGroupIdentifier = -1;

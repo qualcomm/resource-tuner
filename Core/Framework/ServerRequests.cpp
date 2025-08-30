@@ -60,7 +60,7 @@ static int8_t performPhysicalMapping(int32_t& coreValue, int32_t& clusterValue) 
 /**
  * @brief Verifies the validity of an incoming request.
  * @details This function checks the request's resources against configuration constraints,
- * permissions, and performs logical-to-physical mapping.
+ *          permissions, and performs logical-to-physical mapping.
  *
  * @param req Pointer to the Request object.
  * @return int8_t True if the request is valid, false otherwise.
@@ -135,13 +135,20 @@ static int8_t VerifyIncomingRequest(Request* req) {
         }
 
         // If ApplyType for the Resource is set to Core, then perform Logical to Physical Translation
-        if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CORE ||
-            resourceConfig->mApplyType == ResourceApplyType::APPLY_CLUSTER) {
+        if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CORE) {
             // Check for invalid Core / cluster values, these are the logical values
             int32_t coreValue = resource->getCoreValue();
             int32_t clusterValue = resource->getClusterValue();
 
-            if(coreValue <= 0 || clusterValue < 0) return false;
+            if(coreValue <= 0) {
+                TYPELOGV(VERIFIER_INVALID_LOGICAL_CORE, coreValue);
+                return false;
+            }
+
+            if(clusterValue < 0) {
+                TYPELOGV(VERIFIER_INVALID_LOGICAL_CLUSTER, clusterValue);
+                return false;
+            }
 
             // Perform logical to physical mapping here, as part of which verification can happen
             // Replace mResInfo with the Physical values here:
@@ -152,6 +159,25 @@ static int8_t VerifyIncomingRequest(Request* req) {
 
             resource->setCoreValue(coreValue);
             resource->setClusterValue(clusterValue);
+
+        } else if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CLUSTER) {
+            // Check for invalid Core / cluster values, these are the logical values
+            int32_t clusterValue = resource->getClusterValue();
+
+            if(clusterValue < 0) {
+                TYPELOGV(VERIFIER_INVALID_LOGICAL_CLUSTER, clusterValue);
+                return false;
+            }
+
+            // Perform logical to physical mapping here, as part of which verification can happen
+            // Replace mResInfo with the Physical values here:
+            int32_t physicalClusterID = TargetRegistry::getInstance()->getPhysicalClusterId(clusterValue);
+            if(physicalClusterID == -1) {
+                TYPELOGV(VERIFIER_LOGICAL_TO_PHYSICAL_MAPPING_FAILED, resource->getResCode());
+                return false;
+            }
+
+            resource->setClusterValue(physicalClusterID);
         }
     }
 

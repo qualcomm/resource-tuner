@@ -430,6 +430,20 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             Logger::log(ERROR, "RESTUNE_REQUEST_VERIFIER", funcName, std::string(buffer));
             break;
 
+        case CommonMessageTypes::VERIFIER_INVALID_LOGICAL_CORE:
+             vsnprintf(buffer, sizeof(buffer),
+                       "Invalid Logical Core value: [%d], dropping Request", args);
+
+            Logger::log(ERROR, "RESTUNE_REQUEST_VERIFIER", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::VERIFIER_INVALID_LOGICAL_CLUSTER:
+             vsnprintf(buffer, sizeof(buffer),
+                       "Invalid Logical Cluster value: [%d], dropping Request", args);
+
+            Logger::log(ERROR, "RESTUNE_REQUEST_VERIFIER", funcName, std::string(buffer));
+            break;
+
         case CommonMessageTypes::VERIFIER_REQUEST_VALIDATED:
             vsnprintf(buffer, sizeof(buffer),
                       "Request with handle: %lld, Successfully Validated.", args);
@@ -448,7 +462,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             vsnprintf(buffer, sizeof(buffer),
                       "Writing to Node: [%s], Value: [%d]", args);
 
-            Logger::log(INFO, "RESTUNE_COCI_TABLE", funcName, std::string(buffer));
+            Logger::log(INFO, "RESTUNE_COCO_TABLE", funcName, std::string(buffer));
             break;
 
         case CommonMessageTypes::RATE_LIMITER_RATE_LIMITED:

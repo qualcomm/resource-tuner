@@ -5,12 +5,12 @@ Resource tuner is configured with a default set of [Resources](../Core/Configs/R
 called the Common Resources. These resources are available at at /etc/resource-tuner/common/ResourcesConfig.yaml.
 On top of it, resource-tuner allows the addition of Custom Resources.
 To add Custom Resources, developers can follow one of the following two strategies.
-1. Add the Custom ResourcesConfig.yaml at /etc/resource-tuner/custom. Note the file name must exactly match "ResourcesConfig.yaml". As part of initialization, resource-tuner will check if this file is present, if it is it will be parsed alongside the Common Resources.
+1. Add the Custom ResourcesConfig.yaml at /etc/resource-tuner/custom. Note the file name must exactly match "ResourcesConfig.yaml". As part of initialization, resource-tuner will check if this file is present, if it is, it will be parsed alongside the Common Resources.
 
-2. The custom Resources file can also be placed in a different location other than /etc/resource-tuner/custom. This can be done through Resource Tuner's Extension Interface. For example if the file is present at /opt/custom/ResourceConfig.yaml, then the RESTUNE_REGISTER_CONFIG macro can be used as follows:
+2. The custom Resources file can also be placed in a different location other than /etc/resource-tuner/custom. This can be done through Resource Tuner's Extension Interface. For example if the file is present at /opt/custom/ResourcesConfig.yaml, then the RESTUNE_REGISTER_CONFIG macro can be used as follows:
 
 ```cpp
-RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/opt/custom/ResourceConfig.yaml")
+RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/opt/custom/ResourcesConfig.yaml")
 ```
 This will indicate to resource-tuner, that Custom Resources are present at the above specified location so that they can be parsed as part of initialization.
 
@@ -70,10 +70,12 @@ Refer: [sample code](Examples/Extensions/plugin.cpp)
 Resource tuner supports Cgroups as well, InitConfig.yaml file is used to specify the Cgroups which need to created during resource-tuner initialization.
 Developer can supply additional init configs via /etc/resource-tuner/custom/InitConfig.yaml
 ## Sample Cgroup config
-    InitConfigs:
-      - CgroupsInfo:
-        - Name: "camera-cgroup"
-          ID: 0
+```yaml
+InitConfigs:
+  - CgroupsInfo:
+    - Name: "camera-cgroup"
+      ID: 0
+```
 
 ---
 
@@ -109,4 +111,30 @@ TargetConfig:
         NumCores: 2
       - PhyId: 9
         NumCores: 1
+```
+
+# 5. How to add a new Property
+Common Properties are defined by resource-tuner in the /etc/resource-tuner/common/PropertiesConfig.yaml file, to add your own custom properties one of the following 2 strategies can be followed:
+1. Add the Custom PropertiesConfig.yaml at /etc/resource-tuner/custom. Note the file name must exactly match "PropertiesConfig.yaml". As part of initialization, resource-tuner will check if this file is present, if it is, it will be parsed alongside the Common Properties.
+
+2. The custom Properties file can also be placed in a different location other than /etc/resource-tuner/custom/. This can be done through Resource Tuner's Extension Interface. For example if the file is present at /opt/custom/PropertiesConfig.yaml, then the RESTUNE_REGISTER_CONFIG macro can be used as follows:
+
+```cpp
+RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/opt/custom/PropertiesConfig.yaml")
+```
+
+## Sample Properties config file.
+```yaml
+PropertyConfigs:
+  - Name: resource_tuner.penalty.factor
+    Value: "2.0"
+
+  - Name: resource_tuner.reward.factor
+    Value: "0.4"
+
+  - Name: resource_tuner.logging.level
+    Value: "0"
+
+  - Name: resource_tuner.logging.level.exact
+    Value: "false"
 ```
