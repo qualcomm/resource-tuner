@@ -275,7 +275,7 @@ Each resource is defined with the following fields:
 | `Permissions`   | `string` (Optional)   | Type of client allowed to Provision this Resource (`system` or `third_party`). | `third_party` |
 | `Modes`         | `array` (Optional)    | Display modes applicable (`"display_on"`, `"display_off"`, `"doze"`). | `display_on` |
 | `Policy`        | `string`(Optional)   | Concurrency policy (`"higher_is_better"`, `"lower_is_better"`, `"instant_apply"`, `"lazy_apply"`). | `lazy_apply` |
-| `ApplyType` | `string` (Optional)  | Indicates if the resource can have different values, across different cores. | `global` |
+| `ApplyType` | `string` (Optional)  | Indicates if the resource can have different values, across different cores, clusters or cgroups. | `global` |
 
 <div style="page-break-after: always;"></div>
 

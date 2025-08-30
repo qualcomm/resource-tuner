@@ -268,6 +268,26 @@ void defaultGlobalLevelTearCb(void* context) {
     }
 }
 
+static void moveProcessToCGroup(void* context) {
+    if(context == nullptr) return;
+    Resource* resource = static_cast<Resource*>(context);
+
+    if(resource->getValuesCount() != 2) return;
+
+    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
+    int32_t pid = (*resource->mResValue.values)[1];
+
+    std::string currentCGroupFilePath = "/proc/" + std::to_string(pid) + "/cgroup";
+    std::string currentCGroup = AuxRoutines::readFromFile(currentCGroupFilePath);
+
+    if(currentCGroup.length() > 4) {
+        currentCGroup = currentCGroup.substr(4);
+    }
+
+    ResourceRegistry::getInstance()->addDefaultValue(currentCGroupFilePath, currentCGroup);
+    defaultCGroupLevelApplierCb(context);
+}
+
 // Special Callbacks for some Resources
 static void setRunOnCores(void* context) {
     if(context == nullptr) return;
@@ -406,9 +426,13 @@ static void removeProcessFromCGroup(void* context) {
 
     int32_t pid = (*resource->mResValue.values)[1];
 
-    std::string parentCGroupProcsPath = "/sys/fs/cgroup/cgroup.procs";
-    std::ofstream controllerFile(parentCGroupProcsPath, std::ios::app);
+    std::string cGroupPath =
+        ResourceRegistry::getInstance()->getDefaultValue("/proc/" + std::to_string(pid) + "/cgroup");
+    if(cGroupPath.length() == 0) {
+        cGroupPath = "/sys/fs/cgroup/cgroup.procs";
+    }
 
+    std::ofstream controllerFile(cGroupPath, std::ios::app);
     if(!controllerFile.is_open()) {
         TYPELOGV(ERRNO_LOG, "open", strerror(errno));
         return;
@@ -503,6 +527,7 @@ static void resetRunOnCoresExclusively(void* context) {
     }
 }
 
+RESTUNE_REGISTER_APPLIER_CB(0x00090000, moveProcessToCGroup);
 RESTUNE_REGISTER_APPLIER_CB(0x00090002, setRunOnCores);
 RESTUNE_REGISTER_APPLIER_CB(0x00090003, setRunOnCoresExclusively);
 RESTUNE_REGISTER_APPLIER_CB(0x00090005, limitCpuTime);

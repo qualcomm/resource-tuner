@@ -36,6 +36,10 @@ void ResourceRegistry::setLifeCycleCallbacks(ResourceConfigInfo* resourceConfigI
     }
 }
 
+void ResourceRegistry::addDefaultValue(const std::string& filePath, const std::string& value) {
+    this->mDefaultValueStore[filePath] = value;
+}
+
 void ResourceRegistry::fetchAndStoreDefaults(ResourceConfigInfo* resourceConfigInfo) {
     if(resourceConfigInfo == nullptr) return;
     switch(resourceConfigInfo->mApplyType) {
@@ -45,7 +49,7 @@ void ResourceRegistry::fetchAndStoreDefaults(ResourceConfigInfo* resourceConfigI
             for(int32_t clusterID : clusterIDs) {
                 char filePath[128];
                 snprintf(filePath, sizeof(filePath), resourceConfigInfo->mResourcePath.c_str(), (int32_t)clusterID);
-                this->mDefaultValueStore[std::string(filePath)] = AuxRoutines::readFromFile(filePath);
+                this->addDefaultValue(std::string(filePath), AuxRoutines::readFromFile(filePath));
             }
             break;
         }
@@ -55,7 +59,7 @@ void ResourceRegistry::fetchAndStoreDefaults(ResourceConfigInfo* resourceConfigI
             for(std::string cGroupName : cGroupNames) {
                 char filePath[128];
                 snprintf(filePath, sizeof(filePath), resourceConfigInfo->mResourcePath.c_str(), cGroupName.c_str());
-                this->mDefaultValueStore[std::string(filePath)] = AuxRoutines::readFromFile(filePath);
+                this->addDefaultValue(std::string(filePath), AuxRoutines::readFromFile(filePath));
             }
             break;
         }
@@ -64,13 +68,13 @@ void ResourceRegistry::fetchAndStoreDefaults(ResourceConfigInfo* resourceConfigI
             for(int32_t coreID = 0; coreID < count; coreID++) {
                 char filePath[128];
                 snprintf(filePath, sizeof(filePath), resourceConfigInfo->mResourcePath.c_str(), (int32_t)coreID);
-                this->mDefaultValueStore[std::string(filePath)] = AuxRoutines::readFromFile(filePath);
+                this->addDefaultValue(std::string(filePath), AuxRoutines::readFromFile(filePath));
             }
             break;
         }
         case APPLY_GLOBAL: {
-            this->mDefaultValueStore[resourceConfigInfo->mResourcePath] =
-                AuxRoutines::readFromFile(std::string(resourceConfigInfo->mResourcePath));
+            this->addDefaultValue(resourceConfigInfo->mResourcePath,
+                                  AuxRoutines::readFromFile(resourceConfigInfo->mResourcePath));
             break;
         }
     }

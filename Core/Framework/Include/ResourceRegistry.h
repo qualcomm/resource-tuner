@@ -135,6 +135,8 @@ public:
 
     int32_t getTotalResourcesCount();
 
+    void addDefaultValue(const std::string& key, const std::string& value);
+
     std::string getDefaultValue(const std::string& fileName);
 
     // Merge the Changes provided by the BU with the existing ResourceTable.
