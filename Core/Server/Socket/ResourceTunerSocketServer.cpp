@@ -1,11 +1,12 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
-#include <sys/epoll.h>
+
 #include "ResourceTunerSocketServer.h"
 
-ResourceTunerSocketServer::ResourceTunerSocketServer(uint32_t mListeningPort,
-                                         ServerOnlineCheckCallback mServerOnlineCheckCb,
-                                         ResourceTunerMessageReceivedCallback mResourceTunerMessageRecvCb) {
+ResourceTunerSocketServer::ResourceTunerSocketServer(
+        uint32_t mListeningPort,
+        ServerOnlineCheckCallback mServerOnlineCheckCb,
+        ResourceTunerMessageReceivedCallback mResourceTunerMessageRecvCb) {
 
     this->mListeningPort = mListeningPort;
     this->mServerOnlineCheckCb = mServerOnlineCheckCb;
@@ -28,11 +29,11 @@ int32_t ResourceTunerSocketServer::ListenForClientRequests() {
     addr.sin_port = htons(this->mListeningPort);
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
-    int epoll_fd = epoll_create1(0);
+    int32_t epollFd = epoll_create1(0);
     epoll_event event{}, events[maxEvents];
     event.events = EPOLLIN;
     event.data.fd = sockFd;
-    epoll_ctl(epoll_fd, EPOLL_CTL_ADD, sockFd, &event);
+    epoll_ctl(epollFd, EPOLL_CTL_ADD, sockFd, &event);
 
     // Reuse address. Useful when the server is restarted right away. The OS takes time to clean up the socket.
     // The socket spends the longest of that cleanup state in TIME_WAIT section. This option allows the socket
@@ -59,17 +60,17 @@ int32_t ResourceTunerSocketServer::ListenForClientRequests() {
     while(this->mServerOnlineCheckCb()) {
         int32_t clientSocket = -1;
 
-        int n = epoll_wait(epoll_fd, events, maxEvents, -1);
-        for (int i = 0; i < n; ++i) {
-            if (events[i].data.fd == sockFd) {
-                    sockaddr_in client_addr{};
-                    socklen_t client_len = sizeof(client_addr);
+        int32_t n = epoll_wait(epollFd, events, maxEvents, -1);
+        for(int32_t i = 0; i < n; i++) {
+            if(events[i].data.fd == sockFd) {
+                sockaddr_in clientAddr{};
+                socklen_t clientLen = sizeof(clientAddr);
 
-                    if((clientSocket = accept(sockFd, nullptr, nullptr)) < 0) {
-                       if(errno != EAGAIN && errno != EWOULDBLOCK) {
-                            TYPELOGV(ERRNO_LOG, "accept", strerror(errno));
-                            LOGE("RESTUNE_SOCKET_SERVER", "Server Socket-Endpoint crashed");
-                            return RC_SOCKET_OP_FAILURE;
+                if((clientSocket = accept(sockFd, nullptr, nullptr)) < 0) {
+                    if(errno != EAGAIN && errno != EWOULDBLOCK) {
+                        TYPELOGV(ERRNO_LOG, "accept", strerror(errno));
+                        LOGE("RESTUNE_SOCKET_SERVER", "Server Socket-Endpoint crashed");
+                        return RC_SOCKET_OP_FAILURE;
                     }
                 }
             }

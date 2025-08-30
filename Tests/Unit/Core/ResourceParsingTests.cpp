@@ -120,7 +120,7 @@ static void TestResourceParsingResourcesDefaultValuesCheck() {
     C_ASSERT(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_GLOBAL);
 }
 
-int main() {
+int32_t main() {
     std::cout<<"Running Test Suite: [Resource Parsing Tests]\n"<<std::endl;
 
     Init();

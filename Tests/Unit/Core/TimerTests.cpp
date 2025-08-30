@@ -113,7 +113,7 @@ static void RecurringTimerPreMatureKill() {
     C_ASSERT_NEAR(dur, 500, 25); //some tolerance
 }
 
-int main() {
+int32_t main() {
     std::cout<<"Running Test Suite: [TimerTest]\n"<<std::endl;
 
     Init();

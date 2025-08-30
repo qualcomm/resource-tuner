@@ -21,7 +21,7 @@
 #include <sstream>
 
 int8_t parseResources(const std::string& input, std::vector<std::pair<uint32_t, std::vector<int32_t>>>& resourceVec) {
-    std::unordered_map<uint32_t, std::vector<int>> resourceMap;
+    std::unordered_map<uint32_t, std::vector<int32_t>> resourceMap;
     std::istringstream resourceStream(input);
     std::string token;
 

@@ -1057,7 +1057,7 @@ static void TestGetRequestFromMap() {
     Request::cleanUpRequest(request);
 }
 
-int main() {
+int32_t main() {
     std::cout<<"Running Test Suite: [RequestMap Tests]\n"<<std::endl;
 
     Init();

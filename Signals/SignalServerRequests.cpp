@@ -377,14 +377,12 @@ void SignalQueue::orderedQueueConsumerHook() {
                 );
 
                 if(featuresExist == false) {
+                    Signal::cleanUpSignal(signal);
                     continue;
                 }
 
                 for(uint32_t featureId: subscribedFeatures) {
-                    ErrCode opStatus = ExtFeaturesRegistry::getInstance()->relayToFeature(featureId);
-                    if(RC_IS_NOTOK(opStatus)) {
-                        // Log Error Here
-                    }
+                    ExtFeaturesRegistry::getInstance()->relayToFeature(featureId, signal);
                 }
 
                 Signal::cleanUpSignal(signal);
