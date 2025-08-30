@@ -49,11 +49,11 @@ static ErrCode parseServerStartupCLIOpts(int32_t argCount, char *argStrings[]) {
                 break;
             case 't':
                 ResourceTunerSettings::serverInTestMode = true;
-                RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/etc/resource-tuner/tests/Configs/PropertiesConfig.yaml")
-                RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/resource-tuner/tests/Configs/ResourcesConfigA.yaml")
-                RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/resource-tuner/tests/Configs/SignalsConfig.yaml")
-                RESTUNE_REGISTER_CONFIG(TARGET_CONFIG, "/etc/resource-tuner/tests/Configs/TargetConfig.yaml")
-                RESTUNE_REGISTER_CONFIG(INIT_CONFIG, "/etc/resource-tuner/tests/Configs/InitConfig.yaml")
+                RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, ResourceTunerSettings::mTestPropertiesFilePath)
+                RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, ResourceTunerSettings::mTestResourceFilePath)
+                RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, ResourceTunerSettings::mTestSignalFilePath)
+                RESTUNE_REGISTER_CONFIG(TARGET_CONFIG, ResourceTunerSettings::mTestTargetConfigFilePath)
+                RESTUNE_REGISTER_CONFIG(INIT_CONFIG, ResourceTunerSettings::mTestInitConfigFilePath)
                 break;
             case 'h':
                 std::cout<<"Help Options"<<std::endl;
@@ -300,11 +300,6 @@ int32_t main(int32_t argc, char *argv[]) {
     if(RequestReceiver::mRequestsThreadPool != nullptr) {
         delete RequestReceiver::mRequestsThreadPool;
     }
-
-    // TBF
-    // if(Timer::mTimerThreadPool != nullptr) {
-    //     delete Timer::mTimerThreadPool;
-    // }
 
     if(childProcessID != -1) {
         kill(childProcessID, SIGKILL);

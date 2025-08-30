@@ -23,15 +23,10 @@ ErrCode SysConfigProcessor::parseSysConfigs(const std::string& filePath) {
 }
 
 void SysConfigProcessor::parseYamlNode(const YAML::Node& item) {
-    std::string propKey;
-    std::string propVal;
+    std::string propKey = safeExtract<std::string>(item[PROP_NAME], "");
+    std::string propVal = safeExtract<std::string>(item[PROP_VALUE], "");
 
-    propKey = safeExtract<std::string>(item[PROP_NAME]);
-    propVal = safeExtract<std::string>(item[PROP_VALUE]);
-
-    if(!SysConfigPropRegistry::getInstance()->createProperty(propKey, propVal)) {
-        LOGE("RESTUNE_SYSCONFIG_PROCESSOR",
-             "Detected Malformed Property [Name = " + propKey + "] Or Prop with " \
-             "this name already exists in the Registry");
+    if(propKey.length() > 0 || propVal.length() > 0) {
+        SysConfigPropRegistry::getInstance()->createProperty(propKey, propVal);
     }
 }

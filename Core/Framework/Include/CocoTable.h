@@ -89,6 +89,7 @@ private:
     static std::mutex instanceProtectionLock;
 
     std::vector<ResourceConfigInfo*> mResourceTable;
+    std::unordered_map<int32_t, int32_t> mFlatClusterMap;
 
     /**
     * @brief The main data structure which is a 2D vector. It stores entries for each resource and each entry stores a priority vector.

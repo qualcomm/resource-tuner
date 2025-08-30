@@ -60,8 +60,8 @@ void ResourceRegistry::fetchAndStoreDefaults(ResourceConfigInfo* resourceConfigI
             break;
         }
         case APPLY_CORE: {
-            uint8_t count = ResourceTunerSettings::targetConfigs.totalCoreCount;
-            for(uint8_t coreID = 0; coreID < count; coreID++) {
+            int32_t count = ResourceTunerSettings::targetConfigs.totalCoreCount;
+            for(int32_t coreID = 0; coreID < count; coreID++) {
                 char filePath[128];
                 snprintf(filePath, sizeof(filePath), resourceConfigInfo->mResourcePath.c_str(), (int32_t)coreID);
                 this->mDefaultValueStore[std::string(filePath)] = AuxRoutines::readFromFile(filePath);

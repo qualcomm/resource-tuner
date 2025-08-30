@@ -27,8 +27,8 @@ typedef struct {
 
 typedef struct {
     std::string targetName;
-    uint8_t totalCoreCount;
-    uint8_t totalClusterCount;
+    int32_t totalCoreCount;
+    int32_t totalClusterCount;
     // Determine whether the system is in Display On or Off / Doze Mode
     // This needs to be tracked, so that only those Requests for which background Processing
     // is Enabled can be processed during Display Off / Doze.
@@ -52,15 +52,18 @@ public:
     static const std::string mCommonSignalFilePath;
     static const std::string mCustomSignalFilePath;
 
-    // Only Support Common
-    static const std::string mPropertiesFilePath;
+    // Support both versions: Common and Custom
+    static const std::string mCommonPropertiesFilePath;
+    static const std::string mCustomPropertiesFilePath;
 
     // Only Custom Config is supported for Ext Features Config
     static const std::string mCustomExtFeaturesFilePath;
     // Only Custom Config is supported for Target Config
     static const std::string mCustomTargetFilePath;
-    // Only Custom Config is supported for Target Config
-    static const std::string mInitConfigFilePath;
+
+    // Support both versions: Common and Custom
+    static const std::string mCommonInitConfigFilePath;
+    static const std::string mCustomInitConfigFilePath;
 
     static const std::string mExtensionsPluginLibPath;
 
@@ -70,6 +73,7 @@ public:
     static const std::string mTestSignalFilePath;
     static const std::string mTestPropertiesFilePath;
     static const std::string mTestTargetConfigFilePath;
+    static const std::string mTestInitConfigFilePath;
 
     static std::shared_timed_mutex mModeLock;
     static MetaConfigs metaConfigs;

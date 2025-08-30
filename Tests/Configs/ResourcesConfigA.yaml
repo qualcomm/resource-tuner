@@ -117,7 +117,7 @@ ResourceConfigs:
   - ResType: "0xff"
     ResID: "0x000a"
     Name: "TEST_RESOURCE_10_CLUSTER"
-    Path: "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/cluster_type_resource%d/cluster_id"
+    Path: "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/cluster_type_resource_%d_cluster_id"
     Supported: true
     HighThreshold: 2048
     LowThreshold: 0

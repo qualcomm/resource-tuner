@@ -61,17 +61,25 @@ public:
 
 /**
  * \def RESTUNE_REGISTER_APPLIER_CB(resCode, resourceApplierCallback)
- * \brief Register a Customer Resource Applier for a particular ResCide
- * \param optionalInfo An unsigned 32-bit integer representing the Resource ResCode.
- * \param resourceApplierCallback A function Pointer to the Custom Applier.
+ * \brief Register a Customer Resource Applier Callback for a particular ResCode
+ * \param resCode An unsigned 32-bit integer representing the Resource ResCode.
+ * \param resourceApplierCallback A function Pointer to the Custom Applier Callback.
  *
  * \note This macro must be used in the Global Scope.
  */
 #define RESTUNE_REGISTER_APPLIER_CB(resCode, resourceApplierCallback) \
         static Extensions CONCAT(_resourceApplier, resCode)(resCode, 0, resourceApplierCallback);
 
-#define RESTUNE_REGISTER_TEAR_CB(resCode, resourceApplierCallback) \
-        static Extensions CONCAT(_resourceTear, resCode)(resCode, 1, resourceApplierCallback);
+/**
+ * \def RESTUNE_REGISTER_TEAR_CB(resCode, resourceTearCallback)
+ * \brief Register a Customer Resource Teardown Callback for a particular ResCode
+ * \param resCode An unsigned 32-bit integer representing the Resource ResCode.
+ * \param resourceTearCallback A function Pointer to the Custom Teardown Callback.
+ *
+ * \note This macro must be used in the Global Scope.
+ */
+#define RESTUNE_REGISTER_TEAR_CB(resCode, resourceTearCallback) \
+        static Extensions CONCAT(_resourceTear, resCode)(resCode, 1, resourceTearCallback);
 
 /**
  * \def RESTUNE_REGISTER_CONFIG(configType, yamlFile)
@@ -84,8 +92,5 @@ public:
  */
 #define RESTUNE_REGISTER_CONFIG(configType, yamlFile) \
         static Extensions CONCAT(_regConfig, configType)(configType, yamlFile);
-
-#define RESTUNE_REGISTER_SIGNALS_CALLBACK(signalsInitCallback, signalsListenerCallback) \
-        static Extensions _signalsConfigInit(signalsInitCallback, signalsListenerCallback);
 
 #endif

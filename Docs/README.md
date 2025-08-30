@@ -10,7 +10,6 @@
 - [Resource Structure](#resource-format)
 - [Example Usage](#example-usage-of-resource-tuner-apis)
 - [Extension Interface](#extension-interface)
-- [Server CLI](#server-cli)
 - [Client CLI](#client-cli)
 
 <div style="page-break-after: always;"></div>
@@ -56,13 +55,13 @@ option(BUILD_CLI "CLI" OFF)
 # Project Structure
 
 \verbatim
-/Core/Framework  → Core Resource Provisioning Request Logic
-/Core/Modula  → Common Utilities and Components used across Resource Tuner Modules.
-/Core/Client  → Exposes the Client Facing APIs, and Defines the Client Communication Endpoint
-/Core/Server     → Defines the Server Communication Endpoint and other Common Server-Side Utils.
-/Signals    → Optional Module, exposes Signal Tuning / Relay APIs
-/Tests      → Unit and System Wide Tests
-/Docs       → Documentation
+/Core/Framework → Core Resource Provisioning Request Logic
+/Core/Modula → Common Utilities and Components used across Resource Tuner Modules.
+/Core/Client → Exposes the Client Facing APIs, and Defines the Client Communication Endpoint
+/Core/Server → Defines the Server Communication Endpoint and other Common Server-Side Utils.
+/Signals → Optional Module, exposes Signal Tuning / Relay APIs
+/Tests → Unit and System Wide Tests
+/Docs → Documentation
 \endverbatim
 
 ---
@@ -85,7 +84,7 @@ option(BUILD_CLI "CLI" OFF)
 
 # Resource Tuner Features
 
-<img src="design_resource_tuner.png" alt="Resource Tuner Design" width="50%"/>
+<img src="design_resource_tuner.png" alt="Resource Tuner Design" width="70%"/>
 
 Resource-tuner architecture is captured above.
 
@@ -176,7 +175,7 @@ below table present in InitConfigs->ClusterMap section
 |   3    |    "prime" |
 
 resource-tuner reads machine topology and prepares logical to physical table dynamically in the init phase, similar to below one
-| LgcId  |  PhyId | 
+| LgcId  |  PhyId  | 
 |--------|---------|
 |   0    |     0   |
 |   1    |     1   |
@@ -205,18 +204,17 @@ Further, a ThreadPool component is provided to pre-allocate processing capacity.
 Resource-tuner utilises YAML files for configuration. This includes the resources, signal config files. Target can provide their own config files, which are specific to their use-case through the extension interface
 
 ## 1. Initialization Configs
-Initialisation configs are mentioned in InitConfig.yaml file. This config enables resource-tuner to setup the required settings at the time of initialisation before any request processing happens. 
+Initialisation configs are mentioned in InitConfig.yaml file. This config enables resource-tuner to setup the required settings at the time of initialisation before any request processing happens.
 
 ### Common Initialization Configs
-Common initialization configs are defined in <base_dir>/common/InitConfig.yml, typical <base_dir> is /etc/resource-tuner but can be configured differently.
+Common initialization configs are defined in /etc/resource-tuner/common/InitConfig.yaml
 
 ### Overriding Initialization Configs
-Targets can override initialization cofigs (complements common init configs, i.e. overrides specific configs) by simply pushing its own InitConfig.yml into <base_dir>/custom/InitConfig.yml
+Targets can override initialization configs (in addition to common init configs, i.e. overrides specific configs) by simply pushing its own InitConfig.yaml into /etc/resource-tuner/custom/InitConfig.yaml
 
-### Overiding with Custom Extension File 
-RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/bin/InitConfigCustom.yaml");
+### Overiding with Custom Extension File
+RESTUNE_REGISTER_CONFIG(INIT_CONFIG, "/bin/InitConfigCustom.yaml");
 
-Right now InitConfigs.yml added below configs
 ### 1. Logical Cluster Map
 Configs of cluster map in InitConfigs->ClusterMap section
 | LgcId  |     Name   |
@@ -250,15 +248,15 @@ Configs of mpam grp map in InitConfigs->MpamGroupsInfo section
 |   2    |       "camera"    |   2  |
 
 ## 2. Resource Configs
-Tunable resources are specified via ResourcesConfig.yaml file. 
+Tunable resources are specified via ResourcesConfig.yaml file.
 
 ### Common Resource Configs
-Common resource configs are defined in <base_dir>/common/ResourceConfig.yml, typical <base_dir> is /etc/resource-tuner but can be configured differently.
+Common resource configs are defined in /etc/resource-tuner/common/ResourcesConfig.yaml.
 
 ### Overriding Resource Configs
-Targets can override resource cofigs (can fully override or selective resources) by simply pushing its own ResourceConfig.yml into <base_dir>/custom/ResourceConfig.yml
+Targets can override resource cofigs (can fully override or selective resources) by simply pushing its own ResourcesConfig.yaml into /etc/resource-tuner/custom/ResourcesConfig.yaml
 
-### Overiding with Custom Extension File 
+### Overiding with Custom Extension File
 RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/bin/targetResourceConfigCustom.yaml");
 
 Each resource is defined with the following fields:
@@ -270,7 +268,7 @@ Each resource is defined with the following fields:
 | `ResID`        | `string` (Mandatory)   | 16-bit Resource Identifier, unique within the Resource Type. | Not Applicable |
 | `ResType`       | `string` (Mandatory)  | 8-bit Type of the Resource, for example: cpu / dcvs | Not Applicable |
 | `Name`          | `string` (Optional)   | Descriptive name | `Empty String` |
-| `Path`          | `string` (Optional)   | Path to the system sysfs node. | `Empty String` |
+| `Path`          | `string` (Optional)   | Full resource path of sysfs or procfs file path (if applicable). | `Empty String` |
 | `Supported`     | `boolean` (Optional)  | Indicates if the Resource is Eligible for Provisioning. | `False` |
 | `HighThreshold` | `integer (int32_t)` (Mandatory)   | Upper threshold value for the resource. | Not Applicable |
 | `LowThreshold`  | `integer (int32_t)` (Mandatory)   | Lower threshold value for the resource. | Not Applicable |
@@ -315,20 +313,20 @@ ResourceConfigs:
 PropertiesConfig.yaml file stores various properties which are used by resource-tuner modules internally. For example, to allocate sufficient amount of memory for different types, or to determine the Pulse Monitor duration. Client can also use this as a property store to store their properties which gives it flexibility to control properties depending on the target.
 
 ### Common Properties Configs
-Common resource configs are defined in <base_dir>/common/PropertiesConfig.yml, typical <base_dir> is /etc/resource-tuner but can be configured differently.
+Common resource configs are defined in /etc/resource-tuner/common/PropertiesConfig.yaml.
 
-### Overriding Resource Configs
-Targets can override resource cofigs (can fully override or selective resources) by simply pushing its own PropertiesConfig.yml into <base_dir>/custom/PropertiesConfig.yml
+### Overriding Properties Configs
+Targets can override Properties cofigs (can fully override or selective resources) by simply pushing its own PropertiesConfig.yaml into /etc/resource-tuner/custom/PropertiesConfig.yaml
 
-### Overiding with Custom Extension File 
-RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/bin/targetPropertiesConfigCustom.yaml"); if Client have no specific extensions like custom resources or features only want to change the config then the above method (using the same file name and pushing it to custom folder) is the best method to go for.
+### Overiding with Custom Properties File
+RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/bin/targetPropertiesConfigCustom.yaml"); if Client have no specific extensions like custom resources or features only want to change the config then the above method (using the same file name and pushing it to custom folder) is the best method to go for.
 
 #### Field Descriptions
 
-| Field           | Type       | Description | Default Value  |
+| Field          | Type       | Description | Default Value  |
 |----------------|------------|-------------|----------------|
-| `Name`          | `string` (Mandatory)   | Unique name of the parameter | Not Applicable
-| `Value`          | `integer` (Mandatory)   | The value for the parameter. | Not Applicable
+| `Name`         | `string` (Mandatory)   | Unique name of the parameter | Not Applicable
+| `Value`        | `integer` (Mandatory)   | The value for the parameter. | Not Applicable
 
 
 #### Example
@@ -397,7 +395,6 @@ SignalConfigs:
 ```
 <div style="page-break-after: always;"></div>
 
-
 ## 5. (Optional) Target Configs
 The file TargetConfig.yaml defines the target configs, note this is an optional config, i.e. this
 file need not necessarily be provided. Resource-tuner can dynamically fetch system info, like target name,
@@ -409,10 +406,9 @@ overide default dynamically generated target information and use it. Also note, 
 
 | Field           | Type       | Description | Default Value |
 |----------------|------------|-------------|---------------|
-| `TargetName`          | `string` (Mandatory)   | Target Identifier | Not Applicable |
-| `ClusterInfo`          | `array` (Mandatory)   | Cluster ID to Type Mapping | Not Applicable |
-| `ClusterSpread`          | `array` (Mandatory)  |  Cluster ID to Per Cluster Core Count Mapping | Not Applicable |
-| `TotalCoreCount`          | `integer` (Mandatory)   | Total Number of Cores available. | Not Applicable |
+| `TargetName`          | `string` | Target Identifier | Not Applicable |
+| `ClusterInfo`          | `array` | Cluster ID to Type Mapping | Not Applicable |
+| `ClusterSpread`          | `array` |  Cluster ID to Per Cluster Core Count Mapping | Not Applicable |
 
 <div style="page-break-after: always;"></div>
 
@@ -420,26 +416,62 @@ overide default dynamically generated target information and use it. Also note, 
 
 ```yaml
 TargetConfig:
-  - TargetName: sun
+  - TargetName: QCS9100
     ClusterInfo:
-      - Id: 0
-        Type: big
-      - Id: 1
-        Type: little
-      - Id: 2
-        Type: prime
-      - Id: 3
-        Type: titanium
+      - LgcId: 0
+        PhyId: 4
+      - LgcId: 1
+        PhyId: 0
+      - LgcId: 2
+        PhyId: 9
+      - LgcId: 3
+        PhyId: 7
     ClusterSpread:
-      - Id: 0
+      - PhyId: 0
         NumCores: 4
-      - Id: 1
-        NumCores: 4
-      - Id: 2
-        NumCores: 4
-      - Id: 3
-        NumCores: 4
-    TotalCoreCount: 16
+      - PhyId: 4
+        NumCores: 3
+      - PhyId: 7
+        NumCores: 2
+      - PhyId: 9
+        NumCores: 1
+```
+<div style="page-break-after: always;"></div>
+
+## 6. (Optional) ExtFeatures Configs
+The file ExtFeaturesConfig.yaml defines the Extension Features, note this is an optional config, i.e. this
+file need not necessarily be provided. Use this file to specify your own custom features. Each feature is associated with it's own library and an associated list of signals. Whenever a relaySignal API request is received for any of these signals, resource-tuner will forward the request to the corresponding library.
+The library is required to implement the following 3 functions:
+- initFeature
+- tearFeature
+- relayFeature
+Refer the Examples section for more details on how to use the relaySignal API.
+
+#### Field Descriptions
+
+| Field           | Type       | Description | Default Value |
+|----------------|------------|-------------|---------------|
+| `FeatId`          | `string` | Unique Feature Identifier | Not Applicable |
+| `LibPath`         | `string` | Path to the associated library | Not Applicable |
+| `Signals`         | `array` |  List of signals to subscribe the feature to | Not Applicable |
+
+<div style="page-break-after: always;"></div>
+
+#### Example
+
+```yaml
+FeatureConfigs:
+  - FeatId: "0x00000001"
+    Name: "FEAT-1"
+    LibPath: "rlib2.so"
+    Description: "Simple Algorithmic Feature, defined by the BU"
+    Signals: ["0x00050000", "0x00050001"]
+
+  - FeatId: "0x00000002"
+    Name: "FEAT-2"
+    LibPath: "rlib1.so"
+    Description: "Simple Observer-Observable Feature, defined by the BU"
+    Subscribers: ["0x00050000", "0x00050002"]
 ```
 <div style="page-break-after: always;"></div>
 
@@ -456,20 +488,24 @@ Issues a resource provisioning (or tuning) request for a finite or infinite dura
 **Function Signature:**
 ```cpp
 int64_t tuneResources(int64_t duration,
-                      int32_t prio,
+                      int32_t prop,
                       int32_t numRes,
-                      std::vector<Resource*>* res);
+                      SysResource* resourceList);
+
 ```
 
 **Parameters:**
 
 - `duration` (`int64_t`): Duration in milliseconds for which the Resource(s) should be Provisioned. Use `-1` for an infinite duration.
 
-- `prio` (`int32_t`): Priority level of the request.
+- `properties` (`int32_t`): Properties of the Request.
+                            - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
+                            - The Next 8 bits [17 - 24] represent a Boolean Flag, which indicates
+                              if the Request should be processed in the background (in case of Display Off or Doze Mode).
 
 - `numRes` (`int32_t`): Number of resources to be tuned as part of the Request.
 
-- `res` (`std::vector<Resource*>*`): Pointer to a list of resources to be provisioned. Details about the resource format are provided below (Refer section "Resource Format").
+- `resourceList` (`SysResource*`): List of Resources to be provisioned as part of the Request.
 
 **Returns:**
 `int64_t`
@@ -493,7 +529,6 @@ int8_t retuneResources(int64_t handle,
 **Parameters:**
 
 - `handle` (`int64_t`): Handle of the original request, returned by the call to `tuneResources`.
-
 - `duration` (`int64_t`): New duration in milliseconds. Use `-1` for an infinite duration.
 
 **Returns:**
@@ -552,31 +587,100 @@ int8_t getProp(const char* prop,
 - `0` If the Property was found in the store, and successfully fetched
 - `-1` otherwise.
 
-
+---
 <div style="page-break-after: always;"></div>
 
-## setprop
+## tuneSignal
 
 **Description:**
-Modifies an already existing property in the Config Store.
+Tune the signal with the given ID.
 
 **Function Signature:**
 ```cpp
-int8_t setprop(const char* prop,
-               const char* value);
+int64_t tuneSignal(uint32_t signalID,
+                   int64_t duration,
+                   int32_t properties,
+                   const char* appName,
+                   const char* scenario,
+                   int32_t numArgs,
+                   uint32_t* list);
 ```
 
 **Parameters:**
 
-- `prop` (`const char*`): Name of the property to be fetched.
-- `value` (`const char*`): A buffer holding the new the property value.
+- `signalID` (`int64_t`): ID of the Signal to be Tuned.
+- `duration` (`int64_t`): Duration (in milliseconds) to provision the Resources for. A value of -1 denotes infinite duration.
+- `properties` (`int32_t`): Properties of the Request.
+                            - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
+                            - The Next 8 bits [17 - 24] represent a Boolean Flag, which indicates
+                              if the Request should be processed in the background (in case of Display Off or Doze Mode).
+- `appName` (`const char*`): Name of the Application that is issuing the Request
+- `scenario` (`const char*`): Name of the Scenario that is issuing the Request
+- `numArgs` (`int32_t`): Number of Additional Arguments to be passed as part of the Request
+- `numArgs` (`uint32_t*`): List of Additional Arguments to be passed as part of the Request
+
+**Returns:**
+`int64_t`
+- A Positive Unique Handle to identify the issued Request. The handle is used for freeing the Provisioned signal later.
+- `-1`: If the Request could not be sent to the server.
+
+---
+<div style="page-break-after: always;"></div>
+
+## untuneSignal
+
+**Description:**
+Release (or free) the signal with the given handle.
+
+**Function Signature:**
+```cpp
+int8_t untuneSignal(int64_t handle);
+```
+
+**Parameters:**
+
+- `handle` (`int64_t`): Request Handle, returned by the tuneSignal API call.
 
 **Returns:**
 `int8_t`
-- `0` If the Property with the specified name was found in the store, and was updated successfully.
-- `-1` otherwise.
+- `0`: If the Request was successfully sent to the server.
+- `-1`: Otherwise
 
+---
+<div style="page-break-after: always;"></div>
 
+## relaySignal
+
+**Description:**
+Tune the signal with the given ID.
+
+**Function Signature:**
+```cpp
+int64_t relaySignal(uint32_t signalID,
+                    int64_t duration,
+                    int32_t properties,
+                    const char* appName,
+                    const char* scenario,
+                    int32_t numArgs,
+                    uint32_t* list);
+```
+
+**Parameters:**
+
+- `signalID` (`int64_t`): ID of the Signal to be Tuned.
+- `duration` (`int64_t`): Duration (in milliseconds)
+- `properties` (`int32_t`): Properties of the Request.
+- `appName` (`const char*`): Name of the Application that is issuing the Request
+- `scenario` (`const char*`): Name of the Scenario that is issuing the Request
+- `numArgs` (`int32_t`): Number of Additional Arguments to be passed as part of the Request
+- `numArgs` (`uint32_t*`): List of Additional Arguments to be passed as part of the Request
+
+**Returns:**
+`int8_t`
+- `0`: If the Request was successfully sent to the server.
+- `-1`: Otherwise
+
+---
 <div style="page-break-after: always;"></div>
 
 # Resource Format
@@ -584,34 +688,33 @@ int8_t setprop(const char* prop,
 As part of the tuneResources APIs, the resources (which need to be provisioned) are specified by using
 a List of `Resource` structures. The format of the `Resource` structure is as follows:
 
-```c
-typedef struct Resource {
-    uint32_t ResId;
-    uint32_t ResInfo;
-    uint32_t OptionalInfo;
-    uint16_t NumValues;
+```cpp
+typedef struct {
+    uint32_t mResCode;
+    int32_t mResInfo;
+    int32_t mOptionalInfo;
+    int32_t mNumValues;
+
     union {
-        int32_t Value;
-        int32_t *Values;
-    };
-} Resource;
+        int32_t value;
+        int32_t* values;
+    } mResValue;
+} SysResource;
 ```
 
----
+**mResCode**: An unsigned 32-bit unique identifier for the resource. It encodes essential information that is useful in abstracting away the system specific details.
 
-**ResId**: An unsigned 32-bit unique identifier for the resource. It encodes essential information that is useful in abstracting away the system specific details.
+**mResInfo**: Encodes operation-specific information such as the Logical cluster and Logical core ID, and MPAM part ID.
 
-**ResInfo**: Encodes operation-specific information such as the Logical cluster and core IDs, and MPAM part ID.
+**mOptionalInfo**: Additional optional metadata, useful for custom or extended resource configurations.
 
-**OptionalInfo**: Additional optional metadata, useful for custom or extended resource configurations.
-
-**NumValues**: Number of values associated with the resource. If multiple values are needed, this must be set accordingly.
+**mNumValues**: Number of values associated with the resource. If multiple values are needed, this must be set accordingly.
 
 **Value / Values**: It is a single value when the resource requires a single value or a pointer to an array of values for multi-value configurations.
 
 <div style="page-break-after: always;"></div>
 
-## Notes on Resource ResId
+## Notes on Resource ResCode
 
 As mentioned above, the resource code is an unsigned 32 bit integer. This section describes how this code can be constructed. Resource-tuner implements a System Independent Layer(SIL) which provides a transparent and consistent way for indexing resources. This makes it easy for the clients to identify the resource they want to provision, without needing to worry about portability issues across targets or about the order in which the resources are defined in the YAML files.
 
@@ -638,7 +741,7 @@ Examples:
 |    NPU         |    `6`   | |
 |    MEMORY      |    `7`   | |
 |    MPAM        |    `8`   | |
-|    MISC        |    `9`   | |
+| Cgroup         |    `9`   | |
 
 ---
 
@@ -688,7 +791,7 @@ void sendRequest() {
     // Let's say we stored the handle returned by the tuneResources API in
     // a variable called "handle". Then the retuneResources API can be simply called like:
     if(retuneResources(20000, handle) < 0) {
-    std::cerr<<"Failed to Send retune request to Resource Tuner Server"<<std::endl;
+        std::cerr<<"Failed to Send retune request to Resource Tuner Server"<<std::endl;
     }
 }
 ```
@@ -702,7 +805,7 @@ The below example demonstrates the use of the untuneResources API for untuning a
 void sendRequest() {
     // Withdraw a Previously issued tuning request
     if(untuneResources(handle) == -1) {
-    std::cerr<<"Failed to Send untune request to Resource Tuner Server"<<std::endl;
+        std::cerr<<"Failed to Send untune request to Resource Tuner Server"<<std::endl;
     }
 }
 ```
@@ -721,10 +824,10 @@ Specifically the extension interface provides the following capabilities:
 
 ## Extension APIs
 
-### `RESTUNE_REGISTER_APPLIER_CB`
+### RESTUNE_REGISTER_APPLIER_CB
 
-Registers a custom resource handler with the system. This allows the framework to invoke a user-defined callback when a specific resource opcode is encountered. A function pointer to the callback is to be registered.
-Now, instead of the normal resource handler, this callback function will be called when a Resource Provisioning Request for this particular resource opcode arrives.
+Registers a custom resource Applier handler with the system. This allows the framework to invoke a user-defined callback when a tune request for a specific resource opcode is encountered. A function pointer to the callback is to be registered.
+Now, instead of the default resource handler (provided by resource-tuner), this callback function will be called when a Resource Provisioning Request for this particular resource opcode arrives.
 
 ### Usage Example
 ```cpp
@@ -736,9 +839,24 @@ int32_t applyCustomCpuFreqCustom(Resource* res) {
 RESTUNE_REGISTER_APPLIER_CB(0x00010001, applyCustomCpuFreqCustom);
 ```
 
+### RESTUNE_REGISTER_TEAR_CB
+
+Registers a custom resource teardown handler with the system. This allows the framework to invoke a user-defined callback when an untune request for a specific resource opcode is encountered. A function pointer to the callback is to be registered.
+Now, instead of the normal resource handler (provided by resource-tuner), this callback function will be called when a Resource Deprovisioning Request for this particular resource opcode arrives.
+
+### Usage Example
+```cpp
+int32_t resetCustomCpuFreqCustom(Resource* res) {
+    // Custom logic to clear currently applied CPU frequency
+    return 0;
+}
+
+RESTUNE_REGISTER_TEAR_CB(0x00010001, resetCustomCpuFreqCustom);
+```
+
 ---
 
-### `RESTUNE_REGISTER_CONFIG`
+### RESTUNE_REGISTER_CONFIG
 
 Registers a custom configuration YAML file. This enables target chipset to provide their own config files, i.e. allowing them to provide their own custom resources for example.
 
@@ -777,6 +895,10 @@ Where:
 Example:
 ```bash
 ./resource_tuner_cli --tune --duration 5000 --priority 0 --num 1 --res 65536:700
+
+./resource_tuner_cli --tune --duration 4400 --priority 1 --num 2 --res 0x80030000:700,0x80040001:155667
+
+./resource_tuner_cli --tune --duration 9500 --priority 0 --num 1 --res "0x00090002:0|0|1|3|5"
 ```
 
 ### 2. Send an Untune Request
@@ -817,9 +939,6 @@ Example:
 ./resource_tuner_cli --getProp --key "resource_tuner.logging.level"
 ```
 
-### 5. Send a setprop Request
-
----
 <div style="page-break-after: always;"></div>
 
 # Contact
