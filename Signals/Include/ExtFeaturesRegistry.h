@@ -11,6 +11,7 @@
 
 #include "SignalExtFeatureMapper.h"
 #include "Utils.h"
+#include "Signal.h"
 #include "Logger.h"
 
 #define INITIALIZE_FEATURE_ROUTINE "initFeature"
@@ -25,6 +26,7 @@ typedef struct {
 } ExtFeatureInfo;
 
 typedef void (*ExtFeature)(void);
+typedef void (*RelayFeature)(uint32_t, const std::string&, const std::string&, int32_t, std::vector<uint32_t>*);
 
 class ExtFeaturesRegistry {
 private:
@@ -53,7 +55,7 @@ public:
 
     void teardownFeatures();
 
-    ErrCode relayToFeature(uint32_t featureId);
+    ErrCode relayToFeature(uint32_t featureId, Signal* signal);
 
     static std::shared_ptr<ExtFeaturesRegistry> getInstance() {
         if(extFeaturesRegistryInstance == nullptr) {

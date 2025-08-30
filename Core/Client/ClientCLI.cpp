@@ -20,25 +20,38 @@
 #include <vector>
 #include <sstream>
 
-int8_t parseResources(const std::string& input, std::vector<std::pair<uint32_t, std::vector<int32_t>>>& resourceVec) {
-    std::unordered_map<uint32_t, std::vector<int>> resourceMap;
+int8_t parseResources(const std::string& input,
+                      std::vector<std::pair<uint32_t, std::pair<int32_t, std::vector<int32_t>>>>& resourceVec) {
+    std::unordered_map<uint32_t, std::pair<int32_t, std::vector<int32_t>>> resourceMap;
     std::istringstream resourceStream(input);
     std::string token;
 
-    while(std::getline(resourceStream, token, ',')) {
+    while(std::getline(resourceStream, token, ';')) {
+        std::string resInfo = "";
         size_t colonPos = token.find(':');
-        if (colonPos == std::string::npos) {
+        if(colonPos == std::string::npos) {
             return false;
         }
 
         std::string opCode = token.substr(0, colonPos);
         std::string valuesStr = token.substr(colonPos + 1);
 
+        size_t sepPos = opCode.find('#');
+        if(sepPos != std::string::npos) {
+            resInfo = opCode.substr(sepPos + 1);
+            opCode = opCode.substr(0, sepPos);
+        }
+
+        if(resInfo.length() > 0) {
+            resourceMap[(uint32_t)stol(opCode, nullptr, 0)].first = (int32_t)stoi(resInfo, nullptr, 0);
+        }
+
         std::istringstream valuesStream(valuesStr);
         std::string value;
-        while (std::getline(valuesStream, value, '|')) {
+
+        while(std::getline(valuesStream, value, ',')) {
             try {
-                resourceMap[(uint32_t)stol(opCode, nullptr, 0)].push_back(std::stoi(value));
+                resourceMap[(uint32_t)stol(opCode, nullptr, 0)].second.push_back(std::stoi(value));
             } catch (const std::invalid_argument&) {
                 return false;
             } catch (const std::out_of_range&) {
@@ -47,15 +60,15 @@ int8_t parseResources(const std::string& input, std::vector<std::pair<uint32_t, 
         }
     }
 
-    for(std::pair<uint32_t, std::vector<int32_t>> entry: resourceMap) {
-        resourceVec.push_back({entry.first, entry.second});
+    for(std::pair<uint32_t, std::pair<int32_t, std::vector<int32_t>>> entry: resourceMap) {
+        resourceVec.push_back({entry.first, {entry.second.first, entry.second.second}});
     }
 
     return true;
 }
 
 void sendTuneRequest(int64_t duration, int32_t priority, int32_t count, const std::string& resourceInfo) {
-    std::vector<std::pair<uint32_t, std::vector<int32_t>>> resourceVec;
+    std::vector<std::pair<uint32_t, std::pair<int32_t, std::vector<int32_t>>>> resourceVec;
     if(parseResources(resourceInfo, resourceVec) == -1) {
         std::cout<<"Failed to parse Resource List"<<std::endl;
         return;
@@ -64,14 +77,16 @@ void sendTuneRequest(int64_t duration, int32_t priority, int32_t count, const st
     SysResource* resourceList = new SysResource[resourceVec.size()];
 
     for(int32_t i = 0; i < resourceVec.size(); i++) {
+        memset(&resourceList[i], 0, sizeof(SysResource));
         resourceList[i].mResCode = resourceVec[i].first;
-        resourceList[i].mNumValues = resourceVec[i].second.size();
+        resourceList[i].mResInfo = resourceVec[i].second.first;
+        resourceList[i].mNumValues = resourceVec[i].second.second.size();
         if(resourceList[i].mNumValues == 1) {
-            resourceList[i].mResValue.value = resourceVec[i].second[0];
+            resourceList[i].mResValue.value = resourceVec[i].second.second[0];
         } else {
             resourceList[i].mResValue.values = new int32_t[resourceList[i].mNumValues];
             for(int32_t k = 0; k < resourceList[i].mNumValues; k++) {
-                resourceList[i].mResValue.values[k] = resourceVec[i].second[k];
+                resourceList[i].mResValue.values[k] = resourceVec[i].second.second[k];
             }
         }
     }
@@ -79,7 +94,8 @@ void sendTuneRequest(int64_t duration, int32_t priority, int32_t count, const st
     // Log the resources
     for(int32_t idx = 0; idx < count; idx++) {
         std::cout<<"Printing Resource at index = "<<idx<<std::endl;
-        std::cout<<"Opcode for this Resource = "<<resourceList[idx].mResCode<<std::endl;
+        std::cout<<"ResCode for this Resource = "<<resourceList[idx].mResCode<<std::endl;
+        std::cout<<"ResInfo for this Resource = "<<resourceList[idx].mResInfo<<std::endl;
         std::cout<<"Number of Values for this Resource = "<<resourceList[idx].mNumValues<<std::endl;
 
         std::cout<<"Printing values"<<std::endl;
@@ -323,7 +339,8 @@ int32_t main(int32_t argc, char* argv[]) {
             if(duration == 0 || duration < -1 || numResources <= 0 || priority == -1 ||
                resources == nullptr) {
                 std::cout<<"Invalid Params for Tune Request"<<std::endl;
-                std::cout<<"Usage: --tune --duration <duration> --priority <priority> --num <numRes> -- res <resCode>:<value>,<resCode>:<value>"<<std::endl;
+                std::cout<<"Usage: --tune --duration <duration> --priority <priority> --num <numRes> --res \"<resCode[#resInfo]>:<value(s)>;<resCode[#resInfo]>:<value(s)>\""<<std::endl;
+                std::cout<<"Example: --tune --duration 5000 --priority 0 --num 1 --res \"0x0005a0d1:897\""<<std::endl;
                 break;
             }
             if(resources != nullptr) {

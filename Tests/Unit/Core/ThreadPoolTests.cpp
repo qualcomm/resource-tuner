@@ -293,7 +293,7 @@ static void TestThreadPoolEnqueueStatus2_2() {
 // }
 
 
-int main() {
+int32_t main() {
 	std::cout<<"Running Test Suite: [ThreadPool Tests]\n"<<std::endl;
 
     RUN_TEST(TestThreadPoolTaskPickup1);

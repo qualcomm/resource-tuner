@@ -220,7 +220,7 @@ static void TestSignalParsingSignalsMerged5() {
     C_ASSERT(resource2->getResInfo() == 0);
 }
 
-int main() {
+int32_t main() {
     std::cout<<"Running Test Suite: [Signal Parsing Tests]\n"<<std::endl;
 
     Init();

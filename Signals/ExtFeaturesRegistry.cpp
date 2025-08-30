@@ -114,7 +114,7 @@ void ExtFeaturesRegistry::teardownFeatures() {
     }
 }
 
-ErrCode ExtFeaturesRegistry::relayToFeature(uint32_t featureId) {
+ErrCode ExtFeaturesRegistry::relayToFeature(uint32_t featureId, Signal* signal) {
     ExtFeatureInfo* extFeatureInfo = this->getExtFeatureConfigById(featureId);
     if(extFeatureInfo == nullptr) {
         return RC_INVALID_VALUE;
@@ -123,9 +123,13 @@ ErrCode ExtFeaturesRegistry::relayToFeature(uint32_t featureId) {
     void* handle = openLib(extFeatureInfo->mFeatureLib);
 
     if(handle != nullptr) {
-        ExtFeature relayCallback = (ExtFeature) dlsym(handle, RELAY_FEATURE_ROUTINE);
+        RelayFeature relayCallback = (RelayFeature) dlsym(handle, RELAY_FEATURE_ROUTINE);
         if(relayCallback != nullptr) {
-            relayCallback();
+            relayCallback(signal->getSignalID(),
+                          signal->getAppName(),
+                          signal->getScenario(),
+                          signal->getNumArgs(),
+                          signal->getListArgs());
         } else {
             TYPELOGV(EXT_FEATURE_ROUTINE_NOT_DEFINED,
                      RELAY_FEATURE_ROUTINE,

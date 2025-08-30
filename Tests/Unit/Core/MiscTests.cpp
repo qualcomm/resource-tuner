@@ -228,7 +228,7 @@ static void TestSysConfigSerializingAndDeserializing() {
     } catch(const std::exception& e) {}
 }
 
-int main() {
+int32_t main() {
     std::cout<<"Running Test Suite: [Misc Tests]\n"<<std::endl;
 
     RUN_TEST(TestResourceStructCoreClusterSettingAndExtraction);

@@ -17,7 +17,11 @@ extern "C" void tearFeature() {
     // Use this function for cleanup
 }
 
-extern "C" void relayFeature() {
+extern "C" void relayFeature(uint32_t signalCode,
+                             std::string& mAppName,
+                             std::string& mScenario,
+                             int32_t mNumArgs,
+                             std::vector<uint32_t>* mListArgs) {
     // This function will be called when a relaySignal request is called for any Signal
     // which is subscribed to this feature.
     // For example:

@@ -67,14 +67,14 @@ void defaultClusterLevelApplierCb(void* context) {
     // Get the Cluster ID
     int32_t clusterID = resource->getClusterValue();
     std::string resourceNodePath = getClusterTypeResourceNodePath(resource, clusterID);
-    std::ofstream resourceFileStream(resourceNodePath);
 
+    TYPELOGV(NOTIFY_NODE_WRITE, resourceNodePath.c_str(), resource->mResValue.value);
+    std::ofstream resourceFileStream(resourceNodePath);
     if(!resourceFileStream.is_open()) {
         TYPELOGV(ERRNO_LOG, "open", strerror(errno));
         return;
     }
 
-    TYPELOGV(NOTIFY_NODE_WRITE, resourceNodePath.c_str(), resource->mResValue.value);
     resourceFileStream<<resource->mResValue.value<<std::endl;
 
     if(resourceFileStream.fail()) {
@@ -115,14 +115,14 @@ void defaultCoreLevelApplierCb(void* context) {
     // Get the Core ID
     int32_t coreID = resource->getCoreValue();
     std::string resourceNodePath = getCoreTypeResourceNodePath(resource, coreID);
-    std::ofstream resourceFileStream(resourceNodePath);
 
+    TYPELOGV(NOTIFY_NODE_WRITE, resourceNodePath.c_str(), resource->mResValue.value);
+    std::ofstream resourceFileStream(resourceNodePath);
     if(!resourceFileStream.is_open()) {
         TYPELOGV(ERRNO_LOG, "open", strerror(errno));
         return;
     }
 
-    TYPELOGV(NOTIFY_NODE_WRITE, resourceNodePath.c_str(), resource->mResValue.value);
     resourceFileStream<<resource->mResValue.value<<std::endl;
 
     if(resourceFileStream.fail()) {
@@ -175,14 +175,14 @@ void defaultCGroupLevelApplierCb(void* context) {
 
         if(cGroupName.length() > 0) {
             std::string controllerFilePath = getCGroupTypeResourceNodePath(resource, cGroupName);
-            std::ofstream controllerFile(controllerFilePath);
 
+            TYPELOGV(NOTIFY_NODE_WRITE, controllerFilePath.c_str(), valueToBeWritten);
+            std::ofstream controllerFile(controllerFilePath);
             if(!controllerFile.is_open()) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
                 return;
             }
 
-            TYPELOGV(NOTIFY_NODE_WRITE, controllerFilePath.c_str(), valueToBeWritten);
             controllerFile<<valueToBeWritten<<std::endl;
 
             if(controllerFile.fail()) {
@@ -266,6 +266,26 @@ void defaultGlobalLevelTearCb(void* context) {
 
         AuxRoutines::writeToFile(resourceConfig->mResourcePath, defaultValue);
     }
+}
+
+static void moveProcessToCGroup(void* context) {
+    if(context == nullptr) return;
+    Resource* resource = static_cast<Resource*>(context);
+
+    if(resource->getValuesCount() != 2) return;
+
+    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
+    int32_t pid = (*resource->mResValue.values)[1];
+
+    std::string currentCGroupFilePath = "/proc/" + std::to_string(pid) + "/cgroup";
+    std::string currentCGroup = AuxRoutines::readFromFile(currentCGroupFilePath);
+
+    if(currentCGroup.length() > 4) {
+        currentCGroup = currentCGroup.substr(4);
+    }
+
+    ResourceRegistry::getInstance()->addDefaultValue(currentCGroupFilePath, currentCGroup);
+    defaultCGroupLevelApplierCb(context);
 }
 
 // Special Callbacks for some Resources
@@ -406,9 +426,13 @@ static void removeProcessFromCGroup(void* context) {
 
     int32_t pid = (*resource->mResValue.values)[1];
 
-    std::string parentCGroupProcsPath = "/sys/fs/cgroup/cgroup.procs";
-    std::ofstream controllerFile(parentCGroupProcsPath, std::ios::app);
+    std::string cGroupPath =
+        ResourceRegistry::getInstance()->getDefaultValue("/proc/" + std::to_string(pid) + "/cgroup");
+    if(cGroupPath.length() == 0) {
+        cGroupPath = "/sys/fs/cgroup/cgroup.procs";
+    }
 
+    std::ofstream controllerFile(cGroupPath, std::ios::app);
     if(!controllerFile.is_open()) {
         TYPELOGV(ERRNO_LOG, "open", strerror(errno));
         return;
@@ -503,6 +527,7 @@ static void resetRunOnCoresExclusively(void* context) {
     }
 }
 
+RESTUNE_REGISTER_APPLIER_CB(0x00090000, moveProcessToCGroup);
 RESTUNE_REGISTER_APPLIER_CB(0x00090002, setRunOnCores);
 RESTUNE_REGISTER_APPLIER_CB(0x00090003, setRunOnCoresExclusively);
 RESTUNE_REGISTER_APPLIER_CB(0x00090005, limitCpuTime);

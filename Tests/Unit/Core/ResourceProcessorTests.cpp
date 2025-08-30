@@ -79,7 +79,7 @@ static void TestResourceConfigProcessorYAMLDataIntegrity3_3() {
     C_ASSERT(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_CORE);
 }
 
-int main() {
+int32_t main() {
     std::cout<<"Running Test Suite: [Resource Processor Tests]\n"<<std::endl;
 
     Init();

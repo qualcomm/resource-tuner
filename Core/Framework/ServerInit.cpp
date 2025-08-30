@@ -140,13 +140,15 @@ ErrCode fetchProperties() {
         if(RC_IS_NOTOK(opStatus)) {
             if(opStatus == RC_FILE_NOT_FOUND) {
                 TYPELOGV(NOTIFY_PARSER_FILE_NOT_FOUND, "Custom-Properties", filePath.c_str());
-                return RC_SUCCESS;
+                // Reset the status back to Success, as the custom config is optional
+                opStatus = RC_SUCCESS;
+            } else {
+                TYPELOGV(NOTIFY_PARSING_FAILURE, "Custom-Properties");
+                return opStatus;
             }
-
-            TYPELOGV(NOTIFY_PARSING_FAILURE, "Custom-Properties");
-            return opStatus;
+        } else {
+            TYPELOGV(NOTIFY_PARSING_SUCCESS, "Custom-Properties");
         }
-        TYPELOGV(NOTIFY_PARSING_SUCCESS, "Custom-Properties");
     }
 
     if(RC_IS_OK(opStatus)) {

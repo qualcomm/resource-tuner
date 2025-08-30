@@ -205,7 +205,7 @@ static void TestClientSpammingWithGoodRequests() {
     }
 }
 
-int main() {
+int32_t main() {
     std::cout<<"Running Test Suite: [RateLimiter Tests]\n"<<std::endl;
 
     Init();

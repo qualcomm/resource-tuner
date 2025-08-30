@@ -2779,7 +2779,7 @@ namespace SignalApplicationTests {
         std::string testResourceName2 = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_max";
         std::string testResourceName3 = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_max_freq";
 
-        int originalValues[] = {300, 684, 114};
+        int32_t originalValues[] = {300, 684, 114};
 
         std::string value;
         int32_t originalValue, newValue;

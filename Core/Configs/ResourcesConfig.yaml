@@ -28,7 +28,7 @@ ResourceConfigs:
 
   - ResType: "0x04"
     ResID: "0x0000"
-    Name: "SCALING_MIN_FREQ_GENERIC"
+    Name: "SCALING_MIN_FREQ"
     Path: "/sys/devices/system/cpu/cpufreq/policy%d/scaling_min_freq"
     Supported: true
     HighThreshold: 1939200
@@ -40,7 +40,7 @@ ResourceConfigs:
 
   - ResType: "0x04"
     ResID: "0x0001"
-    Name: "SCALING_MAX_FREQ_GENERIC"
+    Name: "SCALING_MAX_FREQ"
     Path: "/sys/devices/system/cpu/cpufreq/policy%d/scaling_max_freq"
     Supported: true
     HighThreshold: 1939200

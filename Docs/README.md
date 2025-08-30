@@ -275,7 +275,7 @@ Each resource is defined with the following fields:
 | `Permissions`   | `string` (Optional)   | Type of client allowed to Provision this Resource (`system` or `third_party`). | `third_party` |
 | `Modes`         | `array` (Optional)    | Display modes applicable (`"display_on"`, `"display_off"`, `"doze"`). | `display_on` |
 | `Policy`        | `string`(Optional)   | Concurrency policy (`"higher_is_better"`, `"lower_is_better"`, `"instant_apply"`, `"lazy_apply"`). | `lazy_apply` |
-| `ApplyType` | `string` (Optional)  | Indicates if the resource can have different values, across different cores. | `global` |
+| `ApplyType` | `string` (Optional)  | Indicates if the resource can have different values, across different cores, clusters or cgroups. | `global` |
 
 <div style="page-break-after: always;"></div>
 
@@ -325,8 +325,8 @@ RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/bin/targetPropertiesConfigCustom.ya
 
 | Field          | Type       | Description | Default Value  |
 |----------------|------------|-------------|----------------|
-| `Name`         | `string` (Mandatory)   | Unique name of the parameter | Not Applicable
-| `Value`        | `integer` (Mandatory)   | The value for the parameter. | Not Applicable
+| `Name`         | `string` (Mandatory)   | Unique name of the property | Not Applicable
+| `Value`        | `integer` (Mandatory)   | The value for the property. | Not Applicable
 
 
 #### Example
@@ -356,7 +356,7 @@ The file SignalsConfig.yaml defines the signal configs.
 | `Name`          | `string` (Optional)  | |`Empty String` |
 | `Enable`          | `boolean` (Optional)   | Indicates if the Signal is Eligible for Provisioning. | `False` |
 | `TargetsEnabled`          | `array` (Optional)   | List of Targets on which this Signal can be Tuned | `Empty List` |
-| `TargetsEnabled`          | `array` (Optional)   | List of Targets on which this Signal cannot be Tuned | `Empty List` |
+| `TargetsDisabled`          | `array` (Optional)   | List of Targets on which this Signal cannot be Tuned | `Empty List` |
 | `Permissions`          | `array` (Optional)   | List of acceptable Client Level Permissions for tuning this Signal | `third_party` |
 |`Timeout`              | `integer` (Optional) | Default Signal Tuning Duration to be used in case the Client specifies a value of 0 for duration in the tuneSignal API call. | `1 (ms)` |
 | `Resources` | `array` (Mandatory) | List of Resources. | Not Applicable |
@@ -609,15 +609,15 @@ int64_t tuneSignal(uint32_t signalID,
 **Parameters:**
 
 - `signalID` (`int64_t`): ID of the Signal to be Tuned.
-- `duration` (`int64_t`): Duration (in milliseconds) to provision the Resources for. A value of -1 denotes infinite duration.
+- `duration` (`int64_t`): Duration (in milliseconds) to tune the Signal for. A value of -1 denotes infinite duration.
 - `properties` (`int32_t`): Properties of the Request.
                             - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
                             - The Next 8 bits [17 - 24] represent a Boolean Flag, which indicates
                               if the Request should be processed in the background (in case of Display Off or Doze Mode).
 - `appName` (`const char*`): Name of the Application that is issuing the Request
-- `scenario` (`const char*`): Name of the Scenario that is issuing the Request
+- `scenario` (`const char*`): Use-Case Scenario
 - `numArgs` (`int32_t`): Number of Additional Arguments to be passed as part of the Request
-- `numArgs` (`uint32_t*`): List of Additional Arguments to be passed as part of the Request
+- `list` (`uint32_t*`): List of Additional Arguments to be passed as part of the Request
 
 **Returns:**
 `int64_t`
@@ -721,13 +721,13 @@ As mentioned above, the resource code is an unsigned 32 bit integer. This sectio
 Essentially, the resource code (unsigned 32 bit) is composed of two fields:
 - ResID (last 16 bits, 17 - 32)
 - ResType (next 8 bits, 9 - 16)
-- Additionally MSB can be set to '1' if customer or other modules or target chipset is providing it's own custom resource config files, indicating this is a custom resource else it shall be treated as a default resource. This bit doesn't influence resource processing, just to aid debugging and development.
+- Additionally MSB should be set to '1' if customer or other modules or target chipset is providing it's own custom resource config files, indicating this is a custom resource else it shall be treated as a default resource. This bit doesn't influence resource processing, just to aid debugging and development.
 
 These fields can uniquely identify a resource across targets, hence making the code operating on these resources interchangable. In essence, we ensure that the resource with code "x", refers to the same tunable resource across different targets.
 
 Examples:
-- The Resource OpCode: 65536 [00000000 00000001 00000000 00000000], Refers to the Default Resource with ResID 0 and ResType 1.
-- The Resource OpCode: 2147549185 [10000000 00000001 00000000 00000001], Refers to the Custom Resource with ResID 1 and ResType 1.
+- The Resource OpCode: 65536 (0x00010000) [00000000 00000001 00000000 00000000], Refers to the Default Resource with ResID 0 and ResType 1.
+- The Resource OpCode: 2147549185 (0x80010001) [10000000 00000001 00000000 00000001], Refers to the Custom Resource with ResID 1 and ResType 1.
 
 #### List Of Resource Types (Use this table to get the value of ResType for a Resource)
 
@@ -890,15 +890,24 @@ Where:
 - `duration`: Duration in milliseconds for the tune request
 - `priority`: Priority level for the tune request (HIGH: 0 or LOW: 1)
 - `num`: Number of resources
-- `res`: List of resource OpId, Values to be tuned as part of this request
+- `res`: List of resource ResCode, ResInfo (optional) and Values to be tuned as part of this request
 
 Example:
 ```bash
-./resource_tuner_cli --tune --duration 5000 --priority 0 --num 1 --res 65536:700
+# Single Resource in a Request
+./resource_tuner_cli --tune --duration 5000 --priority 0 --num 1 --res "65536:700"
 
-./resource_tuner_cli --tune --duration 4400 --priority 1 --num 2 --res 0x80030000:700,0x80040001:155667
+# Multiple Resources in single Request
+./resource_tuner_cli --tune --duration 4400 --priority 1 --num 2 --res "0x80030000:700,0x80040001:155667"
 
-./resource_tuner_cli --tune --duration 9500 --priority 0 --num 1 --res "0x00090002:0|0|1|3|5"
+# Multi-Valued Resource
+./resource_tuner_cli --tune --duration 9500 --priority 0 --num 1 --res "0x00090002:0,0,1,3,5"
+
+# Specifying ResInfo (useful for Core and Cluster type Resources)
+./resource_tuner_cli --tune --duration 5000 --priority 0 --num 1 --res "0x00040000#0x00000300:1620438"
+
+# All at once
+./resource_tuner_cli --tune --duration 6500 --priority 0 --num 2 --res "0x00030000:800;0x00040011#0x00000100:50000,100000"
 ```
 
 ### 2. Send an Untune Request
