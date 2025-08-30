@@ -67,14 +67,14 @@ void defaultClusterLevelApplierCb(void* context) {
     // Get the Cluster ID
     int32_t clusterID = resource->getClusterValue();
     std::string resourceNodePath = getClusterTypeResourceNodePath(resource, clusterID);
-    std::ofstream resourceFileStream(resourceNodePath);
 
+    TYPELOGV(NOTIFY_NODE_WRITE, resourceNodePath.c_str(), resource->mResValue.value);
+    std::ofstream resourceFileStream(resourceNodePath);
     if(!resourceFileStream.is_open()) {
         TYPELOGV(ERRNO_LOG, "open", strerror(errno));
         return;
     }
 
-    TYPELOGV(NOTIFY_NODE_WRITE, resourceNodePath.c_str(), resource->mResValue.value);
     resourceFileStream<<resource->mResValue.value<<std::endl;
 
     if(resourceFileStream.fail()) {
@@ -115,14 +115,14 @@ void defaultCoreLevelApplierCb(void* context) {
     // Get the Core ID
     int32_t coreID = resource->getCoreValue();
     std::string resourceNodePath = getCoreTypeResourceNodePath(resource, coreID);
-    std::ofstream resourceFileStream(resourceNodePath);
 
+    TYPELOGV(NOTIFY_NODE_WRITE, resourceNodePath.c_str(), resource->mResValue.value);
+    std::ofstream resourceFileStream(resourceNodePath);
     if(!resourceFileStream.is_open()) {
         TYPELOGV(ERRNO_LOG, "open", strerror(errno));
         return;
     }
 
-    TYPELOGV(NOTIFY_NODE_WRITE, resourceNodePath.c_str(), resource->mResValue.value);
     resourceFileStream<<resource->mResValue.value<<std::endl;
 
     if(resourceFileStream.fail()) {
@@ -175,14 +175,14 @@ void defaultCGroupLevelApplierCb(void* context) {
 
         if(cGroupName.length() > 0) {
             std::string controllerFilePath = getCGroupTypeResourceNodePath(resource, cGroupName);
-            std::ofstream controllerFile(controllerFilePath);
 
+            TYPELOGV(NOTIFY_NODE_WRITE, controllerFilePath.c_str(), valueToBeWritten);
+            std::ofstream controllerFile(controllerFilePath);
             if(!controllerFile.is_open()) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
                 return;
             }
 
-            TYPELOGV(NOTIFY_NODE_WRITE, controllerFilePath.c_str(), valueToBeWritten);
             controllerFile<<valueToBeWritten<<std::endl;
 
             if(controllerFile.fail()) {

@@ -14,7 +14,7 @@ RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/opt/custom/ResourcesConfig.yaml")
 ```
 This will indicate to resource-tuner, that Custom Resources are present at the above specified location so that they can be parsed as part of initialization.
 
-Note:
+Note:\n
 1) If Custom Resources are provided, then the Common and Custom Resources shall be merged together in a unified tunable Resources dataset. If a resource specified in the Custom Resource Config has the exact same ResType and ResID as one in Common Resource Config, then the latter shall be overridden.
 
 2) The Custom Resource Config file must have exactly the same structure as the Common Resource Config file, refer the following example on how to structure the Config files:
