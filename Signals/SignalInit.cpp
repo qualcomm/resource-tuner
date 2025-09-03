@@ -1,12 +1,13 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include "SysSignalsInternal.h"
-#include "SignalServerPrivate.h"
+#include "SignalInternal.h"
 #include "SignalRegistry.h"
 #include "SignalQueue.h"
 #include "Extensions.h"
 #include "ComponentRegistry.h"
+#include "ConfigProcessor.h"
+#include "ResourceTunerSettings.h"
 
 static std::thread signalServerProcessorThread;
 
@@ -99,7 +100,16 @@ static ErrCode fetchExtFeatureConfigs() {
     return opStatus;
 }
 
-ErrCode initSignals() {
+static void* signalThreadStart() {
+    std::shared_ptr<SignalQueue> signalQueue = SignalQueue::getInstance();
+    while(ResourceTunerSettings::isServerOnline()) {
+        signalQueue->wait();
+    }
+
+    return nullptr;
+}
+
+static ErrCode init(void* arg=nullptr) {
     ErrCode opStatus = RC_SUCCESS;
 
     // Pre-Allocate Memory for Commonly used Types via Memory Pool
@@ -125,7 +135,7 @@ ErrCode initSignals() {
 
     // Create Signal Processor thread
     try {
-        signalServerProcessorThread = std::thread(SignalsdServerThread);
+        signalServerProcessorThread = std::thread(signalThreadStart);
     } catch(const std::system_error& e) {
         TYPELOGV(SYSTEM_THREAD_CREATION_FAILURE, "Signal", e.what());
         opStatus = RC_MODULE_INIT_FAILURE;
@@ -137,8 +147,8 @@ ErrCode initSignals() {
     return opStatus;
 }
 
-ErrCode terminateSignals() {
-    // Terminate SysSignals
+static ErrCode terminate(void* arg=nullptr) {
+    // Terminate Signal module
     // Check if the thread is joinable, to prevent undefined behaviour
     if(signalServerProcessorThread.joinable()) {
         SignalQueue::getInstance()->forcefulAwake();
@@ -151,7 +161,4 @@ ErrCode terminateSignals() {
     return RC_SUCCESS;
 }
 
-RESTUNE_REGISTER_MODULE(MOD_SYSSIGNAL,
-                        initSignals,
-                        terminateSignals,
-                        submitSignalRequest);
+RESTUNE_REGISTER_MODULE(MOD_SIGNAL, init, terminate, submitSignalRequest);

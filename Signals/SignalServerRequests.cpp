@@ -1,8 +1,7 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <pthread.h>
-#include "SignalServerPrivate.h"
+#include "SignalInternal.h"
 
 static int8_t getRequestPriority(int8_t clientPermissions, int8_t reqSpecifiedPriority) {
     if(clientPermissions == PERMISSION_SYSTEM) {
@@ -246,9 +245,9 @@ static void processIncomingRequest(Signal* signal) {
     SignalQueue::getInstance()->addAndWakeup(signal);
 }
 
-void submitSignalRequest(void* clientReq) {
+ErrCode submitSignalRequest(void* clientReq) {
     MsgForwardInfo* info = (MsgForwardInfo*) clientReq;
-    if(info == nullptr) return;
+    if(info == nullptr) return RC_BAD_ARG;
 
     Signal* signal = nullptr;
     try {
@@ -256,12 +255,12 @@ void submitSignalRequest(void* clientReq) {
 
     } catch(const std::bad_alloc& e) {
         TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE, e.what());
-        return;
+        return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
     if(RC_IS_NOTOK(signal->deserialize(info->buffer))) {
         Signal::cleanUpSignal(signal);
-        return;
+        return RC_REQUEST_DESERIALIZATION_FAILURE;
     }
 
     if(signal->getRequestType() == SIGNAL_ACQ) {
@@ -269,6 +268,7 @@ void submitSignalRequest(void* clientReq) {
     }
 
     processIncomingRequest(signal);
+    return RC_SUCCESS;
 }
 
 static Request* createResourceTuningRequest(Signal* signal) {
@@ -354,7 +354,7 @@ void SignalQueue::orderedQueueConsumerHook() {
 
                 // Submit the Resource Provisioning request for processing
                 if(request != nullptr) {
-                    submitResourceProvisioningRequest(request, true);
+                    submitResProvisionRequest(request, true);
                 }
                 break;
             }
@@ -364,7 +364,7 @@ void SignalQueue::orderedQueueConsumerHook() {
 
                 // Submit the Resource De-Provisioning request for processing
                 if(request != nullptr) {
-                    submitResourceProvisioningRequest(request, true);
+                    submitResProvisionRequest(request, true);
                 }
                 break;
             }
@@ -392,13 +392,4 @@ void SignalQueue::orderedQueueConsumerHook() {
                 break;
         }
     }
-}
-
-void* SignalsdServerThread() {
-    std::shared_ptr<SignalQueue> signalQueue = SignalQueue::getInstance();
-    while(ResourceTunerSettings::isServerOnline()) {
-        signalQueue->wait();
-    }
-
-    return nullptr;
 }

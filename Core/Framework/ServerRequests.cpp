@@ -1,8 +1,7 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <pthread.h>
-#include "ServerRequests.h"
+#include "ServerInternal.h"
 
 static int8_t getRequestPriority(int8_t clientPermissions, int8_t reqSpecifiedPriority) {
     if(clientPermissions == PERMISSION_SYSTEM) {
@@ -306,13 +305,14 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
     }
 }
 
-void submitResourceProvisioningRequest(Request* request, int8_t isValidated) {
+ErrCode submitResProvisionRequest(Request* request, int8_t isValidated) {
     processIncomingRequest(request, isValidated);
+    return RC_SUCCESS;
 }
 
-void submitResourceProvisioningRequest(void* msg) {
+ErrCode submitResProvisionRequest(void* msg) {
     MsgForwardInfo* info = (MsgForwardInfo*) msg;
-    if(info == nullptr) return;
+    if(info == nullptr) return RC_BAD_ARG;
 
     Request* request = nullptr;
     try {
@@ -320,12 +320,12 @@ void submitResourceProvisioningRequest(void* msg) {
 
     } catch(const std::bad_alloc& e) {
         TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE, e.what());
-        return;
+        return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
     if(RC_IS_NOTOK(request->deserialize(info->buffer))) {
         Request::cleanUpRequest(request);
-        return;
+        return RC_REQUEST_DESERIALIZATION_FAILURE;
     }
 
     if(request->getRequestType() == REQ_RESOURCE_TUNING) {
@@ -333,6 +333,44 @@ void submitResourceProvisioningRequest(void* msg) {
     }
 
     processIncomingRequest(request);
+    return RC_SUCCESS;
+}
+
+int8_t submitPropGetRequest(const std::string& prop, std::string& buffer, uint64_t buffer_size, const std::string& def_value) {
+    std::string propertyName(prop);
+    std::string result;
+
+    int8_t propFound = false;
+    if((propFound = PropertiesRegistry::getInstance()->queryProperty(propertyName, result)) == false) {
+        result = def_value;
+    }
+
+    buffer = result;
+    return propFound;
+}
+
+int8_t submitPropSetRequest(const std::string& prop, const std::string& value) {
+    std::string propertyName(prop);
+    std::string propertyValue(value);
+
+    return PropertiesRegistry::getInstance()->modifyProperty(propertyName, propertyValue);
+}
+
+int8_t submitPropRequest(std::string& resultBuf, SysConfig* clientReq) {
+    int8_t status = false;
+    switch(clientReq->getRequestType()) {
+        case REQ_SYSCONFIG_GET_PROP:
+            status = submitPropGetRequest(clientReq->getProp(), resultBuf,
+                                      clientReq->getBufferSize(),
+                                      clientReq->getDefaultValue());
+            break;
+        case REQ_SYSCONFIG_SET_PROP:
+            status = submitPropSetRequest(clientReq->getProp(), clientReq->getValue());
+            break;
+        default:
+            break;
+    }
+    return status;
 }
 
 void toggleDisplayModes() {
@@ -446,17 +484,4 @@ void RequestQueue::orderedQueueConsumerHook() {
             }
         }
     }
-}
-
-void* TunerServerThread() {
-    pthread_setname_np(pthread_self(), "TunerServer");
-    std::shared_ptr<RequestQueue> requestQueue = RequestQueue::getInstance();
-
-    // Initialize CocoTable
-    CocoTable::getInstance();
-    while(ResourceTunerSettings::isServerOnline()) {
-        requestQueue->wait();
-    }
-
-    return nullptr;
 }

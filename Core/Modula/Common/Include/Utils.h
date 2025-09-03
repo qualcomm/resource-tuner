@@ -108,9 +108,8 @@ typedef struct {
     int64_t handle;
 } MsgForwardInfo;
 
-// GLOBAL TYPEDEFS: Declare Function Pointers as types
-typedef ErrCode (*ModuleCallback)();
-typedef void (*ModuleMessageHandlerCallback)(void*);
+// Global Typedefs: Declare Function Pointers as types
+typedef ErrCode (*EventCallback)(void*);
 typedef int8_t (*ServerOnlineCheckCallback)();
 typedef void (*ResourceTunerMessageReceivedCallback)(int32_t, MsgForwardInfo*);
 

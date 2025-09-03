@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 
 TargetConfig:
-  - TargetName: QCS9100
+  - TargetName: [QCS9100, QCS6300]
     # overide physical cluster info
     ClusterInfo:
       - LgcId: 0

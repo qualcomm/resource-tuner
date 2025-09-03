@@ -10,19 +10,19 @@
 #include <shared_mutex>
 
 /**
-* @brief SysConfigPropRegistry
+* @brief PropertiesRegistry
 * @details Stores and manages all the properties parsed from the Properties Config files.
 */
-class SysConfigPropRegistry {
+class PropertiesRegistry {
 private:
-    static std::shared_ptr<SysConfigPropRegistry> sysConfigPropRegistryInstance;
+    static std::shared_ptr<PropertiesRegistry> sysConfigPropRegistryInstance;
     std::unordered_map<std::string, std::string> mProperties;
     std::shared_timed_mutex mPropRegistryMutex;
 
-    SysConfigPropRegistry();
+    PropertiesRegistry();
 
 public:
-    ~SysConfigPropRegistry();
+    ~PropertiesRegistry();
 
     /**
      * @brief Create a property with the given name (key) and value.
@@ -65,9 +65,9 @@ public:
 
     int32_t getPropertiesCount();
 
-    static std::shared_ptr<SysConfigPropRegistry> getInstance() {
+    static std::shared_ptr<PropertiesRegistry> getInstance() {
         if(sysConfigPropRegistryInstance == nullptr) {
-            std::shared_ptr<SysConfigPropRegistry> localSysConfigPropRegistryInstance(new SysConfigPropRegistry());
+            std::shared_ptr<PropertiesRegistry> localSysConfigPropRegistryInstance(new PropertiesRegistry());
             localSysConfigPropRegistryInstance.swap(sysConfigPropRegistryInstance);
         }
         return sysConfigPropRegistryInstance;

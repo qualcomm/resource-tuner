@@ -13,7 +13,6 @@
 #include "ResourceTunerSocketServer.h"
 #include "ResourceTunerSettings.h"
 #include "SysConfig.h"
-#include "SysConfigInternal.h"
 #include "AuxRoutines.h"
 #include "ComponentRegistry.h"
 

@@ -65,7 +65,7 @@ endif()
 # Install libs
 install(TARGETS resource_tuner RUNTIME DESTINATION bin)
 install(TARGETS Auxiliary SocketCommClient SocketCommServer
-        ClientAPIs SysConfigProps Server ExtAPIs
+        ClientAPIs Server ExtAPIs
         SysRequestReceiver LIBRARY DESTINATION lib)
 if(BUILD_SIGNALS)
   install(TARGETS SysSignals DESTINATION lib)

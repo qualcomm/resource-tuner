@@ -15,6 +15,7 @@
 #include "YamlParser.h"
 #include "Logger.h"
 #include "ResourceRegistry.h"
+#include "PropertiesRegistry.h"
 #include "TargetRegistry.h"
 #include "Utils.h"
 #include "AuxRoutines.h"
@@ -35,7 +36,7 @@
 
 // Target Info Config
 #define TARGET_CONFIGS_ROOT "TargetConfig"
-#define TARGET_NAME "TargetName"
+#define TARGET_NAME_LIST "TargetName"
 #define TARGET_CLUSTER_INFO "ClusterInfo"
 #define TARGET_CLUSTER_INFO_LOGICAL_ID "LgcId"
 #define TARGET_CLUSTER_INFO_PHYSICAL_ID "PhyId"
@@ -68,6 +69,11 @@
 #define INIT_CONFIGS_CACHE_INFO_CACHE_TYPE "Type"
 #define INIT_CONFIGS_CACHE_INFO_CACHE_BLOCK_COUNT "NumCacheBlocks"
 #define INIT_CONFIGS_CACHE_INFO_CACHE_PRIORITY_AWARE "PriorityAware"
+
+// Properties
+#define PROPERTIES_CONFIG_ROOT "PropertyConfigs"
+#define PROP_NAME "Name"
+#define PROP_VALUE "Value"
 
 /**
  * The Resource Config file (ResourcesConfig.yaml) must follow a specific structure.
@@ -126,51 +132,85 @@
  * The Init Config file (InitConfig.yaml) must follow a specific structure.
  * Example YAML configuration:
  * @code{.yaml}
-* InitConfigs:
-*   # Logical IDs should always be arranged from lower to higher cluster capacities
-*   - ClusterMap:
-*     - Id: 0
-*       Type: little
-*     - Id: 1
-*       Type: big
-*     - Id: 2
-*       Type: titanium
-*     - Id: 3
-*       Type: prime
-*
-*   - CgroupsInfo:
-*     - Name: "camera-cgroup"
-*       ID: 0
-*     - Name: "audio-cgroup"
-*       ID: 1
-*     - Name: "video-cgroup"
-*       IsThreaded: true
-*       ID: 2
-*
-*   - MPAMgroupsInfo:
-*     - Name: "camera-mpam-group"
-*       ID: 0
-*       Priority: 0
-*     - Name: "audio-mpam-group"
-*       ID: 1
-*       Priority: 1
-*     - Name: "video-mpam-group"
-*       ID: 2
-*       Priority: 2
-*
-*   - CacheInfo:
-*     - Type: L2
-*       NumCacheBlocks: 2
-*       PriorityAware: 0
-*     - Type: L3
-*       NumCacheBlocks: 1
-*       PriorityAware: 1
-*
+ * InitConfigs:
+ *   # Logical IDs should always be arranged from lower to higher cluster capacities
+ *   - ClusterMap:
+ *     - Id: 0
+ *       Type: little
+ *     - Id: 1
+ *       Type: big
+ *     - Id: 2
+ *       Type: titanium
+ *     - Id: 3
+ *       Type: prime
+ *
+ *   - CgroupsInfo:
+ *     - Name: "camera-cgroup"
+ *       ID: 0
+ *     - Name: "audio-cgroup"
+ *       ID: 1
+ *     - Name: "video-cgroup"
+ *       IsThreaded: true
+ *       ID: 2
+ *
+ *   - MPAMgroupsInfo:
+ *     - Name: "camera-mpam-group"
+ *       ID: 0
+ *       Priority: 0
+ *     - Name: "audio-mpam-group"
+ *       ID: 1
+ *       Priority: 1
+ *     - Name: "video-mpam-group"
+ *       ID: 2
+ *       Priority: 2
+ *
+ *   - CacheInfo:
+ *     - Type: L2
+ *       NumCacheBlocks: 2
+ *       PriorityAware: 0
+ *     - Type: L3
+ *       NumCacheBlocks: 1
+ *       PriorityAware: 1
+ *
  * @endcode
  *
  * @example Init_Configs
  * This example shows the expected YAML format for Init Config, which includes any
  * applicable CGroup Creation Information.
+*/
+
+/**
+ * The Properties Config file (PropertiesConfig.yaml) must follow a specific structure.
+ * Example YAML configuration:
+ * @code{.yaml}
+ * PropertyConfigs:
+ *   - Name: "resource_tuner.maximum.concurrent.requests"
+ *     Value: "60"
+ *
+ *   - Name: "resource_tuner.maximum.resources.per.request"
+ *     Value: "64"
+ *
+ *   - Name: "resource_tuner.listening.port"
+ *     Value: "12000"
+ *
+ *   - Name: "resource_tuner.pulse.duration"
+ *     Value: "60000"
+ *
+ *   - Name: "resource_tuner.garbage_collection.duration"
+ *     Value: "83000"
+ *
+ *   - Name: "resource_tuner.rate_limiter.delta"
+ *     Value: "5"
+ *
+ *   - Name: "resource_tuner.penalty.factor"
+ *     Value: "2.0"
+ *
+ *   - Name: "resource_tuner.reward.factor"
+ *     Value: "0.4"
+ * @endcode
+ *
+ * @example Properties_Configs
+ * This example shows the expected YAML format for Properties configuration.
 */
 
 /**
@@ -182,14 +222,16 @@
 */
 class ConfigProcessor {
 private:
-    void parseResourceConfigYamlNode(const YAML::Node& result, int8_t isBuSpecified);
-    void parseInitConfigYamlNode(const YAML::Node& result);
-    void parseTargetConfigYamlNode(const YAML::Node& result);
+    void parseResourceConfigYamlNode(const YAML::Node& node, int8_t isBuSpecified);
+    void parsePropertiesConfigYamlNode(const YAML::Node& node);
+    void parseInitConfigYamlNode(const YAML::Node& node);
+    void parseTargetConfigYamlNode(const YAML::Node& node, int8_t isBuSpecified);
 
 public:
     ErrCode parseResourceConfigs(const std::string& filePath, int8_t isBuSpecified=false);
+    ErrCode parsePropertiesConfigs(const std::string& filePath);
     ErrCode parseInitConfigs(const std::string& filePath);
-    ErrCode parseTargetConfigs(const std::string& filePath);
+    ErrCode parseTargetConfigs(const std::string& filePath, int8_t isBuSpecified=false);
 };
 
 #endif

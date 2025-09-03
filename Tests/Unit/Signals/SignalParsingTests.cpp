@@ -10,7 +10,7 @@
 #include "Extensions.h"
 #include "Utils.h"
 
-#define TOTAL_SIGNAL_CONFIGS_COUNT 13
+#define TOTAL_SIGNAL_CONFIGS_COUNT 10
 
 #define RUN_TEST(test)                                              \
 do {                                                                \
@@ -30,19 +30,14 @@ do {                                                                \
 static void Init() {
     ConfigProcessor configProcessor;
 
-    std::string commonSignals = "/etc/resource-tuner/tests/Configs/SignalsConfigA.yaml";
-    std::string additionalSignalsCatA = "/etc/resource-tuner/tests/Configs/SignalsConfig.yaml";
-    std::string additionalSignalsCatB = "/etc/resource-tuner/tests/Configs/SignalsConfigB.yaml";
+    std::string signalsClassA = "/etc/resource-tuner/tests/Configs/SignalsConfigA.yaml";
+    std::string signalsClassB = "/etc/resource-tuner/tests/Configs/SignalsConfigB.yaml";
 
-    if(RC_IS_NOTOK(configProcessor.parseSignalConfigs(commonSignals))) {
+    if(RC_IS_NOTOK(configProcessor.parseSignalConfigs(signalsClassA))) {
         return;
     }
 
-    if(RC_IS_NOTOK(configProcessor.parseSignalConfigs(additionalSignalsCatA))) {
-        return;
-    }
-
-    if(RC_IS_NOTOK(configProcessor.parseSignalConfigs(additionalSignalsCatB, true))) {
+    if(RC_IS_NOTOK(configProcessor.parseSignalConfigs(signalsClassB, true))) {
         return;
     }
 }

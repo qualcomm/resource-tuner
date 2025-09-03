@@ -142,35 +142,58 @@ void ConfigProcessor::parseResourceConfigYamlNode(const YAML::Node& item, int8_t
     ResourceRegistry::getInstance()->registerResource(resourceConfigInfoBuilder.build(), isBuSpecified);
 }
 
-void ConfigProcessor::parseTargetConfigYamlNode(const YAML::Node& item) {
-    if(isList(item[TARGET_CLUSTER_INFO])) {
-        for(const auto& clusterInfo : item[TARGET_CLUSTER_INFO]) {
-            int32_t logicalID = safeExtract<int32_t>(clusterInfo[TARGET_CLUSTER_INFO_LOGICAL_ID], -1);
-            int32_t physicalID = safeExtract<int32_t>(clusterInfo[TARGET_CLUSTER_INFO_PHYSICAL_ID], -1);
+void ConfigProcessor::parsePropertiesConfigYamlNode(const YAML::Node& item) {
+    std::string propKey = safeExtract<std::string>(item[PROP_NAME], "");
+    std::string propVal = safeExtract<std::string>(item[PROP_VALUE], "");
 
-            if(logicalID != -1 && physicalID != -1) {
-                TargetRegistry::getInstance()->addClusterMapping(logicalID, physicalID);
+    if(propKey.length() > 0 || propVal.length() > 0) {
+        PropertiesRegistry::getInstance()->createProperty(propKey, propVal);
+    }
+}
+
+void ConfigProcessor::parseTargetConfigYamlNode(const YAML::Node& item, int8_t isBuSpecified) {
+    int8_t isConfigForCurrentTarget = false;
+    // Check if there exists a Target Config for this particular target in the Common Configs.
+    // Skip this check if the BU has provided their own Target Configs
+    if(!isBuSpecified && isList(item[TARGET_NAME_LIST])) {
+        for(const auto& targetNameInfo : item[TARGET_NAME_LIST]) {
+            std::string name = safeExtract<std::string>(targetNameInfo, "");
+
+            if(name == ResourceTunerSettings::targetConfigs.targetName) {
+                isConfigForCurrentTarget = true;
             }
         }
     }
 
-    if(isList(item[TARGET_CLUSTER_SPREAD])) {
-        for(const auto& clusterSpread : item[TARGET_CLUSTER_SPREAD]) {
-            int32_t physicalID;
-            int32_t numCores;
+    if(isBuSpecified || (!isBuSpecified && isConfigForCurrentTarget)) {
+        if(isList(item[TARGET_CLUSTER_INFO])) {
+            for(const auto& clusterInfo : item[TARGET_CLUSTER_INFO]) {
+                int32_t logicalID = safeExtract<int32_t>(clusterInfo[TARGET_CLUSTER_INFO_LOGICAL_ID], -1);
+                int32_t physicalID = safeExtract<int32_t>(clusterInfo[TARGET_CLUSTER_INFO_PHYSICAL_ID], -1);
 
-            physicalID = safeExtract<int32_t>(clusterSpread[TARGET_CLUSTER_INFO_PHYSICAL_ID], -1);
-            numCores = safeExtract<int32_t>(clusterSpread[TARGET_PER_CLUSTER_CORE_COUNT], -1);
+                if(logicalID != -1 && physicalID != -1) {
+                    TargetRegistry::getInstance()->addClusterMapping(logicalID, physicalID);
+                }
+            }
+        }
 
-            if(physicalID != -1 && numCores != -1) {
-                TargetRegistry::getInstance()->addClusterSpreadInfo(physicalID, numCores);
+        if(isList(item[TARGET_CLUSTER_SPREAD])) {
+            for(const auto& clusterSpread : item[TARGET_CLUSTER_SPREAD]) {
+                int32_t physicalID;
+                int32_t numCores;
+
+                physicalID = safeExtract<int32_t>(clusterSpread[TARGET_CLUSTER_INFO_PHYSICAL_ID], -1);
+                numCores = safeExtract<int32_t>(clusterSpread[TARGET_PER_CLUSTER_CORE_COUNT], -1);
+
+                if(physicalID != -1 && numCores != -1) {
+                    TargetRegistry::getInstance()->addClusterSpreadInfo(physicalID, numCores);
+                }
             }
         }
     }
 }
 
 void ConfigProcessor::parseInitConfigYamlNode(const YAML::Node& item) {
-    std::cout<<"proceeding with parsing cgroup group configs"<<std::endl;
     if(isList(item[INIT_CONFIGS_CGROUPS_LIST])) {
         for(const auto& cGroupConfig : item[INIT_CONFIGS_CGROUPS_LIST]) {
             ErrCode rc = RC_SUCCESS;
@@ -293,7 +316,26 @@ ErrCode ConfigProcessor::parseResourceConfigs(const std::string& filePath, int8_
     return rc;
 }
 
-ErrCode ConfigProcessor::parseTargetConfigs(const std::string& filePath) {
+ErrCode ConfigProcessor::parsePropertiesConfigs(const std::string& filePath) {
+    YAML::Node result;
+    ErrCode rc = YamlParser::parse(filePath, result);
+
+    if(RC_IS_OK(rc)) {
+        if(result[PROPERTIES_CONFIG_ROOT].IsDefined() && result[PROPERTIES_CONFIG_ROOT].IsSequence()) {
+            for(const auto& propertyConfig : result[PROPERTIES_CONFIG_ROOT]) {
+                try {
+                    parsePropertiesConfigYamlNode(propertyConfig);
+                } catch(const std::invalid_argument& e) {
+                    LOGE("RESTUNE_CONFIG_PROCESSOR", "Error parsing Properties Config: " + std::string(e.what()));
+                }
+            }
+        }
+    }
+
+    return rc;
+}
+
+ErrCode ConfigProcessor::parseTargetConfigs(const std::string& filePath, int8_t isBuSpecified) {
     YAML::Node result;
     ErrCode rc = YamlParser::parse(filePath, result);
 
@@ -301,7 +343,7 @@ ErrCode ConfigProcessor::parseTargetConfigs(const std::string& filePath) {
         if(result[TARGET_CONFIGS_ROOT].IsDefined() && result[TARGET_CONFIGS_ROOT].IsSequence()) {
             for(const auto& targetConfig : result[TARGET_CONFIGS_ROOT]) {
                 try {
-                    parseTargetConfigYamlNode(targetConfig);
+                    parseTargetConfigYamlNode(targetConfig, isBuSpecified);
                 } catch(const std::invalid_argument& e) {
                     LOGE("RESTUNE_TARGET_PROCESSOR", "Error parsing Target Config: " + std::string(e.what()));
                 }
@@ -322,7 +364,7 @@ ErrCode ConfigProcessor::parseInitConfigs(const std::string& filePath) {
                 try {
                     parseInitConfigYamlNode(targetConfig);
                 } catch(const std::invalid_argument& e) {
-                    LOGE("RESTUNE_TARGET_PROCESSOR", "Error parsing Init Config: " + std::string(e.what()));
+                    LOGE("RESTUNE_CONFIG_PROCESSOR", "Error parsing Init Config: " + std::string(e.what()));
                 }
             }
         }

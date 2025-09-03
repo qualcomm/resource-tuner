@@ -27,7 +27,7 @@ add_library(Server ${SOURCES})
 set_target_properties(Server PROPERTIES VERSION 1.0.0 SOVERSION 1)
 target_include_directories(Server PRIVATE ${YAMLCPP_INCLUDE_DIRS})
 target_include_directories(Server PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../Framework/Include)
-target_link_libraries(Server PRIVATE Auxiliary SocketCommServer ExtAPIs SysConfigProps ${YAMLCPP_LIBRARIES})
+target_link_libraries(Server PRIVATE Auxiliary SocketCommServer ExtAPIs ${YAMLCPP_LIBRARIES})
 
 # MODULA
 file(GLOB SOURCES "../Modula/Components/*.cpp" "../Modula/Common/*.cpp" "../Modula/CoreModules/*.cpp")
@@ -48,7 +48,7 @@ target_include_directories(Auxiliary PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../Modul
 file(GLOB SOURCES "../Server/Receiver/*.cpp")
 add_library(SysRequestReceiver ${SOURCES})
 set_target_properties(SysRequestReceiver PROPERTIES VERSION 1.0.0 SOVERSION 1)
-target_link_libraries(SysRequestReceiver Auxiliary SocketCommServer SysConfigProps)
+target_link_libraries(SysRequestReceiver Auxiliary SocketCommServer)
 target_include_directories(SysRequestReceiver PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../Server/Receiver/Include)
 
 file(GLOB SOURCES "../Server/Socket/*.cpp")
@@ -62,8 +62,3 @@ file(GLOB SOURCES "../Server/SysConfigs/*.cpp")
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(YAMLCPP REQUIRED yaml-cpp)
 
-add_library(SysConfigProps ${SOURCES})
-set_target_properties(SysConfigProps PROPERTIES VERSION 1.0.0 SOVERSION 1)
-target_include_directories(SysConfigProps PRIVATE ${YAMLCPP_INCLUDE_DIRS})
-target_include_directories(SysConfigProps PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../Server/SysConfigs/Include)
-target_link_libraries(SysConfigProps Auxiliary)

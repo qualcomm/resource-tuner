@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include <pthread.h>
+
 #include "RequestReceiver.h"
 
 std::shared_ptr<RequestReceiver> RequestReceiver::mRequestReceiverInstance = nullptr;
@@ -33,7 +34,7 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
             // Enqueue the Request to the Thread Pool for async processing.
             if(this->mRequestsThreadPool != nullptr) {
                 if(!this->mRequestsThreadPool->
-                    enqueueTask(ComponentRegistry::getModuleMessageHandlerCallback(MOD_CORE), msgForwardInfo)) {
+                    enqueueTask(ComponentRegistry::getEventCallback(MOD_CORE_ON_MSG_RECV), msgForwardInfo)) {
                     LOGE("RESTUNE_REQUEST_RECEIVER",
                          "Failed to enqueue the Request to the Thread Pool");
                 }
@@ -70,7 +71,6 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
             }
 
             std::string result;
-            int8_t status = submitSysConfigRequest(result, sysConfig);
 
             if(requestType == REQ_SYSCONFIG_GET_PROP) {
                 if(write(clientSocket, (const void*)result.c_str(), sizeof(sysConfig->getBufferSize())) == -1) {
@@ -82,7 +82,7 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
         }
         // Signal Requests
         case SIGNAL_ACQ: {
-            if(!ComponentRegistry::isModuleEnabled(MOD_SYSSIGNAL)) {
+            if(!ComponentRegistry::isModuleEnabled(MOD_SIGNAL)) {
                 TYPELOGV(NOTIFY_MODULE_NOT_ENABLED, "Signals");
                 return;
             }
@@ -94,14 +94,14 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
         }
         case SIGNAL_FREE:
         case SIGNAL_RELAY: {
-            if(!ComponentRegistry::isModuleEnabled(MOD_SYSSIGNAL)) {
+            if(!ComponentRegistry::isModuleEnabled(MOD_SIGNAL)) {
                 TYPELOGV(NOTIFY_MODULE_NOT_ENABLED, "Signals");
                 return;
             }
             // Enqueue the Request to the Thread Pool for async processing.
             if(this->mRequestsThreadPool != nullptr) {
                 if(!this->mRequestsThreadPool->
-                    enqueueTask(ComponentRegistry::getModuleMessageHandlerCallback(MOD_SYSSIGNAL), msgForwardInfo)) {
+                    enqueueTask(ComponentRegistry::getEventCallback(MOD_SIGNAL_ON_MSG_RECV), msgForwardInfo)) {
                     LOGE("RESTUNE_REQUEST_RECEIVER",
                          "Failed to enqueue the Request to the Thread Pool");
                 }

@@ -30,7 +30,7 @@ do {                                                                \
 static void Init() {
     ConfigProcessor configProcessor;
 
-    if(RC_IS_NOTOK(configProcessor.parseSignalConfigs("/etc/resource-tuner/tests/Configs/SignalsConfig.yaml"))) {
+    if(RC_IS_NOTOK(configProcessor.parseSignalConfigs("/etc/resource-tuner/tests/Configs/SignalsConfigA.yaml"))) {
         return;
     }
 }

@@ -49,7 +49,7 @@ if(BUILD_TESTS)
     install(TARGETS TargetConfigProcessorTests DESTINATION bin)
 
     add_executable(SysConfigAPITests ../Core/SysConfigAPITests.cpp)
-    target_link_libraries(SysConfigAPITests Auxiliary ExtAPIs SysConfigProps)
+    target_link_libraries(SysConfigAPITests Auxiliary Server ExtAPIs)
     install(TARGETS SysConfigAPITests DESTINATION bin)
 
     add_executable(ExtensionIntfTests ../Core/ExtensionIntfTests.cpp)

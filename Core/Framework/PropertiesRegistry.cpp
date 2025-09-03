@@ -1,12 +1,13 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include "SysConfigPropRegistry.h"
+#include "PropertiesRegistry.h"
 
-std::shared_ptr<SysConfigPropRegistry> SysConfigPropRegistry::sysConfigPropRegistryInstance = nullptr;
-SysConfigPropRegistry::SysConfigPropRegistry() {}
+std::shared_ptr<PropertiesRegistry> PropertiesRegistry::sysConfigPropRegistryInstance = nullptr;
 
-int8_t SysConfigPropRegistry::createProperty(const std::string& propertyName, const std::string& propertyValue) {
+PropertiesRegistry::PropertiesRegistry() {}
+
+int8_t PropertiesRegistry::createProperty(const std::string& propertyName, const std::string& propertyValue) {
     if(propertyName.length() == 0 || propertyValue.length() == 0) {
         return false;
     }
@@ -15,7 +16,7 @@ int8_t SysConfigPropRegistry::createProperty(const std::string& propertyName, co
     return true;
 }
 
-int8_t SysConfigPropRegistry::queryProperty(const std::string& propertyName, std::string& result) {
+int8_t PropertiesRegistry::queryProperty(const std::string& propertyName, std::string& result) {
     if(propertyName.length() == 0) {
         return false;
     }
@@ -32,7 +33,7 @@ int8_t SysConfigPropRegistry::queryProperty(const std::string& propertyName, std
     return true;
 }
 
-int8_t SysConfigPropRegistry::modifyProperty(const std::string& propertyName, const std::string& propertyValue) {
+int8_t PropertiesRegistry::modifyProperty(const std::string& propertyName, const std::string& propertyValue) {
     if(propertyName.length() == 0 || propertyValue.length() == 0) {
         return false;
     }
@@ -54,7 +55,7 @@ int8_t SysConfigPropRegistry::modifyProperty(const std::string& propertyName, co
     return true;
 }
 
-int8_t SysConfigPropRegistry::deleteProperty(const std::string& propertyName) {
+int8_t PropertiesRegistry::deleteProperty(const std::string& propertyName) {
     if(propertyName.length() == 0) {
         return false;
     }
@@ -76,8 +77,8 @@ int8_t SysConfigPropRegistry::deleteProperty(const std::string& propertyName) {
     return true;
 }
 
-int32_t SysConfigPropRegistry::getPropertiesCount() {
+int32_t PropertiesRegistry::getPropertiesCount() {
     return this->mProperties.size();
 }
 
-SysConfigPropRegistry::~SysConfigPropRegistry() {}
+PropertiesRegistry::~PropertiesRegistry() {}
