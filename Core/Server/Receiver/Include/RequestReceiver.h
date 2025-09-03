@@ -12,7 +12,6 @@
 #include "Logger.h"
 #include "ResourceTunerSocketServer.h"
 #include "ResourceTunerSettings.h"
-#include "SysConfig.h"
 #include "AuxRoutines.h"
 #include "ComponentRegistry.h"
 

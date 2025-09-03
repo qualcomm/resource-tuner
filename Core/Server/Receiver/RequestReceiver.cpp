@@ -52,36 +52,38 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
             break;
         }
         // SysConfig Requests
-        case REQ_CLIENT_GET_REQUESTS:
-        case REQ_SYSCONFIG_GET_PROP:
-        case REQ_SYSCONFIG_SET_PROP: {
-            // Deserialize to SysConfig Request
-            SysConfig* sysConfig = nullptr;
-            try {
-                sysConfig = new (GetBlock<SysConfig>()) SysConfig();
+        case REQ_SYSCONFIG_GET_PROP: {
+            // Decode Prop Fetch Request
+            PropConfig propConfig;
+            memset(&propConfig, 0, sizeof(propConfig));
 
-            } catch(const std::bad_alloc& e) {
-                TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE, e.what());
-                return;
-            }
+            int8_t* ptr8 = (int8_t*)msgForwardInfo->buffer;
+            (void) DEREF_AND_INCR(ptr8, int8_t);
 
-            if(RC_IS_NOTOK(sysConfig->deserialize(msgForwardInfo->buffer))) {
-                FreeBlock<SysConfig>(sysConfig);
-                return;
+            char* charIterator = (char*)ptr8;
+            propConfig.mPropName = charIterator;
+
+            while(*charIterator != '\0') {
+                charIterator++;
             }
+            charIterator++;
+
+            uint64_t* ptr64 = (uint64_t*)charIterator;
+            propConfig.mBufferSize = DEREF_AND_INCR(ptr64, uint64_t);
 
             std::string result;
+            ComponentRegistry::getEventCallback(PROP_ON_MSG_RECV)(&propConfig);
 
-            if(requestType == REQ_SYSCONFIG_GET_PROP) {
-                if(write(clientSocket, (const void*)result.c_str(), sizeof(sysConfig->getBufferSize())) == -1) {
-                    TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-                }
+            size_t maxSafeSize = result.size() + 1;
+            size_t bytesToWrite = std::min(propConfig.mBufferSize, maxSafeSize);
+
+            if(write(clientSocket, (const void*)result.c_str(), bytesToWrite) == -1) {
+                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
             }
-
-            FreeBlock<SysConfig>(sysConfig);
+            break;
         }
         // Signal Requests
-        case SIGNAL_ACQ: {
+        case REQ_SIGNAL_TUNING: {
             if(!ComponentRegistry::isModuleEnabled(MOD_SIGNAL)) {
                 TYPELOGV(NOTIFY_MODULE_NOT_ENABLED, "Signals");
                 return;
@@ -92,8 +94,8 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
                 return;
             }
         }
-        case SIGNAL_FREE:
-        case SIGNAL_RELAY: {
+        case REQ_SIGNAL_UNTUNING:
+        case REQ_SIGNAL_RELAY: {
             if(!ComponentRegistry::isModuleEnabled(MOD_SIGNAL)) {
                 TYPELOGV(NOTIFY_MODULE_NOT_ENABLED, "Signals");
                 return;
@@ -111,7 +113,7 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
             }
 
             // Only in Case of Tune Signals, Write back the handle to the client.
-            if(requestType == SIGNAL_ACQ) {
+            if(requestType == REQ_SIGNAL_TUNING) {
                 if(write(clientSocket, (const void*)&msgForwardInfo->handle, sizeof(int64_t)) == -1) {
                     TYPELOGV(ERRNO_LOG, "write", strerror(errno));
                 }

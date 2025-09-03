@@ -103,7 +103,6 @@ void dumpRequest(Request* clientReq) {
         LOGD(LOG_TAG, "Resource " + std::to_string(i + 1) + ":");
         LOGD(LOG_TAG, "ResCode: " + std::to_string(res->getResCode()));
         LOGD(LOG_TAG, "Number of Values: " + std::to_string(res->getValuesCount()));
-        // LOGD(LOG_TAG, "-- Single Value: " + std::to_string(res->mResValue.value));
     }
 }
 
@@ -119,29 +118,6 @@ void AuxRoutines::dumpRequest(Signal* clientReq) {
     LOGD(LOG_TAG, "Scenario: " + std::string(clientReq->getScenario()));
     LOGD(LOG_TAG, "Num Args: " + std::to_string(clientReq->getNumArgs()));
     LOGD(LOG_TAG, "Priority: " + std::to_string(clientReq->getPriority()));
-}
-
-std::string AuxRoutines::requestTypeToString(int32_t requestType) {
-    switch(requestType) {
-        case REQ_RESOURCE_TUNING:
-            return "Resource Tuning";
-        case REQ_RESOURCE_UNTUNING:
-            return "Resource Untuning";
-        case REQ_RESOURCE_RETUNING:
-            return "Resource Retuning";
-        case SIGNAL_ACQ:
-            return "Tune Signal";
-        case SIGNAL_FREE:
-            return "Untune Signal";
-        case REQ_SYSCONFIG_GET_PROP:
-            return "Get Property";
-        case REQ_SYSCONFIG_SET_PROP:
-            return "Set Property";
-        default:
-            break;
-    }
-
-    return "UNKNOWN";
 }
 
 int64_t AuxRoutines::generateUniqueHandle() {

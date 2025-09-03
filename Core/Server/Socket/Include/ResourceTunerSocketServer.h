@@ -17,7 +17,6 @@
 #include "MemoryPool.h"
 #include "Request.h"
 #include "Signal.h"
-#include "SysConfig.h"
 #include "SafeOps.h"
 #include "ServerEndpoint.h"
 #include "ErrCodes.h"

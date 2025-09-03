@@ -8,7 +8,6 @@
 
 #include "ErrCodes.h"
 #include "Request.h"
-#include "SysConfig.h"
 #include "RequestQueue.h"
 #include "ThreadPool.h"
 #include "CocoTable.h"
@@ -53,7 +52,7 @@ ErrCode submitResProvisionRequest(Request* request, int8_t isVerified);
 *              1: If the Property was found in the store
 *              0: Otherwise
 */
-int8_t submitPropGetRequest(const std::string& prop, std::string& buffer, size_t buffer_size, const std::string& def_value);
+int8_t submitPropGetRequest(const std::string& prop, std::string& buffer, const std::string& def_value);
 
 /**
 * @brief Modifies an already existing property in the Config Store.
@@ -76,6 +75,6 @@ int8_t submitPropSetRequest(const std::string& prop, const std::string& value);
 *              1: If the Property with the specified name was found in the store, and was updated successfully.
 *              0: Otherwise
 */
-int8_t submitPropRequest(std::string& resultBuf, SysConfig* clientReq);
+ErrCode submitPropRequest(void* request);
 
 #endif

@@ -7,7 +7,6 @@
 #include "TestUtils.h"
 #include "MemoryPool.h"
 #include "Request.h"
-#include "SysConfig.h"
 #include "Signal.h"
 
 // Request Cleanup Tests
@@ -184,57 +183,12 @@ static void TestSignalSerializingAndDeserializing() {
     } catch(const std::exception& e) {}
 }
 
-static void TestSysConfigSerializingAndDeserializing() {
- try {
-        MakeAlloc<SysConfig> (5);
-
-        SysConfig* firstConfig = new (GetBlock<SysConfig>()) SysConfig();
-        firstConfig->setRequestType(REQ_SYSCONFIG_GET_PROP);
-        firstConfig->setClientPID(1003);
-        firstConfig->setClientTID(1009);
-        firstConfig->setProp("resourceTuner.rate_limiter.min_health");
-        firstConfig->setValue("104");
-        firstConfig->setDefaultValue("67");
-        firstConfig->setBufferSize(1445);
-
-        C_ASSERT(firstConfig->getRequestType() == REQ_SYSCONFIG_GET_PROP);
-        C_ASSERT(firstConfig->getClientPID() == 1003);
-        C_ASSERT(firstConfig->getClientTID() == 1009);
-        C_ASSERT(firstConfig->getProp() == "resourceTuner.rate_limiter.min_health");
-        C_ASSERT(firstConfig->getValue() == "104");
-        C_ASSERT(firstConfig->getDefaultValue() == "67");
-        C_ASSERT(firstConfig->getBufferSize() == 1445);
-
-        char buf[1024];
-
-        // Serializing the SysConfig struct
-        ErrCode rc = firstConfig->serialize(buf);
-        C_ASSERT(rc == RC_SUCCESS);
-
-        // Deserialize to another SysConfig Object
-        SysConfig* secondConfig = new (GetBlock<SysConfig>()) SysConfig();
-        rc = secondConfig->deserialize(buf);
-        C_ASSERT(rc == RC_SUCCESS);
-
-        C_ASSERT(firstConfig->getRequestType() == secondConfig->getRequestType());
-        C_ASSERT(firstConfig->getClientPID() == secondConfig->getClientPID());
-        C_ASSERT(firstConfig->getClientTID() == secondConfig->getClientTID());
-        C_ASSERT(firstConfig->getProp() == secondConfig->getProp());
-        C_ASSERT(firstConfig->getValue() == secondConfig->getValue());
-        C_ASSERT(firstConfig->getDefaultValue() == secondConfig->getDefaultValue());
-        C_ASSERT(firstConfig->getBufferSize() == secondConfig->getBufferSize());
-
-    } catch(const std::bad_alloc& e) {
-    } catch(const std::exception& e) {}
-}
-
 int32_t main() {
     std::cout<<"Running Test Suite: [Misc Tests]\n"<<std::endl;
 
     RUN_TEST(TestResourceStructCoreClusterSettingAndExtraction);
     RUN_TEST(TestRequestSerializingAndDeserializing);
     RUN_TEST(TestSignalSerializingAndDeserializing);
-    RUN_TEST(TestSysConfigSerializingAndDeserializing);
 
     std::cout<<"\nAll Tests from the suite: [Misc Tests], executed successfully"<<std::endl;
     return 0;

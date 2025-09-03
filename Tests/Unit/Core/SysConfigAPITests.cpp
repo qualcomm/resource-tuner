@@ -31,7 +31,7 @@ static void TestSysConfigPropertiesParsing() {
 static void TestSysConfigGetPropSimpleRetrieval1() {
     std::string resultBuffer;
 
-    int8_t propFound = submitPropGetRequest("test.debug.enabled", resultBuffer, sizeof(resultBuffer), "false");
+    int8_t propFound = submitPropGetRequest("test.debug.enabled", resultBuffer, "false");
 
     C_ASSERT(propFound == true);
     C_ASSERT(strcmp(resultBuffer.c_str(), "true") == 0);
@@ -40,7 +40,7 @@ static void TestSysConfigGetPropSimpleRetrieval1() {
 static void TestSysConfigGetPropSimpleRetrieval2() {
     std::string resultBuffer;
 
-    int8_t propFound = submitPropGetRequest("test.current.worker_thread.count", resultBuffer, sizeof(resultBuffer), "false");
+    int8_t propFound = submitPropGetRequest("test.current.worker_thread.count", resultBuffer, "false");
 
     C_ASSERT(propFound == true);
     C_ASSERT(strcmp(resultBuffer.c_str(), "125") == 0);
@@ -49,7 +49,7 @@ static void TestSysConfigGetPropSimpleRetrieval2() {
 static void TestSysConfigGetPropSimpleRetrievalInvalidProperty() {
     std::string resultBuffer;
 
-    int8_t propFound = submitPropGetRequest("test.historic.worker_thread.count", resultBuffer, sizeof(resultBuffer), "5");
+    int8_t propFound = submitPropGetRequest("test.historic.worker_thread.count", resultBuffer, "5");
 
     C_ASSERT(propFound == false);
     C_ASSERT(strcmp(resultBuffer.c_str(), "5") == 0);
@@ -58,7 +58,7 @@ static void TestSysConfigGetPropSimpleRetrievalInvalidProperty() {
 static void TestSysConfigGetPropConcurrentRetrieval() {
     std::thread th1([&]{
         std::string resultBuffer;
-        int8_t propFound = submitPropGetRequest("test.current.worker_thread.count", resultBuffer, sizeof(resultBuffer), "false");
+        int8_t propFound = submitPropGetRequest("test.current.worker_thread.count", resultBuffer, "false");
 
         C_ASSERT(propFound == true);
         C_ASSERT(strcmp(resultBuffer.c_str(), "125") == 0);
@@ -66,7 +66,7 @@ static void TestSysConfigGetPropConcurrentRetrieval() {
 
     std::thread th2([&]{
         std::string resultBuffer;
-        int8_t propFound = submitPropGetRequest("test.debug.enabled", resultBuffer, sizeof(resultBuffer), "false");
+        int8_t propFound = submitPropGetRequest("test.debug.enabled", resultBuffer, "false");
 
         C_ASSERT(propFound == true);
         C_ASSERT(strcmp(resultBuffer.c_str(), "true") == 0);
@@ -74,7 +74,7 @@ static void TestSysConfigGetPropConcurrentRetrieval() {
 
     std::thread th3([&]{
         std::string resultBuffer;
-        int8_t propFound = submitPropGetRequest("test.doc.build.mode.enabled", resultBuffer, sizeof(resultBuffer), "false");
+        int8_t propFound = submitPropGetRequest("test.doc.build.mode.enabled", resultBuffer, "false");
 
         C_ASSERT(propFound == true);
         C_ASSERT(strcmp(resultBuffer.c_str(), "false") == 0);
@@ -83,24 +83,6 @@ static void TestSysConfigGetPropConcurrentRetrieval() {
     th1.join();
     th2.join();
     th3.join();
-}
-
-static void TestSysConfigSetPropSimpleModification() {
-    std::string resultBuffer;
-
-    int8_t propFound = submitPropGetRequest("test.current.worker_thread.count", resultBuffer, sizeof(resultBuffer), "0");
-
-    C_ASSERT(propFound == true);
-    C_ASSERT(strcmp(resultBuffer.c_str(), "125") == 0);
-
-    int8_t modificationStatus = submitPropSetRequest("test.current.worker_thread.count", "144");
-
-    C_ASSERT(modificationStatus == true);
-
-    propFound = submitPropGetRequest("test.current.worker_thread.count", resultBuffer, sizeof(resultBuffer), "0");
-
-    C_ASSERT(propFound == true);
-    C_ASSERT(strcmp(resultBuffer.c_str(), "144") == 0);
 }
 
 int32_t main() {
@@ -113,7 +95,6 @@ int32_t main() {
     RUN_TEST(TestSysConfigGetPropSimpleRetrieval2);
     RUN_TEST(TestSysConfigGetPropSimpleRetrievalInvalidProperty);
     RUN_TEST(TestSysConfigGetPropConcurrentRetrieval);
-    RUN_TEST(TestSysConfigSetPropSimpleModification);
 
     std::cout<<"\nAll Tests from the suite SysConfig API Tests, executed successfully"<<std::endl;
 }

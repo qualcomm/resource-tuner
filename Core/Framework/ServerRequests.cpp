@@ -336,41 +336,27 @@ ErrCode submitResProvisionRequest(void* msg) {
     return RC_SUCCESS;
 }
 
-int8_t submitPropGetRequest(const std::string& prop, std::string& buffer, uint64_t buffer_size, const std::string& def_value) {
+int8_t submitPropGetRequest(const std::string& prop,
+                            std::string& buffer,
+                            const std::string& defaultValue) {
     std::string propertyName(prop);
     std::string result;
 
     int8_t propFound = false;
     if((propFound = PropertiesRegistry::getInstance()->queryProperty(propertyName, result)) == false) {
-        result = def_value;
+        result = defaultValue;
     }
 
     buffer = result;
     return propFound;
 }
 
-int8_t submitPropSetRequest(const std::string& prop, const std::string& value) {
-    std::string propertyName(prop);
-    std::string propertyValue(value);
+ErrCode submitPropRequest(void* context) {
+    if(context == nullptr) return RC_BAD_ARG;
+    PropConfig* propConfig = static_cast<PropConfig*>(context);
 
-    return PropertiesRegistry::getInstance()->modifyProperty(propertyName, propertyValue);
-}
-
-int8_t submitPropRequest(std::string& resultBuf, SysConfig* clientReq) {
-    int8_t status = false;
-    switch(clientReq->getRequestType()) {
-        case REQ_SYSCONFIG_GET_PROP:
-            status = submitPropGetRequest(clientReq->getProp(), resultBuf,
-                                      clientReq->getBufferSize(),
-                                      clientReq->getDefaultValue());
-            break;
-        case REQ_SYSCONFIG_SET_PROP:
-            status = submitPropSetRequest(clientReq->getProp(), clientReq->getValue());
-            break;
-        default:
-            break;
-    }
-    return status;
+    submitPropGetRequest(propConfig->mPropName, propConfig->mResult, "");
+    return RC_SUCCESS;
 }
 
 void toggleDisplayModes() {

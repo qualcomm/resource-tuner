@@ -101,7 +101,7 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
         }
     }
 
-    if(signal->getRequestType() == SIGNAL_RELAY) {
+    if(signal->getRequestType() == REQ_SIGNAL_RELAY) {
         TYPELOGV(VERIFIER_REQUEST_VALIDATED, signal->getHandle());
         return true;
     }
@@ -199,7 +199,7 @@ static void processIncomingRequest(Signal* signal) {
         return;
     }
 
-    if(signal->getRequestType() == SIGNAL_RELAY || signal->getRequestType() == SIGNAL_ACQ) {
+    if(signal->getRequestType() == REQ_SIGNAL_RELAY || signal->getRequestType() == REQ_SIGNAL_TUNING) {
         // Check if the client exists, if not create a new client tracking entry
         if(!clientDataManager->clientExists(signal->getClientPID(), signal->getClientTID())) {
             if(!clientDataManager->createNewClient(signal->getClientPID(), signal->getClientTID())) {
@@ -233,7 +233,7 @@ static void processIncomingRequest(Signal* signal) {
         return;
     }
 
-    if(signal->getRequestType() == SIGNAL_ACQ) {
+    if(signal->getRequestType() == REQ_SIGNAL_TUNING) {
         if(!VerifyIncomingRequest(signal)) {
             TYPELOGV(VERIFIER_STATUS_FAILURE, signal->getHandle());
             Signal::cleanUpSignal(signal);
@@ -263,7 +263,7 @@ ErrCode submitSignalRequest(void* clientReq) {
         return RC_REQUEST_DESERIALIZATION_FAILURE;
     }
 
-    if(signal->getRequestType() == SIGNAL_ACQ) {
+    if(signal->getRequestType() == REQ_SIGNAL_TUNING) {
         signal->setHandle(info->handle);
     }
 
@@ -348,7 +348,7 @@ void SignalQueue::orderedQueueConsumerHook() {
         }
 
         switch(signal->getRequestType()) {
-            case SIGNAL_ACQ: {
+            case REQ_SIGNAL_TUNING: {
                 Request* request = createResourceTuningRequest(signal);
                 FreeBlock<Signal>(static_cast<void*>(signal));
 
@@ -358,7 +358,7 @@ void SignalQueue::orderedQueueConsumerHook() {
                 }
                 break;
             }
-            case SIGNAL_FREE: {
+            case REQ_SIGNAL_UNTUNING: {
                 Request* request = createResourceUntuneRequest(signal);
                 FreeBlock<Signal>(static_cast<void*>(signal));
 
@@ -368,7 +368,7 @@ void SignalQueue::orderedQueueConsumerHook() {
                 }
                 break;
             }
-            case SIGNAL_RELAY: {
+            case REQ_SIGNAL_RELAY: {
                 // Get all the subscribed Features
                 std::vector<uint32_t> subscribedFeatures;
                 int8_t featuresExist = SignalExtFeatureMapper::getInstance()->getFeatures(

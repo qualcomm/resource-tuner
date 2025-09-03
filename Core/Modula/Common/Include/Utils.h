@@ -17,25 +17,16 @@
 
 /**
  * @enum RequestType
- * @brief Enumeration for different types of Resource Provisioning and SysConfig requests.
+ * @brief Enumeration for different types of Resource-Tuner Requests.
  */
 enum RequestType {
     REQ_RESOURCE_TUNING,
     REQ_RESOURCE_RETUNING,
     REQ_RESOURCE_UNTUNING,
-    REQ_CLIENT_GET_REQUESTS,
     REQ_SYSCONFIG_GET_PROP,
-    REQ_SYSCONFIG_SET_PROP,
-};
-
-/**
- * @enum SignalType
- * @brief Enumeration for different types of Signal requests.
- */
-enum SignalRequestType {
-    SIGNAL_ACQ = 10,
-    SIGNAL_FREE,
-    SIGNAL_RELAY
+    REQ_SIGNAL_TUNING,
+    REQ_SIGNAL_UNTUNING,
+    REQ_SIGNAL_RELAY
 };
 
 /**
@@ -63,25 +54,22 @@ enum RequestPriority {
  * @enum PriorityLevel
  * @brief Resource Tuner Priority Levels
  * @details Each Request will have a priority level. This is used to determine the order in which
- * requests are processed for a specific Resource. The Requests with higher Priority will be prioritized.
+ *          requests are processed for a specific Resource. The Requests with higher Priority will be prioritized.
  */
 enum PriorityLevel {
-    SYSTEM_HIGH, // Highest Level of Priority
+    SYSTEM_HIGH = 0, // Highest Level of Priority
     SYSTEM_LOW,
     THIRD_PARTY_HIGH,
     THIRD_PARTY_LOW,
+    TOTAL_PRIORITIES
 };
-
-#define TOTAL_PRIORITIES 4 // Total number of priority levels currently supported. Value = 4 at the moment.
-#define HIGH_TRANSFER_PRIORITY -1
-#define SERVER_CLEANUP_TRIGGER_PRIORITY -2
 
 /**
  * @enum Modes
  * @brief Represents the operational modes based on the device's display state.
  * @details Certain system resources are optimized only when the device display is active,
- * primarily to conserve power. However, for critical components, tuning may be
- * performed regardless of the display state, including during doze mode.
+ *          primarily to conserve power. However, for critical components, tuning may be
+ *          performed regardless of the display state, including during doze mode.
  */
 enum Modes {
     MODE_DISPLAY_ON  = 0x001, //!< Tuning allowed when the display is on.
@@ -108,9 +96,31 @@ typedef struct {
     int64_t handle;
 } MsgForwardInfo;
 
+typedef struct {
+    std::string mPropName;
+    std::string mResult;
+    uint64_t mBufferSize;
+} PropConfig;
+
 // Global Typedefs: Declare Function Pointers as types
 typedef ErrCode (*EventCallback)(void*);
 typedef int8_t (*ServerOnlineCheckCallback)();
 typedef void (*ResourceTunerMessageReceivedCallback)(int32_t, MsgForwardInfo*);
+
+
+#define HIGH_TRANSFER_PRIORITY -1
+#define SERVER_CLEANUP_TRIGGER_PRIORITY -2
+
+#define COMMON_RESOURCE "Common-Resource"
+#define CUSTOM_RESOURCE "Custom-Resource"
+#define COMMON_PROPERTIES "Common-Properties"
+#define CUSTOM_PROPERTIES "Custom-Properties"
+#define COMMON_TARGET "Common-Target"
+#define CUSTOM_TARGET "Custom-Target"
+#define COMMON_INIT "Common-Init"
+#define CUSTOM_INIT "Custom-Init"
+#define COMMON_SIGNAL "Common-Signal"
+#define CUSTOM_SIGNAL "Custom-Signal"
+#define CUSTOM_EXT_FEATURE "Ext-Features"
 
 #endif

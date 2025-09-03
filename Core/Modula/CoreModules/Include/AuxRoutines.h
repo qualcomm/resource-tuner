@@ -25,8 +25,6 @@ public:
     static void dumpRequest(Request* request);
     static void dumpRequest(Signal* signal);
 
-    static std::string requestTypeToString(int32_t requestType);
-
     static int64_t generateUniqueHandle();
     static int64_t getCurrentTimeInMilliseconds();
 };
