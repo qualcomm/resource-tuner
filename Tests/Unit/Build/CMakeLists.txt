@@ -56,6 +56,10 @@ if(BUILD_TESTS)
     target_link_libraries(ExtensionIntfTests Auxiliary ExtAPIs Server)
     install(TARGETS ExtensionIntfTests DESTINATION bin)
 
+    add_executable(InitConfigParsingTests ../Core/InitConfigParsingTests.cpp)
+    target_link_libraries(InitConfigParsingTests Auxiliary ExtAPIs Server)
+    install(TARGETS InitConfigParsingTests DESTINATION bin)
+
     if(BUILD_SIGNALS)
         add_executable(SysSignalConfigProcessorTests ../Signals/SignalConfigProcessorTests.cpp)
         target_link_libraries(SysSignalConfigProcessorTests Auxiliary ExtAPIs SysSignals)

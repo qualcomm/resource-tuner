@@ -28,7 +28,7 @@
 
 typedef struct {
     std::string mCgroupName;
-    int8_t mCgroupID;
+    int32_t mCgroupID;
     int8_t isThreaded;
 } CGroupConfigInfo;
 
@@ -40,6 +40,18 @@ typedef struct {
     int32_t mNumCpus;
 } ClusterInfo;
 
+typedef struct {
+    int32_t mMpamGroupInfoID;
+    std::string mMpamGroupName;
+    int32_t mPriority;
+} MpamGroupConfigInfo;
+
+typedef struct {
+    std::string mCacheType;
+    int32_t mNumCacheBlocks;
+    int8_t mPriorityAware;
+} CacheInfo;
+
 class TargetRegistry {
 private:
     static std::shared_ptr<TargetRegistry> targetRegistryInstance;
@@ -47,6 +59,8 @@ private:
     std::unordered_map<int32_t, int32_t> mLogicalToPhysicalClusterMapping;
     std::unordered_map<int32_t, ClusterInfo*> mPhysicalClusters;
     std::unordered_map<int32_t, CGroupConfigInfo*> mCGroupMapping;
+    std::unordered_map<int32_t, MpamGroupConfigInfo*> mMpamGroupMapping;
+    std::unordered_map<std::string, CacheInfo*> mCacheInfoMapping;
 
     TargetRegistry();
 
@@ -60,8 +74,15 @@ public:
     void addClusterSpreadInfo(int32_t physicalID, int32_t coreCount);
     void addClusterMapping(int32_t logicalID, int32_t physicalID);
 
-    // Method for adding CGroup configs via InitConfig.yaml
+    // Method for adding CGroup configs from InitConfig.yaml
     void addCGroupMapping(CGroupConfigInfo* cGroupConfigInfo);
+
+    // Method for adding Mpam Group configs from InitConfig.yaml
+    void addMpamGroupMapping(MpamGroupConfigInfo* mpamGroupConfigInfo);
+
+    void addCacheInfoMapping(CacheInfo* cacheInfo);
+
+    void getClusterIDs(std::vector<int32_t>& clusterIDs);
 
     /**
     * @brief Called by the Verifier to get the physical core ID corresponding to the Logical Core ID value.
@@ -108,10 +129,13 @@ public:
     */
     void readTargetInfo();
 
-    void getClusterIDs(std::vector<int32_t>& clusterIDs);
-    CGroupConfigInfo* getCGroupConfig(int8_t cGroupID);
+    CGroupConfigInfo* getCGroupConfig(int32_t cGroupID);
     void getCGroupNames(std::vector<std::string>& cGroupNames);
     int32_t getCreatedCGroupsCount();
+
+    MpamGroupConfigInfo* getMpamGroupConfig(int32_t mpamGroupID);
+    void getMpamGroupNames(std::vector<std::string>& cGroupNames);
+    int32_t getCreatedMpamGroupsCount();
 
     void displayTargetInfo();
 
@@ -130,11 +154,39 @@ private:
 public:
     CGroupConfigInfoBuilder();
 
-    CGroupConfigInfoBuilder* setCGroupName(const std::string& cGroupName);
-    CGroupConfigInfoBuilder* setCGroupID(int8_t cGroupIdentifier);
-    CGroupConfigInfoBuilder* setThreaded(int8_t isThreaded);
+    ErrCode setCGroupName(const std::string& cGroupName);
+    ErrCode setCGroupID(int32_t cGroupIdentifier);
+    ErrCode setThreaded(int8_t isThreaded);
 
     CGroupConfigInfo* build();
+};
+
+class MpamGroupConfigInfoBuilder {
+private:
+    MpamGroupConfigInfo* mMpamGroupInfo;
+
+public:
+    MpamGroupConfigInfoBuilder();
+
+    ErrCode setName(const std::string& name);
+    ErrCode setLgcID(int32_t logicalID);
+    ErrCode setPriority(int32_t priority);
+
+    MpamGroupConfigInfo* build();
+};
+
+class CacheInfoBuilder {
+private:
+    CacheInfo* mCacheInfo;
+
+public:
+    CacheInfoBuilder();
+
+    ErrCode setType(const std::string& type);
+    ErrCode setNumBlocks(int32_t numBlocks);
+    ErrCode setPriorityAware(int8_t isPriorityAware);
+
+    CacheInfo* build();
 };
 
 #endif

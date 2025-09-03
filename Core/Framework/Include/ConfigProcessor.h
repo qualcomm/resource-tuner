@@ -19,6 +19,7 @@
 #include "Utils.h"
 #include "AuxRoutines.h"
 
+// Resource Config
 #define RESOURCE_CONFIGS_ROOT "ResourceConfigs"
 #define RESOURCE_CONFIGS_ELEM_RESOURCE_TYPE "ResType"
 #define RESOURCE_CONFIGS_ELEM_RESOURCE_ID "ResID"
@@ -32,6 +33,7 @@
 #define RESOURCE_CONFIGS_ELEM_POLICY "Policy"
 #define RESOURCE_CONFIGS_APPLY_TYPE "ApplyType"
 
+// Target Info Config
 #define TARGET_CONFIGS_ROOT "TargetConfig"
 #define TARGET_NAME "TargetName"
 #define TARGET_CLUSTER_INFO "ClusterInfo"
@@ -43,14 +45,29 @@
 #define TARGET_CONFIGS_ID "Id"
 #define TARGET_CONFIGS_TYPE "Type"
 
+// CGroup Config
 #define INIT_CONFIGS_ROOT "InitConfigs"
 #define INIT_CONFIGS_CGROUPS_LIST "CgroupsInfo"
 #define INIT_CONFIGS_CGROUP_NAME "Name"
 #define INIT_CONFIGS_CGROUP_IDENTIFIER "ID"
 #define INIT_CONFIGS_CGROUP_THREADED "IsThreaded"
+
+// Cluster Map
 #define INIT_CONFIGS_CLUSTER_MAP "ClusterMap"
 #define INIT_CONFIGS_CLUSTER_MAP_CLUSTER_ID "Id"
 #define INIT_CONFIGS_CLUSTER_MAP_CLUSTER_TYPE "Type"
+
+// Mpam Config
+#define INIT_CONFIGS_MPAM_GROUPS_LIST "MPAMgroupsInfo"
+#define INIT_CONFIGS_MPAM_GROUP_NAME "Name"
+#define INIT_CONFIGS_MPAM_GROUP_ID "ID"
+#define INIT_CONFIGS_MPAM_GROUP_PRIORITY "Priority"
+
+// Cache Info
+#define INIT_CONFIGS_CACHE_INFO_LIST "CacheInfo"
+#define INIT_CONFIGS_CACHE_INFO_CACHE_TYPE "Type"
+#define INIT_CONFIGS_CACHE_INFO_CACHE_BLOCK_COUNT "NumCacheBlocks"
+#define INIT_CONFIGS_CACHE_INFO_CACHE_PRIORITY_AWARE "PriorityAware"
 
 /**
  * The Resource Config file (ResourcesConfig.yaml) must follow a specific structure.
@@ -109,16 +126,46 @@
  * The Init Config file (InitConfig.yaml) must follow a specific structure.
  * Example YAML configuration:
  * @code{.yaml}
- * InitConfigs:
- *   - CgroupsInfo:
- *     - Name: "camera-cgroup"
- *       ID: 0
- *     - Name: "audio-cgroup"
- *       ID: 1
- *     - Name: "video-cgroup"
- *       IsThreaded: true
- *       ID: 2
- *
+* InitConfigs:
+*   # Logical IDs should always be arranged from lower to higher cluster capacities
+*   - ClusterMap:
+*     - Id: 0
+*       Type: little
+*     - Id: 1
+*       Type: big
+*     - Id: 2
+*       Type: titanium
+*     - Id: 3
+*       Type: prime
+*
+*   - CgroupsInfo:
+*     - Name: "camera-cgroup"
+*       ID: 0
+*     - Name: "audio-cgroup"
+*       ID: 1
+*     - Name: "video-cgroup"
+*       IsThreaded: true
+*       ID: 2
+*
+*   - MPAMgroupsInfo:
+*     - Name: "camera-mpam-group"
+*       ID: 0
+*       Priority: 0
+*     - Name: "audio-mpam-group"
+*       ID: 1
+*       Priority: 1
+*     - Name: "video-mpam-group"
+*       ID: 2
+*       Priority: 2
+*
+*   - CacheInfo:
+*     - Type: L2
+*       NumCacheBlocks: 2
+*       PriorityAware: 0
+*     - Type: L3
+*       NumCacheBlocks: 1
+*       PriorityAware: 1
+*
  * @endcode
  *
  * @example Init_Configs

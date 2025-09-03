@@ -10,7 +10,7 @@
 // Test cases for Add function
 static void Overflow1() {
     OperationStatus status;
-    //demonstrating implicit conversion by compiler resulting in proper value but still considered overflow
+    // demonstrating implicit conversion by compiler resulting in proper value but still considered overflow
     int64_t result = Add(std::numeric_limits<int32_t>::max(), 2, status);
     C_ASSERT(status == OVERFLOW);
     C_ASSERT(result == std::numeric_limits<int32_t>::max());

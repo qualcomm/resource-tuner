@@ -2,6 +2,17 @@
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 
 InitConfigs:
+  # Logical IDs should always be arranged from lower to higher cluster capacities
+  - ClusterMap:
+    - Id: 0
+      Type: little
+    - Id: 1
+      Type: big
+    - Id: 2
+      Type: titanium
+    - Id: 3
+      Type: prime
+
   - CgroupsInfo:
     - Name: "camera-cgroup"
       ID: 0
@@ -10,3 +21,22 @@ InitConfigs:
     - Name: "video-cgroup"
       IsThreaded: true
       ID: 2
+
+  - MPAMgroupsInfo:
+    - Name: "camera-mpam-group"
+      ID: 0
+      Priority: 0
+    - Name: "audio-mpam-group"
+      ID: 1
+      Priority: 1
+    - Name: "video-mpam-group"
+      ID: 2
+      Priority: 2
+
+  - CacheInfo:
+    - Type: L2
+      NumCacheBlocks: 2
+      PriorityAware: 0
+    - Type: L3
+      NumCacheBlocks: 1
+      PriorityAware: 1

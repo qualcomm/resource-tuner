@@ -145,11 +145,8 @@ void ConfigProcessor::parseResourceConfigYamlNode(const YAML::Node& item, int8_t
 void ConfigProcessor::parseTargetConfigYamlNode(const YAML::Node& item) {
     if(isList(item[TARGET_CLUSTER_INFO])) {
         for(const auto& clusterInfo : item[TARGET_CLUSTER_INFO]) {
-            int32_t logicalID;
-            int32_t physicalID;
-
-            logicalID = safeExtract<int32_t>(clusterInfo[TARGET_CLUSTER_INFO_LOGICAL_ID], -1);
-            physicalID = safeExtract<int32_t>(clusterInfo[TARGET_CLUSTER_INFO_PHYSICAL_ID], -1);
+            int32_t logicalID = safeExtract<int32_t>(clusterInfo[TARGET_CLUSTER_INFO_LOGICAL_ID], -1);
+            int32_t physicalID = safeExtract<int32_t>(clusterInfo[TARGET_CLUSTER_INFO_PHYSICAL_ID], -1);
 
             if(logicalID != -1 && physicalID != -1) {
                 TargetRegistry::getInstance()->addClusterMapping(logicalID, physicalID);
@@ -173,14 +170,100 @@ void ConfigProcessor::parseTargetConfigYamlNode(const YAML::Node& item) {
 }
 
 void ConfigProcessor::parseInitConfigYamlNode(const YAML::Node& item) {
+    std::cout<<"proceeding with parsing cgroup group configs"<<std::endl;
     if(isList(item[INIT_CONFIGS_CGROUPS_LIST])) {
         for(const auto& cGroupConfig : item[INIT_CONFIGS_CGROUPS_LIST]) {
+            ErrCode rc = RC_SUCCESS;
             CGroupConfigInfoBuilder cGroupConfigBuilder;
-            cGroupConfigBuilder.setCGroupName(safeExtract<std::string>(cGroupConfig[INIT_CONFIGS_CGROUP_NAME], ""));
-            cGroupConfigBuilder.setCGroupID((int8_t)(safeExtract<int8_t>(cGroupConfig[INIT_CONFIGS_CGROUP_IDENTIFIER], -1)));
-            cGroupConfigBuilder.setThreaded((int8_t)(safeExtract<bool>(cGroupConfig[INIT_CONFIGS_CGROUP_THREADED], false)));
+
+            if(RC_IS_OK(rc)) {
+                rc = cGroupConfigBuilder.setCGroupName(
+                    safeExtract<std::string>(cGroupConfig[INIT_CONFIGS_CGROUP_NAME], "")
+                );
+            }
+
+            if(RC_IS_OK(rc)) {
+                rc = cGroupConfigBuilder.setCGroupID(
+                    safeExtract<int32_t>(cGroupConfig[INIT_CONFIGS_CGROUP_IDENTIFIER], -1)
+                );
+            }
+
+            if(RC_IS_OK(rc)) {
+                rc = cGroupConfigBuilder.setThreaded(
+                    (int8_t)(safeExtract<bool>(cGroupConfig[INIT_CONFIGS_CGROUP_THREADED], false))
+                );
+            }
+
+            if(RC_IS_NOTOK(rc)) {
+                // Set the ID to -1, so that the Cgroup is not added and is cleaned up
+                cGroupConfigBuilder.setCGroupID(-1);
+            }
 
             TargetRegistry::getInstance()->addCGroupMapping(cGroupConfigBuilder.build());
+        }
+    }
+
+    if(isList(item[INIT_CONFIGS_MPAM_GROUPS_LIST])) {
+        for(const auto& mpamGroupConfig : item[INIT_CONFIGS_MPAM_GROUPS_LIST]) {
+            ErrCode rc = RC_SUCCESS;
+            MpamGroupConfigInfoBuilder mpamGroupConfigBuilder;
+
+            if(RC_IS_OK(rc)) {
+                rc = mpamGroupConfigBuilder.setName(
+                    safeExtract<std::string>(mpamGroupConfig[INIT_CONFIGS_MPAM_GROUP_NAME], "")
+                );
+            }
+
+            if(RC_IS_OK(rc)) {
+                rc = mpamGroupConfigBuilder.setLgcID(
+                    safeExtract<int32_t>(mpamGroupConfig[INIT_CONFIGS_MPAM_GROUP_ID], -1)
+                );
+            }
+
+            if(RC_IS_OK(rc)) {
+                rc = mpamGroupConfigBuilder.setPriority(
+                    safeExtract<int32_t>(mpamGroupConfig[INIT_CONFIGS_MPAM_GROUP_PRIORITY], 0)
+                );
+            }
+
+            if(RC_IS_NOTOK(rc)) {
+                // Set the ID to -1, so that the Cgroup is not added and is cleaned up
+                mpamGroupConfigBuilder.setLgcID(-1);
+            }
+
+            TargetRegistry::getInstance()->addMpamGroupMapping(mpamGroupConfigBuilder.build());
+        }
+    }
+
+    if(isList(item[INIT_CONFIGS_CACHE_INFO_LIST])) {
+        for(const auto& cacheConfig : item[INIT_CONFIGS_CACHE_INFO_LIST]) {
+            ErrCode rc = RC_SUCCESS;
+            CacheInfoBuilder cacheInfoBuilder;
+
+            if(RC_IS_OK(rc)) {
+                rc = cacheInfoBuilder.setType(
+                    safeExtract<std::string>(cacheConfig[INIT_CONFIGS_CACHE_INFO_CACHE_TYPE], "")
+                );
+            }
+
+            if(RC_IS_OK(rc)) {
+                rc = cacheInfoBuilder.setNumBlocks(
+                    safeExtract<int32_t>(cacheConfig[INIT_CONFIGS_CACHE_INFO_CACHE_BLOCK_COUNT], -1)
+                );
+            }
+
+            if(RC_IS_OK(rc)) {
+                rc = cacheInfoBuilder.setPriorityAware(
+                    (int8_t)safeExtract<int8_t>(cacheConfig[INIT_CONFIGS_CACHE_INFO_CACHE_PRIORITY_AWARE], false)
+                );
+            }
+
+            if(RC_IS_NOTOK(rc)) {
+                cacheInfoBuilder.setType("");
+                cacheInfoBuilder.setNumBlocks(-1);
+            }
+
+            TargetRegistry::getInstance()->addCacheInfoMapping(cacheInfoBuilder.build());
         }
     }
 }

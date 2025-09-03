@@ -19,6 +19,12 @@ static ErrCode createCGroup(CGroupConfigInfo* cGroupConfig) {
     return RC_SUCCESS;
 }
 
+static ErrCode createMpamGroup(MpamGroupConfigInfo* mpamGroupConfig) {
+    if(mpamGroupConfig == nullptr) return RC_BAD_ARG;
+
+    return RC_SUCCESS;
+}
+
 // Dynamic Utilities to fetch Target Info
 // Number of CPUs currently online
 static int32_t getOnlineCpuCount() {
@@ -271,6 +277,12 @@ void TargetRegistry::readTargetInfo() {
     this->getClusterIdBasedMapping();
 }
 
+void TargetRegistry::getClusterIDs(std::vector<int32_t>& clusterIDs) {
+    for(std::pair<int32_t, int32_t> info: this->mLogicalToPhysicalClusterMapping) {
+        clusterIDs.push_back(info.second);
+    }
+}
+
 // Get the Physical Cluster corresponding to a Logical Cluster Id.
 int32_t TargetRegistry::getPhysicalClusterId(int32_t logicalClusterId) {
     if(this->mLogicalToPhysicalClusterMapping.find(logicalClusterId) ==
@@ -308,23 +320,32 @@ int32_t TargetRegistry::getPhysicalCoreId(int32_t logicalClusterId, int32_t logi
 }
 
 void TargetRegistry::getCGroupNames(std::vector<std::string>& cGroupNames) {
-    for(std::pair<int8_t, CGroupConfigInfo*> cGroup: this->mCGroupMapping) {
+    for(std::pair<int32_t, CGroupConfigInfo*> cGroup: this->mCGroupMapping) {
         cGroupNames.push_back(cGroup.second->mCgroupName);
     }
 }
 
-CGroupConfigInfo* TargetRegistry::getCGroupConfig(int8_t cGroupID) {
+CGroupConfigInfo* TargetRegistry::getCGroupConfig(int32_t cGroupID) {
     return this->mCGroupMapping[cGroupID];
-}
-
-void TargetRegistry::getClusterIDs(std::vector<int32_t>& clusterIDs) {
-    for(std::pair<int32_t, int32_t> info: this->mLogicalToPhysicalClusterMapping) {
-        clusterIDs.push_back(info.second);
-    }
 }
 
 int32_t TargetRegistry::getCreatedCGroupsCount() {
     return this->mCGroupMapping.size();
+}
+
+
+void TargetRegistry::getMpamGroupNames(std::vector<std::string>& mpamGroupNames) {
+    for(std::pair<int32_t, MpamGroupConfigInfo*> mpamGroup: this->mMpamGroupMapping) {
+        mpamGroupNames.push_back(mpamGroup.second->mMpamGroupName);
+    }
+}
+
+MpamGroupConfigInfo* TargetRegistry::getMpamGroupConfig(int32_t mpamGroupID) {
+    return this->mMpamGroupMapping[mpamGroupID];
+}
+
+int32_t TargetRegistry::getCreatedMpamGroupsCount() {
+    return this->mMpamGroupMapping.size();
 }
 
 void TargetRegistry::addClusterMapping(int32_t logicalID, int32_t physicalID) {
@@ -381,42 +402,6 @@ TargetRegistry::~TargetRegistry() {
     }
 }
 
-// Methods for Building CGroup Config from InitConfigs.yaml
-CGroupConfigInfoBuilder::CGroupConfigInfoBuilder() {
-    this->mCGroupConfigInfo = new CGroupConfigInfo;
-}
-
-CGroupConfigInfoBuilder* CGroupConfigInfoBuilder::setCGroupName(const std::string& cGroupName) {
-    if(this->mCGroupConfigInfo == nullptr) {
-        return this;
-    }
-
-    this->mCGroupConfigInfo->mCgroupName = cGroupName;
-    return this;
-}
-
-CGroupConfigInfoBuilder* CGroupConfigInfoBuilder::setCGroupID(int8_t cGroupIdentifier) {
-    if(this->mCGroupConfigInfo == nullptr) {
-        return this;
-    }
-
-    this->mCGroupConfigInfo->mCgroupID = cGroupIdentifier;
-    return this;
-}
-
-CGroupConfigInfoBuilder* CGroupConfigInfoBuilder::setThreaded(int8_t isThreaded) {
-    if(this->mCGroupConfigInfo == nullptr) {
-        return this;
-    }
-
-    this->mCGroupConfigInfo->isThreaded = isThreaded;
-    return this;
-}
-
-CGroupConfigInfo* CGroupConfigInfoBuilder::build() {
-    return this->mCGroupConfigInfo;
-}
-
 void TargetRegistry::addCGroupMapping(CGroupConfigInfo* cGroupConfigInfo) {
     if(cGroupConfigInfo == nullptr) return;
 
@@ -428,4 +413,134 @@ void TargetRegistry::addCGroupMapping(CGroupConfigInfo* cGroupConfigInfo) {
     if(RC_IS_OK(createCGroup(cGroupConfigInfo))) {
         this->mCGroupMapping[cGroupConfigInfo->mCgroupID] = cGroupConfigInfo;
     }
+}
+
+void TargetRegistry::addMpamGroupMapping(MpamGroupConfigInfo* mpamGroupConfigInfo) {
+    if(mpamGroupConfigInfo == nullptr) return;
+
+    if(mpamGroupConfigInfo->mMpamGroupInfoID == -1 || mpamGroupConfigInfo->mMpamGroupName.length() == 0) {
+        delete mpamGroupConfigInfo;
+        return;
+    }
+
+    if(RC_IS_OK(createMpamGroup(mpamGroupConfigInfo))) {
+        this->mMpamGroupMapping[mpamGroupConfigInfo->mMpamGroupInfoID] = mpamGroupConfigInfo;
+    }
+}
+
+void TargetRegistry::addCacheInfoMapping(CacheInfo* cacheInfo) {
+    if(cacheInfo == nullptr) return;
+
+    if(cacheInfo->mCacheType.length() == 0 || cacheInfo->mNumCacheBlocks == -1) {
+        delete cacheInfo;
+        return;
+    }
+
+    this->mCacheInfoMapping[cacheInfo->mCacheType] = cacheInfo;
+}
+
+// Methods for Building CGroup Config from InitConfigs.yaml
+CGroupConfigInfoBuilder::CGroupConfigInfoBuilder() {
+    this->mCGroupConfigInfo = new(std::nothrow) CGroupConfigInfo;
+}
+
+ErrCode CGroupConfigInfoBuilder::setCGroupName(const std::string& name) {
+    if(this->mCGroupConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
+
+    this->mCGroupConfigInfo->mCgroupName = name;
+    return RC_SUCCESS;
+}
+
+ErrCode CGroupConfigInfoBuilder::setCGroupID(int32_t cGroupID) {
+    if(this->mCGroupConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
+
+    this->mCGroupConfigInfo->mCgroupID = cGroupID;
+    return RC_SUCCESS;
+}
+
+ErrCode CGroupConfigInfoBuilder::setThreaded(int8_t isThreaded) {
+    if(this->mCGroupConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
+
+    this->mCGroupConfigInfo->isThreaded = isThreaded;
+    return RC_SUCCESS;
+}
+
+CGroupConfigInfo* CGroupConfigInfoBuilder::build() {
+    return this->mCGroupConfigInfo;
+}
+
+MpamGroupConfigInfoBuilder::MpamGroupConfigInfoBuilder() {
+    this->mMpamGroupInfo = new(std::nothrow) MpamGroupConfigInfo;
+}
+
+ErrCode MpamGroupConfigInfoBuilder::setName(const std::string& name) {
+    if(this->mMpamGroupInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
+
+    this->mMpamGroupInfo->mMpamGroupName = name;
+    return RC_SUCCESS;
+}
+
+ErrCode MpamGroupConfigInfoBuilder::setLgcID(int32_t logicalID) {
+    if(this->mMpamGroupInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
+
+    this->mMpamGroupInfo->mMpamGroupInfoID = logicalID;
+    return RC_SUCCESS;
+}
+
+ErrCode MpamGroupConfigInfoBuilder::setPriority(int32_t priority) {
+    if(this->mMpamGroupInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
+
+    this->mMpamGroupInfo->mPriority = priority;
+    return RC_SUCCESS;
+}
+
+MpamGroupConfigInfo* MpamGroupConfigInfoBuilder::build() {
+    return this->mMpamGroupInfo;
+}
+
+CacheInfoBuilder::CacheInfoBuilder() {
+    this->mCacheInfo = new(std::nothrow) CacheInfo;
+}
+
+ErrCode CacheInfoBuilder::setType(const std::string& type) {
+    if(this->mCacheInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
+
+    this->mCacheInfo->mCacheType = type;
+    return RC_SUCCESS;
+}
+
+ErrCode CacheInfoBuilder::setNumBlocks(int32_t numBlocks) {
+    if(this->mCacheInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
+
+    this->mCacheInfo->mNumCacheBlocks = numBlocks;
+    return RC_SUCCESS;
+}
+
+ErrCode CacheInfoBuilder::setPriorityAware(int8_t isPriorityAware) {
+    if(this->mCacheInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
+
+    this->mCacheInfo->mPriorityAware = isPriorityAware;
+    return RC_SUCCESS;
+}
+
+CacheInfo* CacheInfoBuilder::build() {
+    return this->mCacheInfo;
 }

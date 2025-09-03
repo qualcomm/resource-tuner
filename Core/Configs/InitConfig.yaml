@@ -2,9 +2,7 @@
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 
 InitConfigs:
-  # Logical Clustermap
   # Logical IDs should always be arranged from lower to higher cluster capacities
-  # Assigning names for clusters
   - ClusterMap:
     - Id: 0
       Type: little
