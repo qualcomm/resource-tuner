@@ -4,8 +4,6 @@
 #ifndef CLIENT_GARBAGE_COLLECTOR_H
 #define CLIENT_GARBAGE_COLLECTOR_H
 
-#define BATCH_SIZE 5
-
 #include <cstdint>
 #include <memory>
 #include <queue>

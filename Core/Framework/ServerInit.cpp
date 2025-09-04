@@ -61,6 +61,8 @@ static ErrCode fetchMetaConfigs() {
         submitPropGetRequest(GARBAGE_COLLECTOR_DURATION, resultBuffer, "83000");
         ResourceTunerSettings::metaConfigs.mClientGarbageCollectorDuration = (uint32_t)std::stol(resultBuffer);
 
+        ResourceTunerSettings::metaConfigs.mCleanupBatchSize = 5;
+
         submitPropGetRequest(RATE_LIMITER_DELTA, resultBuffer, "5");
         ResourceTunerSettings::metaConfigs.mDelta = (uint32_t)std::stol(resultBuffer);
 

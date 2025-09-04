@@ -1,8 +1,6 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <pthread.h>
-
 #include "RequestReceiver.h"
 
 std::shared_ptr<RequestReceiver> RequestReceiver::mRequestReceiverInstance = nullptr;

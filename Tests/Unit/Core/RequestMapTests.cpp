@@ -6,7 +6,7 @@
 #include "TestUtils.h"
 #include "RequestManager.h"
 #include "RateLimiter.h"
-#include "MemoryPool.h"                                                                       \
+#include "MemoryPool.h"
 
 static void Init() {
     MakeAlloc<ClientInfo> (30);

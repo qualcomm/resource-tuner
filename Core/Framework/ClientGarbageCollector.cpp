@@ -19,7 +19,8 @@ void ClientGarbageCollector::submitClientThreadsForCleanup(int32_t clientPid) {
 
 void ClientGarbageCollector::performCleanup() {
     const std::lock_guard<std::mutex> lock(this->mGcQueueMutex);
-    for(int32_t count = 0; count < std::min((int32_t)this->mGcQueue.size(), BATCH_SIZE); count++) {
+    uint32_t batchSize = ResourceTunerSettings::metaConfigs.mCleanupBatchSize;
+    for(uint32_t count = 0; count < std::min((uint32_t)this->mGcQueue.size(), batchSize); count++) {
         int32_t clientTID = this->mGcQueue.front();
         this->mGcQueue.pop();
 

@@ -23,6 +23,7 @@ typedef struct {
     uint32_t mPulseDuration;
     uint32_t mClientGarbageCollectorDuration;
     uint32_t mDelta;
+    uint32_t mCleanupBatchSize;
     double mPenaltyFactor;
     double mRewardFactor;
 } MetaConfigs;

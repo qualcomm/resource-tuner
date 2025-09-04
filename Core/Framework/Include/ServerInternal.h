@@ -48,8 +48,8 @@ ErrCode submitResProvisionRequest(Request* request, int8_t isVerified);
 * @param buffer A buffer to hold the result, i.e. the property value corresponding to the specified name.
 * @param defValue Value to return in case a property with the specified Name is not found in the Config Store
 * @return int8_t:
-*              1: If the Property was found in the store
-*              0: Otherwise
+*            1: If the Property was found in the store
+*            0: Otherwise
 */
 int8_t submitPropGetRequest(const std::string& prop, std::string& buffer, const std::string& defValue);
 
@@ -60,8 +60,8 @@ int8_t submitPropGetRequest(const std::string& prop, std::string& buffer, const 
 * @param prop Name of the Property to be modified.
 * @param value A buffer holding the new the property value.
 * @return int8_t:
-*              1: If the Property with the specified name was found in the store, and was updated successfully.
-*              0: Otherwise
+*            1: If the Property with the specified name was found in the store, and was updated successfully.
+*            0: Otherwise
 */
 int8_t submitPropSetRequest(const std::string& prop, const std::string& value);
 
@@ -71,8 +71,8 @@ int8_t submitPropSetRequest(const std::string& prop, const std::string& value);
 * @param resultBuf A buffer to hold the result, i.e. the property value corresponding to the specified name.
 * @param clientReq A buffer holding the SysConfig Request from the Client.
 * @return int8_t:
-*              1: If the Property with the specified name was found in the store, and was updated successfully.
-*              0: Otherwise
+*            1: If the Property with the specified name was found in the store, and was updated successfully.
+*            0: Otherwise
 */
 ErrCode submitPropRequest(void* request);
 
