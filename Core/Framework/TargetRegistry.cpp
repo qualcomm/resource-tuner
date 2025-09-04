@@ -6,10 +6,11 @@
 // Create all the CGroups specified via InitConfig.yaml during the init phase.
 static ErrCode createCGroup(CGroupConfigInfo* cGroupConfig) {
     if(cGroupConfig == nullptr) return RC_BAD_ARG;
+    if(!cGroupConfig->mCreationNeeded) return RC_SUCCESS;
 
     std::string cGroupPath = ResourceTunerSettings::mBaseCGroupPath + cGroupConfig->mCgroupName;
     if(mkdir(cGroupPath.c_str(), 0755) == 0) {
-        if(cGroupConfig->isThreaded) {
+        if(cGroupConfig->mIsThreaded) {
             AuxRoutines::writeToFile(cGroupPath + "/cgroup.type", "threaded");
         }
     } else {
@@ -462,12 +463,21 @@ ErrCode CGroupConfigInfoBuilder::setCGroupID(int32_t cGroupID) {
     return RC_SUCCESS;
 }
 
+ErrCode CGroupConfigInfoBuilder::setCreationNeeded(int8_t creationNeeded) {
+    if(this->mCGroupConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
+
+    this->mCGroupConfigInfo->mCreationNeeded = creationNeeded;
+    return RC_SUCCESS;
+}
+
 ErrCode CGroupConfigInfoBuilder::setThreaded(int8_t isThreaded) {
     if(this->mCGroupConfigInfo == nullptr) {
         return RC_INVALID_VALUE;
     }
 
-    this->mCGroupConfigInfo->isThreaded = isThreaded;
+    this->mCGroupConfigInfo->mIsThreaded = isThreaded;
     return RC_SUCCESS;
 }
 

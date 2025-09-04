@@ -311,28 +311,44 @@ ErrCode submitResProvisionRequest(Request* request, int8_t isValidated) {
 }
 
 ErrCode submitResProvisionRequest(void* msg) {
+    if(msg == nullptr) return RC_BAD_ARG;
+
+    ErrCode opStatus = RC_SUCCESS;
     MsgForwardInfo* info = (MsgForwardInfo*) msg;
-    if(info == nullptr) return RC_BAD_ARG;
-
     Request* request = nullptr;
-    try {
-        request = new (GetBlock<Request>()) Request();
 
-    } catch(const std::bad_alloc& e) {
-        TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE, e.what());
-        return RC_MEMORY_ALLOCATION_FAILURE;
+    if(RC_IS_OK(opStatus)) {
+        if(info == nullptr) {
+            opStatus = RC_BAD_ARG;
+        }
     }
 
-    if(RC_IS_NOTOK(request->deserialize(info->buffer))) {
-        Request::cleanUpRequest(request);
-        return RC_REQUEST_DESERIALIZATION_FAILURE;
+    if(RC_IS_OK(opStatus)) {
+        try {
+            request = new (GetBlock<Request>()) Request();
+            opStatus = request->deserialize(info->buffer);
+            if(RC_IS_NOTOK(opStatus)) {
+                Request::cleanUpRequest(request);
+            }
+
+        } catch(const std::bad_alloc& e) {
+            TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE, e.what());
+            opStatus = RC_MEMORY_ALLOCATION_FAILURE;
+        }
     }
 
-    if(request->getRequestType() == REQ_RESOURCE_TUNING) {
-        request->setHandle(info->handle);
+    if(RC_IS_OK(opStatus)) {
+        if(request->getRequestType() == REQ_RESOURCE_TUNING) {
+            request->setHandle(info->handle);
+        }
+        processIncomingRequest(request);
     }
 
-    processIncomingRequest(request);
+    if(info != nullptr) {
+        FreeBlock<char[REQ_BUFFER_SIZE]>(info->buffer);
+        FreeBlock<MsgForwardInfo>(info);
+    }
+
     return RC_SUCCESS;
 }
 

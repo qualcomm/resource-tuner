@@ -107,11 +107,12 @@ void* MemoryPool::getBlock() {
 }
 
 void MemoryPool::freeBlock(void* block) {
+    if(block == nullptr) return;
+
     try {
         const std::lock_guard<std::mutex> lock(this->mMemoryPoolMutex);
 
-        if(block == nullptr ||
-           this->mAllocatedListHead == nullptr) {
+        if(this->mAllocatedListHead == nullptr) {
             // Edge Cases, which will be hit if
             // 1. Client tries to free some block of memory which was not Allocated by the Memory Pool
             // 2. Client acquires "n" block of memory of certain size, and tries to free m (> n) blocks of that size
@@ -228,6 +229,7 @@ void* PoolWrapper::getBlock(int32_t blockSize, std::type_index typeIndex) {
 }
 
 void PoolWrapper::freeBlock(std::type_index typeIndex, void* block) {
+    if(block == nullptr) return;
     MemoryPool* memoryPool = nullptr;
 
     try {

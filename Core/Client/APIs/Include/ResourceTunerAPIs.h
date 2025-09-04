@@ -113,14 +113,14 @@ int8_t untuneResources(int64_t handle);
 * @details Use this API to fetch a SysConfig property by it's name, all of the properties were Parsed during Resource Tuner Server initialization.
 * @param prop Name of the Property to be fetched.
 * @param buffer A buffer to hold the result, i.e. the property value corresponding to the specified name.
-* @param buffer_size Size of the buffer
-* @param def_value Value to return in case a property with the specified Name is not found in the Config Store
+* @param bufferSize Size of the buffer
+* @param defValue Value to return in case a property with the specified Name is not found in the Config Store
 * @return int8_t:
 *              0: If the Request was successfully Submitted to the Server.\n
 *              -1: Otherwise\n\n
 * Note: The result of the Query itself is stored in the buffer (IN / OUT arg).
 */
-int8_t getProp(const char* prop, char* buffer, size_t buffer_size, const char* def_value);
+int8_t getProp(const char* prop, char* buffer, size_t bufferSize, const char* defValue);
 
 /**
  * @brief Tune the signal with the given ID.

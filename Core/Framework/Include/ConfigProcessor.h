@@ -51,6 +51,7 @@
 #define INIT_CONFIGS_CGROUPS_LIST "CgroupsInfo"
 #define INIT_CONFIGS_CGROUP_NAME "Name"
 #define INIT_CONFIGS_CGROUP_IDENTIFIER "ID"
+#define INIT_CONFIGS_CGROUP_CREATION "Create"
 #define INIT_CONFIGS_CGROUP_THREADED "IsThreaded"
 
 // Cluster Map
@@ -140,8 +141,6 @@
  *     - Id: 1
  *       Type: big
  *     - Id: 2
- *       Type: titanium
- *     - Id: 3
  *       Type: prime
  *
  *   - CgroupsInfo:
@@ -232,6 +231,7 @@ public:
     ErrCode parsePropertiesConfigs(const std::string& filePath);
     ErrCode parseInitConfigs(const std::string& filePath);
     ErrCode parseTargetConfigs(const std::string& filePath, int8_t isBuSpecified=false);
+    ErrCode parse(ConfigType configType, const std::string& filePath, int8_t isBuSpecified=false);
 };
 
 #endif

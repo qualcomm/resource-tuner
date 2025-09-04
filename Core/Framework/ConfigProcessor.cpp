@@ -212,6 +212,13 @@ void ConfigProcessor::parseInitConfigYamlNode(const YAML::Node& item) {
             }
 
             if(RC_IS_OK(rc)) {
+                // By default, the Cgroup is expected to already exist.
+                rc = cGroupConfigBuilder.setCreationNeeded(
+                    (int8_t)(safeExtract<bool>(cGroupConfig[INIT_CONFIGS_CGROUP_CREATION], false))
+                );
+            }
+
+            if(RC_IS_OK(rc)) {
                 rc = cGroupConfigBuilder.setThreaded(
                     (int8_t)(safeExtract<bool>(cGroupConfig[INIT_CONFIGS_CGROUP_THREADED], false))
                 );
@@ -370,5 +377,33 @@ ErrCode ConfigProcessor::parseInitConfigs(const std::string& filePath) {
         }
     }
 
+    return rc;
+}
+
+ErrCode ConfigProcessor::parse(ConfigType configType, const std::string& filePath, int8_t isBuSpecified) {
+    ErrCode rc = RC_SUCCESS;
+
+    switch(configType) {
+        case ConfigType::RESOURCE_CONFIG: {
+            rc = this->parseResourceConfigs(filePath, isBuSpecified);
+            break;
+        }
+        case ConfigType::PROPERTIES_CONFIG: {
+            rc = this->parsePropertiesConfigs(filePath);
+            break;
+        }
+        case ConfigType::TARGET_CONFIG: {
+            rc = this->parseTargetConfigs(filePath, isBuSpecified);
+            break;
+        }
+        case ConfigType::INIT_CONFIG: {
+            rc = this->parseInitConfigs(filePath);
+            break;
+        }
+        default: {
+            rc = RC_BAD_ARG;
+            break;
+        }
+    }
     return rc;
 }

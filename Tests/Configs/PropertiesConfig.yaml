@@ -12,10 +12,10 @@ PropertyConfigs:
     Value: "12000"
 
   - Name: "resource_tuner.pulse.duration"
-    Value: "60000"
+    Value: "6000000"
 
   - Name: "resource_tuner.garbage_collection.duration"
-    Value: "83000"
+    Value: "8300000"
 
   - Name: "resource_tuner.rate_limiter.delta"
     Value: "5"

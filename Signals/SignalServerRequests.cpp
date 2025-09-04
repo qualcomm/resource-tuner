@@ -245,29 +245,46 @@ static void processIncomingRequest(Signal* signal) {
     SignalQueue::getInstance()->addAndWakeup(signal);
 }
 
-ErrCode submitSignalRequest(void* clientReq) {
-    MsgForwardInfo* info = (MsgForwardInfo*) clientReq;
-    if(info == nullptr) return RC_BAD_ARG;
+ErrCode submitSignalRequest(void* msg) {
+    if(msg == nullptr) return RC_BAD_ARG;
 
+    ErrCode opStatus = RC_SUCCESS;
+    MsgForwardInfo* info = (MsgForwardInfo*) msg;
     Signal* signal = nullptr;
-    try {
-        signal = new (GetBlock<Signal>()) Signal();
 
-    } catch(const std::bad_alloc& e) {
-        TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE, e.what());
-        return RC_MEMORY_ALLOCATION_FAILURE;
+    if(RC_IS_OK(opStatus)) {
+        if(info == nullptr) {
+            opStatus = RC_BAD_ARG;
+        }
     }
 
-    if(RC_IS_NOTOK(signal->deserialize(info->buffer))) {
-        Signal::cleanUpSignal(signal);
-        return RC_REQUEST_DESERIALIZATION_FAILURE;
+    if(RC_IS_OK(opStatus)) {
+        try {
+            signal = new (GetBlock<Signal>()) Signal();
+            opStatus = signal->deserialize(info->buffer);
+            if(RC_IS_NOTOK(opStatus)) {
+                Signal::cleanUpSignal(signal);
+            }
+
+        } catch(const std::bad_alloc& e) {
+            TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE, e.what());
+            opStatus = RC_MEMORY_ALLOCATION_FAILURE;
+        }
     }
 
-    if(signal->getRequestType() == REQ_SIGNAL_TUNING) {
-        signal->setHandle(info->handle);
+    if(RC_IS_OK(opStatus)) {
+        if(signal->getRequestType() == REQ_SIGNAL_TUNING) {
+            signal->setHandle(info->handle);
+        }
+
+        processIncomingRequest(signal);
     }
 
-    processIncomingRequest(signal);
+    if(info != nullptr) {
+        FreeBlock<char[REQ_BUFFER_SIZE]>(info->buffer);
+        FreeBlock<MsgForwardInfo>(info);
+    }
+
     return RC_SUCCESS;
 }
 
@@ -371,18 +388,16 @@ void SignalQueue::orderedQueueConsumerHook() {
             case REQ_SIGNAL_RELAY: {
                 // Get all the subscribed Features
                 std::vector<uint32_t> subscribedFeatures;
-                int8_t featuresExist = SignalExtFeatureMapper::getInstance()->getFeatures(
+                int8_t featureExist = SignalExtFeatureMapper::getInstance()->getFeatures(
                     signal->getSignalID(),
                     subscribedFeatures
                 );
 
-                if(featuresExist == false) {
-                    Signal::cleanUpSignal(signal);
-                    continue;
-                }
-
-                for(uint32_t featureId: subscribedFeatures) {
-                    ExtFeaturesRegistry::getInstance()->relayToFeature(featureId, signal);
+                if(featureExist) {
+                    // Relay
+                    for(uint32_t featureId: subscribedFeatures) {
+                        ExtFeaturesRegistry::getInstance()->relayToFeature(featureId, signal);
+                    }
                 }
 
                 Signal::cleanUpSignal(signal);

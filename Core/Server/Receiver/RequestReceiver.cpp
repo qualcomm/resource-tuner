@@ -71,8 +71,8 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
             uint64_t* ptr64 = (uint64_t*)charIterator;
             propConfig.mBufferSize = DEREF_AND_INCR(ptr64, uint64_t);
 
-            std::string result;
             ComponentRegistry::getEventCallback(PROP_ON_MSG_RECV)(&propConfig);
+            std::string result = propConfig.mResult;
 
             size_t maxSafeSize = result.size() + 1;
             size_t bytesToWrite = std::min(propConfig.mBufferSize, maxSafeSize);
@@ -126,11 +126,11 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
     }
 }
 
-int8_t CheckServerOnlineStatus() {
+int8_t checkServerOnlineStatus() {
     return ResourceTunerSettings::isServerOnline();
 }
 
-void OnResourceTunerMessageReceiverCallback(int32_t clientSocket, MsgForwardInfo* msgForwardInfo) {
+void onMsgRecvCallback(int32_t clientSocket, MsgForwardInfo* msgForwardInfo) {
     std::shared_ptr<RequestReceiver> requestReceiver = RequestReceiver::getInstance();
     requestReceiver->forwardMessage(clientSocket, msgForwardInfo);
 }
@@ -140,11 +140,11 @@ void listenerThreadStartRoutine() {
     pthread_setname_np(pthread_self(), "listenerThread");
     try {
         connection = new ResourceTunerSocketServer(ResourceTunerSettings::metaConfigs.mListeningPort,
-                                                   CheckServerOnlineStatus,
-                                                   OnResourceTunerMessageReceiverCallback);
+                                                   checkServerOnlineStatus,
+                                                   onMsgRecvCallback);
     } catch(const std::bad_alloc& e) {
         LOGE("RESTUNE_REQUEST_RECEIVER",
-             "Failed to allocate memory for Resource Tuner Socket Server-Endpoint, Resource Tuner\
+             "Failed to allocate memory for Resource Tuner Socket Server-Endpoint, Resource Tuner \
               Server startup failed: " + std::string(e.what()));
 
         return;

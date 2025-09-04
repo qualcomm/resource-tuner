@@ -5,6 +5,7 @@
 
 std::shared_ptr<RequestManager> RequestManager::mReqeustManagerInstance = nullptr;
 std::mutex RequestManager::instanceProtectionLock{};
+
 RequestManager::RequestManager() {}
 
 int8_t RequestManager::isSane(Request* request) {

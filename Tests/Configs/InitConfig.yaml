@@ -9,16 +9,17 @@ InitConfigs:
     - Id: 1
       Type: big
     - Id: 2
-      Type: titanium
-    - Id: 3
       Type: prime
 
   - CgroupsInfo:
     - Name: "camera-cgroup"
+      Create: true
       ID: 0
     - Name: "audio-cgroup"
+      Create: true
       ID: 1
     - Name: "video-cgroup"
+      Create: true
       IsThreaded: true
       ID: 2
 

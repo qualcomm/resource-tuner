@@ -60,6 +60,10 @@ if(BUILD_TESTS)
     target_link_libraries(InitConfigParsingTests Auxiliary ExtAPIs Server)
     install(TARGETS InitConfigParsingTests DESTINATION bin)
 
+    add_executable(CocoTableTests ../Core/CocoTableTests.cpp)
+    target_link_libraries(CocoTableTests Auxiliary ExtAPIs Server)
+    install(TARGETS CocoTableTests DESTINATION bin)
+
     if(BUILD_SIGNALS)
         add_executable(SysSignalConfigProcessorTests ../Signals/SignalConfigProcessorTests.cpp)
         target_link_libraries(SysSignalConfigProcessorTests Auxiliary ExtAPIs SysSignals)

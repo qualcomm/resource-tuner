@@ -111,6 +111,7 @@ typedef void (*ResourceTunerMessageReceivedCallback)(int32_t, MsgForwardInfo*);
 #define HIGH_TRANSFER_PRIORITY -1
 #define SERVER_CLEANUP_TRIGGER_PRIORITY -2
 
+// Config Names
 #define COMMON_RESOURCE "Common-Resource"
 #define CUSTOM_RESOURCE "Custom-Resource"
 #define COMMON_PROPERTIES "Common-Properties"
@@ -122,5 +123,17 @@ typedef void (*ResourceTunerMessageReceivedCallback)(int32_t, MsgForwardInfo*);
 #define COMMON_SIGNAL "Common-Signal"
 #define CUSTOM_SIGNAL "Custom-Signal"
 #define CUSTOM_EXT_FEATURE "Ext-Features"
+
+// System Properties
+#define MAX_CONCURRENT_REQUESTS "resource_tuner.maximum.concurrent.requests"
+#define MAX_RESOURCES_PER_REQUEST "resource_tuner.maximum.resources.per.request"
+#define PULSE_MONITOR_DURATION "resource_tuner.pulse.duration"
+#define GARBAGE_COLLECTOR_DURATION "resource_tuner.garbage_collection.duration"
+#define RATE_LIMITER_DELTA "resource_tuner.rate_limiter.delta"
+#define RATE_LIMITER_PENALTY_FACTOR "resource_tuner.penalty.factor"
+#define RATE_LIMITER_REWARD_FACTOR "resource_tuner.reward.factor"
+#define LOGGER_LOGGING_LEVEL "resource_tuner.logging.level"
+#define LOGGER_LOGGING_LEVEL_TYPE "resource_tuner.logging.level.exact"
+#define LOGGER_LOGGING_OUTPUT_REDIRECT "resource_tuner.logging.redirect_to"
 
 #endif

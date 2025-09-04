@@ -51,12 +51,12 @@ static void TestInitConfigProcessorYAMLDataIntegrity4() {
     CGroupConfigInfo* cameraConfig = TargetRegistry::getInstance()->getCGroupConfig(0);
     C_ASSERT(cameraConfig != nullptr);
     C_ASSERT(cameraConfig->mCgroupName == "camera-cgroup");
-    C_ASSERT(cameraConfig->isThreaded == false);
+    C_ASSERT(cameraConfig->mIsThreaded == false);
 
     CGroupConfigInfo* videoConfig = TargetRegistry::getInstance()->getCGroupConfig(2);
     C_ASSERT(videoConfig != nullptr);
     C_ASSERT(videoConfig->mCgroupName == "video-cgroup");
-    C_ASSERT(videoConfig->isThreaded == true);
+    C_ASSERT(videoConfig->mIsThreaded == true);
 }
 
 

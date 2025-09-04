@@ -13,6 +13,8 @@
 #include "SafeOps.h"
 #include "Utils.h"
 
+#define REQ_BUFFER_SIZE 1024
+
 // Operational Tunable Parameters for Resource Tuner
 typedef struct {
     uint32_t mMaxConcurrentRequests;

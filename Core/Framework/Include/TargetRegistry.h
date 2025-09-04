@@ -29,7 +29,8 @@
 typedef struct {
     std::string mCgroupName;
     int32_t mCgroupID;
-    int8_t isThreaded;
+    int8_t mCreationNeeded;
+    int8_t mIsThreaded;
 } CGroupConfigInfo;
 
 typedef struct {
@@ -156,6 +157,7 @@ public:
 
     ErrCode setCGroupName(const std::string& cGroupName);
     ErrCode setCGroupID(int32_t cGroupIdentifier);
+    ErrCode setCreationNeeded(int8_t creationNeeded);
     ErrCode setThreaded(int8_t isThreaded);
 
     CGroupConfigInfo* build();

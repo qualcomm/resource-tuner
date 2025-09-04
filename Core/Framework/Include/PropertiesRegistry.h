@@ -1,8 +1,8 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#ifndef SYSCONFIG_PROP_REGISTRY_H
-#define SYSCONFIG_PROP_REGISTRY_H
+#ifndef PROPERTIES_REGISTRY_H
+#define PROPERTIES_REGISTRY_H
 
 #include <iostream>
 #include <unordered_map>
