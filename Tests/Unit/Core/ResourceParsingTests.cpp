@@ -15,8 +15,8 @@
 static void Init() {
     ConfigProcessor configProcessor;
 
-    std::string resourcesClassA = "/etc/resource-tuner/tests/Configs/ResourcesConfigA.yaml";
-    std::string resourcesClassB = "/etc/resource-tuner/tests/Configs/ResourcesConfigB.yaml";
+    std::string resourcesClassA = "/etc/resource-tuner/tests/Configs/ResourcesConfig.yaml";
+    std::string resourcesClassB = "/etc/resource-tuner/tests/Configs/ResourcesConfigAddOn.yaml";
 
     if(RC_IS_NOTOK(configProcessor.parseResourceConfigs(resourcesClassA))) {
         return;

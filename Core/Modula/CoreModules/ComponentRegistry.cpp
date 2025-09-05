@@ -36,7 +36,11 @@ ComponentRegistry::ComponentRegistry(
             mEventCallbacks[MOD_SIGNAL_ON_MSG_RECV] = onMsgRecv;
             break;
         }
+        default:
+            return;
     }
+
+    mModuleRegistry[moduleIdentifier] = true;
 }
 
 int8_t ComponentRegistry::isModuleEnabled(ModuleIdentifier moduleIdentifier) {

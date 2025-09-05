@@ -36,7 +36,6 @@ typedef struct {
 typedef struct {
     int32_t mPhysicalID;
     int32_t mCapacity;
-    std::vector<int32_t>* mCpuList;
     int32_t mStartCpu;
     int32_t mNumCpus;
 } ClusterInfo;
@@ -124,9 +123,6 @@ public:
      *          - If even the above strategy fails, we default to using Simple Heuristic based approach, where we divided
      *            the number of Online CPU cores as evenly as possible among the Cluster Types.
      *          - If even the above strategy fails, the function will return an Error.
-     * @return: int32_t
-     *               1 If the Data was successfully Read and Parsed.
-     *              -1: otherwise
      */
     void readTargetInfo();
 

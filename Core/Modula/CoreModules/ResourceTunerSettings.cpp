@@ -31,8 +31,6 @@ const std::string ResourceTunerSettings::mCustomPropertiesFilePath =
 const std::string ResourceTunerSettings::mCustomExtFeaturesFilePath =
                                     "/etc/resource-tuner/custom/ExtFeaturesConfig.yaml";
 
-const std::string ResourceTunerSettings::mCommonTargetFilePath =
-                                    "/etc/resource-tuner/common/TargetConfig.yaml";
 const std::string ResourceTunerSettings::mCustomTargetFilePath =
                                     "/etc/resource-tuner/custom/TargetConfig.yaml";
 

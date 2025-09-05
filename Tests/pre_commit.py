@@ -9,12 +9,6 @@ import subprocess
 import logging
 from pathlib import Path
 
-configFilesToCopy = ["testYamlInvalidSyntax.yaml",
-                     "testPropertiesConfig.yaml",
-                     "testResourcesConfig.yaml",
-                     "testSignalsConfig.yaml",
-                     "testTargetConfig.yaml"]
-
 def setup():
     logger = logging.getLogger()
     logger.info("Setting up CMake build directory")

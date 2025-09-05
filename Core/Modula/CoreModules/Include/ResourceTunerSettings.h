@@ -53,7 +53,6 @@ public:
     static const std::string mCustomSignalFilePath;
     static const std::string mCommonPropertiesFilePath;
     static const std::string mCustomPropertiesFilePath;
-    static const std::string mCommonTargetFilePath;
     static const std::string mCustomTargetFilePath;
 
     // Only Custom Config is supported for Ext Features Config

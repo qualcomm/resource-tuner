@@ -151,13 +151,16 @@ void ConfigProcessor::parsePropertiesConfigYamlNode(const YAML::Node& item) {
     }
 }
 
-void ConfigProcessor::parseTargetConfigYamlNode(const YAML::Node& item, int8_t isBuSpecified) {
+void ConfigProcessor::parseTargetConfigYamlNode(const YAML::Node& item) {
     int8_t isConfigForCurrentTarget = false;
     // Check if there exists a Target Config for this particular target in the Common Configs.
     // Skip this check if the BU has provided their own Target Configs
-    if(!isBuSpecified && isList(item[TARGET_NAME_LIST])) {
+    if(isList(item[TARGET_NAME_LIST])) {
         for(const auto& targetNameInfo : item[TARGET_NAME_LIST]) {
             std::string name = safeExtract<std::string>(targetNameInfo, "");
+
+            std::cout<<"This target config is intended for: "<<name<<std::endl;
+            std::cout<<"Current target name is: "<<ResourceTunerSettings::targetConfigs.targetName<<std::endl;
 
             if(name == ResourceTunerSettings::targetConfigs.targetName) {
                 isConfigForCurrentTarget = true;
@@ -165,7 +168,7 @@ void ConfigProcessor::parseTargetConfigYamlNode(const YAML::Node& item, int8_t i
         }
     }
 
-    if(isBuSpecified || (!isBuSpecified && isConfigForCurrentTarget)) {
+    if(isConfigForCurrentTarget) {
         if(isList(item[TARGET_CLUSTER_INFO])) {
             for(const auto& clusterInfo : item[TARGET_CLUSTER_INFO]) {
                 int32_t logicalID = safeExtract<int32_t>(clusterInfo[TARGET_CLUSTER_INFO_LOGICAL_ID], -1);
@@ -179,11 +182,8 @@ void ConfigProcessor::parseTargetConfigYamlNode(const YAML::Node& item, int8_t i
 
         if(isList(item[TARGET_CLUSTER_SPREAD])) {
             for(const auto& clusterSpread : item[TARGET_CLUSTER_SPREAD]) {
-                int32_t physicalID;
-                int32_t numCores;
-
-                physicalID = safeExtract<int32_t>(clusterSpread[TARGET_CLUSTER_INFO_PHYSICAL_ID], -1);
-                numCores = safeExtract<int32_t>(clusterSpread[TARGET_PER_CLUSTER_CORE_COUNT], -1);
+                int32_t physicalID = safeExtract<int32_t>(clusterSpread[TARGET_CLUSTER_INFO_PHYSICAL_ID], -1);
+                int32_t numCores = safeExtract<int32_t>(clusterSpread[TARGET_PER_CLUSTER_CORE_COUNT], -1);
 
                 if(physicalID != -1 && numCores != -1) {
                     TargetRegistry::getInstance()->addClusterSpreadInfo(physicalID, numCores);
@@ -342,7 +342,7 @@ ErrCode ConfigProcessor::parsePropertiesConfigs(const std::string& filePath) {
     return rc;
 }
 
-ErrCode ConfigProcessor::parseTargetConfigs(const std::string& filePath, int8_t isBuSpecified) {
+ErrCode ConfigProcessor::parseTargetConfigs(const std::string& filePath) {
     YAML::Node result;
     ErrCode rc = YamlParser::parse(filePath, result);
 
@@ -350,7 +350,7 @@ ErrCode ConfigProcessor::parseTargetConfigs(const std::string& filePath, int8_t 
         if(result[TARGET_CONFIGS_ROOT].IsDefined() && result[TARGET_CONFIGS_ROOT].IsSequence()) {
             for(const auto& targetConfig : result[TARGET_CONFIGS_ROOT]) {
                 try {
-                    parseTargetConfigYamlNode(targetConfig, isBuSpecified);
+                    parseTargetConfigYamlNode(targetConfig);
                 } catch(const std::invalid_argument& e) {
                     LOGE("RESTUNE_TARGET_PROCESSOR", "Error parsing Target Config: " + std::string(e.what()));
                 }
@@ -393,7 +393,7 @@ ErrCode ConfigProcessor::parse(ConfigType configType, const std::string& filePat
             break;
         }
         case ConfigType::TARGET_CONFIG: {
-            rc = this->parseTargetConfigs(filePath, isBuSpecified);
+            rc = this->parseTargetConfigs(filePath);
             break;
         }
         case ConfigType::INIT_CONFIG: {

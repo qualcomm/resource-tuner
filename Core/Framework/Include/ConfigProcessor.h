@@ -96,7 +96,7 @@
  *
  * @example Resource_Configs
  * This example shows the expected YAML format for Resource configuration.
-*/
+ */
 
 /**
  * The Target Config file (TargetConfig.yaml) must follow a specific structure.
@@ -127,7 +127,7 @@
  *
  * @example Target_Configs
  * This example shows the expected YAML format for Target configuration.
-*/
+ */
 
 /**
  * The Init Config file (InitConfig.yaml) must follow a specific structure.
@@ -176,7 +176,7 @@
  * @example Init_Configs
  * This example shows the expected YAML format for Init Config, which includes any
  * applicable CGroup Creation Information.
-*/
+ */
 
 /**
  * The Properties Config file (PropertiesConfig.yaml) must follow a specific structure.
@@ -210,27 +210,27 @@
  *
  * @example Properties_Configs
  * This example shows the expected YAML format for Properties configuration.
-*/
+ */
 
 /**
  * @brief ConfigProcessor
  * @details Responsible for Parsing the ResourceConfig file,
-*           InitConfig and TargetConfig (if provided) YAML files.
+ *          InitConfig and TargetConfig (if provided) YAML files.
  *          Note, this class uses the YamlParser class for actually Reading and
  *          Parsing the YAML data.
-*/
+ */
 class ConfigProcessor {
 private:
     void parseResourceConfigYamlNode(const YAML::Node& node, int8_t isBuSpecified);
     void parsePropertiesConfigYamlNode(const YAML::Node& node);
     void parseInitConfigYamlNode(const YAML::Node& node);
-    void parseTargetConfigYamlNode(const YAML::Node& node, int8_t isBuSpecified);
+    void parseTargetConfigYamlNode(const YAML::Node& node);
 
 public:
     ErrCode parseResourceConfigs(const std::string& filePath, int8_t isBuSpecified=false);
     ErrCode parsePropertiesConfigs(const std::string& filePath);
     ErrCode parseInitConfigs(const std::string& filePath);
-    ErrCode parseTargetConfigs(const std::string& filePath, int8_t isBuSpecified=false);
+    ErrCode parseTargetConfigs(const std::string& filePath);
     ErrCode parse(ConfigType configType, const std::string& filePath, int8_t isBuSpecified=false);
 };
 

@@ -1,12 +1,3 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 
-InitConfigs:
-  # Logical IDs should always be arranged from lower to higher cluster capacities
-  - ClusterMap:
-    - Id: 0
-      Type: little
-    - Id: 1
-      Type: big
-    - Id: 2
-      Type: prime

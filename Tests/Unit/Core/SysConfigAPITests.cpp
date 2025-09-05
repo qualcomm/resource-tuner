@@ -11,7 +11,7 @@
 #include "PropertiesRegistry.h"
 #include "ConfigProcessor.h"
 
-#define TOTAL_SYS_CONFIGS_PROPS_COUNT 14                                                                             \
+#define TOTAL_SYS_CONFIGS_PROPS_COUNT 14
 
 static void Init() {
     ConfigProcessor configProcessor;

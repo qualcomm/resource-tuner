@@ -29,7 +29,7 @@ static void preAllocateMemory() {
     MakeAlloc<std::vector<Resource*>> (maxBlockCount);
     MakeAlloc<std::vector<int32_t>> (maxBlockCount);
     MakeAlloc<std::vector<CocoNode*>> (maxBlockCount);
-    MakeAlloc<MsgForwardInfo>(maxBlockCount);
+    MakeAlloc<MsgForwardInfo> (maxBlockCount);
     MakeAlloc<char[REQ_BUFFER_SIZE]> (maxBlockCount);
 }
 
@@ -144,10 +144,8 @@ ErrCode fetchProperties() {
             return fetchMetaConfigs();
         }
 
-        if(opStatus != RC_FILE_NOT_FOUND) {
-            // Custom Properties Parsing Failed
-            return opStatus;
-        }
+        // Custom Properties Parsing Failed
+        return opStatus;
     }
 
     // Parse Custom Properties Configs provided in /etc/resource-tuner/custom (if any)
@@ -177,17 +175,7 @@ static ErrCode fetchResources() {
     filePath = Extensions::getResourceConfigFilePath();
     if(filePath.length() > 0) {
         TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, CUSTOM_RESOURCE, filePath.c_str());
-        opStatus = parseUtil(filePath, CUSTOM_RESOURCE, ConfigType::RESOURCE_CONFIG, true);
-
-        if(RC_IS_OK(opStatus)) {
-            // Resource Config Parsing is completed
-            return opStatus;
-        }
-
-        if(opStatus != RC_FILE_NOT_FOUND) {
-            // Custom Resource Parsing Failed
-            return opStatus;
-        }
+        return parseUtil(filePath, CUSTOM_RESOURCE, ConfigType::RESOURCE_CONFIG, true);
     }
 
     // Parse Custom Resource Configs provided in /etc/resource-tuner/custom (if any)
@@ -204,6 +192,12 @@ static ErrCode fetchResources() {
 
 static ErrCode fetchTargetInfo() {
     ErrCode opStatus = RC_SUCCESS;
+    // Perform Logical To Physical (Core / Cluster) Mapping
+    // Note we don't perform error-checking here since the behaviour of this
+    // routine is target / architecture specific, and the initialization flow
+    // needs to be generic enough to accomodate them.
+    TargetRegistry::getInstance()->readTargetInfo();
+    TargetRegistry::getInstance()->displayTargetInfo();
 
     // Check if a Custom Target Config is provided, if so process it. Else, resort
     // to the default Target Config File, and see if a config is listed for this Target
@@ -219,20 +213,10 @@ static ErrCode fetchTargetInfo() {
     filePath = ResourceTunerSettings::mCustomTargetFilePath;
     opStatus = parseUtil(filePath, CUSTOM_TARGET, ConfigType::TARGET_CONFIG, true);
 
-    if(RC_IS_OK(opStatus)) {
-        // Target Configs successfully parsed
-        return opStatus;
+    // If file was not found, we simply return SUCCESS, since custom configs are optional
+    if(opStatus == RC_FILE_NOT_FOUND) {
+        return RC_SUCCESS;
     }
-
-    if(opStatus != RC_FILE_NOT_FOUND) {
-        return opStatus;
-    }
-    TYPELOGV(NOTIFY_PARSER_FILE_NOT_FOUND, CUSTOM_TARGET, filePath.c_str());
-
-    // Note Common Target Configs should only be parsed if Custom Target
-    // Configs have not been provided
-    filePath = ResourceTunerSettings::mCommonTargetFilePath;
-    opStatus = parseUtil(filePath, COMMON_TARGET, ConfigType::TARGET_CONFIG);
 
     return opStatus;
 }
@@ -249,17 +233,8 @@ static ErrCode fetchInitInfo() {
     filePath = Extensions::getInitConfigFilePath();
     if(filePath.length() > 0) {
         // Custom Init Config file has been provided by BU
-        TYPELOGV(NOTIFY_PARSER_FILE_NOT_FOUND, CUSTOM_INIT, filePath.c_str());
-        opStatus = parseUtil(filePath, CUSTOM_INIT, ConfigType::INIT_CONFIG);
-        if(RC_IS_OK(opStatus)) {
-            // Init Config Parsing is completed
-            return opStatus;
-        }
-
-        if(opStatus != RC_FILE_NOT_FOUND) {
-            // Custom Resource Parsing Failed
-            return opStatus;
-        }
+        TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, CUSTOM_INIT, filePath.c_str());
+        return parseUtil(filePath, CUSTOM_INIT, ConfigType::INIT_CONFIG);
     }
 
     // Parse Custom Init Configs provided in /etc/resource-tuner/custom (if any)
@@ -292,20 +267,18 @@ static ErrCode init(void* arg=nullptr) {
     // Pre-Allocate Memory for Commonly used Types via Memory Pool
     preAllocateMemory();
 
+    // Target Configs
+    opStatus = fetchTargetInfo();
+    if(RC_IS_NOTOK(opStatus)) {
+        return opStatus;
+    }
+
     // Fetch and Parse:
-    // - Custom Target Configs (if present)
     // - Init Configs
     opStatus = fetchInitInfo();
     if(RC_IS_NOTOK(opStatus)) {
         return opStatus;
     }
-
-    // Perform Logical To Physical (Core / Cluster) Mapping
-    // Note we don't perform error-checking here since the behaviour of this
-    // routine is target / architecture specific, and the initialization flow
-    // needs to be generic enough to accomodate them.
-    TargetRegistry::getInstance()->readTargetInfo();
-    TargetRegistry::getInstance()->displayTargetInfo();
 
     // Fetch and Parse Resource Configs
     // Resource Parsing which will be considered:

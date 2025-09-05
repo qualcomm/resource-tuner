@@ -22,8 +22,8 @@ void customTear(void* context) {
     funcCalled = true;
 }
 
-RESTUNE_REGISTER_APPLIER_CB(0x80010000, customApplier)
-RESTUNE_REGISTER_TEAR_CB(0x80010001, customTear)
+RESTUNE_REGISTER_APPLIER_CB(0x80ff0000, customApplier)
+RESTUNE_REGISTER_TEAR_CB(0x80ff0001, customTear)
 
 static void Init() {
     ConfigProcessor configProcessor;
@@ -49,7 +49,7 @@ static void TestExtensionIntfModifiedTargetConfigPath() {
 }
 
 static void TestExtensionIntfCustomResourceApplier() {
-    ResourceConfigInfo* info = ResourceRegistry::getInstance()->getResourceById(0x80010000);
+    ResourceConfigInfo* info = ResourceRegistry::getInstance()->getResourceById(0x80ff0000);
     C_ASSERT(info != nullptr);
     funcCalled = false;
     C_ASSERT(info->mResourceApplierCallback != nullptr);
@@ -58,7 +58,7 @@ static void TestExtensionIntfCustomResourceApplier() {
 }
 
 static void TestExtensionIntfCustomResourceTear() {
-    ResourceConfigInfo* info = ResourceRegistry::getInstance()->getResourceById(0x80010001);
+    ResourceConfigInfo* info = ResourceRegistry::getInstance()->getResourceById(0x80ff0001);
     C_ASSERT(info != nullptr);
     funcCalled = false;
     C_ASSERT(info->mResourceTearCallback != nullptr);

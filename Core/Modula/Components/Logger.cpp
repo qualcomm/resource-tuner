@@ -72,7 +72,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             vsnprintf(buffer, sizeof(buffer),
                      "Module: [%s] is Enabled, Proceeding with Initialization", args);
 
-            Logger::log(ERROR, "RESTUNE_CLIENT_DATA_MANAGER",
+            Logger::log(INFO, "RESTUNE_CLIENT_DATA_MANAGER",
                         funcName, std::string(buffer));
             break;
 
@@ -186,7 +186,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             vsnprintf(buffer, sizeof(buffer),
                       "Starting Resource Tuner Server, PID = [%d]", args);
 
-            Logger::log(ERROR, "RESTUNE_SERVER_INIT", funcName, std::string(buffer));
+            Logger::log(INFO, "RESTUNE_SERVER_INIT", funcName, std::string(buffer));
 
             break;
 

@@ -15,7 +15,7 @@
 static void Init() {
     ConfigProcessor configProcessor;
 
-    if(RC_IS_NOTOK(configProcessor.parseResourceConfigs("/etc/resource-tuner/tests/Configs/ResourcesConfigA.yaml", true))) {
+    if(RC_IS_NOTOK(configProcessor.parseResourceConfigs("/etc/resource-tuner/tests/Configs/ResourcesConfig.yaml", true))) {
         return;
     }
 }

@@ -29,8 +29,8 @@ public:
      * @param propertyName Property Name or Key
      * @param propertyValue Property Value
      * @return int8_t:
-     *             1: if the property was successfully created\n
-     *             0: otherwise
+     *            1: if the property was successfully created\n
+     *            0: otherwise
      */
     int8_t createProperty(const std::string& propertyName, const std::string& propertyValue);
 
@@ -39,8 +39,8 @@ public:
      * @param propertyName Property Name or Key
      * @param result If the property exists, the value will be stored in this argument
      * @return int8_t:
-     *             1: if a property with the given name was found\n
-     *             0: otherwise
+     *            1: if a property with the given name was found\n
+     *            0: otherwise
      */
     int8_t queryProperty(const std::string& propertyName, std::string& result);
 
@@ -49,8 +49,8 @@ public:
      * @param propertyName Property Name or Key
      * @param propertyValue New Property Value
      * @return int8_t:
-     *             1: if a property was successfully modified\n
-     *             0: otherwise
+     *            1: if a property was successfully modified\n
+     *            0: otherwise
      */
     int8_t modifyProperty(const std::string& propertyName, const std::string& propertyValue);
 
@@ -58,8 +58,8 @@ public:
      * @brief Delete the Property with the given name (key)
      * @param propertyName Property Name or Key
      * @return int8_t:
-     *             1: if a property was successfully deleted\n
-     *             0: otherwise
+     *            1: if a property was successfully deleted\n
+     *            0: otherwise
      */
     int8_t deleteProperty(const std::string& propertyName);
 
