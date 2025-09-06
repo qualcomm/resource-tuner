@@ -35,7 +35,7 @@ const std::string ResourceTunerSettings::mCustomExtFeaturesFilePath =
                                     "/etc/resource-tuner/custom/ExtFeaturesConfig.yaml";
 
 const std::string ResourceTunerSettings::mExtensionsPluginLibPath =
-                                    "/etc/resource-tuner/custom/libPlugin.so";
+                                    "/etc/resource-tuner/custom/libplugin.so";
 
 const std::string ResourceTunerSettings::mBaseCGroupPath =
                                     "/sys/fs/cgroup/";

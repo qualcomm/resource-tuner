@@ -598,7 +598,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
 
         case CommonMessageTypes::EXT_FEATURE_LIB_OPEN_FAILED:
             vsnprintf(buffer, sizeof(buffer),
-                      "No lib with the Path: [%s] could not be opened", args);
+                      "Lib with the Path: [%s] could not be opened", args);
 
             Logger::log(ERROR, "RESTUNE_EXT_FEATURES", funcName, std::string(buffer));
             break;

@@ -76,7 +76,7 @@ static ErrCode fetchExtFeatureConfigs() {
     ErrCode opStatus = RC_SUCCESS;
 
     // Check if a Custom Target Config is provided, if so process it.
-    std::string filePath = Extensions::getTargetConfigFilePath();
+    std::string filePath = Extensions::getExtFeaturesConfigFilePath();
 
     if(filePath.length() > 0) {
         // Custom Target Config file has been provided by BU
@@ -84,7 +84,7 @@ static ErrCode fetchExtFeatureConfigs() {
         return parseUtil(filePath, CUSTOM_EXT_FEATURE, ConfigType::EXT_FEATURES_CONFIG, true);
     }
 
-    filePath = ResourceTunerSettings::mCustomTargetFilePath;
+    filePath = ResourceTunerSettings::mCustomExtFeaturesFilePath;
     opStatus = parseUtil(filePath, CUSTOM_EXT_FEATURE, ConfigType::EXT_FEATURES_CONFIG, true);
 
     // If file was not found, we simply return SUCCESS, since custom configs are optional
