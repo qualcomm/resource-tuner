@@ -206,13 +206,13 @@ static void TestClientSpammingWithGoodRequests() {
 }
 
 int32_t main() {
-    std::cout<<"Running Test Suite: [RateLimiter Tests]\n"<<std::endl;
+    std::cout<<"Running Test Suite: [RateLimiterTests]\n"<<std::endl;
 
     Init();
     RUN_TEST(TestClientSpammingScenario);
     RUN_TEST(TestClientHealthInCaseOfGoodRequests);
     RUN_TEST(TestClientSpammingWithGoodRequests);
 
-    std::cout<<"\nAll Tests from the suite: [RateLimiter Tests], executed successfully"<<std::endl;
+    std::cout<<"\nAll Tests from the suite: [RateLimiterTests], executed successfully"<<std::endl;
     return 0;
 }

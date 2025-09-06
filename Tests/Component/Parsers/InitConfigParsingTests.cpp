@@ -15,7 +15,7 @@
 static void Init() {
     ConfigProcessor configProcessor;
 
-    if(RC_IS_NOTOK(configProcessor.parseInitConfigs("/etc/resource-tuner/tests/Configs/InitConfig.yaml"))) {
+    if(RC_IS_NOTOK(configProcessor.parseInitConfigs("/etc/resource-tuner/custom/InitConfig.yaml"))) {
         return;
     }
 }
@@ -98,7 +98,7 @@ static void TestInitConfigProcessorYAMLDataIntegrity7() {
 }
 
 int32_t main() {
-    std::cout<<"Running [Init Config Parsing] Test Suite\n"<<std::endl;
+    std::cout<<"Running [InitConfigParsingTests] Test Suite\n"<<std::endl;
 
     Init();
     RUN_TEST(TestInitConfigProcessorYAMLDataIntegrity1);
@@ -109,5 +109,5 @@ int32_t main() {
     RUN_TEST(TestInitConfigProcessorYAMLDataIntegrity6);
     RUN_TEST(TestInitConfigProcessorYAMLDataIntegrity7);
 
-    std::cout<<"\nAll Tests from the suite: [Init Config Parsing], executed successfully"<<std::endl;
+    std::cout<<"\nAll Tests from the suite: [InitConfigParsingTests], executed successfully"<<std::endl;
 }

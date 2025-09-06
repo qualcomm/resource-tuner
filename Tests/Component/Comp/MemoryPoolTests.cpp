@@ -241,7 +241,7 @@ static void TestMemoryPoolFreeingMemory3() {
 }
 
 int32_t main() {
-    std::cout<<"Running Test Suite: [Memory Pool Tests]\n"<<std::endl;
+    std::cout<<"Running Test Suite: [MemoryPoolTests]\n"<<std::endl;
 
     RUN_TEST(TestMemoryPoolBasicAllocation1);
     RUN_TEST(TestMemoryPoolBasicAllocation2);
@@ -254,5 +254,5 @@ int32_t main() {
     RUN_TEST(TestMemoryPoolFreeingMemory2);
     RUN_TEST(TestMemoryPoolFreeingMemory3);
 
-    std::cout<<"\nAll Tests from the suite: [Memory Pool Tests], executed successfully"<<std::endl;
+    std::cout<<"\nAll Tests from the suite: [MemoryPoolTests], executed successfully"<<std::endl;
 }

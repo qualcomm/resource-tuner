@@ -5,32 +5,18 @@
 #include <cstdint>
 #include <cstring>
 
+#include "TestUtils.h"
 #include "SignalConfigProcessor.h"
 #include "SignalRegistry.h"
 #include "Extensions.h"
 #include "Utils.h"
 
-#define TOTAL_SIGNAL_CONFIGS_COUNT 8
-
-#define RUN_TEST(test)                                              \
-do {                                                                \
-    std::cout<<"Running Test: "<<#test<<std::endl;                  \
-    test();                                                         \
-    std::cout<<#test<<": Run Successful"<<std::endl;                \
-    std::cout<<"-------------------------------------"<<std::endl;  \
-} while(false);                                                     \
-
-#define C_ASSERT(cond)                                                                          \
-    if(cond == false) {                                                                         \
-        std::cerr<<"Assertion failed at line [" << __LINE__ << "]: "<<#cond<<std::endl;         \
-        std::cerr<<"Test: ["<<__func__<<"] Failed, Terminating Suite\n"<<std::endl;             \
-        exit(EXIT_FAILURE);                                                                     \
-    }                                                                                           \
+#define TOTAL_SIGNAL_CONFIGS_COUNT 8                                                                                       \
 
 static void Init() {
     SignalConfigProcessor configProcessor;
 
-    if(RC_IS_NOTOK(configProcessor.parseSignalConfigs("/etc/resource-tuner/tests/Configs/SignalsConfigA.yaml"))) {
+    if(RC_IS_NOTOK(configProcessor.parseSignalConfigs("/etc/resource-tuner/custom/SignalsConfig.yaml"))) {
         return;
     }
 }
@@ -199,7 +185,7 @@ static void TestSignalConfigProcessorYAMLDataIntegrity4() {
 }
 
 int32_t main() {
-    std::cout<<"Running Test Suite: [Signal Config Processing]\n"<<std::endl;
+    std::cout<<"Running Test Suite: [SignalConfigProcessorTests]\n"<<std::endl;
 
     Init();
     RUN_TEST(TestSignalConfigProcessorYAMLDataIntegrity1);
@@ -209,6 +195,6 @@ int32_t main() {
     RUN_TEST(TestSignalConfigProcessorYAMLDataIntegrity3_3);
     RUN_TEST(TestSignalConfigProcessorYAMLDataIntegrity4);
 
-    std::cout<<"\nAll Tests from the suite: [Signal Config Processing], executed successfully"<<std::endl;
+    std::cout<<"\nAll Tests from the suite: [SignalConfigProcessorTests], executed successfully"<<std::endl;
     return 0;
 }

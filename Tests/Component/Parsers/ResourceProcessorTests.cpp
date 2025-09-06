@@ -15,7 +15,7 @@
 static void Init() {
     ConfigProcessor configProcessor;
 
-    if(RC_IS_NOTOK(configProcessor.parseResourceConfigs("/etc/resource-tuner/tests/Configs/ResourcesConfig.yaml", true))) {
+    if(RC_IS_NOTOK(configProcessor.parseResourceConfigs("/etc/resource-tuner/custom/ResourcesConfig.yaml", true))) {
         return;
     }
 }
@@ -80,7 +80,7 @@ static void TestResourceConfigProcessorYAMLDataIntegrity3_3() {
 }
 
 int32_t main() {
-    std::cout<<"Running Test Suite: [Resource Processor Tests]\n"<<std::endl;
+    std::cout<<"Running Test Suite: [ResourceProcessorTests]\n"<<std::endl;
 
     Init();
     RUN_TEST(TestResourceConfigProcessorYAMLDataIntegrity1);
@@ -89,6 +89,6 @@ int32_t main() {
     RUN_TEST(TestResourceConfigProcessorYAMLDataIntegrity3_2);
     RUN_TEST(TestResourceConfigProcessorYAMLDataIntegrity3_3);
 
-    std::cout<<"\nAll Tests from the suite: [Resource Processor Tests], executed successfully"<<std::endl;
+    std::cout<<"\nAll Tests from the suite: [ResourceProcessorTests], executed successfully"<<std::endl;
     return 0;
 }

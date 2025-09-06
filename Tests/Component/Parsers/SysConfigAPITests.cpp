@@ -15,7 +15,7 @@
 
 static void Init() {
     ConfigProcessor configProcessor;
-    if(RC_IS_NOTOK(configProcessor.parsePropertiesConfigs("/etc/resource-tuner/tests/Configs/PropertiesConfig.yaml"))) {
+    if(RC_IS_NOTOK(configProcessor.parsePropertiesConfigs("/etc/resource-tuner/custom/PropertiesConfig.yaml"))) {
         return;
     }
 }
@@ -25,6 +25,7 @@ static void TestSysConfigProcessorYAMLDataIntegrity1() {
 }
 
 static void TestSysConfigPropertiesParsing() {
+    std::cout<<"grub: "<<PropertiesRegistry::getInstance()->getPropertiesCount()<<std::endl;
     C_ASSERT(PropertiesRegistry::getInstance()->getPropertiesCount() == TOTAL_SYS_CONFIGS_PROPS_COUNT);
 }
 
@@ -86,7 +87,7 @@ static void TestSysConfigGetPropConcurrentRetrieval() {
 }
 
 int32_t main() {
-    std::cout<<"Running SysConfig API Test Suite\n"<<std::endl;
+    std::cout<<"Running [SysConfigAPITests] Test Suite\n"<<std::endl;
 
     Init();
     RUN_TEST(TestSysConfigPropertiesParsing);
@@ -96,5 +97,5 @@ int32_t main() {
     RUN_TEST(TestSysConfigGetPropSimpleRetrievalInvalidProperty);
     RUN_TEST(TestSysConfigGetPropConcurrentRetrieval);
 
-    std::cout<<"\nAll Tests from the suite SysConfig API Tests, executed successfully"<<std::endl;
+    std::cout<<"\nAll Tests from the suite [SysConfigAPITests], executed successfully"<<std::endl;
 }

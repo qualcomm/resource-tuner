@@ -16,14 +16,14 @@ static void TestYamlParserFileNotFound() {
 
 static void TestYamlParserInvalidSyntax() {
     // A YAML with Malformed or Invalid Syntax
-    const std::string fileName = "/etc/resource-tuner/tests/Configs/InvalidSyntax.yaml";
+    const std::string fileName = "/etc/resource-tuner/custom/InvalidSyntax.yaml";
     YAML::Node result;
     ErrCode rc = YamlParser::parse(fileName, result);
     C_ASSERT(rc == RC_YAML_INVALID_SYNTAX);
 }
 
 int32_t main() {
-    std::cout<<"Running YamlParser Test Suite\n"<<std::endl;
+    std::cout<<"Running [YamlParser] Test Suite\n"<<std::endl;
 
     RUN_TEST(TestYamlParserFileNotFound);
     RUN_TEST(TestYamlParserInvalidSyntax);

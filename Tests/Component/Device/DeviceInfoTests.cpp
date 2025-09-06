@@ -68,13 +68,13 @@ static void TestDeviceClusterMappingInfo() {
 }
 
 int32_t main() {
-    std::cout<<"Running Test Suite: [DeviceInfoTests Tests]\n"<<std::endl;
+    std::cout<<"Running Test Suite: [DeviceInfoTests]\n"<<std::endl;
 
     Init();
     RUN_TEST(TestDeviceClusterCount);
     RUN_TEST(TestDeviceCoreCount);
     RUN_TEST(TestDeviceClusterMappingInfo);
 
-    std::cout<<"\nAll Tests from the suite: [DeviceInfoTests Test], executed successfully"<<std::endl;
+    std::cout<<"\nAll Tests from the suite: [DeviceInfoTests], executed successfully"<<std::endl;
     return 0;
 }

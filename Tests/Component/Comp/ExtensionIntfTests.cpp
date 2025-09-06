@@ -6,10 +6,10 @@
 #include "ConfigProcessor.h"
 #include "Extensions.h"
 
-RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/resource-tuner/tests/Configs/ResourcesConfig.yaml")
-RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/etc/resource-tuner/tests/Configs/PropertiesConfig.yaml")
-RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/resource-tuner/tests/Configs/SignalsConfig.yaml")
-RESTUNE_REGISTER_CONFIG(TARGET_CONFIG, "/etc/resource-tuner/tests/Configs/TargetConfig.yaml")
+RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/resource-tuner/custom/ResourcesConfig.yaml")
+RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/etc/resource-tuner/custom/PropertiesConfig.yaml")
+RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/resource-tuner/custom/SignalsConfig.yaml")
+RESTUNE_REGISTER_CONFIG(TARGET_CONFIG, "/etc/resource-tuner/custom/TargetConfig.yaml")
 
 static int8_t firstTest = true;
 static int8_t funcCalled = false;
@@ -33,19 +33,19 @@ static void Init() {
 }
 
 static void TestExtensionIntfModifiedResourceConfigPath() {
-    C_ASSERT(Extensions::getResourceConfigFilePath() == "/etc/resource-tuner/tests/Configs/ResourcesConfig.yaml");
+    C_ASSERT(Extensions::getResourceConfigFilePath() == "/etc/resource-tuner/custom/ResourcesConfig.yaml");
 }
 
 static void TestExtensionIntfModifiedPropertiesConfigPath() {
-    C_ASSERT(Extensions::getPropertiesConfigFilePath() == "/etc/resource-tuner/tests/Configs/PropertiesConfig.yaml");
+    C_ASSERT(Extensions::getPropertiesConfigFilePath() == "/etc/resource-tuner/custom/PropertiesConfig.yaml");
 }
 
 static void TestExtensionIntfModifiedSignalConfigPath() {
-    C_ASSERT(Extensions::getSignalsConfigFilePath() == "/etc/resource-tuner/tests/Configs/SignalsConfig.yaml");
+    C_ASSERT(Extensions::getSignalsConfigFilePath() == "/etc/resource-tuner/custom/SignalsConfig.yaml");
 }
 
 static void TestExtensionIntfModifiedTargetConfigPath() {
-    C_ASSERT(Extensions::getTargetConfigFilePath() == "/etc/resource-tuner/tests/Configs/TargetConfig.yaml");
+    C_ASSERT(Extensions::getTargetConfigFilePath() == "/etc/resource-tuner/custom/TargetConfig.yaml");
 }
 
 static void TestExtensionIntfCustomResourceApplier() {
@@ -67,7 +67,7 @@ static void TestExtensionIntfCustomResourceTear() {
 }
 
 int32_t main() {
-     std::cout<<"Running Test Suite: [ExtensionIntfTests]\n"<<std::endl;
+    std::cout<<"Running Test Suite: [ExtensionIntfTests]\n"<<std::endl;
 
     Init();
     RUN_TEST(TestExtensionIntfModifiedResourceConfigPath);

@@ -1058,7 +1058,7 @@ static void TestGetRequestFromMap() {
 }
 
 int32_t main() {
-    std::cout<<"Running Test Suite: [RequestMap Tests]\n"<<std::endl;
+    std::cout<<"Running Test Suite: [RequestMapTests]\n"<<std::endl;
 
     Init();
     RUN_TEST(TestSingleRequestScenario);
@@ -1076,6 +1076,6 @@ int32_t main() {
     RUN_TEST(TestRequestWithNullResourcesAddition);
     RUN_TEST(TestGetRequestFromMap);
 
-    std::cout<<"\nAll Tests from the suite: [RequestMap Tests], executed successfully"<<std::endl;
+    std::cout<<"\nAll Tests from the suite: [RequestMapTests], executed successfully"<<std::endl;
     return 0;
 }

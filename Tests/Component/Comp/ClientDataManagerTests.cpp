@@ -272,9 +272,9 @@ static void TestClientDataManagerClientThreadTracking2() {
 }
 
 int32_t main() {
-    std::cout<<"Running Test Suite: [ClientDataManager Tests]\n"<<std::endl;
-    Init();
+    std::cout<<"Running Test Suite: [ClientDataManagerTests]\n"<<std::endl;
 
+    Init();
     RUN_TEST(TestClientDataManagerClientEntryCreation1);
     RUN_TEST(TestClientDataManagerClientEntryCreation2);
     RUN_TEST(TestClientDataManagerClientEntryDeletion);
@@ -286,6 +286,6 @@ int32_t main() {
     RUN_TEST(TestClientDataManagerClientThreadTracking1);
     RUN_TEST(TestClientDataManagerClientThreadTracking2);
 
-    std::cout<<"\nAll Tests from the suite: [ClientDataManager Tests], executed successfully"<<std::endl;
+    std::cout<<"\nAll Tests from the suite: [ClientDataManagerTests], executed successfully"<<std::endl;
     return 0;
 }

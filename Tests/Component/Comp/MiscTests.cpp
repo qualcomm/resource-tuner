@@ -184,12 +184,12 @@ static void TestSignalSerializingAndDeserializing() {
 }
 
 int32_t main() {
-    std::cout<<"Running Test Suite: [Misc Tests]\n"<<std::endl;
+    std::cout<<"Running Test Suite: [MiscTests]\n"<<std::endl;
 
     RUN_TEST(TestResourceStructCoreClusterSettingAndExtraction);
     RUN_TEST(TestRequestSerializingAndDeserializing);
     RUN_TEST(TestSignalSerializingAndDeserializing);
 
-    std::cout<<"\nAll Tests from the suite: [Misc Tests], executed successfully"<<std::endl;
+    std::cout<<"\nAll Tests from the suite: [MiscTests], executed successfully"<<std::endl;
     return 0;
 }

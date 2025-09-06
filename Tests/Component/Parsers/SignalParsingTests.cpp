@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <cstring>
 
+#include "TestUtils.h"
 #include "SignalConfigProcessor.h"
 #include "SignalRegistry.h"
 #include "Extensions.h"
@@ -12,26 +13,11 @@
 
 #define TOTAL_SIGNAL_CONFIGS_COUNT 10
 
-#define RUN_TEST(test)                                              \
-do {                                                                \
-    std::cout<<"Running Test: "<<#test<<std::endl;                  \
-    test();                                                         \
-    std::cout<<#test<<": Run Successful"<<std::endl;                \
-    std::cout<<"-------------------------------------"<<std::endl;  \
-} while(false);                                                     \
-
-#define C_ASSERT(cond)                                                                          \
-    if(cond == false) {                                                                         \
-        std::cerr<<"Assertion failed at line [" << __LINE__ << "]: "<<#cond<<std::endl;         \
-        std::cerr<<"Test: ["<<__func__<<"] Failed, Terminating Suite\n"<<std::endl;             \
-        exit(EXIT_FAILURE);                                                                     \
-    }                                                                                           \
-
 static void Init() {
     SignalConfigProcessor configProcessor;
 
-    std::string signalsClassA = "/etc/resource-tuner/tests/Configs/SignalsConfigA.yaml";
-    std::string signalsClassB = "/etc/resource-tuner/tests/Configs/SignalsConfigB.yaml";
+    std::string signalsClassA = "/etc/resource-tuner/custom/SignalsConfig.yaml";
+    std::string signalsClassB = "/etc/resource-tuner/custom/SignalsConfigAddOn.yaml";
 
     if(RC_IS_NOTOK(configProcessor.parseSignalConfigs(signalsClassA))) {
         return;
@@ -47,6 +33,8 @@ static void TestSignalParsingSanity() {
 }
 
 static void TestSignalParsingSignalsParsed() {
+    std::cout<<"dee count = "<<SignalRegistry::getInstance()->getSignalsConfigCount()<<std::endl;
+    std::cout<<"expected count = "<<TOTAL_SIGNAL_CONFIGS_COUNT<<std::endl;
     C_ASSERT(SignalRegistry::getInstance()->getSignalsConfigCount() == TOTAL_SIGNAL_CONFIGS_COUNT);
 }
 
@@ -216,7 +204,7 @@ static void TestSignalParsingSignalsMerged5() {
 }
 
 int32_t main() {
-    std::cout<<"Running Test Suite: [Signal Parsing Tests]\n"<<std::endl;
+    std::cout<<"Running Test Suite: [SignalParsingTests]\n"<<std::endl;
 
     Init();
     RUN_TEST(TestSignalParsingSanity)
@@ -227,6 +215,6 @@ int32_t main() {
     RUN_TEST(TestSignalParsingSignalsMerged4)
     RUN_TEST(TestSignalParsingSignalsMerged5)
 
-    std::cout<<"\nAll Tests from the suite: [Signal Parsing Test], executed successfully"<<std::endl;
+    std::cout<<"\nAll Tests from the suite: [SignalParsingTest], executed successfully"<<std::endl;
     return 0;
 }

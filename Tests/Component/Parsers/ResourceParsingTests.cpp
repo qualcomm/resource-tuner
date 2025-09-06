@@ -15,8 +15,8 @@
 static void Init() {
     ConfigProcessor configProcessor;
 
-    std::string resourcesClassA = "/etc/resource-tuner/tests/Configs/ResourcesConfig.yaml";
-    std::string resourcesClassB = "/etc/resource-tuner/tests/Configs/ResourcesConfigAddOn.yaml";
+    std::string resourcesClassA = "/etc/resource-tuner/custom/ResourcesConfig.yaml";
+    std::string resourcesClassB = "/etc/resource-tuner/custom/ResourcesConfigAddOn.yaml";
 
     if(RC_IS_NOTOK(configProcessor.parseResourceConfigs(resourcesClassA))) {
         return;
@@ -121,7 +121,7 @@ static void TestResourceParsingResourcesDefaultValuesCheck() {
 }
 
 int32_t main() {
-    std::cout<<"Running Test Suite: [Resource Parsing Tests]\n"<<std::endl;
+    std::cout<<"Running Test Suite: [ResourceParsingTests]\n"<<std::endl;
 
     Init();
     RUN_TEST(TestResourceParsingSanity);
@@ -132,6 +132,6 @@ int32_t main() {
     RUN_TEST(TestResourceParsingResourcesMerged4);
     RUN_TEST(TestResourceParsingResourcesDefaultValuesCheck);
 
-    std::cout<<"\nAll Tests from the suite: [Resource Parsing Test], executed successfully"<<std::endl;
+    std::cout<<"\nAll Tests from the suite: [ResourceParsingTests], executed successfully"<<std::endl;
     return 0;
 }

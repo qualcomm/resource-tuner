@@ -200,7 +200,7 @@ static void TestValidationMacro2() {
 }
 
 int32_t main() {
-    std::cout<<"Running SafeOps Test Suite\n"<<std::endl;
+    std::cout<<"Running Test Suite: [SafeOps]\n"<<std::endl;
 
     RUN_TEST(Overflow1);
     RUN_TEST(Underflow1);

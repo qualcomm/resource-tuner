@@ -101,7 +101,7 @@ if(BUILD_TESTS)
 
         add_executable(SignalParsingTests ../Component/Parsers/SignalParsingTests.cpp)
         target_link_libraries(SignalParsingTests Auxiliary ExtAPIs SysSignals)
-        target_include_directories(SysSignalConfigProcessorTests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
+        target_include_directories(SignalParsingTests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
         install(TARGETS SignalParsingTests DESTINATION bin)
     endif()
 endif()

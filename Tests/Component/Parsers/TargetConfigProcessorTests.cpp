@@ -14,11 +14,9 @@
 static void Init() {
     ConfigProcessor configProcessor;
 
-    if(RC_IS_NOTOK(configProcessor.parseTargetConfigs("/etc/resource-tuner/tests/Configs/TargetConfig.yaml"))) {
+    if(RC_IS_NOTOK(configProcessor.parseTargetConfigs("/etc/resource-tuner/custom/TargetConfig.yaml"))) {
         return;
     }
-
-    TargetRegistry::getInstance()->readTargetInfo();
 }
 
 static void TestTargetConfigProcessorYAMLDataIntegrity1() {
@@ -26,6 +24,7 @@ static void TestTargetConfigProcessorYAMLDataIntegrity1() {
 }
 
 static void TestTargetConfigProcessorYAMLDataIntegrity2() {
+    std::cout<<"determine core count = "<<ResourceTunerSettings::targetConfigs.totalCoreCount<<std::endl;
     C_ASSERT(ResourceTunerSettings::targetConfigs.totalCoreCount == 10);
 }
 
@@ -52,7 +51,7 @@ static void TestTargetConfigProcessorYAMLDataIntegrity4() {
 }
 
 int32_t main() {
-    std::cout<<"Running Target Config Processing Test Suite\n"<<std::endl;
+    std::cout<<"Running [TargetConfigProcessorTests] Test Suite\n"<<std::endl;
 
     Init();
     RUN_TEST(TestTargetConfigProcessorYAMLDataIntegrity1);
@@ -60,5 +59,5 @@ int32_t main() {
     RUN_TEST(TestTargetConfigProcessorYAMLDataIntegrity3);
     RUN_TEST(TestTargetConfigProcessorYAMLDataIntegrity4);
 
-    std::cout<<"\nAll Tests from the suite: [Target Config Processing], executed successfully"<<std::endl;
+    std::cout<<"\nAll Tests from the suite: [TargetConfigProcessorTests], executed successfully"<<std::endl;
 }

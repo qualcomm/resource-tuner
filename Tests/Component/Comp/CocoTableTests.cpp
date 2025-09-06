@@ -53,7 +53,7 @@ static void TestCocoTableInsertRequest5() {
 }
 
 int32_t main() {
-     std::cout<<"Running Test Suite: [CocoTableTests]\n"<<std::endl;
+    std::cout<<"Running Test Suite: [CocoTableTests]\n"<<std::endl;
 
     RUN_TEST(TestCocoTableInsertRequest1);
     RUN_TEST(TestCocoTableInsertRequest2);
