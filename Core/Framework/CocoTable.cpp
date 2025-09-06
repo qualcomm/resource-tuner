@@ -68,11 +68,11 @@ CocoTable::CocoTable() {
     */
     for(ResourceConfigInfo* resourceConfig: this->mResourceTable) {
         if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CORE) {
-            int32_t totalCoreCount = ResourceTunerSettings::targetConfigs.totalCoreCount;
+            int32_t totalCoreCount = ResourceTunerSettings::targetConfigs.mTotalCoreCount;
             this->mCocoTable.push_back(std::vector<std::pair<CocoNode*, CocoNode*>>(TOTAL_PRIORITIES * totalCoreCount));
 
         } else if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CLUSTER) {
-            int32_t totalClusterCount = ResourceTunerSettings::targetConfigs.totalClusterCount;
+            int32_t totalClusterCount = ResourceTunerSettings::targetConfigs.mTotalClusterCount;
             this->mCocoTable.push_back(std::vector<std::pair<CocoNode*, CocoNode*>>(TOTAL_PRIORITIES * totalClusterCount));
 
         } else if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CGROUP) {
@@ -515,17 +515,9 @@ void CocoTable::processResourceCleanupAt(Request* request, int32_t index) {
 int8_t CocoTable::removeRequest(Request* request) {
     TYPELOGV(NOTIFY_COCO_TABLE_REMOVAL_START, request->getHandle());
 
-    if(request->getUntuneProcessingOrder() == 0) {
-        // Forward Pass
-        for(int32_t i = 0; i < request->getResourcesCount(); i++) {
-            this->processResourceCleanupAt(request, i);
-        }
-    } else {
-        for(int32_t i = request->getResourcesCount() - 1; i >= 0; i--) {
-            this->processResourceCleanupAt(request, i);
-        }
+    for(int32_t i = 0; i < request->getResourcesCount(); i++) {
+        this->processResourceCleanupAt(request, i);
     }
-
     return 0;
 }
 

@@ -113,7 +113,7 @@ void TargetRegistry::generatePolicyBasedMapping(std::vector<std::string>& policy
     std::sort(policyDirs.begin(), policyDirs.end());
 
     // Number of policy directories, is equivalent to number of clusters
-    ResourceTunerSettings::targetConfigs.totalClusterCount = policyDirs.size();
+    ResourceTunerSettings::targetConfigs.mTotalClusterCount = policyDirs.size();
 
     // Next, get the list of cpus corresponding to each cluster
     std::vector<std::pair<int32_t, std::pair<int32_t, ClusterInfo*>>> clusterConfigs;
@@ -195,7 +195,7 @@ void TargetRegistry::getClusterIdBasedMapping() {
 
     closedir(dir);
 
-    ResourceTunerSettings::targetConfigs.totalClusterCount = clusterToCoreMap.size();
+    ResourceTunerSettings::targetConfigs.mTotalClusterCount = clusterToCoreMap.size();
 
     for(std::pair<int32_t, std::vector<int32_t>> entry: clusterToCoreMap) {
         int32_t clusterID = entry.first;
@@ -244,13 +244,14 @@ void TargetRegistry::addClusterMapping(int32_t logicalID, int32_t physicalID) {
 
         clusterInfo->mPhysicalID = physicalID;
         clusterInfo->mNumCpus = 0;
+        clusterInfo->mCapacity = 0;
         clusterInfo->mStartCpu = physicalID;
 
         this->mPhysicalClusters[physicalID] = clusterInfo;
     }
 
     this->mLogicalToPhysicalClusterMapping[logicalID] = physicalID;
-    ResourceTunerSettings::targetConfigs.totalClusterCount = this->mPhysicalClusters.size();
+    ResourceTunerSettings::targetConfigs.mTotalClusterCount = this->mPhysicalClusters.size();
 }
 
 void TargetRegistry::addClusterSpreadInfo(int32_t physicalID, int32_t numCores) {
@@ -258,15 +259,12 @@ void TargetRegistry::addClusterSpreadInfo(int32_t physicalID, int32_t numCores) 
         return;
     }
 
-    int32_t deducedCoreCount = this->mPhysicalClusters[physicalID]->mNumCpus;
-    ResourceTunerSettings::targetConfigs.totalCoreCount -= deducedCoreCount;
-    ResourceTunerSettings::targetConfigs.totalCoreCount += numCores;
     this->mPhysicalClusters[physicalID]->mNumCpus = numCores;
 }
 
 void TargetRegistry::readTargetInfo() {
     // Get the Online Core Count
-    ResourceTunerSettings::targetConfigs.totalCoreCount = getOnlineCpuCount();
+    ResourceTunerSettings::targetConfigs.mTotalCoreCount = getOnlineCpuCount();
 
     // Check if cpufreq/policy directories are available,
     // If yes, we'll use them to generate the mapping info.
@@ -368,8 +366,8 @@ int32_t TargetRegistry::getCreatedMpamGroupsCount() {
 
 void TargetRegistry::displayTargetInfo() {
     LOGI("RESTUNE_SERVER_INIT", "Displaying Target Info");
-    LOGI("RESTUNE_SERVER_INIT", "Number of Cores = " + std::to_string(ResourceTunerSettings::targetConfigs.totalCoreCount));
-    LOGI("RESTUNE_SERVER_INIT", "Number of Clusters = " + std::to_string(ResourceTunerSettings::targetConfigs.totalClusterCount));
+    LOGI("RESTUNE_SERVER_INIT", "Number of Cores = " + std::to_string(ResourceTunerSettings::targetConfigs.mTotalCoreCount));
+    LOGI("RESTUNE_SERVER_INIT", "Number of Clusters = " + std::to_string(ResourceTunerSettings::targetConfigs.mTotalClusterCount));
 
     for(std::pair<int32_t, ClusterInfo*> cluster: this->mPhysicalClusters) {
         LOGI("RESTUNE_SERVER_INIT", "Physical ID of cluster: " + std::to_string(cluster.first));

@@ -41,7 +41,7 @@ static ErrCode fetchMetaConfigs() {
         ResourceTunerSettings::targetConfigs.targetName =
                     AuxRoutines::readFromFile("/sys/devices/soc0/machine");
 
-        TYPELOGV(NOTIFY_CURRENT_TARGET_NAME, ResourceTunerSettings::targetConfigs.targetName);
+        TYPELOGV(NOTIFY_CURRENT_TARGET_NAME, ResourceTunerSettings::targetConfigs.targetName.c_str());
 
         submitPropGetRequest(MAX_CONCURRENT_REQUESTS, resultBuffer, "120");
         ResourceTunerSettings::metaConfigs.mMaxConcurrentRequests = (uint32_t)std::stol(resultBuffer);
@@ -150,8 +150,11 @@ ErrCode fetchProperties() {
     opStatus = parseUtil(filePath, CUSTOM_PROPERTIES, ConfigType::PROPERTIES_CONFIG);
 
     // If file was not found, we simply return SUCCESS, since custom configs are optional
-    if(opStatus != RC_FILE_NOT_FOUND) {
-        // Custom Properties Parsing Failed
+    if(opStatus == RC_FILE_NOT_FOUND) {
+        opStatus = RC_SUCCESS;
+    }
+
+    if(RC_IS_NOTOK(opStatus)) {
         return opStatus;
     }
 
@@ -194,7 +197,6 @@ static ErrCode fetchTargetInfo() {
     // routine is target / architecture specific, and the initialization flow
     // needs to be generic enough to accomodate them.
     TargetRegistry::getInstance()->readTargetInfo();
-    TargetRegistry::getInstance()->displayTargetInfo();
 
     // Check if a Custom Target Config is provided, if so process it.
     std::string filePath = Extensions::getTargetConfigFilePath();
@@ -213,6 +215,7 @@ static ErrCode fetchTargetInfo() {
         return RC_SUCCESS;
     }
 
+    TargetRegistry::getInstance()->displayTargetInfo();
     return opStatus;
 }
 

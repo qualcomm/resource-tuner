@@ -6,6 +6,8 @@
 
 #include <iostream>
 #include <fstream>
+#include <ctime>
+#include <chrono>
 #include <thread>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -73,29 +75,40 @@ do {                                \
     resourceBitmap;                                                             \
 })
 
-#define LOG_START std::cout<<"\nRunning Test: "<<__func__<<std::endl;
-#define LOG_END std::cout<<__func__<<": Run Successful"<<std::endl;
+static std::string getTimestamp() {
+    auto now = std::chrono::system_clock::now();
+    time_t now_c = std::chrono::system_clock::to_time_t(now);
+    tm local_tm = *localtime(&now_c);
 
-#define RUN_TEST(test)                                              \
-do {                                                                \
-    std::cout<<"Running Test: "<<#test<<std::endl;                  \
-    test();                                                         \
-    std::cout<<#test<<": Run Successful"<<std::endl;                \
-    std::cout<<"-------------------------------------"<<std::endl;  \
-} while(false);                                                     \
+    char buffer[64];
+    strftime(buffer, sizeof(buffer), "%b %d %H:%M:%S", &local_tm);
+    return std::string(buffer);
+}
 
-#define C_ASSERT(cond)                                                                          \
-    if(cond == false) {                                                                         \
-        std::cerr<<"Assertion failed at line [" << __LINE__ << "]: "<<#cond<<std::endl;         \
-        std::cerr<<"Test: ["<<__func__<<"] Failed, Terminating Suite\n"<<std::endl;             \
-        exit(EXIT_FAILURE);                                                                     \
-    }                                                                                           \
+#define LOG_START std::cout<<"\n["<<getTimestamp()<<"] Running Test: "<<__func__<<std::endl;
+#define LOG_END std::cout<<"["<<getTimestamp()<<"] "<<__func__<<": Run Successful"<<std::endl;
+#define LOG_BASE "["<<getTimestamp()<<"] "<<__func__<<":"<<__LINE__<<") "
 
-#define C_ASSERT_NEAR(val1, val2, tol)                                               \
-    if (std::fabs((val1) - (val2)) > (tol)) {                                        \
-        std::cerr<<"Condition Check on line:["<<__LINE__<<"]  failed"<<std::endl;    \
-        std::cerr<<"Test: ["<<__func__<<"] Failed, Terminating Suite\n"<<std::endl;  \
-        exit(EXIT_FAILURE);                                                          \
-    }                                                                                \
+#define RUN_TEST(test)                                                              \
+do {                                                                                \
+    std::cout<<"["<<getTimestamp()<<"] Running Test: "<<#test<<std::endl;           \
+    test();                                                                         \
+    std::cout<<"["<<getTimestamp()<<"] "<<#test<<": Run Successful"<<std::endl;     \
+    std::cout<<"--------------------------------------------------"<<std::endl;     \
+} while(false);                                                                     \
+
+#define C_ASSERT(cond)                                                                                                 \
+    if(cond == false) {                                                                                                \
+        std::cerr<<"["<<getTimestamp()<<"] Assertion failed at line [" << __LINE__ << "]: "<<#cond<<std::endl;         \
+        std::cerr<<"["<<getTimestamp()<<"] Test: ["<<__func__<<"] Failed, Terminating Suite\n"<<std::endl;             \
+        exit(EXIT_FAILURE);                                                                                            \
+    }                                                                                                                  \
+
+#define C_ASSERT_NEAR(val1, val2, tol)                                                                      \
+    if (std::fabs((val1) - (val2)) > (tol)) {                                                               \
+        std::cerr<<"["<<getTimestamp()<<"] Condition Check on line:["<<__LINE__<<"]  failed"<<std::endl;    \
+        std::cerr<<"["<<getTimestamp()<<"] Test: ["<<__func__<<"] Failed, Terminating Suite\n"<<std::endl;  \
+        exit(EXIT_FAILURE);                                                                                 \
+    }                                                                                                       \
 
 #endif

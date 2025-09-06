@@ -18,7 +18,7 @@ static void Init() {
 }
 
 static void TestDeviceClusterCount() {
-    int32_t clusterCount = ResourceTunerSettings::targetConfigs.totalClusterCount;
+    int32_t clusterCount = ResourceTunerSettings::targetConfigs.mTotalClusterCount;
     int32_t expectedClusterCount = baseline.getExpectedClusterCount();
     std::cout<<"Determined Cluster Count: "<<clusterCount<<std::endl;
     std::cout<<"Expected Cluster Count: "<<expectedClusterCount<<std::endl;
@@ -26,7 +26,7 @@ static void TestDeviceClusterCount() {
 }
 
 static void TestDeviceCoreCount() {
-    int32_t coreCount = ResourceTunerSettings::targetConfigs.totalClusterCount;
+    int32_t coreCount = ResourceTunerSettings::targetConfigs.mTotalClusterCount;
     int32_t expectedCoreCount = baseline.getExpectedCoreCount();
     std::cout<<"Determined Core Count: "<<coreCount<<std::endl;
     std::cout<<"Expected Core Count: "<<expectedCoreCount<<std::endl;

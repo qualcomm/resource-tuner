@@ -24,8 +24,8 @@ static void TestTargetConfigProcessorYAMLDataIntegrity1() {
 }
 
 static void TestTargetConfigProcessorYAMLDataIntegrity2() {
-    std::cout<<"determine core count = "<<ResourceTunerSettings::targetConfigs.totalCoreCount<<std::endl;
-    C_ASSERT(ResourceTunerSettings::targetConfigs.totalCoreCount == 10);
+    std::cout<<"determine core count = "<<ResourceTunerSettings::targetConfigs.mTotalCoreCount<<std::endl;
+    C_ASSERT(ResourceTunerSettings::targetConfigs.mTotalCoreCount == 10);
 }
 
 static void TestTargetConfigProcessorYAMLDataIntegrity3() {

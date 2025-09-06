@@ -48,7 +48,7 @@ void Logger::log(LogLevel level, const std::string& tag, const std::string& func
     std::string levelStr = levelToString(level);
 
     if(mRedirectOutputTo == RedirectOptions::LOG_FILE) {
-        std::ofstream logFile("log.txt", std::ios::app); //TODO: FIXME
+        std::ofstream logFile("log.txt", std::ios::app);
         if(logFile.is_open()) {
             logFile << "[" << timestamp << "] [" << tag << "] [" << levelStr << "] " << funcName <<": "<< message << std::endl;
             logFile.close();

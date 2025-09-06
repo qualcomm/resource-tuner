@@ -46,7 +46,7 @@ static void TestHandleGeneration() {
 
     delete resourceList;
 
-    std::cout<<"["<<__LINE__<<"]"<<" Handle Returned: "<<handle<<std::endl;
+    std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
     assert(handle > 0);
 
     std::this_thread::sleep_for(std::chrono::seconds(3));
@@ -61,7 +61,7 @@ static void TestHandleGeneration() {
 
     delete resourceList;
 
-    std::cout<<"["<<__LINE__<<"]"<<" Handle Returned: "<<handle<<std::endl;
+    std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
     assert(handle > 0);
 
     std::this_thread::sleep_for(std::chrono::seconds(3));
@@ -76,7 +76,7 @@ static void TestHandleGeneration() {
 
     delete resourceList;
 
-    std::cout<<"["<<__LINE__<<"]"<<" Handle Returned: "<<handle<<std::endl;
+   std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
     assert(handle > 0);
 
     LOG_END
@@ -901,6 +901,7 @@ namespace RequestApplicationTests {
         // Check the original value for the Resource
         std::string value = AuxRoutines::readFromFile(testResourceName);
         int32_t originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
@@ -916,6 +917,7 @@ namespace RequestApplicationTests {
         // Check if the new value was successfully written to the node
         value = AuxRoutines::readFromFile(testResourceName);
         int32_t newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 980);
 
         std::this_thread::sleep_for(std::chrono::seconds(6));
@@ -953,14 +955,17 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName1);
         originalValue[0] = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName1<<" Original Value: "<<originalValue[0]<<std::endl;
         assert(originalValue[0] == testResourceOriginalValue1);
 
         value = AuxRoutines::readFromFile(testResourceName2);
         originalValue[1] = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName2<<" Original Value: "<<originalValue[1]<<std::endl;
         assert(originalValue[1] == testResourceOriginalValue2);
 
         value = AuxRoutines::readFromFile(testResourceName3);
         originalValue[2] = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName3<<" Original Value: "<<originalValue[2]<<std::endl;
         assert(originalValue[2] == testResourceOriginalValue3);
 
         SysResource* resourceList = new SysResource[3];
@@ -986,14 +991,17 @@ namespace RequestApplicationTests {
         // Check if the new value was successfully written to each of the nodes
         value = AuxRoutines::readFromFile(testResourceName1);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName1<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 765);
 
         value = AuxRoutines::readFromFile(testResourceName2);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName2<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 617);
 
         value = AuxRoutines::readFromFile(testResourceName3);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName3<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 889);
 
         std::this_thread::sleep_for(std::chrono::seconds(6));
@@ -1001,14 +1009,17 @@ namespace RequestApplicationTests {
         // Wait for the Request to expire, check if the values reset
         value = AuxRoutines::readFromFile(testResourceName1);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName1<<" Reset Value: "<<newValue<<std::endl;
         assert(newValue == originalValue[0]);
 
         value = AuxRoutines::readFromFile(testResourceName2);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName2<<" Reset Value: "<<newValue<<std::endl;
         assert(newValue == originalValue[1]);
 
         value = AuxRoutines::readFromFile(testResourceName3);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName3<<" Reset Value: "<<newValue<<std::endl;
         assert(newValue == originalValue[2]);
 
         std::this_thread::sleep_for(std::chrono::seconds(4));
@@ -1035,6 +1046,7 @@ namespace RequestApplicationTests {
 
         std::string value = AuxRoutines::readFromFile(testResourceName);
         int32_t originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
         assert(originalValue == testResourceOriginalValue);
 
         int32_t rc = fork();
@@ -1064,6 +1076,7 @@ namespace RequestApplicationTests {
             // Check if the new value was successfully written to the node
             value = AuxRoutines::readFromFile(testResourceName);
             int32_t newValue = C_STOI(value);
+            std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
 
             // Note value should be the higher of the 2, since for this resource the
             // policy set is "Higher is Better"
@@ -1074,6 +1087,7 @@ namespace RequestApplicationTests {
             // Wait for the Request to expire, check if the value resets
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
+            std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
             assert(newValue == originalValue);
         }
 
@@ -1106,6 +1120,7 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
         assert(originalValue == testResourceOriginalValue);
 
         int32_t rc1 = fork();
@@ -1137,6 +1152,7 @@ namespace RequestApplicationTests {
             // Higer is better policy
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
+            std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
             assert(newValue == 1176);
 
             std::this_thread::sleep_for(std::chrono::seconds(6));
@@ -1145,12 +1161,14 @@ namespace RequestApplicationTests {
             // And the Pending Request with a configuration value of 823, should take effect.
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
+            std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
             assert(newValue == 823);
 
             std::this_thread::sleep_for(std::chrono::seconds(10));
 
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
+            std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<originalValue<<std::endl;
             assert(newValue == originalValue);
         }
 
@@ -1183,8 +1201,8 @@ namespace RequestApplicationTests {
         int32_t originalValue, newValue;
 
         value = AuxRoutines::readFromFile(testResourceName);
-        std::cout<<"["<<__LINE__<<"]"<<" ResourceSysFsNodes/scaling_min_freq Value: "<<value<<std::endl;
         originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
         assert(originalValue == testResourceOriginalValue);
 
         int64_t handle;
@@ -1209,8 +1227,8 @@ namespace RequestApplicationTests {
             std::this_thread::sleep_for(std::chrono::seconds(1));
 
             value = AuxRoutines::readFromFile(testResourceName);
-            std::cout<<"["<<__LINE__<<"]"<<" ResourceSysFsNodes/scaling_min_freq Value: "<<value<<std::endl;
             newValue = C_STOI(value);
+            std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
             assert(newValue == 578);
 
             int32_t rc2 = fork();
@@ -1231,8 +1249,8 @@ namespace RequestApplicationTests {
                 std::this_thread::sleep_for(std::chrono::seconds(1));
 
                 value = AuxRoutines::readFromFile(testResourceName);
-                std::cout<<"["<<__LINE__<<"]"<<" ResourceSysFsNodes/scaling_min_freq Value: "<<value<<std::endl;
                 newValue = C_STOI(value);
+                std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
                 assert(newValue == 445);
 
                 int32_t rc3 = fork();
@@ -1253,8 +1271,8 @@ namespace RequestApplicationTests {
                     std::this_thread::sleep_for(std::chrono::seconds(1));
 
                     value = AuxRoutines::readFromFile(testResourceName);
-                    std::cout<<"["<<__LINE__<<"]"<<" ResourceSysFsNodes/scaling_min_freq Value: "<<value<<std::endl;
                     newValue = C_STOI(value);
+                    std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
                     assert(newValue == 412);
 
                     SysResource* resourceList = new SysResource[1];
@@ -1268,14 +1286,15 @@ namespace RequestApplicationTests {
                     std::this_thread::sleep_for(std::chrono::seconds(1));
 
                     value = AuxRoutines::readFromFile(testResourceName);
-                    std::cout<<"["<<__LINE__<<"]"<<" ResourceSysFsNodes/scaling_min_freq Value: "<<value<<std::endl;
                     newValue = C_STOI(value);
+                    std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
                     assert(newValue == 378);
 
                     std::this_thread::sleep_for(std::chrono::seconds(30));
 
                     value = AuxRoutines::readFromFile(testResourceName);
                     newValue = C_STOI(value);
+                    std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
                     assert(newValue == originalValue);
                 }
             }
@@ -1306,6 +1325,7 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
         assert(originalValue == testResourceOriginalValue);
 
         int64_t handle;
@@ -1338,22 +1358,28 @@ namespace RequestApplicationTests {
             // The new Value should be valid for 8 seconds
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
+            std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
             assert(newValue == 15);
 
             std::this_thread::sleep_for(std::chrono::seconds(3));
+
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
+            std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
             assert(newValue == 15);
 
             std::this_thread::sleep_for(std::chrono::seconds(8));
+
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
+            std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
             assert(newValue == 18);
 
             std::this_thread::sleep_for(std::chrono::seconds(10));
 
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
+            std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
             assert(newValue == originalValue);
         }
 
@@ -1385,14 +1411,17 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName1);
         originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName1<<" Original Value: "<<originalValue<<std::endl;
         assert(originalValue == testResourceOriginalValue1);
 
         value = AuxRoutines::readFromFile(testResourceName2);
         originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName2<<" Original Value: "<<originalValue<<std::endl;
         assert(originalValue == testResourceOriginalValue2);
 
         value = AuxRoutines::readFromFile(testResourceName3);
         originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceOriginalValue3<<" Original Value: "<<originalValue<<std::endl;
         assert(originalValue == testResourceOriginalValue3);
 
         int32_t rc1 = fork();
@@ -1434,14 +1463,17 @@ namespace RequestApplicationTests {
                 // Check if the new value was successfully written to the node
                 value = AuxRoutines::readFromFile(testResourceName1);
                 newValue = C_STOI(value);
+                std::cout<<LOG_BASE<<testResourceName1<<" Configured Value: "<<newValue<<std::endl;
                 assert(newValue == 717);
 
                 value = AuxRoutines::readFromFile(testResourceName2);
                 newValue = C_STOI(value);
+                std::cout<<LOG_BASE<<testResourceName2<<" Configured Value: "<<newValue<<std::endl;
                 assert(newValue == 800);
 
                 value = AuxRoutines::readFromFile(testResourceName3);
                 newValue = C_STOI(value);
+                std::cout<<LOG_BASE<<testResourceName3<<" Configured Value: "<<newValue<<std::endl;
                 assert(newValue == 557);
 
                 // Wait for the Nodes to Reset
@@ -1449,14 +1481,17 @@ namespace RequestApplicationTests {
 
                 value = AuxRoutines::readFromFile(testResourceName1);
                 originalValue = C_STOI(value);
+                std::cout<<LOG_BASE<<testResourceName1<<" Reset Value: "<<originalValue<<std::endl;
                 assert(originalValue == testResourceOriginalValue1);
 
                 value = AuxRoutines::readFromFile(testResourceName2);
                 originalValue = C_STOI(value);
+                std::cout<<LOG_BASE<<testResourceName2<<" Reset Value: "<<originalValue<<std::endl;
                 assert(originalValue == testResourceOriginalValue2);
 
                 value = AuxRoutines::readFromFile(testResourceName3);
                 originalValue = C_STOI(value);
+                std::cout<<LOG_BASE<<testResourceName3<<" Reset Value: "<<originalValue<<std::endl;
                 assert(originalValue == testResourceOriginalValue3);
 
                 waitpid(rc1, nullptr, 0);
@@ -1487,6 +1522,7 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList1 = new SysResource[1];
@@ -1508,12 +1544,14 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 917);
 
         std::this_thread::sleep_for(std::chrono::seconds(6));
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
         assert(newValue == testResourceOriginalValue);
 
         LOG_END
@@ -1541,6 +1579,7 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
         assert(originalValue == testResourceOriginalValue);
 
         std::thread th([&]{
@@ -1567,12 +1606,14 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 702);
 
         std::this_thread::sleep_for(std::chrono::seconds(6));
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
         assert(newValue == testResourceOriginalValue);
 
         th.join();
@@ -1603,6 +1644,7 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
@@ -1614,12 +1656,11 @@ namespace RequestApplicationTests {
         resourceList[0] = resource;
         handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
-        std::cout<<"["<<__LINE__<<"]"<<" handle returned is: "<<handle<<std::endl;
-
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 245);
 
         untuneResources(handle);
@@ -1628,6 +1669,7 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Untuned Value: "<<newValue<<std::endl;
         assert(newValue == testResourceOriginalValue);
 
         LOG_END
@@ -1658,6 +1700,7 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
@@ -1672,6 +1715,7 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 245);
 
         int32_t rc = fork();
@@ -1689,6 +1733,7 @@ namespace RequestApplicationTests {
             // Verify that there is no change in value
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
+            std::cout<<LOG_BASE<<testResourceName<<" Untuned Value: "<<newValue<<std::endl;
             assert(newValue == 245);
 
             untuneResources(handle);
@@ -1697,6 +1742,7 @@ namespace RequestApplicationTests {
 
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
+            std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
             assert(newValue == testResourceOriginalValue);
         }
 
@@ -1730,6 +1776,7 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList1 = new SysResource[1];
@@ -1752,12 +1799,14 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 559);
 
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
         assert(newValue == testResourceOriginalValue);
 
         LOG_END
@@ -1794,6 +1843,7 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList1 = new SysResource[1];
@@ -1808,6 +1858,7 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 515);
 
         std::this_thread::sleep_for(std::chrono::seconds(3));
@@ -1824,12 +1875,14 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 559);
 
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
         assert(newValue == testResourceOriginalValue);
 
         LOG_END
@@ -1865,6 +1918,7 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<newValue<<std::endl;
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList1 = new SysResource[1];
@@ -1880,6 +1934,7 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 645);
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -1896,12 +1951,14 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 645);
 
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
         assert(newValue == testResourceOriginalValue);
 
         LOG_END
@@ -1929,6 +1986,7 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
@@ -1943,6 +2001,7 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 778);
 
         // Wait for 10 seconds and check the Sysfs Node value
@@ -1955,12 +2014,14 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 778);
 
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
         assert(newValue == testResourceOriginalValue);
 
         LOG_END
@@ -1988,6 +2049,7 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
@@ -2002,6 +2064,7 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 778);
 
         // This Request should be rejected by the Server, since Request duration cannot be decreased
@@ -2013,12 +2076,14 @@ namespace RequestApplicationTests {
         // Request was rejected.
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 778);
 
         std::this_thread::sleep_for(std::chrono::seconds(6));
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
         assert(newValue == testResourceOriginalValue);
 
         LOG_END
@@ -2047,6 +2112,7 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
@@ -2061,6 +2127,7 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 597);
 
         int32_t rc = fork();
@@ -2078,6 +2145,7 @@ namespace RequestApplicationTests {
 
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
+            std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
             assert(newValue == testResourceOriginalValue);
         }
 
@@ -2087,7 +2155,12 @@ namespace RequestApplicationTests {
     static void TestClusterTypeResourceTuneRequest1() {
         LOG_START
 
-        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/cluster_type_resource_4_cluster_id";
+        int32_t physicalClusterID = baseline.getExpectedPhysicalCluster(0);
+        std::string nodePath = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/cluster_type_resource_%d_cluster_id";
+
+        char path[128];
+        snprintf(path, sizeof(path), nodePath.c_str(), physicalClusterID);
+        std::string testResourceName = std::string(path);
         int32_t testResourceOriginalValue = 180;
 
         std::string value;
@@ -2095,6 +2168,7 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
@@ -2110,12 +2184,14 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 440);
 
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
         assert(newValue == testResourceOriginalValue);
 
         LOG_END
@@ -2124,7 +2200,14 @@ namespace RequestApplicationTests {
     static void TestClusterTypeResourceTuneRequest2() {
         LOG_START
 
-        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/cluster_type_resource_7_cluster_id";
+        int32_t physicalClusterID = baseline.getExpectedPhysicalCluster(3);
+        std::string nodePath = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/cluster_type_resource_%d_cluster_id";
+
+        char path[128];
+        snprintf(path, sizeof(path), nodePath.c_str(), physicalClusterID);
+        std::string testResourceName = std::string(path);
+
+        // std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/cluster_type_resource_7_cluster_id";
         int32_t testResourceOriginalValue = 180;
 
         std::string value;
@@ -2132,6 +2215,7 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
@@ -2147,12 +2231,14 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 440);
 
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
         assert(newValue == testResourceOriginalValue);
 
         LOG_END
@@ -2194,6 +2280,7 @@ namespace SystemSysfsNodesTests {
     * Concurrent Requests with different Config Values and Differrent Duration [E3]
     * Untune a Resource Tuner Provisioning Request [E4]
     * Concurrent Requests with different Priorities [E5]
+    * Retune Request durattion [E6]
     */
 
     std::string __testGroupName = "System Sysfs Nodes Read / Writes via Resource Tuner Tests";
@@ -2214,12 +2301,12 @@ namespace SystemSysfsNodesTests {
 
         // Check the original value for the Resource
         std::string value = AuxRoutines::readFromFile(testResourceName);
-        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Original Value: "<<value<<std::endl;
         int32_t originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
 
         if(originalValue == -1) {
             // Node does not exist on test device, can't proceed with this test
-            std::cout<<"["<<__LINE__<<"]"<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
+            std::cout<<LOG_BASE<<testResourceName<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
             return;
         }
 
@@ -2238,6 +2325,7 @@ namespace SystemSysfsNodesTests {
         // Check if the new value was successfully written to the node
         value = AuxRoutines::readFromFile(testResourceName);
         int32_t newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 980);
 
         std::this_thread::sleep_for(std::chrono::seconds(6));
@@ -2245,6 +2333,7 @@ namespace SystemSysfsNodesTests {
         // Wait for the Request to expire, check if the value resets
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
         assert(newValue == originalValue);
 
         delete resourceList;
@@ -2270,12 +2359,12 @@ namespace SystemSysfsNodesTests {
 
         // Check the original value for the Resource
         std::string value = AuxRoutines::readFromFile(testResourceName);
-        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Original Value: "<<value<<std::endl;
         int32_t originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
 
         if(originalValue == -1) {
             // Node does not exist on test device, can't proceed with this test
-            std::cout<<"["<<__LINE__<<"]"<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
+            std::cout<<LOG_BASE<<testResourceName<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
             return;
         }
 
@@ -2291,6 +2380,7 @@ namespace SystemSysfsNodesTests {
 
             int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
+            delete resourceList;
             exit(EXIT_SUCCESS);
 
         } else if(rc > 0) {
@@ -2309,6 +2399,7 @@ namespace SystemSysfsNodesTests {
             // Check if the new value was successfully written to the node
             value = AuxRoutines::readFromFile(testResourceName);
             int32_t newValue = C_STOI(value);
+            std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
             assert(newValue == 799);
 
             std::this_thread::sleep_for(std::chrono::seconds(6));
@@ -2316,8 +2407,10 @@ namespace SystemSysfsNodesTests {
             // Wait for the Request to expire, check if the value resets
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
+            std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
             assert(newValue == originalValue);
 
+            delete resourceList;
             wait(nullptr);
         }
 
@@ -2328,7 +2421,7 @@ namespace SystemSysfsNodesTests {
     * API under test: Tune / Untune
     * - Issue 2 Concurrent Resource Tuner Resource Provisioning Requests, to modify the Resource
     *   sched_util_clamp_min
-    * - Verify the Resource Node is Correctly updated to the higher of the 2 values,
+    * - Verify the Resource Node is Correctly updated to the lower of the 2 values,
     *   as the Resource has the "lower-is-better" policy.
     * - Here the Requests don't have the same duration, and the Request with a smaller config value
     *   has a higher duration.
@@ -2347,12 +2440,12 @@ namespace SystemSysfsNodesTests {
 
         // Check the original value for the Resource
         std::string value = AuxRoutines::readFromFile(testResourceName);
-        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Original Value: "<<value<<std::endl;
         int32_t originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
 
         if(originalValue == -1) {
             // Node does not exist on test device, can't proceed with this test
-            std::cout<<"["<<__LINE__<<"]"<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
+            std::cout<<LOG_BASE<<testResourceName<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
             return;
         }
 
@@ -2368,6 +2461,7 @@ namespace SystemSysfsNodesTests {
 
             int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
+            delete resourceList;
             exit(EXIT_SUCCESS);
 
         } else if(rc > 0) {
@@ -2385,25 +2479,26 @@ namespace SystemSysfsNodesTests {
 
             // Check if the new value was successfully written to the node
             value = AuxRoutines::readFromFile(testResourceName);
-            std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Value: "<<value<<std::endl;
             int32_t newValue = C_STOI(value);
+            std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
             assert(newValue == 799);
 
             std::this_thread::sleep_for(std::chrono::seconds(6));
 
             value = AuxRoutines::readFromFile(testResourceName);
-            std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Value: "<<value<<std::endl;
             newValue = C_STOI(value);
+            std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
             assert(newValue == 887);
 
             std::this_thread::sleep_for(std::chrono::seconds(10));
 
             // Wait for the Request to expire, check if the value resets
             value = AuxRoutines::readFromFile(testResourceName);
-            std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Reset Value: "<<value<<std::endl;
             newValue = C_STOI(value);
+            std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
             assert(newValue == originalValue);
 
+            delete resourceList;
             wait(nullptr);
         }
 
@@ -2428,12 +2523,12 @@ namespace SystemSysfsNodesTests {
 
         // Check the original value for the Resource
         std::string value = AuxRoutines::readFromFile(testResourceName);
-        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Original Value: "<<value<<std::endl;
         int32_t originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
 
         if(originalValue == -1) {
             // Node does not exist on test device, can't proceed with this test
-            std::cout<<"["<<__LINE__<<"]"<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
+            std::cout<<LOG_BASE<<testResourceName<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
             return;
         }
 
@@ -2452,6 +2547,7 @@ namespace SystemSysfsNodesTests {
         // Check if the new value was successfully written to the node
         value = AuxRoutines::readFromFile(testResourceName);
         int32_t newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<originalValue<<std::endl;
         assert(newValue == 994);
 
         untuneResources(handle);
@@ -2460,6 +2556,7 @@ namespace SystemSysfsNodesTests {
         // Wait for the Request to expire, check if the value resets
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<originalValue<<std::endl;
         assert(newValue == originalValue);
 
         delete resourceList;
@@ -2486,12 +2583,12 @@ namespace SystemSysfsNodesTests {
 
         // Check the original value for the Resource
         std::string value = AuxRoutines::readFromFile(testResourceName);
-        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Original Value: "<<value<<std::endl;
         int32_t originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
 
         if(originalValue == -1) {
             // Node does not exist on test device, can't proceed with this test
-            std::cout<<"["<<__LINE__<<"]"<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
+            std::cout<<LOG_BASE<<testResourceName<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
             return;
         }
 
@@ -2507,6 +2604,7 @@ namespace SystemSysfsNodesTests {
 
             int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
+            delete resourceList;
             exit(EXIT_SUCCESS);
 
         } else if(rc > 0) {
@@ -2525,6 +2623,7 @@ namespace SystemSysfsNodesTests {
             // Check if the new value was successfully written to the node
             value = AuxRoutines::readFromFile(testResourceName);
             int32_t newValue = C_STOI(value);
+            std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
             assert(newValue == 744);
 
             std::this_thread::sleep_for(std::chrono::seconds(6));
@@ -2532,14 +2631,95 @@ namespace SystemSysfsNodesTests {
             // Wait for the Request to expire, check if the value resets
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
+            std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
             assert(newValue == originalValue);
 
+            delete resourceList;
             wait(nullptr);
         }
 
         LOG_END
     }
 
+  /**
+    * API under test: Tune / Retune
+    * - Issue a Resource Tuner Resource Provisioning Request, to modify the Resource
+    *   sched_util_clamp_min for 5 seconds duration.
+    * - Verify the Resource Node is Correctly updated
+    * - Send a Retune Request, to modify the request duration to 20 seconds
+    * - Verify that the Resource Node remains configured for 20 seconds.
+    * - Verify the node is correctly reset once the request expires
+    * - Note these Tests need to be run with Root Privleges (sudo)
+    * Cross-Reference id: ['E6']
+    */
+    static void TestWriteTo_sched_util_clamp_min_NodeAndRetuning() {
+        LOG_START
+
+        std::string testResourceName = "/proc/sys/kernel/sched_util_clamp_min";
+        int32_t testResourceOriginalValue = 1024;
+
+        // Check the original value for the Resource
+        std::string value = AuxRoutines::readFromFile(testResourceName);
+        int32_t originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
+
+        if(originalValue == -1) {
+            // Node does not exist on test device, can't proceed with this test
+            std::cout<<LOG_BASE<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
+            return;
+        }
+
+        assert(originalValue == testResourceOriginalValue);
+
+        SysResource* resourceList = new SysResource[1];
+        memset(&resourceList[0], 0, sizeof(SysResource));
+        resourceList[0].mResCode = 0x00030000;
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mResValue.value = 994;
+
+        int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        // Check if the new value was successfully written to the node
+        value = AuxRoutines::readFromFile(testResourceName);
+        int32_t newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
+        assert(newValue == 994);
+
+        int8_t status = retuneResources(handle, 20000);
+        assert(status == 0);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        // Check if the request duration is indeed extended
+        std::this_thread::sleep_for(std::chrono::seconds(10));
+
+        newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
+        assert(newValue == 994);
+
+        // Wait for the Request to expire, check if the value resets
+        std::this_thread::sleep_for(std::chrono::seconds(15));
+
+        value = AuxRoutines::readFromFile(testResourceName);
+        newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
+        assert(newValue == originalValue);
+
+        delete resourceList;
+        LOG_END
+    }
+
+    /**
+     * API under test: Tune / Untune
+     * - Issue a Resource Tuner Resource Provisioning Request, to modify the Resource
+     *   sched_util_clamp_min
+     * - Verify the Resource Node is Correctly updated
+     * - Verify that the Resource Node is reset once the Request Expires
+     * - Note these Tests need to be run with Root Privleges (sudo)
+     * Cross-Reference id: ['E1']
+     */
     static void TestWriteTo_scaling_min_freq_Node1() {
         LOG_START
 
@@ -2553,12 +2733,12 @@ namespace SystemSysfsNodesTests {
         std::string testResourceName = std::string(path);
 
         std::string originalValueString = AuxRoutines::readFromFile(testResourceName);
-        std::cout<<"["<<__LINE__<<"] "<<testResourceName<<": Original Value = "<<originalValueString<<std::endl;
         int32_t originalValue = C_STOI(originalValueString);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
 
         if(originalValue == -1) {
             // Node does not exist on test device, can't proceed with this test
-            std::cout<<"["<<__LINE__<<"]"<<" Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
+            std::cout<<LOG_BASE<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
             return;
         }
 
@@ -2578,7 +2758,7 @@ namespace SystemSysfsNodesTests {
         // Check if the new value was successfully written to the node
         std::string value = AuxRoutines::readFromFile(testResourceName);
         int32_t newValue = C_STOI(value);
-        std::cout<<"["<<__LINE__<<"] "<<testResourceName<<": Configured Value = "<<newValue<<std::endl;
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 1504993);
 
         std::this_thread::sleep_for(std::chrono::seconds(6));
@@ -2586,12 +2766,22 @@ namespace SystemSysfsNodesTests {
         // Wait for the Request to expire, check if the value resets
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
         assert(newValue == originalValue);
 
         delete resourceList;
         LOG_END
     }
 
+    /**
+     * API under test: Tune / Untune
+     * - Issue a Resource Tuner Resource Provisioning Request, to modify the Resource
+     *   sched_util_clamp_min
+     * - Verify the Resource Node is Correctly updated
+     * - Verify that the Resource Node is reset once the Request Expires
+     * - Note these Tests need to be run with Root Privleges (sudo)
+     * Cross-Reference id: ['E1']
+     */
     static void TestWriteTo_scaling_min_freq_Node2() {
         LOG_START
 
@@ -2605,12 +2795,12 @@ namespace SystemSysfsNodesTests {
         std::string testResourceName = std::string(path);
 
         std::string originalValueString = AuxRoutines::readFromFile(testResourceName);
-        std::cout<<"["<<__LINE__<<"] "<<testResourceName<<": Original Value = "<<originalValueString<<std::endl;
         int32_t originalValue = C_STOI(originalValueString);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
 
         if(originalValue == -1) {
             // Node does not exist on test device, can't proceed with this test
-            std::cout<<"["<<__LINE__<<"]"<<" Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
+            std::cout<<LOG_BASE<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
             return;
         }
 
@@ -2630,7 +2820,7 @@ namespace SystemSysfsNodesTests {
         // Check if the new value was successfully written to the node
         std::string value = AuxRoutines::readFromFile(testResourceName);
         int32_t newValue = C_STOI(value);
-        std::cout<<"["<<__LINE__<<"] "<<testResourceName<<": Configured Value = "<<newValue<<std::endl;
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 1664993);
 
         std::this_thread::sleep_for(std::chrono::seconds(6));
@@ -2638,9 +2828,132 @@ namespace SystemSysfsNodesTests {
         // Wait for the Request to expire, check if the value resets
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
         assert(newValue == originalValue);
 
         delete resourceList;
+        LOG_END
+    }
+
+    /**
+    * API under test: Tune / Untune
+    * - Issue 3 Concurrent Resource Tuner Resource Provisioning Requests, to modify the Resource
+    *   scaling_min_freq
+    * - Verify the Resource Node is Correctly updated to the lower of the 3 values,
+    *   as the Resource has the "lower-is-better" policy.
+    * - Here the Requests don't have the same duration, and the Request with a smaller config value
+    *   has a smaller duration.
+    * - i.e. R1 (v1, d1) and R2(v2, d2) and R3(v3, d3) where v1 < v2 < v3 and d1 < d2 < d3
+    * - Verify that the Resource Node is updated to v1 initially.
+    * - Verify that the Resource Node is updated to v2 once R1 expires.
+    * - Verify that the Resource Node is updated to v3 once R2 expires.
+    * - Verify that the Resource Node is reset once all the Requests Expire.
+    * - Note these Tests need to be run with Root Privleges (sudo)
+    * Cross-Reference id: ['E3']
+    */
+    static void TestConcurrentWriteTo_scaling_min_freq_Node3() {
+        LOG_START
+
+        // Apply a value to scaling_min_freq for the Gold Cluster
+        // i.e. logical cluster id = 1
+        int32_t physicalClusterID = baseline.getExpectedPhysicalCluster(1);
+        std::string nodePath = "/sys/devices/system/cpu/cpufreq/policy%d/scaling_min_freq";
+
+        char path[128];
+        snprintf(path, sizeof(path), nodePath.c_str(), physicalClusterID);
+        std::string testResourceName = std::string(path);
+
+        std::string originalValueString = AuxRoutines::readFromFile(testResourceName);
+        int32_t originalValue = C_STOI(originalValueString);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
+
+        if(originalValue == -1) {
+            // Node does not exist on test device, can't proceed with this test
+            std::cout<<LOG_BASE<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
+            return;
+        }
+
+        int32_t rc = fork();
+        if(rc == 0) {
+            SysResource* resourceList = new SysResource[1];
+            memset(&resourceList[0], 0, sizeof(SysResource));
+            resourceList[0].mResCode = 0x00040000;
+            resourceList[0].mNumValues = 1;
+            resourceList[0].mResInfo = 0;
+            // Valid Translation
+            resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 1);
+            resourceList[0].mResValue.value = 1554613;
+
+            int64_t handle = tuneResources(10000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+            std::this_thread::sleep_for(std::chrono::seconds(3));
+            delete resourceList;
+            exit(EXIT_SUCCESS);
+
+        } else {
+            int32_t rc1 = fork();
+            if(rc1 == 0) {
+                SysResource* resourceList = new SysResource[1];
+                memset(&resourceList[0], 0, sizeof(SysResource));
+                resourceList[0].mResCode = 0x00040000;
+                resourceList[0].mNumValues = 1;
+                resourceList[0].mResInfo = 0;
+                // Valid Translation
+                resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 1);
+                resourceList[0].mResValue.value = 1656608;
+
+                int64_t handle = tuneResources(30000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+                std::this_thread::sleep_for(std::chrono::seconds(3));
+                delete resourceList;
+                exit(EXIT_SUCCESS);
+
+            } else {
+                SysResource* resourceList = new SysResource[1];
+                memset(&resourceList[0], 0, sizeof(SysResource));
+                resourceList[0].mResCode = 0x00040000;
+                resourceList[0].mNumValues = 1;
+                resourceList[0].mResInfo = 0;
+                // Valid Translation
+                resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 1);
+                resourceList[0].mResValue.value = 1771209;
+
+                int64_t handle = tuneResources(60000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+                std::this_thread::sleep_for(std::chrono::seconds(2));
+
+                // Check if the new value was successfully written to the node
+                std::string value = AuxRoutines::readFromFile(testResourceName);
+                int32_t newValue = C_STOI(value);
+                std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
+                assert(newValue == 1554613);
+
+                std::this_thread::sleep_for(std::chrono::seconds(10));
+
+                value = AuxRoutines::readFromFile(testResourceName);
+                newValue = C_STOI(value);
+                std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
+                assert(newValue == 1656608);
+
+                std::this_thread::sleep_for(std::chrono::seconds(40));
+
+                // Check if the new value was successfully written to the node
+                value = AuxRoutines::readFromFile(testResourceName);
+                newValue = C_STOI(value);
+                std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
+                assert(newValue == 1771209);
+
+                // Wait for the Request to expire, check if the value resets
+                value = AuxRoutines::readFromFile(testResourceName);
+                newValue = C_STOI(value);
+                std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
+                assert(newValue == originalValue);
+
+                delete resourceList;
+
+            }
+        }
+
         LOG_END
     }
 
@@ -2659,12 +2972,12 @@ namespace SystemSysfsNodesTests {
 
         // Check the original value for the Resource
         std::string value = AuxRoutines::readFromFile(testResourceName1);
-        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Original Value: "<<value<<std::endl;
         int32_t originalValue1 = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName1<<" Original Value: "<<originalValue1<<std::endl;
 
         if(originalValue1 == -1) {
             // Node does not exist on test device, can't proceed with this test
-            std::cout<<"["<<__LINE__<<"]"<<"Node: "<<testResourceName1<<" not found on test device, Aborting Test Case"<<std::endl;
+            std::cout<<LOG_BASE<<"Node: "<<testResourceName1<<" not found on test device, Aborting Test Case"<<std::endl;
             return;
         }
 
@@ -2683,7 +2996,7 @@ namespace SystemSysfsNodesTests {
         // Check if the new value was successfully written to the node
         value = AuxRoutines::readFromFile(testResourceName1);
         int32_t newValue = C_STOI(value);
-        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Original value: "<<value<<std::endl;
+        std::cout<<LOG_BASE<<testResourceName1<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 718);
 
         // Create another request to tune max node
@@ -2691,12 +3004,12 @@ namespace SystemSysfsNodesTests {
 
         // Check the original value for the Resource
         value = AuxRoutines::readFromFile(testResourceName2);
-        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_max Original Value: "<<value<<std::endl;
         int32_t originalValue2 = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName2<<" Original Value: "<<originalValue2<<std::endl;
 
         if(originalValue2 == -1) {
             // Node does not exist on test device, can't proceed with this test
-            std::cout<<"["<<__LINE__<<"]"<<"Node: "<<testResourceName2<<" not found on test device, Aborting Test Case"<<std::endl;
+            std::cout<<LOG_BASE<<"Node: "<<testResourceName2<<" not found on test device, Aborting Test Case"<<std::endl;
             std::this_thread::sleep_for(std::chrono::seconds(30));
             return;
         }
@@ -2715,23 +3028,151 @@ namespace SystemSysfsNodesTests {
 
         // Check if the new value was successfully written to the node
         value = AuxRoutines::readFromFile(testResourceName2);
-        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_max value: "<<value<<std::endl;
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName2<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 880);
 
         std::this_thread::sleep_for(std::chrono::seconds(30));
 
         // Wait for the Request to expire, check if the value resets
         value = AuxRoutines::readFromFile(testResourceName1);
-        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_min Reset value: "<<value<<std::endl;
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName1<<" Reset Value: "<<newValue<<std::endl;
         assert(newValue == originalValue1);
 
         value = AuxRoutines::readFromFile(testResourceName2);
-        std::cout<<"["<<__LINE__<<"]"<<" sched_util_clamp_max Reset value: "<<value<<std::endl;
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName2<<" Reset Value: "<<newValue<<std::endl;
         assert(newValue == originalValue2);
 
+        delete resourceList;
+        delete resourceList2;
+        LOG_END
+    }
+
+    static void TestWriteTo_sched_util_clamp_max_Node2() {
+        LOG_START
+
+        std::string testResourceName1 = "/proc/sys/kernel/sched_util_clamp_min";
+        int32_t testResourceOriginalValue = 1024;
+
+        // Check the original value for the Resource
+        std::string value = AuxRoutines::readFromFile(testResourceName1);
+        int32_t originalValue1 = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName1<<" Original Value: "<<originalValue1<<std::endl;
+
+        if(originalValue1 == -1) {
+            // Node does not exist on test device, can't proceed with this test
+            std::cout<<LOG_BASE<<"Node: "<<testResourceName1<<" not found on test device, Aborting Test Case"<<std::endl;
+            return;
+        }
+
+        assert(originalValue1 == testResourceOriginalValue);
+
+        SysResource* resourceList = new SysResource[1];
+        memset(&resourceList[0], 0, sizeof(SysResource));
+        resourceList[0].mResCode = 0x00030000;
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mResValue.value = 718;
+
+        int64_t handle = tuneResources(45000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        // Check if the new value was successfully written to the node
+        value = AuxRoutines::readFromFile(testResourceName1);
+        int32_t newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName1<<" Configured Value: "<<newValue<<std::endl;
+        assert(newValue == 718);
+
+        // Create another request to tune max node
+        std::string testResourceName2 = "/proc/sys/kernel/sched_util_clamp_max";
+
+        // Check the original value for the Resource
+        value = AuxRoutines::readFromFile(testResourceName2);
+        int32_t originalValue2 = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName2<<" Original Value: "<<originalValue2<<std::endl;
+
+        if(originalValue2 == -1) {
+            // Node does not exist on test device, can't proceed with this test
+            std::cout<<LOG_BASE<<"Node: "<<testResourceName2<<" not found on test device, Aborting Test Case"<<std::endl;
+            std::this_thread::sleep_for(std::chrono::seconds(60));
+            return;
+        }
+
+        assert(originalValue2 == testResourceOriginalValue);
+
+        int pid1 = fork();
+        if(pid1 == 0) {
+            SysResource* resourceList = new SysResource[1];
+            memset(&resourceList[0], 0, sizeof(SysResource));
+            resourceList[0].mResCode = 0x00030001;
+            resourceList[0].mNumValues = 1;
+            resourceList[0].mResValue.value = 889;
+
+            int64_t handle = tuneResources(20000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+            std::this_thread::sleep_for(std::chrono::seconds(3));
+
+            delete resourceList;
+            exit(EXIT_SUCCESS);
+        }
+
+        int32_t pid2 = fork();
+        if(pid2 == 0) {
+            SysResource* resourceList = new SysResource[1];
+            memset(&resourceList[0], 0, sizeof(SysResource));
+            resourceList[0].mResCode = 0x00030001;
+            resourceList[0].mNumValues = 1;
+            resourceList[0].mResValue.value = 955;
+
+            int64_t handle = tuneResources(7000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+            std::this_thread::sleep_for(std::chrono::seconds(3));
+
+            delete resourceList;
+            exit(EXIT_SUCCESS);
+        }
+
+        int32_t pid3 = fork();
+        if(pid3 == 0) {
+            SysResource* resourceList = new SysResource[1];
+            memset(&resourceList[0], 0, sizeof(SysResource));
+            resourceList[0].mResCode = 0x00030001;
+            resourceList[0].mNumValues = 1;
+            resourceList[0].mResValue.value = 870;
+
+            int64_t handle = tuneResources(15000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+            std::this_thread::sleep_for(std::chrono::seconds(3));
+
+            delete resourceList;
+            exit(EXIT_SUCCESS);
+        }
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        // Check if the new value was successfully written to the node
+        value = AuxRoutines::readFromFile(testResourceName2);
+        newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName2<<" Configured Value: "<<newValue<<std::endl;
+        assert(newValue == 955);
+
+        std::this_thread::sleep_for(std::chrono::seconds(60));
+
+        // Wait for the Request to expire, check if the value resets
+        value = AuxRoutines::readFromFile(testResourceName1);
+        newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName1<<" Reset Value: "<<newValue<<std::endl;
+        assert(newValue == originalValue1);
+
+        value = AuxRoutines::readFromFile(testResourceName2);
+        newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName2<<" Reset Value: "<<newValue<<std::endl;
+        assert(newValue == originalValue2);
+
+        waitpid(pid1, nullptr, 0);
+        waitpid(pid2, nullptr, 0);
+        waitpid(pid3, nullptr, 0);
+
+        delete resourceList;
         LOG_END
     }
 
@@ -2743,9 +3184,12 @@ namespace SystemSysfsNodesTests {
         RUN_INTEGRATION_TEST(TestConcurrentWriteTo_sched_util_clamp_min_Node2)
         RUN_INTEGRATION_TEST(TestWriteTo_sched_util_clamp_min_NodeAndUntuning)
         RUN_INTEGRATION_TEST(TestConcurrentWriteTo_sched_util_clamp_min_Node3)
+        RUN_INTEGRATION_TEST(TestWriteTo_sched_util_clamp_min_NodeAndRetuning)
         RUN_INTEGRATION_TEST(TestWriteTo_scaling_min_freq_Node1)
         RUN_INTEGRATION_TEST(TestWriteTo_scaling_min_freq_Node2)
+        RUN_INTEGRATION_TEST(TestConcurrentWriteTo_scaling_min_freq_Node3)
         RUN_INTEGRATION_TEST(TestWriteTo_sched_util_clamp_max_Node1)
+        RUN_INTEGRATION_TEST(TestWriteTo_sched_util_clamp_max_Node2)
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
     }

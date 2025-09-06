@@ -200,7 +200,7 @@ static void TestValidationMacro2() {
 }
 
 int32_t main() {
-    std::cout<<"Running Test Suite: [SafeOps]\n"<<std::endl;
+    std::cout<<"Running Test Suite: [SafeOpsTests]\n"<<std::endl;
 
     RUN_TEST(Overflow1);
     RUN_TEST(Underflow1);
@@ -226,5 +226,5 @@ int32_t main() {
     RUN_TEST(TestValidationMacro1);
     RUN_TEST(TestValidationMacro2);
 
-    std::cout<<"\nAll Tests from the suite: [SafeOps], executed successfully"<<std::endl;
+    std::cout<<"\nAll Tests from the suite: [SafeOpsTests], executed successfully"<<std::endl;
 }
