@@ -28,22 +28,11 @@ const std::string ResourceTunerSettings::mCommonPropertiesFilePath =
 const std::string ResourceTunerSettings::mCustomPropertiesFilePath =
                                     "/etc/resource-tuner/custom/PropertiesConfig.yaml";
 
-const std::string ResourceTunerSettings::mCustomExtFeaturesFilePath =
-                                    "/etc/resource-tuner/custom/ExtFeaturesConfig.yaml";
-
 const std::string ResourceTunerSettings::mCustomTargetFilePath =
                                     "/etc/resource-tuner/custom/TargetConfig.yaml";
 
-const std::string ResourceTunerSettings::mTestResourceFilePath =
-                                    "/etc/resource-tuner/tests/Configs/ResourcesConfigA.yaml";
-const std::string ResourceTunerSettings::mTestSignalFilePath =
-                                    "/etc/resource-tuner/tests/Configs/SignalsConfigA.yaml";
-const std::string ResourceTunerSettings::mTestPropertiesFilePath =
-                                    "/etc/resource-tuner/tests/Configs/PropertiesConfig.yaml";
-const std::string ResourceTunerSettings::mTestTargetConfigFilePath =
-                                    "/etc/resource-tuner/tests/Configs/TargetConfig.yaml";
-const std::string ResourceTunerSettings::mTestInitConfigFilePath =
-                                    "/etc/resource-tuner/tests/Configs/InitConfig.yaml";
+const std::string ResourceTunerSettings::mCustomExtFeaturesFilePath =
+                                    "/etc/resource-tuner/custom/ExtFeaturesConfig.yaml";
 
 const std::string ResourceTunerSettings::mExtensionsPluginLibPath =
                                     "/etc/resource-tuner/custom/libPlugin.so";

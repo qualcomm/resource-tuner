@@ -159,9 +159,6 @@ void ConfigProcessor::parseTargetConfigYamlNode(const YAML::Node& item) {
         for(const auto& targetNameInfo : item[TARGET_NAME_LIST]) {
             std::string name = safeExtract<std::string>(targetNameInfo, "");
 
-            std::cout<<"This target config is intended for: "<<name<<std::endl;
-            std::cout<<"Current target name is: "<<ResourceTunerSettings::targetConfigs.targetName<<std::endl;
-
             if(name == ResourceTunerSettings::targetConfigs.targetName) {
                 isConfigForCurrentTarget = true;
             }

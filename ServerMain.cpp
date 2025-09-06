@@ -36,7 +36,6 @@ static ErrCode parseServerStartupCLIOpts(int32_t argCount, char *argStrings[]) {
     const char* shortPrompts = "sth";
     const struct option longPrompts[] = {
         {"start", no_argument, nullptr, 's'},
-        {"test", no_argument, nullptr, 't'},
         {"help", no_argument, nullptr, 'h'},
         {nullptr, no_argument, nullptr, 0}
     };
@@ -45,13 +44,6 @@ static ErrCode parseServerStartupCLIOpts(int32_t argCount, char *argStrings[]) {
     while ((c = getopt_long(argCount, argStrings, shortPrompts, longPrompts, nullptr)) != -1) {
         switch (c) {
             case 's':
-                break;
-            case 't':
-                RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, ResourceTunerSettings::mTestPropertiesFilePath)
-                RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, ResourceTunerSettings::mTestResourceFilePath)
-                RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, ResourceTunerSettings::mTestSignalFilePath)
-                RESTUNE_REGISTER_CONFIG(TARGET_CONFIG, ResourceTunerSettings::mTestTargetConfigFilePath)
-                RESTUNE_REGISTER_CONFIG(INIT_CONFIG, ResourceTunerSettings::mTestInitConfigFilePath)
                 break;
             case 'h':
                 std::cout<<"Help Options"<<std::endl;

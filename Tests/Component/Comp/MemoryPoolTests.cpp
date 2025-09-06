@@ -71,22 +71,22 @@ static void TestMemoryPoolBasicAllocation3() {
     }
 }
 
-struct Request {
+struct CustomRequest {
     int32_t requestID;
     int64_t requestTimestamp;
 };
 
 static void TestMemoryPoolBasicAllocation4() {
-    MakeAlloc<std::vector<Request*>>(1);
-    MakeAlloc<Request>(20);
+    MakeAlloc<std::vector<CustomRequest*>>(1);
+    MakeAlloc<CustomRequest>(20);
 
-    std::vector<Request*>* requests =
-            (std::vector<Request*>*) GetBlock<std::vector<Request*>>();
+    std::vector<CustomRequest*>* requests =
+            (std::vector<CustomRequest*>*) GetBlock<std::vector<CustomRequest*>>();
 
     C_ASSERT(requests != nullptr);
 
     for(int32_t i = 0; i < 15; i++) {
-        Request* request = (Request*) GetBlock<Request>();
+        CustomRequest* request = (CustomRequest*) GetBlock<CustomRequest>();
         C_ASSERT(request != nullptr);
 
         request->requestID = i + 1;
@@ -98,10 +98,10 @@ static void TestMemoryPoolBasicAllocation4() {
         C_ASSERT((*requests)[i]->requestID == i + 1);
         C_ASSERT((*requests)[i]->requestTimestamp == 100 * (i + 3));
 
-        FreeBlock<Request>(static_cast<void*>((*requests)[i]));
+        FreeBlock<CustomRequest>(static_cast<void*>((*requests)[i]));
     }
 
-    FreeBlock<std::vector<Request*>>(static_cast<void*>(requests));
+    FreeBlock<std::vector<CustomRequest*>>(static_cast<void*>(requests));
 }
 
 class DataHub {

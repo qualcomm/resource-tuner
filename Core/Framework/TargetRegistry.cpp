@@ -116,7 +116,7 @@ void TargetRegistry::generatePolicyBasedMapping(std::vector<std::string>& policy
     ResourceTunerSettings::targetConfigs.totalClusterCount = policyDirs.size();
 
     // Next, get the list of cpus corresponding to each cluster
-    std::vector<std::pair<int32_t, ClusterInfo*>> clusterConfigs;
+    std::vector<std::pair<int32_t, std::pair<int32_t, ClusterInfo*>>> clusterConfigs;
 
     int8_t physicalClusterId = 0;
     for(const std::string& dirName : policyDirs) {
@@ -142,8 +142,8 @@ void TargetRegistry::generatePolicyBasedMapping(std::vector<std::string>& policy
             }
 
             clusterInfo->mCapacity = clusterCapacity;
-            clusterConfigs.push_back({clusterCapacity, clusterInfo});
-            this->mPhysicalClusters[physicalClusterId] = clusterInfo;
+            clusterConfigs.push_back({clusterCapacity, {clusterInfo->mPhysicalID, clusterInfo}});
+            this->mPhysicalClusters[clusterInfo->mPhysicalID] = clusterInfo;
             physicalClusterId += cpuList->size();
         }
     }
@@ -153,7 +153,7 @@ void TargetRegistry::generatePolicyBasedMapping(std::vector<std::string>& policy
     // Now, Create the Logical to Physical Mappings
     // Note the Clusters are arranged in increasing order of Capacities
     for(int32_t i = 0; i < clusterConfigs.size(); i++) {
-        this->mLogicalToPhysicalClusterMapping[i] = clusterConfigs[i].second->mPhysicalID;
+        this->mLogicalToPhysicalClusterMapping[i] = clusterConfigs[i].second.second->mPhysicalID;
     }
 }
 

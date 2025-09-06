@@ -5,7 +5,10 @@
 
 #include "Utils.h"
 #include "TestUtils.h"
+#include "TestBaseline.h"
 #include "ResourceTunerAPIs.h"
+
+static TestBaseline baseline;
 
 /*
  * These tests mirror the Client Perspective, i.e. how the client interacts with various
@@ -80,10 +83,10 @@ static void TestHandleGeneration() {
 }
 
 /*
-* =========================================================
-*   TEST CATEGORY - I: "Resource Tuner REQUEST-VERIFICATION"
-* =========================================================
-*/
+ * =============================================================
+ *   TEST CATEGORY - I: "Resource Tuner REQUEST-VERIFICATION"
+ * =============================================================
+ */
 
 namespace ResourceTuningRequestVerification {
    /*
@@ -340,6 +343,7 @@ namespace ResourceTuningRequestVerification {
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 2300;
         resourceList[0].mResInfo = 0;
+        // Invalid Translation
         resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 2);
         resourceList[0].mResInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mResInfo, 27);
 
@@ -385,7 +389,8 @@ namespace ResourceTuningRequestVerification {
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 2300;
         resourceList[0].mResInfo = 0;
-        resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 5);
+        // Invalid Translation
+        resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 8);
         resourceList[0].mResInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mResInfo, 2);
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -430,8 +435,9 @@ namespace ResourceTuningRequestVerification {
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 2300;
         resourceList[0].mResInfo = 0;
-        resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 1);
-        resourceList[0].mResInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mResInfo, 2);
+        // Translation should be valid here
+        resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 0);
+        resourceList[0].mResInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mResInfo, 1);
 
         int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -481,6 +487,7 @@ namespace ResourceTuningRequestVerification {
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 2300;
         resourceList[0].mResInfo = 0;
+        // Invalid Translation
         resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 1);
         resourceList[0].mResInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mResInfo, 0);
 
@@ -617,19 +624,19 @@ namespace ResourceTuningRequestVerification {
     static void RunTestGroup() {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
-        RUN_TEST(TestNullOrInvalidRequestVerification1)
-        RUN_TEST(TestNullOrInvalidRequestVerification2)
-        RUN_TEST(TestNullOrInvalidRequestVerification3)
-        RUN_TEST(TestClientPriorityAcquisitionVerification)
-        RUN_TEST(TestInvalidResourceTuning)
-        RUN_TEST(TestOutOfBoundsResourceTuning)
-        RUN_TEST(TestResourceLogicalToPhysicalTranslationVerification1)
-        RUN_TEST(TestResourceLogicalToPhysicalTranslationVerification2)
-        RUN_TEST(TestResourceLogicalToPhysicalTranslationVerification3)
-        RUN_TEST(TestResourceLogicalToPhysicalTranslationVerification4)
-        RUN_TEST(TestNonSupportedResourceTuningVerification)
-        RUN_TEST(TestResourceOperationModeVerification)
-        RUN_TEST(TestClientPermissionChecksVerification)
+        RUN_INTEGRATION_TEST(TestNullOrInvalidRequestVerification1)
+        RUN_INTEGRATION_TEST(TestNullOrInvalidRequestVerification2)
+        RUN_INTEGRATION_TEST(TestNullOrInvalidRequestVerification3)
+        RUN_INTEGRATION_TEST(TestClientPriorityAcquisitionVerification)
+        RUN_INTEGRATION_TEST(TestInvalidResourceTuning)
+        RUN_INTEGRATION_TEST(TestOutOfBoundsResourceTuning)
+        RUN_INTEGRATION_TEST(TestResourceLogicalToPhysicalTranslationVerification1)
+        RUN_INTEGRATION_TEST(TestResourceLogicalToPhysicalTranslationVerification2)
+        RUN_INTEGRATION_TEST(TestResourceLogicalToPhysicalTranslationVerification3)
+        RUN_INTEGRATION_TEST(TestResourceLogicalToPhysicalTranslationVerification4)
+        RUN_INTEGRATION_TEST(TestNonSupportedResourceTuningVerification)
+        RUN_INTEGRATION_TEST(TestResourceOperationModeVerification)
+        RUN_INTEGRATION_TEST(TestClientPermissionChecksVerification)
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
     }
@@ -825,11 +832,11 @@ namespace SignalVerification {
     static void RunTestGroup() {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
-        RUN_TEST(TestNullOrInvalidRequestVerification)
-        RUN_TEST(TestClientPermissionChecksVerification)
-        RUN_TEST(TestOutOfBoundsResourceTuning)
-        RUN_TEST(TestTargetCompatabilityVerificationChecks)
-        RUN_TEST(TestNonSupportedSignalProvisioningVerification)
+        RUN_INTEGRATION_TEST(TestNullOrInvalidRequestVerification)
+        RUN_INTEGRATION_TEST(TestClientPermissionChecksVerification)
+        RUN_INTEGRATION_TEST(TestOutOfBoundsResourceTuning)
+        RUN_INTEGRATION_TEST(TestTargetCompatabilityVerificationChecks)
+        RUN_INTEGRATION_TEST(TestNonSupportedSignalProvisioningVerification)
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
     }
@@ -2154,24 +2161,24 @@ namespace RequestApplicationTests {
     static void RunTestGroup() {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
-        RUN_TEST(TestSingleClientTuneRequest);
-        RUN_TEST(TestSingleClientTuneRequestMultipleResources)
-        RUN_TEST(TestMultipleClientsHigherIsBetterPolicy1)
-        RUN_TEST(TestMultipleClientsHigherIsBetterPolicy2)
-        RUN_TEST(TestMultipleClientsLowerIsBetterPolicy)
-        RUN_TEST(TestMultipleClientsLazyApplyPolicy)
-        RUN_TEST(TestMultipleClientsTuneRequestDifferentResources)
-        RUN_TEST(TestSingleClientSequentialRequests)
-        RUN_TEST(TestMultipleClientTIDsConcurrentRequests)
-        RUN_TEST(TestInfiniteDurationTuneRequestAndValidUntuning)
-        RUN_TEST(TestInfiniteDurationTuneRequestAndInValidUntuning)
-        RUN_TEST(TestPriorityBasedResourceAcquisition1)
-        RUN_TEST(TestPriorityBasedResourceAcquisition2)
-        RUN_TEST(TestPriorityBasedResourceAcquisition3)
-        RUN_TEST(TestRequestValidRetuning)
-        RUN_TEST(TestRequestInvalidRetuning1)
-        RUN_TEST(TestClusterTypeResourceTuneRequest1)
-        RUN_TEST(TestClusterTypeResourceTuneRequest2)
+        RUN_INTEGRATION_TEST(TestSingleClientTuneRequest);
+        RUN_INTEGRATION_TEST(TestSingleClientTuneRequestMultipleResources)
+        RUN_INTEGRATION_TEST(TestMultipleClientsHigherIsBetterPolicy1)
+        RUN_INTEGRATION_TEST(TestMultipleClientsHigherIsBetterPolicy2)
+        RUN_INTEGRATION_TEST(TestMultipleClientsLowerIsBetterPolicy)
+        RUN_INTEGRATION_TEST(TestMultipleClientsLazyApplyPolicy)
+        RUN_INTEGRATION_TEST(TestMultipleClientsTuneRequestDifferentResources)
+        RUN_INTEGRATION_TEST(TestSingleClientSequentialRequests)
+        RUN_INTEGRATION_TEST(TestMultipleClientTIDsConcurrentRequests)
+        RUN_INTEGRATION_TEST(TestInfiniteDurationTuneRequestAndValidUntuning)
+        RUN_INTEGRATION_TEST(TestInfiniteDurationTuneRequestAndInValidUntuning)
+        RUN_INTEGRATION_TEST(TestPriorityBasedResourceAcquisition1)
+        RUN_INTEGRATION_TEST(TestPriorityBasedResourceAcquisition2)
+        RUN_INTEGRATION_TEST(TestPriorityBasedResourceAcquisition3)
+        RUN_INTEGRATION_TEST(TestRequestValidRetuning)
+        RUN_INTEGRATION_TEST(TestRequestInvalidRetuning1)
+        RUN_INTEGRATION_TEST(TestClusterTypeResourceTuneRequest1)
+        RUN_INTEGRATION_TEST(TestClusterTypeResourceTuneRequest2)
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
     }
@@ -2240,6 +2247,7 @@ namespace SystemSysfsNodesTests {
         newValue = C_STOI(value);
         assert(newValue == originalValue);
 
+        delete resourceList;
         LOG_END
     }
 
@@ -2454,6 +2462,7 @@ namespace SystemSysfsNodesTests {
         newValue = C_STOI(value);
         assert(newValue == originalValue);
 
+        delete resourceList;
         LOG_END
     }
 
@@ -2534,10 +2543,17 @@ namespace SystemSysfsNodesTests {
     static void TestWriteTo_scaling_min_freq_Node1() {
         LOG_START
 
-        std::string testResourceName = "/sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq";
+        // Apply a value to scaling_min_freq for the Silver Cluster
+        // i.e. logical cluster id = 0
+        int32_t physicalClusterID = baseline.getExpectedPhysicalCluster(0);
+        std::string nodePath = "/sys/devices/system/cpu/cpufreq/policy%d/scaling_min_freq";
+
+        char path[128];
+        snprintf(path, sizeof(path), nodePath.c_str(), physicalClusterID);
+        std::string testResourceName = std::string(path);
 
         std::string originalValueString = AuxRoutines::readFromFile(testResourceName);
-        std::cout<<"["<<__LINE__<<"]"<<" policy0/scaling_min_freq Original Value: "<<originalValueString<<std::endl;
+        std::cout<<"["<<__LINE__<<"] "<<testResourceName<<": Original Value = "<<originalValueString<<std::endl;
         int32_t originalValue = C_STOI(originalValueString);
 
         if(originalValue == -1) {
@@ -2550,6 +2566,9 @@ namespace SystemSysfsNodesTests {
         memset(&resourceList[0], 0, sizeof(SysResource));
         resourceList[0].mResCode = 0x00040000;
         resourceList[0].mNumValues = 1;
+        resourceList[0].mResInfo = 0;
+        // Valid Translation
+        resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 0);
         resourceList[0].mResValue.value = 1504993;
 
         int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
@@ -2559,6 +2578,7 @@ namespace SystemSysfsNodesTests {
         // Check if the new value was successfully written to the node
         std::string value = AuxRoutines::readFromFile(testResourceName);
         int32_t newValue = C_STOI(value);
+        std::cout<<"["<<__LINE__<<"] "<<testResourceName<<": Configured Value = "<<newValue<<std::endl;
         assert(newValue == 1504993);
 
         std::this_thread::sleep_for(std::chrono::seconds(6));
@@ -2568,16 +2588,24 @@ namespace SystemSysfsNodesTests {
         newValue = C_STOI(value);
         assert(newValue == originalValue);
 
+        delete resourceList;
         LOG_END
     }
 
     static void TestWriteTo_scaling_min_freq_Node2() {
         LOG_START
 
-        std::string testResourceName = "/sys/devices/system/cpu/cpufreq/policy1/scaling_min_freq";
+        // Apply a value to scaling_min_freq for the Gold Cluster
+        // i.e. logical cluster id = 1
+        int32_t physicalClusterID = baseline.getExpectedPhysicalCluster(1);
+        std::string nodePath = "/sys/devices/system/cpu/cpufreq/policy%d/scaling_min_freq";
+
+        char path[128];
+        snprintf(path, sizeof(path), nodePath.c_str(), physicalClusterID);
+        std::string testResourceName = std::string(path);
 
         std::string originalValueString = AuxRoutines::readFromFile(testResourceName);
-        std::cout<<"["<<__LINE__<<"]"<<" policy1/scaling_min_freq Original Value: "<<originalValueString<<std::endl;
+        std::cout<<"["<<__LINE__<<"] "<<testResourceName<<": Original Value = "<<originalValueString<<std::endl;
         int32_t originalValue = C_STOI(originalValueString);
 
         if(originalValue == -1) {
@@ -2588,9 +2616,12 @@ namespace SystemSysfsNodesTests {
 
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
-        resourceList[0].mResCode = 0x00040001;
+        resourceList[0].mResCode = 0x00040000;
         resourceList[0].mNumValues = 1;
-        resourceList[0].mResValue.value = 1504993;
+        resourceList[0].mResInfo = 0;
+        // Valid Translation
+        resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 1);
+        resourceList[0].mResValue.value = 1664993;
 
         int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
 
@@ -2599,7 +2630,8 @@ namespace SystemSysfsNodesTests {
         // Check if the new value was successfully written to the node
         std::string value = AuxRoutines::readFromFile(testResourceName);
         int32_t newValue = C_STOI(value);
-        assert(newValue == 1504993);
+        std::cout<<"["<<__LINE__<<"] "<<testResourceName<<": Configured Value = "<<newValue<<std::endl;
+        assert(newValue == 1664993);
 
         std::this_thread::sleep_for(std::chrono::seconds(6));
 
@@ -2608,6 +2640,7 @@ namespace SystemSysfsNodesTests {
         newValue = C_STOI(value);
         assert(newValue == originalValue);
 
+        delete resourceList;
         LOG_END
     }
 
@@ -2705,14 +2738,14 @@ namespace SystemSysfsNodesTests {
     static void RunTestGroup() {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
-        RUN_TEST(TestWriteTo_sched_util_clamp_min_Node)
-        RUN_TEST(TestConcurrentWriteTo_sched_util_clamp_min_Node1)
-        RUN_TEST(TestConcurrentWriteTo_sched_util_clamp_min_Node2)
-        RUN_TEST(TestWriteTo_sched_util_clamp_min_NodeAndUntuning)
-        RUN_TEST(TestConcurrentWriteTo_sched_util_clamp_min_Node3)
-        RUN_TEST(TestWriteTo_scaling_min_freq_Node1)
-        RUN_TEST(TestWriteTo_scaling_min_freq_Node2)
-        RUN_TEST(TestWriteTo_sched_util_clamp_max_Node1)
+        RUN_INTEGRATION_TEST(TestWriteTo_sched_util_clamp_min_Node)
+        RUN_INTEGRATION_TEST(TestConcurrentWriteTo_sched_util_clamp_min_Node1)
+        RUN_INTEGRATION_TEST(TestConcurrentWriteTo_sched_util_clamp_min_Node2)
+        RUN_INTEGRATION_TEST(TestWriteTo_sched_util_clamp_min_NodeAndUntuning)
+        RUN_INTEGRATION_TEST(TestConcurrentWriteTo_sched_util_clamp_min_Node3)
+        RUN_INTEGRATION_TEST(TestWriteTo_scaling_min_freq_Node1)
+        RUN_INTEGRATION_TEST(TestWriteTo_scaling_min_freq_Node2)
+        RUN_INTEGRATION_TEST(TestWriteTo_sched_util_clamp_max_Node1)
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
     }
@@ -2833,8 +2866,8 @@ namespace SignalApplicationTests {
     static void RunTestGroup() {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
-        RUN_TEST(TestSingleClientTuneSignal1);
-        RUN_TEST(TestSingleClientTuneSignal2);
+        RUN_INTEGRATION_TEST(TestSingleClientTuneSignal1);
+        RUN_INTEGRATION_TEST(TestSingleClientTuneSignal2);
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
     }
@@ -3201,13 +3234,13 @@ namespace CGroupApplicationTests {
     static void RunTestGroup() {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
-        RUN_TEST(TestCgroupWriteAndResetBasicCase)
-        RUN_TEST(TestCgroupWriteAndReset1)
-        RUN_TEST(TestCgroupWriteAndReset2)
-        RUN_TEST(TestCgroupWriteAndReset3)
-        RUN_TEST(TestCgroupWriteAndReset4)
-        RUN_TEST(TestCgroupWriteAndReset5)
-        RUN_TEST(TestCgroupWriteAndReset6)
+        RUN_INTEGRATION_TEST(TestCgroupWriteAndResetBasicCase)
+        RUN_INTEGRATION_TEST(TestCgroupWriteAndReset1)
+        RUN_INTEGRATION_TEST(TestCgroupWriteAndReset2)
+        RUN_INTEGRATION_TEST(TestCgroupWriteAndReset3)
+        RUN_INTEGRATION_TEST(TestCgroupWriteAndReset4)
+        RUN_INTEGRATION_TEST(TestCgroupWriteAndReset5)
+        RUN_INTEGRATION_TEST(TestCgroupWriteAndReset6)
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
     }
@@ -3215,7 +3248,7 @@ namespace CGroupApplicationTests {
 
 int32_t main(int32_t argc, const char* argv[]) {
     // Run the Tests
-    RUN_TEST(TestHandleGeneration)
+    RUN_INTEGRATION_TEST(TestHandleGeneration)
 
     // Request-Verification Tests
     ResourceTuningRequestVerification::RunTestGroup();

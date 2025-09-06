@@ -66,12 +66,6 @@ public:
 
     static const std::string mBaseCGroupPath;
 
-    static const std::string mTestResourceFilePath;
-    static const std::string mTestSignalFilePath;
-    static const std::string mTestPropertiesFilePath;
-    static const std::string mTestTargetConfigFilePath;
-    static const std::string mTestInitConfigFilePath;
-
     static std::shared_timed_mutex mModeLock;
     static MetaConfigs metaConfigs;
     static TargetConfigs targetConfigs;

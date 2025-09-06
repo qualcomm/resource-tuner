@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <cstring>
 
-#include "ConfigProcessor.h"
+#include "SignalConfigProcessor.h"
 #include "SignalRegistry.h"
 #include "Extensions.h"
 #include "Utils.h"
@@ -28,7 +28,7 @@ do {                                                                \
     }                                                                                           \
 
 static void Init() {
-    ConfigProcessor configProcessor;
+    SignalConfigProcessor configProcessor;
 
     std::string signalsClassA = "/etc/resource-tuner/tests/Configs/SignalsConfigA.yaml";
     std::string signalsClassB = "/etc/resource-tuner/tests/Configs/SignalsConfigB.yaml";

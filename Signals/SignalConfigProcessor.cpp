@@ -1,9 +1,9 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include "ConfigProcessor.h"
+#include "SignalConfigProcessor.h"
 
-void ConfigProcessor::parseSignalConfigYamlNode(const YAML::Node& item, int8_t isBuSpecified) {
+void SignalConfigProcessor::parseSignalConfigYamlNode(const YAML::Node& item, int8_t isBuSpecified) {
     SignalInfoBuilder signalInfoBuilder;
     ErrCode rc = RC_SUCCESS;
     NodeExtractionStatus status;
@@ -215,7 +215,7 @@ void ConfigProcessor::parseSignalConfigYamlNode(const YAML::Node& item, int8_t i
     SignalRegistry::getInstance()->registerSignal(signalInfoBuilder.build(), isBuSpecified);
 }
 
-void ConfigProcessor::parseExtFeatureConfigYamlNode(const YAML::Node& item) {
+void SignalConfigProcessor::parseExtFeatureConfigYamlNode(const YAML::Node& item) {
     ExtFeatureInfoBuilder extFeatureInfoBuilder;
     ErrCode rc = RC_SUCCESS;
     NodeExtractionStatus status;
@@ -279,7 +279,7 @@ void ConfigProcessor::parseExtFeatureConfigYamlNode(const YAML::Node& item) {
     ExtFeaturesRegistry::getInstance()->registerExtFeature(extFeatureInfoBuilder.build());
 }
 
-ErrCode ConfigProcessor::parseSignalConfigs(const std::string& filePath, int8_t isBuSpecified) {
+ErrCode SignalConfigProcessor::parseSignalConfigs(const std::string& filePath, int8_t isBuSpecified) {
     YAML::Node result;
     ErrCode rc = YamlParser::parse(filePath, result);
 
@@ -302,7 +302,7 @@ ErrCode ConfigProcessor::parseSignalConfigs(const std::string& filePath, int8_t 
     return rc;
 }
 
-ErrCode ConfigProcessor::parseExtFeaturesConfigs(const std::string& filePath) {
+ErrCode SignalConfigProcessor::parseExtFeaturesConfigs(const std::string& filePath) {
     YAML::Node result;
     ErrCode rc = YamlParser::parse(filePath, result);
 
@@ -320,5 +320,25 @@ ErrCode ConfigProcessor::parseExtFeaturesConfigs(const std::string& filePath) {
         }
     }
 
+    return rc;
+}
+
+ErrCode SignalConfigProcessor::parse(ConfigType configType, const std::string& filePath, int8_t isBuSpecified) {
+    ErrCode rc = RC_SUCCESS;
+
+    switch(configType) {
+        case ConfigType::SIGNALS_CONFIG: {
+            rc = this->parseSignalConfigs(filePath, isBuSpecified);
+            break;
+        }
+        case ConfigType::EXT_FEATURES_CONFIG: {
+            rc = this->parseExtFeaturesConfigs(filePath);
+            break;
+        }
+        default: {
+            rc = RC_BAD_ARG;
+            break;
+        }
+    }
     return rc;
 }

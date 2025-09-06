@@ -190,6 +190,14 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
 
             break;
 
+        case CommonMessageTypes::NOTIFY_CURRENT_TARGET_NAME:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Detected Target: [%s]", args);
+
+            Logger::log(INFO, "RESTUNE_SERVER_INIT", funcName, std::string(buffer));
+
+            break;
+
         case CommonMessageTypes::RESOURCE_TUNER_DAEMON_CREATION_FAILURE:
             Logger::log(ERROR, "RESTUNE_SERVER_INIT", funcName,
                         "Failed to create Resource Tuner Daemon, " \

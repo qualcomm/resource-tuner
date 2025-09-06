@@ -9,6 +9,7 @@
 
 #include "YamlParser.h"
 #include "SignalRegistry.h"
+#include "Extensions.h"
 #include "ExtFeaturesRegistry.h"
 
 #define SIGNAL_CONFIGS_ROOT "SignalConfigs"
@@ -80,7 +81,7 @@
  * this example, refer Config Files Format Documentation.
 */
 
-class ConfigProcessor {
+class SignalConfigProcessor {
 private:
     void parseSignalConfigYamlNode(const YAML::Node& result, int8_t isBuSpecified);
     void parseExtFeatureConfigYamlNode(const YAML::Node& result);
@@ -88,6 +89,7 @@ private:
 public:
     ErrCode parseSignalConfigs(const std::string& filePath, int8_t isBuSpecified=false);
     ErrCode parseExtFeaturesConfigs(const std::string& filePath);
+    ErrCode parse(ConfigType configType, const std::string& filePath, int8_t isBuSpecified);
 };
 
 #endif

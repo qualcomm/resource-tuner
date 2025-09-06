@@ -6,7 +6,7 @@
 #include "SignalQueue.h"
 #include "Extensions.h"
 #include "ComponentRegistry.h"
-#include "ConfigProcessor.h"
+#include "SignalConfigProcessor.h"
 #include "ResourceTunerSettings.h"
 
 static std::thread signalServerProcessorThread;
@@ -20,44 +20,51 @@ static void preAllocateMemory() {
     MakeAlloc<std::vector<uint32_t>> (concurrentRequestsUB * resourcesPerRequestUB);
 }
 
+static ErrCode parseUtil(const std::string& filePath,
+                         const std::string& desc,
+                         ConfigType configType,
+                         int8_t isCustom=false) {
+
+    if(filePath.length() == 0) return RC_FILE_NOT_FOUND;
+    ErrCode opStatus = RC_SUCCESS;
+    SignalConfigProcessor configProcessor;
+
+    TYPELOGV(NOTIFY_PARSING_START, desc.c_str());
+    opStatus = configProcessor.parse(configType, filePath, isCustom);
+
+    if(RC_IS_NOTOK(opStatus)) {
+        TYPELOGV(NOTIFY_PARSING_FAILURE, desc.c_str());
+        return opStatus;
+    }
+
+    TYPELOGV(NOTIFY_PARSING_SUCCESS, desc.c_str());
+    return opStatus;
+}
+
 static ErrCode fetchSignals() {
     ErrCode opStatus = RC_SUCCESS;
 
-    ConfigProcessor configProcessor;
-
-    TYPELOGV(NOTIFY_PARSING_START, "Common-Signal");
+    // Parse Common Signal Configs
     std::string filePath = ResourceTunerSettings::mCommonSignalFilePath;
-    opStatus = configProcessor.parseSignalConfigs(filePath);
+    opStatus = parseUtil(filePath, COMMON_SIGNAL, ConfigType::SIGNALS_CONFIG);
     if(RC_IS_NOTOK(opStatus)) {
-        TYPELOGV(NOTIFY_PARSING_FAILURE, "Common-Signal");
         return opStatus;
     }
-    TYPELOGV(NOTIFY_PARSING_SUCCESS, "Common-Signal");
 
+    // Parse Custom Signal Configs provided via Extension Interface (if any)
     filePath = Extensions::getSignalsConfigFilePath();
     if(filePath.length() > 0) {
         TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, "Signal", filePath.c_str());
-        TYPELOGV(NOTIFY_PARSING_START, "Custom-Signal");
-        opStatus = configProcessor.parseSignalConfigs(filePath, true);
-        if(RC_IS_NOTOK(opStatus)) {
-            TYPELOGV(NOTIFY_PARSING_FAILURE, "Custom-Signal");
-            return opStatus;
-        }
-        TYPELOGV(NOTIFY_PARSING_SUCCESS, "Custom-Signal");
+        return parseUtil(filePath, CUSTOM_SIGNAL, ConfigType::SIGNALS_CONFIG, true);
+    }
 
-    } else {
-        TYPELOGV(NOTIFY_PARSING_START, "Custom-Signal");
-        filePath = ResourceTunerSettings::mCustomSignalFilePath;
-        opStatus = configProcessor.parseSignalConfigs(filePath, true);
-        if(RC_IS_NOTOK(opStatus)) {
-            if(opStatus == RC_FILE_NOT_FOUND) {
-                TYPELOGV(NOTIFY_PARSER_FILE_NOT_FOUND, "Custom-Signal", filePath.c_str());
-                return RC_SUCCESS;
-            }
-            TYPELOGV(NOTIFY_PARSING_FAILURE, "Custom-Signal");
-            return opStatus;
-        }
-        TYPELOGV(NOTIFY_PARSING_SUCCESS, "Custom-Signal");
+    // Parse Custom Signal Configs provided in /etc/resource-tuner/custom (if any)
+    filePath = ResourceTunerSettings::mCustomSignalFilePath;
+    opStatus = parseUtil(filePath, CUSTOM_SIGNAL, ConfigType::SIGNALS_CONFIG, true);
+
+    // If file was not found, we simply return SUCCESS, since custom configs are optional
+    if(opStatus == RC_FILE_NOT_FOUND) {
+        return RC_SUCCESS;
     }
 
     return opStatus;
@@ -68,33 +75,21 @@ static ErrCode fetchSignals() {
 static ErrCode fetchExtFeatureConfigs() {
     ErrCode opStatus = RC_SUCCESS;
 
-    ConfigProcessor configProcessor;
-    std::string filePath = Extensions::getExtFeaturesConfigFilePath();
+    // Check if a Custom Target Config is provided, if so process it.
+    std::string filePath = Extensions::getTargetConfigFilePath();
+
     if(filePath.length() > 0) {
-        // Custom Resource Config file has been provided by BU
-        TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, "Ext-Features", filePath.c_str());
-        TYPELOGV(NOTIFY_PARSING_START, "Ext-Features");
+        // Custom Target Config file has been provided by BU
+        TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, CUSTOM_EXT_FEATURE, filePath.c_str());
+        return parseUtil(filePath, CUSTOM_EXT_FEATURE, ConfigType::EXT_FEATURES_CONFIG, true);
+    }
 
-        opStatus = configProcessor.parseExtFeaturesConfigs(filePath);
-        if(RC_IS_NOTOK(opStatus)) {
-            TYPELOGV(NOTIFY_PARSING_FAILURE, "Ext-Features");
-            return opStatus;
-        }
+    filePath = ResourceTunerSettings::mCustomTargetFilePath;
+    opStatus = parseUtil(filePath, CUSTOM_EXT_FEATURE, ConfigType::EXT_FEATURES_CONFIG, true);
 
-    } else {
-        TYPELOGV(NOTIFY_PARSING_START, "Ext-Features");
-        filePath = ResourceTunerSettings::mCustomExtFeaturesFilePath;
-        opStatus = configProcessor.parseExtFeaturesConfigs(filePath);
-
-        if(RC_IS_NOTOK(opStatus)) {
-            if(opStatus == RC_FILE_NOT_FOUND) {
-                TYPELOGV(NOTIFY_PARSER_FILE_NOT_FOUND, "Ext-Features", filePath.c_str());
-                return RC_SUCCESS;
-            }
-            TYPELOGV(NOTIFY_PARSING_FAILURE, "Ext-Features");
-            return opStatus;
-        }
-        TYPELOGV(NOTIFY_PARSING_SUCCESS, "Ext-Features");
+    // If file was not found, we simply return SUCCESS, since custom configs are optional
+    if(opStatus == RC_FILE_NOT_FOUND) {
+        return RC_SUCCESS;
     }
 
     return opStatus;

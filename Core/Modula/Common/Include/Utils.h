@@ -116,7 +116,6 @@ typedef void (*ResourceTunerMessageReceivedCallback)(int32_t, MsgForwardInfo*);
 #define CUSTOM_RESOURCE "Custom-Resource"
 #define COMMON_PROPERTIES "Common-Properties"
 #define CUSTOM_PROPERTIES "Custom-Properties"
-#define COMMON_TARGET "Common-Target"
 #define CUSTOM_TARGET "Custom-Target"
 #define COMMON_INIT "Common-Init"
 #define CUSTOM_INIT "Custom-Init"

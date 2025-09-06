@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <cstring>
 
-#include "ConfigProcessor.h"
+#include "SignalConfigProcessor.h"
 #include "SignalRegistry.h"
 #include "Extensions.h"
 #include "Utils.h"
@@ -28,7 +28,7 @@ do {                                                                \
     }                                                                                           \
 
 static void Init() {
-    ConfigProcessor configProcessor;
+    SignalConfigProcessor configProcessor;
 
     if(RC_IS_NOTOK(configProcessor.parseSignalConfigs("/etc/resource-tuner/tests/Configs/SignalsConfigA.yaml"))) {
         return;

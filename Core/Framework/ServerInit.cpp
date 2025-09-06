@@ -38,13 +38,10 @@ static ErrCode fetchMetaConfigs() {
 
     try {
         // Fetch target Name
-        struct utsname sysInfo;
-        if(uname(&sysInfo) == -1) {
-            TYPELOGV(ERRNO_LOG, "uname", strerror(errno));
-            return RC_PROP_PARSING_ERROR;
-        }
+        ResourceTunerSettings::targetConfigs.targetName =
+                    AuxRoutines::readFromFile("/sys/devices/soc0/machine");
 
-        ResourceTunerSettings::targetConfigs.targetName = sysInfo.nodename;
+        TYPELOGV(NOTIFY_CURRENT_TARGET_NAME, ResourceTunerSettings::targetConfigs.targetName);
 
         submitPropGetRequest(MAX_CONCURRENT_REQUESTS, resultBuffer, "120");
         ResourceTunerSettings::metaConfigs.mMaxConcurrentRequests = (uint32_t)std::stol(resultBuffer);
@@ -199,9 +196,7 @@ static ErrCode fetchTargetInfo() {
     TargetRegistry::getInstance()->readTargetInfo();
     TargetRegistry::getInstance()->displayTargetInfo();
 
-    // Check if a Custom Target Config is provided, if so process it. Else, resort
-    // to the default Target Config File, and see if a config is listed for this Target
-    // in the Common Configs.
+    // Check if a Custom Target Config is provided, if so process it.
     std::string filePath = Extensions::getTargetConfigFilePath();
 
     if(filePath.length() > 0) {
