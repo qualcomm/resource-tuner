@@ -1,8 +1,8 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#ifndef MODULE_REGISTRY_H
-#define MODULE_REGISTRY_H
+#ifndef COMPONENT_REGISTRY_H
+#define COMPONENT_REGISTRY_H
 
 #include <cstdint>
 #include <unordered_map>
@@ -11,14 +11,18 @@
 
 enum ModuleIdentifier {
     MOD_CORE,
-    MOD_SYSSIGNAL,
+    MOD_SIGNAL
 };
 
-typedef struct {
-    ModuleCallback initCallback;
-    ModuleCallback teardownCallback;
-    ModuleMessageHandlerCallback messageHandlerCallback;
-} ModuleCallbacks;
+enum EventIdentifier {
+    MOD_CORE_INIT,
+    MOD_CORE_TEAR,
+    MOD_CORE_ON_MSG_RECV,
+    MOD_SIGNAL_INIT,
+    MOD_SIGNAL_TEAR,
+    MOD_SIGNAL_ON_MSG_RECV,
+    PROP_ON_MSG_RECV
+};
 
 /**
 * @brief ComponentRegistry
@@ -27,18 +31,20 @@ typedef struct {
 */
 class ComponentRegistry {
 private:
-    static std::unordered_map<ModuleIdentifier, ModuleCallbacks> mModuleCallbacks;
+    static std::unordered_map<EventIdentifier, EventCallback> mEventCallbacks;
+    static std::unordered_map<ModuleIdentifier, int8_t> mModuleRegistry;
 
 public:
-    ComponentRegistry(ModuleIdentifier moduleIdentifier,
-                      ModuleCallback registrationCallback,
-                      ModuleCallback terardownCallback,
-                      ModuleMessageHandlerCallback messageHandlerCallback);
+    ComponentRegistry(EventIdentifier EventIdentifier,
+                      EventCallback messageHandlerCallback);
+
+    ComponentRegistry(ModuleIdentifier EventIdentifier,
+                      EventCallback registrationCallback,
+                      EventCallback terardownCallback,
+                      EventCallback messageHandlerCallback);
 
     static int8_t isModuleEnabled(ModuleIdentifier moduleIdentifier);
-    static ModuleCallback getModuleRegistrationCallback(ModuleIdentifier moduleIdentifier);
-    static ModuleCallback getModuleTeardownCallback(ModuleIdentifier moduleIdentifier);
-    static ModuleMessageHandlerCallback getModuleMessageHandlerCallback(ModuleIdentifier moduleIdentifier);
+    static EventCallback getEventCallback(EventIdentifier EventIdentifier);
 };
 
 #define CONCAT(a, b) a ## b
@@ -46,4 +52,6 @@ public:
 #define RESTUNE_REGISTER_MODULE(identifier, registration, teardown, handler) \
         static ComponentRegistry CONCAT(_module, identifier)(identifier, registration, teardown, handler);
 
+#define RESTUNE_REGISTER_EVENT_CALLBACK(identifier, handler) \
+        static ComponentRegistry CONCAT(_eventCB, identifier)(identifier, handler);
 #endif

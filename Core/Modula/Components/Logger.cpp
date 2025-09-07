@@ -48,7 +48,7 @@ void Logger::log(LogLevel level, const std::string& tag, const std::string& func
     std::string levelStr = levelToString(level);
 
     if(mRedirectOutputTo == RedirectOptions::LOG_FILE) {
-        std::ofstream logFile("log.txt", std::ios::app); //TODO: FIXME
+        std::ofstream logFile("log.txt", std::ios::app);
         if(logFile.is_open()) {
             logFile << "[" << timestamp << "] [" << tag << "] [" << levelStr << "] " << funcName <<": "<< message << std::endl;
             logFile.close();
@@ -72,7 +72,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             vsnprintf(buffer, sizeof(buffer),
                      "Module: [%s] is Enabled, Proceeding with Initialization", args);
 
-            Logger::log(ERROR, "RESTUNE_CLIENT_DATA_MANAGER",
+            Logger::log(INFO, "RESTUNE_CLIENT_DATA_MANAGER",
                         funcName, std::string(buffer));
             break;
 
@@ -186,7 +186,15 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             vsnprintf(buffer, sizeof(buffer),
                       "Starting Resource Tuner Server, PID = [%d]", args);
 
-            Logger::log(ERROR, "RESTUNE_SERVER_INIT", funcName, std::string(buffer));
+            Logger::log(INFO, "RESTUNE_SERVER_INIT", funcName, std::string(buffer));
+
+            break;
+
+        case CommonMessageTypes::NOTIFY_CURRENT_TARGET_NAME:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Detected Target: [%s]", args);
+
+            Logger::log(INFO, "RESTUNE_SERVER_INIT", funcName, std::string(buffer));
 
             break;
 
@@ -590,7 +598,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
 
         case CommonMessageTypes::EXT_FEATURE_LIB_OPEN_FAILED:
             vsnprintf(buffer, sizeof(buffer),
-                      "No lib with the Path: [%s] could not be opened", args);
+                      "Lib with the Path: [%s] could not be opened", args);
 
             Logger::log(ERROR, "RESTUNE_EXT_FEATURES", funcName, std::string(buffer));
             break;

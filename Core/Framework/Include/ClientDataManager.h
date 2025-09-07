@@ -76,13 +76,14 @@ public:
     /**
     * @brief Returns a list of active requests for the client with the given PID.
     * @param clientTID Process TID of the client
-    * @return std::unordered_set<int64_t>* Pointer to an unordered_set containing the requests.
+    * @return std::unordered_set<int64_t>*:
+    *             Pointer to an unordered_set containing the requests.
     */
     std::unordered_set<int64_t>* getRequestsByClientID(int32_t clientTID);
 
     /**
     * @brief This method is called by the RequestMap to insert a new Request (represented by it's handle)
-    * for the client with the given ID in the Client Data Table.
+    *        for the client with the given ID in the Client Data Table.
     * @param clientTID Process TID of the client
     * @param requestHandle Handle of the Request
     */
@@ -90,7 +91,7 @@ public:
 
     /**
     * @brief This method is called by the RequestMap to delete a Request (represented by it's handle)
-    * for the client with the given ID in the Client Data Table.
+    *        for the client with the given ID in the Client Data Table.
     * @param clientTID Process TID of the client
     * @param requestHandle Handle of the Request
     */
@@ -98,7 +99,7 @@ public:
 
     /**
     * @brief This method is called by the RateLimiter to fetch the current health for a given
-    * client in the Client Data Table.
+    *        client in the Client Data Table.
     * @param clientPID Process ID of the client
     * @return double: Health of the Client.
     */
@@ -106,7 +107,7 @@ public:
 
     /**
     * @brief This method is called by the RateLimiter to fetch the Last Request Timestamp for a given
-    * client in the Client Data Table.
+    *        client in the Client Data Table.
     * @param clientTID TID of the client
     * @returns int64_t: Timestamp of Last Request (A value of 0, indicates no prior Requests).
     */
@@ -142,7 +143,8 @@ public:
     /**
     * @brief Returns the list of threads corresponding to the thread with the given ID.
     * @param clientPID Process ID of the client
-    * @return std::vector<int32_t>* Pointer to a vector containing the threads ids.
+    * @return std::vector<int32_t>*:
+    *            Pointer to a vector containing the threads ids.
     */
     std::vector<int32_t>* getThreadsByClientId(int32_t clientPID);
 

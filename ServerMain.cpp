@@ -36,7 +36,6 @@ static ErrCode parseServerStartupCLIOpts(int32_t argCount, char *argStrings[]) {
     const char* shortPrompts = "sth";
     const struct option longPrompts[] = {
         {"start", no_argument, nullptr, 's'},
-        {"test", no_argument, nullptr, 't'},
         {"help", no_argument, nullptr, 'h'},
         {nullptr, no_argument, nullptr, 0}
     };
@@ -45,15 +44,6 @@ static ErrCode parseServerStartupCLIOpts(int32_t argCount, char *argStrings[]) {
     while ((c = getopt_long(argCount, argStrings, shortPrompts, longPrompts, nullptr)) != -1) {
         switch (c) {
             case 's':
-                ResourceTunerSettings::serverInTestMode = false;
-                break;
-            case 't':
-                ResourceTunerSettings::serverInTestMode = true;
-                RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, ResourceTunerSettings::mTestPropertiesFilePath)
-                RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, ResourceTunerSettings::mTestResourceFilePath)
-                RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, ResourceTunerSettings::mTestSignalFilePath)
-                RESTUNE_REGISTER_CONFIG(TARGET_CONFIG, ResourceTunerSettings::mTestTargetConfigFilePath)
-                RESTUNE_REGISTER_CONFIG(INIT_CONFIG, ResourceTunerSettings::mTestInitConfigFilePath)
                 break;
             case 'h':
                 std::cout<<"Help Options"<<std::endl;
@@ -197,40 +187,36 @@ int32_t main(int32_t argc, char *argv[]) {
 
     // Check which modules are plugged In and Initialize them
     if(RC_IS_OK(opStatus)) {
-        opStatus = ComponentRegistry::getModuleRegistrationCallback(ModuleIdentifier::MOD_CORE)();
+        opStatus = ComponentRegistry::getEventCallback(EventIdentifier::MOD_CORE_INIT)(nullptr);
         if(RC_IS_NOTOK(opStatus)) {
             TYPELOGV(MODULE_INIT_FAILED, "Core");
         }
     }
 
     if(RC_IS_OK(opStatus)) {
-        if(ComponentRegistry::isModuleEnabled(ModuleIdentifier::MOD_SYSSIGNAL)) {
+        if(ComponentRegistry::isModuleEnabled(ModuleIdentifier::MOD_SIGNAL)) {
             TYPELOGV(NOTIFY_MODULE_ENABLED, "Signal");
-            if(RC_IS_OK(opStatus)) {
-                opStatus = ComponentRegistry::getModuleRegistrationCallback(ModuleIdentifier::MOD_SYSSIGNAL)();
-                if(RC_IS_NOTOK(opStatus)) {
-                    TYPELOGV(MODULE_INIT_FAILED, "Signal");
-                }
+            opStatus = ComponentRegistry::getEventCallback(EventIdentifier::MOD_SIGNAL_INIT)(nullptr);
+            if(RC_IS_NOTOK(opStatus)) {
+                TYPELOGV(MODULE_INIT_FAILED, "Signal");
             }
         }
     }
 
-    if(!ResourceTunerSettings::serverInTestMode) {
-        // Start the Pulse Monitor and Garbage Collector Daemon Threads
-        if(RC_IS_OK(opStatus)) {
-            opStatus = startPulseMonitorDaemon();
+    // Start the Pulse Monitor and Garbage Collector Daemon Threads
+    if(RC_IS_OK(opStatus)) {
+        opStatus = startPulseMonitorDaemon();
 
-            if(RC_IS_NOTOK(opStatus)) {
-                TYPELOGD(PULSE_MONITOR_INIT_FAILED);
-            }
+        if(RC_IS_NOTOK(opStatus)) {
+            TYPELOGD(PULSE_MONITOR_INIT_FAILED);
         }
+    }
 
-        if(RC_IS_OK(opStatus)) {
-            opStatus = startClientGarbageCollectorDaemon();
+    if(RC_IS_OK(opStatus)) {
+        opStatus = startClientGarbageCollectorDaemon();
 
-            if(RC_IS_NOTOK(opStatus)) {
-                TYPELOGD(GARBAGE_COLLECTOR_INIT_FAILED);
-            }
+        if(RC_IS_NOTOK(opStatus)) {
+            TYPELOGD(GARBAGE_COLLECTOR_INIT_FAILED);
         }
     }
 
@@ -281,11 +267,11 @@ int32_t main(int32_t argc, char *argv[]) {
     serverCleanup();
 
     if(ComponentRegistry::isModuleEnabled(ModuleIdentifier::MOD_CORE)) {
-        ComponentRegistry::getModuleTeardownCallback(ModuleIdentifier::MOD_CORE)();
+        ComponentRegistry::getEventCallback(EventIdentifier::MOD_CORE_TEAR)(nullptr);
     }
 
-    if(ComponentRegistry::isModuleEnabled(ModuleIdentifier::MOD_SYSSIGNAL)) {
-        ComponentRegistry::getModuleTeardownCallback(ModuleIdentifier::MOD_SYSSIGNAL)();
+    if(ComponentRegistry::isModuleEnabled(ModuleIdentifier::MOD_SIGNAL)) {
+        ComponentRegistry::getEventCallback(EventIdentifier::MOD_SIGNAL_TEAR)(nullptr);
     }
 
     if(resourceTunerListener.joinable()) {

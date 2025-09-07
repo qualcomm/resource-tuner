@@ -1,7 +1,6 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <pthread.h>
 #include "RequestReceiver.h"
 
 std::shared_ptr<RequestReceiver> RequestReceiver::mRequestReceiverInstance = nullptr;
@@ -33,7 +32,7 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
             // Enqueue the Request to the Thread Pool for async processing.
             if(this->mRequestsThreadPool != nullptr) {
                 if(!this->mRequestsThreadPool->
-                    enqueueTask(ComponentRegistry::getModuleMessageHandlerCallback(MOD_CORE), msgForwardInfo)) {
+                    enqueueTask(ComponentRegistry::getEventCallback(MOD_CORE_ON_MSG_RECV), msgForwardInfo)) {
                     LOGE("RESTUNE_REQUEST_RECEIVER",
                          "Failed to enqueue the Request to the Thread Pool");
                 }
@@ -51,38 +50,39 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
             break;
         }
         // SysConfig Requests
-        case REQ_CLIENT_GET_REQUESTS:
-        case REQ_SYSCONFIG_GET_PROP:
-        case REQ_SYSCONFIG_SET_PROP: {
-            // Deserialize to SysConfig Request
-            SysConfig* sysConfig = nullptr;
-            try {
-                sysConfig = new (GetBlock<SysConfig>()) SysConfig();
+        case REQ_SYSCONFIG_GET_PROP: {
+            // Decode Prop Fetch Request
+            PropConfig propConfig;
+            memset(&propConfig, 0, sizeof(propConfig));
 
-            } catch(const std::bad_alloc& e) {
-                TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE, e.what());
-                return;
+            int8_t* ptr8 = (int8_t*)msgForwardInfo->buffer;
+            (void) DEREF_AND_INCR(ptr8, int8_t);
+
+            char* charIterator = (char*)ptr8;
+            propConfig.mPropName = charIterator;
+
+            while(*charIterator != '\0') {
+                charIterator++;
             }
+            charIterator++;
 
-            if(RC_IS_NOTOK(sysConfig->deserialize(msgForwardInfo->buffer))) {
-                FreeBlock<SysConfig>(sysConfig);
-                return;
+            uint64_t* ptr64 = (uint64_t*)charIterator;
+            propConfig.mBufferSize = DEREF_AND_INCR(ptr64, uint64_t);
+
+            ComponentRegistry::getEventCallback(PROP_ON_MSG_RECV)(&propConfig);
+            std::string result = propConfig.mResult;
+
+            size_t maxSafeSize = result.size() + 1;
+            size_t bytesToWrite = std::min(propConfig.mBufferSize, maxSafeSize);
+
+            if(write(clientSocket, (const void*)result.c_str(), bytesToWrite) == -1) {
+                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
             }
-
-            std::string result;
-            int8_t status = submitSysConfigRequest(result, sysConfig);
-
-            if(requestType == REQ_SYSCONFIG_GET_PROP) {
-                if(write(clientSocket, (const void*)result.c_str(), sizeof(sysConfig->getBufferSize())) == -1) {
-                    TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-                }
-            }
-
-            FreeBlock<SysConfig>(sysConfig);
+            break;
         }
         // Signal Requests
-        case SIGNAL_ACQ: {
-            if(!ComponentRegistry::isModuleEnabled(MOD_SYSSIGNAL)) {
+        case REQ_SIGNAL_TUNING: {
+            if(!ComponentRegistry::isModuleEnabled(MOD_SIGNAL)) {
                 TYPELOGV(NOTIFY_MODULE_NOT_ENABLED, "Signals");
                 return;
             }
@@ -92,16 +92,16 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
                 return;
             }
         }
-        case SIGNAL_FREE:
-        case SIGNAL_RELAY: {
-            if(!ComponentRegistry::isModuleEnabled(MOD_SYSSIGNAL)) {
+        case REQ_SIGNAL_UNTUNING:
+        case REQ_SIGNAL_RELAY: {
+            if(!ComponentRegistry::isModuleEnabled(MOD_SIGNAL)) {
                 TYPELOGV(NOTIFY_MODULE_NOT_ENABLED, "Signals");
                 return;
             }
             // Enqueue the Request to the Thread Pool for async processing.
             if(this->mRequestsThreadPool != nullptr) {
                 if(!this->mRequestsThreadPool->
-                    enqueueTask(ComponentRegistry::getModuleMessageHandlerCallback(MOD_SYSSIGNAL), msgForwardInfo)) {
+                    enqueueTask(ComponentRegistry::getEventCallback(MOD_SIGNAL_ON_MSG_RECV), msgForwardInfo)) {
                     LOGE("RESTUNE_REQUEST_RECEIVER",
                          "Failed to enqueue the Request to the Thread Pool");
                 }
@@ -111,7 +111,7 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
             }
 
             // Only in Case of Tune Signals, Write back the handle to the client.
-            if(requestType == SIGNAL_ACQ) {
+            if(requestType == REQ_SIGNAL_TUNING) {
                 if(write(clientSocket, (const void*)&msgForwardInfo->handle, sizeof(int64_t)) == -1) {
                     TYPELOGV(ERRNO_LOG, "write", strerror(errno));
                 }
@@ -124,11 +124,11 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
     }
 }
 
-int8_t CheckServerOnlineStatus() {
+int8_t checkServerOnlineStatus() {
     return ResourceTunerSettings::isServerOnline();
 }
 
-void OnResourceTunerMessageReceiverCallback(int32_t clientSocket, MsgForwardInfo* msgForwardInfo) {
+void onMsgRecvCallback(int32_t clientSocket, MsgForwardInfo* msgForwardInfo) {
     std::shared_ptr<RequestReceiver> requestReceiver = RequestReceiver::getInstance();
     requestReceiver->forwardMessage(clientSocket, msgForwardInfo);
 }
@@ -138,11 +138,11 @@ void listenerThreadStartRoutine() {
     pthread_setname_np(pthread_self(), "listenerThread");
     try {
         connection = new ResourceTunerSocketServer(ResourceTunerSettings::metaConfigs.mListeningPort,
-                                                   CheckServerOnlineStatus,
-                                                   OnResourceTunerMessageReceiverCallback);
+                                                   checkServerOnlineStatus,
+                                                   onMsgRecvCallback);
     } catch(const std::bad_alloc& e) {
         LOGE("RESTUNE_REQUEST_RECEIVER",
-             "Failed to allocate memory for Resource Tuner Socket Server-Endpoint, Resource Tuner\
+             "Failed to allocate memory for Resource Tuner Socket Server-Endpoint, Resource Tuner \
               Server startup failed: " + std::string(e.what()));
 
         return;

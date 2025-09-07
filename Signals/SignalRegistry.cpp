@@ -352,6 +352,7 @@ ErrCode ResourceBuilder::setResInfo(const std::string& resInfoString) {
     try {
         resourceResInfo = (int32_t)stoi(resInfoString, nullptr, 0);
         this->mResource->setResInfo(resourceResInfo);
+
     } catch(const std::invalid_argument& e) {
         TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
         return RC_INVALID_VALUE;

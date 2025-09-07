@@ -171,8 +171,7 @@ below table present in InitConfigs->ClusterMap section
 |--------|------------|
 |   0    |   "little" |
 |   1    |   "big"    |
-|   2    | "titanium" |
-|   3    |    "prime" |
+|   2    |    "prime" |
 
 resource-tuner reads machine topology and prepares logical to physical table dynamically in the init phase, similar to below one
 | LgcId  |  PhyId  | 
@@ -221,17 +220,16 @@ Configs of cluster map in InitConfigs->ClusterMap section
 |--------|------------|
 |   0    |   "little" |
 |   1    |   "big"    |
-|   2    | "titanium" |
-|   3    |    "prime" |
+|   2    |   "prime"  |
 
 ### 2. Cgroups map
 Configs of cgroups map in InitConfigs->CgroupsInfo section
 | Lgc Cgrp No | Cgrp Name  |
 |-------------|------------|
-|       0     |  "default" |
-|       1     |  "bg-app"  |
-|       2     |  "top-app" |
-|       3     |"camera-app"|
+|      0      |  "default" |
+|      1      |  "bg-app"  |
+|      2      |  "top-app" |
+|      3      |"camera-app"|
 
 ### 3. Mpam Groups Map
 Configs of mpam grp map in InitConfigs->MpamGroupsInfo section

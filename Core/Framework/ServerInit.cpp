@@ -5,17 +5,8 @@
 #include <fcntl.h>
 #include <sys/utsname.h>
 
-#include "ServerRequests.h"
+#include "ServerInternal.h"
 #include "ConfigProcessor.h"
-#include "ResourceTunerSettings.h"
-#include "Extensions.h"
-#include "SysConfigProcessor.h"
-#include "MemoryPool.h"
-
-#include "Utils.h"
-#include "SysConfigInternal.h"
-#include "ErrCodes.h"
-#include "Logger.h"
 #include "ComponentRegistry.h"
 
 static std::thread serverThread;
@@ -25,18 +16,21 @@ static void preAllocateMemory() {
     int32_t concurrentRequestsUB = ResourceTunerSettings::metaConfigs.mMaxConcurrentRequests;
     int32_t resourcesPerRequestUB = ResourceTunerSettings::metaConfigs.mMaxResourcesPerRequest;
 
+    int32_t maxBlockCount = concurrentRequestsUB * resourcesPerRequestUB;
+
     MakeAlloc<Message> (concurrentRequestsUB);
     MakeAlloc<Request> (concurrentRequestsUB);
     MakeAlloc<Timer> (concurrentRequestsUB);
-    MakeAlloc<Resource> (concurrentRequestsUB * resourcesPerRequestUB);
-    MakeAlloc<CocoNode> (concurrentRequestsUB * resourcesPerRequestUB);
-    MakeAlloc<SysConfig> (concurrentRequestsUB);
-    MakeAlloc<ClientInfo> (concurrentRequestsUB * resourcesPerRequestUB);
-    MakeAlloc<ClientTidData> (concurrentRequestsUB * resourcesPerRequestUB);
-    MakeAlloc<std::unordered_set<int64_t>> (concurrentRequestsUB * resourcesPerRequestUB);
-    MakeAlloc<std::vector<Resource*>> (concurrentRequestsUB * resourcesPerRequestUB);
-    MakeAlloc<std::vector<int32_t>> (concurrentRequestsUB * resourcesPerRequestUB);
-    MakeAlloc<std::vector<CocoNode*>> (concurrentRequestsUB * resourcesPerRequestUB);
+    MakeAlloc<Resource> (maxBlockCount);
+    MakeAlloc<CocoNode> (maxBlockCount);
+    MakeAlloc<ClientInfo> (maxBlockCount);
+    MakeAlloc<ClientTidData> (maxBlockCount);
+    MakeAlloc<std::unordered_set<int64_t>> (maxBlockCount);
+    MakeAlloc<std::vector<Resource*>> (maxBlockCount);
+    MakeAlloc<std::vector<int32_t>> (maxBlockCount);
+    MakeAlloc<std::vector<CocoNode*>> (maxBlockCount);
+    MakeAlloc<MsgForwardInfo> (maxBlockCount);
+    MakeAlloc<char[REQ_BUFFER_SIZE]> (maxBlockCount);
 }
 
 static ErrCode fetchMetaConfigs() {
@@ -44,49 +38,48 @@ static ErrCode fetchMetaConfigs() {
 
     try {
         // Fetch target Name
-        struct utsname sysInfo;
-        if(uname(&sysInfo) == -1) {
-            TYPELOGV(ERRNO_LOG, "uname", strerror(errno));
-            return RC_PROP_PARSING_ERROR;
-        }
+        ResourceTunerSettings::targetConfigs.targetName =
+                    AuxRoutines::readFromFile("/sys/devices/soc0/machine");
 
-        ResourceTunerSettings::targetConfigs.targetName = sysInfo.nodename;
+        TYPELOGV(NOTIFY_CURRENT_TARGET_NAME, ResourceTunerSettings::targetConfigs.targetName.c_str());
 
-        sysConfigGetProp("resource_tuner.maximum.concurrent.requests", resultBuffer, sizeof(resultBuffer), "120");
+        submitPropGetRequest(MAX_CONCURRENT_REQUESTS, resultBuffer, "120");
         ResourceTunerSettings::metaConfigs.mMaxConcurrentRequests = (uint32_t)std::stol(resultBuffer);
 
-        sysConfigGetProp("resource_tuner.maximum.resources.per.request", resultBuffer, sizeof(resultBuffer), "5");
+        submitPropGetRequest(MAX_RESOURCES_PER_REQUEST, resultBuffer, "5");
         ResourceTunerSettings::metaConfigs.mMaxResourcesPerRequest = (uint32_t)std::stol(resultBuffer);
 
         // Hard Code this value, as it should not be end-client customisable
         ResourceTunerSettings::metaConfigs.mListeningPort = 12000;
 
-        sysConfigGetProp("resource_tuner.pulse.duration", resultBuffer, sizeof(resultBuffer), "60000");
+        submitPropGetRequest(PULSE_MONITOR_DURATION, resultBuffer, "60000");
         ResourceTunerSettings::metaConfigs.mPulseDuration = (uint32_t)std::stol(resultBuffer);
 
-        sysConfigGetProp("resource_tuner.garbage_collection.duration", resultBuffer, sizeof(resultBuffer), "83000");
+        submitPropGetRequest(GARBAGE_COLLECTOR_DURATION, resultBuffer, "83000");
         ResourceTunerSettings::metaConfigs.mClientGarbageCollectorDuration = (uint32_t)std::stol(resultBuffer);
 
-        sysConfigGetProp("resource_tuner.rate_limiter.delta", resultBuffer, sizeof(resultBuffer), "5");
+        ResourceTunerSettings::metaConfigs.mCleanupBatchSize = 5;
+
+        submitPropGetRequest(RATE_LIMITER_DELTA, resultBuffer, "5");
         ResourceTunerSettings::metaConfigs.mDelta = (uint32_t)std::stol(resultBuffer);
 
-        sysConfigGetProp("resource_tuner.penalty.factor", resultBuffer, sizeof(resultBuffer), "2.0");
+        submitPropGetRequest(RATE_LIMITER_PENALTY_FACTOR, resultBuffer, "2.0");
         ResourceTunerSettings::metaConfigs.mPenaltyFactor = std::stod(resultBuffer);
 
-        sysConfigGetProp("resource_tuner.reward.factor", resultBuffer, sizeof(resultBuffer), "0.4");
+        submitPropGetRequest(RATE_LIMITER_REWARD_FACTOR, resultBuffer, "0.4");
         ResourceTunerSettings::metaConfigs.mRewardFactor = std::stod(resultBuffer);
 
-        sysConfigGetProp("resource_tuner.logging.level", resultBuffer, sizeof(resultBuffer), "2");
+        submitPropGetRequest(LOGGER_LOGGING_LEVEL, resultBuffer, "2");
         int8_t logLevel = (int8_t)std::stoi(resultBuffer);
 
         int8_t levelSpecificLogging = false;
-        sysConfigGetProp("resource_tuner.logging.level.exact", resultBuffer, sizeof(resultBuffer), "false");
+        submitPropGetRequest(LOGGER_LOGGING_LEVEL_TYPE, resultBuffer, "false");
         if(resultBuffer == "true") {
             levelSpecificLogging = true;
         }
 
         RedirectOptions redirectOutputTo = LOG_FILE;
-        sysConfigGetProp("resource_tuner.logging.redirect_to", resultBuffer, sizeof(resultBuffer), "1");
+        submitPropGetRequest(LOGGER_LOGGING_OUTPUT_REDIRECT, resultBuffer, "1");
         if((int8_t)std::stoi(resultBuffer) == 0) {
             redirectOutputTo = FTRACE;
         }
@@ -105,200 +98,185 @@ static ErrCode fetchMetaConfigs() {
     return RC_SUCCESS;
 }
 
-ErrCode fetchProperties() {
-    // Initialize SysConfigs
-    ErrCode opStatus = RC_SUCCESS;
-    SysConfigProcessor sysConfigProcessor;
+static ErrCode parseUtil(const std::string& filePath,
+                         const std::string& desc,
+                         ConfigType configType,
+                         int8_t isCustom=false) {
 
-    TYPELOGV(NOTIFY_PARSING_START, "Common-Properties");
-    std::string filePath = ResourceTunerSettings::mCommonPropertiesFilePath;
-    opStatus = sysConfigProcessor.parseSysConfigs(filePath);
+    if(filePath.length() == 0) return RC_FILE_NOT_FOUND;
+    ErrCode opStatus = RC_SUCCESS;
+    ConfigProcessor configProcessor;
+
+    TYPELOGV(NOTIFY_PARSING_START, desc.c_str());
+    opStatus = configProcessor.parse(configType, filePath, isCustom);
 
     if(RC_IS_NOTOK(opStatus)) {
-        TYPELOGV(NOTIFY_PARSING_FAILURE, "Common-Properties");
+        TYPELOGV(NOTIFY_PARSING_FAILURE, desc.c_str());
         return opStatus;
     }
-    TYPELOGV(NOTIFY_PARSING_SUCCESS, "Common-Properties");
+
+    TYPELOGV(NOTIFY_PARSING_SUCCESS, desc.c_str());
+    return opStatus;
+}
+
+ErrCode fetchProperties() {
+    ErrCode opStatus = RC_SUCCESS;
+
+    // Parse Common Properties Configs
+    std::string filePath = ResourceTunerSettings::mCommonPropertiesFilePath;
+    opStatus = parseUtil(filePath, COMMON_PROPERTIES, ConfigType::PROPERTIES_CONFIG);
+    if(RC_IS_NOTOK(opStatus)) {
+        // Common Properties Parsing Failed
+        return opStatus;
+    }
 
     filePath = Extensions::getPropertiesConfigFilePath();
+    // Parse Custom Properties Configs provided via Extension Interface (if any)
     if(filePath.length() > 0) {
-        TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, "Properties", filePath.c_str());
-        TYPELOGV(NOTIFY_PARSING_START, "Custom-Properties");
+        TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, "Property", filePath.c_str());
 
-        opStatus = sysConfigProcessor.parseSysConfigs(filePath);
-        if(RC_IS_NOTOK(opStatus)) {
-            TYPELOGV(NOTIFY_PARSING_FAILURE, "Custom-Properties");
-            return opStatus;
+        opStatus = parseUtil(filePath, CUSTOM_PROPERTIES, ConfigType::PROPERTIES_CONFIG);
+        if(RC_IS_OK(opStatus)) {
+            // Properties Parsing is completed
+            return fetchMetaConfigs();
         }
-        TYPELOGV(NOTIFY_PARSING_SUCCESS, "Custom-Properties");
 
-    } else {
-        TYPELOGV(NOTIFY_PARSING_START, "Custom-Properties");
-        filePath = ResourceTunerSettings::mCustomPropertiesFilePath;
-        opStatus = sysConfigProcessor.parseSysConfigs(filePath);
-
-        if(RC_IS_NOTOK(opStatus)) {
-            if(opStatus == RC_FILE_NOT_FOUND) {
-                TYPELOGV(NOTIFY_PARSER_FILE_NOT_FOUND, "Custom-Properties", filePath.c_str());
-                // Reset the status back to Success, as the custom config is optional
-                opStatus = RC_SUCCESS;
-            } else {
-                TYPELOGV(NOTIFY_PARSING_FAILURE, "Custom-Properties");
-                return opStatus;
-            }
-        } else {
-            TYPELOGV(NOTIFY_PARSING_SUCCESS, "Custom-Properties");
-        }
+        // Custom Properties Parsing Failed
+        return opStatus;
     }
 
-    if(RC_IS_OK(opStatus)) {
-        opStatus = fetchMetaConfigs();
+    // Parse Custom Properties Configs provided in /etc/resource-tuner/custom (if any)
+    filePath = ResourceTunerSettings::mCustomPropertiesFilePath;
+    opStatus = parseUtil(filePath, CUSTOM_PROPERTIES, ConfigType::PROPERTIES_CONFIG);
+
+    // If file was not found, we simply return SUCCESS, since custom configs are optional
+    if(opStatus == RC_FILE_NOT_FOUND) {
+        opStatus = RC_SUCCESS;
     }
 
-    return opStatus;
+    if(RC_IS_NOTOK(opStatus)) {
+        return opStatus;
+    }
+
+    return fetchMetaConfigs();
 }
 
 static ErrCode fetchResources() {
     ErrCode opStatus = RC_SUCCESS;
-    ConfigProcessor configProcessor;
 
-    TYPELOGV(NOTIFY_PARSING_START, "Common-Resource");
+    // Parse Common Resource Configs
     std::string filePath = ResourceTunerSettings::mCommonResourceFilePath;
-    opStatus = configProcessor.parseResourceConfigs(filePath);
-
+    opStatus = parseUtil(filePath, COMMON_RESOURCE, ConfigType::RESOURCE_CONFIG);
     if(RC_IS_NOTOK(opStatus)) {
-        TYPELOGV(NOTIFY_PARSING_FAILURE, "Common-Resource");
         return opStatus;
     }
-    TYPELOGV(NOTIFY_PARSING_SUCCESS, "Common-Resource");
 
+    // Parse Custom Resource Configs provided via Extension Interface (if any)
     filePath = Extensions::getResourceConfigFilePath();
     if(filePath.length() > 0) {
-        TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, "Resource", filePath.c_str());
-        TYPELOGV(NOTIFY_PARSING_START, "Custom-Resource");
+        TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, CUSTOM_RESOURCE, filePath.c_str());
+        return parseUtil(filePath, CUSTOM_RESOURCE, ConfigType::RESOURCE_CONFIG, true);
+    }
 
-        opStatus = configProcessor.parseResourceConfigs(filePath, true);
-        if(RC_IS_NOTOK(opStatus)) {
-            TYPELOGV(NOTIFY_PARSING_FAILURE, "Custom-Resource");
-            return opStatus;
-        }
-        TYPELOGV(NOTIFY_PARSING_SUCCESS, "Custom-Resource");
+    // Parse Custom Resource Configs provided in /etc/resource-tuner/custom (if any)
+    filePath = ResourceTunerSettings::mCustomResourceFilePath;
+    opStatus = parseUtil(filePath, CUSTOM_RESOURCE, ConfigType::RESOURCE_CONFIG, true);
 
-    } else {
-        TYPELOGV(NOTIFY_PARSING_START, "Custom-Resource");
-        filePath = ResourceTunerSettings::mCustomResourceFilePath;
-        opStatus = configProcessor.parseResourceConfigs(filePath, true);
-
-        if(RC_IS_NOTOK(opStatus)) {
-            if(opStatus == RC_FILE_NOT_FOUND) {
-                TYPELOGV(NOTIFY_PARSER_FILE_NOT_FOUND, "Custom-Resource", filePath.c_str());
-                return RC_SUCCESS;
-            }
-
-            TYPELOGV(NOTIFY_PARSING_FAILURE, "Custom-Resource");
-            return opStatus;
-        }
-        TYPELOGV(NOTIFY_PARSING_SUCCESS, "Custom-Resource");
+    // If file was not found, we simply return SUCCESS, since custom configs are optional
+    if(opStatus == RC_FILE_NOT_FOUND) {
+        return RC_SUCCESS;
     }
 
     return opStatus;
 }
 
-static ErrCode fetchInitInfo() {
+static ErrCode fetchTargetInfo() {
     ErrCode opStatus = RC_SUCCESS;
-
-    // Target Configs is optional, i.e. file TargetConfig.yaml need not be provided.
-    // Resource Tuner will dynamically fetch mapping data in such cases
-    ConfigProcessor configProcessor;
-    std::string filePath = Extensions::getTargetConfigFilePath();
-    if(filePath.length() > 0) {
-        // Custom Target Config file has been provided by BU
-        TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, "Target", filePath.c_str());
-        opStatus = configProcessor.parseTargetConfigs(filePath);
-        if(RC_IS_NOTOK(opStatus)) {
-            TYPELOGV(NOTIFY_PARSING_FAILURE, "Target");
-            return opStatus;
-        }
-        TYPELOGV(NOTIFY_PARSING_SUCCESS, "Target");
-
-    } else {
-        TYPELOGV(NOTIFY_PARSING_START, "Target");
-        filePath = ResourceTunerSettings::mCustomTargetFilePath;
-        opStatus = configProcessor.parseTargetConfigs(filePath);
-        if(RC_IS_NOTOK(opStatus)) {
-            if(opStatus != RC_FILE_NOT_FOUND) {
-                TYPELOGV(NOTIFY_PARSING_FAILURE, "Target");
-                return opStatus;
-            } else {
-                TYPELOGV(NOTIFY_PARSER_FILE_NOT_FOUND, "Target", filePath.c_str());
-                opStatus = RC_SUCCESS;
-            }
-        } else {
-            TYPELOGV(NOTIFY_PARSING_SUCCESS, "Target");
-        }
-    }
-
-    TYPELOGV(NOTIFY_PARSING_START, "Common-Init");
-    filePath = ResourceTunerSettings::mCommonInitConfigFilePath;
-    opStatus = configProcessor.parseInitConfigs(filePath);
-
-    if(RC_IS_NOTOK(opStatus)) {
-        TYPELOGV(NOTIFY_PARSING_FAILURE, "Common-Init");
-        return opStatus;
-    }
-    TYPELOGV(NOTIFY_PARSING_SUCCESS, "Common-Init");
-
-    filePath = Extensions::getInitConfigFilePath();
-    if(filePath.length() > 0) {
-        // Custom Target Config file has been provided by BU
-        TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, "Init", filePath.c_str());
-        opStatus = configProcessor.parseInitConfigs(filePath);
-        if(RC_IS_NOTOK(opStatus)) {
-            TYPELOGV(NOTIFY_PARSING_FAILURE, "Custom-Init");
-            return opStatus;
-        }
-        TYPELOGV(NOTIFY_PARSING_SUCCESS, "Custom-Init");
-
-    } else {
-        TYPELOGV(NOTIFY_PARSING_START, "Custom-Init");
-        filePath = ResourceTunerSettings::mCustomInitConfigFilePath;
-        opStatus = configProcessor.parseInitConfigs(filePath);
-        if(RC_IS_NOTOK(opStatus)) {
-            if(opStatus != RC_FILE_NOT_FOUND) {
-                TYPELOGV(NOTIFY_PARSING_FAILURE, "Custom-Init");
-                return opStatus;
-            } else {
-                TYPELOGV(NOTIFY_PARSER_FILE_NOT_FOUND, "Custom-Init", filePath.c_str());
-                opStatus = RC_SUCCESS;
-            }
-        } else {
-            TYPELOGV(NOTIFY_PARSING_SUCCESS, "Custom-Init");
-        }
-    }
-
-    return opStatus;
-}
-
-static ErrCode initServer() {
-    ErrCode opStatus = RC_SUCCESS;
-
-    // Pre-Allocate Memory for Commonly used Types via Memory Pool
-    preAllocateMemory();
-
-    // Fetch and Parse:
-    // - Custom Target Configs (if present)
-    // - Init Configs
-    opStatus = fetchInitInfo();
-    if(RC_IS_NOTOK(opStatus)) {
-        return opStatus;
-    }
-
     // Perform Logical To Physical (Core / Cluster) Mapping
     // Note we don't perform error-checking here since the behaviour of this
     // routine is target / architecture specific, and the initialization flow
     // needs to be generic enough to accomodate them.
     TargetRegistry::getInstance()->readTargetInfo();
+
+    // Check if a Custom Target Config is provided, if so process it.
+    std::string filePath = Extensions::getTargetConfigFilePath();
+
+    if(filePath.length() > 0) {
+        // Custom Target Config file has been provided by BU
+        TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, CUSTOM_TARGET, filePath.c_str());
+        return parseUtil(filePath, CUSTOM_TARGET, ConfigType::TARGET_CONFIG, true);
+    }
+
+    filePath = ResourceTunerSettings::mCustomTargetFilePath;
+    opStatus = parseUtil(filePath, CUSTOM_TARGET, ConfigType::TARGET_CONFIG, true);
+
+    // If file was not found, we simply return SUCCESS, since custom configs are optional
+    if(opStatus == RC_FILE_NOT_FOUND) {
+        return RC_SUCCESS;
+    }
+
     TargetRegistry::getInstance()->displayTargetInfo();
+    return opStatus;
+}
+
+static ErrCode fetchInitInfo() {
+    ErrCode opStatus = RC_SUCCESS;
+    std::string filePath = ResourceTunerSettings::mCommonInitConfigFilePath;
+
+    opStatus = parseUtil(filePath, COMMON_INIT, ConfigType::INIT_CONFIG);
+    if(RC_IS_NOTOK(opStatus)) {
+        return opStatus;
+    }
+
+    filePath = Extensions::getInitConfigFilePath();
+    if(filePath.length() > 0) {
+        // Custom Init Config file has been provided by BU
+        TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, CUSTOM_INIT, filePath.c_str());
+        return parseUtil(filePath, CUSTOM_INIT, ConfigType::INIT_CONFIG);
+    }
+
+    // Parse Custom Init Configs provided in /etc/resource-tuner/custom (if any)
+    filePath = ResourceTunerSettings::mCustomInitConfigFilePath;
+    opStatus = parseUtil(filePath, CUSTOM_INIT, ConfigType::INIT_CONFIG);
+
+    // If file was not found, we simply return SUCCESS, since custom configs are optional
+    if(opStatus == RC_FILE_NOT_FOUND) {
+        return RC_SUCCESS;
+    }
+
+    return opStatus;
+}
+
+static void* serverThreadStart() {
+    std::shared_ptr<RequestQueue> requestQueue = RequestQueue::getInstance();
+
+    // Initialize CocoTable
+    CocoTable::getInstance();
+    while(ResourceTunerSettings::isServerOnline()) {
+        requestQueue->wait();
+    }
+
+    return nullptr;
+}
+
+static ErrCode init(void* arg=nullptr) {
+    ErrCode opStatus = RC_SUCCESS;
+
+    // Pre-Allocate Memory for Commonly used Types via Memory Pool
+    preAllocateMemory();
+
+    // Target Configs
+    opStatus = fetchTargetInfo();
+    if(RC_IS_NOTOK(opStatus)) {
+        return opStatus;
+    }
+
+    // Fetch and Parse:
+    // - Init Configs
+    opStatus = fetchInitInfo();
+    if(RC_IS_NOTOK(opStatus)) {
+        return opStatus;
+    }
 
     // Fetch and Parse Resource Configs
     // Resource Parsing which will be considered:
@@ -316,7 +294,7 @@ static ErrCode initServer() {
 
     // Create the Processor thread:
     try {
-        serverThread = std::thread(TunerServerThread);
+        serverThread = std::thread(serverThreadStart);
     } catch(const std::system_error& e) {
         TYPELOGV(SYSTEM_THREAD_CREATION_FAILURE, "Server", e.what());
         opStatus = RC_MODULE_INIT_FAILURE;
@@ -328,7 +306,7 @@ static ErrCode initServer() {
     return opStatus;
 }
 
-static ErrCode terminateServer() {
+static ErrCode terminate(void* arg=nullptr) {
     // Check if the thread is joinable, to prevent undefined behaviour
     if(serverThread.joinable()) {
         RequestQueue::getInstance()->forcefulAwake();
@@ -339,7 +317,5 @@ static ErrCode terminateServer() {
     return RC_SUCCESS;
 }
 
-RESTUNE_REGISTER_MODULE(MOD_CORE,
-                        initServer,
-                        terminateServer,
-                        submitResourceProvisioningRequest);
+RESTUNE_REGISTER_MODULE(MOD_CORE, init, terminate, submitResProvisionRequest);
+RESTUNE_REGISTER_EVENT_CALLBACK(PROP_ON_MSG_RECV, submitPropRequest);

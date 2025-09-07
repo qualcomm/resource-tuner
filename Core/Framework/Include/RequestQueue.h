@@ -7,6 +7,7 @@
 #include "Utils.h"
 #include "Request.h"
 #include "OrderedQueue.h"
+#include "RequestManager.h"
 
 class RequestQueue : public OrderedQueue {
 private:

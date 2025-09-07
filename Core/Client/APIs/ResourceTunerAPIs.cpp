@@ -69,10 +69,10 @@ int64_t tuneResources(int64_t duration, int32_t properties, int32_t numRes, SysR
             ASSIGN_AND_INCR(ptr, VALIDATE_GT(resource.mNumValues, 0));
 
             if(resource.mNumValues == 1) {
-                ASSIGN_AND_INCR(ptr, VALIDATE_GE(resource.mResValue.value, 0));
+                ASSIGN_AND_INCR(ptr, resource.mResValue.value);
             } else {
                 for(int32_t j = 0; j < resource.mNumValues; j++) {
-                    ASSIGN_AND_INCR(ptr, VALIDATE_GE(resource.mResValue.values[j], 0));
+                    ASSIGN_AND_INCR(ptr, resource.mResValue.values[j]);
                 }
             }
         }
@@ -219,30 +219,7 @@ int8_t getProp(const char* prop, char* buffer, size_t bufferSize, const char* de
 
         ASSIGN_AND_INCR(charPointer, '\0');
 
-        charIterator = "";
-
-        while(*charIterator != '\0') {
-            ASSIGN_AND_INCR(charPointer, *charIterator);
-            charIterator++;
-        }
-
-        ASSIGN_AND_INCR(charPointer, '\0');
-
-        charIterator = defValue;
-
-        while(*charIterator != '\0') {
-            ASSIGN_AND_INCR(charPointer, *charIterator);
-            charIterator++;
-        }
-
-        ASSIGN_AND_INCR(charPointer, '\0');
-
-        int32_t* ptr = (int32_t*)charPointer;
-
-        ASSIGN_AND_INCR(ptr, (int32_t)getpid());
-        ASSIGN_AND_INCR(ptr, (int32_t)gettid());
-
-        uint64_t* ptr64 = (uint64_t*)ptr;
+        uint64_t* ptr64 = (uint64_t*)charPointer;
         ASSIGN_AND_INCR(ptr64, bufferSize);
 
         if(conn == nullptr || RC_IS_NOTOK(conn->initiateConnection())) {
@@ -260,7 +237,13 @@ int8_t getProp(const char* prop, char* buffer, size_t bufferSize, const char* de
         }
 
         buffer[bufferSize - 1] = '\0';
-        strncpy(buffer, resultBuf, bufferSize - 1);
+        if(strncmp(resultBuf, "na", 2) == 0) {
+            // Copy default value
+            strncpy(buffer, defValue, bufferSize - 1);
+        } else {
+            strncpy(buffer, resultBuf, bufferSize - 1);
+        }
+
 
         return 0;
 
@@ -290,7 +273,7 @@ int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t properties,
 
         char buf[1024];
         int8_t* ptr8 = (int8_t*)buf;
-        ASSIGN_AND_INCR(ptr8, SIGNAL_ACQ);
+        ASSIGN_AND_INCR(ptr8, REQ_SIGNAL_TUNING);
 
         int32_t* ptr = (int32_t*)ptr8;
         ASSIGN_AND_INCR(ptr, signalID);
@@ -371,7 +354,7 @@ int8_t untuneSignal(int64_t handle) {
 
         char buf[1024];
         int8_t* ptr8 = (int8_t*)buf;
-        ASSIGN_AND_INCR(ptr8, SIGNAL_ACQ);
+        ASSIGN_AND_INCR(ptr8, REQ_SIGNAL_TUNING);
 
         int32_t* ptr = (int32_t*)ptr8;
         ASSIGN_AND_INCR(ptr, 0);
@@ -440,7 +423,7 @@ int8_t relaySignal(uint32_t signalID, int64_t duration, int32_t properties,
 
         char buf[1024];
         int8_t* ptr8 = (int8_t*)buf;
-        ASSIGN_AND_INCR(ptr8, SIGNAL_RELAY);
+        ASSIGN_AND_INCR(ptr8, REQ_SIGNAL_RELAY);
 
         int32_t* ptr = (int32_t*)ptr8;
         ASSIGN_AND_INCR(ptr, signalID);

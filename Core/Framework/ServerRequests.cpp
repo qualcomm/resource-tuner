@@ -1,8 +1,7 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <pthread.h>
-#include "ServerRequests.h"
+#include "ServerInternal.h"
 
 static int8_t getRequestPriority(int8_t clientPermissions, int8_t reqSpecifiedPriority) {
     if(clientPermissions == PERMISSION_SYSTEM) {
@@ -306,33 +305,76 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
     }
 }
 
-void submitResourceProvisioningRequest(Request* request, int8_t isValidated) {
+ErrCode submitResProvisionRequest(Request* request, int8_t isValidated) {
     processIncomingRequest(request, isValidated);
+    return RC_SUCCESS;
 }
 
-void submitResourceProvisioningRequest(void* msg) {
+ErrCode submitResProvisionRequest(void* msg) {
+    if(msg == nullptr) return RC_BAD_ARG;
+
+    ErrCode opStatus = RC_SUCCESS;
     MsgForwardInfo* info = (MsgForwardInfo*) msg;
-    if(info == nullptr) return;
-
     Request* request = nullptr;
-    try {
-        request = new (GetBlock<Request>()) Request();
 
-    } catch(const std::bad_alloc& e) {
-        TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE, e.what());
-        return;
+    if(RC_IS_OK(opStatus)) {
+        if(info == nullptr) {
+            opStatus = RC_BAD_ARG;
+        }
     }
 
-    if(RC_IS_NOTOK(request->deserialize(info->buffer))) {
-        Request::cleanUpRequest(request);
-        return;
+    if(RC_IS_OK(opStatus)) {
+        try {
+            request = new (GetBlock<Request>()) Request();
+            opStatus = request->deserialize(info->buffer);
+            if(RC_IS_NOTOK(opStatus)) {
+                Request::cleanUpRequest(request);
+            }
+
+        } catch(const std::bad_alloc& e) {
+            TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE, e.what());
+            opStatus = RC_MEMORY_ALLOCATION_FAILURE;
+        }
     }
 
-    if(request->getRequestType() == REQ_RESOURCE_TUNING) {
-        request->setHandle(info->handle);
+    if(RC_IS_OK(opStatus)) {
+        if(request->getRequestType() == REQ_RESOURCE_TUNING) {
+            request->setHandle(info->handle);
+        }
+        processIncomingRequest(request);
     }
 
-    processIncomingRequest(request);
+    if(info != nullptr) {
+        FreeBlock<char[REQ_BUFFER_SIZE]>(info->buffer);
+        FreeBlock<MsgForwardInfo>(info);
+    }
+
+    return RC_SUCCESS;
+}
+
+int8_t submitPropGetRequest(const std::string& prop,
+                            std::string& buffer,
+                            const std::string& defaultValue) {
+    std::string propertyName(prop);
+    std::string result = "";
+
+    int8_t propFound = false;
+    if((propFound = PropertiesRegistry::getInstance()->queryProperty(propertyName, result)) == false) {
+        result = defaultValue;
+    }
+
+    buffer = result;
+    return propFound;
+}
+
+ErrCode submitPropRequest(void* context) {
+    if(context == nullptr) return RC_BAD_ARG;
+    PropConfig* propConfig = static_cast<PropConfig*>(context);
+
+    const char* defaultValue = "na";
+    submitPropGetRequest(propConfig->mPropName, propConfig->mResult, defaultValue);
+
+    return RC_SUCCESS;
 }
 
 void toggleDisplayModes() {
@@ -360,103 +402,4 @@ void toggleDisplayModes() {
 
     // Restart Request Processing
     RequestManager::getInstance()->floodInRequestsForProcessing();
-}
-
-void RequestQueue::orderedQueueConsumerHook() {
-    std::shared_ptr<RequestManager> requestManager = RequestManager::getInstance();
-    std::shared_ptr<CocoTable> cocoTable = CocoTable::getInstance();
-
-    while(this->hasPendingTasks()) {
-        Message* message = this->pop();
-        if(message == nullptr) {
-            continue;
-        }
-
-        // This is a custom Request used to clean up the Server.
-        if(message->getPriority() == SERVER_CLEANUP_TRIGGER_PRIORITY) {
-            LOGI("RESTUNE_SERVER_REQUESTS", "Called Cleanup Request");
-            return;
-        }
-
-        Request* req = dynamic_cast<Request*>(message);
-        if(req == nullptr) {
-            continue;
-        }
-
-        // Check for System Mode and Request Compatability
-        uint8_t currentMode = ResourceTunerSettings::targetConfigs.currMode;
-        if((currentMode == MODE_DISPLAY_OFF || currentMode == MODE_DOZE) && !req->isBackgroundProcessingEnabled()) {
-            // Cannot continue with this Request
-            LOGD("RESTUNE_SERVER_REQUESTS", "Request cannot be processed in current mode");
-            continue;
-        }
-
-        if(req->getRequestType() == REQ_RESOURCE_TUNING) {
-            int64_t requestProcessingStatus = requestManager->getRequestProcessingStatus(req->getHandle());
-            // Find better status code
-            if(requestProcessingStatus == REQ_CANCELLED || requestProcessingStatus == REQ_COMPLETED) {
-                // Request has already been untuned or expired (Edge Cases)
-                // No need to process it again.
-                continue;
-            }
-
-            requestManager->markRequestAsComplete(req->getHandle());
-            if(!cocoTable->insertRequest(req)) {
-                // Request could not be inserted, clean it up.
-                Request::cleanUpRequest(req);
-            }
-
-        } else {
-            // For Tune and Untune Requests, get the Corresponding Tune Request from the RequestManager
-            Request* correspondingTuneRequest = requestManager->getRequestFromMap(req->getHandle());
-
-            if(correspondingTuneRequest == nullptr) {
-                // Note by this point, the Client is ascertained to be in the Client Data Manager Table
-                LOGD("RESTUNE_SERVER_REQUESTS", "Corresponding Tune Request Not Found, Dropping");
-
-                Request::cleanUpRequest(req);
-                continue;
-            }
-
-            if(correspondingTuneRequest->getClientPID() != req->getClientPID()) {
-                LOGI("RESTUNE_SERVER_REQUESTS",
-                     "Corresponding Tune Request issued by different Client, Dropping Request.");
-
-                // Free Up the Request
-                Request::cleanUpRequest(req);
-                return;
-            }
-
-            if(req->getRequestType() == REQ_RESOURCE_UNTUNING) {
-                cocoTable->removeRequest(correspondingTuneRequest);
-                requestManager->removeRequest(correspondingTuneRequest);
-
-                // Free Up the Untune Request
-                Request::cleanUpRequest(req);
-
-                // Free up the Corresponding Tune Request Resources
-                Request::cleanUpRequest(correspondingTuneRequest);
-
-            } else if(req->getRequestType() == REQ_RESOURCE_RETUNING) {
-                int64_t newDuration = req->getDuration();
-                cocoTable->updateRequest(correspondingTuneRequest, newDuration);
-
-                // Free Up the Retune Request
-                Request::cleanUpRequest(req);
-            }
-        }
-    }
-}
-
-void* TunerServerThread() {
-    pthread_setname_np(pthread_self(), "TunerServer");
-    std::shared_ptr<RequestQueue> requestQueue = RequestQueue::getInstance();
-
-    // Initialize CocoTable
-    CocoTable::getInstance();
-    while(ResourceTunerSettings::isServerOnline()) {
-        requestQueue->wait();
-    }
-
-    return nullptr;
 }

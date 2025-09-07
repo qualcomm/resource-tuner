@@ -3,37 +3,58 @@
 
 #include "ComponentRegistry.h"
 
-std::unordered_map<ModuleIdentifier, ModuleCallbacks> ComponentRegistry::mModuleCallbacks{};
+std::unordered_map<EventIdentifier, EventCallback> ComponentRegistry::mEventCallbacks{};
+std::unordered_map<ModuleIdentifier, int8_t> ComponentRegistry::mModuleRegistry{};
 
-ComponentRegistry::ComponentRegistry(ModuleIdentifier moduleIdentifier,
-                               ModuleCallback registrationCallback,
-                               ModuleCallback terardownCallback,
-                               ModuleMessageHandlerCallback messageHandlerCallback) {
-    mModuleCallbacks[moduleIdentifier] = {
-        .initCallback = registrationCallback,
-        .teardownCallback = terardownCallback,
-        .messageHandlerCallback = messageHandlerCallback,
-    };
+ComponentRegistry::ComponentRegistry(EventIdentifier eventIdentifier, EventCallback onMsgRecv) {
+    if(onMsgRecv == nullptr) {
+        return;
+    }
+
+    mEventCallbacks[eventIdentifier] = onMsgRecv;
+}
+
+ComponentRegistry::ComponentRegistry(
+                               ModuleIdentifier moduleIdentifier,
+                               EventCallback init,
+                               EventCallback teardown,
+                               EventCallback onMsgRecv) {
+    if(init == nullptr || teardown == nullptr || onMsgRecv == nullptr) {
+        return;
+    }
+
+    switch(moduleIdentifier) {
+        case ModuleIdentifier::MOD_CORE: {
+            mEventCallbacks[MOD_CORE_INIT] = init;
+            mEventCallbacks[MOD_CORE_TEAR] = teardown;
+            mEventCallbacks[MOD_CORE_ON_MSG_RECV] = onMsgRecv;
+            break;
+        }
+        case ModuleIdentifier::MOD_SIGNAL: {
+            mEventCallbacks[MOD_SIGNAL_INIT] = init;
+            mEventCallbacks[MOD_SIGNAL_TEAR] = teardown;
+            mEventCallbacks[MOD_SIGNAL_ON_MSG_RECV] = onMsgRecv;
+            break;
+        }
+        default:
+            return;
+    }
+
+    mModuleRegistry[moduleIdentifier] = true;
 }
 
 int8_t ComponentRegistry::isModuleEnabled(ModuleIdentifier moduleIdentifier) {
-    if(mModuleCallbacks.find(moduleIdentifier) == mModuleCallbacks.end()) {
+    if(mModuleRegistry.find(moduleIdentifier) == mModuleRegistry.end()) {
         return false;
     }
 
-    return (mModuleCallbacks[moduleIdentifier].initCallback != nullptr) &&
-           (mModuleCallbacks[moduleIdentifier].teardownCallback != nullptr) &&
-           (mModuleCallbacks[moduleIdentifier].messageHandlerCallback != nullptr);
+    return mModuleRegistry[moduleIdentifier];
 }
 
-ModuleCallback ComponentRegistry::getModuleRegistrationCallback(ModuleIdentifier moduleIdentifier) {
-    return mModuleCallbacks.at(moduleIdentifier).initCallback;
-}
+EventCallback ComponentRegistry::getEventCallback(EventIdentifier eventIdentifier) {
+    if(mEventCallbacks.find(eventIdentifier) == mEventCallbacks.end()) {
+        return nullptr;
+    }
 
-ModuleCallback ComponentRegistry::getModuleTeardownCallback(ModuleIdentifier moduleIdentifier) {
-    return mModuleCallbacks.at(moduleIdentifier).teardownCallback;
-}
-
-ModuleMessageHandlerCallback ComponentRegistry::getModuleMessageHandlerCallback(ModuleIdentifier moduleIdentifier) {
-    return mModuleCallbacks.at(moduleIdentifier).messageHandlerCallback;
+    return mEventCallbacks[eventIdentifier];
 }

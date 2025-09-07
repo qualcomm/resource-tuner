@@ -56,8 +56,8 @@ public:
     * @details This routine is used by the retune/untune APIs
     * @param handle Request Handle
     * @return: int8_t
-    *                   1: if a request with the specified handle exists
-    *                   0: otherwise
+    *             1: if a request with the specified handle exists
+    *             0: otherwise
     */
     int8_t verifyHandle(int64_t handle);
 
@@ -66,8 +66,8 @@ public:
     * @details This routine will perform Request Sanity and Duplicate checking.
     * @param request pointer to the request to be added to the map
     * @return: int8_t
-    *                   1: if the request should be added
-    *                   0: otherwise
+    *             1: if the request should be added
+    *             0: otherwise
     */
     int8_t shouldRequestBeAdded(Request* request);
 
@@ -81,7 +81,6 @@ public:
     /**
     * @brief Remove a given request from the RequestMap
     * @param request pointer to the request to be removed from the map
-    * @return: void
     */
     void removeRequest(Request* request);
 

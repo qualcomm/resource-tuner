@@ -6,15 +6,22 @@
 // Create all the CGroups specified via InitConfig.yaml during the init phase.
 static ErrCode createCGroup(CGroupConfigInfo* cGroupConfig) {
     if(cGroupConfig == nullptr) return RC_BAD_ARG;
+    if(!cGroupConfig->mCreationNeeded) return RC_SUCCESS;
 
     std::string cGroupPath = ResourceTunerSettings::mBaseCGroupPath + cGroupConfig->mCgroupName;
     if(mkdir(cGroupPath.c_str(), 0755) == 0) {
-        if(cGroupConfig->isThreaded) {
+        if(cGroupConfig->mIsThreaded) {
             AuxRoutines::writeToFile(cGroupPath + "/cgroup.type", "threaded");
         }
     } else {
         TYPELOGV(ERRNO_LOG, "mkdir", strerror(errno));
     }
+
+    return RC_SUCCESS;
+}
+
+static ErrCode createMpamGroup(MpamGroupConfigInfo* mpamGroupConfig) {
+    if(mpamGroupConfig == nullptr) return RC_BAD_ARG;
 
     return RC_SUCCESS;
 }
@@ -86,7 +93,7 @@ static ErrCode readRelatedCpus(const std::string& policyPath,
 }
 
 // Get the capacity of a cpu, indexed by it's integer ID.
-static int32_t readCpuCapacity(int8_t cpuID) {
+static int32_t readCpuCapacity(int32_t cpuID) {
     char filePath[128];
     snprintf(filePath, sizeof(filePath), CPU_CAPACITY_FILE_PATH, cpuID);
     std::string capacityString = AuxRoutines::readFromFile(filePath);
@@ -106,10 +113,10 @@ void TargetRegistry::generatePolicyBasedMapping(std::vector<std::string>& policy
     std::sort(policyDirs.begin(), policyDirs.end());
 
     // Number of policy directories, is equivalent to number of clusters
-    ResourceTunerSettings::targetConfigs.totalClusterCount = policyDirs.size();
+    ResourceTunerSettings::targetConfigs.mTotalClusterCount = policyDirs.size();
 
     // Next, get the list of cpus corresponding to each cluster
-    std::vector<std::pair<int32_t, ClusterInfo*>> clusterConfigs;
+    std::vector<std::pair<int32_t, std::pair<int32_t, ClusterInfo*>>> clusterConfigs;
 
     int8_t physicalClusterId = 0;
     for(const std::string& dirName : policyDirs) {
@@ -120,19 +127,23 @@ void TargetRegistry::generatePolicyBasedMapping(std::vector<std::string>& policy
             int32_t clusterCapacity = 0;
             ClusterInfo* clusterInfo = new ClusterInfo;
             clusterInfo->mPhysicalID = physicalClusterId;
-            clusterInfo->mCpuList = cpuList;
             clusterInfo->mNumCpus = cpuList->size();
 
             if(!cpuList->empty()) {
                 // If this cluster has a non-zero number of cores, then
                 // proceed with determining the Cluster Capcity
-                int8_t cpuID = (*cpuList)[0];
+                int32_t cpuID = (*cpuList)[0];
+                clusterInfo->mStartCpu = cpuID;
+                for(int32_t i = 0; i < cpuList->size(); i++) {
+                    clusterInfo->mStartCpu = std::min(clusterInfo->mStartCpu, (*cpuList)[i]);
+                }
+
                 clusterCapacity = readCpuCapacity(cpuID);
             }
 
             clusterInfo->mCapacity = clusterCapacity;
-            clusterConfigs.push_back({clusterCapacity, clusterInfo});
-            this->mPhysicalClusters[physicalClusterId] = clusterInfo;
+            clusterConfigs.push_back({clusterCapacity, {clusterInfo->mPhysicalID, clusterInfo}});
+            this->mPhysicalClusters[clusterInfo->mPhysicalID] = clusterInfo;
             physicalClusterId += cpuList->size();
         }
     }
@@ -142,7 +153,7 @@ void TargetRegistry::generatePolicyBasedMapping(std::vector<std::string>& policy
     // Now, Create the Logical to Physical Mappings
     // Note the Clusters are arranged in increasing order of Capacities
     for(int32_t i = 0; i < clusterConfigs.size(); i++) {
-        this->mLogicalToPhysicalClusterMapping[i] = clusterConfigs[i].second->mPhysicalID;
+        this->mLogicalToPhysicalClusterMapping[i] = clusterConfigs[i].second.second->mPhysicalID;
     }
 }
 
@@ -184,7 +195,7 @@ void TargetRegistry::getClusterIdBasedMapping() {
 
     closedir(dir);
 
-    ResourceTunerSettings::targetConfigs.totalClusterCount = clusterToCoreMap.size();
+    ResourceTunerSettings::targetConfigs.mTotalClusterCount = clusterToCoreMap.size();
 
     for(std::pair<int32_t, std::vector<int32_t>> entry: clusterToCoreMap) {
         int32_t clusterID = entry.first;
@@ -194,11 +205,9 @@ void TargetRegistry::getClusterIdBasedMapping() {
 
         if(entry.second.size() > 0) {
             clusterInfo->mStartCpu = entry.second[0];
-            clusterInfo->mCpuList = new std::vector<int32_t>;
 
             for(int32_t cpu: entry.second) {
                 clusterInfo->mStartCpu = std::min(clusterInfo->mStartCpu, cpu);
-                clusterInfo->mCpuList->push_back(cpu);
             }
         }
         this->mPhysicalClusters[clusterID] = clusterInfo;
@@ -209,11 +218,10 @@ void TargetRegistry::getClusterIdBasedMapping() {
 
     for(std::pair<int32_t, ClusterInfo*> entry: this->mPhysicalClusters) {
         int32_t clusterCapacity = 0;
-        if(entry.second->mCpuList != nullptr && !entry.second->mCpuList->empty()) {
+        if(entry.second != nullptr) {
             // If this cluster has a non-zero number of cores, then
             // proceed with determining the Cluster Capcity
-            int32_t cpuID = (*entry.second->mCpuList)[0];
-            clusterCapacity = readCpuCapacity(cpuID);
+            clusterCapacity = readCpuCapacity(entry.second->mStartCpu);
         }
         clusterConfigs.push_back({clusterCapacity, entry.second});
     }
@@ -230,18 +238,35 @@ void TargetRegistry::getClusterIdBasedMapping() {
 std::shared_ptr<TargetRegistry> TargetRegistry::targetRegistryInstance = nullptr;
 TargetRegistry::TargetRegistry() {}
 
-void TargetRegistry::readTargetInfo() {
-    // Mechanism 1: Check if the User has provided a custom TargetConfig.yaml file
-    if(this->mPhysicalClusters.size() > 0) {
-        // This case should only be hit if the Target Info has already been provided
-        // via the TargetConfig.yaml file, no need to dynamically fetch Target Info.
+void TargetRegistry::addClusterMapping(int32_t logicalID, int32_t physicalID) {
+    if(this->mPhysicalClusters.find(physicalID) == this->mPhysicalClusters.end()) {
+        ClusterInfo* clusterInfo = new ClusterInfo;
+
+        clusterInfo->mPhysicalID = physicalID;
+        clusterInfo->mNumCpus = 0;
+        clusterInfo->mCapacity = 0;
+        clusterInfo->mStartCpu = physicalID;
+
+        this->mPhysicalClusters[physicalID] = clusterInfo;
+    }
+
+    this->mLogicalToPhysicalClusterMapping[logicalID] = physicalID;
+    ResourceTunerSettings::targetConfigs.mTotalClusterCount = this->mPhysicalClusters.size();
+}
+
+void TargetRegistry::addClusterSpreadInfo(int32_t physicalID, int32_t numCores) {
+    if(this->mPhysicalClusters.find(physicalID) == this->mPhysicalClusters.end()) {
         return;
     }
 
-    // Get the Online Core Count
-    ResourceTunerSettings::targetConfigs.totalCoreCount = getOnlineCpuCount();
+    this->mPhysicalClusters[physicalID]->mNumCpus = numCores;
+}
 
-    // Mechanism 2: Check if cpufreq/policy directories are available,
+void TargetRegistry::readTargetInfo() {
+    // Get the Online Core Count
+    ResourceTunerSettings::targetConfigs.mTotalCoreCount = getOnlineCpuCount();
+
+    // Check if cpufreq/policy directories are available,
     // If yes, we'll use them to generate the mapping info.
 
     // Get the list of all the policy/ directories
@@ -266,9 +291,15 @@ void TargetRegistry::readTargetInfo() {
         return;
     }
 
-    // Mechanism 3, Fallback:
+    // Fallback:
     // Generate mapping using topology/cluster_id node
     this->getClusterIdBasedMapping();
+}
+
+void TargetRegistry::getClusterIDs(std::vector<int32_t>& clusterIDs) {
+    for(std::pair<int32_t, int32_t> info: this->mLogicalToPhysicalClusterMapping) {
+        clusterIDs.push_back(info.second);
+    }
 }
 
 // Get the Physical Cluster corresponding to a Logical Cluster Id.
@@ -301,72 +332,48 @@ int32_t TargetRegistry::getPhysicalCoreId(int32_t logicalClusterId, int32_t logi
         return -1;
     }
 
-    if(clusterInfo->mCpuList != nullptr) {
-        return (*clusterInfo->mCpuList)[logicalCoreCount - 1];
-    }
     return clusterInfo->mStartCpu + logicalCoreCount - 1;
 }
 
 void TargetRegistry::getCGroupNames(std::vector<std::string>& cGroupNames) {
-    for(std::pair<int8_t, CGroupConfigInfo*> cGroup: this->mCGroupMapping) {
+    for(std::pair<int32_t, CGroupConfigInfo*> cGroup: this->mCGroupMapping) {
         cGroupNames.push_back(cGroup.second->mCgroupName);
     }
 }
 
-CGroupConfigInfo* TargetRegistry::getCGroupConfig(int8_t cGroupID) {
+CGroupConfigInfo* TargetRegistry::getCGroupConfig(int32_t cGroupID) {
     return this->mCGroupMapping[cGroupID];
-}
-
-void TargetRegistry::getClusterIDs(std::vector<int32_t>& clusterIDs) {
-    for(std::pair<int32_t, int32_t> info: this->mLogicalToPhysicalClusterMapping) {
-        clusterIDs.push_back(info.second);
-    }
 }
 
 int32_t TargetRegistry::getCreatedCGroupsCount() {
     return this->mCGroupMapping.size();
 }
 
-void TargetRegistry::addClusterMapping(int32_t logicalID, int32_t physicalID) {
-    ClusterInfo* clusterInfo = new ClusterInfo;
 
-    clusterInfo->mPhysicalID = physicalID;
-    clusterInfo->mNumCpus = 0;
-    clusterInfo->mCapacity = 0;
-    clusterInfo->mStartCpu = physicalID;
-    clusterInfo->mCpuList = nullptr;
-
-    this->mPhysicalClusters[physicalID] = clusterInfo;
-    this->mLogicalToPhysicalClusterMapping[logicalID] = physicalID;
-
-    ResourceTunerSettings::targetConfigs.totalClusterCount = this->mPhysicalClusters.size();
+void TargetRegistry::getMpamGroupNames(std::vector<std::string>& mpamGroupNames) {
+    for(std::pair<int32_t, MpamGroupConfigInfo*> mpamGroup: this->mMpamGroupMapping) {
+        mpamGroupNames.push_back(mpamGroup.second->mMpamGroupName);
+    }
 }
 
-void TargetRegistry::addClusterSpreadInfo(int32_t physicalID, int32_t numCores) {
-    if(this->mPhysicalClusters.find(physicalID) == this->mPhysicalClusters.end()) {
-        return;
-    }
-    this->mPhysicalClusters[physicalID]->mNumCpus = numCores;
-    ResourceTunerSettings::targetConfigs.totalCoreCount += numCores;
+MpamGroupConfigInfo* TargetRegistry::getMpamGroupConfig(int32_t mpamGroupID) {
+    return this->mMpamGroupMapping[mpamGroupID];
+}
+
+int32_t TargetRegistry::getCreatedMpamGroupsCount() {
+    return this->mMpamGroupMapping.size();
 }
 
 void TargetRegistry::displayTargetInfo() {
     LOGI("RESTUNE_SERVER_INIT", "Displaying Target Info");
-    LOGI("RESTUNE_SERVER_INIT", "Number of Cores = " + std::to_string(ResourceTunerSettings::targetConfigs.totalCoreCount));
-    LOGI("RESTUNE_SERVER_INIT", "Number of Clusters = " + std::to_string(ResourceTunerSettings::targetConfigs.totalClusterCount));
+    LOGI("RESTUNE_SERVER_INIT", "Number of Cores = " + std::to_string(ResourceTunerSettings::targetConfigs.mTotalCoreCount));
+    LOGI("RESTUNE_SERVER_INIT", "Number of Clusters = " + std::to_string(ResourceTunerSettings::targetConfigs.mTotalClusterCount));
 
     for(std::pair<int32_t, ClusterInfo*> cluster: this->mPhysicalClusters) {
         LOGI("RESTUNE_SERVER_INIT", "Physical ID of cluster: " + std::to_string(cluster.first));
         LOGI("RESTUNE_SERVER_INIT", "Number of Cores in cluster: " + std::to_string(cluster.second->mNumCpus));
         LOGI("RESTUNE_SERVER_INIT", "Starting CPU in this cluster: " + std::to_string(cluster.second->mStartCpu));
         LOGI("RESTUNE_SERVER_INIT", "Cluster Capacity: " + std::to_string(cluster.second->mCapacity));
-
-        if(cluster.second->mCpuList != nullptr) {
-            LOGI("RESTUNE_SERVER_INIT", "List of CPUs in this cluster: ");
-            for(int32_t i = 0; i < cluster.second->mNumCpus; i++) {
-                LOGI("RESTUNE_SERVER_INIT", std::to_string((*cluster.second->mCpuList)[i]));
-            }
-        }
     }
 }
 
@@ -381,42 +388,6 @@ TargetRegistry::~TargetRegistry() {
     }
 }
 
-// Methods for Building CGroup Config from InitConfigs.yaml
-CGroupConfigInfoBuilder::CGroupConfigInfoBuilder() {
-    this->mCGroupConfigInfo = new CGroupConfigInfo;
-}
-
-CGroupConfigInfoBuilder* CGroupConfigInfoBuilder::setCGroupName(const std::string& cGroupName) {
-    if(this->mCGroupConfigInfo == nullptr) {
-        return this;
-    }
-
-    this->mCGroupConfigInfo->mCgroupName = cGroupName;
-    return this;
-}
-
-CGroupConfigInfoBuilder* CGroupConfigInfoBuilder::setCGroupID(int8_t cGroupIdentifier) {
-    if(this->mCGroupConfigInfo == nullptr) {
-        return this;
-    }
-
-    this->mCGroupConfigInfo->mCgroupID = cGroupIdentifier;
-    return this;
-}
-
-CGroupConfigInfoBuilder* CGroupConfigInfoBuilder::setThreaded(int8_t isThreaded) {
-    if(this->mCGroupConfigInfo == nullptr) {
-        return this;
-    }
-
-    this->mCGroupConfigInfo->isThreaded = isThreaded;
-    return this;
-}
-
-CGroupConfigInfo* CGroupConfigInfoBuilder::build() {
-    return this->mCGroupConfigInfo;
-}
-
 void TargetRegistry::addCGroupMapping(CGroupConfigInfo* cGroupConfigInfo) {
     if(cGroupConfigInfo == nullptr) return;
 
@@ -428,4 +399,143 @@ void TargetRegistry::addCGroupMapping(CGroupConfigInfo* cGroupConfigInfo) {
     if(RC_IS_OK(createCGroup(cGroupConfigInfo))) {
         this->mCGroupMapping[cGroupConfigInfo->mCgroupID] = cGroupConfigInfo;
     }
+}
+
+void TargetRegistry::addMpamGroupMapping(MpamGroupConfigInfo* mpamGroupConfigInfo) {
+    if(mpamGroupConfigInfo == nullptr) return;
+
+    if(mpamGroupConfigInfo->mMpamGroupInfoID == -1 || mpamGroupConfigInfo->mMpamGroupName.length() == 0) {
+        delete mpamGroupConfigInfo;
+        return;
+    }
+
+    if(RC_IS_OK(createMpamGroup(mpamGroupConfigInfo))) {
+        this->mMpamGroupMapping[mpamGroupConfigInfo->mMpamGroupInfoID] = mpamGroupConfigInfo;
+    }
+}
+
+void TargetRegistry::addCacheInfoMapping(CacheInfo* cacheInfo) {
+    if(cacheInfo == nullptr) return;
+
+    if(cacheInfo->mCacheType.length() == 0 || cacheInfo->mNumCacheBlocks == -1) {
+        delete cacheInfo;
+        return;
+    }
+
+    this->mCacheInfoMapping[cacheInfo->mCacheType] = cacheInfo;
+}
+
+// Methods for Building CGroup Config from InitConfigs.yaml
+CGroupConfigInfoBuilder::CGroupConfigInfoBuilder() {
+    this->mCGroupConfigInfo = new(std::nothrow) CGroupConfigInfo;
+}
+
+ErrCode CGroupConfigInfoBuilder::setCGroupName(const std::string& name) {
+    if(this->mCGroupConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
+
+    this->mCGroupConfigInfo->mCgroupName = name;
+    return RC_SUCCESS;
+}
+
+ErrCode CGroupConfigInfoBuilder::setCGroupID(int32_t cGroupID) {
+    if(this->mCGroupConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
+
+    this->mCGroupConfigInfo->mCgroupID = cGroupID;
+    return RC_SUCCESS;
+}
+
+ErrCode CGroupConfigInfoBuilder::setCreationNeeded(int8_t creationNeeded) {
+    if(this->mCGroupConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
+
+    this->mCGroupConfigInfo->mCreationNeeded = creationNeeded;
+    return RC_SUCCESS;
+}
+
+ErrCode CGroupConfigInfoBuilder::setThreaded(int8_t isThreaded) {
+    if(this->mCGroupConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
+
+    this->mCGroupConfigInfo->mIsThreaded = isThreaded;
+    return RC_SUCCESS;
+}
+
+CGroupConfigInfo* CGroupConfigInfoBuilder::build() {
+    return this->mCGroupConfigInfo;
+}
+
+MpamGroupConfigInfoBuilder::MpamGroupConfigInfoBuilder() {
+    this->mMpamGroupInfo = new(std::nothrow) MpamGroupConfigInfo;
+}
+
+ErrCode MpamGroupConfigInfoBuilder::setName(const std::string& name) {
+    if(this->mMpamGroupInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
+
+    this->mMpamGroupInfo->mMpamGroupName = name;
+    return RC_SUCCESS;
+}
+
+ErrCode MpamGroupConfigInfoBuilder::setLgcID(int32_t logicalID) {
+    if(this->mMpamGroupInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
+
+    this->mMpamGroupInfo->mMpamGroupInfoID = logicalID;
+    return RC_SUCCESS;
+}
+
+ErrCode MpamGroupConfigInfoBuilder::setPriority(int32_t priority) {
+    if(this->mMpamGroupInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
+
+    this->mMpamGroupInfo->mPriority = priority;
+    return RC_SUCCESS;
+}
+
+MpamGroupConfigInfo* MpamGroupConfigInfoBuilder::build() {
+    return this->mMpamGroupInfo;
+}
+
+CacheInfoBuilder::CacheInfoBuilder() {
+    this->mCacheInfo = new(std::nothrow) CacheInfo;
+}
+
+ErrCode CacheInfoBuilder::setType(const std::string& type) {
+    if(this->mCacheInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
+
+    this->mCacheInfo->mCacheType = type;
+    return RC_SUCCESS;
+}
+
+ErrCode CacheInfoBuilder::setNumBlocks(int32_t numBlocks) {
+    if(this->mCacheInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
+
+    this->mCacheInfo->mNumCacheBlocks = numBlocks;
+    return RC_SUCCESS;
+}
+
+ErrCode CacheInfoBuilder::setPriorityAware(int8_t isPriorityAware) {
+    if(this->mCacheInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
+
+    this->mCacheInfo->mPriorityAware = isPriorityAware;
+    return RC_SUCCESS;
+}
+
+CacheInfo* CacheInfoBuilder::build() {
+    return this->mCacheInfo;
 }

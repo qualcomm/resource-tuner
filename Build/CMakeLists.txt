@@ -28,7 +28,7 @@ if(BUILD_SIGNALS)
 endif()
 
 if(BUILD_TESTS)
-  add_subdirectory(../Tests/Unit/Build ${CMAKE_BINARY_DIR}/TestBuild)
+  add_subdirectory(../Tests/Build ${CMAKE_BINARY_DIR}/TestBuild)
 endif()
 
 if(BUILD_CLI)
@@ -55,17 +55,10 @@ endif()
 
 target_link_libraries(resource_tuner PUBLIC Server Auxiliary SysRequestReceiver)
 
-# Test Executable
-if(BUILD_TESTS)
-  add_executable(resource_tuner_tests ../Tests/System/SystemWideTests.cpp)
-  target_link_libraries(resource_tuner_tests PUBLIC Auxiliary ClientAPIs)
-  install(TARGETS resource_tuner_tests RUNTIME DESTINATION bin)
-endif()
-
 # Install libs
 install(TARGETS resource_tuner RUNTIME DESTINATION bin)
 install(TARGETS Auxiliary SocketCommClient SocketCommServer
-        ClientAPIs SysConfigProps Server ExtAPIs
+        ClientAPIs Server ExtAPIs
         SysRequestReceiver LIBRARY DESTINATION lib)
 if(BUILD_SIGNALS)
   install(TARGETS SysSignals DESTINATION lib)
@@ -97,7 +90,7 @@ install(
 if(BUILD_TESTS)
   install(
     DIRECTORY ${CMAKE_SOURCE_DIR}/../Tests/Configs/
-    DESTINATION /etc/resource-tuner/tests/Configs/
+    DESTINATION /etc/resource-tuner/custom/
     FILES_MATCHING
     PATTERN "*.yaml"
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ

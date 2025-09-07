@@ -7,6 +7,9 @@
 #include "Utils.h"
 #include "Signal.h"
 #include "OrderedQueue.h"
+#include "ExtFeaturesRegistry.h"
+#include "ResourceRegistry.h"
+#include "ServerInternal.h"
 
 /**
  * @brief This class represents a mutex-protected multiple producer, single consumer priority queue. 

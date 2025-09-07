@@ -17,14 +17,13 @@
 #include "MemoryPool.h"
 #include "Request.h"
 #include "Signal.h"
-#include "SysConfig.h"
 #include "SafeOps.h"
 #include "ServerEndpoint.h"
+#include "ResourceTunerSettings.h"
 #include "ErrCodes.h"
 #include "Logger.h"
 
 static const uint32_t maxEvents = 128;
-static const int32_t requestBufferSize = 1024;
 
 class ResourceTunerSocketServer : public ServerEndpoint {
 private:

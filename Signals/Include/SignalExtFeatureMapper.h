@@ -4,8 +4,8 @@
 #ifndef SIGNAL_EXT_FEATURE_MAPPER_H
 #define SIGNAL_EXT_FEATURE_MAPPER_H
 
-#include <unordered_map>
 #include <vector>
+#include <unordered_map>
 #include <memory>
 
 #include "SignalRegistry.h"

@@ -11,14 +11,12 @@
 #include <sstream>
 #include <memory>
 #include <getopt.h>
-
-#include "Utils.h"
-#include "ResourceTunerAPIs.h"
-
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <sstream>
+
+#include "Utils.h"
+#include "ResourceTunerAPIs.h"
 
 int8_t parseResources(const std::string& input,
                       std::vector<std::pair<uint32_t, std::pair<int32_t, std::vector<int32_t>>>>& resourceVec) {

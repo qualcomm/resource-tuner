@@ -1,0 +1,108 @@
+if(BUILD_TESTS)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(YAMLCPP REQUIRED yaml-cpp)
+
+    add_executable(resource_tuner_tests ../Integration/IntegrationTests.cpp)
+    target_link_libraries(resource_tuner_tests PUBLIC Auxiliary ClientAPIs ${YAMLCPP_LIBRARIES})
+    target_include_directories(resource_tuner_tests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
+    target_include_directories(resource_tuner_tests PRIVATE ${YAMLCPP_INCLUDE_DIRS})
+    install(TARGETS resource_tuner_tests RUNTIME DESTINATION bin)
+
+    add_executable(YamlParserTests ../Component/Parsers/YamlParserTests.cpp)
+    target_link_libraries(YamlParserTests Auxiliary)
+    target_include_directories(YamlParserTests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
+    install(TARGETS YamlParserTests DESTINATION bin)
+
+    add_executable(MemoryPoolTests ../Component/Comp/MemoryPoolTests.cpp)
+    target_link_libraries(MemoryPoolTests Auxiliary)
+    target_include_directories(MemoryPoolTests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
+    install(TARGETS MemoryPoolTests DESTINATION bin)
+
+    add_executable(SafeOpsTests ../Component/Comp/SafeOpsTests.cpp)
+    target_link_libraries(SafeOpsTests Auxiliary)
+    target_include_directories(SafeOpsTests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
+    install(TARGETS SafeOpsTests DESTINATION bin)
+
+    add_executable(ThreadPoolTests ../Component/Comp/ThreadPoolTests.cpp)
+    target_link_libraries(ThreadPoolTests Auxiliary)
+    target_include_directories(ThreadPoolTests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
+    install(TARGETS ThreadPoolTests DESTINATION bin)
+
+    add_executable(TimerTests ../Component/Comp/TimerTests.cpp)
+    target_link_libraries(TimerTests Auxiliary)
+    target_include_directories(TimerTests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
+    install(TARGETS TimerTests DESTINATION bin)
+
+    add_executable(MiscTests ../Component/Comp/MiscTests.cpp)
+    target_link_libraries(MiscTests Auxiliary)
+    target_include_directories(MiscTests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
+    install(TARGETS MiscTests DESTINATION bin)
+
+    add_executable(ClientDataManagerTests ../Component/Comp/ClientDataManagerTests.cpp)
+    target_link_libraries(ClientDataManagerTests Auxiliary Server)
+    target_include_directories(ClientDataManagerTests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
+    install(TARGETS ClientDataManagerTests DESTINATION bin)
+
+    add_executable(RequestMapTests ../Component/Comp/RequestMapTests.cpp)
+    target_link_libraries(RequestMapTests Auxiliary Server ExtAPIs)
+    target_include_directories(RequestMapTests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
+    install(TARGETS RequestMapTests DESTINATION bin)
+
+    add_executable(RateLimiterTests ../Component/Comp/RateLimiterTests.cpp)
+    target_link_libraries(RateLimiterTests Auxiliary Server ExtAPIs)
+    target_include_directories(RateLimiterTests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
+    install(TARGETS RateLimiterTests DESTINATION bin)
+
+    add_executable(ResourceProcessorTests ../Component/Parsers/ResourceProcessorTests.cpp)
+    target_link_libraries(ResourceProcessorTests Auxiliary Server ExtAPIs)
+    target_include_directories(ResourceProcessorTests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
+    install(TARGETS ResourceProcessorTests DESTINATION bin)
+
+    add_executable(ResourceParsingTests ../Component/Parsers/ResourceParsingTests.cpp)
+    target_link_libraries(ResourceParsingTests Auxiliary Server ExtAPIs)
+    target_include_directories(ResourceParsingTests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
+    install(TARGETS ResourceParsingTests DESTINATION bin)
+
+    add_executable(TargetConfigProcessorTests ../Component/Parsers/TargetConfigProcessorTests.cpp)
+    target_link_libraries(TargetConfigProcessorTests Auxiliary Server ExtAPIs)
+    target_include_directories(TargetConfigProcessorTests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
+    install(TARGETS TargetConfigProcessorTests DESTINATION bin)
+
+    add_executable(SysConfigAPITests ../Component/Parsers/SysConfigAPITests.cpp)
+    target_link_libraries(SysConfigAPITests Auxiliary Server ExtAPIs)
+    target_include_directories(SysConfigAPITests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
+    install(TARGETS SysConfigAPITests DESTINATION bin)
+
+    add_executable(ExtensionIntfTests ../Component/Comp/ExtensionIntfTests.cpp)
+    target_link_libraries(ExtensionIntfTests Auxiliary ExtAPIs Server)
+    target_include_directories(ExtensionIntfTests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
+    install(TARGETS ExtensionIntfTests DESTINATION bin)
+
+    add_executable(InitConfigParsingTests ../Component/Parsers/InitConfigParsingTests.cpp)
+    target_link_libraries(InitConfigParsingTests Auxiliary ExtAPIs Server)
+    target_include_directories(InitConfigParsingTests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
+    install(TARGETS InitConfigParsingTests DESTINATION bin)
+
+    add_executable(CocoTableTests ../Component/Comp/CocoTableTests.cpp)
+    target_link_libraries(CocoTableTests Auxiliary ExtAPIs Server)
+    target_include_directories(CocoTableTests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
+    install(TARGETS CocoTableTests DESTINATION bin)
+
+    add_executable(DeviceInfoTests ../Component/Device/DeviceInfoTests.cpp)
+    target_link_libraries(DeviceInfoTests Auxiliary ExtAPIs Server ${YAMLCPP_LIBRARIES})
+    target_include_directories(DeviceInfoTests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
+    target_include_directories(DeviceInfoTests PRIVATE ${YAMLCPP_INCLUDE_DIRS})
+    install(TARGETS DeviceInfoTests DESTINATION bin)
+
+    if(BUILD_SIGNALS)
+        add_executable(SysSignalConfigProcessorTests ../Component/Parsers/SignalConfigProcessorTests.cpp)
+        target_link_libraries(SysSignalConfigProcessorTests Auxiliary ExtAPIs SysSignals)
+        target_include_directories(SysSignalConfigProcessorTests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
+        install(TARGETS SysSignalConfigProcessorTests DESTINATION bin)
+
+        add_executable(SignalParsingTests ../Component/Parsers/SignalParsingTests.cpp)
+        target_link_libraries(SignalParsingTests Auxiliary ExtAPIs SysSignals)
+        target_include_directories(SignalParsingTests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
+        install(TARGETS SignalParsingTests DESTINATION bin)
+    endif()
+endif()

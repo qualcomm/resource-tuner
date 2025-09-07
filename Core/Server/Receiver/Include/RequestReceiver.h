@@ -5,6 +5,7 @@
 #define REQUEST_RECEIVER_H
 
 #include <cstdint>
+#include <memory>
 #include <cstring>
 #include <fstream>
 #include <sstream>
@@ -12,12 +13,8 @@
 #include "Logger.h"
 #include "ResourceTunerSocketServer.h"
 #include "ResourceTunerSettings.h"
-#include "SysConfig.h"
-#include "SysConfigInternal.h"
 #include "AuxRoutines.h"
 #include "ComponentRegistry.h"
-
-#include <memory>
 
 /**
  * @brief RequestReceiver

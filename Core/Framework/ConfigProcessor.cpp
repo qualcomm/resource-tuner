@@ -142,31 +142,49 @@ void ConfigProcessor::parseResourceConfigYamlNode(const YAML::Node& item, int8_t
     ResourceRegistry::getInstance()->registerResource(resourceConfigInfoBuilder.build(), isBuSpecified);
 }
 
+void ConfigProcessor::parsePropertiesConfigYamlNode(const YAML::Node& item) {
+    std::string propKey = safeExtract<std::string>(item[PROP_NAME], "");
+    std::string propVal = safeExtract<std::string>(item[PROP_VALUE], "");
+
+    if(propKey.length() > 0 || propVal.length() > 0) {
+        PropertiesRegistry::getInstance()->createProperty(propKey, propVal);
+    }
+}
+
 void ConfigProcessor::parseTargetConfigYamlNode(const YAML::Node& item) {
-    if(isList(item[TARGET_CLUSTER_INFO])) {
-        for(const auto& clusterInfo : item[TARGET_CLUSTER_INFO]) {
-            int32_t logicalID;
-            int32_t physicalID;
+    int8_t isConfigForCurrentTarget = false;
+    // Check if there exists a Target Config for this particular target in the Common Configs.
+    // Skip this check if the BU has provided their own Target Configs
+    if(isList(item[TARGET_NAME_LIST])) {
+        for(const auto& targetNameInfo : item[TARGET_NAME_LIST]) {
+            std::string name = safeExtract<std::string>(targetNameInfo, "");
 
-            logicalID = safeExtract<int32_t>(clusterInfo[TARGET_CLUSTER_INFO_LOGICAL_ID], -1);
-            physicalID = safeExtract<int32_t>(clusterInfo[TARGET_CLUSTER_INFO_PHYSICAL_ID], -1);
-
-            if(logicalID != -1 && physicalID != -1) {
-                TargetRegistry::getInstance()->addClusterMapping(logicalID, physicalID);
+            if(name == "*" || name == ResourceTunerSettings::targetConfigs.targetName) {
+                isConfigForCurrentTarget = true;
             }
         }
     }
 
-    if(isList(item[TARGET_CLUSTER_SPREAD])) {
-        for(const auto& clusterSpread : item[TARGET_CLUSTER_SPREAD]) {
-            int32_t physicalID;
-            int32_t numCores;
+    if(isConfigForCurrentTarget) {
+        if(isList(item[TARGET_CLUSTER_INFO])) {
+            for(const auto& clusterInfo : item[TARGET_CLUSTER_INFO]) {
+                int32_t logicalID = safeExtract<int32_t>(clusterInfo[TARGET_CLUSTER_INFO_LOGICAL_ID], -1);
+                int32_t physicalID = safeExtract<int32_t>(clusterInfo[TARGET_CLUSTER_INFO_PHYSICAL_ID], -1);
 
-            physicalID = safeExtract<int32_t>(clusterSpread[TARGET_CLUSTER_INFO_PHYSICAL_ID], -1);
-            numCores = safeExtract<int32_t>(clusterSpread[TARGET_PER_CLUSTER_CORE_COUNT], -1);
+                if(logicalID != -1 && physicalID != -1) {
+                    TargetRegistry::getInstance()->addClusterMapping(logicalID, physicalID);
+                }
+            }
+        }
 
-            if(physicalID != -1 && numCores != -1) {
-                TargetRegistry::getInstance()->addClusterSpreadInfo(physicalID, numCores);
+        if(isList(item[TARGET_CLUSTER_SPREAD])) {
+            for(const auto& clusterSpread : item[TARGET_CLUSTER_SPREAD]) {
+                int32_t physicalID = safeExtract<int32_t>(clusterSpread[TARGET_CLUSTER_INFO_PHYSICAL_ID], -1);
+                int32_t numCores = safeExtract<int32_t>(clusterSpread[TARGET_PER_CLUSTER_CORE_COUNT], -1);
+
+                if(physicalID != -1 && numCores != -1) {
+                    TargetRegistry::getInstance()->addClusterSpreadInfo(physicalID, numCores);
+                }
             }
         }
     }
@@ -175,12 +193,104 @@ void ConfigProcessor::parseTargetConfigYamlNode(const YAML::Node& item) {
 void ConfigProcessor::parseInitConfigYamlNode(const YAML::Node& item) {
     if(isList(item[INIT_CONFIGS_CGROUPS_LIST])) {
         for(const auto& cGroupConfig : item[INIT_CONFIGS_CGROUPS_LIST]) {
+            ErrCode rc = RC_SUCCESS;
             CGroupConfigInfoBuilder cGroupConfigBuilder;
-            cGroupConfigBuilder.setCGroupName(safeExtract<std::string>(cGroupConfig[INIT_CONFIGS_CGROUP_NAME], ""));
-            cGroupConfigBuilder.setCGroupID((int8_t)(safeExtract<int8_t>(cGroupConfig[INIT_CONFIGS_CGROUP_IDENTIFIER], -1)));
-            cGroupConfigBuilder.setThreaded((int8_t)(safeExtract<bool>(cGroupConfig[INIT_CONFIGS_CGROUP_THREADED], false)));
+
+            if(RC_IS_OK(rc)) {
+                rc = cGroupConfigBuilder.setCGroupName(
+                    safeExtract<std::string>(cGroupConfig[INIT_CONFIGS_CGROUP_NAME], "")
+                );
+            }
+
+            if(RC_IS_OK(rc)) {
+                rc = cGroupConfigBuilder.setCGroupID(
+                    safeExtract<int32_t>(cGroupConfig[INIT_CONFIGS_CGROUP_IDENTIFIER], -1)
+                );
+            }
+
+            if(RC_IS_OK(rc)) {
+                // By default, the Cgroup is expected to already exist.
+                rc = cGroupConfigBuilder.setCreationNeeded(
+                    (int8_t)(safeExtract<bool>(cGroupConfig[INIT_CONFIGS_CGROUP_CREATION], false))
+                );
+            }
+
+            if(RC_IS_OK(rc)) {
+                rc = cGroupConfigBuilder.setThreaded(
+                    (int8_t)(safeExtract<bool>(cGroupConfig[INIT_CONFIGS_CGROUP_THREADED], false))
+                );
+            }
+
+            if(RC_IS_NOTOK(rc)) {
+                // Set the ID to -1, so that the Cgroup is not added and is cleaned up
+                cGroupConfigBuilder.setCGroupID(-1);
+            }
 
             TargetRegistry::getInstance()->addCGroupMapping(cGroupConfigBuilder.build());
+        }
+    }
+
+    if(isList(item[INIT_CONFIGS_MPAM_GROUPS_LIST])) {
+        for(const auto& mpamGroupConfig : item[INIT_CONFIGS_MPAM_GROUPS_LIST]) {
+            ErrCode rc = RC_SUCCESS;
+            MpamGroupConfigInfoBuilder mpamGroupConfigBuilder;
+
+            if(RC_IS_OK(rc)) {
+                rc = mpamGroupConfigBuilder.setName(
+                    safeExtract<std::string>(mpamGroupConfig[INIT_CONFIGS_MPAM_GROUP_NAME], "")
+                );
+            }
+
+            if(RC_IS_OK(rc)) {
+                rc = mpamGroupConfigBuilder.setLgcID(
+                    safeExtract<int32_t>(mpamGroupConfig[INIT_CONFIGS_MPAM_GROUP_ID], -1)
+                );
+            }
+
+            if(RC_IS_OK(rc)) {
+                rc = mpamGroupConfigBuilder.setPriority(
+                    safeExtract<int32_t>(mpamGroupConfig[INIT_CONFIGS_MPAM_GROUP_PRIORITY], 0)
+                );
+            }
+
+            if(RC_IS_NOTOK(rc)) {
+                // Set the ID to -1, so that the Cgroup is not added and is cleaned up
+                mpamGroupConfigBuilder.setLgcID(-1);
+            }
+
+            TargetRegistry::getInstance()->addMpamGroupMapping(mpamGroupConfigBuilder.build());
+        }
+    }
+
+    if(isList(item[INIT_CONFIGS_CACHE_INFO_LIST])) {
+        for(const auto& cacheConfig : item[INIT_CONFIGS_CACHE_INFO_LIST]) {
+            ErrCode rc = RC_SUCCESS;
+            CacheInfoBuilder cacheInfoBuilder;
+
+            if(RC_IS_OK(rc)) {
+                rc = cacheInfoBuilder.setType(
+                    safeExtract<std::string>(cacheConfig[INIT_CONFIGS_CACHE_INFO_CACHE_TYPE], "")
+                );
+            }
+
+            if(RC_IS_OK(rc)) {
+                rc = cacheInfoBuilder.setNumBlocks(
+                    safeExtract<int32_t>(cacheConfig[INIT_CONFIGS_CACHE_INFO_CACHE_BLOCK_COUNT], -1)
+                );
+            }
+
+            if(RC_IS_OK(rc)) {
+                rc = cacheInfoBuilder.setPriorityAware(
+                    (int8_t)safeExtract<int8_t>(cacheConfig[INIT_CONFIGS_CACHE_INFO_CACHE_PRIORITY_AWARE], false)
+                );
+            }
+
+            if(RC_IS_NOTOK(rc)) {
+                cacheInfoBuilder.setType("");
+                cacheInfoBuilder.setNumBlocks(-1);
+            }
+
+            TargetRegistry::getInstance()->addCacheInfoMapping(cacheInfoBuilder.build());
         }
     }
 }
@@ -202,6 +312,25 @@ ErrCode ConfigProcessor::parseResourceConfigs(const std::string& filePath, int8_
                     LOGE("RESTUNE_RESOURCE_PROCESSOR", "Error parsing Resource Config: " + std::string(e.what()));
                 } catch(const std::bad_alloc& e) {
                     LOGE("RESTUNE_RESOURCE_PROCESSOR", "Error parsing Resource Config: " + std::string(e.what()));
+                }
+            }
+        }
+    }
+
+    return rc;
+}
+
+ErrCode ConfigProcessor::parsePropertiesConfigs(const std::string& filePath) {
+    YAML::Node result;
+    ErrCode rc = YamlParser::parse(filePath, result);
+
+    if(RC_IS_OK(rc)) {
+        if(result[PROPERTIES_CONFIG_ROOT].IsDefined() && result[PROPERTIES_CONFIG_ROOT].IsSequence()) {
+            for(const auto& propertyConfig : result[PROPERTIES_CONFIG_ROOT]) {
+                try {
+                    parsePropertiesConfigYamlNode(propertyConfig);
+                } catch(const std::invalid_argument& e) {
+                    LOGE("RESTUNE_CONFIG_PROCESSOR", "Error parsing Properties Config: " + std::string(e.what()));
                 }
             }
         }
@@ -239,11 +368,39 @@ ErrCode ConfigProcessor::parseInitConfigs(const std::string& filePath) {
                 try {
                     parseInitConfigYamlNode(targetConfig);
                 } catch(const std::invalid_argument& e) {
-                    LOGE("RESTUNE_TARGET_PROCESSOR", "Error parsing Init Config: " + std::string(e.what()));
+                    LOGE("RESTUNE_CONFIG_PROCESSOR", "Error parsing Init Config: " + std::string(e.what()));
                 }
             }
         }
     }
 
+    return rc;
+}
+
+ErrCode ConfigProcessor::parse(ConfigType configType, const std::string& filePath, int8_t isBuSpecified) {
+    ErrCode rc = RC_SUCCESS;
+
+    switch(configType) {
+        case ConfigType::RESOURCE_CONFIG: {
+            rc = this->parseResourceConfigs(filePath, isBuSpecified);
+            break;
+        }
+        case ConfigType::PROPERTIES_CONFIG: {
+            rc = this->parsePropertiesConfigs(filePath);
+            break;
+        }
+        case ConfigType::TARGET_CONFIG: {
+            rc = this->parseTargetConfigs(filePath);
+            break;
+        }
+        case ConfigType::INIT_CONFIG: {
+            rc = this->parseInitConfigs(filePath);
+            break;
+        }
+        default: {
+            rc = RC_BAD_ARG;
+            break;
+        }
+    }
     return rc;
 }

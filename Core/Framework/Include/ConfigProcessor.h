@@ -15,10 +15,12 @@
 #include "YamlParser.h"
 #include "Logger.h"
 #include "ResourceRegistry.h"
+#include "PropertiesRegistry.h"
 #include "TargetRegistry.h"
 #include "Utils.h"
 #include "AuxRoutines.h"
 
+// Resource Config
 #define RESOURCE_CONFIGS_ROOT "ResourceConfigs"
 #define RESOURCE_CONFIGS_ELEM_RESOURCE_TYPE "ResType"
 #define RESOURCE_CONFIGS_ELEM_RESOURCE_ID "ResID"
@@ -32,8 +34,9 @@
 #define RESOURCE_CONFIGS_ELEM_POLICY "Policy"
 #define RESOURCE_CONFIGS_APPLY_TYPE "ApplyType"
 
+// Target Info Config
 #define TARGET_CONFIGS_ROOT "TargetConfig"
-#define TARGET_NAME "TargetName"
+#define TARGET_NAME_LIST "TargetName"
 #define TARGET_CLUSTER_INFO "ClusterInfo"
 #define TARGET_CLUSTER_INFO_LOGICAL_ID "LgcId"
 #define TARGET_CLUSTER_INFO_PHYSICAL_ID "PhyId"
@@ -43,14 +46,35 @@
 #define TARGET_CONFIGS_ID "Id"
 #define TARGET_CONFIGS_TYPE "Type"
 
+// CGroup Config
 #define INIT_CONFIGS_ROOT "InitConfigs"
 #define INIT_CONFIGS_CGROUPS_LIST "CgroupsInfo"
 #define INIT_CONFIGS_CGROUP_NAME "Name"
 #define INIT_CONFIGS_CGROUP_IDENTIFIER "ID"
+#define INIT_CONFIGS_CGROUP_CREATION "Create"
 #define INIT_CONFIGS_CGROUP_THREADED "IsThreaded"
+
+// Cluster Map
 #define INIT_CONFIGS_CLUSTER_MAP "ClusterMap"
 #define INIT_CONFIGS_CLUSTER_MAP_CLUSTER_ID "Id"
 #define INIT_CONFIGS_CLUSTER_MAP_CLUSTER_TYPE "Type"
+
+// Mpam Config
+#define INIT_CONFIGS_MPAM_GROUPS_LIST "MPAMgroupsInfo"
+#define INIT_CONFIGS_MPAM_GROUP_NAME "Name"
+#define INIT_CONFIGS_MPAM_GROUP_ID "ID"
+#define INIT_CONFIGS_MPAM_GROUP_PRIORITY "Priority"
+
+// Cache Info
+#define INIT_CONFIGS_CACHE_INFO_LIST "CacheInfo"
+#define INIT_CONFIGS_CACHE_INFO_CACHE_TYPE "Type"
+#define INIT_CONFIGS_CACHE_INFO_CACHE_BLOCK_COUNT "NumCacheBlocks"
+#define INIT_CONFIGS_CACHE_INFO_CACHE_PRIORITY_AWARE "PriorityAware"
+
+// Properties
+#define PROPERTIES_CONFIG_ROOT "PropertyConfigs"
+#define PROP_NAME "Name"
+#define PROP_VALUE "Value"
 
 /**
  * The Resource Config file (ResourcesConfig.yaml) must follow a specific structure.
@@ -72,7 +96,7 @@
  *
  * @example Resource_Configs
  * This example shows the expected YAML format for Resource configuration.
-*/
+ */
 
 /**
  * The Target Config file (TargetConfig.yaml) must follow a specific structure.
@@ -103,13 +127,22 @@
  *
  * @example Target_Configs
  * This example shows the expected YAML format for Target configuration.
-*/
+ */
 
 /**
  * The Init Config file (InitConfig.yaml) must follow a specific structure.
  * Example YAML configuration:
  * @code{.yaml}
  * InitConfigs:
+ *   # Logical IDs should always be arranged from lower to higher cluster capacities
+ *   - ClusterMap:
+ *     - Id: 0
+ *       Type: little
+ *     - Id: 1
+ *       Type: big
+ *     - Id: 2
+ *       Type: prime
+ *
  *   - CgroupsInfo:
  *     - Name: "camera-cgroup"
  *       ID: 0
@@ -119,30 +152,86 @@
  *       IsThreaded: true
  *       ID: 2
  *
+ *   - MPAMgroupsInfo:
+ *     - Name: "camera-mpam-group"
+ *       ID: 0
+ *       Priority: 0
+ *     - Name: "audio-mpam-group"
+ *       ID: 1
+ *       Priority: 1
+ *     - Name: "video-mpam-group"
+ *       ID: 2
+ *       Priority: 2
+ *
+ *   - CacheInfo:
+ *     - Type: L2
+ *       NumCacheBlocks: 2
+ *       PriorityAware: 0
+ *     - Type: L3
+ *       NumCacheBlocks: 1
+ *       PriorityAware: 1
+ *
  * @endcode
  *
  * @example Init_Configs
  * This example shows the expected YAML format for Init Config, which includes any
  * applicable CGroup Creation Information.
-*/
+ */
+
+/**
+ * The Properties Config file (PropertiesConfig.yaml) must follow a specific structure.
+ * Example YAML configuration:
+ * @code{.yaml}
+ * PropertyConfigs:
+ *   - Name: "resource_tuner.maximum.concurrent.requests"
+ *     Value: "60"
+ *
+ *   - Name: "resource_tuner.maximum.resources.per.request"
+ *     Value: "64"
+ *
+ *   - Name: "resource_tuner.listening.port"
+ *     Value: "12000"
+ *
+ *   - Name: "resource_tuner.pulse.duration"
+ *     Value: "60000"
+ *
+ *   - Name: "resource_tuner.garbage_collection.duration"
+ *     Value: "83000"
+ *
+ *   - Name: "resource_tuner.rate_limiter.delta"
+ *     Value: "5"
+ *
+ *   - Name: "resource_tuner.penalty.factor"
+ *     Value: "2.0"
+ *
+ *   - Name: "resource_tuner.reward.factor"
+ *     Value: "0.4"
+ * @endcode
+ *
+ * @example Properties_Configs
+ * This example shows the expected YAML format for Properties configuration.
+ */
 
 /**
  * @brief ConfigProcessor
  * @details Responsible for Parsing the ResourceConfig file,
-*           InitConfig and TargetConfig (if provided) YAML files.
+ *          InitConfig and TargetConfig (if provided) YAML files.
  *          Note, this class uses the YamlParser class for actually Reading and
  *          Parsing the YAML data.
-*/
+ */
 class ConfigProcessor {
 private:
-    void parseResourceConfigYamlNode(const YAML::Node& result, int8_t isBuSpecified);
-    void parseInitConfigYamlNode(const YAML::Node& result);
-    void parseTargetConfigYamlNode(const YAML::Node& result);
+    void parseResourceConfigYamlNode(const YAML::Node& node, int8_t isBuSpecified);
+    void parsePropertiesConfigYamlNode(const YAML::Node& node);
+    void parseInitConfigYamlNode(const YAML::Node& node);
+    void parseTargetConfigYamlNode(const YAML::Node& node);
 
 public:
     ErrCode parseResourceConfigs(const std::string& filePath, int8_t isBuSpecified=false);
+    ErrCode parsePropertiesConfigs(const std::string& filePath);
     ErrCode parseInitConfigs(const std::string& filePath);
     ErrCode parseTargetConfigs(const std::string& filePath);
+    ErrCode parse(ConfigType configType, const std::string& filePath, int8_t isBuSpecified=false);
 };
 
 #endif

@@ -1,24 +1,2 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause-Clear
-
-TargetConfig:
-  - TargetName: QCS9100
-    # overide physical cluster info
-    ClusterInfo:
-      - LgcId: 0
-        PhyId: 4
-      - LgcId: 1
-        PhyId: 0
-      - LgcId: 2
-        PhyId: 9
-      - LgcId: 3
-        PhyId: 7
-    ClusterSpread:
-      - PhyId: 0
-        NumCores: 4
-      - PhyId: 4
-        NumCores: 3
-      - PhyId: 7
-        NumCores: 2
-      - PhyId: 9
-        NumCores: 1
