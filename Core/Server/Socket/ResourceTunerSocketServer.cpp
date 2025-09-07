@@ -56,7 +56,7 @@ int32_t ResourceTunerSocketServer::ListenForClientRequests() {
     }
 
     while(this->mServerOnlineCheckCb()) {
-        int32_t clientsFdCount = epoll_wait(epollFd, events, maxEvents, 1000);
+        int32_t clientsFdCount = epoll_wait(epollFd, events, maxEvents, -1);
 
         for(int32_t i = 0; i < clientsFdCount; i++) {
             if(events[i].data.fd == this->sockFd) {
