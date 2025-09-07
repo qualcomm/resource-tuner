@@ -69,10 +69,10 @@ int64_t tuneResources(int64_t duration, int32_t properties, int32_t numRes, SysR
             ASSIGN_AND_INCR(ptr, VALIDATE_GT(resource.mNumValues, 0));
 
             if(resource.mNumValues == 1) {
-                ASSIGN_AND_INCR(ptr, VALIDATE_GE(resource.mResValue.value, 0));
+                ASSIGN_AND_INCR(ptr, resource.mResValue.value);
             } else {
                 for(int32_t j = 0; j < resource.mNumValues; j++) {
-                    ASSIGN_AND_INCR(ptr, VALIDATE_GE(resource.mResValue.values[j], 0));
+                    ASSIGN_AND_INCR(ptr, resource.mResValue.values[j]);
                 }
             }
         }
@@ -237,7 +237,13 @@ int8_t getProp(const char* prop, char* buffer, size_t bufferSize, const char* de
         }
 
         buffer[bufferSize - 1] = '\0';
-        strncpy(buffer, resultBuf, bufferSize - 1);
+        if(strncmp(resultBuf, "na", 2) == 0) {
+            // Copy default value
+            strncpy(buffer, defValue, bufferSize - 1);
+        } else {
+            strncpy(buffer, resultBuf, bufferSize - 1);
+        }
+
 
         return 0;
 

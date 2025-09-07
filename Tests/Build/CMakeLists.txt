@@ -1,7 +1,11 @@
 if(BUILD_TESTS)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(YAMLCPP REQUIRED yaml-cpp)
+
     add_executable(resource_tuner_tests ../Integration/IntegrationTests.cpp)
-    target_link_libraries(resource_tuner_tests PUBLIC Auxiliary ClientAPIs)
+    target_link_libraries(resource_tuner_tests PUBLIC Auxiliary ClientAPIs ${YAMLCPP_LIBRARIES})
     target_include_directories(resource_tuner_tests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
+    target_include_directories(resource_tuner_tests PRIVATE ${YAMLCPP_INCLUDE_DIRS})
     install(TARGETS resource_tuner_tests RUNTIME DESTINATION bin)
 
     add_executable(YamlParserTests ../Component/Parsers/YamlParserTests.cpp)
@@ -83,9 +87,6 @@ if(BUILD_TESTS)
     target_link_libraries(CocoTableTests Auxiliary ExtAPIs Server)
     target_include_directories(CocoTableTests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
     install(TARGETS CocoTableTests DESTINATION bin)
-
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(YAMLCPP REQUIRED yaml-cpp)
 
     add_executable(DeviceInfoTests ../Component/Device/DeviceInfoTests.cpp)
     target_link_libraries(DeviceInfoTests Auxiliary ExtAPIs Server ${YAMLCPP_LIBRARIES})

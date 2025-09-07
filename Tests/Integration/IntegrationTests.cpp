@@ -76,8 +76,43 @@ static void TestHandleGeneration() {
 
     delete resourceList;
 
-   std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
+    std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
     assert(handle > 0);
+
+    LOG_END
+}
+
+static void TestPropFetch() {
+    LOG_START
+
+    char prop1[] = "resource_tuner.pulse.duration";
+    char buf[64];
+    memset(buf, 0, sizeof(buf));
+
+    int8_t status = getProp(prop1, buf, sizeof(buf), "na");
+    assert(status == 0);
+
+    std::cout<<LOG_BASE<<"Value Fetched for key: ["<<prop1<<"] is: "<<buf<<std::endl;
+    assert(std::string(buf) == "6000000");
+
+    char prop2[] = "resource_tuner.maximum.concurrent.requests";
+    memset(buf, 0, sizeof(buf));
+
+    status = getProp(prop2, buf, sizeof(buf), "na");
+    assert(status == 0);
+
+    std::cout<<LOG_BASE<<"Value Fetched for key: ["<<prop2<<"] is: "<<buf<<std::endl;
+    assert(std::string(buf) == "60");
+
+    // Non Existent
+    char prop3[] = "resource_tuner.benchmakr.comparison.utilinets";
+    memset(buf, 0, sizeof(buf));
+
+    status = getProp(prop3, buf, sizeof(buf), "na");
+    assert(status == 0);
+
+    std::cout<<LOG_BASE<<"Value Fetched for key: ["<<prop3<<"] is: "<<buf<<std::endl;
+    assert(std::string(buf) == "na");
 
     LOG_END
 }
@@ -2156,6 +2191,10 @@ namespace RequestApplicationTests {
         LOG_START
 
         int32_t physicalClusterID = baseline.getExpectedPhysicalCluster(0);
+        if(physicalClusterID == -1) {
+            std::cout<<LOG_BASE<<"Logical Cluster: 0 not found on test device, Aborting Test Case"<<std::endl;
+            return;
+        }
         std::string nodePath = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/cluster_type_resource_%d_cluster_id";
 
         char path[128];
@@ -2200,14 +2239,17 @@ namespace RequestApplicationTests {
     static void TestClusterTypeResourceTuneRequest2() {
         LOG_START
 
-        int32_t physicalClusterID = baseline.getExpectedPhysicalCluster(3);
+        int32_t physicalClusterID = baseline.getExpectedPhysicalCluster(2);
+        if(physicalClusterID == -1) {
+            std::cout<<LOG_BASE<<"Logical Cluster: 2 not found on test device, Aborting Test Case"<<std::endl;
+            return;
+        }
+
         std::string nodePath = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/cluster_type_resource_%d_cluster_id";
 
         char path[128];
         snprintf(path, sizeof(path), nodePath.c_str(), physicalClusterID);
         std::string testResourceName = std::string(path);
-
-        // std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/cluster_type_resource_7_cluster_id";
         int32_t testResourceOriginalValue = 180;
 
         std::string value;
@@ -2221,7 +2263,7 @@ namespace RequestApplicationTests {
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
         resourceList[0].mResCode = 0x80ff000a;
-        resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 3);
+        resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 2);
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 440;
 
@@ -3525,8 +3567,8 @@ namespace CGroupApplicationTests {
         std::string testResourceName = "/sys/fs/cgroup/audio-cgroup/memory.max";
 
         std::string originalValueString = AuxRoutines::readFromFile(testResourceName);
-        std::cout<<"["<<__LINE__<<"]"<<" memory.max Original Value: "<<originalValueString<<std::endl;
         int32_t originalValue = C_STOI(originalValueString);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
 
         int32_t rc = fork();
         if(rc == 0) {
@@ -3560,15 +3602,16 @@ namespace CGroupApplicationTests {
 
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
+            std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
             assert(newValue > 950 * 1024);
             assert(newValue <= 1224 * 1024);
 
             std::this_thread::sleep_for(std::chrono::seconds(10));
 
             value = AuxRoutines::readFromFile(testResourceName);
-            std::cout<<"["<<__LINE__<<"]"<<" memory.max Reset Value: "<<value<<std::endl;
             newValue = C_STOI(value);
             if(newValue != -1 && originalValue != -1) {
+                std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
                 assert(newValue == originalValue);
             }
 
@@ -3586,12 +3629,13 @@ namespace CGroupApplicationTests {
         std::string testResourceName2 = "/sys/fs/cgroup/audio-cgroup/cpu.uclamp.min";
 
         std::string originalValueString = AuxRoutines::readFromFile(testResourceName1);
-        std::cout<<"["<<__LINE__<<"]"<<" 0) cpu.uclamp.min Original Value: "<<originalValueString<<std::endl;
         int32_t originalValue1 = C_STOI(originalValueString);
+        std::cout<<LOG_BASE<<testResourceName1<<" Original Value: "<<originalValue1<<std::endl;
 
         originalValueString = AuxRoutines::readFromFile(testResourceName2);
         std::cout<<"["<<__LINE__<<"]"<<" 1) cpu.uclamp.min Original Value: "<<originalValueString<<std::endl;
         int32_t originalValue2 = C_STOI(originalValueString);
+        std::cout<<LOG_BASE<<testResourceName2<<" Original Value: "<<originalValue2<<std::endl;
 
         SysResource* resourceList = new SysResource[2];
         memset(&resourceList[0], 0, sizeof(SysResource));
@@ -3616,13 +3660,13 @@ namespace CGroupApplicationTests {
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
         value = AuxRoutines::readFromFile(testResourceName1);
-        std::cout<<"["<<__LINE__<<"]"<<" 0) cpu.uclamp.min value: "<<value<<std::endl;
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName1<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 55);
 
         value = AuxRoutines::readFromFile(testResourceName2);
-        std::cout<<"["<<__LINE__<<"]"<<" 1) cpu.uclamp.min value: "<<value<<std::endl;
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName2<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 58);
 
         std::this_thread::sleep_for(std::chrono::seconds(10));
@@ -3630,12 +3674,14 @@ namespace CGroupApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName1);
         newValue = C_STOI(value);
         if(newValue != -1 && originalValue1 != -1) {
+            std::cout<<LOG_BASE<<testResourceName1<<" Reset Value: "<<newValue<<std::endl;
             assert(newValue == originalValue1);
         }
 
         value = AuxRoutines::readFromFile(testResourceName2);
         newValue = C_STOI(value);
         if(newValue != -1 && originalValue2 != -1) {
+            std::cout<<LOG_BASE<<testResourceName2<<" Reset Value: "<<newValue<<std::endl;
             assert(newValue == originalValue2);
         }
 
@@ -3691,8 +3737,11 @@ namespace CGroupApplicationTests {
 }
 
 int32_t main(int32_t argc, const char* argv[]) {
+    baseline.fetchBaseline();
+
     // Run the Tests
     RUN_INTEGRATION_TEST(TestHandleGeneration)
+    RUN_INTEGRATION_TEST(TestPropFetch);
 
     // Request-Verification Tests
     ResourceTuningRequestVerification::RunTestGroup();

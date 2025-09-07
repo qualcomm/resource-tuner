@@ -356,7 +356,7 @@ int8_t submitPropGetRequest(const std::string& prop,
                             std::string& buffer,
                             const std::string& defaultValue) {
     std::string propertyName(prop);
-    std::string result;
+    std::string result = "";
 
     int8_t propFound = false;
     if((propFound = PropertiesRegistry::getInstance()->queryProperty(propertyName, result)) == false) {
@@ -371,7 +371,9 @@ ErrCode submitPropRequest(void* context) {
     if(context == nullptr) return RC_BAD_ARG;
     PropConfig* propConfig = static_cast<PropConfig*>(context);
 
-    submitPropGetRequest(propConfig->mPropName, propConfig->mResult, "");
+    const char* defaultValue = "na";
+    submitPropGetRequest(propConfig->mPropName, propConfig->mResult, defaultValue);
+
     return RC_SUCCESS;
 }
 
