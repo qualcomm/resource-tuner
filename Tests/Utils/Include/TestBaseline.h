@@ -26,15 +26,16 @@ private:
     int32_t mTotalClusterCount;
     int32_t mTotalCoreCount;
 
-    void parseTestConfigYamlNode(const YAML::Node& item) {
+    int8_t parseTestConfigYamlNode(const YAML::Node& item) {
         int8_t isConfigForCurrentTarget = false;
         // Check if there exists a Target Config for this particular target in the Common Configs.
         // Skip this check if the BU has provided their own Target Configs
+        std::string currTargetName = AuxRoutines::readFromFile("/sys/devices/soc0/machine");
         if(isList(item[TARGET_NAME_LIST])) {
             for(const auto& targetNameInfo : item[TARGET_NAME_LIST]) {
                 std::string name = safeExtract<std::string>(targetNameInfo, "");
 
-                if(name == "*" || name == ResourceTunerSettings::targetConfigs.targetName) {
+                if(name == "*" || name == currTargetName) {
                     isConfigForCurrentTarget = true;
                 }
             }
@@ -54,8 +55,10 @@ private:
 
             this->mTotalClusterCount = safeExtract<int32_t>(item[NUM_CLUSERS], 0);
             this->mTotalCoreCount = safeExtract<int32_t>(item[NUM_CORES], 0);
-            return;
+            return true;
         }
+
+        return false;
     }
 
 public:
@@ -67,7 +70,9 @@ public:
             if(result[TEST_ROOT].IsDefined() && result[TEST_ROOT].IsSequence()) {
                 for(const auto& testConfig : result[TEST_ROOT]) {
                     try {
-                        parseTestConfigYamlNode(testConfig);
+                        if(parseTestConfigYamlNode(testConfig)) {
+                            return RC_SUCCESS;
+                        }
                     } catch(const std::invalid_argument& e) {
                         LOGE("RESTUNE_TARGET_PROCESSOR", "Error parsing Test Config: " + std::string(e.what()));
                     }

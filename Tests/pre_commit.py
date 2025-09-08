@@ -87,7 +87,7 @@ def unit_tests():
         return False
     if not run_test(["./Tests/Unit/Build/SignalParsingTests"]):
         return False
-    if not run_test(["./Tests/Unit/Build/SysSignalConfigProcessorTests"]):
+    if not run_test(["./Tests/Unit/Build/SignalConfigProcessorTests"]):
         return False
     if not run_test(["./Tests/Unit/Build/SysConfigAPITests"]):
         return False

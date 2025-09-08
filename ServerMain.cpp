@@ -138,6 +138,9 @@ static void serverCleanup() {
 }
 
 int32_t main(int32_t argc, char *argv[]) {
+    // Initialize syslog
+    openlog("resource-tuner", LOG_PID | LOG_CONS, LOG_USER);
+
     // PID of the Child Daemon
     ErrCode opStatus = RC_SUCCESS;
     int32_t childProcessID = -1;
@@ -300,5 +303,6 @@ int32_t main(int32_t argc, char *argv[]) {
         dlclose(extensionsLibHandle);
     }
 
+    closelog();
     return 0;
 }
