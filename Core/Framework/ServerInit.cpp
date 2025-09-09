@@ -69,8 +69,8 @@ static ErrCode fetchMetaConfigs() {
         submitPropGetRequest(RATE_LIMITER_REWARD_FACTOR, resultBuffer, "0.4");
         ResourceTunerSettings::metaConfigs.mRewardFactor = std::stod(resultBuffer);
 
-        submitPropGetRequest(LOGGER_LOGGING_LEVEL, resultBuffer, "7");
-        int32_t logLevel = (int32_t)std::stoi(resultBuffer);
+        submitPropGetRequest(LOGGER_LOGGING_LEVEL, resultBuffer, "DEBUG");
+        int32_t logLevel = Logger::decodeLogLevel(resultBuffer);
 
         int8_t levelSpecificLogging = false;
         submitPropGetRequest(LOGGER_LOGGING_LEVEL_TYPE, resultBuffer, "false");

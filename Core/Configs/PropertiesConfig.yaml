@@ -27,10 +27,12 @@ PropertyConfigs:
     Value: "0.4"
 
   - Name: resource_tuner.logging.level
-    Value: "7"
+    # Possible values: DEBUG, INFO, ERROR.
+    Value: "DEBUG"
 
   - Name: resource_tuner.logging.level.exact
     Value: "false"
 
   - Name: resource_tuner.logging.redirect_to
+    # Possible values: 0 (file), 1 (syslog).
     Value: "1"

@@ -37,6 +37,14 @@ std::string Logger::levelToString(int32_t level) {
     return "";
 }
 
+int32_t Logger::decodeLogLevel(const std::string level) {
+    if(level == "DEBUG") return LOG_DEBUG;
+    if(level == "INFO") return LOG_INFO;
+    if(level == "ERROR") return LOG_ERR;
+
+    return LOG_DEBUG;
+}
+
 void Logger::log(int32_t level, const std::string& tag, const std::string& funcName, const std::string& message) {
     if(mLevelSpecificLogging) {
         if(level != mLowestLogLevel) return;
@@ -85,9 +93,9 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
 
         case CommonMessageTypes::SYSTEM_THREAD_CREATION_FAILURE:
             vsnprintf(buffer, sizeof(buffer),
-                      "[%s] thread could not be created, LOG_ERR: %s", args);
+                      "[%s] thread could not be created, Error: %s", args);
 
-            Logger::log(LOG_ERR, "RESTUNE_SYSTEM_LOG_ERROR",
+            Logger::log(LOG_ERR, "RESTUNE_SYSTEM_ERROR",
                         funcName, std::string(buffer));
             break;
 
@@ -104,7 +112,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
         case CommonMessageTypes::CLIENT_ALLOCATION_FAILURE:
             vsnprintf(buffer, sizeof(buffer),
                      "Memory allocation for Client: " \
-                     "[PID: %d, TID: %d]. Failed with LOG_ERR: %s", args);
+                     "[PID: %d, TID: %d]. Failed with Error: %s", args);
 
             Logger::log(LOG_ERR, "RESTUNE_CLIENT_DATA_MANAGER",
                         funcName, std::string(buffer));
@@ -118,21 +126,21 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
 
         case CommonMessageTypes::META_CONFIG_PARSE_FAILURE:
             vsnprintf(buffer, sizeof(buffer),
-                     "Fetch Meta Configs failed, with LOG_ERR %s", args);
+                     "Fetch Meta Configs failed, with Error %s", args);
 
             Logger::log(LOG_ERR, "RESTUNE_SERVER_INIT", funcName, std::string(buffer));
             break;
 
         case CommonMessageTypes::THREAD_POOL_CREATION_FAILURE:
             vsnprintf(buffer, sizeof(buffer),
-                      "Failed to create Thread Pool. LOG_ERR: %s", args);
+                      "Failed to create Thread Pool. Error: %s", args);
 
             Logger::log(LOG_ERR, "RESTUNE_SERVER_INIT", funcName, std::string(buffer));
             break;
 
         case CommonMessageTypes::THREAD_POOL_INIT_FAILURE:
             vsnprintf(buffer, sizeof(buffer),
-                      "Could Not Initialize Thread Pool. LOG_ERR: %s", args);
+                      "Could Not Initialize Thread Pool. Error: %s", args);
 
             Logger::log(LOG_ERR, "RESTUNE_THREAD_POOL", funcName, std::string(buffer));
             break;
@@ -140,7 +148,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
         case CommonMessageTypes::THREAD_POOL_THREAD_ALLOCATION_FAILURE:
             vsnprintf(buffer, sizeof(buffer),
                       "Failed to allocate Memory for ThreadNode. " \
-                      "LOG_ERR: %s", args);
+                      "Error: %s", args);
 
             Logger::log(LOG_ERR, "RESTUNE_THREAD_POOL", funcName, std::string(buffer));
             break;
@@ -148,21 +156,21 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
         case CommonMessageTypes::THREAD_POOL_THREAD_CREATION_FAILURE:
             vsnprintf(buffer, sizeof(buffer),
                       "Failed to create New thread, call to std::thread Failed. " \
-                      "LOG_ERR: %s", args);
+                      "Error: %s", args);
 
             Logger::log(LOG_ERR, "RESTUNE_THREAD_POOL", funcName, std::string(buffer));
             break;
 
         case CommonMessageTypes::THREAD_POOL_THREAD_TERMINATED:
             vsnprintf(buffer, sizeof(buffer),
-                      "Thread Terminated with LOG_ERR: %s", args);
+                      "Thread Terminated with Error: %s", args);
 
             Logger::log(LOG_ERR, "RESTUNE_THREAD_POOL", funcName, std::string(buffer));
             break;
 
         case CommonMessageTypes::THREAD_POOL_ENQUEUE_TASK_FAILURE:
             vsnprintf(buffer, sizeof(buffer),
-                      "Task Submisission failed with LOG_ERR: %s", args);
+                      "Task Submisission failed with Error: %s", args);
 
             Logger::log(LOG_ERR, "RESTUNE_THREAD_POOL", funcName, std::string(buffer));
             break;
@@ -255,7 +263,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
 
         case CommonMessageTypes::NOTIFY_EXTENSIONS_LOAD_FAILED:
             vsnprintf(buffer, sizeof(buffer),
-                      "LOG_ERR loading extension lib, LOG_ERR: %s", args);
+                      "Error loading extension lib, Error: %s", args);
 
             Logger::log(LOG_ERR, "RESTUNE_SERVER_INIT", funcName, std::string(buffer));
             break;
@@ -310,7 +318,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
         case CommonMessageTypes::REQUEST_MEMORY_ALLOCATION_FAILURE:
             vsnprintf(buffer, sizeof(buffer),
                       "Memory allocation for Incoming Request. " \
-                      "Failed with LOG_ERR: %s", args);
+                      "Failed with Error: %s", args);
 
             Logger::log(LOG_ERR, "RESTUNE_REQUEST_ALLOCATION_FAILURE",
                         funcName, std::string(buffer));
@@ -319,7 +327,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
         case CommonMessageTypes::REQUEST_MEMORY_ALLOCATION_FAILURE_HANDLE:
             vsnprintf(buffer, sizeof(buffer),
                       "Memory allocation for Request: [%ld]. " \
-                      "Failed with LOG_ERR: %s", args);
+                      "Failed with Error: %s", args);
 
             Logger::log(LOG_ERR, "RESTUNE_SERVER",
                         funcName, std::string(buffer));
@@ -328,7 +336,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
         case CommonMessageTypes::REQUEST_PARSING_FAILURE:
             vsnprintf(buffer, sizeof(buffer),
                       "Request Parsing Failed, Request is Malformed. " \
-                      "LOG_ERR: %s", args);
+                      "Error: %s", args);
 
             Logger::log(LOG_ERR, "RESTUNE_REQUEST_PARSING_FAILURE",
                         funcName, std::string(buffer));
@@ -336,28 +344,28 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
 
         case CommonMessageTypes::ERRNO_LOG:
             vsnprintf(buffer, sizeof(buffer),
-                      "Call to %s, Failed with LOG_ERR: %s", args);
+                      "Call to %s, Failed with Error: %s", args);
 
             Logger::log(LOG_ERR, "RESTUNE_SYSCALL_FAILURE", funcName, std::string(buffer));
             break;
 
         case CommonMessageTypes::CORE_COUNT_EXTRACTION_FAILED:
             vsnprintf(buffer, sizeof(buffer),
-                      "Failed to get Online Core Count, LOG_ERR: %s", args);
+                      "Failed to get Online Core Count, Error: %s", args);
 
             Logger::log(LOG_ERR, "RESTUNE_TARGET_REGISTRY", funcName, std::string(buffer));
             break;
 
         case CommonMessageTypes::CLUSTER_CPU_LIST_EXTRACTION_FAILED:
             vsnprintf(buffer, sizeof(buffer),
-                      "Failed to get the list of CPUs for cluster [%s], LOG_ERR: %s", args);
+                      "Failed to get the list of CPUs for cluster [%s], Error: %s", args);
 
             Logger::log(LOG_ERR, "RESTUNE_TARGET_REGISTRY", funcName, std::string(buffer));
             break;
 
         case CommonMessageTypes::CLUSTER_CPU_CAPACITY_EXTRACTION_FAILED:
             vsnprintf(buffer, sizeof(buffer),
-                      "Failed to get the capacity for CPU [%d], LOG_ERR: %s", args);
+                      "Failed to get the capacity for CPU [%d], Error: %s", args);
 
             Logger::log(LOG_ERR, "RESTUNE_TARGET_REGISTRY", funcName, std::string(buffer));
             break;
@@ -393,7 +401,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
 
         case CommonMessageTypes::VERIFIER_VALUE_OUT_OF_BOUNDS:
             vsnprintf(buffer, sizeof(buffer),
-                      "Config Value [%d] does not fall in the Allowed Range" \
+                      "Config Value [%d] does not fall in the Allowed Range " \
                       "for the Resource [%u], Dropping Request.", args);
 
             Logger::log(LOG_ERR, "RESTUNE_REQUEST_VERIFIER", funcName, std::string(buffer));
@@ -481,7 +489,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
 
         case CommonMessageTypes::YAML_PARSE_ERROR:
             vsnprintf(buffer, sizeof(buffer),
-                      "Failed to parse file: %s, LOG_ERR: %s", args);
+                      "Failed to parse file: %s, Error: %s", args);
 
             Logger::log(LOG_ERR, "RESTUNE_YAML_PARSER", funcName, std::string(buffer));
             break;
@@ -554,7 +562,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
 
         case CommonMessageTypes::SIGNAL_REGISTRY_PARSING_FAILURE:
             vsnprintf(buffer, sizeof(buffer),
-                      "Signal Parsing Failed with LOG_ERR: %s", args);
+                      "Signal Parsing Failed with Error: %s", args);
 
             Logger::log(LOG_ERR, "RESTUNE_SIGNAL_REGISTRY", funcName, std::string(buffer));
             break;
@@ -568,7 +576,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
 
         case CommonMessageTypes::RESOURCE_REGISTRY_PARSING_FAILURE:
             vsnprintf(buffer, sizeof(buffer),
-                      "Resource Parsing Failed with LOG_ERR: %s", args);
+                      "Resource Parsing Failed with Error: %s", args);
 
             Logger::log(LOG_ERR, "RESTUNE_RESOURCE_REGISTRY", funcName, std::string(buffer));
             break;
