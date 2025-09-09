@@ -954,7 +954,7 @@ Example:
 
 For questions, suggestions, or contributions, feel free to reach out:
 
-- **Email**: CSE.Perf@qti.qualcomm.com
+- **Email**: maintainers.resource-tuner-moderator@qti.qualcomm.com
 
 # License
 

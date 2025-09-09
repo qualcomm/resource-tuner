@@ -183,7 +183,7 @@ void CocoTable::insertInCocoTableHigherLower(CocoNode* newNode, int32_t primaryI
                 currNode->prev = newNode;
             }
             inserted = true;
-            // break;
+            break;
         }
         currNode = currNext;
     }

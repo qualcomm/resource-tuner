@@ -4,16 +4,14 @@
 #include "ClientDataManager.h"
 #include "ErrCodes.h"
 
-static uint8_t isRootProcess(pid_t pid) {
+static int8_t isRootProcess(pid_t pid) {
     std::string statusFile = "/proc/" + std::to_string(pid) + "/status";
     std::ifstream file(statusFile);
     std::string line;
 
     if(!file.is_open()) {
-        // File could not be opened, indicating Client is dead.
-        // TBD: Drop This Request
         LOGE("RESTUNE_CLIENT_DATA_MANAGER", "Failed to open: " + statusFile);
-        return PERMISSION_THIRD_PARTY;
+        return -1;
     }
 
     while(std::getline(file, line)) {
