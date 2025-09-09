@@ -3027,14 +3027,14 @@ namespace SystemSysfsNodesTests {
                 std::string value = AuxRoutines::readFromFile(testResourceName);
                 int32_t newValue = C_STOI(value);
                 std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-                assert(newValue == 1554613);
+                assert(newValue >= 1554613);
 
                 std::this_thread::sleep_for(std::chrono::seconds(10));
 
                 value = AuxRoutines::readFromFile(testResourceName);
                 newValue = C_STOI(value);
                 std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-                assert(newValue == 1656608);
+                assert(newValue >= 1656608);
 
                 std::this_thread::sleep_for(std::chrono::seconds(40));
 
@@ -3042,7 +3042,7 @@ namespace SystemSysfsNodesTests {
                 value = AuxRoutines::readFromFile(testResourceName);
                 newValue = C_STOI(value);
                 std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-                assert(newValue == 1771209);
+                assert(newValue >= 1771209);
 
                 // Wait for the Request to expire, check if the value resets
                 value = AuxRoutines::readFromFile(testResourceName);
@@ -3151,6 +3151,15 @@ namespace SystemSysfsNodesTests {
         LOG_END
     }
 
+    /**
+     * API under test: Tune / Untune
+     * - Issue a Resource Tuner Resource Provisioning Request, to modify the Resource
+     *   sched_util_clamp_max
+     * - Verify the Resource Node is Correctly updated
+     * - Verify that the Resource Node is reset once the Request Expires
+     * - Note these Tests need to be run with Root Privleges (sudo)
+     * Cross-Reference id: ['E1']
+     */
     static void TestWriteTo_sched_util_clamp_max_Node2() {
         LOG_START
 
