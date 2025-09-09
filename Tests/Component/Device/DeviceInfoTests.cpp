@@ -26,7 +26,7 @@ static void TestDeviceClusterCount() {
 }
 
 static void TestDeviceCoreCount() {
-    int32_t coreCount = ResourceTunerSettings::targetConfigs.mTotalClusterCount;
+    int32_t coreCount = ResourceTunerSettings::targetConfigs.mTotalCoreCount;
     int32_t expectedCoreCount = baseline.getExpectedCoreCount();
     std::cout<<"Determined Core Count: "<<coreCount<<std::endl;
     std::cout<<"Expected Core Count: "<<expectedCoreCount<<std::endl;

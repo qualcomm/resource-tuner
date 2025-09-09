@@ -69,8 +69,8 @@ static ErrCode fetchMetaConfigs() {
         submitPropGetRequest(RATE_LIMITER_REWARD_FACTOR, resultBuffer, "0.4");
         ResourceTunerSettings::metaConfigs.mRewardFactor = std::stod(resultBuffer);
 
-        submitPropGetRequest(LOGGER_LOGGING_LEVEL, resultBuffer, "2");
-        int8_t logLevel = (int8_t)std::stoi(resultBuffer);
+        submitPropGetRequest(LOGGER_LOGGING_LEVEL, resultBuffer, "DEBUG");
+        int32_t logLevel = Logger::decodeLogLevel(resultBuffer);
 
         int8_t levelSpecificLogging = false;
         submitPropGetRequest(LOGGER_LOGGING_LEVEL_TYPE, resultBuffer, "false");
@@ -78,10 +78,10 @@ static ErrCode fetchMetaConfigs() {
             levelSpecificLogging = true;
         }
 
-        RedirectOptions redirectOutputTo = LOG_FILE;
+        RedirectOptions redirectOutputTo = RedirectOptions::LOG_TOSYSLOG;
         submitPropGetRequest(LOGGER_LOGGING_OUTPUT_REDIRECT, resultBuffer, "1");
         if((int8_t)std::stoi(resultBuffer) == 0) {
-            redirectOutputTo = FTRACE;
+            redirectOutputTo = LOG_TOFILE;
         }
 
         Logger::configure(logLevel, levelSpecificLogging, redirectOutputTo);

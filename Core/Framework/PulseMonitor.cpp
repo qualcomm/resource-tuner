@@ -7,7 +7,6 @@
 static int8_t getAllRunningProcess(std::unordered_set<int64_t>& processId) {
     DIR* proc = opendir("/proc");
     struct dirent* ent;
-    int64_t tgid;
 
     if(proc == nullptr) {
         TYPELOGV(ERRNO_LOG, "opendir", strerror(errno));
@@ -18,7 +17,7 @@ static int8_t getAllRunningProcess(std::unordered_set<int64_t>& processId) {
         if(!isdigit(*ent->d_name)) {
             continue;
         }
-        tgid = strtol(ent->d_name, nullptr, 10);
+        int64_t tgid = strtol(ent->d_name, nullptr, 10);
         processId.insert(tgid);
     }
     closedir(proc);

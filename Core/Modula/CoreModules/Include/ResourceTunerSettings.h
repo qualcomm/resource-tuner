@@ -1,8 +1,8 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#ifndef SYSTEM_PROPS_H
-#define SYSTEM_PROPS_H
+#ifndef RESOURCE_TUNER_SETTINGS_H
+#define RESOURCE_TUNER_SETTINGS_H
 
 #include <cstdint>
 #include <unordered_map>

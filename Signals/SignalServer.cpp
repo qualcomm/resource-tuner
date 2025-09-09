@@ -73,9 +73,8 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
     }
 
     int8_t permissionCheck = false;
-    int8_t requestPermission = ClientDataManager::getInstance()->getClientLevelByClientID(signal->getClientPID());
     for(enum Permissions signalPermission: *signalInfo->mPermissions) {
-        if(requestPermission == signalPermission) {
+        if(clientPermissions == signalPermission) {
             permissionCheck = true;
             break;
         }

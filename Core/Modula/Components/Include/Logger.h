@@ -9,22 +9,18 @@
 #include <chrono>
 #include <fstream>
 #include <cstdarg>
+#include <sstream>
+#include <syslog.h>
 
-#define LOGD(tag, message) Logger::log(DEBUG, tag, __func__, message)
-#define LOGI(tag, message) Logger::log(INFO, tag, __func__, message)
-#define LOGE(tag, message) Logger::log(ERROR, tag, __func__, message)
+#define LOGD(tag, message) Logger::log(LOG_DEBUG, tag, __func__, message)
+#define LOGI(tag, message) Logger::log(LOG_INFO, tag, __func__, message)
+#define LOGE(tag, message) Logger::log(LOG_ERR, tag, __func__, message)
 #define TYPELOGV(type, args...) Logger::typeLog(type, __func__, args)
 #define TYPELOGD(type) Logger::typeLog(type, __func__)
 
-enum LogLevel {
-    DEBUG = 0,
-    INFO = 1,
-    ERROR = 2
-};
-
 enum RedirectOptions {
-    FTRACE,
-    LOG_FILE
+    LOG_TOFILE,
+    LOG_TOSYSLOG
 };
 
 enum CommonMessageTypes {
@@ -107,21 +103,21 @@ enum CommonMessageTypes {
 };
 
 /**
-* @brief Logger.
-* @details Provides a Simplified and Consistent interface for Logging across different Targets
-* Currently We support 3 levels of Logging
-* 1. Debug - For almost all non-essential debug statements.
-* 2. Info - For essential statements.
-* 3. Error - Statements if printed, shows errors.
-*/
+ * @brief Logger.
+ * @details Provides a Simplified and Consistent interface for Logging across different Targets
+ *          Currently We support 3 levels of Logging
+ *          1. Debug - For almost all non-essential debug statements.
+ *          2. Info - For essential statements.
+ *          3. Error - Statements if printed, shows errors.
+ */
 class Logger {
 private:
-    static int8_t mCurrentLevel;
+    static int32_t mLowestLogLevel;
     static int8_t mLevelSpecificLogging;
     static RedirectOptions mRedirectOutputTo;
 
     static std::string getTimestamp();
-    static std::string levelToString(LogLevel level);
+    static std::string levelToString(int32_t level);
 
 public:
     /**
@@ -138,15 +134,17 @@ public:
      *                         Or Ftrace should be used.
      * @return int32_t: Number of blocks which were actually allocated (<= blockCount)
      */
-    static void configure(int8_t level, int8_t levelSpecificLogging, RedirectOptions redirectOutputTo);
+    static void configure(int32_t level, int8_t levelSpecificLogging, RedirectOptions redirectOutputTo);
 
     /**
      * @brief Responsible for actually Logging a Message to the desired Medium (file or Ftrace)
      * @details Note, this Routine should not be called directly, instead the Macros
      *          LOGD, LOGE, LOGI, TYPELOGD and TYPELOGV should be used.
      */
-    static void log(LogLevel level, const std::string& tag, const std::string& funcName, const std::string& message);
+    static void log(int32_t level, const std::string& tag, const std::string& funcName, const std::string& message);
     static void typeLog(CommonMessageTypes type, const std::string& funcName, ...);
+
+    static int32_t decodeLogLevel(const std::string level);
 };
 
 #endif

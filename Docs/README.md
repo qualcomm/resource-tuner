@@ -33,7 +33,7 @@ Resource-tuner framework supports `Signals` which is dynamic provisioning of sys
 To get started with the project:
 [Build and install](../README.md#build-and-install-instructions)
 
-Refer the [Examples](./Examples) for guidance on resource-tuner API usage.
+Refer the Examples Tab for guidance on resource-tuner API usage.
 
 ---
 
@@ -54,17 +54,19 @@ option(BUILD_CLI "CLI" OFF)
 
 # Project Structure
 
-\verbatim
-/Core/Framework → Core Resource Provisioning Request Logic
-/Core/Modula → Common Utilities and Components used across Resource Tuner Modules.
-/Core/Client → Exposes the Client Facing APIs, and Defines the Client Communication Endpoint
-/Core/Server → Defines the Server Communication Endpoint and other Common Server-Side Utils.
-/Signals → Optional Module, exposes Signal Tuning / Relay APIs
-/Tests → Unit and System Wide Tests
-/Docs → Documentation
-\endverbatim
-
----
+```text
+/
+├── Core
+│   ├── Framework                # Core Resource Provisioning Request Flow Logic
+│   ├── Modula                   # Common Utilities and Components used across Resource Tuner Modules
+│   ├── Client                   # Exposes the Client Facing APIs, and Defines the Client Communication Endpoint
+│   ├── Configs                  # Resources Config, Properties Config, Init Config
+│   └── Server                   # Defines the Server Communication Endpoint and other Common Server-Side Utils
+├── Signals                      # Optional Module, exposes Signal Tuning / Relay APIs
+│   └── Configs                  # Signal Configs, Ext Feature Configs
+├── Tests                        # Unit and System Wide Tests
+└── Docs                         # Documentation
+```
 
 <div style="page-break-after: always;"></div>
 
@@ -174,7 +176,7 @@ below table present in InitConfigs->ClusterMap section
 |   2    |    "prime" |
 
 resource-tuner reads machine topology and prepares logical to physical table dynamically in the init phase, similar to below one
-| LgcId  |  PhyId  | 
+| LgcId  |  PhyId  |
 |--------|---------|
 |   0    |     0   |
 |   1    |     1   |
@@ -952,7 +954,7 @@ Example:
 
 For questions, suggestions, or contributions, feel free to reach out:
 
-- **Email**: CSE.Perf@qti.qualcomm.com
+- **Email**: maintainers.resource-tuner-moderator@qti.qualcomm.com
 
 # License
 
