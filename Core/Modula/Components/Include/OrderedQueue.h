@@ -35,7 +35,7 @@ protected:
 
     /**
     * @brief Core OrderedQueue Data Structure, to store the Requests pushed by the Publisher threads.
-    * Make used of std::priority_queue, which is ordered here based on the Request Priorities.
+    *        Makes use of std::priority_queue, which is ordered here based on the Request Priorities.
     */
     std::priority_queue<Message*, std::vector<Message*>, QueueOrdering> mOrderedQueue;
 
@@ -47,8 +47,11 @@ public:
     * @brief Used by the producers to add a new request to the OrderedQueue.
     * @details This routine will wake up the consumer end to process the task.
     * @param req Pointer to the Request
+    * @return int8_t
+    *            1: If the Request was successfully added to the Request Queue
+    *            0: otherwise
     */
-    void addAndWakeup(Message* req);
+    int8_t addAndWakeup(Message* req);
 
     /**
     * @brief Provides a mechanism, to hook or plug-in the Consumer Code.

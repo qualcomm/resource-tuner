@@ -3,7 +3,7 @@
 
 #include "PropertiesRegistry.h"
 
-std::shared_ptr<PropertiesRegistry> PropertiesRegistry::sysConfigPropRegistryInstance = nullptr;
+std::shared_ptr<PropertiesRegistry> PropertiesRegistry::propRegistryInstance = nullptr;
 
 PropertiesRegistry::PropertiesRegistry() {}
 

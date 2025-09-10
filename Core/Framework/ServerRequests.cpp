@@ -62,7 +62,8 @@ static int8_t performPhysicalMapping(int32_t& coreValue, int32_t& clusterValue) 
  *          permissions, and performs logical-to-physical mapping.
  *
  * @param req Pointer to the Request object.
- * @return int8_t True if the request is valid, false otherwise.
+ * @return int8_t: 1 if the request is valid.
+ *                 0 otherwise.
  */
 static int8_t VerifyIncomingRequest(Request* req) {
     if(req->getDuration() < -1 || req->getDuration() == 0) return false;

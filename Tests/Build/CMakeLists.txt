@@ -78,6 +78,11 @@ if(BUILD_TESTS)
     target_include_directories(ExtensionIntfTests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
     install(TARGETS ExtensionIntfTests DESTINATION bin)
 
+    add_executable(RequestQueueTests ../Component/Comp/RequestQueueTests.cpp)
+    target_link_libraries(RequestQueueTests Auxiliary ExtAPIs Server)
+    target_include_directories(RequestQueueTests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
+    install(TARGETS RequestQueueTests DESTINATION bin)
+
     add_executable(InitConfigParsingTests ../Component/Parsers/InitConfigParsingTests.cpp)
     target_link_libraries(InitConfigParsingTests Auxiliary ExtAPIs Server)
     target_include_directories(InitConfigParsingTests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)

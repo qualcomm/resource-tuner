@@ -209,7 +209,7 @@ void RequestManager::triggerDisplayOffOrDozeMode() {
             untuneRequest = new (GetBlock<Request>()) Request();
         } catch(const std::bad_alloc& e) {
             LOGI("RESTUNE_REQUEST_MANAGER"
-                "Failed to create Untune Request for Request: ", std::to_string(request->getHandle()));
+                 "Failed to create Untune Request for Request: ", std::to_string(request->getHandle()));
         }
 
         if(untuneRequest != nullptr) {
@@ -257,7 +257,7 @@ void RequestManager::triggerDisplayOnMode() {
             untuneRequest = new (GetBlock<Request>()) Request();
         } catch(const std::bad_alloc& e) {
             LOGI("RESTUNE_REQUEST_MANAGER"
-                "Failed to create Untune Request for Request: ", std::to_string(request->getHandle()));
+                 "Failed to create Untune Request for Request: ", std::to_string(request->getHandle()));
         }
 
         if(untuneRequest != nullptr) {

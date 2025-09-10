@@ -8,25 +8,27 @@ OrderedQueue::OrderedQueue() {
     this->mElementCount = 0;
 }
 
-void OrderedQueue::addAndWakeup(Message* queueItem) {
+int8_t OrderedQueue::addAndWakeup(Message* queueItem) {
     try {
         const std::unique_lock<std::mutex> lock(this->mOrderedQueueMutex);
 
-        if(queueItem == nullptr) return;
-        if(queueItem->getPriority() < SERVER_CLEANUP_TRIGGER_PRIORITY) return;
+        if(queueItem == nullptr) return false;
+        if(queueItem->getPriority() < SERVER_CLEANUP_TRIGGER_PRIORITY) return false;
 
         this->mOrderedQueue.push(queueItem);
         this->mElementCount++;
 
         this->mOrderedQueueCondition.notify_one();
+        return true;
 
-    } catch(const std::system_error& e) {
-        LOGE("RESTUNE_ORDERED_QUEUE",
-             "Call to addAndWakeup failed, error: " + std::string(e.what()));
     } catch(const std::exception& e) {
         LOGE("RESTUNE_ORDERED_QUEUE",
              "Call to addAndWakeup failed, error: " + std::string(e.what()));
+
+        return false;
     }
+
+    return false;
 }
 
 void OrderedQueue::wait() {
