@@ -48,7 +48,7 @@ int8_t Timer::startTimer(int64_t duration) {
         return false;
     }
 
-    LOGD("RESTUNE_TIMER", "Timer started with " + std::to_string(duration));
+    LOGD("RESTUNE_TIMER", "Timer Event Created, duration: " + std::to_string(duration));
     return true;
 }
 

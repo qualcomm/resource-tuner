@@ -10,6 +10,61 @@
 
 static TestBaseline baseline;
 
+typedef struct {
+    std::string mTestName;
+    std::function<void()> mTest;
+    int8_t mTestStatus;
+} TestCase;
+
+class TestRunner {
+private:
+    std::vector<TestCase> mTestCases;
+
+public:
+    void registerTest(const std::string& name, std::function<void()> test) {
+        this->mTestCases.push_back({
+            .mTestName = name,
+            .mTest = test,
+            .mTestStatus = false
+        });
+    }
+
+    void run() {
+        for(int32_t i = 0; i < this->mTestCases.size(); i++) {
+            try {
+                RUN_INTEGRATION_TEST(this->mTestCases[i].mTest);
+                this->mTestCases[i].mTestStatus = true;
+            } catch(const std::exception& e) {
+                this->mTestCases[i].mTestStatus = false;
+            }
+        }
+    }
+
+    void displayResults() {
+        std::vector<TestCase> failedTests;
+        for(TestCase test: this->mTestCases) {
+            if(!test.mTestStatus) {
+                failedTests.push_back(test);
+            }
+        }
+
+        std::cout<<"\n\nSummary:"<<std::endl;
+        std::cout<<"Total Number of Tests Ran: "<<this->mTestCases.size()<<std::endl;
+        std::cout<<"Number of Failing Tests: "<<failedTests.size()<<std::endl<<std::endl;
+        if(failedTests.size() > 0) {
+            std::cout<<"List of Failed Tests: "<<std::endl;
+            for(TestCase failingTest: failedTests) {
+                std::cout<<"- "<<failingTest.mTestName<<std::endl;
+            }
+        }
+    }
+};
+
+static TestRunner testRunner;
+
+#define REGISTER_TEST(test)               \
+    testRunner.registerTest(#test, test); \
+
 /*
  * These tests mirror the Client Perspective, i.e. how the client interacts with various
  * Resource Tuner APIs like tuneResources / untuneResources, tuneSignal etc.
@@ -47,7 +102,7 @@ static void TestHandleGeneration() {
     delete resourceList;
 
     std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
-    assert(handle > 0);
+    E_ASSERT(handle > 0);
 
     std::this_thread::sleep_for(std::chrono::seconds(3));
 
@@ -62,7 +117,7 @@ static void TestHandleGeneration() {
     delete resourceList;
 
     std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
-    assert(handle > 0);
+    E_ASSERT(handle > 0);
 
     std::this_thread::sleep_for(std::chrono::seconds(3));
 
@@ -77,7 +132,7 @@ static void TestHandleGeneration() {
     delete resourceList;
 
     std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
-    assert(handle > 0);
+    E_ASSERT(handle > 0);
 
     LOG_END
 }
@@ -90,29 +145,29 @@ static void TestPropFetch() {
     memset(buf, 0, sizeof(buf));
 
     int8_t status = getProp(prop1, buf, sizeof(buf), "na");
-    assert(status == 0);
+    E_ASSERT(status == 0);
 
     std::cout<<LOG_BASE<<"Value Fetched for key: ["<<prop1<<"] is: "<<buf<<std::endl;
-    assert(std::string(buf) == "60000000");
+    E_ASSERT(std::string(buf) == "60000000");
 
     char prop2[] = "resource_tuner.maximum.concurrent.requests";
     memset(buf, 0, sizeof(buf));
 
     status = getProp(prop2, buf, sizeof(buf), "na");
-    assert(status == 0);
+    E_ASSERT(status == 0);
 
     std::cout<<LOG_BASE<<"Value Fetched for key: ["<<prop2<<"] is: "<<buf<<std::endl;
-    assert(std::string(buf) == "60");
+    E_ASSERT(std::string(buf) == "60");
 
     // Non Existent
     char prop3[] = "resource_tuner.benchmakr.comparison.utilinets";
     memset(buf, 0, sizeof(buf));
 
     status = getProp(prop3, buf, sizeof(buf), "na");
-    assert(status == 0);
+    E_ASSERT(status == 0);
 
     std::cout<<LOG_BASE<<"Value Fetched for key: ["<<prop3<<"] is: "<<buf<<std::endl;
-    assert(std::string(buf) == "na");
+    E_ASSERT(std::string(buf) == "na");
 
     LOG_END
 }
@@ -157,7 +212,6 @@ namespace ResourceTuningRequestVerification {
     * This includes testing for cases A, B and C.
     */
 
-    std::string __testGroupName = "Resource Tuner Requests Verification / Integrity Checks";
     /**
     * API under test: Tune
     * - The client tries to send a Request with a duration of 0.
@@ -170,7 +224,7 @@ namespace ResourceTuningRequestVerification {
         LOG_START
 
         int64_t handle = tuneResources(0, RequestPriority::REQ_PRIORITY_HIGH, 0, nullptr);
-        assert(handle == RC_REQ_SUBMISSION_FAILURE);
+        E_ASSERT(handle == RC_REQ_SUBMISSION_FAILURE);
 
         LOG_END
     }
@@ -188,7 +242,7 @@ namespace ResourceTuningRequestVerification {
         LOG_START
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 0, nullptr);
-        assert(handle == RC_REQ_SUBMISSION_FAILURE);
+        E_ASSERT(handle == RC_REQ_SUBMISSION_FAILURE);
 
         LOG_END
     }
@@ -213,7 +267,7 @@ namespace ResourceTuningRequestVerification {
         resourceList[0].mResInfo = -1;
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
-        assert(handle == RC_REQ_SUBMISSION_FAILURE);
+        E_ASSERT(handle == RC_REQ_SUBMISSION_FAILURE);
 
         delete resourceList;
         LOG_END
@@ -240,7 +294,7 @@ namespace ResourceTuningRequestVerification {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
@@ -255,7 +309,7 @@ namespace ResourceTuningRequestVerification {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
-        assert(newValue == testResourceOriginalValue);
+        E_ASSERT(newValue == testResourceOriginalValue);
 
         delete resourceList;
         LOG_END
@@ -284,7 +338,7 @@ namespace ResourceTuningRequestVerification {
 
         value = AuxRoutines::readFromFile(validResourceName);
         originalValue = C_STOI(value);
-        assert(originalValue == validResourceOriginalValue);
+        E_ASSERT(originalValue == validResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[2];
         memset(&resourceList[0], 0, sizeof(SysResource));
@@ -304,7 +358,7 @@ namespace ResourceTuningRequestVerification {
 
         value = AuxRoutines::readFromFile(validResourceName);
         newValue = C_STOI(value);
-        assert(newValue == validResourceOriginalValue);
+        E_ASSERT(newValue == validResourceOriginalValue);
 
         delete resourceList;
         LOG_END
@@ -331,7 +385,7 @@ namespace ResourceTuningRequestVerification {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
@@ -345,7 +399,7 @@ namespace ResourceTuningRequestVerification {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
-        assert(newValue == testResourceOriginalValue);
+        E_ASSERT(newValue == testResourceOriginalValue);
 
         delete resourceList;
         LOG_END
@@ -374,7 +428,7 @@ namespace ResourceTuningRequestVerification {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
@@ -392,7 +446,7 @@ namespace ResourceTuningRequestVerification {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
-        assert(newValue == testResourceOriginalValue);
+        E_ASSERT(newValue == testResourceOriginalValue);
 
         delete resourceList;
         LOG_END
@@ -421,7 +475,7 @@ namespace ResourceTuningRequestVerification {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[2];
         memset(&resourceList[0], 0, sizeof(SysResource));
@@ -438,7 +492,7 @@ namespace ResourceTuningRequestVerification {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
-        assert(newValue == testResourceOriginalValue);
+        E_ASSERT(newValue == testResourceOriginalValue);
 
         delete resourceList;
         LOG_END
@@ -468,7 +522,7 @@ namespace ResourceTuningRequestVerification {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
@@ -486,13 +540,13 @@ namespace ResourceTuningRequestVerification {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
-        assert(newValue == 2300);
+        E_ASSERT(newValue == 2300);
 
         std::this_thread::sleep_for(std::chrono::seconds(5));
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
-        assert(newValue == testResourceOriginalValue);
+        E_ASSERT(newValue == testResourceOriginalValue);
 
         delete resourceList;
         LOG_END
@@ -521,7 +575,7 @@ namespace ResourceTuningRequestVerification {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
@@ -539,7 +593,7 @@ namespace ResourceTuningRequestVerification {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
-        assert(newValue == testResourceOriginalValue);
+        E_ASSERT(newValue == testResourceOriginalValue);
 
         delete resourceList;
         LOG_END
@@ -565,7 +619,7 @@ namespace ResourceTuningRequestVerification {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
@@ -579,7 +633,7 @@ namespace ResourceTuningRequestVerification {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
-        assert(newValue == testResourceOriginalValue);
+        E_ASSERT(newValue == testResourceOriginalValue);
 
         delete resourceList;
         LOG_END
@@ -604,7 +658,7 @@ namespace ResourceTuningRequestVerification {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
@@ -618,7 +672,7 @@ namespace ResourceTuningRequestVerification {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
-        assert(newValue == testResourceOriginalValue);
+        E_ASSERT(newValue == testResourceOriginalValue);
 
         delete resourceList;
         LOG_END
@@ -647,7 +701,7 @@ namespace ResourceTuningRequestVerification {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
@@ -661,30 +715,26 @@ namespace ResourceTuningRequestVerification {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
-        assert(newValue == testResourceOriginalValue);
+        E_ASSERT(newValue == testResourceOriginalValue);
 
         delete resourceList;
         LOG_END
     }
 
-    static void RunTestGroup() {
-        std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
-
-        RUN_INTEGRATION_TEST(TestNullOrInvalidRequestVerification1)
-        RUN_INTEGRATION_TEST(TestNullOrInvalidRequestVerification2)
-        RUN_INTEGRATION_TEST(TestNullOrInvalidRequestVerification3)
-        RUN_INTEGRATION_TEST(TestClientPriorityAcquisitionVerification)
-        RUN_INTEGRATION_TEST(TestInvalidResourceTuning)
-        RUN_INTEGRATION_TEST(TestOutOfBoundsResourceTuning)
-        RUN_INTEGRATION_TEST(TestResourceLogicalToPhysicalTranslationVerification1)
-        RUN_INTEGRATION_TEST(TestResourceLogicalToPhysicalTranslationVerification2)
-        RUN_INTEGRATION_TEST(TestResourceLogicalToPhysicalTranslationVerification3)
-        RUN_INTEGRATION_TEST(TestResourceLogicalToPhysicalTranslationVerification4)
-        RUN_INTEGRATION_TEST(TestNonSupportedResourceTuningVerification)
-        RUN_INTEGRATION_TEST(TestResourceOperationModeVerification)
-        RUN_INTEGRATION_TEST(TestClientPermissionChecksVerification)
-
-        std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
+    static void RegisterTestGroup() {
+        REGISTER_TEST(TestNullOrInvalidRequestVerification1)
+        REGISTER_TEST(TestNullOrInvalidRequestVerification2)
+        REGISTER_TEST(TestNullOrInvalidRequestVerification3)
+        REGISTER_TEST(TestClientPriorityAcquisitionVerification)
+        REGISTER_TEST(TestInvalidResourceTuning)
+        REGISTER_TEST(TestOutOfBoundsResourceTuning)
+        REGISTER_TEST(TestResourceLogicalToPhysicalTranslationVerification1)
+        REGISTER_TEST(TestResourceLogicalToPhysicalTranslationVerification2)
+        REGISTER_TEST(TestResourceLogicalToPhysicalTranslationVerification3)
+        REGISTER_TEST(TestResourceLogicalToPhysicalTranslationVerification4)
+        REGISTER_TEST(TestNonSupportedResourceTuningVerification)
+        REGISTER_TEST(TestResourceOperationModeVerification)
+        REGISTER_TEST(TestClientPermissionChecksVerification)
     }
 }
 
@@ -719,7 +769,6 @@ namespace SignalVerification {
     * All the above mentioned cases are covered by the different tests under this section.
     */
 
-    std::string __testGroupName = "Signal Requests Verification / Integrity Checks";
     /**
     * API under test: tuneSignal
     * - The client tries to tune a Signal with a duration of -2.
@@ -732,7 +781,7 @@ namespace SignalVerification {
         LOG_START
 
         int64_t handle = tuneSignal(1, -2, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
-        assert(handle == RC_REQ_SUBMISSION_FAILURE);
+        E_ASSERT(handle == RC_REQ_SUBMISSION_FAILURE);
 
         LOG_END
     }
@@ -759,7 +808,7 @@ namespace SignalVerification {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         int64_t handle =
             tuneSignal(0x800d0001, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
@@ -768,7 +817,7 @@ namespace SignalVerification {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
-        assert(newValue == testResourceOriginalValue);
+        E_ASSERT(newValue == testResourceOriginalValue);
 
         LOG_END
     }
@@ -793,7 +842,7 @@ namespace SignalVerification {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         int64_t handle =
             tuneSignal(0x800d0002, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
@@ -802,7 +851,7 @@ namespace SignalVerification {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
-        assert(newValue == testResourceOriginalValue);
+        E_ASSERT(newValue == testResourceOriginalValue);
 
         LOG_END
     }
@@ -829,7 +878,7 @@ namespace SignalVerification {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         int64_t handle =
             tuneSignal(0x800d0000, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
@@ -838,7 +887,7 @@ namespace SignalVerification {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
-        assert(newValue == testResourceOriginalValue);
+        E_ASSERT(newValue == testResourceOriginalValue);
 
         LOG_END
     }
@@ -861,7 +910,7 @@ namespace SignalVerification {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         int64_t handle =
             tuneSignal(0x800d0003, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
@@ -870,21 +919,17 @@ namespace SignalVerification {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
-        assert(newValue == testResourceOriginalValue);
+        E_ASSERT(newValue == testResourceOriginalValue);
 
         LOG_END
     }
 
-    static void RunTestGroup() {
-        std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
-
-        RUN_INTEGRATION_TEST(TestNullOrInvalidRequestVerification)
-        RUN_INTEGRATION_TEST(TestClientPermissionChecksVerification)
-        RUN_INTEGRATION_TEST(TestOutOfBoundsResourceTuning)
-        RUN_INTEGRATION_TEST(TestTargetCompatabilityVerificationChecks)
-        RUN_INTEGRATION_TEST(TestNonSupportedSignalProvisioningVerification)
-
-        std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
+    static void RegisterTestGroup() {
+        REGISTER_TEST(TestNullOrInvalidRequestVerification)
+        REGISTER_TEST(TestClientPermissionChecksVerification)
+        REGISTER_TEST(TestOutOfBoundsResourceTuning)
+        REGISTER_TEST(TestTargetCompatabilityVerificationChecks)
+        REGISTER_TEST(TestNonSupportedSignalProvisioningVerification)
     }
 }
 
@@ -928,8 +973,6 @@ namespace RequestApplicationTests {
     * - Client C1 issues Request H1, however another client C2 tries to Retune H1 [R3]
     */
 
-    std::string __testGroupName = "Request Application Checks";
-
     /**
     * API under test: Tune / Untune
     * - Try to configure the value for a specific resource Node.
@@ -948,7 +991,7 @@ namespace RequestApplicationTests {
         std::string value = AuxRoutines::readFromFile(testResourceName);
         int32_t originalValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
@@ -964,14 +1007,14 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         int32_t newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 980);
+        E_ASSERT(newValue == 980);
 
         std::this_thread::sleep_for(std::chrono::seconds(6));
 
         // Wait for the Request to expire, check if the value resets
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
-        assert(newValue == originalValue);
+        E_ASSERT(newValue == originalValue);
 
         delete resourceList;
         LOG_END
@@ -1003,17 +1046,17 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName1);
         originalValue[0] = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName1<<" Original Value: "<<originalValue[0]<<std::endl;
-        assert(originalValue[0] == testResourceOriginalValue1);
+        E_ASSERT(originalValue[0] == testResourceOriginalValue1);
 
         value = AuxRoutines::readFromFile(testResourceName2);
         originalValue[1] = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName2<<" Original Value: "<<originalValue[1]<<std::endl;
-        assert(originalValue[1] == testResourceOriginalValue2);
+        E_ASSERT(originalValue[1] == testResourceOriginalValue2);
 
         value = AuxRoutines::readFromFile(testResourceName3);
         originalValue[2] = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName3<<" Original Value: "<<originalValue[2]<<std::endl;
-        assert(originalValue[2] == testResourceOriginalValue3);
+        E_ASSERT(originalValue[2] == testResourceOriginalValue3);
 
         SysResource* resourceList = new SysResource[3];
         memset(&resourceList[0], 0, sizeof(SysResource));
@@ -1039,17 +1082,17 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName1);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName1<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 765);
+        E_ASSERT(newValue == 765);
 
         value = AuxRoutines::readFromFile(testResourceName2);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName2<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 617);
+        E_ASSERT(newValue == 617);
 
         value = AuxRoutines::readFromFile(testResourceName3);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName3<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 889);
+        E_ASSERT(newValue == 889);
 
         std::this_thread::sleep_for(std::chrono::seconds(6));
 
@@ -1057,17 +1100,17 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName1);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName1<<" Reset Value: "<<newValue<<std::endl;
-        assert(newValue == originalValue[0]);
+        E_ASSERT(newValue == originalValue[0]);
 
         value = AuxRoutines::readFromFile(testResourceName2);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName2<<" Reset Value: "<<newValue<<std::endl;
-        assert(newValue == originalValue[1]);
+        E_ASSERT(newValue == originalValue[1]);
 
         value = AuxRoutines::readFromFile(testResourceName3);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName3<<" Reset Value: "<<newValue<<std::endl;
-        assert(newValue == originalValue[2]);
+        E_ASSERT(newValue == originalValue[2]);
 
         std::this_thread::sleep_for(std::chrono::seconds(4));
 
@@ -1095,7 +1138,7 @@ namespace RequestApplicationTests {
         std::string value = AuxRoutines::readFromFile(testResourceName);
         int32_t originalValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         int32_t rc = fork();
         if(rc == 0) {
@@ -1131,7 +1174,7 @@ namespace RequestApplicationTests {
 
             // Note value should be the higher of the 2, since for this resource the
             // policy set is "Higher is Better"
-            assert(newValue == 315);
+            E_ASSERT(newValue == 315);
 
             std::this_thread::sleep_for(std::chrono::seconds(8));
 
@@ -1139,7 +1182,7 @@ namespace RequestApplicationTests {
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
-            assert(newValue == originalValue);
+            E_ASSERT(newValue == originalValue);
 
             delete resourceList;
         }
@@ -1174,7 +1217,7 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         int32_t rc1 = fork();
         if(rc1 == 0) {
@@ -1208,7 +1251,7 @@ namespace RequestApplicationTests {
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-            assert(newValue == 1176);
+            E_ASSERT(newValue == 1176);
 
             std::this_thread::sleep_for(std::chrono::seconds(6));
 
@@ -1217,14 +1260,14 @@ namespace RequestApplicationTests {
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-            assert(newValue == 823);
+            E_ASSERT(newValue == 823);
 
             std::this_thread::sleep_for(std::chrono::seconds(10));
 
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<originalValue<<std::endl;
-            assert(newValue == originalValue);
+            E_ASSERT(newValue == originalValue);
 
             delete resourceList;
         }
@@ -1260,7 +1303,7 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         int64_t handle;
 
@@ -1287,7 +1330,7 @@ namespace RequestApplicationTests {
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-            assert(newValue == 578);
+            E_ASSERT(newValue == 578);
 
             int32_t rc2 = fork();
             if(rc2 == 0) {
@@ -1310,7 +1353,7 @@ namespace RequestApplicationTests {
                 value = AuxRoutines::readFromFile(testResourceName);
                 newValue = C_STOI(value);
                 std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-                assert(newValue == 445);
+                E_ASSERT(newValue == 445);
 
                 int32_t rc3 = fork();
                 if(rc3 == 0) {
@@ -1333,7 +1376,7 @@ namespace RequestApplicationTests {
                     value = AuxRoutines::readFromFile(testResourceName);
                     newValue = C_STOI(value);
                     std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-                    assert(newValue == 412);
+                    E_ASSERT(newValue == 412);
 
                     SysResource* resourceList = new SysResource[1];
                     memset(&resourceList[0], 0, sizeof(SysResource));
@@ -1348,14 +1391,14 @@ namespace RequestApplicationTests {
                     value = AuxRoutines::readFromFile(testResourceName);
                     newValue = C_STOI(value);
                     std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-                    assert(newValue == 378);
+                    E_ASSERT(newValue == 378);
 
                     std::this_thread::sleep_for(std::chrono::seconds(30));
 
                     value = AuxRoutines::readFromFile(testResourceName);
                     newValue = C_STOI(value);
                     std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
-                    assert(newValue == originalValue);
+                    E_ASSERT(newValue == originalValue);
 
                     delete resourceList;
                 }
@@ -1388,7 +1431,7 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         int64_t handle;
         int32_t rc1 = fork();
@@ -1423,28 +1466,28 @@ namespace RequestApplicationTests {
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-            assert(newValue == 15);
+            E_ASSERT(newValue == 15);
 
             std::this_thread::sleep_for(std::chrono::seconds(3));
 
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-            assert(newValue == 15);
+            E_ASSERT(newValue == 15);
 
             std::this_thread::sleep_for(std::chrono::seconds(8));
 
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-            assert(newValue == 18);
+            E_ASSERT(newValue == 18);
 
             std::this_thread::sleep_for(std::chrono::seconds(12));
 
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
-            assert(newValue == originalValue);
+            E_ASSERT(newValue == originalValue);
 
             delete resourceList;
         }
@@ -1478,17 +1521,17 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName1);
         originalValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName1<<" Original Value: "<<originalValue<<std::endl;
-        assert(originalValue == testResourceOriginalValue1);
+        E_ASSERT(originalValue == testResourceOriginalValue1);
 
         value = AuxRoutines::readFromFile(testResourceName2);
         originalValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName2<<" Original Value: "<<originalValue<<std::endl;
-        assert(originalValue == testResourceOriginalValue2);
+        E_ASSERT(originalValue == testResourceOriginalValue2);
 
         value = AuxRoutines::readFromFile(testResourceName3);
         originalValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceOriginalValue3<<" Original Value: "<<originalValue<<std::endl;
-        assert(originalValue == testResourceOriginalValue3);
+        E_ASSERT(originalValue == testResourceOriginalValue3);
 
         int32_t rc1 = fork();
         if(rc1 == 0) {
@@ -1534,17 +1577,17 @@ namespace RequestApplicationTests {
                 value = AuxRoutines::readFromFile(testResourceName1);
                 newValue = C_STOI(value);
                 std::cout<<LOG_BASE<<testResourceName1<<" Configured Value: "<<newValue<<std::endl;
-                assert(newValue == 717);
+                E_ASSERT(newValue == 717);
 
                 value = AuxRoutines::readFromFile(testResourceName2);
                 newValue = C_STOI(value);
                 std::cout<<LOG_BASE<<testResourceName2<<" Configured Value: "<<newValue<<std::endl;
-                assert(newValue == 800);
+                E_ASSERT(newValue == 800);
 
                 value = AuxRoutines::readFromFile(testResourceName3);
                 newValue = C_STOI(value);
                 std::cout<<LOG_BASE<<testResourceName3<<" Configured Value: "<<newValue<<std::endl;
-                assert(newValue == 557);
+                E_ASSERT(newValue == 557);
 
                 // Wait for the Nodes to Reset
                 std::this_thread::sleep_for(std::chrono::seconds(20));
@@ -1552,17 +1595,17 @@ namespace RequestApplicationTests {
                 value = AuxRoutines::readFromFile(testResourceName1);
                 originalValue = C_STOI(value);
                 std::cout<<LOG_BASE<<testResourceName1<<" Reset Value: "<<originalValue<<std::endl;
-                assert(originalValue == testResourceOriginalValue1);
+                E_ASSERT(originalValue == testResourceOriginalValue1);
 
                 value = AuxRoutines::readFromFile(testResourceName2);
                 originalValue = C_STOI(value);
                 std::cout<<LOG_BASE<<testResourceName2<<" Reset Value: "<<originalValue<<std::endl;
-                assert(originalValue == testResourceOriginalValue2);
+                E_ASSERT(originalValue == testResourceOriginalValue2);
 
                 value = AuxRoutines::readFromFile(testResourceName3);
                 originalValue = C_STOI(value);
                 std::cout<<LOG_BASE<<testResourceName3<<" Reset Value: "<<originalValue<<std::endl;
-                assert(originalValue == testResourceOriginalValue3);
+                E_ASSERT(originalValue == testResourceOriginalValue3);
 
                 waitpid(rc1, nullptr, 0);
                 waitpid(rc2, nullptr, 0);
@@ -1595,7 +1638,7 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList1 = new SysResource[1];
         memset(&resourceList1[0], 0, sizeof(SysResource));
@@ -1617,14 +1660,14 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 917);
+        E_ASSERT(newValue == 917);
 
         std::this_thread::sleep_for(std::chrono::seconds(6));
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
-        assert(newValue == testResourceOriginalValue);
+        E_ASSERT(newValue == testResourceOriginalValue);
 
         delete resourceList1;
         delete resourceList2;
@@ -1654,7 +1697,7 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         std::thread th([&]{
             SysResource* resourceList1 = new SysResource[1];
@@ -1682,14 +1725,14 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 702);
+        E_ASSERT(newValue == 702);
 
         std::this_thread::sleep_for(std::chrono::seconds(6));
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
-        assert(newValue == testResourceOriginalValue);
+        E_ASSERT(newValue == testResourceOriginalValue);
 
         th.join();
 
@@ -1721,7 +1764,7 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
         SysResource resource = {0};
@@ -1737,7 +1780,7 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 245);
+        E_ASSERT(newValue == 245);
 
         untuneResources(handle);
 
@@ -1746,7 +1789,7 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Untuned Value: "<<newValue<<std::endl;
-        assert(newValue == testResourceOriginalValue);
+        E_ASSERT(newValue == testResourceOriginalValue);
 
         delete resourceList;
         LOG_END
@@ -1778,7 +1821,7 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
@@ -1793,7 +1836,7 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 245);
+        E_ASSERT(newValue == 245);
 
         int32_t rc = fork();
         if(rc == 0) {
@@ -1811,7 +1854,7 @@ namespace RequestApplicationTests {
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             std::cout<<LOG_BASE<<testResourceName<<" Untuned Value: "<<newValue<<std::endl;
-            assert(newValue == 245);
+            E_ASSERT(newValue == 245);
 
             untuneResources(handle);
 
@@ -1820,7 +1863,7 @@ namespace RequestApplicationTests {
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
-            assert(newValue == testResourceOriginalValue);
+            E_ASSERT(newValue == testResourceOriginalValue);
 
             delete resourceList;
         }
@@ -1856,7 +1899,7 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList1 = new SysResource[1];
         memset(&resourceList1[0], 0, sizeof(SysResource));
@@ -1879,14 +1922,14 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 559);
+        E_ASSERT(newValue == 559);
 
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
-        assert(newValue == testResourceOriginalValue);
+        E_ASSERT(newValue == testResourceOriginalValue);
 
         delete resourceList1;
         delete resourceList2;
@@ -1925,7 +1968,7 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList1 = new SysResource[1];
         memset(&resourceList1[0], 0, sizeof(SysResource));
@@ -1940,7 +1983,7 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 515);
+        E_ASSERT(newValue == 515);
 
         std::this_thread::sleep_for(std::chrono::seconds(3));
 
@@ -1957,14 +2000,14 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 559);
+        E_ASSERT(newValue == 559);
 
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
-        assert(newValue == testResourceOriginalValue);
+        E_ASSERT(newValue == testResourceOriginalValue);
 
         delete resourceList1;
         delete resourceList2;
@@ -2002,7 +2045,7 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<newValue<<std::endl;
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList1 = new SysResource[1];
         memset(&resourceList1[0], 0, sizeof(SysResource));
@@ -2018,7 +2061,7 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 645);
+        E_ASSERT(newValue == 645);
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -2035,14 +2078,14 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 645);
+        E_ASSERT(newValue == 645);
 
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
-        assert(newValue == testResourceOriginalValue);
+        E_ASSERT(newValue == testResourceOriginalValue);
 
         delete resourceList1;
         delete resourceList2;
@@ -2072,7 +2115,7 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
@@ -2087,7 +2130,7 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 778);
+        E_ASSERT(newValue == 778);
 
         // Wait for 10 seconds and check the Sysfs Node value
         // The Request will expire in 4 seconds, hence the value should reset to original value
@@ -2100,14 +2143,14 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 778);
+        E_ASSERT(newValue == 778);
 
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
-        assert(newValue == testResourceOriginalValue);
+        E_ASSERT(newValue == testResourceOriginalValue);
 
         delete resourceList;
         LOG_END
@@ -2136,7 +2179,7 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
@@ -2151,7 +2194,7 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 778);
+        E_ASSERT(newValue == 778);
 
         // This Request should be rejected by the Server, since Request duration cannot be decreased
         retuneResources(handle, 6000);
@@ -2163,14 +2206,14 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 778);
+        E_ASSERT(newValue == 778);
 
         std::this_thread::sleep_for(std::chrono::seconds(6));
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
-        assert(newValue == testResourceOriginalValue);
+        E_ASSERT(newValue == testResourceOriginalValue);
 
         delete resourceList;
         LOG_END
@@ -2200,7 +2243,7 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
@@ -2215,7 +2258,7 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 597);
+        E_ASSERT(newValue == 597);
 
         int32_t rc = fork();
         if(rc == 0) {
@@ -2233,7 +2276,7 @@ namespace RequestApplicationTests {
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
-            assert(newValue == testResourceOriginalValue);
+            E_ASSERT(newValue == testResourceOriginalValue);
 
             delete resourceList;
         }
@@ -2262,7 +2305,7 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
@@ -2278,14 +2321,14 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 440);
+        E_ASSERT(newValue == 440);
 
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
-        assert(newValue == testResourceOriginalValue);
+        E_ASSERT(newValue == testResourceOriginalValue);
 
         delete resourceList;
         LOG_END
@@ -2313,7 +2356,7 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
@@ -2329,42 +2372,38 @@ namespace RequestApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 440);
+        E_ASSERT(newValue == 440);
 
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
-        assert(newValue == testResourceOriginalValue);
+        E_ASSERT(newValue == testResourceOriginalValue);
 
         delete resourceList;
         LOG_END
     }
 
-    static void RunTestGroup() {
-        std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
-
-        RUN_INTEGRATION_TEST(TestSingleClientTuneRequest);
-        RUN_INTEGRATION_TEST(TestSingleClientTuneRequestMultipleResources)
-        RUN_INTEGRATION_TEST(TestMultipleClientsHigherIsBetterPolicy1)
-        RUN_INTEGRATION_TEST(TestMultipleClientsHigherIsBetterPolicy2)
-        RUN_INTEGRATION_TEST(TestMultipleClientsLowerIsBetterPolicy)
-        RUN_INTEGRATION_TEST(TestMultipleClientsLazyApplyPolicy)
-        RUN_INTEGRATION_TEST(TestMultipleClientsTuneRequestDifferentResources)
-        RUN_INTEGRATION_TEST(TestSingleClientSequentialRequests)
-        RUN_INTEGRATION_TEST(TestMultipleClientTIDsConcurrentRequests)
-        RUN_INTEGRATION_TEST(TestInfiniteDurationTuneRequestAndValidUntuning)
-        RUN_INTEGRATION_TEST(TestInfiniteDurationTuneRequestAndInValidUntuning)
-        RUN_INTEGRATION_TEST(TestPriorityBasedResourceAcquisition1)
-        RUN_INTEGRATION_TEST(TestPriorityBasedResourceAcquisition2)
-        RUN_INTEGRATION_TEST(TestPriorityBasedResourceAcquisition3)
-        RUN_INTEGRATION_TEST(TestRequestValidRetuning)
-        RUN_INTEGRATION_TEST(TestRequestInvalidRetuning1)
-        RUN_INTEGRATION_TEST(TestClusterTypeResourceTuneRequest1)
-        RUN_INTEGRATION_TEST(TestClusterTypeResourceTuneRequest2)
-
-        std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
+    static void RegisterTestGroup() {
+        REGISTER_TEST(TestSingleClientTuneRequest);
+        REGISTER_TEST(TestSingleClientTuneRequestMultipleResources)
+        REGISTER_TEST(TestMultipleClientsHigherIsBetterPolicy1)
+        REGISTER_TEST(TestMultipleClientsHigherIsBetterPolicy2)
+        REGISTER_TEST(TestMultipleClientsLowerIsBetterPolicy)
+        REGISTER_TEST(TestMultipleClientsLazyApplyPolicy)
+        REGISTER_TEST(TestMultipleClientsTuneRequestDifferentResources)
+        REGISTER_TEST(TestSingleClientSequentialRequests)
+        REGISTER_TEST(TestMultipleClientTIDsConcurrentRequests)
+        REGISTER_TEST(TestInfiniteDurationTuneRequestAndValidUntuning)
+        REGISTER_TEST(TestInfiniteDurationTuneRequestAndInValidUntuning)
+        REGISTER_TEST(TestPriorityBasedResourceAcquisition1)
+        REGISTER_TEST(TestPriorityBasedResourceAcquisition2)
+        REGISTER_TEST(TestPriorityBasedResourceAcquisition3)
+        REGISTER_TEST(TestRequestValidRetuning)
+        REGISTER_TEST(TestRequestInvalidRetuning1)
+        REGISTER_TEST(TestClusterTypeResourceTuneRequest1)
+        REGISTER_TEST(TestClusterTypeResourceTuneRequest2)
     }
 }
 
@@ -2381,7 +2420,6 @@ namespace SystemSysfsNodesTests {
     * Retune Request durattion [E6]
     */
 
-    std::string __testGroupName = "System Sysfs Nodes Read / Writes via Resource Tuner Tests";
     /**
     * API under test: Tune / Untune
     * - Issue a Resource Tuner Resource Provisioning Request, to modify the Resource
@@ -2408,7 +2446,7 @@ namespace SystemSysfsNodesTests {
             return;
         }
 
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
@@ -2424,7 +2462,7 @@ namespace SystemSysfsNodesTests {
         value = AuxRoutines::readFromFile(testResourceName);
         int32_t newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 980);
+        E_ASSERT(newValue == 980);
 
         std::this_thread::sleep_for(std::chrono::seconds(6));
 
@@ -2432,7 +2470,7 @@ namespace SystemSysfsNodesTests {
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
-        assert(newValue == originalValue);
+        E_ASSERT(newValue == originalValue);
 
         delete resourceList;
         LOG_END
@@ -2466,7 +2504,7 @@ namespace SystemSysfsNodesTests {
             return;
         }
 
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         int32_t rc = fork();
         if(rc == 0) {
@@ -2499,7 +2537,7 @@ namespace SystemSysfsNodesTests {
             value = AuxRoutines::readFromFile(testResourceName);
             int32_t newValue = C_STOI(value);
             std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-            assert(newValue == 799);
+            E_ASSERT(newValue == 799);
 
             std::this_thread::sleep_for(std::chrono::seconds(10));
 
@@ -2507,7 +2545,7 @@ namespace SystemSysfsNodesTests {
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
-            assert(newValue == originalValue);
+            E_ASSERT(newValue == originalValue);
 
             delete resourceList;
             wait(nullptr);
@@ -2548,7 +2586,7 @@ namespace SystemSysfsNodesTests {
             return;
         }
 
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         int32_t rc = fork();
         if(rc == 0) {
@@ -2581,14 +2619,14 @@ namespace SystemSysfsNodesTests {
             value = AuxRoutines::readFromFile(testResourceName);
             int32_t newValue = C_STOI(value);
             std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-            assert(newValue == 799);
+            E_ASSERT(newValue == 799);
 
             std::this_thread::sleep_for(std::chrono::seconds(8));
 
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-            assert(newValue == 887);
+            E_ASSERT(newValue == 887);
 
             std::this_thread::sleep_for(std::chrono::seconds(20));
 
@@ -2596,7 +2634,7 @@ namespace SystemSysfsNodesTests {
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
-            assert(newValue == originalValue);
+            E_ASSERT(newValue == originalValue);
 
             delete resourceList;
             wait(nullptr);
@@ -2632,7 +2670,7 @@ namespace SystemSysfsNodesTests {
             return;
         }
 
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
@@ -2648,7 +2686,7 @@ namespace SystemSysfsNodesTests {
         value = AuxRoutines::readFromFile(testResourceName);
         int32_t newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<originalValue<<std::endl;
-        assert(newValue == 994);
+        E_ASSERT(newValue == 994);
 
         untuneResources(handle);
         std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -2657,7 +2695,7 @@ namespace SystemSysfsNodesTests {
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<originalValue<<std::endl;
-        assert(newValue == originalValue);
+        E_ASSERT(newValue == originalValue);
 
         delete resourceList;
         LOG_END
@@ -2692,7 +2730,7 @@ namespace SystemSysfsNodesTests {
             return;
         }
 
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         int32_t rc = fork();
         if(rc == 0) {
@@ -2725,7 +2763,7 @@ namespace SystemSysfsNodesTests {
             value = AuxRoutines::readFromFile(testResourceName);
             int32_t newValue = C_STOI(value);
             std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-            assert(newValue == 744);
+            E_ASSERT(newValue == 744);
 
             std::this_thread::sleep_for(std::chrono::seconds(10));
 
@@ -2733,7 +2771,7 @@ namespace SystemSysfsNodesTests {
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
-            assert(newValue == originalValue);
+            E_ASSERT(newValue == originalValue);
 
             delete resourceList;
             wait(nullptr);
@@ -2770,7 +2808,7 @@ namespace SystemSysfsNodesTests {
             return;
         }
 
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
@@ -2786,10 +2824,10 @@ namespace SystemSysfsNodesTests {
         value = AuxRoutines::readFromFile(testResourceName);
         int32_t newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 994);
+        E_ASSERT(newValue == 994);
 
         int8_t status = retuneResources(handle, 20000);
-        assert(status == 0);
+        E_ASSERT(status == 0);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -2798,7 +2836,7 @@ namespace SystemSysfsNodesTests {
 
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 994);
+        E_ASSERT(newValue == 994);
 
         // Wait for the Request to expire, check if the value resets
         std::this_thread::sleep_for(std::chrono::seconds(15));
@@ -2806,7 +2844,7 @@ namespace SystemSysfsNodesTests {
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
-        assert(newValue == originalValue);
+        E_ASSERT(newValue == originalValue);
 
         delete resourceList;
         LOG_END
@@ -2860,7 +2898,7 @@ namespace SystemSysfsNodesTests {
         std::string value = AuxRoutines::readFromFile(testResourceName);
         int32_t newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue >= 1504993);
+        E_ASSERT(newValue >= 1504993);
 
         std::this_thread::sleep_for(std::chrono::seconds(6));
 
@@ -2868,7 +2906,7 @@ namespace SystemSysfsNodesTests {
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
-        assert(newValue == originalValue);
+        E_ASSERT(newValue == originalValue);
 
         delete resourceList;
         LOG_END
@@ -2922,7 +2960,7 @@ namespace SystemSysfsNodesTests {
         std::string value = AuxRoutines::readFromFile(testResourceName);
         int32_t newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue >= 1664992);
+        E_ASSERT(newValue >= 1664992);
 
         std::this_thread::sleep_for(std::chrono::seconds(6));
 
@@ -2930,7 +2968,7 @@ namespace SystemSysfsNodesTests {
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
-        assert(newValue == originalValue);
+        E_ASSERT(newValue == originalValue);
 
         delete resourceList;
         LOG_END
@@ -3027,14 +3065,14 @@ namespace SystemSysfsNodesTests {
                 std::string value = AuxRoutines::readFromFile(testResourceName);
                 int32_t newValue = C_STOI(value);
                 std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-                assert(newValue >= 1554613);
+                E_ASSERT(newValue >= 1554613);
 
                 std::this_thread::sleep_for(std::chrono::seconds(10));
 
                 value = AuxRoutines::readFromFile(testResourceName);
                 newValue = C_STOI(value);
                 std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-                assert(newValue >= 1656608);
+                E_ASSERT(newValue >= 1656608);
 
                 std::this_thread::sleep_for(std::chrono::seconds(40));
 
@@ -3042,13 +3080,13 @@ namespace SystemSysfsNodesTests {
                 value = AuxRoutines::readFromFile(testResourceName);
                 newValue = C_STOI(value);
                 std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-                assert(newValue >= 1771209);
+                E_ASSERT(newValue >= 1771209);
 
                 // Wait for the Request to expire, check if the value resets
                 value = AuxRoutines::readFromFile(testResourceName);
                 newValue = C_STOI(value);
                 std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
-                assert(newValue == originalValue);
+                E_ASSERT(newValue == originalValue);
 
                 delete resourceList;
 
@@ -3082,7 +3120,7 @@ namespace SystemSysfsNodesTests {
             return;
         }
 
-        assert(originalValue1 == testResourceOriginalValue);
+        E_ASSERT(originalValue1 == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
@@ -3098,7 +3136,7 @@ namespace SystemSysfsNodesTests {
         value = AuxRoutines::readFromFile(testResourceName1);
         int32_t newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName1<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 718);
+        E_ASSERT(newValue == 718);
 
         // Create another request to tune max node
         std::string testResourceName2 = "/proc/sys/kernel/sched_util_clamp_max";
@@ -3115,7 +3153,7 @@ namespace SystemSysfsNodesTests {
             return;
         }
 
-        assert(originalValue2 == testResourceOriginalValue);
+        E_ASSERT(originalValue2 == testResourceOriginalValue);
 
         SysResource* resourceList2 = new SysResource[1];
         memset(&resourceList2[0], 0, sizeof(SysResource));
@@ -3131,7 +3169,7 @@ namespace SystemSysfsNodesTests {
         value = AuxRoutines::readFromFile(testResourceName2);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName2<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 880);
+        E_ASSERT(newValue == 880);
 
         std::this_thread::sleep_for(std::chrono::seconds(30));
 
@@ -3139,12 +3177,12 @@ namespace SystemSysfsNodesTests {
         value = AuxRoutines::readFromFile(testResourceName1);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName1<<" Reset Value: "<<newValue<<std::endl;
-        assert(newValue == originalValue1);
+        E_ASSERT(newValue == originalValue1);
 
         value = AuxRoutines::readFromFile(testResourceName2);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName2<<" Reset Value: "<<newValue<<std::endl;
-        assert(newValue == originalValue2);
+        E_ASSERT(newValue == originalValue2);
 
         delete resourceList;
         delete resourceList2;
@@ -3177,7 +3215,7 @@ namespace SystemSysfsNodesTests {
             return;
         }
 
-        assert(originalValue1 == testResourceOriginalValue);
+        E_ASSERT(originalValue1 == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
@@ -3193,7 +3231,7 @@ namespace SystemSysfsNodesTests {
         value = AuxRoutines::readFromFile(testResourceName1);
         int32_t newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName1<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 718);
+        E_ASSERT(newValue == 718);
 
         // Create another request to tune max node
         std::string testResourceName2 = "/proc/sys/kernel/sched_util_clamp_max";
@@ -3210,7 +3248,7 @@ namespace SystemSysfsNodesTests {
             return;
         }
 
-        assert(originalValue2 == testResourceOriginalValue);
+        E_ASSERT(originalValue2 == testResourceOriginalValue);
 
         int pid1 = fork();
         if(pid1 == 0) {
@@ -3236,8 +3274,8 @@ namespace SystemSysfsNodesTests {
             resourceList[0].mResValue.value = 955;
 
             int64_t handle = tuneResources(7000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
-            std::this_thread::sleep_for(std::chrono::seconds(3));
 
+            std::this_thread::sleep_for(std::chrono::seconds(3));
             delete resourceList;
             exit(EXIT_SUCCESS);
         }
@@ -3263,7 +3301,7 @@ namespace SystemSysfsNodesTests {
         value = AuxRoutines::readFromFile(testResourceName2);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName2<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 955);
+        E_ASSERT(newValue == 955);
 
         std::this_thread::sleep_for(std::chrono::seconds(60));
 
@@ -3271,12 +3309,12 @@ namespace SystemSysfsNodesTests {
         value = AuxRoutines::readFromFile(testResourceName1);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName1<<" Reset Value: "<<newValue<<std::endl;
-        assert(newValue == originalValue1);
+        E_ASSERT(newValue == originalValue1);
 
         value = AuxRoutines::readFromFile(testResourceName2);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName2<<" Reset Value: "<<newValue<<std::endl;
-        assert(newValue == originalValue2);
+        E_ASSERT(newValue == originalValue2);
 
         waitpid(pid1, nullptr, 0);
         waitpid(pid2, nullptr, 0);
@@ -3286,22 +3324,79 @@ namespace SystemSysfsNodesTests {
         LOG_END
     }
 
-    static void RunTestGroup() {
-        std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
+    static void TestHeavyLoadWriteTo_sched_util_clamp_min_Node() {
+        LOG_START
 
-        RUN_INTEGRATION_TEST(TestWriteTo_sched_util_clamp_min_Node)
-        RUN_INTEGRATION_TEST(TestConcurrentWriteTo_sched_util_clamp_min_Node1)
-        RUN_INTEGRATION_TEST(TestConcurrentWriteTo_sched_util_clamp_min_Node2)
-        RUN_INTEGRATION_TEST(TestWriteTo_sched_util_clamp_min_NodeAndUntuning)
-        RUN_INTEGRATION_TEST(TestConcurrentWriteTo_sched_util_clamp_min_Node3)
-        RUN_INTEGRATION_TEST(TestWriteTo_sched_util_clamp_min_NodeAndRetuning)
-        RUN_INTEGRATION_TEST(TestWriteTo_scaling_min_freq_Node1)
-        RUN_INTEGRATION_TEST(TestWriteTo_scaling_min_freq_Node2)
-        // RUN_INTEGRATION_TEST(TestConcurrentWriteTo_scaling_min_freq_Node3)
-        RUN_INTEGRATION_TEST(TestWriteTo_sched_util_clamp_max_Node1)
-        RUN_INTEGRATION_TEST(TestWriteTo_sched_util_clamp_max_Node2)
+        std::string testResourceName = "/proc/sys/kernel/sched_util_clamp_min";
+        int32_t testResourceOriginalValue = 1024;
 
-        std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
+        // Check the original value for the Resource
+        std::string value = AuxRoutines::readFromFile(testResourceName);
+        int32_t originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
+
+        if(originalValue == -1) {
+            // Node does not exist on test device, can't proceed with this test
+            std::cout<<LOG_BASE<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
+            return;
+        }
+
+        int32_t numClients = 5;
+
+        for(int32_t i = 0; i < numClients; i++) {
+            int32_t pid = fork();
+            if(pid == 0) {
+                SysResource* resourceList = new SysResource[1];
+                memset(&resourceList[0], 0, sizeof(SysResource));
+                resourceList[0].mResCode = 0x00030000;
+                resourceList[0].mNumValues = 1;
+                resourceList[0].mResValue.value = 800 + i;
+
+                int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+                E_ASSERT(handle > 0);
+
+                std::this_thread::sleep_for(std::chrono::seconds(3));
+                delete resourceList;
+                exit(EXIT_SUCCESS);
+            }
+        }
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        // Check if the new value was successfully written to the node
+        value = AuxRoutines::readFromFile(testResourceName);
+        int32_t newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
+        E_ASSERT(newValue == 800);
+
+        std::this_thread::sleep_for(std::chrono::seconds(10));
+
+        // Wait for the Request to expire, check if the value resets
+        value = AuxRoutines::readFromFile(testResourceName);
+        newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
+        E_ASSERT(newValue == originalValue);
+
+        for(int32_t i = 0; i < numClients; i++) {
+            wait(nullptr);
+        }
+
+        LOG_END
+    }
+
+    static void RegisterTestGroup() {
+        REGISTER_TEST(TestWriteTo_sched_util_clamp_min_Node)
+        REGISTER_TEST(TestConcurrentWriteTo_sched_util_clamp_min_Node1)
+        REGISTER_TEST(TestConcurrentWriteTo_sched_util_clamp_min_Node2)
+        REGISTER_TEST(TestWriteTo_sched_util_clamp_min_NodeAndUntuning)
+        REGISTER_TEST(TestConcurrentWriteTo_sched_util_clamp_min_Node3)
+        REGISTER_TEST(TestWriteTo_sched_util_clamp_min_NodeAndRetuning)
+        REGISTER_TEST(TestWriteTo_scaling_min_freq_Node1)
+        REGISTER_TEST(TestWriteTo_scaling_min_freq_Node2)
+        // REGISTER_TEST(TestConcurrentWriteTo_scaling_min_freq_Node3)
+        REGISTER_TEST(TestWriteTo_sched_util_clamp_max_Node1)
+        REGISTER_TEST(TestWriteTo_sched_util_clamp_max_Node2)
+        REGISTER_TEST(TestHeavyLoadWriteTo_sched_util_clamp_min_Node);
     }
 }
 
@@ -3312,7 +3407,6 @@ namespace SignalApplicationTests {
     * The tests are enumerated as follows:
     * => Single Client - Single Signal Tuning [A]
     */
-    std::string __testGroupName = "Signal Application Checks";
 
    /**
     * API under test: tuneSignal
@@ -3332,7 +3426,7 @@ namespace SignalApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
-        assert(originalValue == testResourceOriginalValue);
+        E_ASSERT(originalValue == testResourceOriginalValue);
 
         int64_t handle =
             tuneSignal(0x800d0004, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
@@ -3341,13 +3435,13 @@ namespace SignalApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
-        assert(newValue == 917);
+        E_ASSERT(newValue == 917);
 
         std::this_thread::sleep_for(std::chrono::seconds(8));
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
-        assert(newValue == testResourceOriginalValue);
+        E_ASSERT(newValue == testResourceOriginalValue);
 
         LOG_END
     }
@@ -3373,15 +3467,15 @@ namespace SignalApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName1);
         originalValue = C_STOI(value);
-        assert(originalValue == originalValues[0]);
+        E_ASSERT(originalValue == originalValues[0]);
 
         value = AuxRoutines::readFromFile(testResourceName2);
         originalValue = C_STOI(value);
-        assert(originalValue == originalValues[1]);
+        E_ASSERT(originalValue == originalValues[1]);
 
         value = AuxRoutines::readFromFile(testResourceName3);
         originalValue = C_STOI(value);
-        assert(originalValue == originalValues[2]);
+        E_ASSERT(originalValue == originalValues[2]);
 
         int64_t handle =
             tuneSignal(0x800d0005, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
@@ -3390,46 +3484,40 @@ namespace SignalApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName1);
         newValue = C_STOI(value);
-        assert(newValue == 883);
+        E_ASSERT(newValue == 883);
 
         value = AuxRoutines::readFromFile(testResourceName2);
         newValue = C_STOI(value);
-        assert(newValue == 920);
+        E_ASSERT(newValue == 920);
 
         value = AuxRoutines::readFromFile(testResourceName3);
         newValue = C_STOI(value);
-        assert(newValue == 1555);
+        E_ASSERT(newValue == 1555);
 
         std::this_thread::sleep_for(std::chrono::seconds(8));
 
         value = AuxRoutines::readFromFile(testResourceName1);
         originalValue = C_STOI(value);
-        assert(originalValue == originalValues[0]);
+        E_ASSERT(originalValue == originalValues[0]);
 
         value = AuxRoutines::readFromFile(testResourceName2);
         originalValue = C_STOI(value);
-        assert(originalValue == originalValues[1]);
+        E_ASSERT(originalValue == originalValues[1]);
 
         value = AuxRoutines::readFromFile(testResourceName3);
         originalValue = C_STOI(value);
-        assert(originalValue == originalValues[2]);
+        E_ASSERT(originalValue == originalValues[2]);
 
         LOG_END
     }
 
-    static void RunTestGroup() {
-        std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
-
-        RUN_INTEGRATION_TEST(TestSingleClientTuneSignal1);
-        RUN_INTEGRATION_TEST(TestSingleClientTuneSignal2);
-
-        std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
+    static void RegisterTestGroup() {
+        REGISTER_TEST(TestSingleClientTuneSignal1);
+        REGISTER_TEST(TestSingleClientTuneSignal2);
     }
 }
 
 namespace CGroupApplicationTests {
-    std::string __testGroupName = "CGroup Application Checks";
-
     static void TestCgroupWriteAndResetBasicCase() {
         LOG_START
 
@@ -3454,13 +3542,13 @@ namespace CGroupApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
-        assert(newValue == 52);
+        E_ASSERT(newValue == 52);
 
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
-        assert(newValue == originalValue);
+        E_ASSERT(newValue == originalValue);
 
         delete resourceList;
         LOG_END
@@ -3501,19 +3589,19 @@ namespace CGroupApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
-        assert(newValue == 57);
+        E_ASSERT(newValue == 57);
 
         std::this_thread::sleep_for(std::chrono::seconds(8));
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
-        assert(newValue == 52);
+        E_ASSERT(newValue == 52);
 
         std::this_thread::sleep_for(std::chrono::seconds(20));
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
-        assert(newValue == originalValue);
+        E_ASSERT(newValue == originalValue);
 
         delete resourceList;
         delete resourceList1;
@@ -3562,13 +3650,13 @@ namespace CGroupApplicationTests {
 
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
-            assert(newValue == 53);
+            E_ASSERT(newValue == 53);
 
             std::this_thread::sleep_for(std::chrono::seconds(10));
 
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
-            assert(newValue == originalValue);
+            E_ASSERT(newValue == originalValue);
 
             delete resourceList;
             wait(nullptr);
@@ -3620,7 +3708,7 @@ namespace CGroupApplicationTests {
 
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
-            assert(newValue == 75);
+            E_ASSERT(newValue == 75);
 
             std::this_thread::sleep_for(std::chrono::seconds(10));
 
@@ -3628,7 +3716,7 @@ namespace CGroupApplicationTests {
             std::cout<<"["<<__LINE__<<"]"<<" cpu.uclamp.max Reset Value: "<<value<<std::endl;
             newValue = C_STOI(value);
             if(newValue != -1 && originalValue != -1) {
-                assert(newValue == originalValue);
+                E_ASSERT(newValue == originalValue);
             }
 
             delete resourceList;
@@ -3682,8 +3770,8 @@ namespace CGroupApplicationTests {
             value = AuxRoutines::readFromFile(testResourceName);
             newValue = C_STOI(value);
             std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-            assert(newValue > 950 * 1024);
-            assert(newValue <= 1224 * 1024);
+            E_ASSERT(newValue > 950 * 1024);
+            E_ASSERT(newValue <= 1224 * 1024);
 
             std::this_thread::sleep_for(std::chrono::seconds(10));
 
@@ -3691,7 +3779,7 @@ namespace CGroupApplicationTests {
             newValue = C_STOI(value);
             if(newValue != -1 && originalValue != -1) {
                 std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
-                assert(newValue == originalValue);
+                E_ASSERT(newValue == originalValue);
             }
 
             delete resourceList;
@@ -3742,12 +3830,12 @@ namespace CGroupApplicationTests {
         value = AuxRoutines::readFromFile(testResourceName1);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName1<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 55);
+        E_ASSERT(newValue == 55);
 
         value = AuxRoutines::readFromFile(testResourceName2);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName2<<" Configured Value: "<<newValue<<std::endl;
-        assert(newValue == 58);
+        E_ASSERT(newValue == 58);
 
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
@@ -3755,14 +3843,14 @@ namespace CGroupApplicationTests {
         newValue = C_STOI(value);
         if(newValue != -1 && originalValue1 != -1) {
             std::cout<<LOG_BASE<<testResourceName1<<" Reset Value: "<<newValue<<std::endl;
-            assert(newValue == originalValue1);
+            E_ASSERT(newValue == originalValue1);
         }
 
         value = AuxRoutines::readFromFile(testResourceName2);
         newValue = C_STOI(value);
         if(newValue != -1 && originalValue2 != -1) {
             std::cout<<LOG_BASE<<testResourceName2<<" Reset Value: "<<newValue<<std::endl;
-            assert(newValue == originalValue2);
+            E_ASSERT(newValue == originalValue2);
         }
 
         delete resourceList;
@@ -3792,29 +3880,25 @@ namespace CGroupApplicationTests {
         std::string value;
 
         value = AuxRoutines::readFromFile(testResourceName);
-        assert(value == "0-1,3");
+        E_ASSERT(value == "0-1,3");
 
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
         value = AuxRoutines::readFromFile(testResourceName);
-        assert(value == originalValueString);
+        E_ASSERT(value == originalValueString);
 
         delete resourceList1;
         LOG_END
     }
 
-    static void RunTestGroup() {
-        std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
-
-        RUN_INTEGRATION_TEST(TestCgroupWriteAndResetBasicCase)
-        RUN_INTEGRATION_TEST(TestCgroupWriteAndReset1)
-        RUN_INTEGRATION_TEST(TestCgroupWriteAndReset2)
-        RUN_INTEGRATION_TEST(TestCgroupWriteAndReset3)
-        RUN_INTEGRATION_TEST(TestCgroupWriteAndReset4)
-        RUN_INTEGRATION_TEST(TestCgroupWriteAndReset5)
-        RUN_INTEGRATION_TEST(TestCgroupWriteAndReset6)
-
-        std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
+    static void RegisterTestGroup() {
+        REGISTER_TEST(TestCgroupWriteAndResetBasicCase)
+        REGISTER_TEST(TestCgroupWriteAndReset1)
+        REGISTER_TEST(TestCgroupWriteAndReset2)
+        REGISTER_TEST(TestCgroupWriteAndReset3)
+        REGISTER_TEST(TestCgroupWriteAndReset4)
+        REGISTER_TEST(TestCgroupWriteAndReset5)
+        REGISTER_TEST(TestCgroupWriteAndReset6)
     }
 }
 
@@ -3822,24 +3906,27 @@ int32_t main(int32_t argc, const char* argv[]) {
     baseline.fetchBaseline();
 
     // Run the Tests
-    RUN_INTEGRATION_TEST(TestHandleGeneration)
-    RUN_INTEGRATION_TEST(TestPropFetch)
+    REGISTER_TEST(TestHandleGeneration)
+    REGISTER_TEST(TestPropFetch)
 
     // Request-Verification Tests
-    ResourceTuningRequestVerification::RunTestGroup();
-    SignalVerification::RunTestGroup();
+    ResourceTuningRequestVerification::RegisterTestGroup();
+    SignalVerification::RegisterTestGroup();
 
     // Request Application Tests
-    RequestApplicationTests::RunTestGroup();
+    RequestApplicationTests::RegisterTestGroup();
 
     // Tests on Real Sysfs Nodes (QLI)
-    SystemSysfsNodesTests::RunTestGroup();
+    SystemSysfsNodesTests::RegisterTestGroup();
 
     // Signal Application
-    SignalApplicationTests::RunTestGroup();
+    SignalApplicationTests::RegisterTestGroup();
 
     // Tests for CGroup Resources
-    CGroupApplicationTests::RunTestGroup();
+    CGroupApplicationTests::RegisterTestGroup();
+
+    testRunner.run();
+    testRunner.displayResults();
 
     return 0;
 }

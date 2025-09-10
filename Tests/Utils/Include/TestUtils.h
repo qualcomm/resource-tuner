@@ -104,6 +104,13 @@ do {                                                                            
         exit(EXIT_FAILURE);                                                                                            \
     }                                                                                                                  \
 
+#define E_ASSERT(cond)                                                                                                 \
+    if(cond == false) {                                                                                                \
+        std::cerr<<"["<<getTimestamp()<<"] Assertion failed at line [" << __FILE__<<":"<<__LINE__ << "]: "<<#cond<<std::endl;         \
+        std::cerr<<"["<<getTimestamp()<<"] Test: ["<<__func__<<"] Failed\n"<<std::endl;                                \
+        throw std::runtime_error("Test Failed");                                                                       \
+    }                                                                                                                  \
+
 #define C_ASSERT_NEAR(val1, val2, tol)                                                                      \
     if (std::fabs((val1) - (val2)) > (tol)) {                                                               \
         std::cerr<<"["<<getTimestamp()<<"] Condition Check on line:["<<__LINE__<<"]  failed"<<std::endl;    \
