@@ -416,7 +416,7 @@ overide default dynamically generated target information and use it. Also note, 
 
 ```yaml
 TargetConfig:
-  - TargetName: QCS9100
+  - TargetName: ["QCS9100"]
     ClusterInfo:
       - LgcId: 0
         PhyId: 4
