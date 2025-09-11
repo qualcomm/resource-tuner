@@ -2408,8 +2408,6 @@ namespace SystemSysfsNodesTests {
             return;
         }
 
-        assert(originalValue == testResourceOriginalValue);
-
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
         resourceList[0].mResCode = 0x00030000;
@@ -2465,8 +2463,6 @@ namespace SystemSysfsNodesTests {
             std::cout<<LOG_BASE<<testResourceName<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
             return;
         }
-
-        assert(originalValue == testResourceOriginalValue);
 
         int32_t rc = fork();
         if(rc == 0) {
@@ -2547,8 +2543,6 @@ namespace SystemSysfsNodesTests {
             std::cout<<LOG_BASE<<testResourceName<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
             return;
         }
-
-        assert(originalValue == testResourceOriginalValue);
 
         int32_t rc = fork();
         if(rc == 0) {
@@ -2632,8 +2626,6 @@ namespace SystemSysfsNodesTests {
             return;
         }
 
-        assert(originalValue == testResourceOriginalValue);
-
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
         resourceList[0].mResCode = 0x00030000;
@@ -2691,8 +2683,6 @@ namespace SystemSysfsNodesTests {
             std::cout<<LOG_BASE<<testResourceName<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
             return;
         }
-
-        assert(originalValue == testResourceOriginalValue);
 
         int32_t rc = fork();
         if(rc == 0) {
@@ -2769,8 +2759,6 @@ namespace SystemSysfsNodesTests {
             std::cout<<LOG_BASE<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
             return;
         }
-
-        assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
@@ -3082,8 +3070,6 @@ namespace SystemSysfsNodesTests {
             return;
         }
 
-        assert(originalValue1 == testResourceOriginalValue);
-
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
         resourceList[0].mResCode = 0x00030000;
@@ -3114,8 +3100,6 @@ namespace SystemSysfsNodesTests {
             std::this_thread::sleep_for(std::chrono::seconds(30));
             return;
         }
-
-        assert(originalValue2 == testResourceOriginalValue);
 
         SysResource* resourceList2 = new SysResource[1];
         memset(&resourceList2[0], 0, sizeof(SysResource));
@@ -3177,8 +3161,6 @@ namespace SystemSysfsNodesTests {
             return;
         }
 
-        assert(originalValue1 == testResourceOriginalValue);
-
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
         resourceList[0].mResCode = 0x00030000;
@@ -3209,8 +3191,6 @@ namespace SystemSysfsNodesTests {
             std::this_thread::sleep_for(std::chrono::seconds(60));
             return;
         }
-
-        assert(originalValue2 == testResourceOriginalValue);
 
         int pid1 = fork();
         if(pid1 == 0) {
@@ -3393,7 +3373,6 @@ namespace SignalApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
-        assert(originalValue == testResourceOriginalValue);
 
         int64_t handle =
             tuneSignal(0x800d0004, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);

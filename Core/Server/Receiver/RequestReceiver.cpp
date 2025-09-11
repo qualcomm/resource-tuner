@@ -20,6 +20,8 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
             msgForwardInfo->handle = AuxRoutines::generateUniqueHandle();
             if(msgForwardInfo->handle < 0) {
                 // Handle Generation Failure
+                LOGE("RESTUNE_REQUEST_RECEIVER",
+                     "Failed to Generate Request handle");
                 return;
             }
         }
