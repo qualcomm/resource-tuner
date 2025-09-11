@@ -104,13 +104,6 @@ int8_t ThreadPool::threadRoutineHelper(int8_t isCoreThread, int8_t firstTask) {
             return true;
         }
 
-        if(!firstTask) {
-            // Move a task from Pending List to CurrentList
-            if(!this->mWaitingList->isEmpty()) {
-                this->mCurrentTasks->add(this->mWaitingList->poll());
-            }
-        }
-
         TaskNode* taskNode = this->mCurrentTasks->poll();
         this->mTotalTasksCount--;
 
@@ -126,7 +119,10 @@ int8_t ThreadPool::threadRoutineHelper(int8_t isCoreThread, int8_t firstTask) {
         }
 
         // Free the TaskNode, before proceeding to the next task
-        FreeBlock<TaskNode>(SafeStaticCast(taskNode, void*));
+        try {
+            FreeBlock<TaskNode>(SafeStaticCast(taskNode, void*));
+        } catch(const std::invalid_argument& e) {}
+
         return false;
 
     } catch(const std::system_error& e) {
@@ -211,16 +207,12 @@ ThreadPool::ThreadPool(int32_t desiredCapacity, int32_t maxPending, int32_t maxC
 
     try {
         this->mCurrentTasks = new TaskQueue;
-        this->mWaitingList = new TaskQueue;
 
     } catch(const std::bad_alloc& e) {
         TYPELOGV(THREAD_POOL_INIT_FAILURE, e.what());
 
         if(this->mCurrentTasks != nullptr) {
             delete this->mCurrentTasks;
-        }
-        if(this->mWaitingList != nullptr) {
-            delete this->mWaitingList;
         }
     }
 
@@ -287,20 +279,6 @@ int8_t ThreadPool::enqueueTask(std::function<void(void*)> taskCallback, void* ar
 
             this->mCurrentTasks->add(taskNode);
             this->mCoreThreadsInUse++;
-            taskAccepted = true;
-        }
-
-        // If no Core Threads are available, Add the Task to the Pending Queue
-        // If there are empty slots in the Pending Queue
-        int32_t pendingQueueSize = this->mWaitingList->getSize();
-        if(!taskAccepted && pendingQueueSize < this->mMaxWaitingListCapacity) {
-            // Add the task to the Pending List
-            TaskNode* taskNode = createTaskNode(taskCallback, args);
-            if(taskNode == nullptr) {
-                throw std::bad_alloc();
-            }
-
-            this->mWaitingList->add(taskNode);
             taskAccepted = true;
         }
 

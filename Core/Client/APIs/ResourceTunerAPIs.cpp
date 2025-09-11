@@ -87,17 +87,13 @@ int64_t tuneResources(int64_t duration, int32_t properties, int32_t numRes, SysR
         }
 
         // Get the handle
-        char resultBuf[64];
+        char resultBuf[64] = {0};
         if(RC_IS_NOTOK(conn->readMsg(resultBuf, sizeof(resultBuf)))) {
             return -1;
         }
 
         int64_t handleReceived = -1;
-        try {
-            handleReceived = (int64_t)(SafeDeref(resultBuf));
-        } catch(const std::invalid_argument& e) {
-            std::cerr<<"Failed to read Handle, Error: "<<e.what()<<std::endl;
-        }
+        std::memcpy(&handleReceived, resultBuf, sizeof(handleReceived));
 
         return handleReceived;
 
@@ -139,19 +135,23 @@ int8_t retuneResources(int64_t handle, int64_t duration) {
         ASSIGN_AND_INCR(ptr, (int32_t)gettid());
 
         if(RC_IS_NOTOK(conn == nullptr || conn->initiateConnection())) {
+            std::cout<<"Could not send request, stuck on 142"<<std::endl;
             return -1;
         }
 
         if(RC_IS_NOTOK(conn->sendMsg(buf, sizeof(buf)))) {
+            std::cout<<"Could not send request, stuck on 148"<<std::endl;
             return -1;
         }
 
         return 0;
 
     } catch(const std::invalid_argument& e) {
+        std::cerr<<"Failed to send Request to Server, Error: "<<e.what()<<std::endl;
         return -1;
 
     } catch(const std::exception& e) {
+        std::cerr<<"Failed to send Request to Server, Error: "<<e.what()<<std::endl;
         return -1;
     }
 }
@@ -180,19 +180,23 @@ int8_t untuneResources(int64_t handle) {
         ASSIGN_AND_INCR(ptr, (int32_t)gettid());
 
         if(conn == nullptr || RC_IS_NOTOK(conn->initiateConnection())) {
+            std::cout<<"Could not send request, stuck on 187"<<std::endl;
             return -1;
         }
 
         if(RC_IS_NOTOK(conn->sendMsg(buf, sizeof(buf)))) {
+            std::cout<<"Could not send request, stuck on 192"<<std::endl;
             return -1;
         }
 
         return 0;
 
     } catch(const std::invalid_argument& e) {
+        std::cerr<<"Failed to send Request to Server, Error: "<<e.what()<<std::endl;
         return -1;
 
     } catch(const std::exception& e) {
+        std::cerr<<"Failed to send Request to Server, Error: "<<e.what()<<std::endl;
         return -1;
     }
 }
@@ -322,16 +326,13 @@ int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t properties,
         }
 
         // Get the handle
-        char resultBuffer[64];
-        if(RC_IS_NOTOK(conn->readMsg(resultBuffer, sizeof(resultBuffer)))) {
+        char resultBuf[64] = {0};
+        if(RC_IS_NOTOK(conn->readMsg(resultBuf, sizeof(resultBuf)))) {
             return -1;
         }
 
         int64_t handleReceived = -1;
-        try {
-            handleReceived = (int64_t)(SafeDeref(resultBuffer));
-
-        } catch(const std::invalid_argument& e) {}
+        std::memcpy(&handleReceived, resultBuf, sizeof(handleReceived));
 
         return handleReceived;
 
@@ -471,19 +472,7 @@ int8_t relaySignal(uint32_t signalID, int64_t duration, int32_t properties,
             return -1;
         }
 
-        // Get the handle
-        char resultBuffer[64];
-        if(RC_IS_NOTOK(conn->readMsg(resultBuffer, sizeof(resultBuffer)))) {
-            return -1;
-        }
-
-        int64_t handleReceived = -1;
-        try {
-            handleReceived = (int64_t)(SafeDeref(resultBuffer));
-
-        } catch(const std::invalid_argument& e) {}
-
-        return handleReceived;
+        return 0;
 
     } catch(const std::invalid_argument& e) {
         return -1;

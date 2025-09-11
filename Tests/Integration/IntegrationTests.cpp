@@ -299,6 +299,7 @@ namespace ResourceTuningRequestVerification {
         resourceList[1].mResValue.value = 597;
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 2, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -340,6 +341,7 @@ namespace ResourceTuningRequestVerification {
         resourceList[0].mResValue.value = 1200;
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -387,6 +389,7 @@ namespace ResourceTuningRequestVerification {
         resourceList[0].mResInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mResInfo, 27);
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -432,7 +435,9 @@ namespace ResourceTuningRequestVerification {
         // Invalid Translation
         resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 8);
         resourceList[0].mResInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mResInfo, 2);
+
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -481,6 +486,7 @@ namespace ResourceTuningRequestVerification {
         resourceList[0].mResInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mResInfo, 1);
 
         int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -534,6 +540,7 @@ namespace ResourceTuningRequestVerification {
         resourceList[0].mResInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mResInfo, 0);
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -574,6 +581,7 @@ namespace ResourceTuningRequestVerification {
         resourceList[0].mResValue.value = 653;
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -613,6 +621,7 @@ namespace ResourceTuningRequestVerification {
         resourceList[0].mResValue.value = 4670;
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -656,6 +665,7 @@ namespace ResourceTuningRequestVerification {
         resourceList[0].mResValue.value = 460;
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -957,6 +967,7 @@ namespace RequestApplicationTests {
         resourceList[0].mResValue.value = 980;
 
         int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -1032,6 +1043,7 @@ namespace RequestApplicationTests {
         resourceList[2].mResValue.value = 617;
 
         int64_t handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 3, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -1106,6 +1118,7 @@ namespace RequestApplicationTests {
             resourceList[0].mResValue.value = 315;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+            std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
             std::this_thread::sleep_for(std::chrono::seconds(3));
             delete resourceList;
@@ -1121,6 +1134,7 @@ namespace RequestApplicationTests {
             resourceList[0].mResValue.value = 209;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+            std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
             std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1185,6 +1199,7 @@ namespace RequestApplicationTests {
             resourceList[0].mResValue.value = 1176;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+            std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
             std::this_thread::sleep_for(std::chrono::seconds(3));
             delete resourceList;
@@ -1199,6 +1214,7 @@ namespace RequestApplicationTests {
             resourceList[0].mResValue.value = 823;
 
             int64_t handle = tuneResources(14000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+            std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
             std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1273,6 +1289,7 @@ namespace RequestApplicationTests {
             resourceList[0].mResValue.value = 578;
 
             handle = tuneResources(15000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+            std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
             // Give enough time for Resource Tuner to read process status
             // Else the Request will be dropped
@@ -1298,6 +1315,7 @@ namespace RequestApplicationTests {
                 resourceList[0].mResValue.value = 445;
 
                 handle = tuneResources(15000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+                std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
                 std::this_thread::sleep_for(std::chrono::seconds(3));
                 delete resourceList;
@@ -1400,6 +1418,7 @@ namespace RequestApplicationTests {
             resourceList[0].mResValue.value = 15;
 
             handle = tuneResources(12000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+            std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
             std::this_thread::sleep_for(std::chrono::seconds(3));
             delete resourceList;
@@ -1416,6 +1435,7 @@ namespace RequestApplicationTests {
             resourceList[0].mResValue.value = 18;
 
             handle = tuneResources(15000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+            std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
             std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -1499,6 +1519,7 @@ namespace RequestApplicationTests {
             resourceList[0].mResValue.value = 717;
 
             int64_t handle = tuneResources(18000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+            std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
             std::this_thread::sleep_for(std::chrono::seconds(3));
             delete resourceList;
@@ -1514,6 +1535,7 @@ namespace RequestApplicationTests {
                 resourceList[0].mResValue.value = 800;
 
                 int64_t handle = tuneResources(18000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+                std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
                 std::this_thread::sleep_for(std::chrono::seconds(3));
                 delete resourceList;
@@ -1665,6 +1687,8 @@ namespace RequestApplicationTests {
             resourceList1[0].mResValue.value = 664;
 
             handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList1);
+            std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
+
             delete resourceList1;
         });
 
@@ -1676,6 +1700,7 @@ namespace RequestApplicationTests {
         resourceList2[0].mResValue.value = 702;
 
         handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList2);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1730,7 +1755,9 @@ namespace RequestApplicationTests {
         resource.mNumValues = 1;
         resource.mResValue.value = 245;
         resourceList[0] = resource;
+
         handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1739,7 +1766,9 @@ namespace RequestApplicationTests {
         std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 245);
 
-        untuneResources(handle);
+        int8_t status = untuneResources(handle);
+        std::cout<<LOG_BASE<<" Untune Status: "<<(int32_t)status<<std::endl;
+        assert(status == 0);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1787,6 +1816,7 @@ namespace RequestApplicationTests {
         resourceList[0].mResValue.value = 245;
 
         handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1813,7 +1843,9 @@ namespace RequestApplicationTests {
             std::cout<<LOG_BASE<<testResourceName<<" Untuned Value: "<<newValue<<std::endl;
             assert(newValue == 245);
 
-            untuneResources(handle);
+            int8_t status = untuneResources(handle);
+            std::cout<<LOG_BASE<<" Untune Status: "<<(int32_t)status<<std::endl;
+            assert(status == 0);
 
             std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1865,6 +1897,7 @@ namespace RequestApplicationTests {
         resourceList1[0].mResValue.value = 515;
 
         handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_LOW, 1, resourceList1);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         SysResource* resourceList2 = new SysResource[1];
         memset(&resourceList2[0], 0, sizeof(SysResource));
@@ -1873,6 +1906,7 @@ namespace RequestApplicationTests {
         resourceList2[0].mResValue.value = 559;
 
         handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList2);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1934,6 +1968,7 @@ namespace RequestApplicationTests {
         resourceList1[0].mResValue.value = 515;
 
         handle = tuneResources(12000, RequestPriority::REQ_PRIORITY_LOW, 1, resourceList1);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -1951,6 +1986,7 @@ namespace RequestApplicationTests {
         resourceList2[0].mResValue.value = 559;
 
         handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList2);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -2012,6 +2048,7 @@ namespace RequestApplicationTests {
         resourceList1[0].mResValue.value = 645;
 
         handle = tuneResources(10000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList1);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -2029,6 +2066,7 @@ namespace RequestApplicationTests {
         resourceList2[0].mResValue.value = 716;
 
         handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_LOW, 1, resourceList2);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -2081,6 +2119,7 @@ namespace RequestApplicationTests {
         resourceList[0].mResValue.value = 778;
 
         handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(4));
 
@@ -2093,7 +2132,9 @@ namespace RequestApplicationTests {
         // The Request will expire in 4 seconds, hence the value should reset to original value
         // However we issue an Untune Request for this handle, and change the duration to 15 seconds
         // Hence when we check the value after 10 seconds, it should still be 778
-        retuneResources(handle, 15000);
+        int8_t status = retuneResources(handle, 15000);
+        std::cout<<LOG_BASE<<" Retune Status: "<<(int32_t)status<<std::endl;
+        assert(status == 0);
 
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
@@ -2145,6 +2186,7 @@ namespace RequestApplicationTests {
         resourceList[0].mResValue.value = 778;
 
         handle = tuneResources(12000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -2154,7 +2196,9 @@ namespace RequestApplicationTests {
         assert(newValue == 778);
 
         // This Request should be rejected by the Server, since Request duration cannot be decreased
-        retuneResources(handle, 6000);
+        int8_t status = retuneResources(handle, 6000);
+        std::cout<<LOG_BASE<<" Retune Status: "<<(int32_t)status<<std::endl;
+        assert(status == 0);
 
         std::this_thread::sleep_for(std::chrono::seconds(7));
 
@@ -2209,6 +2253,7 @@ namespace RequestApplicationTests {
         resourceList[0].mResValue.value = 597;
 
         handle = tuneResources(7000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -2272,6 +2317,7 @@ namespace RequestApplicationTests {
         resourceList[0].mResValue.value = 440;
 
         int64_t handle = tuneResources(7000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -2323,6 +2369,7 @@ namespace RequestApplicationTests {
         resourceList[0].mResValue.value = 440;
 
         int64_t handle = tuneResources(7000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -2415,6 +2462,7 @@ namespace SystemSysfsNodesTests {
         resourceList[0].mResValue.value = 980;
 
         int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -2473,6 +2521,7 @@ namespace SystemSysfsNodesTests {
             resourceList[0].mResValue.value = 887;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+            std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
             std::this_thread::sleep_for(std::chrono::seconds(3));
             delete resourceList;
@@ -2486,6 +2535,7 @@ namespace SystemSysfsNodesTests {
             resourceList[0].mResValue.value = 799;
 
             int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+            std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
             // Verify that the higher of the two configured values, i.e. 887 takes
             // effect on the Resource Node.
@@ -2553,6 +2603,7 @@ namespace SystemSysfsNodesTests {
             resourceList[0].mResValue.value = 799;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+            std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
             std::this_thread::sleep_for(std::chrono::seconds(3));
             delete resourceList;
@@ -2566,6 +2617,7 @@ namespace SystemSysfsNodesTests {
             resourceList[0].mResValue.value = 887;
 
             int64_t handle = tuneResources(18000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+            std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
             // Verify that the lower of the two configured values, i.e. 799 takes
             // effect on the Resource Node.
@@ -2633,6 +2685,7 @@ namespace SystemSysfsNodesTests {
         resourceList[0].mResValue.value = 994;
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -2642,7 +2695,9 @@ namespace SystemSysfsNodesTests {
         std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<originalValue<<std::endl;
         assert(newValue == 994);
 
-        untuneResources(handle);
+        int8_t status = untuneResources(handle);
+        std::cout<<LOG_BASE<<" Untune Status: "<<(int32_t)status<<std::endl;
+        assert(status == 0);
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
         // Wait for the Request to expire, check if the value resets
@@ -2693,6 +2748,7 @@ namespace SystemSysfsNodesTests {
             resourceList[0].mResValue.value = 744;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+            std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
             std::this_thread::sleep_for(std::chrono::seconds(3));
             delete resourceList;
@@ -2706,6 +2762,7 @@ namespace SystemSysfsNodesTests {
             resourceList[0].mResValue.value = 801;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_LOW, 1, resourceList);
+            std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
             // Verify that the value specified by the Request with the higher
             // priority takes effect on the Resource Node
@@ -2767,6 +2824,7 @@ namespace SystemSysfsNodesTests {
         resourceList[0].mResValue.value = 994;
 
         int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -2777,6 +2835,7 @@ namespace SystemSysfsNodesTests {
         assert(newValue == 994);
 
         int8_t status = retuneResources(handle, 20000);
+        std::cout<<LOG_BASE<<" Retune Status: "<<(int32_t)status<<std::endl;
         assert(status == 0);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -2841,6 +2900,7 @@ namespace SystemSysfsNodesTests {
         resourceList[0].mResValue.value = 1504993;
 
         int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -2903,6 +2963,7 @@ namespace SystemSysfsNodesTests {
         resourceList[0].mResValue.value = 1664992;
 
         int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -2974,6 +3035,7 @@ namespace SystemSysfsNodesTests {
             resourceList[0].mResValue.value = 1554613;
 
             int64_t handle = tuneResources(10000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+            std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
             std::this_thread::sleep_for(std::chrono::seconds(3));
             delete resourceList;
@@ -2992,6 +3054,7 @@ namespace SystemSysfsNodesTests {
                 resourceList[0].mResValue.value = 1656608;
 
                 int64_t handle = tuneResources(30000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+                std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
                 std::this_thread::sleep_for(std::chrono::seconds(3));
                 delete resourceList;
@@ -3008,6 +3071,7 @@ namespace SystemSysfsNodesTests {
                 resourceList[0].mResValue.value = 1771209;
 
                 int64_t handle = tuneResources(60000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+                std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
                 std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -3077,6 +3141,7 @@ namespace SystemSysfsNodesTests {
         resourceList[0].mResValue.value = 718;
 
         int64_t handle = tuneResources(25000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -3108,6 +3173,7 @@ namespace SystemSysfsNodesTests {
         resourceList2[0].mResValue.value = 880;
 
         handle = tuneResources(7000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList2);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -3168,6 +3234,7 @@ namespace SystemSysfsNodesTests {
         resourceList[0].mResValue.value = 718;
 
         int64_t handle = tuneResources(45000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -3201,6 +3268,7 @@ namespace SystemSysfsNodesTests {
             resourceList[0].mResValue.value = 889;
 
             int64_t handle = tuneResources(20000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+            std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
             std::this_thread::sleep_for(std::chrono::seconds(3));
 
             delete resourceList;
@@ -3216,6 +3284,7 @@ namespace SystemSysfsNodesTests {
             resourceList[0].mResValue.value = 955;
 
             int64_t handle = tuneResources(7000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+            std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
             std::this_thread::sleep_for(std::chrono::seconds(3));
 
             delete resourceList;
@@ -3231,8 +3300,9 @@ namespace SystemSysfsNodesTests {
             resourceList[0].mResValue.value = 870;
 
             int64_t handle = tuneResources(15000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
-            std::this_thread::sleep_for(std::chrono::seconds(3));
+            std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
+            std::this_thread::sleep_for(std::chrono::seconds(3));
             delete resourceList;
             exit(EXIT_SUCCESS);
         }
@@ -3295,7 +3365,7 @@ namespace SystemSysfsNodesTests {
                 resourceList[0].mResValue.value = 800 + i;
 
                 int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
-                E_ASSERT(handle > 0);
+                std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
                 std::this_thread::sleep_for(std::chrono::seconds(3));
                 delete resourceList;
@@ -3309,7 +3379,7 @@ namespace SystemSysfsNodesTests {
         value = AuxRoutines::readFromFile(testResourceName);
         int32_t newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
-        E_ASSERT(newValue == 800);
+        assert(newValue == 800);
 
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
@@ -3317,7 +3387,7 @@ namespace SystemSysfsNodesTests {
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
         std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
-        E_ASSERT(newValue == originalValue);
+        assert(newValue == originalValue);
 
         for(int32_t i = 0; i < numClients; i++) {
             wait(nullptr);
@@ -3485,7 +3555,9 @@ namespace CGroupApplicationTests {
         resourceList[0].mResValue.values = new int32_t[resourceList[0].mNumValues];
         resourceList[0].mResValue.values[0] = 1;
         resourceList[0].mResValue.values[1] = 52;
+
         int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_LOW, 1, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -3522,6 +3594,7 @@ namespace CGroupApplicationTests {
         resourceList1[0].mResValue.values[0] = 1;
         resourceList1[0].mResValue.values[1] = 52;
         int64_t handle = tuneResources(25000, RequestPriority::REQ_PRIORITY_LOW, 1, resourceList1);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -3533,6 +3606,7 @@ namespace CGroupApplicationTests {
         resourceList[0].mResValue.values[0] = 1;
         resourceList[0].mResValue.values[1] = 57;
         handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::string value;
         int32_t newValue;
@@ -3579,6 +3653,7 @@ namespace CGroupApplicationTests {
             resourceList[0].mResValue.values[1] = 53;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+            std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
             std::this_thread::sleep_for(std::chrono::seconds(3));
             delete resourceList;
@@ -3594,6 +3669,7 @@ namespace CGroupApplicationTests {
             resourceList[0].mResValue.values[1] = 57;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+            std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
             std::string value;
             int32_t newValue;
@@ -3637,6 +3713,7 @@ namespace CGroupApplicationTests {
             resourceList[0].mResValue.values[1] = 75;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+            std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
             std::this_thread::sleep_for(std::chrono::seconds(2));
             delete resourceList;
@@ -3652,6 +3729,7 @@ namespace CGroupApplicationTests {
             resourceList[0].mResValue.values[1] = 68;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+            std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
             std::string value;
             int32_t newValue;
@@ -3698,6 +3776,7 @@ namespace CGroupApplicationTests {
             resourceList[0].mResValue.values[1] = 1224 * 1024;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+            std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
             std::this_thread::sleep_for(std::chrono::seconds(2));
             delete resourceList;
@@ -3713,6 +3792,7 @@ namespace CGroupApplicationTests {
             resourceList[0].mResValue.values[1] = 950 * 1024;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+            std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
             std::string value;
             int32_t newValue;
@@ -3773,6 +3853,7 @@ namespace CGroupApplicationTests {
         resourceList[1].mResValue.values[1] = 58;
 
         int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_LOW, 2, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::string value;
         int32_t newValue;

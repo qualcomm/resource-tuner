@@ -24,6 +24,8 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
                      "Failed to Generate Request handle");
                 return;
             }
+            LOGE("RESTUNE_REQUEST_RECEIVER",
+                 "Incoming Request, handle generated = " + std::to_string(msgForwardInfo->handle));
         }
         case REQ_RESOURCE_RETUNING:
         case REQ_RESOURCE_UNTUNING: {
@@ -91,8 +93,12 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
             msgForwardInfo->handle = AuxRoutines::generateUniqueHandle();
             if(msgForwardInfo->handle < 0) {
                 // Handle Generation Failure
+                LOGE("RESTUNE_REQUEST_RECEIVER",
+                     "Failed to Generate Request handle");
                 return;
             }
+            LOGE("RESTUNE_REQUEST_RECEIVER",
+                 "Incoming Request, handle generated = " + std::to_string(msgForwardInfo->handle));
         }
         case REQ_SIGNAL_UNTUNING:
         case REQ_SIGNAL_RELAY: {

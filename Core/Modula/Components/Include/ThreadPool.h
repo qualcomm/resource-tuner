@@ -97,7 +97,6 @@ private:
     int8_t mTerminatePool;
 
     TaskQueue* mCurrentTasks;
-    TaskQueue* mWaitingList;
 
     ThreadNode* mThreadQueueHead;
     ThreadNode* mThreadQueueTail;

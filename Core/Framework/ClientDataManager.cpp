@@ -10,7 +10,7 @@ static int8_t isRootProcess(pid_t pid) {
     std::string line;
 
     if(!file.is_open()) {
-        LOGE("RESTUNE_CLIENT_DATA_MANAGER", "Failed to open file: " + fileName + ", Error: " + strerror(errno));
+        LOGE("RESTUNE_CLIENT_DATA_MANAGER", "Failed to open file: " + statusFile + ", Error: " + strerror(errno));
         return -1;
     }
 

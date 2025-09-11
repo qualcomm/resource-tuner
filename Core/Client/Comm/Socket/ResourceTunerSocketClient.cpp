@@ -19,7 +19,7 @@ int32_t ResourceTunerSocketClient::initiateConnection() {
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
     if(connect(this->sockFd, (const sockaddr*)&addr, sizeof(addr)) < 0) {
-        // Use Logger = perror("connect");
+        perror("connect");
         return RC_SOCKET_CONN_NOT_INITIALIZED;
     }
 
