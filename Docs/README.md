@@ -247,6 +247,87 @@ Configs of mpam grp map in InitConfigs->MpamGroupsInfo section
 |   1    |       "video"     |   1  |
 |   2    |       "camera"    |   2  |
 
+<div style="page-break-after: always;"></div>
+
+#### Fields Description for CGroup Config
+
+| Field           | Type       | Description | Default Value |
+|----------------|------------|-------------|-----------------|
+| `ID`        | `int32_t` (Mandatory)   | A 32-bit unique identifier for the CGroup | Not Applicable |
+| `Create`       | `boolean` (Optional)  | Boolean flag indicating if the CGroup needs to be created by the resource-tuner server | False |
+| `IsThreaded`       | `boolean` (Optional)  | Boolean flag indicating if the CGroup is threaded | False |
+| `Name`          | `string` (Optional)   | Descriptive name for the CGroup | `Empty String` |
+
+<div style="page-break-after: always;"></div>
+
+#### Fields Description for Mpam Group Config
+
+| Field           | Type       | Description | Default Value |
+|----------------|------------|-------------|-----------------|
+| `ID`        | `int32_t` (Mandatory)   | A 32-bit unique identifier for the Mpam Group | Not Applicable |
+| `Priority`       | `int32_t` (Optional)  | Mpam Group Priority | 0 |
+| `Name`          | `string` (Optional)   | Descriptive name for the Mpam Group | `Empty String` |
+
+<div style="page-break-after: always;"></div>
+
+#### Fields Description for Cache Info Config
+
+| Field           | Type       | Description | Default Value |
+|----------------|------------|-------------|-----------------|
+| `Type`        | `string` (Mandatory)   | Type of cache (L2 or L3) for which config is intended | Not Applicable |
+| `NumCacheBlocks`  | `int32_t` (Mandatory)  | Number of Cache blocks for the above mentioned type, to be managed by resource-tuner | Not Applicable |
+| `PriorityAware`          | `boolean` (Optional)   | Boolean flag indicating if the Cache Type supports different Priority Levels. | `false` |
+
+<div style="page-break-after: always;"></div>
+
+#### Example
+
+```yaml
+InitConfigs:
+  # Logical IDs should always be arranged from lower to higher cluster capacities
+  - ClusterMap:
+    - Id: 0
+      Type: little
+    - Id: 1
+      Type: big
+    - Id: 2
+      Type: prime
+
+  - CgroupsInfo:
+    - Name: "camera-cgroup"
+      Create: true
+      ID: 0
+    - Name: "audio-cgroup"
+      Create: true
+      ID: 1
+    - Name: "video-cgroup"
+      Create: true
+      IsThreaded: true
+      ID: 2
+
+  - MPAMgroupsInfo:
+    - Name: "camera-mpam-group"
+      ID: 0
+      Priority: 0
+    - Name: "audio-mpam-group"
+      ID: 1
+      Priority: 1
+    - Name: "video-mpam-group"
+      ID: 2
+      Priority: 2
+
+  - CacheInfo:
+    - Type: L2
+      NumCacheBlocks: 2
+      PriorityAware: 0
+    - Type: L3
+      NumCacheBlocks: 1
+      PriorityAware: 1
+```
+
+---
+<div style="page-break-after: always;"></div>
+
 ## 2. Resource Configs
 Tunable resources are specified via ResourcesConfig.yaml file.
 

@@ -12,9 +12,9 @@
 #include "ServerInternal.h"
 
 /**
- * @brief This class represents a mutex-protected multiple producer, single consumer priority queue. 
- * @details It stores the pointer to the request and compares their priorities. A server thread picks up
- *          these requests sequentially and processes them as appropriate.
+ * @brief This class represents a mutex-protected multiple producer, single consumer priority queue.
+ * @details It stores the pointer to the Signals and compares their priorities. A server thread picks up
+ *          these signal requests in the order of their priorities and processes them.
  */
 class SignalQueue : public OrderedQueue {
 private:

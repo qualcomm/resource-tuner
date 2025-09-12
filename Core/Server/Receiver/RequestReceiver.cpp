@@ -24,7 +24,7 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
                      "Failed to Generate Request handle");
                 return;
             }
-            LOGE("RESTUNE_REQUEST_RECEIVER",
+            LOGD("RESTUNE_REQUEST_RECEIVER",
                  "Incoming Request, handle generated = " + std::to_string(msgForwardInfo->handle));
         }
         case REQ_RESOURCE_RETUNING:
@@ -97,7 +97,7 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
                      "Failed to Generate Request handle");
                 return;
             }
-            LOGE("RESTUNE_REQUEST_RECEIVER",
+            LOGD("RESTUNE_REQUEST_RECEIVER",
                  "Incoming Request, handle generated = " + std::to_string(msgForwardInfo->handle));
         }
         case REQ_SIGNAL_UNTUNING:
