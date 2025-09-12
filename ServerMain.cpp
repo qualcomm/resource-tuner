@@ -112,17 +112,15 @@ static ErrCode loadExtensionsLib() {
 // Initialize Request and Timer ThreadPools
 static ErrCode preAllocateWorkers() {
     int32_t desiredThreadCapacity = ResourceTunerSettings::desiredThreadCount;
-    int32_t maxPendingQueueSize = ResourceTunerSettings::maxPendingQueueSize;
     int32_t maxScalingCapacity = ResourceTunerSettings::maxScalingCapacity;
 
     try {
         RequestReceiver::mRequestsThreadPool = new ThreadPool(desiredThreadCapacity,
-                                                              maxPendingQueueSize,
-                                                              maxScalingCapacity);
+                                                              maxScalingCapacity, "request");
 
-        Timer::mTimerThreadPool = new ThreadPool(desiredThreadCapacity,
-                                                 maxPendingQueueSize,
-                                                 maxScalingCapacity);
+        // Allocate 2 extra threads for Pulse Monitor and Garbage Collector
+        Timer::mTimerThreadPool = new ThreadPool(desiredThreadCapacity + 2,
+                                                 maxScalingCapacity, "timer");
 
     } catch(const std::bad_alloc& e) {
         TYPELOGV(THREAD_POOL_CREATION_FAILURE, e.what());

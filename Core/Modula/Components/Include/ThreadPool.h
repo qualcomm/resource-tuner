@@ -81,20 +81,22 @@ public:
     ~TaskQueue();
 };
 
+static const int32_t maxLoadPerThread = 5;
+
 /**
 * @brief ThreadPool
 * @details Pre-Allocate thread (Workers) capacity for future use, so as to prevent repeated Thread creation / destruction costs.
 */
 class ThreadPool {
 private:
-    int32_t mMaxWaitingListCapacity;
     int32_t mDesiredPoolCapacity;
     int32_t mMaxPoolCapacity;
 
-    int32_t mCoreThreadsInUse;
     int32_t mCurrentThreadsCount;
     int32_t mTotalTasksCount;
     int8_t mTerminatePool;
+
+    std::string mThreadPoolLabel;
 
     TaskQueue* mCurrentTasks;
 
@@ -106,10 +108,10 @@ private:
 
     TaskNode* createTaskNode(std::function<void(void*)> taskCallback, void* args);
     int8_t addNewThread(int8_t isCoreThread);
-    int8_t threadRoutineHelper(int8_t isCoreThread, int8_t firstTask);
+    int8_t threadRoutineHelper(int8_t isCoreThread);
 
 public:
-    ThreadPool(int32_t desiredCapacity, int32_t maxPending, int32_t maxCapacity);
+    ThreadPool(int32_t desiredCapacity, int32_t maxCapacity, std::string label="");
     ~ThreadPool();
 
     /**

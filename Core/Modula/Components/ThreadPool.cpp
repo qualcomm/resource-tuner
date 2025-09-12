@@ -70,24 +70,23 @@ TaskQueue::~TaskQueue() {
     } catch(const std::exception& e) {}
 }
 
-int8_t ThreadPool::threadRoutineHelper(int8_t isCoreThread, int8_t firstTask) {
+int8_t ThreadPool::threadRoutineHelper(int8_t isCoreThread) {
     try {
         std::unique_lock<std::mutex> threadPoolUniqueLock(this->mThreadPoolMutex);
 
         // Check for any Pending tasks
-        if(!this->mTerminatePool && this->mTotalTasksCount == 0) {
+        if(!this->mTerminatePool && this->mCurrentTasks->getSize() == 0) {
             // Update the Count of threads in Use
             if(isCoreThread) {
-                this->mCoreThreadsInUse = std::max(this->mCoreThreadsInUse - 1, 0);
                 this->mThreadPoolCond.wait(threadPoolUniqueLock,
-                                           [this]{return this->mTotalTasksCount > 0 ||
+                                           [this]{return this->mCurrentTasks->getSize() > 0 ||
                                                          this->mTerminatePool;});
             } else {
                 // Expandable Thread
                 int8_t awakeStatus = this->mThreadPoolCond.wait_for(
                                             threadPoolUniqueLock,
                                             std::chrono::seconds(10 * 60),
-                                            [this]{return this->mTotalTasksCount > 0 ||
+                                            [this]{return this->mCurrentTasks->getSize() > 0 ||
                                                           this->mTerminatePool;});
                 if(!awakeStatus) {
                     // If the Thread was woken up due to the Time Interval expiring, then
@@ -104,8 +103,10 @@ int8_t ThreadPool::threadRoutineHelper(int8_t isCoreThread, int8_t firstTask) {
             return true;
         }
 
-        TaskNode* taskNode = this->mCurrentTasks->poll();
-        this->mTotalTasksCount--;
+        TaskNode* taskNode = nullptr;
+        if(this->mCurrentTasks->getSize() > 0) {
+            taskNode = this->mCurrentTasks->poll();
+        }
 
         if(taskNode != nullptr && taskNode->taskCallback != nullptr) {
             std::function<void(void*)> task = *taskNode->taskCallback;
@@ -116,12 +117,12 @@ int8_t ThreadPool::threadRoutineHelper(int8_t isCoreThread, int8_t firstTask) {
             if(task != nullptr) {
                 task(args);
             }
-        }
 
-        // Free the TaskNode, before proceeding to the next task
-        try {
-            FreeBlock<TaskNode>(SafeStaticCast(taskNode, void*));
-        } catch(const std::invalid_argument& e) {}
+            // Free the TaskNode, before proceeding to the next task
+            try {
+                FreeBlock<TaskNode>(SafeStaticCast(taskNode, void*));
+            } catch(const std::invalid_argument& e) {}
+        }
 
         return false;
 
@@ -149,13 +150,10 @@ int8_t ThreadPool::addNewThread(int8_t isCoreThread) {
 
     try {
         auto threadStartRoutine = ([this](int8_t isCoreThread) {
-            pthread_setname_np(pthread_self(), "ThreadPool");
             while(true) {
-                static int8_t firstTask = true;
-                if(threadRoutineHelper(isCoreThread, firstTask)) {
+                if(threadRoutineHelper(isCoreThread)) {
                     return;
                 }
-                firstTask = !firstTask;
             }
         });
 
@@ -189,19 +187,18 @@ int8_t ThreadPool::addNewThread(int8_t isCoreThread) {
     return false;
 }
 
-ThreadPool::ThreadPool(int32_t desiredCapacity, int32_t maxPending, int32_t maxCapacity) {
+ThreadPool::ThreadPool(int32_t desiredCapacity, int32_t maxCapacity, std::string label) {
     this->mThreadQueueHead = this->mThreadQueueTail = nullptr;
+    this->mThreadPoolLabel = label;
 
     this->mDesiredPoolCapacity = desiredCapacity;
     this->mCurrentThreadsCount = 0;
-    this->mMaxWaitingListCapacity = maxPending;
 
     if(maxCapacity < desiredCapacity) {
         maxCapacity = desiredCapacity;
     }
     this->mMaxPoolCapacity = maxCapacity;
 
-    this->mCoreThreadsInUse = 0;
     this->mTotalTasksCount = 0;
     this->mTerminatePool = false;
 
@@ -216,9 +213,9 @@ ThreadPool::ThreadPool(int32_t desiredCapacity, int32_t maxPending, int32_t maxC
         }
     }
 
-    MakeAlloc<ThreadNode>(this->mMaxPoolCapacity);
-    MakeAlloc<TaskNode>(this->mMaxPoolCapacity + this->mMaxWaitingListCapacity);
-    MakeAlloc<std::function<void(void*)>>(this->mMaxPoolCapacity + this->mMaxWaitingListCapacity);
+    MakeAlloc<ThreadNode>(this->mMaxPoolCapacity + 1);
+    MakeAlloc<TaskNode>((this->mMaxPoolCapacity + 1) * maxLoadPerThread);
+    MakeAlloc<std::function<void(void*)>>((this->mMaxPoolCapacity + 1) * maxLoadPerThread);
 
     // Add desired number of Threads to the Pool
     for(int32_t i = 0; i < this->mDesiredPoolCapacity; i++) {
@@ -270,7 +267,7 @@ int8_t ThreadPool::enqueueTask(std::function<void(void*)> taskCallback, void* ar
 
         // First Check if any Thread in the Core Group is Available
         // If it is, assign the Task to that Thread.
-        if(this->mCoreThreadsInUse < this->mDesiredPoolCapacity) {
+        if(this->mCurrentTasks->getSize() <= maxLoadPerThread * this->mCurrentThreadsCount) {
             // Add the task to the Current List
             TaskNode* taskNode = createTaskNode(taskCallback, args);
             if(taskNode == nullptr) {
@@ -278,27 +275,26 @@ int8_t ThreadPool::enqueueTask(std::function<void(void*)> taskCallback, void* ar
             }
 
             this->mCurrentTasks->add(taskNode);
-            this->mCoreThreadsInUse++;
             taskAccepted = true;
         }
 
         // Check if the Pool can be expanded to accomodate this Request
         if(!taskAccepted && this->mCurrentThreadsCount < this->mMaxPoolCapacity) {
-            this->addNewThread(false);
-
             // Add the task to the current List
             TaskNode* taskNode = createTaskNode(taskCallback, args);
             if(taskNode == nullptr) {
                 throw std::bad_alloc();
             }
 
+            if(this->addNewThread(false)) {
+                this->mCurrentThreadsCount++;
+            }
+
             this->mCurrentTasks->add(taskNode);
-            this->mCurrentThreadsCount++;
             taskAccepted = true;
         }
 
         if(taskAccepted) {
-            this->mTotalTasksCount++;
             this->mThreadPoolCond.notify_one();
             return true;
         }
