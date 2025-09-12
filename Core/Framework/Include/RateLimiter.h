@@ -36,7 +36,6 @@
  * @details Responsible for Tracking Client Behaviour, and Protect against System Abuse.
  */
 class RateLimiter {
-
 private:
     static std::shared_ptr<RateLimiter> mRateLimiterInstance;
     static std::mutex instanceProtectionLock;
@@ -51,27 +50,27 @@ private:
 
 public:
     /**
-    * @brief Checks if rate limit is honored.
-    * @details RateLimiter uses the notion of Client Health (initialize to 100),
-    *          which changes based on Client Behaviour (through Reward or Punishment).
-    *          If this value Reaches 0, then any further Requests from the Client
-    *          shall be dropped.
-    * @param clientTID TID of the client
-    * @return int8_t
-    *            1: If the Request can be accepted.
-    *            0: otherwise
-    */
+     * @brief Checks if rate limit is honored.
+     * @details RateLimiter uses the notion of Client Health (initialize to 100),
+     *          which changes based on Client Behaviour (through Reward or Punishment).
+     *          If this value Reaches 0, then any further Requests from the Client
+     *          shall be dropped.
+     * @param clientTID TID of the client
+     * @return int8_t
+     *            1: If the Request can be accepted.
+     *            0: otherwise
+     */
     int8_t isRateLimitHonored(int32_t clientTID);
 
     /**
-    * @brief Checks if the Global Rate Limit is honored.
-    * @details Resource Tuner sets a cap on the number of Active Requests which can be
-    *          served concurrently. If the current Count of Concurrent Active Requests
-    *          hits this threshold, then any new Requests shall be dropped.
-    * @return int8_t
-    *            1: If the Request can be accepted.
-    *            0: otherwise
-    */
+     * @brief Checks if the Global Rate Limit is honored.
+     * @details Resource Tuner sets a cap on the number of Active Requests which can be
+     *          served concurrently. If the current Count of Concurrent Active Requests
+     *          hits this threshold, then any new Requests shall be dropped.
+     * @return int8_t
+     *            1: If the Request can be accepted.
+     *            0: otherwise
+     */
     int8_t isGlobalRateLimitHonored();
 
     static std::shared_ptr<RateLimiter> getInstance() {
