@@ -6,13 +6,13 @@
 
 #include "ResourceTunerAPIs.h"
 #include "Utils.h"
-#include "SafeOps.h"
 #include "Request.h"
 #include "Signal.h"
 #include "ResourceTunerSocketClient.h"
 
-static std::shared_ptr<ClientEndpoint> conn(new ResourceTunerSocketClient());
-static std::mutex apiLock;
+#define REQ_SEND_ERR(e) "Failed to send Request to Server, Error: " + std::string(e)
+#define CONN_SEND_FAIL "Failed to send Request to Server"
+#define CONN_INIT_FAIL "Failed to initialize Connection to resource-tuner Server"
 
 class ConnectionManager {
 private:
@@ -30,6 +30,21 @@ public:
     }
 };
 
+class ClientLogger {
+public:
+    ClientLogger() {
+        openlog("restune-client", LOG_PID | LOG_CONS, LOG_USER);
+    }
+
+    ~ClientLogger() {
+        closelog();
+    }
+};
+
+static std::shared_ptr<ClientEndpoint> conn(new ResourceTunerSocketClient());
+static ClientLogger clientLogger;
+static std::mutex apiLock;
+
 // - Construct a Request object and populate it with the API specified Params
 // - Initiate a connection to the Resource Tuner Server, and send the request to the server
 // - Wait for the response from the server, and return the response to the caller (end-client).
@@ -43,6 +58,7 @@ int64_t tuneResources(int64_t duration, int32_t properties, int32_t numRes, SysR
         // These are some basic checks done at the Client end itself to detect
         // Potentially Malformed Reqeusts, to prevent wastage of Server-End Resources.
         if(resourceList == nullptr || numRes <= 0 || duration == 0 || duration < -1) {
+            LOGE("RESTUNE_CLIENT", "Invalid Request Params");
             return -1;
         }
 
@@ -78,35 +94,33 @@ int64_t tuneResources(int64_t duration, int32_t properties, int32_t numRes, SysR
         }
 
         if(conn == nullptr || RC_IS_NOTOK(conn->initiateConnection())) {
+            LOGE("RESTUNE_CLIENT", CONN_INIT_FAIL);
             return -1;
         }
 
         // Send the request to Resource Tuner Server
         if(RC_IS_NOTOK(conn->sendMsg(buf, sizeof(buf)))) {
+            LOGE("RESTUNE_CLIENT", CONN_SEND_FAIL);
             return -1;
         }
 
         // Get the handle
-        char resultBuf[64];
+        char resultBuf[64] = {0};
         if(RC_IS_NOTOK(conn->readMsg(resultBuf, sizeof(resultBuf)))) {
             return -1;
         }
 
         int64_t handleReceived = -1;
-        try {
-            handleReceived = (int64_t)(SafeDeref(resultBuf));
-        } catch(const std::invalid_argument& e) {
-            std::cerr<<"Failed to read Handle, Error: "<<e.what()<<std::endl;
-        }
+        std::memcpy(&handleReceived, resultBuf, sizeof(handleReceived));
 
         return handleReceived;
 
     } catch(const std::invalid_argument& e) {
-        std::cerr<<"Failed to send Request to Server, Error: "<<e.what()<<std::endl;
+        LOGE("RESTUNE_CLIENT", REQ_SEND_ERR(e.what()));
         return -1;
 
     } catch(const std::exception& e) {
-        std::cerr<<"Failed to send Request to Server, Error: "<<e.what()<<std::endl;
+        LOGE("RESTUNE_CLIENT", REQ_SEND_ERR(e.what()));
         return -1;
     }
 
@@ -121,6 +135,7 @@ int8_t retuneResources(int64_t handle, int64_t duration) {
         const ConnectionManager connMgr(conn);
 
         if(handle <= 0  || duration == 0 || duration < -1) {
+            LOGE("RESTUNE_CLIENT", "Invalid Request Params");
             return -1;
         }
 
@@ -139,19 +154,23 @@ int8_t retuneResources(int64_t handle, int64_t duration) {
         ASSIGN_AND_INCR(ptr, (int32_t)gettid());
 
         if(RC_IS_NOTOK(conn == nullptr || conn->initiateConnection())) {
+            LOGE("RESTUNE_CLIENT", CONN_INIT_FAIL);
             return -1;
         }
 
         if(RC_IS_NOTOK(conn->sendMsg(buf, sizeof(buf)))) {
+            LOGE("RESTUNE_CLIENT", CONN_SEND_FAIL);
             return -1;
         }
 
         return 0;
 
     } catch(const std::invalid_argument& e) {
+        LOGE("RESTUNE_CLIENT", REQ_SEND_ERR(e.what()));
         return -1;
 
     } catch(const std::exception& e) {
+        LOGE("RESTUNE_CLIENT", REQ_SEND_ERR(e.what()));
         return -1;
     }
 }
@@ -163,7 +182,10 @@ int8_t untuneResources(int64_t handle) {
         const std::lock_guard<std::mutex> lock(apiLock);
         const ConnectionManager connMgr(conn);
 
-        if(handle <= 0) return -1;
+        if(handle <= 0) {
+            LOGE("RESTUNE_CLIENT", "Invalid Request Params");
+            return -1;
+        }
 
         char buf[1024];
         int8_t* ptr8 = (int8_t*)buf;
@@ -180,19 +202,23 @@ int8_t untuneResources(int64_t handle) {
         ASSIGN_AND_INCR(ptr, (int32_t)gettid());
 
         if(conn == nullptr || RC_IS_NOTOK(conn->initiateConnection())) {
+            LOGE("RESTUNE_CLIENT", CONN_INIT_FAIL);
             return -1;
         }
 
         if(RC_IS_NOTOK(conn->sendMsg(buf, sizeof(buf)))) {
+            LOGE("RESTUNE_CLIENT", CONN_SEND_FAIL);
             return -1;
         }
 
         return 0;
 
     } catch(const std::invalid_argument& e) {
+        LOGE("RESTUNE_CLIENT", REQ_SEND_ERR(e.what()));
         return -1;
 
     } catch(const std::exception& e) {
+        LOGE("RESTUNE_CLIENT", REQ_SEND_ERR(e.what()));
         return -1;
     }
 }
@@ -223,10 +249,12 @@ int8_t getProp(const char* prop, char* buffer, size_t bufferSize, const char* de
         ASSIGN_AND_INCR(ptr64, bufferSize);
 
         if(conn == nullptr || RC_IS_NOTOK(conn->initiateConnection())) {
+            LOGE("RESTUNE_CLIENT", CONN_INIT_FAIL);
             return -1;
         }
 
         if(RC_IS_NOTOK(conn->sendMsg(buf, sizeof(buf)))) {
+            LOGE("RESTUNE_CLIENT", CONN_SEND_FAIL);
             return -1;
         }
 
@@ -244,13 +272,14 @@ int8_t getProp(const char* prop, char* buffer, size_t bufferSize, const char* de
             strncpy(buffer, resultBuf, bufferSize - 1);
         }
 
-
         return 0;
 
     } catch(const std::invalid_argument& e) {
+        LOGE("RESTUNE_CLIENT", REQ_SEND_ERR(e.what()));
         return -1;
 
     } catch(const std::exception& e) {
+        LOGE("RESTUNE_CLIENT", REQ_SEND_ERR(e.what()));
         return -1;
     }
 
@@ -268,6 +297,7 @@ int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t properties,
         const ConnectionManager connMgr(conn);
 
         if(duration < -1) {
+            LOGE("RESTUNE_CLIENT", "Invalid Request Params");
             return -1;
         }
 
@@ -313,32 +343,33 @@ int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t properties,
         }
 
         if(conn == nullptr || RC_IS_NOTOK(conn->initiateConnection())) {
+            LOGE("RESTUNE_CLIENT", CONN_INIT_FAIL);
             return -1;
         }
 
         // Send the request to Resource Tuner Server
         if(RC_IS_NOTOK(conn->sendMsg(buf, sizeof(buf)))) {
+            LOGE("RESTUNE_CLIENT", CONN_SEND_FAIL);
             return -1;
         }
 
         // Get the handle
-        char resultBuffer[64];
-        if(RC_IS_NOTOK(conn->readMsg(resultBuffer, sizeof(resultBuffer)))) {
+        char resultBuf[64] = {0};
+        if(RC_IS_NOTOK(conn->readMsg(resultBuf, sizeof(resultBuf)))) {
             return -1;
         }
 
         int64_t handleReceived = -1;
-        try {
-            handleReceived = (int64_t)(SafeDeref(resultBuffer));
-
-        } catch(const std::invalid_argument& e) {}
+        std::memcpy(&handleReceived, resultBuf, sizeof(handleReceived));
 
         return handleReceived;
 
     } catch(const std::invalid_argument& e) {
+        LOGE("RESTUNE_CLIENT", REQ_SEND_ERR(e.what()));
         return -1;
 
     } catch(const std::exception& e) {
+        LOGE("RESTUNE_CLIENT", REQ_SEND_ERR(e.what()));
         return -1;
     }
 
@@ -351,6 +382,11 @@ int8_t untuneSignal(int64_t handle) {
     try {
         const std::lock_guard<std::mutex> lock(apiLock);
         const ConnectionManager connMgr(conn);
+
+        if(handle <= 0) {
+            LOGE("RESTUNE_CLIENT", "Invalid Request Params");
+            return -1;
+        }
 
         char buf[1024];
         int8_t* ptr8 = (int8_t*)buf;
@@ -389,20 +425,24 @@ int8_t untuneSignal(int64_t handle) {
         ASSIGN_AND_INCR(ptr, (int32_t)gettid());
 
         if(conn == nullptr || RC_IS_NOTOK(conn->initiateConnection())) {
+            LOGE("RESTUNE_CLIENT", CONN_INIT_FAIL);
             return -1;
         }
 
         // Send the request to Resource Tuner Server
         if(RC_IS_NOTOK(conn->sendMsg(buf, sizeof(buf)))) {
+            LOGE("RESTUNE_CLIENT", CONN_SEND_FAIL);
             return -1;
         }
 
         return 0;
 
     } catch(const std::invalid_argument& e) {
+        LOGE("RESTUNE_CLIENT", REQ_SEND_ERR(e.what()));
         return -1;
 
     } catch(const std::exception& e) {
+        LOGE("RESTUNE_CLIENT", REQ_SEND_ERR(e.what()));
         return -1;
     }
 
@@ -418,6 +458,7 @@ int8_t relaySignal(uint32_t signalID, int64_t duration, int32_t properties,
         const ConnectionManager connMgr(conn);
 
         if(duration < -1) {
+            LOGE("RESTUNE_CLIENT", "Invalid Request Params");
             return -1;
         }
 
@@ -463,32 +504,24 @@ int8_t relaySignal(uint32_t signalID, int64_t duration, int32_t properties,
         }
 
         if(conn == nullptr || RC_IS_NOTOK(conn->initiateConnection())) {
+            LOGE("RESTUNE_CLIENT", CONN_INIT_FAIL);
             return -1;
         }
 
         // Send the request to Resource Tuner Server
         if(RC_IS_NOTOK(conn->sendMsg(buf, sizeof(buf)))) {
+            LOGE("RESTUNE_CLIENT", CONN_SEND_FAIL);
             return -1;
         }
 
-        // Get the handle
-        char resultBuffer[64];
-        if(RC_IS_NOTOK(conn->readMsg(resultBuffer, sizeof(resultBuffer)))) {
-            return -1;
-        }
-
-        int64_t handleReceived = -1;
-        try {
-            handleReceived = (int64_t)(SafeDeref(resultBuffer));
-
-        } catch(const std::invalid_argument& e) {}
-
-        return handleReceived;
+        return 0;
 
     } catch(const std::invalid_argument& e) {
+        LOGE("RESTUNE_CLIENT", REQ_SEND_ERR(e.what()));
         return -1;
 
     } catch(const std::exception& e) {
+        LOGE("RESTUNE_CLIENT", REQ_SEND_ERR(e.what()));
         return -1;
     }
 

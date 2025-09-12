@@ -4,10 +4,10 @@
 #ifndef RESOURCE_TUNER_SOCKET_CLIENT_H
 #define RESOURCE_TUNER_SOCKET_CLIENT_H
 
-#include <iostream>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <cstring>
 
 #include "Request.h"
 #include "Signal.h"

@@ -9,7 +9,7 @@ ResourceTunerSocketClient::ResourceTunerSocketClient() {
 
 int32_t ResourceTunerSocketClient::initiateConnection() {
     if((this->sockFd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        perror("socket");
+        TYPELOGV(ERRNO_LOG, "socket", strerror(errno));
         return RC_SOCKET_CONN_NOT_INITIALIZED;
     }
 
@@ -19,7 +19,7 @@ int32_t ResourceTunerSocketClient::initiateConnection() {
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
     if(connect(this->sockFd, (const sockaddr*)&addr, sizeof(addr)) < 0) {
-        // Use Logger = perror("connect");
+        TYPELOGV(ERRNO_LOG, "connect", strerror(errno));
         return RC_SOCKET_CONN_NOT_INITIALIZED;
     }
 
@@ -29,10 +29,8 @@ int32_t ResourceTunerSocketClient::initiateConnection() {
 int32_t ResourceTunerSocketClient::sendMsg(char* buf, size_t bufSize) {
     if(buf == nullptr) return RC_BAD_ARG;
 
-    // byte Array to Store the serialized output
-    // This buffer of 1KB can accomodate around 38 Resources
     if(write(this->sockFd, buf, bufSize) == -1) {
-        perror("write");
+        TYPELOGV(ERRNO_LOG, "write", strerror(errno));
         return RC_SOCKET_FD_WRITE_FAILURE;
     }
 
@@ -46,7 +44,7 @@ int32_t ResourceTunerSocketClient::readMsg(char* buf, size_t bufSize) {
     int32_t statusCode;
 
     if((statusCode = read(this->sockFd, buf, bufSize)) < 0) {
-        perror("read");
+        TYPELOGV(ERRNO_LOG, "read", strerror(errno));
         return RC_SOCKET_FD_READ_FAILURE;
     }
 

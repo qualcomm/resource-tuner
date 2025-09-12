@@ -45,7 +45,7 @@ std::vector<ExtFeatureInfo*> ExtFeaturesRegistry::getExtFeaturesConfigs() {
     return this->mExtFeaturesConfigs;
 }
 
-ExtFeatureInfo* ExtFeaturesRegistry::getExtFeatureConfigById(int32_t featureId) {
+ExtFeatureInfo* ExtFeaturesRegistry::getExtFeatureConfigById(uint32_t featureId) {
     if(this->mSystemIndependentLayerMappings.find(featureId) == this->mSystemIndependentLayerMappings.end()) {
         LOGE("RESTUNE_EXT_FEATURES", "Ext Feature ID not found in the registry");
         return nullptr;
@@ -55,7 +55,7 @@ ExtFeatureInfo* ExtFeaturesRegistry::getExtFeatureConfigById(int32_t featureId) 
     return this->mExtFeaturesConfigs[mExtFeaturesConfigsTableIndex];
 }
 
-int32_t ExtFeaturesRegistry::getExgFeaturesConfigCount() {
+int32_t ExtFeaturesRegistry::getExtFeaturesConfigCount() {
     return this->mExtFeaturesConfigs.size();
 }
 

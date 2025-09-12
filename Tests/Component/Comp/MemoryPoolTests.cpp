@@ -81,7 +81,7 @@ static void TestMemoryPoolBasicAllocation4() {
     MakeAlloc<CustomRequest>(20);
 
     std::vector<CustomRequest*>* requests =
-            (std::vector<CustomRequest*>*) GetBlock<std::vector<CustomRequest*>>();
+        new (GetBlock<std::vector<CustomRequest*>>()) std::vector<CustomRequest*>;
 
     C_ASSERT(requests != nullptr);
 

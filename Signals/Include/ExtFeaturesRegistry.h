@@ -28,6 +28,11 @@ typedef struct {
 typedef void (*ExtFeature)(void);
 typedef void (*RelayFeature)(uint32_t, const std::string&, const std::string&, int32_t, std::vector<uint32_t>*);
 
+/**
+* @brief ExtFeaturesRegistry
+* @details Stores information Relating to all the Ext Features registered with resource-tuner.
+*          Note: This information is extracted from Config YAML files.
+*/
 class ExtFeaturesRegistry {
 private:
     static std::shared_ptr<ExtFeaturesRegistry> extFeaturesRegistryInstance;
@@ -41,21 +46,40 @@ private:
 public:
     ~ExtFeaturesRegistry();
 
-    void registerExtFeature(ExtFeatureInfo* extFeatureInfo);
+    /**
+     * @brief Fetch a Feature Config with the given ID.
+     * @param featureId An unsigned 32-bit feature identifier
+     * @return ExtFeatureInfo*:
+     *             A Pointer to the registered ExtFeatureInfo object, if feature with the given ID exists.
+     *             nullptr: Otherwise
+     */
+    ExtFeatureInfo* getExtFeatureConfigById(uint32_t extFeatureId);
 
-    std::vector<ExtFeatureInfo*> getExtFeaturesConfigs();
-
-    ExtFeatureInfo* getExtFeatureConfigById(int32_t extFeatureId);
-
-    int32_t getExgFeaturesConfigCount();
-
-    void displayExtFeatures();
-
+    /**
+     * @brief Used to initialize all the registered features.
+     * @details This routine will invoke the init callback associated with each of the
+     *          registered features. This is done during server initialization.
+     */
     void initializeFeatures();
 
+    /**
+     * @brief Used to cleanup all the registered features.
+     * @details This routine will invoke the tear callback associated with each of the
+     *          registered features. This is done during server teardown.
+     */
     void teardownFeatures();
 
+    /**
+     * @brief Relay a request to a registered feature.
+     * @param featureId An unsigned 32-bit feature identifier
+     */
     ErrCode relayToFeature(uint32_t featureId, Signal* signal);
+
+    int32_t getExtFeaturesConfigCount();
+    std::vector<ExtFeatureInfo*> getExtFeaturesConfigs();
+
+    void registerExtFeature(ExtFeatureInfo* extFeatureInfo);
+    void displayExtFeatures();
 
     static std::shared_ptr<ExtFeaturesRegistry> getInstance() {
         if(extFeaturesRegistryInstance == nullptr) {

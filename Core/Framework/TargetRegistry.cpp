@@ -378,12 +378,39 @@ void TargetRegistry::displayTargetInfo() {
 }
 
 TargetRegistry::~TargetRegistry() {
-    for(std::pair<int8_t, CGroupConfigInfo*> cGroupInfo: this->mCGroupMapping) {
+    for(std::pair<int32_t, CGroupConfigInfo*> cGroupInfo: this->mCGroupMapping) {
         if(cGroupInfo.second == nullptr) return;
 
         if(cGroupInfo.second != nullptr) {
             delete cGroupInfo.second;
             cGroupInfo.second = nullptr;
+        }
+    }
+
+    for(std::pair<int32_t, ClusterInfo*> clusterInfo: this->mPhysicalClusters) {
+        if(clusterInfo.second == nullptr) return;
+
+        if(clusterInfo.second != nullptr) {
+            delete clusterInfo.second;
+            clusterInfo.second = nullptr;
+        }
+    }
+
+    for(std::pair<int32_t, MpamGroupConfigInfo*> mpamInfo: this->mMpamGroupMapping) {
+        if(mpamInfo.second == nullptr) return;
+
+        if(mpamInfo.second != nullptr) {
+            delete mpamInfo.second;
+            mpamInfo.second = nullptr;
+        }
+    }
+
+    for(std::pair<std::string, CacheInfo*> cacheInfo: this->mCacheInfoMapping) {
+        if(cacheInfo.second == nullptr) return;
+
+        if(cacheInfo.second != nullptr) {
+            delete cacheInfo.second;
+            cacheInfo.second = nullptr;
         }
     }
 }

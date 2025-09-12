@@ -1,15 +1,10 @@
 # CLIENT
-file(GLOB SOURCES "../Client/APIs/*.cpp")
+file(GLOB SOURCES "../Client/APIs/*.cpp" "../Client/Comm/Socket/*.cpp")
 add_library(ClientAPIs ${SOURCES})
 set_target_properties(ClientAPIs PROPERTIES VERSION 1.0.0 SOVERSION 1)
-target_link_libraries(ClientAPIs SocketCommClient Auxiliary)
+target_link_libraries(ClientAPIs Auxiliary)
 target_include_directories(ClientAPIs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../Client/APIs/Include)
-
-file(GLOB SOURCES "../Client/Comm/Socket/*.cpp")
-add_library(SocketCommClient ${SOURCES})
-set_target_properties(SocketCommClient PROPERTIES VERSION 1.0.0 SOVERSION 1)
-target_link_libraries(SocketCommClient Auxiliary)
-target_include_directories(SocketCommClient PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../Client/Comm/Socket/Include)
+target_include_directories(ClientAPIs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../Client/Comm/Socket/Include)
 
 # EXTENSIONS
 file(GLOB SOURCES "../Extensions/*.cpp")

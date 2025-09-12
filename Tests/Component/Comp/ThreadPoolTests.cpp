@@ -24,7 +24,7 @@ void threadPoolLongDurationTask(void* arg) {
 }
 
 static void TestThreadPoolTaskPickup1() {
-	ThreadPool* threadPool = new ThreadPool(1, 1, 1);
+	ThreadPool* threadPool = new ThreadPool(1, 1);
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 
 	int32_t* ptr = (int32_t*) malloc(sizeof(int32_t));
@@ -42,7 +42,7 @@ static void TestThreadPoolTaskPickup1() {
 }
 
 static void TestThreadPoolEnqueueStatus1() {
-	ThreadPool* threadPool = new ThreadPool(2, 1, 2);
+	ThreadPool* threadPool = new ThreadPool(2, 2);
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 
 	int32_t* ptr = (int32_t*) malloc(sizeof(int32_t));
@@ -60,7 +60,7 @@ static void TestThreadPoolEnqueueStatus1() {
 }
 
 static void TestThreadPoolEnqueueStatus2_1() {
-	ThreadPool* threadPool = new ThreadPool(1, 1, 1);
+	ThreadPool* threadPool = new ThreadPool(1, 1);
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 
 	int32_t* ptr = (int32_t*) malloc(sizeof(int32_t));
@@ -78,7 +78,7 @@ static void TestThreadPoolEnqueueStatus2_1() {
 }
 
 static void TestThreadPoolEnqueueStatus2_2() {
-	ThreadPool* threadPool = new ThreadPool(2, 1, 2);
+	ThreadPool* threadPool = new ThreadPool(2, 2);
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 
 	int32_t* ptr = (int32_t*) malloc(sizeof(int32_t));

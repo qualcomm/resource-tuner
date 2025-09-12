@@ -6,7 +6,7 @@
 #include "TestUtils.h"
 #include "Timer.h"
 
-static std::shared_ptr<ThreadPool> tpoolInstance = std::shared_ptr<ThreadPool> (new ThreadPool(4, 4, 5));
+static std::shared_ptr<ThreadPool> tpoolInstance = std::shared_ptr<ThreadPool> (new ThreadPool(4, 5));
 static std::atomic<int8_t> isFinished;
 
 static void afterTimer(void*) {

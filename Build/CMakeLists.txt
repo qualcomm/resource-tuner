@@ -36,7 +36,7 @@ if(BUILD_CLI)
     ../Core/Client/APIs/ResourceTunerAPIs.cpp
     ../Core/Client/ClientCLI.cpp
   )
-  target_link_libraries(resource_tuner_cli SocketCommClient ClientAPIs)
+  target_link_libraries(resource_tuner_cli ClientAPIs)
   install(TARGETS resource_tuner_cli RUNTIME DESTINATION bin)
 endif()
 
@@ -57,7 +57,7 @@ target_link_libraries(resource_tuner PUBLIC Server Auxiliary SysRequestReceiver)
 
 # Install libs
 install(TARGETS resource_tuner RUNTIME DESTINATION bin)
-install(TARGETS Auxiliary SocketCommClient SocketCommServer
+install(TARGETS Auxiliary SocketCommServer
         ClientAPIs Server ExtAPIs
         SysRequestReceiver LIBRARY DESTINATION lib)
 if(BUILD_SIGNALS)

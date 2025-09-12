@@ -15,7 +15,7 @@
 */
 class PropertiesRegistry {
 private:
-    static std::shared_ptr<PropertiesRegistry> sysConfigPropRegistryInstance;
+    static std::shared_ptr<PropertiesRegistry> propRegistryInstance;
     std::unordered_map<std::string, std::string> mProperties;
     std::shared_timed_mutex mPropRegistryMutex;
 
@@ -66,11 +66,11 @@ public:
     int32_t getPropertiesCount();
 
     static std::shared_ptr<PropertiesRegistry> getInstance() {
-        if(sysConfigPropRegistryInstance == nullptr) {
-            std::shared_ptr<PropertiesRegistry> localSysConfigPropRegistryInstance(new PropertiesRegistry());
-            localSysConfigPropRegistryInstance.swap(sysConfigPropRegistryInstance);
+        if(propRegistryInstance == nullptr) {
+            std::shared_ptr<PropertiesRegistry> localpropRegistryInstance(new PropertiesRegistry());
+            localpropRegistryInstance.swap(propRegistryInstance);
         }
-        return sysConfigPropRegistryInstance;
+        return propRegistryInstance;
     }
 };
 

@@ -103,26 +103,25 @@
  * Example YAML configuration:
  * @code{.yaml}
  * TargetConfig:
- *  - TargetName: QCS9100
- *    # overide physical cluster info
- *    ClusterInfo:
- *      - LgcId: 0
- *        PhyId: 1
- *      - LgcId: 1
- *        PhyId: 0
- *      - LgcId: 2
- *        PhyId: 2
- *      - LgcId: 3
- *        PhyId: 3
- *    ClusterSpread:
- *      - PhyId: 0
- *        NumCores: 4
- *      - PhyId: 1
- *        NumCores: 4
- *      - PhyId: 2
- *        NumCores: 4
- *      - PhyId: 3
- *        NumCores: 4
+ *   - TargetName: ["QCS9100"]
+ *     ClusterInfo:
+ *       - LgcId: 0
+ *         PhyId: 4
+ *       - LgcId: 1
+ *         PhyId: 0
+ *       - LgcId: 2
+ *         PhyId: 9
+ *       - LgcId: 3
+ *         PhyId: 7
+ *     ClusterSpread:
+ *       - PhyId: 0
+ *         NumCores: 4
+ *       - PhyId: 4
+ *         NumCores: 3
+ *       - PhyId: 7
+ *         NumCores: 2
+ *       - PhyId: 9
+ *         NumCores: 1
  * @endcode
  *
  * @example Target_Configs
@@ -147,6 +146,7 @@
  *     - Name: "camera-cgroup"
  *       ID: 0
  *     - Name: "audio-cgroup"
+ *       Create: true
  *       ID: 1
  *     - Name: "video-cgroup"
  *       IsThreaded: true
@@ -174,8 +174,8 @@
  * @endcode
  *
  * @example Init_Configs
- * This example shows the expected YAML format for Init Config, which includes any
- * applicable CGroup Creation Information.
+ * This example shows the expected YAML format for Init Configuration, which includes any
+ * applicable Control group, Mpam group Creation Information.
  */
 
 /**

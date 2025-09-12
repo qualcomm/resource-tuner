@@ -1,6 +1,10 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
+/*!
+ * \file SignalInternal.h
+ */
+
 #ifndef SYS_SIGNAL_INTERNAL_H
 #define SYS_SIGNAL_INTERNAL_H
 

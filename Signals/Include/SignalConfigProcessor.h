@@ -76,9 +76,7 @@
  * @endcode
  *
  * @example Ext_Feature_Configs
- * This example shows the expected YAML format for Signal configuration.
- * For Information on each of these fields as well as some which have been omitted from
- * this example, refer Config Files Format Documentation.
+ * This example shows the expected YAML format for Ext-Features configuration.
 */
 
 class SignalConfigProcessor {

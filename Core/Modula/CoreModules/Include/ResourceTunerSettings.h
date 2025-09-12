@@ -43,9 +43,9 @@ private:
     static int32_t serverOnlineStatus;
 
 public:
-    static const int32_t desiredThreadCount = 10;
-    static const int32_t maxPendingQueueSize = 12;
-    static const int32_t maxScalingCapacity = 25;
+    static const int32_t desiredThreadCount = 15;
+    static const int32_t maxPendingQueueSize = 17;
+    static const int32_t maxScalingCapacity = 30;
 
     static const std::string mCommonResourceFilePath;
     static const std::string mCustomResourceFilePath;
