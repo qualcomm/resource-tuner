@@ -32,10 +32,10 @@ void registerWithResourceTuner() {
  * To build the above code, it needs to be linked with ExtAPIs lib exposed by Resource Tuner,
  * and built as a shared lib:
  * => Create the shared lib:
- *    "g++ -fPIC -shared -o libplugin.so plugin.cpp -lExtAPIs"
+ *    "g++ -fPIC -shared -o libplugin.so Plugin.cpp -lExtAPIs"
  *    This creates a shared lib, libplugin.so
  * => Copy this lib to "/etc/resource-tuner/Custom", the location where Resource Tuner expects
  *    the custom Extensions lib to be placed.
  * => Make sure the lib file has appropriate permissions:
-      "sudo chmod o+r /etc/resource-tuner/Custom/libplugin.so"
-*/
+ *    "sudo chmod o+r /etc/resource-tuner/Custom/libplugin.so"
+ */

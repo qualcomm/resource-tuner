@@ -60,7 +60,7 @@ static ErrCode createResourceTunerDaemon(int32_t& childProcessID) {
     // Create a Child Process to Monitor the Parent (Server) Process
     // This is done to ensure that all the Resource sysfs Nodes are in a consistent state
     // If the Server Crashes or Terminates Abnormally.
-    childProcessID = fork();
+    childProcessID = AuxRoutines::createProcess();
     if(childProcessID < 0) {
         TYPELOGV(ERRNO_LOG, "fork", strerror(errno));
         return RC_MODULE_INIT_FAILURE;

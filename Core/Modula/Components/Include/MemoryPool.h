@@ -4,6 +4,29 @@
 #ifndef MEMORY_POOL_H
 #define MEMORY_POOL_H
 
+/*!
+ * \file  MemoryPool.h
+ */
+
+/*!
+ * \ingroup MEMORY_POOL
+ * \defgroup MEMORY_POOL Memory Pool
+ * \details Used to Pre-Allocate Memory for commonly used types Capacity.
+ *          - To pre-allocate memory make use of the MakeAlloc API. This API takes
+ *            the type for which reservation needs to be made and the number of blocks of
+ *            memory which need to be reserved for this type. For example: MakeAlloc<X>(y), refers
+ *            to a request to reserve "y" number of blocks of type "X".\n\n
+ *          - To get a memory block make use of the GetBlock API. This API returns a pointer to a
+ *            block of memory, if blocks are available, else it throws a std::bad_alloc exception.
+ *            This API is intended to be used in conjunction with the placement new operator. For example:
+ *            To get a memory block of type X, use the API as follows:\n
+ *            => X* xPtr = new (GetBlock<X>()) X(...);\n\n
+ *          - To free a memory block make use of the FreeBlock API, as follows:\n
+ *            => FreeBlock<X>(xPtr);
+ *
+ * @{
+ */
+
 #include <iostream>
 #include <vector>
 #include <exception>
@@ -49,14 +72,15 @@ public:
      * @brief Allocate memory for the specified type T.
      * @details This routine will allocate the number of memory blocks for the type specified by the client.
      * @param blockCount Number of blocks to be allocated.
-     * @return int32_t: Number of blocks which were actually allocated (<= blockCount)
+     * @return int32_t:\n
+     *            Number of blocks which were actually allocated (might be smaller than blockCount)
      */
     int32_t makeAllocation(int32_t blockCount);
 
     /**
      * @brief Get an allocated block for the already allocated type T.
      * @details This routine should only be called after the makeAllocation call for a particular type
-     * Note: If a block is not available then the Routine throws a std::bad_alloc exception.
+     *          Note: If a block is not available then the Routine throws a std::bad_alloc exception.
      * @return void*: Pointer to the allocated type.
      */
     void* getBlock();
@@ -86,8 +110,7 @@ public:
     /**
      * @brief Allocate memory for the specified type T.
      * @details This routine will allocate the number of memory blocks for the type specified by the client.
-     *
-     * @param mBlockCount Number of blocks to be allocated.
+     * @param int32_t Number of blocks to be allocated.
      */
     template <typename T>
     int32_t makeAllocation(int32_t blockCount) {
@@ -97,7 +120,6 @@ public:
     /**
      * @brief Get an allocated block for the already allocated type T.
      * @details This routine should only be called after the makeAllocation call for a particular type
-     *
      * @return void* Pointer to the allocated type.
      */
     template <typename T>
@@ -107,6 +129,7 @@ public:
 
     /**
      * @brief Free an allocated block of the specified type T.
+     * @details As part of this routine, the destructor of the type will be invoked.
      * @param block Pointer to the block to be freed.
      */
     template<typename T>
@@ -141,3 +164,5 @@ inline void FreeBlock(void* block) {
 }
 
 #endif
+
+/*! @} */

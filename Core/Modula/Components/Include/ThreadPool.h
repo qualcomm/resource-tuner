@@ -14,20 +14,21 @@
  * \details Used to Pre-Allocate Worker Capacity. As part of the ThreadPool instance creation,
  *          User needs to specify 2 parameters:
  *          1. Desired Capacity: Number of threads to be created as part of the Pool.\n
- *          2. Max Pending Queue Size: The size upto which the Pending Queue can grow.
+ *          2. Max Pool Capacity: The size upto which the Thread Pool can scale, to accomodate growing demand.
  *
  *          - When a task is submitted (via the enqueueTask API), first we check if there
- *          any spare or free threads in the Pool, if there are we assign the task to one
- *          of those threads.\n\n
- *          - However if no threads are currently free, we check the size of the Waiting Queue,
- *          If the size is less than the Max Threshold then we add the task to the Waiting Queue.
- *          As soon as any of the threads is available, it will Poll this task from the Queue and
- *          Process it.\n\n
- *          - If even the Pending Queue is full, then the task is Dropped.\n\n
+ *            any spare or free threads in the Pool, if there are we assign the task to one
+ *            of those threads.\n\n
+ *          - However if no threads are currently free, we check if the pool can be expanded (by adding
+ *            additional threads to accomodate the request).\n\n
+ *          - If even that is not possible, the request is dropped.\n\n
+ *
+ *          Any new threads create to scale up to increased demand shall be destroyed after some
+ *          predefined interval of inactivity (i.e. scale down in response to decreased demand).\n\n
  *
  *          Internally the ThreadPool implementation makes use of Condition Variables. Initially
  *          when the pool is created, the threads put themselves to sleep by calling wait on this
- *          Condition Variable. Whenever a task comes in, One of these threads (considering there
+ *          Condition Variable. Whenever a task comes in, one of these threads (considering there
  *          are threads available in the pool), will be woken up and it will pick up the new task.
  *
  * @{
@@ -89,8 +90,8 @@ static const int32_t maxLoadPerThread = 3;
 */
 class ThreadPool {
 private:
-    int32_t mDesiredPoolCapacity;
-    int32_t mMaxPoolCapacity;
+    int32_t mDesiredPoolCapacity; //!< Desired or Base Thread Pool Capacity
+    int32_t mMaxPoolCapacity; //!< Max Capacity upto which the Thread Pool can scale up.
 
     int32_t mCurrentThreadsCount;
     int32_t mTotalTasksCount;

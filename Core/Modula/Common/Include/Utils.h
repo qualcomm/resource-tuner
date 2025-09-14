@@ -107,7 +107,6 @@ typedef ErrCode (*EventCallback)(void*);
 typedef int8_t (*ServerOnlineCheckCallback)();
 typedef void (*ResourceTunerMessageReceivedCallback)(int32_t, MsgForwardInfo*);
 
-
 #define HIGH_TRANSFER_PRIORITY -1
 #define SERVER_CLEANUP_TRIGGER_PRIORITY -2
 
@@ -128,6 +127,7 @@ typedef void (*ResourceTunerMessageReceivedCallback)(int32_t, MsgForwardInfo*);
 #define MAX_RESOURCES_PER_REQUEST "resource_tuner.maximum.resources.per.request"
 #define PULSE_MONITOR_DURATION "resource_tuner.pulse.duration"
 #define GARBAGE_COLLECTOR_DURATION "resource_tuner.garbage_collection.duration"
+#define GARBAGE_COLLECTOR_BATCH_SIZE "resource_tuner.garbage_collection.batch_size"
 #define RATE_LIMITER_DELTA "resource_tuner.rate_limiter.delta"
 #define RATE_LIMITER_PENALTY_FACTOR "resource_tuner.penalty.factor"
 #define RATE_LIMITER_REWARD_FACTOR "resource_tuner.reward.factor"

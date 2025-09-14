@@ -17,11 +17,15 @@
 #include "Extensions.h"
 #include "Logger.h"
 
+/**
+ * @struct ResourceApplyType
+ * @brief Application type or level for a Resource
+ */
 enum ResourceApplyType {
-    APPLY_CORE,
-    APPLY_CLUSTER,
-    APPLY_GLOBAL,
-    APPLY_CGROUP
+    APPLY_CORE, //!< Resource can have different configured values across different cores
+    APPLY_CLUSTER, //!< Resource can have different configured values across different clusters
+    APPLY_GLOBAL,  //!< Resource is global, i.e. the same configured value across the system.
+    APPLY_CGROUP  //!< Resource can have different configured values across different cgroups
 };
 
 /**

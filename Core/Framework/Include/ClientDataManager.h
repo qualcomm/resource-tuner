@@ -45,8 +45,8 @@ class ClientDataManager {
 private:
     static std::shared_ptr<ClientDataManager> mClientDataManagerInstance;
     static std::mutex instanceProtectionLock;
-    std::unordered_map<int32_t, ClientInfo*> mClientRepo;
-    std::unordered_map<int32_t, ClientTidData*> mClientTidRepo;
+    std::unordered_map<int32_t, ClientInfo*> mClientRepo; //!< Maintains Client Info indexed by PID
+    std::unordered_map<int32_t, ClientTidData*> mClientTidRepo; //!< Maintains Client Info indexed by TID
     std::shared_timed_mutex mGlobalTableMutex;
 
     ClientDataManager();

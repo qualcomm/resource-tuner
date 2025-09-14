@@ -3260,7 +3260,7 @@ namespace SystemSysfsNodesTests {
             return;
         }
 
-        int pid1 = fork();
+        int32_t pid1 = fork();
         if(pid1 == 0) {
             SysResource* resourceList = new SysResource[1];
             memset(&resourceList[0], 0, sizeof(SysResource));

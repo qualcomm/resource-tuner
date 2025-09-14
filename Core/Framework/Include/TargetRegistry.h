@@ -4,6 +4,10 @@
 #ifndef TARGET_REGISTRY_H
 #define TARGET_REGISTRY_H
 
+/*!
+ * \file  TargetRegistry.h
+ */
+
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -26,30 +30,46 @@
 #define ONLINE_CPU_FILE_PATH "/sys/devices/system/cpu/online"
 #define CPU_CAPACITY_FILE_PATH "/sys/devices/system/cpu/cpu%d/cpu_capacity"
 
+/**
+ * @struct CGroupConfigInfo
+ * @brief Representation of a single CGroup Configuration Info
+ */
 typedef struct {
-    std::string mCgroupName;
-    int32_t mCgroupID;
-    int8_t mCreationNeeded;
-    int8_t mIsThreaded;
+    std::string mCgroupName; //!< Cgroup Name
+    int32_t mCgroupID;  //!< 32-bit identifier for the Cgroup (to be used as part of tuneResources API)
+    int8_t mCreationNeeded; //!< Flag indicating if Cgroup needs to be created by Resource Tuner, or if it already exists
+    int8_t mIsThreaded; //!< Flag indicating if the Cgroup is threaded.
 } CGroupConfigInfo;
 
+/**
+ * @struct ClusterInfo
+ * @brief Representation for various Clusters detected on the device.
+ */
 typedef struct {
-    int32_t mPhysicalID;
-    int32_t mCapacity;
-    int32_t mStartCpu;
-    int32_t mNumCpus;
+    int32_t mPhysicalID; //!< Physical Cluster ID corresponding to the logical ID.
+    int32_t mCapacity; //!< Cluster Capacity
+    int32_t mStartCpu; //!< Starting CPU index in this cluster
+    int32_t mNumCpus; //!< Number of CPUs part of the Cluster
 } ClusterInfo;
 
+/**
+ * @struct MpamGroupConfigInfo
+ * @brief Representation of a single Mpam Group Configuration Info
+ */
 typedef struct {
-    int32_t mMpamGroupInfoID;
-    std::string mMpamGroupName;
-    int32_t mPriority;
+    int32_t mMpamGroupInfoID; //!< 32-bit identifier for the Mpam Group (to be used as part of tuneResources API)
+    std::string mMpamGroupName; //!< Mpam group Name
+    int32_t mPriority; //!< Mpam group Priority
 } MpamGroupConfigInfo;
 
+/**
+ * @struct CacheInfo
+ * @brief Representation for a single Cluster Type Info.
+ */
 typedef struct {
-    std::string mCacheType;
-    int32_t mNumCacheBlocks;
-    int8_t mPriorityAware;
+    std::string mCacheType; //!< Cache Type, for example: L2 or L3
+    int32_t mNumCacheBlocks; //!< Number of cache blocks for this type
+    int8_t mPriorityAware; //!< Flag indicating if the Cache type is priority aware.
 } CacheInfo;
 
 /**

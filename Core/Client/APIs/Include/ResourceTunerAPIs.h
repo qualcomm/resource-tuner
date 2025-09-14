@@ -140,7 +140,7 @@ int8_t getProp(const char* prop, char* buffer, size_t bufferSize, const char* de
  *             A Positive Unique Handle to identify the issued Request. The handle is used for freeing the Provisioned signal later.\n
  *             -1: If the Request could not be sent to the server.
  */
-int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t properties,
+int64_t tuneSignal(uint32_t signalCode, int64_t duration, int32_t properties,
                    const char* appName, const char* scenario, int32_t numArgs, uint32_t* list);
 
 /**

@@ -38,9 +38,7 @@ static ErrCode fetchMetaConfigs() {
 
     try {
         // Fetch target Name
-        ResourceTunerSettings::targetConfigs.targetName =
-                    AuxRoutines::readFromFile("/sys/devices/soc0/machine");
-
+        ResourceTunerSettings::targetConfigs.targetName = AuxRoutines::getMachineName();
         TYPELOGV(NOTIFY_CURRENT_TARGET_NAME, ResourceTunerSettings::targetConfigs.targetName.c_str());
 
         submitPropGetRequest(MAX_CONCURRENT_REQUESTS, resultBuffer, "120");
@@ -58,7 +56,8 @@ static ErrCode fetchMetaConfigs() {
         submitPropGetRequest(GARBAGE_COLLECTOR_DURATION, resultBuffer, "83000");
         ResourceTunerSettings::metaConfigs.mClientGarbageCollectorDuration = (uint32_t)std::stol(resultBuffer);
 
-        ResourceTunerSettings::metaConfigs.mCleanupBatchSize = 5;
+        submitPropGetRequest(GARBAGE_COLLECTOR_BATCH_SIZE, resultBuffer, "5");
+        ResourceTunerSettings::metaConfigs.mCleanupBatchSize = (uint32_t)std::stol(resultBuffer);
 
         submitPropGetRequest(RATE_LIMITER_DELTA, resultBuffer, "5");
         ResourceTunerSettings::metaConfigs.mDelta = (uint32_t)std::stol(resultBuffer);

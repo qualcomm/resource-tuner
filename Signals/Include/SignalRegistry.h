@@ -116,10 +116,8 @@ public:
     SignalInfo* getSignalConfigById(uint32_t signalID);
 
     int32_t getSignalsConfigCount();
-
-    void displaySignals();
-
     int32_t getSignalTableIndex(uint32_t signalID);
+    void displaySignals();
 
     static std::shared_ptr<SignalRegistry> getInstance() {
         if(signalRegistryInstance == nullptr) {

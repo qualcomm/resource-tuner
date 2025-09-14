@@ -26,9 +26,9 @@ public:
      * @brief Parse a YAML file.
      * @param fileName Path to the file to be parsed.
      * @param result A variable of type YAML::Node to hold the Parsed Output.
-     * @return ErrCode:
+     * @return ErrCode:\n
      *            RC_SUCCESS: if the file was successfully parsed,
-     *            Enum code representing the Error (for example: RC_YAML_INVALID_SYNTAX): otherwise.
+     *            Enum code representing the Error (for example: RC_YAML_INVALID_SYNTAX): otherwise.\n
      */
     static ErrCode parse(const std::string& fileName, YAML::Node& result);
 };

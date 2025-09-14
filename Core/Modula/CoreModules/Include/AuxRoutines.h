@@ -21,6 +21,8 @@ public:
     static void deleteFile(const std::string& fileName);
     static void writeSysFsDefaults();
     static int8_t fileExists(const std::string& filePath);
+    static int32_t createProcess();
+    static std::string getMachineName();
 
     static void dumpRequest(Request* request);
     static void dumpRequest(Signal* signal);

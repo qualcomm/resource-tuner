@@ -36,13 +36,11 @@ extern "C" void relayFeature(uint32_t signalCode,
 
 /*
  * Compilation Notes:
- * To build the above code, it needs to be linked with ExtAPIs lib exposed by Resource Tuner,
- * and built as a shared lib:
  * => Create the shared lib:
- *    "g++ -fPIC -shared -o libplugin.so plugin.cpp -lExtAPIs"
- *    This creates a shared lib, libplugin.so
- * => This lib can be placed in any location, the full path to the lib needs to be specified
- *    in the ExtFeaturesConfig.yaml file.
+ *    "g++ -fPIC -shared -o libRelay.so Relay.cpp"
+ *    This creates a shared lib, libRelay.so
+ * => This lib can have any name and can be placed in any location, the full path to the lib
+ *    needs to be specified in the ExtFeaturesConfig.yaml file.
  * => Make sure the lib file has appropriate permissions:
  *    "sudo chmod o+r <path_to_lib>"
  */
