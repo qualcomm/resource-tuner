@@ -40,11 +40,11 @@ static int32_t getOnlineCpuCount() {
         std::string line;
         std::getline(file, line);
 
-        std::stringstream ss(line);
+        std::stringstream cpuRangeStream(line);
         std::string token;
         int32_t cpuIndex = 0;
 
-        while(std::getline(ss, token, '-')) {
+        while(std::getline(cpuRangeStream, token, '-')) {
             cpuIndex = std::max(cpuIndex, std::stoi(token));
         }
 

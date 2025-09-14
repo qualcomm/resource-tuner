@@ -29,10 +29,10 @@ typedef void (*ExtFeature)(void);
 typedef void (*RelayFeature)(uint32_t, const std::string&, const std::string&, int32_t, std::vector<uint32_t>*);
 
 /**
-* @brief ExtFeaturesRegistry
-* @details Stores information Relating to all the Ext Features registered with resource-tuner.
-*          Note: This information is extracted from Config YAML files.
-*/
+ * @brief ExtFeaturesRegistry
+ * @details Stores information Relating to all the Ext Features registered with resource-tuner.
+ *          Note: This information is extracted from Config YAML files.
+ */
 class ExtFeaturesRegistry {
 private:
     static std::shared_ptr<ExtFeaturesRegistry> extFeaturesRegistryInstance;

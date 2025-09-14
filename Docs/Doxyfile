@@ -864,7 +864,7 @@ WARN_LOGFILE           =
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = Docs/README.md Docs/HOW-TO.md Core/Modula/Common/Include/ Core/Modula/Components/Include/ Core/Modula/CoreModules/Include/ Core/Client/APIs/Include Core/Client/Comm/Socket/Include Core/Extensions/Include Core/Framework/Include Core/Server/Receiver/Include Core/Server/Socket/Include Core/Server/SysConfigs/Include Signals/Include Docs/Examples/
+INPUT                  = Docs/README.md Docs/HOW-TO.md Docs/EXTENSIONS.md Core/Modula/Common/Include/ Core/Modula/Components/Include/ Core/Modula/CoreModules/Include/ Core/Client/APIs/Include Core/Client/Comm/Socket/Include Core/Extensions/Include Core/Framework/Include Core/Server/Receiver/Include Core/Server/Socket/Include Core/Server/SysConfigs/Include Signals/Include Docs/Examples/
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses

@@ -62,7 +62,7 @@ Notice the MSB has been set to 1.
 
 # 2. How to override the Resource tune and untune functionalities.
 Using Resource Tuner's Extension interface, the developer can modify the default Resource tune and untune functionalities. Resource tuner provides the default tune and untune functions. However, developer can customize these behaviours.
-Refer: [sample code](Examples/Extensions/plugin.cpp)
+Refer: Plugin.cpp in Examples Tab for usage guidance
 
 ---
 

@@ -22,11 +22,11 @@ typedef struct _memoryNode {
 } MemoryNode;
 
 /**
-* @brief MemoryPool
-* @details Preallocate certain amount of Memory for Commonly Used types, to decrease the
-*          Runtime Overhead of Memory Allocation and Deallocation System Calls
-*          while Processing Requests.
-*/
+ * @brief MemoryPool
+ * @details Preallocate Memory for Commonly Used types, to decrease the
+ *          Runtime Overhead of Memory Allocation and Deallocation System Calls
+ *          while Processing Requests.
+ */
 class MemoryPool {
 private:
     static std::shared_ptr<MemoryPool> mMemoryPoolInstance;

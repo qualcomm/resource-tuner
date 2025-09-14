@@ -81,7 +81,7 @@ public:
     ~TaskQueue();
 };
 
-static const int32_t maxLoadPerThread = 5;
+static const int32_t maxLoadPerThread = 3;
 
 /**
 * @brief ThreadPool

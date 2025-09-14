@@ -13,16 +13,8 @@ static TestBaseline baseline;
 /*
  * These tests mirror the Client Perspective, i.e. how the client interacts with various
  * Resource Tuner APIs like tuneResources / untuneResources, tuneSignal etc.
- * The results of these are evaluated by validating the Resource sysfs Nodes.
+ * The results of these are evaluated by validating the Resource Nodes.
  * As part of these Tests Request Verification and Application are Covered.
- * How to run:
- * Option A)
- * - Start a Resource Tuner Server instance in test mode (sudo ./resource_tuner --test)
- * - Run the system tests executable
- * - Upon completion of tests, terminate the server.
- * Option B)
- * - Run the system tests via Script (sudo python pre_commit.py), this script will
- *   automatically start, Run the Tests and then terminate the server.
  */
 
 /*

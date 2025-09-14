@@ -81,9 +81,9 @@ typedef struct {
 *
 * @param numRes Number of Resources to be tuned as part of the Request
 * @param resourceList List of Resources to be provisioned as part of the Request
-* @return int64_t :
-*              A Positive Integer Handle which uniquely identifies the issued Request. The handle is used for future retune / untune APIs.\n
-*              -1: If the Request could not be sent to the server.
+* @return int64_t:\n
+*            A Positive Integer Handle which uniquely identifies the issued Request. The handle is used for future retune / untune APIs.\n
+*            -1: If the Request could not be sent to the server.
 */
 int64_t tuneResources(int64_t duration, int32_t prop, int32_t numRes, SysResource* resourceList);
 
@@ -92,9 +92,9 @@ int64_t tuneResources(int64_t duration, int32_t prop, int32_t numRes, SysResourc
 * @details Use this API to increase the duration (in milliseconds) of an existing Request issued via.
 * @param handle Request Handle, returned by tuneResources.
 * @param duration The new duration for the previously issued Tune request. A value of -1 denotes infinite duration.
-* @return int8_t:
-*              0: If the Request was successfully submitted to the server.\n
-*              -1: Otherwise.
+* @return int8_t:\n
+*            0: If the Request was successfully submitted to the server.\n
+*            -1: Otherwise.
 */
 int8_t retuneResources(int64_t handle, int64_t duration);
 
@@ -102,9 +102,9 @@ int8_t retuneResources(int64_t handle, int64_t duration);
 * @brief Release (or free) the Request with the given handle.
 * @details Use this API to issue Signal De-Provisioning Requests.
 * @param handle Request Handle, returned by the tuneResources API call.
-* @return int8_t:
-*              0: If the Request was successfully submitted to the server.\n
-*              -1: Otherwise
+* @return int8_t:\n
+*            0: If the Request was successfully submitted to the server.\n
+*            -1: Otherwise
 */
 int8_t untuneResources(int64_t handle);
 
@@ -115,9 +115,9 @@ int8_t untuneResources(int64_t handle);
 * @param buffer A buffer to hold the result, i.e. the property value corresponding to the specified name.
 * @param bufferSize Size of the buffer
 * @param defValue Value to return in case a property with the specified Name is not found in the Config Store
-* @return int8_t:
-*              0: If the Request was successfully Submitted to the Server.\n
-*              -1: Otherwise\n\n
+* @return int8_t:\n
+*            0: If the Request was successfully Submitted to the Server.\n
+*            -1: Otherwise\n\n
 * Note: The result of the Query itself is stored in the buffer (IN / OUT arg).
 */
 int8_t getProp(const char* prop, char* buffer, size_t bufferSize, const char* defValue);
@@ -136,9 +136,9 @@ int8_t getProp(const char* prop, char* buffer, size_t bufferSize, const char* de
  * @param scenario Name of the Scenario that is issuing the Request
  * @param numArgs Number of Additional Arguments to be passed as part of the Request
  * @param list List of Additional Arguments to be passed as part of the Request
- * @return int64_t:
- *              A Positive Unique Handle to identify the issued Request. The handle is used for freeing the Provisioned signal later.\n
- *              -1: If the Request could not be sent to the server.
+ * @return int64_t:\n
+ *             A Positive Unique Handle to identify the issued Request. The handle is used for freeing the Provisioned signal later.\n
+ *             -1: If the Request could not be sent to the server.
  */
 int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t properties,
                    const char* appName, const char* scenario, int32_t numArgs, uint32_t* list);
@@ -152,16 +152,14 @@ int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t properties,
  *                   - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
  *                   - The Next 8 bits [17 - 24] represent a Boolean Flag, which indicates
  *                     if the Request should be processed in the background (in case of Display Off or Doze Mode).
- *                   - The Next 8 bits [9 - 16] represent the order in which the Resources part of this Request
- *                     should be untuned. Possible values are: Forward Order [0] (default) and Reverse Order [1]
  *
  * @param appName Name of the Application that is issuing the Request
  * @param scenario Name of the Scenario that is issuing the Request
  * @param numArgs Number of Additional Arguments to be passed as part of the Request
  * @param list List of Additional Arguments to be passed as part of the Request
- * @return int8_t:
- *              0: If the Request was successfully sent to the server.\n
- *              -1: Otherwise
+ * @return int8_t:\n
+ *            0: If the Request was successfully sent to the server.\n
+ *            -1: Otherwise
  */
 int8_t relaySignal(uint32_t signalID, int64_t duration, int32_t properties,
                    const char* appName, const char* scenario, int32_t numArgs, uint32_t* list);
@@ -170,9 +168,9 @@ int8_t relaySignal(uint32_t signalID, int64_t duration, int32_t properties,
  * @brief Release (or free) the signal with the given handle.
  * @details Use this API to issue Signal De-Provisioning Requests
  * @param handle Request Handle, returned by the tuneSignal API call.
- * @return int8_t:
- *              0: If the Request was successfully sent to the server.\n
- *              -1: Otherwise
+ * @return int8_t:\n
+ *            0: If the Request was successfully sent to the server.\n
+ *            -1: Otherwise
 */
 int8_t untuneSignal(int64_t handle);
 

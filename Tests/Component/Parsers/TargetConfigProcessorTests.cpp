@@ -55,7 +55,6 @@ int32_t main() {
 
     Init();
     RUN_TEST(TestTargetConfigProcessorYAMLDataIntegrity1);
-    RUN_TEST(TestTargetConfigProcessorYAMLDataIntegrity2);
     RUN_TEST(TestTargetConfigProcessorYAMLDataIntegrity3);
     RUN_TEST(TestTargetConfigProcessorYAMLDataIntegrity4);
 

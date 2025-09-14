@@ -90,10 +90,10 @@ typedef struct {
 } ResourceConfigInfo;
 
 /**
-* @brief ResourceRegistry
-* @details Stores information Relating to all the Resources available for Tuning.
-*          Note: This information is extracted from Config YAML files.
-*/
+ * @brief ResourceRegistry
+ * @details Stores information Relating to all the Resources available for Tuning.
+ *          Note: This information is extracted from Config YAML files.
+ */
 class ResourceRegistry {
 private:
     static std::shared_ptr<ResourceRegistry> resourceRegistryInstance;
@@ -123,28 +123,24 @@ public:
     std::vector<ResourceConfigInfo*> getRegisteredResources();
 
     /**
-    * @brief Get the ResourceConfigInfo object corresponding to the given Resource ID.
-    * @param resourceId An unsigned 32 bit integer, representing the Resource ID.
-    * @return ResourceConfigInfo*:
-    *          - A pointer to the ResourceConfigInfo object
-    *          - nullptr, if no ResourceConfigInfo object with the given Resource ID exists.
-    */
+     * @brief Get the ResourceConfigInfo object corresponding to the given Resource ID.
+     * @param resourceId An unsigned 32 bit integer, representing the Resource ID.
+     * @return ResourceConfigInfo*:
+     *          - A pointer to the ResourceConfigInfo object
+     *          - nullptr, if no ResourceConfigInfo object with the given Resource ID exists.
+     */
     ResourceConfigInfo* getResourceById(uint32_t resourceId);
 
     int32_t getResourceTableIndex(uint32_t resourceId);
-
     int32_t getTotalResourcesCount();
+    std::string getDefaultValue(const std::string& fileName);
 
     void addDefaultValue(const std::string& key, const std::string& value);
-
-    std::string getDefaultValue(const std::string& fileName);
+    void restoreResourcesToDefaultValues();
+    void displayResources();
 
     // Merge the Changes provided by the BU with the existing ResourceTable.
     void pluginModifications();
-
-    void restoreResourcesToDefaultValues();
-
-    void displayResources();
 
     static std::shared_ptr<ResourceRegistry> getInstance() {
         if(resourceRegistryInstance == nullptr) {

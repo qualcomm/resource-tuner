@@ -20,7 +20,6 @@ enum NodeExtractionStatus {
  * @details Utility for Reading and Parsing Yaml files (Note, Resource Tuner Configs are based in Yaml).
  *          Note, it internally uses the external yaml-cpp lib.
  */
-
 class YamlParser {
 public:
     /**
