@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: ["self-hosted", "cseperf-stg-u2204-arm64-xlrg-od-ephem"]
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
