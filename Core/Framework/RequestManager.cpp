@@ -39,8 +39,8 @@ int8_t RequestManager::isSane(Request* request) {
 
 int8_t RequestManager::requestMatch(Request* request) {
     int32_t clientTID = request->getClientTID();
-    // Get the list of Requests for this client
 
+    // Get the list of Requests for this client
     std::unordered_set<int64_t>* clientHandles =
         ClientDataManager::getInstance()->getRequestsByClientID(clientTID);
 

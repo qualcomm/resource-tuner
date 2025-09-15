@@ -11,7 +11,8 @@
  * \details Runs as a Daemon Thread and Periodically (Every 60 seconds) checks if any of the Clients with
  *          Active or Pending Requests with the Resource Tuner Server have died or terminated.
  *          When such a Client is Found it is added to the Garbage Collector Queue, so that it
- *          can be cleaned up.\n\n
+ *          can be cleaned up.
+ *
  *          Pulse Monitor Flow:\n\n
  *          1) The Pulse Monitor, retrieves the list of Clients (i.e. clients with Outstanding Requests)
  *             from the ClientDataManager.\n\n

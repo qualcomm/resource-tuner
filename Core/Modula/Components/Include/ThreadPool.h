@@ -97,10 +97,7 @@ private:
     int32_t mTotalTasksCount;
     int8_t mTerminatePool;
 
-    std::string mThreadPoolLabel;
-
     TaskQueue* mCurrentTasks;
-
     ThreadNode* mThreadQueueHead;
     ThreadNode* mThreadQueueTail;
 
@@ -112,7 +109,7 @@ private:
     int8_t threadRoutineHelper(int8_t isCoreThread);
 
 public:
-    ThreadPool(int32_t desiredCapacity, int32_t maxCapacity, std::string label="");
+    ThreadPool(int32_t desiredCapacity, int32_t maxCapacity);
     ~ThreadPool();
 
     /**

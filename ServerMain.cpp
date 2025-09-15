@@ -116,11 +116,11 @@ static ErrCode preAllocateWorkers() {
 
     try {
         RequestReceiver::mRequestsThreadPool = new ThreadPool(desiredThreadCapacity,
-                                                              maxScalingCapacity, "request");
+                                                              maxScalingCapacity);
 
         // Allocate 2 extra threads for Pulse Monitor and Garbage Collector
         Timer::mTimerThreadPool = new ThreadPool(desiredThreadCapacity + 2,
-                                                 maxScalingCapacity, "timer");
+                                                 maxScalingCapacity);
 
     } catch(const std::bad_alloc& e) {
         TYPELOGV(THREAD_POOL_CREATION_FAILURE, e.what());
