@@ -77,10 +77,10 @@ typedef struct {
 } SignalInfo;
 
 /**
-* @brief SignalRegistry
-* @details Stores information Relating to all the Signals available for Tuning.
-*          Note: This information is extracted from Config YAML files.
-*/
+ * @brief SignalRegistry
+ * @details Stores information Relating to all the Signals available for Tuning.
+ *          Note: This information is extracted from Config YAML files.
+ */
 class SignalRegistry {
 private:
     static std::shared_ptr<SignalRegistry> signalRegistryInstance;
@@ -109,14 +109,14 @@ public:
    /**
     * @brief Get the SignalInfo object corresponding to the given Resource ID.
     * @param resourceId An unsigned 32 bit integer, representing the Signal ID.
-    * @return SignalInfo*:
+    * @return SignalInfo*:\n
     *          - A pointer to the SignalInfo object
     *          - nullptr, if no SignalInfo object with the given Signal ID exists.
     */
-    SignalInfo* getSignalConfigById(uint32_t signalID);
+    SignalInfo* getSignalConfigById(uint32_t signalCode);
 
     int32_t getSignalsConfigCount();
-    int32_t getSignalTableIndex(uint32_t signalID);
+    int32_t getSignalTableIndex(uint32_t signalCode);
     void displaySignals();
 
     static std::shared_ptr<SignalRegistry> getInstance() {

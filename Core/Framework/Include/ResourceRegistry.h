@@ -129,7 +129,7 @@ public:
     /**
      * @brief Get the ResourceConfigInfo object corresponding to the given Resource ID.
      * @param resourceId An unsigned 32 bit integer, representing the Resource ID.
-     * @return ResourceConfigInfo*:
+     * @return ResourceConfigInfo*:\n
      *          - A pointer to the ResourceConfigInfo object
      *          - nullptr, if no ResourceConfigInfo object with the given Resource ID exists.
      */

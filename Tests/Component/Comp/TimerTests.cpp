@@ -113,7 +113,7 @@ static void RecurringTimerPreMatureKill() {
 }
 
 int32_t main() {
-    std::cout<<"Running Test Suite: [TimerTest]\n"<<std::endl;
+    std::cout<<"Running Test Suite: [TimerTests]\n"<<std::endl;
 
     Init();
     RUN_TEST(BaseCase);
@@ -122,6 +122,6 @@ int32_t main() {
     RUN_TEST(RecurringTimer);
     RUN_TEST(RecurringTimerPreMatureKill);
 
-    std::cout<<"\nAll Tests from the suite: [TimerTest], executed successfully"<<std::endl;
+    std::cout<<"\nAll Tests from the suite: [TimerTests], executed successfully"<<std::endl;
     return 0;
 }

@@ -53,8 +53,8 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
             }
             break;
         }
-        // SysConfig Requests
-        case REQ_SYSCONFIG_GET_PROP: {
+        // Prop Get Requests
+        case REQ_PROP_GET: {
             // Decode Prop Fetch Request
             PropConfig propConfig;
             memset(&propConfig, 0, sizeof(propConfig));

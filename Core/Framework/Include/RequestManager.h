@@ -57,8 +57,8 @@ public:
      * @details This routine is used by the retune/untune APIs
      * @param handle Request Handle
      * @return int8_t:\n
-     *             1: if a request with the specified handle exists\n
-     *             0: otherwise
+     *             - 1: if a request with the specified handle exists\n
+     *             - 0: otherwise
      */
     int8_t verifyHandle(int64_t handle);
 
@@ -67,8 +67,8 @@ public:
      * @details This routine will perform Request Sanity and Duplicate checking.
      * @param request pointer to the request to be added to the map
      * @return int8_t:\n
-     *             1: if the request should be added\n
-     *             0: otherwise
+     *             - 1: if the request should be added\n
+     *             - 0: otherwise
      */
     int8_t shouldRequestBeAdded(Request* request);
 
@@ -88,7 +88,8 @@ public:
     /**
      * @brief Retrieve the Request with the given Handle.
      * @param handle Request Handle
-     * @return Pointer to the request with the specified index.
+     * @return Request*:\n
+     *            - Pointer to the request with the specified index.
      */
     Request* getRequestFromMap(int64_t handle);
 

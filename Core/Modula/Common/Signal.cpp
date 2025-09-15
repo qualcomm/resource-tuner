@@ -5,7 +5,7 @@
 
 Signal::Signal() {}
 
-uint32_t Signal::getSignalID() {
+uint32_t Signal::getSignalCode() {
     return this->mSignalCode;
 }
 
@@ -55,7 +55,7 @@ ErrCode Signal::serialize(char* buf) {
         ASSIGN_AND_INCR(ptr8, this->getRequestType());
 
         int32_t* ptr = (int32_t*)ptr8;
-        ASSIGN_AND_INCR(ptr, this->getSignalID());
+        ASSIGN_AND_INCR(ptr, this->getSignalCode());
 
         int64_t* ptr64 = (int64_t*)ptr;
         ASSIGN_AND_INCR(ptr64, this->getHandle());

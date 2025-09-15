@@ -5,8 +5,8 @@
  * \file  Extensions.h
  */
 
-#ifndef RESOURCE_TUNER_EXTENSION_H
-#define RESOURCE_TUNER_EXTENSION_H
+#ifndef RESOURCE_TUNER_EXTENSIONS_H
+#define RESOURCE_TUNER_EXTENSIONS_H
 
 #include <iostream>
 #include <vector>
@@ -18,7 +18,7 @@ typedef void (*ResourceLifecycleCallback)(void*);
  * @enum ConfigType
  * @brief Different Config (via YAML) Types supported.
  * @details Note, the Config File corresponding to each config type
- * can be altered via the Extensions interface.
+ *          can be altered via the Extensions interface.
  */
 enum ConfigType {
     RESOURCE_CONFIG,

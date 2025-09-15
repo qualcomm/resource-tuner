@@ -132,7 +132,7 @@ static void TestSignalSerializingAndDeserializing() {
         C_ASSERT(firstSignal->getClientPID() == 1003);
         C_ASSERT(firstSignal->getClientTID() == 1009);
         C_ASSERT(firstSignal->getHandle() == 15);
-        C_ASSERT(firstSignal->getSignalID() == 78099);
+        C_ASSERT(firstSignal->getSignalCode() == 78099);
         C_ASSERT(firstSignal->getDuration() == 5600);
         C_ASSERT(firstSignal->isBackgroundProcessingEnabled() == 1);
         C_ASSERT(firstSignal->getPriority() == 1);
@@ -183,12 +183,20 @@ static void TestSignalSerializingAndDeserializing() {
     } catch(const std::exception& e) {}
 }
 
+static void TestHandleGeneration() {
+    for(int32_t i = 1; i <= 2e7; i++) {
+        int64_t handle = AuxRoutines::generateUniqueHandle();
+        C_ASSERT(handle == i);
+    }
+}
+
 int32_t main() {
     std::cout<<"Running Test Suite: [MiscTests]\n"<<std::endl;
 
     RUN_TEST(TestResourceStructCoreClusterSettingAndExtraction);
     RUN_TEST(TestRequestSerializingAndDeserializing);
     RUN_TEST(TestSignalSerializingAndDeserializing);
+    RUN_TEST(TestHandleGeneration);
 
     std::cout<<"\nAll Tests from the suite: [MiscTests], executed successfully"<<std::endl;
     return 0;

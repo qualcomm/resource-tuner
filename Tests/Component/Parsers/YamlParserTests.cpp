@@ -23,10 +23,10 @@ static void TestYamlParserInvalidSyntax() {
 }
 
 int32_t main() {
-    std::cout<<"Running [YamlParser] Test Suite\n"<<std::endl;
+    std::cout<<"Running Test Suite: [YamlParserTests]\n"<<std::endl;
 
     RUN_TEST(TestYamlParserFileNotFound);
     RUN_TEST(TestYamlParserInvalidSyntax);
 
-    std::cout<<"\nAll Tests from the suite: [YamlParser], executed successfully"<<std::endl;
+    std::cout<<"\nAll Tests from the suite: [YamlParserTests], executed successfully"<<std::endl;
 }

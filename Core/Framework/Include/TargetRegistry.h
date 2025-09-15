@@ -116,9 +116,9 @@ public:
      *                         when issuing a tuneResources API call.
      * @param logicalCoreId The Logical Core ID, passed via the mResInfo field (part of the Resource struct)
      *                      when issuing a tuneResources API call.
-     * @return: int32_t
-     *              A Non-Negative Integer, representing the corresponding physical Core ID.
-     *              -1: otherwise
+     * @return int32_t:\n
+     *             - A Non-Negative Integer, representing the corresponding physical Core ID.
+     *             - -1: otherwise
      */
     int32_t getPhysicalCoreId(int32_t logicalClusterId, int32_t logicalCoreId);
 
@@ -127,9 +127,9 @@ public:
      * @details This routine performs Logical to Physical Cluster Translation.
      * @param logicalClusterId The Logical Cluster ID, passed via the mResInfo field (part of the Resource struct)
      *                         when issuing a tuneResources API call.
-     * @return: int32_t
-     *              A Non-Negative Integer, representing the corresponding physical Cluster ID.
-     *              -1: otherwise
+     * @return int32_t:\n
+     *             - A Non-Negative Integer, representing the corresponding physical Cluster ID.
+     *             - -1: otherwise
      */
     int32_t getPhysicalClusterId(int32_t logicalClusterId);
 

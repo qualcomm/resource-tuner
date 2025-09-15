@@ -36,8 +36,9 @@ static int8_t getRequestPriority(int8_t clientPermissions, int8_t reqSpecifiedPr
  *          translation will be performed, and the result will be stored in the IN/OUT params.
  * @param int32_t Logical Core Value.
  * @param int32_t Logical Cluster Value.
- * @return int8_t: 1 if a valid Logical to Physical Translation exists.
- *                 0 otherwise.
+ * @return int8_t:\n
+ *            - 1: if a valid Logical to Physical Translation exists.
+ *            - 0: otherwise.
  */
 static int8_t performPhysicalMapping(int32_t& coreValue, int32_t& clusterValue) {
     std::shared_ptr<TargetRegistry> targetRegistry = TargetRegistry::getInstance();
@@ -62,8 +63,9 @@ static int8_t performPhysicalMapping(int32_t& coreValue, int32_t& clusterValue) 
  *          permissions, and performs logical-to-physical mapping.
  *
  * @param req Pointer to the Request object.
- * @return int8_t: 1 if the request is valid.
- *                 0 otherwise.
+ * @return int8_t:\n
+ *            - 1: if the request is valid.\n
+ *            - 0: otherwise.
  */
 static int8_t VerifyIncomingRequest(Request* req) {
     if(req->getDuration() < -1 || req->getDuration() == 0) return false;

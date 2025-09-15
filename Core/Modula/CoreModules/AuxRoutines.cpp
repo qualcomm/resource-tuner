@@ -43,9 +43,9 @@ void AuxRoutines::writeSysFsDefaults() {
     // Write Defaults
     std::ifstream file;
 
-    file.open("sysfsOriginalValues.txt");
+    file.open("resourceOriginalValues.txt");
     if(!file.is_open()) {
-        LOGE("RESTUNE_SERVER_INIT", "Failed to open sysfs original values file: sysfsOriginalValues.txt");
+        LOGE("RESTUNE_SERVER_INIT", "Failed to open sysfs original values file: resourceOriginalValues.txt");
         return;
     }
 
@@ -119,7 +119,7 @@ void AuxRoutines::dumpRequest(Signal* clientReq) {
     LOGD(LOG_TAG, "Print Signal details:");
 
     LOGD(LOG_TAG, "Print Signal Request");
-    LOGD(LOG_TAG, "Signal ID: " + std::to_string(clientReq->getSignalID()));
+    LOGD(LOG_TAG, "Signal ID: " + std::to_string(clientReq->getSignalCode()));
     LOGD(LOG_TAG, "Handle: " + std::to_string(clientReq->getHandle()));
     LOGD(LOG_TAG, "Duration: " + std::to_string(clientReq->getDuration()));
     LOGD(LOG_TAG, "App Name: " + std::string(clientReq->getAppName()));

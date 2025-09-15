@@ -41,8 +41,8 @@ static ErrCode parseServerStartupCLIOpts(int32_t argCount, char *argStrings[]) {
     };
 
     int32_t c;
-    while ((c = getopt_long(argCount, argStrings, shortPrompts, longPrompts, nullptr)) != -1) {
-        switch (c) {
+    while((c = getopt_long(argCount, argStrings, shortPrompts, longPrompts, nullptr)) != -1) {
+        switch(c) {
             case 's':
                 break;
             case 'h':
@@ -81,7 +81,7 @@ static ErrCode createResourceTunerDaemon(int32_t& childProcessID) {
         }
 
         // Delete the Sysfs Persistent File
-        AuxRoutines::deleteFile("sysfsOriginalValues.txt");
+        AuxRoutines::deleteFile("resourceOriginalValues.txt");
         exit(EXIT_SUCCESS);
     }
 
@@ -100,7 +100,7 @@ static ErrCode loadExtensionsLib() {
     }
 
     extensionsLibHandle = dlopen(libPath.c_str(), RTLD_NOW);
-    if (extensionsLibHandle == nullptr) {
+    if(extensionsLibHandle == nullptr) {
         TYPELOGV(NOTIFY_EXTENSIONS_LOAD_FAILED, dlerror());
         return RC_MODULE_INIT_FAILURE;  // Error if the library exists but can't be loaded
     }
@@ -295,7 +295,7 @@ int32_t main(int32_t argc, char *argv[]) {
     }
 
     // Delete the Sysfs Persistent File
-    AuxRoutines::deleteFile("sysfsOriginalValues.txt");
+    AuxRoutines::deleteFile("resourceOriginalValues.txt");
 
     if(extensionsLibHandle != nullptr) {
         dlclose(extensionsLibHandle);

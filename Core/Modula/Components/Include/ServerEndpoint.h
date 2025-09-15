@@ -7,10 +7,10 @@
 #include "Utils.h"
 
 /**
-* @brief ServerEndpoint
-* @details Defines the Server Side Interface, which any Communication Medium
-*          (for example Socket) must Implement.
-*/
+ * @brief ServerEndpoint
+ * @details Defines the Server Side Interface, which any Communication Medium
+ *          (for example Socket) must Implement.
+ */
 class ServerEndpoint {
 public:
     virtual int32_t ListenForClientRequests() = 0;

@@ -25,10 +25,10 @@ enum EventIdentifier {
 };
 
 /**
-* @brief ComponentRegistry
-* @details Keeps track of the Resource Tuner modules, used to check if a module
-*          is enabled or not and stores the module's registered callbacks if it is enabled.
-*/
+ * @brief ComponentRegistry
+ * @details Keeps track of the Resource Tuner modules, used to check if a module
+ *          is enabled or not and stores the module's registered callbacks if it is enabled.
+ */
 class ComponentRegistry {
 private:
     static std::unordered_map<EventIdentifier, EventCallback> mEventCallbacks;

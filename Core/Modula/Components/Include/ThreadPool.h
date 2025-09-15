@@ -85,9 +85,9 @@ public:
 static const int32_t maxLoadPerThread = 3;
 
 /**
-* @brief ThreadPool
-* @details Pre-Allocate thread (Workers) capacity for future use, so as to prevent repeated Thread creation / destruction costs.
-*/
+ * @brief ThreadPool
+ * @details Pre-Allocate thread (Workers) capacity for future use, so as to prevent repeated Thread creation / destruction costs.
+ */
 class ThreadPool {
 private:
     int32_t mDesiredPoolCapacity; //!< Desired or Base Thread Pool Capacity
@@ -119,9 +119,9 @@ public:
      * @brief Enqueue a task for processing by one of ThreadPool's thread.
      * @param taskCallback function pointer to the task.
      * @param arg Pointer to the task arguments.
-     * @return int8_t:
-     *            1 if the request was successfully enqueued,
-     *            0 otherwise.
+     * @return int8_t:\n
+     *            - 1 if the request was successfully enqueued,
+     *            - 0 otherwise.
      */
     int8_t enqueueTask(std::function<void(void*)> callBack, void* arg);
 };

@@ -49,9 +49,9 @@ public:
     /**
      * @brief Fetch a Feature Config with the given ID.
      * @param featureId An unsigned 32-bit feature identifier
-     * @return ExtFeatureInfo*:
-     *             A Pointer to the registered ExtFeatureInfo object, if feature with the given ID exists.
-     *             nullptr: Otherwise
+     * @return ExtFeatureInfo*:\n
+     *             - A Pointer to the registered ExtFeatureInfo object, if feature with the given ID exists.\n
+     *             - nullptr: Otherwise
      */
     ExtFeatureInfo* getExtFeatureConfigById(uint32_t extFeatureId);
 

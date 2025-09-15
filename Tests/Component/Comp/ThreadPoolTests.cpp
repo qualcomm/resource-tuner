@@ -294,7 +294,7 @@ static void TestThreadPoolEnqueueStatus2_2() {
 
 
 int32_t main() {
-	std::cout<<"Running Test Suite: [ThreadPool Tests]\n"<<std::endl;
+	std::cout<<"Running Test Suite: [ThreadPoolTests]\n"<<std::endl;
 
     RUN_TEST(TestThreadPoolTaskPickup1);
     RUN_TEST(TestThreadPoolEnqueueStatus1);
@@ -309,6 +309,6 @@ int32_t main() {
     // RUN_TEST(TestThreadPoolEnqueueStatusWithExpansion2);
     // RUN_TEST(TestThreadPoolEnqueueStatusWithExpansion3);
 
-	std::cout<<"\nAll Tests from the suite: [ThreadPool Tests], executed successfully"<<std::endl;
+	std::cout<<"\nAll Tests from the suite: [ThreadPoolTests], executed successfully"<<std::endl;
     return 0;
 }

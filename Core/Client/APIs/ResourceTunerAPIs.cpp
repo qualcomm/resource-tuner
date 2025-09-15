@@ -223,7 +223,7 @@ int8_t untuneResources(int64_t handle) {
     }
 }
 
-// - Construct a SysConfig object and populate it with the SysConfig Request Params
+// - Construct a Prop Get Request object and populate it with the Request Params
 // - Initiate a connection to the Resource Tuner Server, and send the request to the server
 // - Wait for the response from the server, and return the response to the caller (end-client).
 int8_t getProp(const char* prop, char* buffer, size_t bufferSize, const char* defValue) {
@@ -233,7 +233,7 @@ int8_t getProp(const char* prop, char* buffer, size_t bufferSize, const char* de
 
         char buf[1024];
         int8_t* ptr8 = (int8_t*)buf;
-        ASSIGN_AND_INCR(ptr8, REQ_SYSCONFIG_GET_PROP);
+        ASSIGN_AND_INCR(ptr8, REQ_PROP_GET);
 
         const char* charIterator = prop;
         char* charPointer = (char*) ptr8;
@@ -289,7 +289,7 @@ int8_t getProp(const char* prop, char* buffer, size_t bufferSize, const char* de
 // - Construct a Signal object and populate it with the Signal Request Params
 // - Initiate a connection to the Resource Tuner Server, and send the request to the server
 // - Wait for the response from the server, and return the response to the caller (end-client).
-int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t properties,
+int64_t tuneSignal(uint32_t signalCode, int64_t duration, int32_t properties,
                    const char* appName, const char* scenario, int32_t numArgs,
                    uint32_t* list) {
     try {
@@ -306,7 +306,7 @@ int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t properties,
         ASSIGN_AND_INCR(ptr8, REQ_SIGNAL_TUNING);
 
         int32_t* ptr = (int32_t*)ptr8;
-        ASSIGN_AND_INCR(ptr, signalID);
+        ASSIGN_AND_INCR(ptr, signalCode);
 
         int64_t* ptr64 = (int64_t*)ptr;
         ASSIGN_AND_INCR(ptr64, 0);
@@ -451,7 +451,7 @@ int8_t untuneSignal(int64_t handle) {
 
 // - Construct a Signal object and populate it with the Signal Request Params
 // - Initiate a connection to the Resource Tuner Server, and send the request to the server
-int8_t relaySignal(uint32_t signalID, int64_t duration, int32_t properties,
+int8_t relaySignal(uint32_t signalCode, int64_t duration, int32_t properties,
                    const char* appName, const char* scenario, int32_t numArgs, uint32_t* list) {
     try {
         const std::lock_guard<std::mutex> lock(apiLock);
@@ -467,7 +467,7 @@ int8_t relaySignal(uint32_t signalID, int64_t duration, int32_t properties,
         ASSIGN_AND_INCR(ptr8, REQ_SIGNAL_RELAY);
 
         int32_t* ptr = (int32_t*)ptr8;
-        ASSIGN_AND_INCR(ptr, signalID);
+        ASSIGN_AND_INCR(ptr, signalCode);
 
         int64_t* ptr64 = (int64_t*)ptr;
         ASSIGN_AND_INCR(ptr64, 0);

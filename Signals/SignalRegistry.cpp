@@ -58,13 +58,13 @@ std::vector<SignalInfo*> SignalRegistry::getSignalConfigs() {
     return this->mSignalsConfigs;
 }
 
-SignalInfo* SignalRegistry::getSignalConfigById(uint32_t signalID) {
-    if(this->mSystemIndependentLayerMappings.find(signalID) == this->mSystemIndependentLayerMappings.end()) {
-        TYPELOGV(SIGNAL_REGISTRY_SIGNAL_NOT_FOUND, signalID);
+SignalInfo* SignalRegistry::getSignalConfigById(uint32_t signalCode) {
+    if(this->mSystemIndependentLayerMappings.find(signalCode) == this->mSystemIndependentLayerMappings.end()) {
+        TYPELOGV(SIGNAL_REGISTRY_SIGNAL_NOT_FOUND, signalCode);
         return nullptr;
     }
 
-    int32_t mResourceTableIndex = this->mSystemIndependentLayerMappings[signalID];
+    int32_t mResourceTableIndex = this->mSystemIndependentLayerMappings[signalCode];
     return this->mSignalsConfigs[mResourceTableIndex];
 }
 
@@ -84,12 +84,12 @@ void SignalRegistry::displaySignals() {
     }
 }
 
-int32_t SignalRegistry::getSignalTableIndex(uint32_t signalID) {
-    if(this->mSystemIndependentLayerMappings.find(signalID) == this->mSystemIndependentLayerMappings.end()) {
+int32_t SignalRegistry::getSignalTableIndex(uint32_t signalCode) {
+    if(this->mSystemIndependentLayerMappings.find(signalCode) == this->mSystemIndependentLayerMappings.end()) {
         return -1;
     }
 
-    return this->mSystemIndependentLayerMappings[signalID];
+    return this->mSystemIndependentLayerMappings[signalCode];
 }
 
 SignalRegistry::~SignalRegistry() {
@@ -133,14 +133,14 @@ SignalInfoBuilder::SignalInfoBuilder() {
     }
 }
 
-ErrCode SignalInfoBuilder::setSignalID(const std::string& signalOpIdString) {
+ErrCode SignalInfoBuilder::setSignalID(const std::string& signalIdString) {
     if(this->mSignalInfo == nullptr) {
         return RC_INVALID_VALUE;
     }
 
     this->mSignalInfo->mSignalID = 0;
     try {
-        this->mSignalInfo->mSignalID = (uint16_t)stoi(signalOpIdString, nullptr, 0);
+        this->mSignalInfo->mSignalID = (uint16_t)stoi(signalIdString, nullptr, 0);
 
     } catch(const std::invalid_argument& e) {
         TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());

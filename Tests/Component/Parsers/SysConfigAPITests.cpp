@@ -25,7 +25,7 @@ static void TestSysConfigProcessorYAMLDataIntegrity1() {
 }
 
 static void TestSysConfigPropertiesParsing() {
-    std::cout<<"grub: "<<PropertiesRegistry::getInstance()->getPropertiesCount()<<std::endl;
+    std::cout<<"Total Properties Parsed: "<<PropertiesRegistry::getInstance()->getPropertiesCount()<<std::endl;
     C_ASSERT(PropertiesRegistry::getInstance()->getPropertiesCount() == TOTAL_SYS_CONFIGS_PROPS_COUNT);
 }
 
@@ -87,7 +87,7 @@ static void TestSysConfigGetPropConcurrentRetrieval() {
 }
 
 int32_t main() {
-    std::cout<<"Running [SysConfigAPITests] Test Suite\n"<<std::endl;
+    std::cout<<"Running Test Suite: [SysConfigAPITests]\n"<<std::endl;
 
     Init();
     RUN_TEST(TestSysConfigPropertiesParsing);

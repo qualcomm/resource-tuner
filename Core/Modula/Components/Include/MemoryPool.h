@@ -73,7 +73,7 @@ public:
      * @details This routine will allocate the number of memory blocks for the type specified by the client.
      * @param blockCount Number of blocks to be allocated.
      * @return int32_t:\n
-     *            Number of blocks which were actually allocated (might be smaller than blockCount)
+     *            - Number of blocks which were actually allocated (might be smaller than blockCount)
      */
     int32_t makeAllocation(int32_t blockCount);
 
@@ -81,7 +81,8 @@ public:
      * @brief Get an allocated block for the already allocated type T.
      * @details This routine should only be called after the makeAllocation call for a particular type
      *          Note: If a block is not available then the Routine throws a std::bad_alloc exception.
-     * @return void*: Pointer to the allocated type.
+     * @return void*:\n
+     *           - Pointer to the allocated type.
      */
     void* getBlock();
 
@@ -120,7 +121,8 @@ public:
     /**
      * @brief Get an allocated block for the already allocated type T.
      * @details This routine should only be called after the makeAllocation call for a particular type
-     * @return void* Pointer to the allocated type.
+     * @return void*:\n
+     *           - Pointer to the allocated type.
      */
     template <typename T>
     void* getBlock() {

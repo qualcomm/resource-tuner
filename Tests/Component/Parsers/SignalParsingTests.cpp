@@ -33,8 +33,8 @@ static void TestSignalParsingSanity() {
 }
 
 static void TestSignalParsingSignalsParsed() {
-    std::cout<<"dee count = "<<SignalRegistry::getInstance()->getSignalsConfigCount()<<std::endl;
-    std::cout<<"expected count = "<<TOTAL_SIGNAL_CONFIGS_COUNT<<std::endl;
+    std::cout<<"Signals Parsed count = "<<SignalRegistry::getInstance()->getSignalsConfigCount()<<std::endl;
+    std::cout<<"Expected count = "<<TOTAL_SIGNAL_CONFIGS_COUNT<<std::endl;
     C_ASSERT(SignalRegistry::getInstance()->getSignalsConfigCount() == TOTAL_SIGNAL_CONFIGS_COUNT);
 }
 
@@ -215,6 +215,6 @@ int32_t main() {
     RUN_TEST(TestSignalParsingSignalsMerged4)
     RUN_TEST(TestSignalParsingSignalsMerged5)
 
-    std::cout<<"\nAll Tests from the suite: [SignalParsingTest], executed successfully"<<std::endl;
+    std::cout<<"\nAll Tests from the suite: [SignalParsingTests], executed successfully"<<std::endl;
     return 0;
 }

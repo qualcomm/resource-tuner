@@ -14,8 +14,8 @@
 #include "ThreadPool.h"
 
 /**
-* @brief Timer
-*/
+ * @brief Timer
+ */
 class Timer {
 private:
     int64_t mDuration; //!< Duration of the timer.
@@ -53,8 +53,8 @@ public:
      * @param duration Time Interval (in milliseconds) after which the Callback needs
      *                 needs to be triggered.
      * @return int8_t:\n
-     *            1 if the timer was successfully started\n
-     *            0 otherwise.
+     *            - 1 if the timer was successfully started\n
+     *            - 0 otherwise.
      */
     int8_t startTimer(int64_t duration);
 

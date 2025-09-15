@@ -678,7 +678,7 @@ Tune the signal with the given ID.
 
 **Function Signature:**
 ```cpp
-int64_t tuneSignal(uint32_t signalID,
+int64_t tuneSignal(uint32_t signalCode,
                    int64_t duration,
                    int32_t properties,
                    const char* appName,
@@ -689,7 +689,7 @@ int64_t tuneSignal(uint32_t signalID,
 
 **Parameters:**
 
-- `signalID` (`int64_t`): ID of the Signal to be Tuned.
+- `signalCode` (`uint32_t`): A uniqued 32-bit (unsigned) identifier for the Signal
 - `duration` (`int64_t`): Duration (in milliseconds) to tune the Signal for. A value of -1 denotes infinite duration.
 - `properties` (`int32_t`): Properties of the Request.
                             - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
@@ -737,7 +737,7 @@ Tune the signal with the given ID.
 
 **Function Signature:**
 ```cpp
-int64_t relaySignal(uint32_t signalID,
+int64_t relaySignal(uint32_t signalCode,
                     int64_t duration,
                     int32_t properties,
                     const char* appName,
@@ -748,7 +748,7 @@ int64_t relaySignal(uint32_t signalID,
 
 **Parameters:**
 
-- `signalID` (`int64_t`): ID of the Signal to be Tuned.
+- `signalCode` (`uint32_t`): A uniqued 32-bit (unsigned) identifier for the Signal
 - `duration` (`int64_t`): Duration (in milliseconds)
 - `properties` (`int32_t`): Properties of the Request.
 - `appName` (`const char*`): Name of the Application that is issuing the Request
@@ -807,8 +807,8 @@ Essentially, the resource code (unsigned 32 bit) is composed of two fields:
 These fields can uniquely identify a resource across targets, hence making the code operating on these resources interchangable. In essence, we ensure that the resource with code "x", refers to the same tunable resource across different targets.
 
 Examples:
-- The Resource OpCode: 65536 (0x00010000) [00000000 00000001 00000000 00000000], Refers to the Default Resource with ResID 0 and ResType 1.
-- The Resource OpCode: 2147549185 (0x80010001) [10000000 00000001 00000000 00000001], Refers to the Custom Resource with ResID 1 and ResType 1.
+- The ResCode: 65536 (0x00010000) [00000000 00000001 00000000 00000000], Refers to the Default Resource with ResID 0 and ResType 1.
+- The ResCode: 2147549185 (0x80010001) [10000000 00000001 00000000 00000001], Refers to the Custom Resource with ResID 1 and ResType 1.
 
 #### List Of Resource Types (Use this table to get the value of ResType for a Resource)
 
@@ -843,9 +843,9 @@ This example demonstrates the use of tuneResources API for resource provisioning
 void sendRequest() {
     // Define resources
     SysResource* resourceList = new SysResource[1];
-    resourceList[0].mOpCode = 65536;
+    resourceList[0].mResCode = 65536;
     resourceList[0].mNumValues = 1;
-    resourceList[0].mConfigValue.singleValue = 980;
+    resourceList[0].mResValue.value = 980;
 
     // Issue the Tune Request
     int64_t handle = tuneResources(5000, 0, 1, resourceList);
@@ -912,7 +912,7 @@ Now, instead of the default resource handler (provided by resource-tuner), this 
 
 ### Usage Example
 ```cpp
-int32_t applyCustomCpuFreqCustom(Resource* res) {
+void applyCustomCpuFreqCustom(void* res) {
     // Custom logic to apply CPU frequency
     return 0;
 }
@@ -927,7 +927,7 @@ Now, instead of the normal resource handler (provided by resource-tuner), this c
 
 ### Usage Example
 ```cpp
-int32_t resetCustomCpuFreqCustom(Resource* res) {
+void resetCustomCpuFreqCustom(void* res) {
     // Custom logic to clear currently applied CPU frequency
     return 0;
 }

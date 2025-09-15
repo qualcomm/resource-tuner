@@ -36,8 +36,8 @@ void ExtFeaturesRegistry::registerExtFeature(ExtFeatureInfo* featureInfo) {
 
     this->mTotalExtFeatures++;
 
-    for(uint32_t signalId: *featureInfo->mSignalsSubscribedTo) {
-        SignalExtFeatureMapper::getInstance()->addFeature(signalId, featureInfo->mFeatureId);
+    for(uint32_t signalCode: *featureInfo->mSignalsSubscribedTo) {
+        SignalExtFeatureMapper::getInstance()->addFeature(signalCode, featureInfo->mFeatureId);
     }
 }
 
@@ -67,8 +67,8 @@ void ExtFeaturesRegistry::displayExtFeatures() {
         LOGI("RESTUNE_EXT_FEATURES_REGISTRY", "Ext Feature Name: " + extFeature->mFeatureName);
         LOGI("RESTUNE_EXT_FEATURES_REGISTRY", "Ext Feature Lib: " + extFeature->mFeatureLib);
 
-        for(uint32_t signalID: *extFeature->mSignalsSubscribedTo) {
-            LOGI("RESTUNE_EXT_FEATURES_REGISTRY", "Ext Feature Signal ID: " + std::to_string(signalID));
+        for(uint32_t signalCode: *extFeature->mSignalsSubscribedTo) {
+            LOGI("RESTUNE_EXT_FEATURES_REGISTRY", "Ext Feature Signal ID: " + std::to_string(signalCode));
         }
     }
 }
@@ -125,7 +125,7 @@ ErrCode ExtFeaturesRegistry::relayToFeature(uint32_t featureId, Signal* signal) 
     if(handle != nullptr) {
         RelayFeature relayCallback = (RelayFeature) dlsym(handle, RELAY_FEATURE_ROUTINE);
         if(relayCallback != nullptr) {
-            relayCallback(signal->getSignalID(),
+            relayCallback(signal->getSignalCode(),
                           signal->getAppName(),
                           signal->getScenario(),
                           signal->getNumArgs(),

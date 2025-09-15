@@ -5,7 +5,7 @@
 
 static Request* createResourceTuningRequest(Signal* signal) {
     try {
-        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(signal->getSignalID());
+        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(signal->getSignalCode());
         if(signalInfo == nullptr) return nullptr;
 
         Request* request = new (GetBlock<Request>()) Request();
@@ -109,7 +109,7 @@ void SignalQueue::orderedQueueConsumerHook() {
                 // Get all the subscribed Features
                 std::vector<uint32_t> subscribedFeatures;
                 int8_t featureExist = SignalExtFeatureMapper::getInstance()->getFeatures(
-                    signal->getSignalID(),
+                    signal->getSignalCode(),
                     subscribedFeatures
                 );
 

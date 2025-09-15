@@ -98,7 +98,7 @@ static void TestInitConfigProcessorYAMLDataIntegrity7() {
 }
 
 int32_t main() {
-    std::cout<<"Running [InitConfigParsingTests] Test Suite\n"<<std::endl;
+    std::cout<<"Running Test Suite: [InitConfigParsingTests]\n"<<std::endl;
 
     Init();
     RUN_TEST(TestInitConfigProcessorYAMLDataIntegrity1);

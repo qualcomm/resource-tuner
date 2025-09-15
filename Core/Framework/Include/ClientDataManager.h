@@ -56,9 +56,9 @@ public:
      * @brief Checks if the client with the given ID exists in the Client Data Table.
      * @param clientPID PID of the client
      * @param clientTID TID of the client
-     * @return int8_t
-     *            1: if the client already exists
-     *            0: otherwise
+     * @return int8_t:\n
+     *            - 1: if the client already exists\n
+     *            - 0: otherwise
      */
     int8_t clientExists(int32_t clientPID, int32_t clientTID);
 
@@ -67,17 +67,17 @@ public:
      * @details This method should only be called if the clientExists method returns 0.
      * @param clientPID PID of the client
      * @param clientTID TID of the client
-     * @returns int8_t:
-     *             1: Indicating that a new Client Tracking Entry was successfully Created.
-     *             0: Otherwise
+     * @return int8_t:\n
+     *             - 1: Indicating that a new Client Tracking Entry was successfully Created.\n
+     *             - 0: Otherwise
      */
     int8_t createNewClient(int32_t clientPID, int32_t clientTID);
 
     /**
      * @brief Returns a list of active requests for the client with the given PID.
      * @param clientTID Process TID of the client
-     * @return std::unordered_set<int64_t>*:
-     *             Pointer to an unordered_set containing the requests.
+     * @return std::unordered_set<int64_t>*:\n
+     *             - Pointer to an unordered_set containing the requests.
      */
     std::unordered_set<int64_t>* getRequestsByClientID(int32_t clientTID);
 
@@ -101,7 +101,8 @@ public:
      * @brief This method is called by the RateLimiter to fetch the current health for a given
      *        client in the Client Data Table.
      * @param clientPID Process ID of the client
-     * @return double: Health of the Client.
+     * @return double:\n
+     *           - Health of the Client.
      */
     double getHealthByClientID(int32_t clientTID);
 
@@ -109,7 +110,8 @@ public:
      * @brief This method is called by the RateLimiter to fetch the Last Request Timestamp for a given
      *        client in the Client Data Table.
      * @param clientTID TID of the client
-     * @returns int64_t: Timestamp of Last Request (A value of 0, indicates no prior Requests).
+     * @return int64_t:\n
+     *             - Timestamp of Last Request (A value of 0, indicates no prior Requests).
      */
     int64_t getLastRequestTimestampByClientID(int32_t clientTID);
 
@@ -117,7 +119,7 @@ public:
      * @brief This method is called by the RateLimiter to update the current health for a given
      *        client in the Client Data Table.
      * @param clientTID TID of the client
-     * @param health  Update value of the Health for the client
+     * @param health Update value of the Health for the client
      */
     void updateHealthByClientID(int32_t clientTID, double health);
 
@@ -133,18 +135,18 @@ public:
      * @brief This method is called by the Verifier to fetch the Permission Level for a given
      *        client in the Client Data Table, i.e. whether the client has SYSTEM (Root) or THIRD_PARTY (User) permissions.
      * @param clientPID Process ID of the client
-     * @return int8_t:
-     *            PERMISSION_SYSTEM: If the client has System level access
-     *            PERMISSION_THIRD_PARTY: If the Client has Third Party level access
-     *            -1: If the Client could not be determined.
+     * @return int8_t:\n
+     *            - PERMISSION_SYSTEM: If the client has System level access\n
+     *            - PERMISSION_THIRD_PARTY: If the Client has Third Party level access\n
+     *            - -1: If the Client could not be determined.
      */
     int8_t getClientLevelByClientID(int32_t clientPID);
 
     /**
      * @brief Returns the list of threads corresponding to the thread with the given ID.
      * @param clientPID Process ID of the client
-     * @return std::vector<int32_t>*:
-     *            Pointer to a vector containing the threads ids.
+     * @return std::vector<int32_t>*:\n
+     *            - Pointer to a vector containing the threads ids.
      */
     std::vector<int32_t>* getThreadsByClientId(int32_t clientPID);
 

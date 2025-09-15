@@ -5,19 +5,19 @@
 
 std::shared_ptr<SignalExtFeatureMapper> SignalExtFeatureMapper::signalExtFeatureMapperInstance = nullptr;
 
-int8_t SignalExtFeatureMapper::addFeature(uint32_t signalID, int32_t feature) {
-    if(SignalRegistry::getInstance()->getSignalConfigById(signalID) == nullptr) {
+int8_t SignalExtFeatureMapper::addFeature(uint32_t signalCode, int32_t feature) {
+    if(SignalRegistry::getInstance()->getSignalConfigById(signalCode) == nullptr) {
         return false;
     }
-    this->mSignalTofeaturesMap[signalID].push_back(feature);
+    this->mSignalTofeaturesMap[signalCode].push_back(feature);
     return true;
 }
 
-int8_t SignalExtFeatureMapper::getFeatures(uint32_t signalID, std::vector<uint32_t>& features) {
-    if(this->mSignalTofeaturesMap.find(signalID) == this->mSignalTofeaturesMap.end()) {
+int8_t SignalExtFeatureMapper::getFeatures(uint32_t signalCode, std::vector<uint32_t>& features) {
+    if(this->mSignalTofeaturesMap.find(signalCode) == this->mSignalTofeaturesMap.end()) {
         return false;
     }
 
-    features = mSignalTofeaturesMap[signalID];
+    features = mSignalTofeaturesMap[signalCode];
     return true;
 }

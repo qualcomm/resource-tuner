@@ -132,7 +132,6 @@ public:
      *                             Lower Bound Logging.
      * @param redirectOutputTo Indicates whether a new file needs to be created to capture the Logging,
      *                         Or syslog should be used.
-     * @return int32_t: Number of blocks which were actually allocated (<= blockCount)
      */
     static void configure(int32_t level, int8_t levelSpecificLogging, RedirectOptions redirectOutputTo);
 

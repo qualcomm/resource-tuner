@@ -10,9 +10,9 @@
 #include <shared_mutex>
 
 /**
-* @brief PropertiesRegistry
-* @details Stores and manages all the properties parsed from the Properties Config files.
-*/
+ * @brief PropertiesRegistry
+ * @details Stores and manages all the properties parsed from the Properties Config files.
+ */
 class PropertiesRegistry {
 private:
     static std::shared_ptr<PropertiesRegistry> propRegistryInstance;
@@ -28,9 +28,9 @@ public:
      * @brief Create a property with the given name (key) and value.
      * @param propertyName Property Name or Key
      * @param propertyValue Property Value
-     * @return int8_t:
-     *            1: if the property was successfully created\n
-     *            0: otherwise
+     * @return int8_t:\n
+     *            - 1: if the property was successfully created\n
+     *            - 0: otherwise
      */
     int8_t createProperty(const std::string& propertyName, const std::string& propertyValue);
 
@@ -38,9 +38,9 @@ public:
      * @brief Get the Property value corresponding to the given key
      * @param propertyName Property Name or Key
      * @param result If the property exists, the value will be stored in this argument
-     * @return int8_t:
-     *            1: if a property with the given name was found\n
-     *            0: otherwise
+     * @return int8_t:\n
+     *            - 1: if a property with the given name was found\n
+     *            - 0: otherwise
      */
     int8_t queryProperty(const std::string& propertyName, std::string& result);
 
@@ -48,18 +48,18 @@ public:
      * @brief Modify the value of the property with the given name
      * @param propertyName Property Name or Key
      * @param propertyValue New Property Value
-     * @return int8_t:
-     *            1: if a property was successfully modified\n
-     *            0: otherwise
+     * @return int8_t:\n
+     *            - 1: if a property was successfully modified\n
+     *            - 0: otherwise
      */
     int8_t modifyProperty(const std::string& propertyName, const std::string& propertyValue);
 
     /**
      * @brief Delete the Property with the given name (key)
      * @param propertyName Property Name or Key
-     * @return int8_t:
-     *            1: if a property was successfully deleted\n
-     *            0: otherwise
+     * @return int8_t:\n
+     *            - 1: if a property was successfully deleted\n
+     *            - 0: otherwise
      */
     int8_t deleteProperty(const std::string& propertyName);
 

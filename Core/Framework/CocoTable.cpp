@@ -376,7 +376,7 @@ int8_t CocoTable::insertRequest(Request* req) {
     Timer* requestTimer = nullptr;
     try {
         requestTimer = new (GetBlock<Timer>())
-                            Timer(std::bind(&CocoTable::timerOver, this, req));
+                            Timer(std::bind(&CocoTable::timerExpired, this, req));
     } catch(const std::bad_alloc& e) {
         TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE_HANDLE, req->getHandle(), e.what());
         return false;
@@ -424,7 +424,7 @@ int8_t CocoTable::updateRequest(Request* req, int64_t duration) {
     Timer* requestTimer = nullptr;
     try {
         requestTimer = new (GetBlock<Timer>())
-                            Timer(std::bind(&CocoTable::timerOver, this, req));
+                            Timer(std::bind(&CocoTable::timerExpired, this, req));
     } catch(const std::bad_alloc& e) {
         TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE_HANDLE, req->getHandle(), e.what());
         return false;
@@ -521,14 +521,14 @@ int8_t CocoTable::removeRequest(Request* request) {
     return 0;
 }
 
-int32_t CocoTable::timerOver(Request* request) {
+void CocoTable::timerExpired(Request* request) {
     TYPELOGV(NOTIFY_COCO_TABLE_REQUEST_EXPIRY, request->getHandle());
 
     Request* untuneRequest = nullptr;
     try {
         untuneRequest = new (GetBlock<Request>()) Request();
     } catch(const std::bad_alloc& e) {
-        return true;
+        return;
     }
 
     if(untuneRequest != nullptr) {
@@ -536,8 +536,6 @@ int32_t CocoTable::timerOver(Request* request) {
         std::shared_ptr<RequestQueue> requestQueue = RequestQueue::getInstance();
         requestQueue->addAndWakeup(untuneRequest);
     }
-
-    return true;
 }
 
 // CocoNodes allocated for the Request will be freed up as part of Request Cleanup,

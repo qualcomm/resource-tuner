@@ -738,6 +738,8 @@ namespace SignalVerification {
         LOG_START
 
         int64_t handle = tuneSignal(1, -2, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
+
         assert(handle == RC_REQ_SUBMISSION_FAILURE);
 
         LOG_END
@@ -769,6 +771,7 @@ namespace SignalVerification {
 
         int64_t handle =
             tuneSignal(0x800d0001, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -803,6 +806,7 @@ namespace SignalVerification {
 
         int64_t handle =
             tuneSignal(0x800d0002, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -839,6 +843,7 @@ namespace SignalVerification {
 
         int64_t handle =
             tuneSignal(0x800d0000, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -871,6 +876,7 @@ namespace SignalVerification {
 
         int64_t handle =
             tuneSignal(0x800d0003, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -3453,6 +3459,7 @@ namespace SignalApplicationTests {
 
         int64_t handle =
             tuneSignal(0x800d0004, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -3502,6 +3509,7 @@ namespace SignalApplicationTests {
 
         int64_t handle =
             tuneSignal(0x800d0005, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
