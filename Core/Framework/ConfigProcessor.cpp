@@ -3,6 +3,44 @@
 
 #include "ConfigProcessor.h"
 
+#define SETUP_LIBYAML_PARSING(filePath)                     \
+    FILE* configFile = fopen(filePath.c_str(), "r");        \
+    if(configFile == nullptr) {                             \
+        return RC_FILE_NOT_FOUND;                           \
+    }                                                       \
+    yaml_parser_t parser;                                   \
+    yaml_event_t event;                                     \
+    if(!yaml_parser_initialize(&parser)) {                  \
+        fclose(configFile);                                 \
+        return RC_YAML_PARSING_ERROR;                       \
+    }                                                       \
+    yaml_parser_set_input_file(&parser, configFile);        \
+
+#define TEARDOWN_LIBYAML_PARSING                            \
+    yaml_parser_delete(&parser);                            \
+    fclose(configFile);                                     \
+
+static int8_t isKey(const std::string& keyName) {
+    if(keyName == TARGET_CONFIGS_ROOT) return true;
+    if(keyName == TARGET_NAME_LIST) return true;
+    if(keyName == TARGET_CLUSTER_INFO) return true;
+    if(keyName == TARGET_CLUSTER_INFO_LOGICAL_ID) return true;
+    if(keyName == TARGET_CLUSTER_INFO_PHYSICAL_ID) return true;
+    if(keyName == TARGET_CLUSTER_SPREAD) return true;
+    if(keyName == TARGET_PER_CLUSTER_CORE_COUNT) return true;
+
+    return false;
+}
+
+static int8_t allowedKey(const std::string& keyName) {
+    if(keyName == TARGET_CONFIGS_ROOT) return true;
+    if(keyName == TARGET_NAME_LIST) return true;
+    if(keyName == TARGET_CLUSTER_INFO) return true;
+    if(keyName == TARGET_CLUSTER_SPREAD) return true;
+
+    return false;
+}
+
 ErrCode ConfigProcessor::parseResourceConfigYamlNode(const std::string& filePath, int8_t isBuSpecified) {
     FILE* resourceConfigFile = fopen(filePath.c_str(), "r");
     if(resourceConfigFile == nullptr) {
@@ -34,10 +72,12 @@ ErrCode ConfigProcessor::parseResourceConfigYamlNode(const std::string& filePath
         if(!yaml_parser_parse(&parser, &event)) {
             return RC_YAML_PARSING_ERROR;
         }
+
         switch(event.type) {
             case YAML_STREAM_END_EVENT:
                 parsingDone = true;
                 break;
+
             case YAML_MAPPING_START_EVENT:
                 if(!insideResourcesConfig) {
                     insideResourcesConfig = true;
@@ -50,6 +90,7 @@ ErrCode ConfigProcessor::parseResourceConfigYamlNode(const std::string& filePath
                     parsingResource = true;
                 }
                 break;
+
             case YAML_MAPPING_END_EVENT:
                 if(parsingResource) {
                     if(RC_IS_NOTOK(rc)) {
@@ -210,32 +251,18 @@ ErrCode ConfigProcessor::parsePropertiesConfigYamlNode(const std::string& filePa
     return RC_SUCCESS;
 }
 
+
 ErrCode ConfigProcessor::parseTargetConfigYamlNode(const std::string& filePath) {
-    FILE* targetConfigFile = fopen(filePath.c_str(), "r");
-    if(targetConfigFile == nullptr) {
-        return RC_FILE_NOT_FOUND;
-    }
-
-    yaml_parser_t parser;
-    yaml_event_t event;
-
-    if(!yaml_parser_initialize(&parser)) {
-        fclose(targetConfigFile);
-        return RC_YAML_PARSING_ERROR;
-    }
-
-    yaml_parser_set_input_file(&parser, targetConfigFile);
+    SETUP_LIBYAML_PARSING(filePath);
 
     int8_t parsingDone = false;
-    int8_t insideTargetConfigs = false;
-    int8_t inTargetNamesList = false;
-    int8_t inClusterInfoList = false;
-    int8_t inClusterSpreadList = false;
-    int8_t isConfigForCurrentTarget = false;
-
     std::string value;
-    std::string currentKey;
-    std::string currentValue;
+    std::string topKey;
+
+    std::stack<std::string> keyTracker;
+    std::vector<std::string> valuesArray;
+
+    int8_t isConfigForCurrentTarget = false;
 
     while(!parsingDone) {
         if(!yaml_parser_parse(&parser, &event)) {
@@ -247,50 +274,42 @@ ErrCode ConfigProcessor::parseTargetConfigYamlNode(const std::string& filePath) 
                 parsingDone = true;
                 break;
 
-            case YAML_SEQUENCE_START_EVENT:
-                if(currentKey == TARGET_NAME_LIST) {
-                    inTargetNamesList = true;
-                } else if(currentKey == TARGET_CLUSTER_INFO) {
-                    inClusterInfoList = true;
-                    currentKey.clear();
-                } else if(currentKey == TARGET_CLUSTER_SPREAD) {
-                    inClusterSpreadList = true;
-                    currentKey.clear();
-                }
-                break;
-
             case YAML_SEQUENCE_END_EVENT:
-                if(inTargetNamesList) {
-                    inTargetNamesList = false;
-                } else if(inClusterInfoList) {
-                    inClusterInfoList = false;
-                } else if(inClusterSpreadList) {
-                    inClusterSpreadList = false;
+                if(topKey.empty()) {
+                    return RC_YAML_INVALID_SYNTAX;
                 }
+                topKey = keyTracker.top();
 
-                currentKey.clear();
-                currentValue.clear();
-                break;
-
-            case YAML_MAPPING_START_EVENT:
-                if(!insideTargetConfigs) {
-                    insideTargetConfigs = true;
-                }
-                break;
-
-            case YAML_MAPPING_END_EVENT:
-                if(inClusterInfoList) {
-                    if(isConfigForCurrentTarget) {
-                        TargetRegistry::getInstance()->addClusterMapping(currentKey, currentValue);
+                if(topKey == TARGET_NAME_LIST) {
+                    for(int32_t i = 0; i < valuesArray.size(); i ++) {
+                        if(valuesArray[i] == "*" || valuesArray[i] == ResourceTunerSettings::targetConfigs.targetName) {
+                            isConfigForCurrentTarget = true;
+                        }
                     }
-                } else if(inClusterSpreadList) {
-                    if(isConfigForCurrentTarget) {
-                        TargetRegistry::getInstance()->addClusterSpreadInfo(currentKey, currentValue);
+                } else if(topKey == TARGET_CLUSTER_INFO) {
+                    for(int32_t i = 0; i < valuesArray.size(); i += 2) {
+                        std::string logicalIDString = valuesArray[i];
+                        std::string physicalIDString = valuesArray[i + 1];
+
+                        if(isConfigForCurrentTarget) {
+                            TargetRegistry::getInstance()->addClusterMapping(logicalIDString, physicalIDString);
+                        }
                     }
+                } else if(topKey == TARGET_CLUSTER_SPREAD) {
+                    for(int32_t i = 0; i < valuesArray.size(); i += 2) {
+                        std::string physicalIDString = valuesArray[i];
+                        std::string numCoresString = valuesArray[i + 1];
+
+                        if(isConfigForCurrentTarget) {
+                            TargetRegistry::getInstance()->addClusterSpreadInfo(physicalIDString, numCoresString);
+                        }
+                    }
+                } else {
+                    return RC_YAML_INVALID_SYNTAX;
                 }
 
-                currentKey.clear();
-                currentValue.clear();
+                valuesArray.clear();
+                keyTracker.pop();
                 break;
 
             case YAML_SCALAR_EVENT:
@@ -298,30 +317,12 @@ ErrCode ConfigProcessor::parseTargetConfigYamlNode(const std::string& filePath) 
                     value = reinterpret_cast<char*>(event.data.scalar.value);
                 }
 
-                // Skip Labels
-                if(value == TARGET_CONFIGS_ROOT) {
-                    break;
-                }
-
-                if(value == TARGET_CLUSTER_INFO_LOGICAL_ID || value == TARGET_CLUSTER_INFO_PHYSICAL_ID) {
-                    break;
-                }
-
-                if(value == TARGET_CLUSTER_INFO_PHYSICAL_ID || value == TARGET_PER_CLUSTER_CORE_COUNT) {
-                    break;
-                }
-
-                if(currentKey.length() == 0) {
-                    currentKey = value;
+                if(isKey(value) && allowedKey(value)) {
+                    keyTracker.push(value);
                 } else {
-                    currentValue = value;
+                    valuesArray.push_back(value);
                 }
 
-                if(inTargetNamesList) {
-                    if(value == "*" || value == ResourceTunerSettings::targetConfigs.targetName) {
-                        isConfigForCurrentTarget = true;
-                    }
-                }
                 break;
 
             default:
@@ -330,27 +331,12 @@ ErrCode ConfigProcessor::parseTargetConfigYamlNode(const std::string& filePath) 
         yaml_event_delete(&event);
     }
 
-    yaml_parser_delete(&parser);
-    fclose(targetConfigFile);
-
+    TEARDOWN_LIBYAML_PARSING
     return RC_SUCCESS;
 }
 
 ErrCode ConfigProcessor::parseInitConfigYamlNode(const std::string& filePath) {
-    FILE* initConfigFile = fopen(filePath.c_str(), "r");
-    if(initConfigFile == nullptr) {
-        return RC_FILE_NOT_FOUND;
-    }
-
-    yaml_parser_t parser;
-    yaml_event_t event;
-
-    if(!yaml_parser_initialize(&parser)) {
-        fclose(initConfigFile);
-        return RC_YAML_PARSING_ERROR;
-    }
-
-    yaml_parser_set_input_file(&parser, initConfigFile);
+    SETUP_LIBYAML_PARSING(filePath);
 
     ErrCode rc = RC_SUCCESS;
 
@@ -502,9 +488,7 @@ ErrCode ConfigProcessor::parseInitConfigYamlNode(const std::string& filePath) {
         yaml_event_delete(&event);
     }
 
-    yaml_parser_delete(&parser);
-    fclose(initConfigFile);
-
+    TEARDOWN_LIBYAML_PARSING
     return RC_SUCCESS;
 }
 

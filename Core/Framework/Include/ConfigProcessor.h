@@ -6,6 +6,7 @@
 
 #include <string>
 #include <vector>
+#include <stack>
 #include <fstream>
 #include <memory>
 #include <sstream>
@@ -42,8 +43,6 @@
 #define TARGET_CLUSTER_INFO_PHYSICAL_ID "PhyId"
 #define TARGET_CLUSTER_SPREAD "ClusterSpread"
 #define TARGET_PER_CLUSTER_CORE_COUNT "NumCores"
-#define TARGET_CONFIGS_ID "Id"
-#define TARGET_CONFIGS_TYPE "Type"
 
 // CGroup Config
 #define INIT_CONFIGS_ROOT "InitConfigs"

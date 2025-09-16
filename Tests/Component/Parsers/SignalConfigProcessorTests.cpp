@@ -11,7 +11,7 @@
 #include "Extensions.h"
 #include "Utils.h"
 
-#define TOTAL_SIGNAL_CONFIGS_COUNT 8                                                                                       \
+#define TOTAL_SIGNAL_CONFIGS_COUNT 8
 
 static void Init() {
     SignalConfigProcessor configProcessor;
@@ -26,6 +26,7 @@ static void TestSignalConfigProcessorYAMLDataIntegrity1() {
 }
 
 static void TestSignalConfigProcessorYAMLDataIntegrity2() {
+    std::cout<<"Count of Signals Parsed = "<<SignalRegistry::getInstance()->getSignalsConfigCount()<<std::endl;
     C_ASSERT(SignalRegistry::getInstance()->getSignalsConfigCount() == TOTAL_SIGNAL_CONFIGS_COUNT);
 }
 

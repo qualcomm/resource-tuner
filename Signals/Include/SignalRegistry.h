@@ -139,12 +139,13 @@ private:
 
 public:
     SignalInfoBuilder();
+    ~SignalInfoBuilder();
 
     ErrCode setSignalID(const std::string& signalOpIdString);
     ErrCode setSignalCategory(const std::string& categoryString);
     ErrCode setName(const std::string& signalName);
-    ErrCode setTimeout(int32_t timeout);
-    ErrCode setIsEnabled(int8_t isEnabled);
+    ErrCode setTimeout(const std::string& timeoutString);
+    ErrCode setIsEnabled(const std::string& isEnabledString);
     ErrCode addTarget(int8_t isEnabled, const std::string& target);
     ErrCode addPermission(const std::string& permissionString);
     ErrCode addDerivative(const std::string& derivative);
@@ -163,7 +164,7 @@ public:
     ErrCode setResCode(const std::string& resCodeString);
     ErrCode setResInfo(const std::string& resInfoString);
     ErrCode setNumValues(int32_t valuesCount);
-    ErrCode addValue(int32_t value);
+    ErrCode addValue(const std::string& value);
 
     Resource* build();
 };

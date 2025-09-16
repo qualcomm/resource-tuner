@@ -1,12 +1,10 @@
 if(BUILD_TESTS)
     find_package(PkgConfig REQUIRED)
-    pkg_check_modules(YAMLCPP REQUIRED yaml-cpp)
     pkg_check_modules(LIBYAML REQUIRED yaml-0.1)
 
     add_executable(resource_tuner_tests ../Integration/IntegrationTests.cpp)
-    target_link_libraries(resource_tuner_tests PUBLIC Auxiliary ClientAPIs ${YAMLCPP_LIBRARIES} ${LIBYAML_LIBRARIES})
+    target_link_libraries(resource_tuner_tests PUBLIC Auxiliary ClientAPIs ${LIBYAML_LIBRARIES})
     target_include_directories(resource_tuner_tests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
-    target_include_directories(resource_tuner_tests PRIVATE ${YAMLCPP_INCLUDE_DIRS})
     target_include_directories(resource_tuner_tests PRIVATE ${LIBYAML_INCLUDE_DIRS})
     install(TARGETS resource_tuner_tests RUNTIME DESTINATION bin)
 
@@ -96,9 +94,8 @@ if(BUILD_TESTS)
     install(TARGETS CocoTableTests DESTINATION bin)
 
     add_executable(DeviceInfoTests ../Component/Device/DeviceInfoTests.cpp)
-    target_link_libraries(DeviceInfoTests Auxiliary ExtAPIs Server ${YAMLCPP_LIBRARIES} ${LIBYAML_LIBRARIES})
+    target_link_libraries(DeviceInfoTests Auxiliary ExtAPIs Server ${LIBYAML_LIBRARIES})
     target_include_directories(DeviceInfoTests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
-    target_include_directories(DeviceInfoTests PRIVATE ${YAMLCPP_INCLUDE_DIRS})
     target_include_directories(DeviceInfoTests PRIVATE ${LIBYAML_INCLUDE_DIRS})
     install(TARGETS DeviceInfoTests DESTINATION bin)
 
@@ -112,5 +109,11 @@ if(BUILD_TESTS)
         target_link_libraries(SignalParsingTests Auxiliary ExtAPIs SysSignals)
         target_include_directories(SignalParsingTests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
         install(TARGETS SignalParsingTests DESTINATION bin)
+
+        add_executable(ExtFeaturesParsingTests ../Component/Parsers/ExtFeaturesParsingTests.cpp)
+        target_link_libraries(ExtFeaturesParsingTests Auxiliary ExtAPIs SysSignals)
+        target_include_directories(ExtFeaturesParsingTests PRIVATE ${CMAKE_SOURCE_DIR}/../Tests/Utils/Include)
+        install(TARGETS ExtFeaturesParsingTests DESTINATION bin)
+
     endif()
 endif()

@@ -135,7 +135,7 @@ SignalInfoBuilder::SignalInfoBuilder() {
 
 ErrCode SignalInfoBuilder::setSignalID(const std::string& signalIdString) {
     if(this->mSignalInfo == nullptr) {
-        return RC_INVALID_VALUE;
+        return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
     this->mSignalInfo->mSignalID = 0;
@@ -156,7 +156,7 @@ ErrCode SignalInfoBuilder::setSignalID(const std::string& signalIdString) {
 
 ErrCode SignalInfoBuilder::setSignalCategory(const std::string& categoryString) {
     if(this->mSignalInfo == nullptr) {
-        return RC_INVALID_VALUE;
+        return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
     this->mSignalInfo->mSignalCategory = 0;
@@ -176,34 +176,41 @@ ErrCode SignalInfoBuilder::setSignalCategory(const std::string& categoryString) 
 
 ErrCode SignalInfoBuilder::setName(const std::string& signalName) {
     if(this->mSignalInfo == nullptr) {
-        return RC_INVALID_VALUE;
+        return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
     this->mSignalInfo->mSignalName = signalName;
     return RC_SUCCESS;
 }
 
-ErrCode SignalInfoBuilder::setTimeout(int32_t timeout) {
+ErrCode SignalInfoBuilder::setTimeout(const std::string& timeoutString) {
     if(this->mSignalInfo == nullptr) {
+        return RC_MEMORY_ALLOCATION_FAILURE;
+    }
+
+    try {
+        this->mSignalInfo->mTimeout = std::stoi(timeoutString);
+        return RC_SUCCESS;
+
+    } catch(const std::exception& e) {
         return RC_INVALID_VALUE;
     }
 
-    this->mSignalInfo->mTimeout = timeout;
-    return RC_SUCCESS;
+    return RC_INVALID_VALUE;
 }
 
-ErrCode SignalInfoBuilder::setIsEnabled(int8_t isEnabled) {
+ErrCode SignalInfoBuilder::setIsEnabled(const std::string& isEnabledString) {
     if(this->mSignalInfo == nullptr) {
-        return RC_INVALID_VALUE;
+        return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
-    this->mSignalInfo->mIsEnabled = isEnabled;
+    this->mSignalInfo->mIsEnabled = (isEnabledString == "true");
     return RC_SUCCESS;
 }
 
 ErrCode SignalInfoBuilder::addPermission(const std::string& permissionString) {
     if(this->mSignalInfo == nullptr) {
-        return RC_INVALID_VALUE;
+        return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
     if(this->mSignalInfo->mPermissions == nullptr) {
@@ -236,7 +243,7 @@ ErrCode SignalInfoBuilder::addPermission(const std::string& permissionString) {
 
 ErrCode SignalInfoBuilder::addTarget(int8_t isEnabled, const std::string& target) {
     if(this->mSignalInfo == nullptr) {
-        return RC_INVALID_VALUE;
+        return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
     std::string targetName(target);
@@ -273,7 +280,7 @@ ErrCode SignalInfoBuilder::addTarget(int8_t isEnabled, const std::string& target
 
 ErrCode SignalInfoBuilder::addDerivative(const std::string& derivative) {
     if(this->mSignalInfo == nullptr) {
-        return RC_INVALID_VALUE;
+        return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
     if(this->mSignalInfo->mDerivatives == nullptr) {
@@ -295,7 +302,7 @@ ErrCode SignalInfoBuilder::addDerivative(const std::string& derivative) {
 
 ErrCode SignalInfoBuilder::addResource(Resource* resource) {
     if(this->mSignalInfo == nullptr) {
-        return RC_INVALID_VALUE;
+        return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
     if(this->mSignalInfo->mSignalResources == nullptr) {
@@ -319,13 +326,15 @@ SignalInfo* SignalInfoBuilder::build() {
     return this->mSignalInfo;
 }
 
+SignalInfoBuilder::~SignalInfoBuilder() {}
+
 ResourceBuilder::ResourceBuilder() {
     this->mResource = new(std::nothrow) Resource;
 }
 
 ErrCode ResourceBuilder::setResCode(const std::string& resCodeString) {
     if(this->mResource == nullptr) {
-        return RC_INVALID_VALUE;
+        return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
     uint32_t resCode = 0;
@@ -346,7 +355,9 @@ ErrCode ResourceBuilder::setResCode(const std::string& resCodeString) {
 }
 
 ErrCode ResourceBuilder::setResInfo(const std::string& resInfoString) {
-    if(this->mResource == nullptr) return RC_INVALID_VALUE;
+    if(this->mResource == nullptr) {
+        return RC_MEMORY_ALLOCATION_FAILURE;
+    }
 
     int32_t resourceResInfo = 0;
     try {
@@ -367,16 +378,23 @@ ErrCode ResourceBuilder::setResInfo(const std::string& resInfoString) {
 
 ErrCode ResourceBuilder::setNumValues(int32_t valuesCount) {
     if(this->mResource == nullptr) {
-        return RC_INVALID_VALUE;
+        return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
     this->mResource->setNumValues(valuesCount);
-
     return RC_SUCCESS;
 }
 
-ErrCode ResourceBuilder::addValue(int32_t value) {
+ErrCode ResourceBuilder::addValue(const std::string& valueString) {
     if(this->mResource == nullptr) {
+        return RC_MEMORY_ALLOCATION_FAILURE;
+    }
+
+    int32_t value = -1;
+    try {
+        value = std::stoi(valueString);
+
+    } catch(const std::exception& e) {
         return RC_INVALID_VALUE;
     }
 

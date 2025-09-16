@@ -3,324 +3,371 @@
 
 #include "SignalConfigProcessor.h"
 
-void SignalConfigProcessor::parseSignalConfigYamlNode(const YAML::Node& item, int8_t isBuSpecified) {
-    SignalInfoBuilder signalInfoBuilder;
+ErrCode SignalConfigProcessor::parseSignalConfigYamlNode(const std::string& filePath, int8_t isBuSpecified) {
+    FILE* signalConfigFile = fopen(filePath.c_str(), "r");
+    if(signalConfigFile == nullptr) {
+        return RC_FILE_NOT_FOUND;
+    }
+
+    yaml_parser_t parser;
+    yaml_event_t event;
+
+    if(!yaml_parser_initialize(&parser)) {
+        fclose(signalConfigFile);
+        return RC_YAML_PARSING_ERROR;
+    }
+
+    yaml_parser_set_input_file(&parser, signalConfigFile);
+
+    int8_t parsingDone = false;
+    int8_t parsingSignal = false;
+    int8_t inSignalConfigs = false;
+    int8_t inTargetEnabledList = false;
+    int8_t inTargetDisabledList = false;
+    int8_t inPermissionsList = false;
+    int8_t inDerivativesList = false;
+    int8_t inResourcesList = false;
+    int8_t inResourceValuesList = false;
+    int8_t inResourceItemMap = false;
+    int8_t inResourcesMap = false;
+
+    std::vector<std::string> resValues;
+
+    std::string currentKey;
+    std::string resourceKey;
+    std::string value;
+
     ErrCode rc = RC_SUCCESS;
-    NodeExtractionStatus status;
 
-    // No defaults applicable
-    if(RC_IS_OK(rc)) {
-        rc = signalInfoBuilder.setSignalID(
-            safeExtract<std::string>(item[SIGNAL_SIGID], "0")
-        );
-    }
+    SignalInfoBuilder* signalInfoBuilder = nullptr;
+    ResourceBuilder* resourceBuilder = nullptr;
 
-    if(RC_IS_OK(rc)) {
-        // No defaults applicable
-        rc = signalInfoBuilder.setSignalCategory(
-            safeExtract<std::string>(item[SIGNAL_CATEGORY], "0")
-        );
-    }
-
-    if(RC_IS_OK(rc)) {
-        // defaults to empty string
-        rc = signalInfoBuilder.setName(
-            safeExtract<std::string>(item[SIGNAL_NAME], "", status)
-        );
-
-        if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
-            rc = RC_INVALID_VALUE;
+    while(!parsingDone) {
+        if(!yaml_parser_parse(&parser, &event)) {
+            return RC_YAML_PARSING_ERROR;
         }
-    }
 
-    if(RC_IS_OK(rc)) {
-        // defaults to 1 ms
-        rc = signalInfoBuilder.setTimeout(
-            safeExtract<int32_t>(item[SIGNAL_TIMEOUT], 1, status)
-        );
+        switch(event.type) {
+            case YAML_STREAM_END_EVENT:
+                parsingDone = true;
+                break;
 
-        if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
-            rc = RC_INVALID_VALUE;
-        }
-    }
-
-    if(RC_IS_OK(rc)) {
-        // defaults to False
-        rc = signalInfoBuilder.setIsEnabled(
-            safeExtract<bool>(item[SIGNAL_ENABLE], false, status)
-        );
-
-        if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
-            rc = RC_INVALID_VALUE;
-        }
-    }
-
-    if(RC_IS_OK(rc)) {
-        if(isList(item[SIGNAL_PERMISSIONS])) {
-            for(int32_t i = 0; i < item[SIGNAL_PERMISSIONS].size(); i++) {
-                if(RC_IS_OK(rc)) {
-                    rc = signalInfoBuilder.addPermission(
-                        // defaults to THIRD_PARTY
-                        safeExtract<std::string>(item[SIGNAL_PERMISSIONS][i], "", status)
-                    );
-
-                    if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
-                        rc = RC_INVALID_VALUE;
+            case YAML_MAPPING_START_EVENT:
+                if(!inSignalConfigs) {
+                    inSignalConfigs = true;
+                } else if(currentKey == SIGNAL_RESOURCES) {
+                    inResourcesMap = true;
+                    resourceBuilder = new(std::nothrow) ResourceBuilder;
+                } else {
+                    parsingSignal = true;
+                    signalInfoBuilder = new(std::nothrow) SignalInfoBuilder;
+                    if(signalInfoBuilder == nullptr) {
+                        return RC_YAML_PARSING_ERROR;
                     }
-                } else {
-                    break;
                 }
-            }
-        }
-    }
 
-    if(RC_IS_OK(rc)) {
-        if(isList(item[SIGNAL_TARGETS_ENABLED])) {
-            for(int32_t i = 0; i < item[SIGNAL_TARGETS_ENABLED].size(); i++) {
-                // Defaults to empty string
-                if(RC_IS_OK(rc)) {
-                    rc = signalInfoBuilder.addTarget(true,
-                        safeExtract<std::string>(item[SIGNAL_TARGETS_ENABLED][i], "", status)
-                    );
+                break;
 
-                    if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
-                        rc = RC_INVALID_VALUE;
+            case YAML_MAPPING_END_EVENT:
+                if(inResourcesMap) {
+                    if(RC_IS_OK(rc)) {
+                        rc = signalInfoBuilder->addResource(resourceBuilder->build());
                     }
-                } else {
-                    break;
-                }
-            }
-        }
-    }
+                    inResourcesMap = false;
 
-    if(RC_IS_OK(rc)) {
-        if(isList(item[SIGNAL_TARGETS_DISABLED])) {
-            for(int32_t i = 0; i < item[SIGNAL_TARGETS_DISABLED].size(); i++) {
-                // Defaults to empty string
-                if(RC_IS_OK(rc)) {
-                    rc = signalInfoBuilder.addTarget(false,
-                        safeExtract<std::string>(item[SIGNAL_TARGETS_DISABLED][i], "", status)
-                    );
+                } else if(parsingSignal) {
+                    parsingSignal = false;
 
-                    if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
-                        rc = RC_INVALID_VALUE;
+                    if(RC_IS_NOTOK(rc)) {
+                        // Set SigCategory so that the Signal gets discarded by Signal Regsitry
+                        rc = signalInfoBuilder->setSignalCategory("0");
                     }
-                } else {
-                    break;
+
+                    SignalRegistry::getInstance()->
+                        registerSignal(signalInfoBuilder->build(), isBuSpecified);
+                    delete signalInfoBuilder;
                 }
-            }
-        }
-    }
 
-    if(RC_IS_OK(rc)) {
-        if(isList(item[SIGNAL_DERIVATIVES])) {
-            for(int32_t i = 0; i < item[SIGNAL_DERIVATIVES].size(); i++) {
-                // Defaults to empty string
-                if(RC_IS_OK(rc)) {
-                    rc = signalInfoBuilder.addDerivative(
-                        safeExtract<std::string>(item[SIGNAL_DERIVATIVES][i], "", status)
-                    );
+                break;
 
-                    if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
-                        rc = RC_INVALID_VALUE;
-                        break;
+            case YAML_SEQUENCE_START_EVENT:
+                if(currentKey == SIGNAL_TARGETS_ENABLED) {
+                    inTargetEnabledList = true;
+                } else if(currentKey == SIGNAL_TARGETS_DISABLED) {
+                    inTargetDisabledList = true;
+                } else if(currentKey == SIGNAL_PERMISSIONS) {
+                    inPermissionsList = true;
+                } else if(currentKey == SIGNAL_DERIVATIVES) {
+                    inDerivativesList = true;
+                } else if(currentKey == SIGNAL_RESOURCES) {
+                    if(!inResourcesList) {
+                        inResourcesList = true;
+                    } else if(inResourcesList) {
+                        inResourceValuesList = true;
                     }
-                } else {
-                    break;
-                }
-            }
-        }
-    }
-
-    if(RC_IS_OK(rc)) {
-        if(item[SIGNAL_RESOURCES].IsDefined() && item[SIGNAL_RESOURCES].IsSequence()) {
-            for(const auto& resourceConfig: item[SIGNAL_RESOURCES]) {
-                if(!resourceConfig.IsMap()) {
-                    rc = RC_INVALID_VALUE;
-                    break;
+                } else if(resourceKey == SIGNAL_VALUES) {
+                    inResourceValuesList = true;
                 }
 
-                ResourceBuilder resourceBuilder;
-                std::string resCode =
-                    safeExtract<std::string>(resourceConfig[SIGNAL_RESOURCE_CODE], "", status);
+                break;
 
-                if(resCode.length() == 0) {
-                    rc = RC_INVALID_VALUE;
-                    break;
-                }
+            case YAML_SEQUENCE_END_EVENT:
+                if(inTargetEnabledList) {
+                    inTargetEnabledList = false;
+                } else if(inTargetDisabledList) {
+                    inTargetDisabledList = false;
+                } else if(inPermissionsList) {
+                    inPermissionsList = false;
+                } else if(inDerivativesList) {
+                    inDerivativesList = false;
+                } else if(inResourcesList) {
+                    if(inResourceValuesList) {
+                        inResourceValuesList = false;
+                        if(RC_IS_OK(rc)) {
+                            rc = resourceBuilder->setNumValues(resValues.size());
+                        }
 
-                if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
-                    rc = RC_INVALID_VALUE;
-                    break;
-                }
-
-                // No Defaults Applicable
-                if(RC_IS_OK(rc)) {
-                    rc = resourceBuilder.setResCode(resCode);
-                } else {
-                    break;
-                }
-
-                if(RC_IS_OK(rc)) {
-                    rc = resourceBuilder.setResInfo(
-                        // Defaults to 0
-                        safeExtract<std::string>(resourceConfig[SIGNAL_RESINFO], "0", status)
-                    );
-
-                    if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
-                        rc = RC_INVALID_VALUE;
-                        break;
-                    }
-                } else {
-                    break;
-                }
-
-                if(RC_IS_OK(rc)) {
-                    if(isList(resourceConfig[SIGNAL_VALUES])) {
-                        int32_t valuesCount = resourceConfig[SIGNAL_VALUES].size();
-                        rc = resourceBuilder.setNumValues(valuesCount);
-
-                        for(int32_t i = 0; i < valuesCount; i++) {
-                            // Defaults to -1
+                        for(std::string resValue: resValues) {
                             if(RC_IS_OK(rc)) {
-                                rc = resourceBuilder.addValue(
-                                    safeExtract<int32_t>(resourceConfig[SIGNAL_VALUES][i], -1, status)
-                                );
+                                rc = resourceBuilder->addValue(resValue);
+                            }
 
-                                if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
-                                    rc = RC_INVALID_VALUE;
-                                    break;
-                                }
-                            } else {
+                            if(RC_IS_NOTOK(rc)) {
                                 break;
                             }
                         }
+                        resValues.clear();
+                        break;
+
+                    } else {
+                        inResourcesList = false;
                     }
+                } else if(inResourceValuesList) {
+                    inResourceValuesList = false;
                 }
 
-                if(RC_IS_OK(rc)) {
-                    rc = signalInfoBuilder.addResource(resourceBuilder.build());
-                } else {
+                currentKey.clear();
+                break;
+
+            case YAML_SCALAR_EVENT:
+                if(event.data.scalar.value != nullptr) {
+                    value = reinterpret_cast<char*>(event.data.scalar.value);
+                }
+
+                if(value == SIGNAL_CONFIGS_ROOT) {
                     break;
                 }
-            }
+
+                if(currentKey.length() == 0) {
+                    currentKey = value;
+                } else {
+                    if(inTargetEnabledList) {
+                        if(RC_IS_OK(rc)) {
+                            rc = signalInfoBuilder->addTarget(true, value);
+                        }
+                        break;
+                    } else if(inTargetDisabledList) {
+                        if(RC_IS_OK(rc)) {
+                            rc = signalInfoBuilder->addTarget(false, value);
+                        }
+                        break;
+                    } else if(inPermissionsList) {
+                        if(RC_IS_OK(rc)) {
+                            rc = signalInfoBuilder->addPermission(value);
+                        }
+                        break;
+                    } else if(inDerivativesList) {
+                        if(RC_IS_OK(rc)) {
+                            rc = signalInfoBuilder->addDerivative(value);
+                        }
+                        break;
+                    } else if(inResourcesList) {
+                        if(value == SIGNAL_RESOURCE_CODE || value == SIGNAL_RESINFO || value == SIGNAL_VALUES) {
+                            resourceKey = value;
+                            break;
+                        }
+
+                        if(inResourceValuesList) {
+                            resValues.push_back(value);
+                        } else if(resourceKey == SIGNAL_RESOURCE_CODE) {
+                            if(RC_IS_OK(rc)) {
+                                rc = resourceBuilder->setResCode(value);
+                            }
+                        } else if(resourceKey == SIGNAL_RESINFO) {
+                            if(RC_IS_OK(rc)) {
+                                rc = resourceBuilder->setResInfo(value);
+                            }
+                        }
+
+                        resourceKey.clear();
+                        break;
+
+                    } else if(currentKey == SIGNAL_SIGID) {
+                        if(RC_IS_OK(rc)) {
+                            rc = signalInfoBuilder->setSignalID(value);
+                        }
+                    } else if(currentKey == SIGNAL_CATEGORY) {
+                        if(RC_IS_OK(rc)) {
+                            rc = signalInfoBuilder->setSignalCategory(value);
+                        }
+                    } else if(currentKey == SIGNAL_NAME) {
+                        if(RC_IS_OK(rc)) {
+                            rc = signalInfoBuilder->setName(value);
+                        }
+                    } else if(currentKey == SIGNAL_TIMEOUT) {
+                        if(RC_IS_OK(rc)) {
+                            rc = signalInfoBuilder->setTimeout(value);
+                        }
+                    } else if(currentKey == SIGNAL_ENABLE) {
+                        if(RC_IS_OK(rc)) {
+                            rc = signalInfoBuilder->setIsEnabled(value);
+                        }
+                    }
+                    currentKey.clear();
+                }
+
+                break;
+
+            default:
+                break;
         }
+
+        yaml_event_delete(&event);
     }
 
-    if(RC_IS_NOTOK(rc)) {
-        // Set OpId so that the Signal gets discarded by Signal Regsitry
-        signalInfoBuilder.setSignalCategory("0");
-    }
+    yaml_parser_delete(&parser);
+    fclose(signalConfigFile);
 
-    SignalRegistry::getInstance()->registerSignal(signalInfoBuilder.build(), isBuSpecified);
+    return rc;
 }
 
-void SignalConfigProcessor::parseExtFeatureConfigYamlNode(const YAML::Node& item) {
-    ExtFeatureInfoBuilder extFeatureInfoBuilder;
+ErrCode SignalConfigProcessor::parseExtFeatureConfigYamlNode(const std::string& filePath) {
+    FILE* extFeatConfigFile = fopen(filePath.c_str(), "r");
+    if(extFeatConfigFile == nullptr) {
+        return RC_FILE_NOT_FOUND;
+    }
+
+    yaml_parser_t parser;
+    yaml_event_t event;
+
+    if(!yaml_parser_initialize(&parser)) {
+        fclose(extFeatConfigFile);
+        return RC_YAML_PARSING_ERROR;
+    }
+
+    yaml_parser_set_input_file(&parser, extFeatConfigFile);
+
+    int8_t parsingDone = false;
+    int8_t insideExtFeaturesConfig = false;
+    int8_t parsingFeature = false;
+    int8_t inFeatSignalsList = false;
+
+    std::string currentKey;
+    std::string value;
+
     ErrCode rc = RC_SUCCESS;
-    NodeExtractionStatus status;
 
-    if(RC_IS_OK(rc)) {
-        rc = extFeatureInfoBuilder.setId(
-            safeExtract<std::string>(item[EXT_FEATURE_ID], "0")
-        );
+    ExtFeatureInfoBuilder* extFeatureInfoBuilder = nullptr;
 
-        if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
-            rc = RC_INVALID_VALUE;
+    while(!parsingDone) {
+        if(!yaml_parser_parse(&parser, &event)) {
+            return RC_YAML_PARSING_ERROR;
         }
-    }
 
-    if(RC_IS_OK(rc)) {
-        rc = extFeatureInfoBuilder.setLib(
-            safeExtract<std::string>(item[EXT_FEATURE_LIB], "", status)
-        );
+        switch(event.type) {
+            case YAML_STREAM_END_EVENT:
+                parsingDone = true;
+                break;
 
-        if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
-            rc = RC_INVALID_VALUE;
-        }
-    }
-
-    if(RC_IS_OK(rc)) {
-        rc = extFeatureInfoBuilder.setName(
-            safeExtract<std::string>(item[EXT_FEATURE_NAME], "", status)
-        );
-
-        if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
-            rc = RC_INVALID_VALUE;
-        }
-    }
-
-    if(RC_IS_OK(rc)) {
-        if(isList(item[EXT_FEATURE_SUBSCRIBER_LIST])) {
-            for(int32_t i = 0; i < item[EXT_FEATURE_SUBSCRIBER_LIST].size(); i++) {
-                if(RC_IS_OK(rc)) {
-                    rc = extFeatureInfoBuilder.addSignalSubscribedTo(
-                        (safeExtract<std::string>(item[EXT_FEATURE_SUBSCRIBER_LIST][i], "", status))
-                    );
-
-                    if(status == NodeExtractionStatus::NODE_PRESENT_VALUE_INVALID) {
-                        rc = RC_INVALID_VALUE;
-                        break;
-                    }
+            case YAML_MAPPING_START_EVENT:
+                if(!insideExtFeaturesConfig) {
+                    insideExtFeaturesConfig = true;
                 } else {
-                    rc = RC_INVALID_VALUE;
+                    extFeatureInfoBuilder = new(std::nothrow) ExtFeatureInfoBuilder;
+                    if(extFeatureInfoBuilder == nullptr) {
+                        return RC_YAML_PARSING_ERROR;
+                    }
+                    parsingFeature = true;
+                }
+                break;
+
+            case YAML_MAPPING_END_EVENT:
+                if(parsingFeature) {
+                    if(RC_IS_NOTOK(rc)) {
+                        extFeatureInfoBuilder->setLib("");
+                    }
+
+                    ExtFeaturesRegistry::getInstance()->
+                        registerExtFeature(extFeatureInfoBuilder->build());
+                    delete extFeatureInfoBuilder;
+                    parsingFeature = false;
+                }
+
+                break;
+
+            case YAML_SEQUENCE_START_EVENT:
+                if(currentKey == EXT_FEATURE_SUBSCRIBER_LIST) {
+                    inFeatSignalsList = true;
+                }
+
+                break;
+
+            case YAML_SEQUENCE_END_EVENT:
+                if(inFeatSignalsList) {
+                    currentKey.clear();
+                    inFeatSignalsList = false;
+                }
+
+                break;
+
+            case YAML_SCALAR_EVENT:
+                if(event.data.scalar.value != nullptr) {
+                    value = reinterpret_cast<char*>(event.data.scalar.value);
+                }
+
+                if(value == EXT_FEATURES_CONFIGS_ROOT) {
                     break;
                 }
-            }
-        } else {
-            rc = RC_INVALID_VALUE;
+
+                if(currentKey.length() == 0) {
+                    currentKey = value;
+                } else {
+                    if(inFeatSignalsList) {
+                        rc = extFeatureInfoBuilder->addSignalSubscribedTo(value);
+                        break;
+                    } else {
+                        if(currentKey == EXT_FEATURE_ID) {
+                            rc = extFeatureInfoBuilder->setId(value);
+                        } else if(currentKey == EXT_FEATURE_LIB) {
+                            rc = extFeatureInfoBuilder->setLib(value);
+                        } else if(currentKey == EXT_FEATURE_NAME) {
+                            rc = extFeatureInfoBuilder->setName(value);
+                        }
+                    }
+                    currentKey.clear();
+                }
+
+                break;
+
+            default:
+                break;
         }
+
+        yaml_event_delete(&event);
     }
 
-    if(RC_IS_NOTOK(rc)) {
-        extFeatureInfoBuilder.setLib("");
-    }
+    yaml_parser_delete(&parser);
+    fclose(extFeatConfigFile);
 
-    ExtFeaturesRegistry::getInstance()->registerExtFeature(extFeatureInfoBuilder.build());
+    return rc;
 }
 
 ErrCode SignalConfigProcessor::parseSignalConfigs(const std::string& filePath, int8_t isBuSpecified) {
-    YAML::Node result;
-    ErrCode rc = YamlParser::parse(filePath, result);
-
-    if(RC_IS_OK(rc)) {
-        if(result[SIGNAL_CONFIGS_ROOT].IsDefined() && result[SIGNAL_CONFIGS_ROOT].IsSequence()) {
-            for(int32_t i = 0; i < result[SIGNAL_CONFIGS_ROOT].size(); i++) {
-                YAML::Node signalConfig = result[SIGNAL_CONFIGS_ROOT][i];
-                try {
-                    LOGI("RESTUNE_SIGNAL_PROCESSOR", "Parsing Signal Config at index = " + std::to_string(i));
-                    parseSignalConfigYamlNode(signalConfig, isBuSpecified);
-                } catch(const std::invalid_argument& e) {
-                    LOGE("RESTUNE_SIGNAL_PROCESSOR", "Error parsing Signal Config: " + std::string(e.what()));
-                } catch(const std::bad_alloc& e) {
-                    LOGE("RESTUNE_SIGNAL_PROCESSOR", "Error parsing Resource Config: " + std::string(e.what()));
-                }
-            }
-        }
-    }
-
-    return rc;
+    return parseSignalConfigYamlNode(filePath, isBuSpecified);
 }
 
 ErrCode SignalConfigProcessor::parseExtFeaturesConfigs(const std::string& filePath) {
-    YAML::Node result;
-    ErrCode rc = YamlParser::parse(filePath, result);
-
-    if(RC_IS_OK(rc)) {
-        if(result[EXT_FEATURES_CONFIGS_ROOT].IsDefined() && result[EXT_FEATURES_CONFIGS_ROOT].IsSequence()) {
-            for(const auto& featureConfig : result[EXT_FEATURES_CONFIGS_ROOT]) {
-                try {
-                    parseExtFeatureConfigYamlNode(featureConfig);
-                } catch(const std::invalid_argument& e) {
-                    LOGE("RESTUNE_EXT_FEATURE_PROCESSOR", "Error parsing Ext Feature Config: " + std::string(e.what()));
-                } catch(const std::bad_alloc& e) {
-                    LOGE("RESTUNE_EXT_FEATURE_PROCESSOR", "Error parsing Ext Feature Config: " + std::string(e.what()));
-                }
-            }
-        }
-    }
-
-    return rc;
+    return parseExtFeatureConfigYamlNode(filePath);
 }
 
 ErrCode SignalConfigProcessor::parse(ConfigType configType, const std::string& filePath, int8_t isBuSpecified) {

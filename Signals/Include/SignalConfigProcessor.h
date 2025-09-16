@@ -81,8 +81,8 @@
 
 class SignalConfigProcessor {
 private:
-    void parseSignalConfigYamlNode(const YAML::Node& result, int8_t isBuSpecified);
-    void parseExtFeatureConfigYamlNode(const YAML::Node& result);
+    ErrCode parseSignalConfigYamlNode(const std::string& filePath, int8_t isBuSpecified);
+    ErrCode parseExtFeatureConfigYamlNode(const std::string& filePath);
 
 public:
     ErrCode parseSignalConfigs(const std::string& filePath, int8_t isBuSpecified=false);
