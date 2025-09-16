@@ -146,11 +146,8 @@ ErrCode fetchProperties() {
 
     // Parse Custom Properties Configs provided in /etc/resource-tuner/custom (if any)
     filePath = ResourceTunerSettings::mCustomPropertiesFilePath;
-    opStatus = parseUtil(filePath, CUSTOM_PROPERTIES, ConfigType::PROPERTIES_CONFIG);
-
-    // If file was not found, we simply return SUCCESS, since custom configs are optional
-    if(opStatus == RC_FILE_NOT_FOUND) {
-        opStatus = RC_SUCCESS;
+    if(AuxRoutines::fileExists(filePath)) {
+        opStatus = parseUtil(filePath, CUSTOM_PROPERTIES, ConfigType::PROPERTIES_CONFIG);
     }
 
     if(RC_IS_NOTOK(opStatus)) {
@@ -179,11 +176,8 @@ static ErrCode fetchResources() {
 
     // Parse Custom Resource Configs provided in /etc/resource-tuner/custom (if any)
     filePath = ResourceTunerSettings::mCustomResourceFilePath;
-    opStatus = parseUtil(filePath, CUSTOM_RESOURCE, ConfigType::RESOURCE_CONFIG, true);
-
-    // If file was not found, we simply return SUCCESS, since custom configs are optional
-    if(opStatus == RC_FILE_NOT_FOUND) {
-        return RC_SUCCESS;
+    if(AuxRoutines::fileExists(filePath)) {
+        return parseUtil(filePath, CUSTOM_RESOURCE, ConfigType::RESOURCE_CONFIG, true);
     }
 
     return opStatus;
@@ -207,14 +201,10 @@ static ErrCode fetchTargetInfo() {
     }
 
     filePath = ResourceTunerSettings::mCustomTargetFilePath;
-    opStatus = parseUtil(filePath, CUSTOM_TARGET, ConfigType::TARGET_CONFIG, true);
-
-    // If file was not found, we simply return SUCCESS, since custom configs are optional
-    if(opStatus == RC_FILE_NOT_FOUND) {
-        return RC_SUCCESS;
+    if(AuxRoutines::fileExists(filePath)) {
+        return parseUtil(filePath, CUSTOM_TARGET, ConfigType::TARGET_CONFIG, true);
     }
 
-    TargetRegistry::getInstance()->displayTargetInfo();
     return opStatus;
 }
 
@@ -236,11 +226,8 @@ static ErrCode fetchInitInfo() {
 
     // Parse Custom Init Configs provided in /etc/resource-tuner/custom (if any)
     filePath = ResourceTunerSettings::mCustomInitConfigFilePath;
-    opStatus = parseUtil(filePath, CUSTOM_INIT, ConfigType::INIT_CONFIG);
-
-    // If file was not found, we simply return SUCCESS, since custom configs are optional
-    if(opStatus == RC_FILE_NOT_FOUND) {
-        return RC_SUCCESS;
+    if(AuxRoutines::fileExists(filePath)) {
+        return parseUtil(filePath, CUSTOM_INIT, ConfigType::INIT_CONFIG);
     }
 
     return opStatus;
@@ -269,6 +256,7 @@ static ErrCode init(void* arg=nullptr) {
     if(RC_IS_NOTOK(opStatus)) {
         return opStatus;
     }
+    TargetRegistry::getInstance()->displayTargetInfo();
 
     // Fetch and Parse:
     // - Init Configs

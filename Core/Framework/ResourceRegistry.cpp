@@ -230,6 +230,7 @@ ResourceConfigInfoBuilder::ResourceConfigInfoBuilder() {
     this->mResourceConfigInfo->mPermissions = PERMISSION_THIRD_PARTY;
     this->mResourceConfigInfo->mSupported = false;
     this->mResourceConfigInfo->mApplyType = ResourceApplyType::APPLY_GLOBAL;
+    this->mResourceConfigInfo->mPolicy = Policy::LAZY_APPLY;
     this->mResourceConfigInfo->mResourcePath = "";
     this->mResourceConfigInfo->mResourceName = "";
 }

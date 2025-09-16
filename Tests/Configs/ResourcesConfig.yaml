@@ -149,28 +149,3 @@ ResourceConfigs:
     Modes: ["display_on", "doze"]
     Policy: "lazy_apply"
     ApplyType: "cluster"
-
-  # Some totally Invalid Resources, to make sure the Parser is correctly rejecting them
-  # - ResType: "yx1"
-  #   ResID: "zzo"
-  #   Name: "INVALID_RESOURCE_1"
-  #   Path: "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/invalidResource"
-  #   Supported: true
-  #   HighThreshold: y
-  #   LowThreshold: "vb"
-  #   Permissions: 2
-  #   Modes: {"display_on"}
-  #   Policy: "lazy_apply"
-  #   ApplyType: what
-
-  # - ResType: -1
-  #   ResID: "index"
-  #   Name: "INVALID_RESOURCE_2"
-  #   Path: "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/invalidResource"
-  #   Supported: 6.65
-  #   HighThreshold: "X"
-  #   LowThreshold: "vb"
-  #   Permissions: -5
-  #   Modes: -3
-  #   Policy: false
-  #   ApplyType: 50.8

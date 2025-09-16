@@ -3,21 +3,27 @@
 
 #include "SignalConfigProcessor.h"
 
+#define ADD_TO_EXT_FEATURE_BUILDER(KEY, METHOD)                 \
+    if(topKey == KEY && extFeatureInfoBuilder != nullptr) {     \
+        if(RC_IS_OK(rc)) {                                      \
+            rc = extFeatureInfoBuilder->METHOD(value);          \
+        }                                                       \
+        break;                                                  \
+    }
+
+static int8_t isKey(const std::string& keyName) {
+    if(keyName == EXT_FEATURES_CONFIGS_ROOT) return true;
+    if(keyName == EXT_FEATURE_ID) return true;
+    if(keyName == EXT_FEATURE_LIB) return true;
+    if(keyName == EXT_FEATURE_NAME) return true;
+    if(keyName == EXT_FEATURE_DESCRIPTION) return true;
+    if(keyName == EXT_FEATURE_SUBSCRIBER_LIST) return true;
+
+    return false;
+}
+
 ErrCode SignalConfigProcessor::parseSignalConfigYamlNode(const std::string& filePath, int8_t isBuSpecified) {
-    FILE* signalConfigFile = fopen(filePath.c_str(), "r");
-    if(signalConfigFile == nullptr) {
-        return RC_FILE_NOT_FOUND;
-    }
-
-    yaml_parser_t parser;
-    yaml_event_t event;
-
-    if(!yaml_parser_initialize(&parser)) {
-        fclose(signalConfigFile);
-        return RC_YAML_PARSING_ERROR;
-    }
-
-    yaml_parser_set_input_file(&parser, signalConfigFile);
+    SETUP_LIBYAML_PARSING(filePath);
 
     int8_t parsingDone = false;
     int8_t parsingSignal = false;
@@ -86,6 +92,7 @@ ErrCode SignalConfigProcessor::parseSignalConfigYamlNode(const std::string& file
                     SignalRegistry::getInstance()->
                         registerSignal(signalInfoBuilder->build(), isBuSpecified);
                     delete signalInfoBuilder;
+                    signalInfoBuilder = nullptr;
                 }
 
                 break;
@@ -235,37 +242,23 @@ ErrCode SignalConfigProcessor::parseSignalConfigYamlNode(const std::string& file
         yaml_event_delete(&event);
     }
 
-    yaml_parser_delete(&parser);
-    fclose(signalConfigFile);
-
+    TEARDOWN_LIBYAML_PARSING
     return rc;
 }
 
 ErrCode SignalConfigProcessor::parseExtFeatureConfigYamlNode(const std::string& filePath) {
-    FILE* extFeatConfigFile = fopen(filePath.c_str(), "r");
-    if(extFeatConfigFile == nullptr) {
-        return RC_FILE_NOT_FOUND;
-    }
+    SETUP_LIBYAML_PARSING(filePath);
 
-    yaml_parser_t parser;
-    yaml_event_t event;
-
-    if(!yaml_parser_initialize(&parser)) {
-        fclose(extFeatConfigFile);
-        return RC_YAML_PARSING_ERROR;
-    }
-
-    yaml_parser_set_input_file(&parser, extFeatConfigFile);
+    ErrCode rc = RC_SUCCESS;
 
     int8_t parsingDone = false;
-    int8_t insideExtFeaturesConfig = false;
+    int8_t docMarker = false;
     int8_t parsingFeature = false;
-    int8_t inFeatSignalsList = false;
 
     std::string currentKey;
     std::string value;
-
-    ErrCode rc = RC_SUCCESS;
+    std::string topKey;
+    std::stack<std::string> keyTracker;
 
     ExtFeatureInfoBuilder* extFeatureInfoBuilder = nullptr;
 
@@ -280,44 +273,40 @@ ErrCode SignalConfigProcessor::parseExtFeatureConfigYamlNode(const std::string& 
                 break;
 
             case YAML_MAPPING_START_EVENT:
-                if(!insideExtFeaturesConfig) {
-                    insideExtFeaturesConfig = true;
+                if(!docMarker) {
+                    docMarker = true;
                 } else {
                     extFeatureInfoBuilder = new(std::nothrow) ExtFeatureInfoBuilder;
                     if(extFeatureInfoBuilder == nullptr) {
                         return RC_YAML_PARSING_ERROR;
                     }
+
                     parsingFeature = true;
                 }
                 break;
 
             case YAML_MAPPING_END_EVENT:
                 if(parsingFeature) {
+                    parsingFeature = false;
                     if(RC_IS_NOTOK(rc)) {
                         extFeatureInfoBuilder->setLib("");
                     }
 
                     ExtFeaturesRegistry::getInstance()->
                         registerExtFeature(extFeatureInfoBuilder->build());
+
                     delete extFeatureInfoBuilder;
-                    parsingFeature = false;
-                }
-
-                break;
-
-            case YAML_SEQUENCE_START_EVENT:
-                if(currentKey == EXT_FEATURE_SUBSCRIBER_LIST) {
-                    inFeatSignalsList = true;
+                    extFeatureInfoBuilder = nullptr;
                 }
 
                 break;
 
             case YAML_SEQUENCE_END_EVENT:
-                if(inFeatSignalsList) {
-                    currentKey.clear();
-                    inFeatSignalsList = false;
+                if(keyTracker.empty()) {
+                    return RC_YAML_INVALID_SYNTAX;
                 }
 
+                keyTracker.pop();
                 break;
 
             case YAML_SCALAR_EVENT:
@@ -325,27 +314,27 @@ ErrCode SignalConfigProcessor::parseExtFeatureConfigYamlNode(const std::string& 
                     value = reinterpret_cast<char*>(event.data.scalar.value);
                 }
 
-                if(value == EXT_FEATURES_CONFIGS_ROOT) {
+                std::cout<<"scalar: "<<value<<std::endl;
+
+                if(isKey(value)) {
+                    keyTracker.push(value);
+                    std::cout<<"key updated to: "<<value<<std::endl;
                     break;
                 }
 
-                if(currentKey.length() == 0) {
-                    currentKey = value;
-                } else {
-                    if(inFeatSignalsList) {
-                        rc = extFeatureInfoBuilder->addSignalSubscribedTo(value);
-                        break;
-                    } else {
-                        if(currentKey == EXT_FEATURE_ID) {
-                            rc = extFeatureInfoBuilder->setId(value);
-                        } else if(currentKey == EXT_FEATURE_LIB) {
-                            rc = extFeatureInfoBuilder->setLib(value);
-                        } else if(currentKey == EXT_FEATURE_NAME) {
-                            rc = extFeatureInfoBuilder->setName(value);
-                        }
-                    }
-                    currentKey.clear();
+                if(keyTracker.empty()) {
+                    return RC_YAML_INVALID_SYNTAX;
                 }
+
+                topKey = keyTracker.top();
+                if(topKey != EXT_FEATURE_SUBSCRIBER_LIST) {
+                    keyTracker.pop();
+                }
+
+                ADD_TO_EXT_FEATURE_BUILDER(EXT_FEATURE_ID, setId);
+                ADD_TO_EXT_FEATURE_BUILDER(EXT_FEATURE_LIB, setLib);
+                ADD_TO_EXT_FEATURE_BUILDER(EXT_FEATURE_NAME, setName);
+                ADD_TO_EXT_FEATURE_BUILDER(EXT_FEATURE_SUBSCRIBER_LIST, addSignalSubscribedTo);
 
                 break;
 
@@ -356,9 +345,7 @@ ErrCode SignalConfigProcessor::parseExtFeatureConfigYamlNode(const std::string& 
         yaml_event_delete(&event);
     }
 
-    yaml_parser_delete(&parser);
-    fclose(extFeatConfigFile);
-
+    TEARDOWN_LIBYAML_PARSING
     return rc;
 }
 

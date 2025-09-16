@@ -116,7 +116,7 @@ static void TestResourceParsingResourcesDefaultValuesCheck() {
     C_ASSERT(resourceConfigInfo->mSupported == false);
     C_ASSERT(resourceConfigInfo->mPolicy == LAZY_APPLY);
     C_ASSERT(resourceConfigInfo->mPermissions == PERMISSION_THIRD_PARTY);
-    C_ASSERT(resourceConfigInfo->mModes == MODE_DISPLAY_ON);
+    C_ASSERT(resourceConfigInfo->mModes == 0);
     C_ASSERT(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_GLOBAL);
 }
 

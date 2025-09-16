@@ -470,6 +470,14 @@ void TargetRegistry::addCacheInfoMapping(CacheInfo* cacheInfo) {
 // Methods for Building CGroup Config from InitConfigs.yaml
 CGroupConfigInfoBuilder::CGroupConfigInfoBuilder() {
     this->mCGroupConfigInfo = new(std::nothrow) CGroupConfigInfo;
+
+    if(this->mCGroupConfigInfo == nullptr) {
+        return;
+    }
+
+    this->mCGroupConfigInfo->mCgroupName = "";
+    this->mCGroupConfigInfo->mCreationNeeded = false;
+    this->mCGroupConfigInfo->mIsThreaded = false;
 }
 
 ErrCode CGroupConfigInfoBuilder::setCGroupName(const std::string& name) {
@@ -487,9 +495,7 @@ ErrCode CGroupConfigInfoBuilder::setCGroupID(const std::string& cGroupIDString) 
     }
 
     try {
-        int32_t cGroupID = std::stoi(cGroupIDString);
-
-        this->mCGroupConfigInfo->mCgroupID = cGroupID;
+        this->mCGroupConfigInfo->mCgroupID = std::stoi(cGroupIDString);
         return RC_SUCCESS;
 
     } catch(const std::exception& e) {
@@ -504,8 +510,7 @@ ErrCode CGroupConfigInfoBuilder::setCreationNeeded(const std::string& creationNe
         return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
-    int8_t creationNeeded = (creationNeededString == "true");
-    this->mCGroupConfigInfo->mCreationNeeded = creationNeeded;
+    this->mCGroupConfigInfo->mCreationNeeded = (creationNeededString == "true");
 
     return RC_SUCCESS;
 }
@@ -515,8 +520,7 @@ ErrCode CGroupConfigInfoBuilder::setThreaded(const std::string& isThreadedString
         return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
-    int8_t isThreaded = (isThreadedString == "true");
-    this->mCGroupConfigInfo->mIsThreaded = isThreaded;
+    this->mCGroupConfigInfo->mIsThreaded = (isThreadedString == "true");
 
     return RC_SUCCESS;
 }
@@ -527,6 +531,12 @@ CGroupConfigInfo* CGroupConfigInfoBuilder::build() {
 
 MpamGroupConfigInfoBuilder::MpamGroupConfigInfoBuilder() {
     this->mMpamGroupInfo = new(std::nothrow) MpamGroupConfigInfo;
+    if(this->mMpamGroupInfo == nullptr) {
+        return;
+    }
+
+    this->mMpamGroupInfo->mMpamGroupName = "";
+    this->mMpamGroupInfo->mPriority = 0;
 }
 
 ErrCode MpamGroupConfigInfoBuilder::setName(const std::string& name) {
@@ -561,8 +571,7 @@ ErrCode MpamGroupConfigInfoBuilder::setPriority(const std::string& priorityStrin
     }
 
     try {
-        int32_t priority = std::stoi(priorityString);
-        this->mMpamGroupInfo->mPriority = priority;
+        this->mMpamGroupInfo->mPriority = std::stoi(priorityString);
         return RC_SUCCESS;
 
     } catch(const std::exception& e) {
@@ -576,6 +585,11 @@ MpamGroupConfigInfo* MpamGroupConfigInfoBuilder::build() {
 
 CacheInfoBuilder::CacheInfoBuilder() {
     this->mCacheInfo = new(std::nothrow) CacheInfo;
+    if(this->mCacheInfo == nullptr) {
+        return;
+    }
+
+    this->mCacheInfo->mPriorityAware = false;
 }
 
 ErrCode CacheInfoBuilder::setType(const std::string& type) {
@@ -609,8 +623,7 @@ ErrCode CacheInfoBuilder::setPriorityAware(const std::string& isPriorityAwareStr
         return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
-    int8_t isPriorityAware = (isPriorityAwareString == "true");
-    this->mCacheInfo->mPriorityAware = isPriorityAware;
+    this->mCacheInfo->mPriorityAware = (isPriorityAwareString == "true");
 
     return RC_SUCCESS;
 }

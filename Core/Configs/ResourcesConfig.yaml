@@ -57,6 +57,7 @@ ResourceConfigs:
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
+    Modes: ["display_on"]
     Policy: instant_apply
 
   - ResType: "0x09"
@@ -66,6 +67,7 @@ ResourceConfigs:
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
+    Modes: ["display_on"]
     Policy: instant_apply
 
   - ResType: "0x09"
@@ -75,6 +77,7 @@ ResourceConfigs:
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
+    Modes: ["display_on"]
     Policy: instant_apply
 
   - ResType: "0x09"
@@ -84,6 +87,7 @@ ResourceConfigs:
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
+    Modes: ["display_on"]
     Policy: instant_apply
 
   - ResType: "0x09"
@@ -93,6 +97,7 @@ ResourceConfigs:
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
+    Modes: ["display_on"]
     Policy: instant_apply
 
   - ResType: "0x09"
@@ -102,6 +107,7 @@ ResourceConfigs:
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
+    Modes: ["display_on"]
     Policy: higher_is_better
 
   - ResType: "0x09"
@@ -111,6 +117,7 @@ ResourceConfigs:
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
+    Modes: ["display_on"]
     Policy: instant_apply
 
   - ResType: "0x09"
@@ -120,6 +127,7 @@ ResourceConfigs:
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
+    Modes: ["display_on"]
     Policy: lower_is_better
 
   - ResType: "0x09"
@@ -129,6 +137,7 @@ ResourceConfigs:
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
+    Modes: ["display_on"]
     Policy: higher_is_better
 
   - ResType: "0x09"
@@ -138,6 +147,7 @@ ResourceConfigs:
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
+    Modes: ["display_on"]
     Policy: instant_apply
 
   - ResType: "0x09"
@@ -147,6 +157,7 @@ ResourceConfigs:
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
+    Modes: ["display_on"]
     Policy: higher_is_better
 
   - ResType: "0x09"
@@ -156,6 +167,7 @@ ResourceConfigs:
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
+    Modes: ["display_on"]
     Policy: lower_is_better
 
   - ResType: "0x09"
@@ -165,4 +177,5 @@ ResourceConfigs:
     Supported: true
     Permissions: "system"
     ApplyType: "cgroup"
+    Modes: ["display_on"]
     Policy: lower_is_better

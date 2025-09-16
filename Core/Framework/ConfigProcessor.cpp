@@ -90,7 +90,6 @@ ErrCode ConfigProcessor::parseResourceConfigYamlNode(const std::string& filePath
     int8_t docMarker = false;
     int8_t parsingResource = false;
 
-    std::string currentKey;
     std::string value;
     std::string topKey;
     std::stack<std::string> keyTracker;
@@ -255,13 +254,17 @@ ErrCode ConfigProcessor::parseTargetConfigYamlNode(const std::string& filePath) 
     SETUP_LIBYAML_PARSING(filePath);
 
     int8_t parsingDone = false;
+    int8_t docMarker = false;
+    int8_t parsingItem = false;
+    int8_t isConfigForCurrentTarget = false;
+
     std::string value;
     std::string topKey;
-
     std::stack<std::string> keyTracker;
-    std::vector<std::string> valuesArray;
 
-    int8_t isConfigForCurrentTarget = false;
+    std::string lgcClusterID;
+    std::string phyClusterID;
+    std::string numCoresString;
 
     while(!parsingDone) {
         if(!yaml_parser_parse(&parser, &event)) {
@@ -274,41 +277,44 @@ ErrCode ConfigProcessor::parseTargetConfigYamlNode(const std::string& filePath) 
                 break;
 
             case YAML_SEQUENCE_END_EVENT:
-                if(topKey.empty()) {
-                    return RC_YAML_INVALID_SYNTAX;
-                }
-                topKey = keyTracker.top();
-
-                if(topKey == TARGET_NAME_LIST) {
-                    for(int32_t i = 0; i < valuesArray.size(); i ++) {
-                        if(valuesArray[i] == "*" || valuesArray[i] == ResourceTunerSettings::targetConfigs.targetName) {
-                            isConfigForCurrentTarget = true;
-                        }
-                    }
-                } else if(topKey == TARGET_CLUSTER_INFO) {
-                    for(int32_t i = 0; i < valuesArray.size(); i += 2) {
-                        std::string logicalIDString = valuesArray[i];
-                        std::string physicalIDString = valuesArray[i + 1];
-
-                        if(isConfigForCurrentTarget) {
-                            TargetRegistry::getInstance()->addClusterMapping(logicalIDString, physicalIDString);
-                        }
-                    }
-                } else if(topKey == TARGET_CLUSTER_SPREAD) {
-                    for(int32_t i = 0; i < valuesArray.size(); i += 2) {
-                        std::string physicalIDString = valuesArray[i];
-                        std::string numCoresString = valuesArray[i + 1];
-
-                        if(isConfigForCurrentTarget) {
-                            TargetRegistry::getInstance()->addClusterSpreadInfo(physicalIDString, numCoresString);
-                        }
-                    }
-                } else {
+                if(keyTracker.empty()) {
                     return RC_YAML_INVALID_SYNTAX;
                 }
 
-                valuesArray.clear();
                 keyTracker.pop();
+                break;
+
+            case YAML_MAPPING_START_EVENT:
+                if(!docMarker) {
+                    docMarker = true;
+                } else {
+                    parsingItem = true;
+                }
+                break;
+
+            case YAML_MAPPING_END_EVENT:
+                if(keyTracker.empty()) {
+                    return RC_YAML_INVALID_SYNTAX;
+
+                } else if(parsingItem) {
+                    parsingItem = false;
+
+                    topKey = keyTracker.top();
+                    if(topKey == TARGET_CLUSTER_INFO) {
+                        if(isConfigForCurrentTarget) {
+                            TargetRegistry::getInstance()->addClusterMapping(lgcClusterID, phyClusterID);
+                            lgcClusterID.clear();
+                            phyClusterID.clear();
+                        }
+                    } else if(topKey == TARGET_CLUSTER_SPREAD) {
+                        if(isConfigForCurrentTarget) {
+                            TargetRegistry::getInstance()->addClusterSpreadInfo(phyClusterID, numCoresString);
+                            phyClusterID.clear();
+                            numCoresString.clear();
+                        }
+                    }
+                }
+
                 break;
 
             case YAML_SCALAR_EVENT:
@@ -316,14 +322,32 @@ ErrCode ConfigProcessor::parseTargetConfigYamlNode(const std::string& filePath) 
                     value = reinterpret_cast<char*>(event.data.scalar.value);
                 }
 
-                if(isKey(value) && (value == TARGET_CONFIGS_ROOT)
-                                && (value == TARGET_NAME_LIST)
-                                && (value == TARGET_CLUSTER_INFO)
-                                && (value == TARGET_NAME_LIST)
-                                &&(value == TARGET_CLUSTER_SPREAD)) {
+                if(isKey(value)) {
                     keyTracker.push(value);
-                } else {
-                    valuesArray.push_back(value);
+                    break;
+                }
+
+                if(keyTracker.empty()) {
+                    return RC_YAML_INVALID_SYNTAX;
+                }
+
+                topKey = keyTracker.top();
+                if(topKey != TARGET_NAME_LIST &&
+                   topKey != TARGET_CLUSTER_INFO &&
+                   topKey != TARGET_CLUSTER_SPREAD) {
+                    keyTracker.pop();
+                }
+
+                if(topKey == TARGET_NAME_LIST) {
+                    if(value == "*" || value == ResourceTunerSettings::targetConfigs.targetName) {
+                        isConfigForCurrentTarget = true;
+                    }
+                } else if(topKey == TARGET_CLUSTER_INFO_LOGICAL_ID) {
+                    lgcClusterID = value;
+                } else if(topKey == TARGET_CLUSTER_INFO_PHYSICAL_ID) {
+                    phyClusterID = value;
+                } else if(topKey == TARGET_PER_CLUSTER_CORE_COUNT) {
+                    numCoresString = value;
                 }
 
                 break;
@@ -382,11 +406,22 @@ ErrCode ConfigProcessor::parseInitConfigYamlNode(const std::string& filePath) {
 
                     topKey = keyTracker.top();
                     if(topKey == INIT_CONFIGS_CGROUPS_LIST) {
-                        cGroupConfigBuilder = new (std::nothrow) CGroupConfigInfoBuilder;
+                        cGroupConfigBuilder = new(std::nothrow) CGroupConfigInfoBuilder;
+                        if(cGroupConfigBuilder == nullptr) {
+                            return RC_MEMORY_ALLOCATION_FAILURE;
+                        }
+
                     } else if(topKey == INIT_CONFIGS_MPAM_GROUPS_LIST) {
-                        mpamGroupConfigBuilder = new (std::nothrow) MpamGroupConfigInfoBuilder;
+                        mpamGroupConfigBuilder = new(std::nothrow) MpamGroupConfigInfoBuilder;
+                        if(mpamGroupConfigBuilder == nullptr) {
+                            return RC_MEMORY_ALLOCATION_FAILURE;
+                        }
+
                     } else if(topKey == INIT_CONFIGS_CACHE_INFO_LIST) {
-                        cacheInfoBuilder = new (std::nothrow) CacheInfoBuilder;
+                        cacheInfoBuilder = new(std::nothrow) CacheInfoBuilder;
+                        if(cacheInfoBuilder == nullptr) {
+                            return RC_MEMORY_ALLOCATION_FAILURE;
+                        }
                     }
                 }
 
@@ -478,7 +513,7 @@ ErrCode ConfigProcessor::parseInitConfigYamlNode(const std::string& filePath) {
     }
 
     TEARDOWN_LIBYAML_PARSING
-    return RC_SUCCESS;
+    return rc;
 }
 
 ErrCode ConfigProcessor::parseResourceConfigs(const std::string& filePath, int8_t isBuSpecified) {

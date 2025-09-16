@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <memory>
+#include <stack>
 
 #include "YamlParser.h"
 #include "SignalRegistry.h"
@@ -32,6 +33,7 @@
 #define EXT_FEATURE_ID "FeatId"
 #define EXT_FEATURE_LIB "LibPath"
 #define EXT_FEATURE_NAME "Name"
+#define EXT_FEATURE_DESCRIPTION "Description"
 #define EXT_FEATURE_SUBSCRIBER_LIST "Signals"
 
 /**
