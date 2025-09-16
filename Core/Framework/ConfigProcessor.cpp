@@ -3,22 +3,37 @@
 
 #include "ConfigProcessor.h"
 
-#define SETUP_LIBYAML_PARSING(filePath)                     \
-    FILE* configFile = fopen(filePath.c_str(), "r");        \
-    if(configFile == nullptr) {                             \
-        return RC_FILE_NOT_FOUND;                           \
-    }                                                       \
-    yaml_parser_t parser;                                   \
-    yaml_event_t event;                                     \
-    if(!yaml_parser_initialize(&parser)) {                  \
-        fclose(configFile);                                 \
-        return RC_YAML_PARSING_ERROR;                       \
-    }                                                       \
-    yaml_parser_set_input_file(&parser, configFile);        \
+#define ADD_TO_RESOURCE_BUILDER(KEY, METHOD)                    \
+    if(topKey == KEY && resourceConfigInfoBuilder != nullptr) { \
+        if(RC_IS_OK(rc)) {                                      \
+            rc = resourceConfigInfoBuilder->METHOD(value);      \
+        }                                                       \
+        break;                                                  \
+    }
 
-#define TEARDOWN_LIBYAML_PARSING                            \
-    yaml_parser_delete(&parser);                            \
-    fclose(configFile);                                     \
+#define ADD_TO_CGROUP_BUILDER(KEY, METHOD)                      \
+    if(topKey == KEY && cGroupConfigBuilder != nullptr) {       \
+        if(RC_IS_OK(rc)) {                                      \
+            rc = cGroupConfigBuilder->METHOD(value);            \
+        }                                                       \
+        break;                                                  \
+    }
+
+#define ADD_TO_MPAM_GROUP_BUILDER(KEY, METHOD)                  \
+    if(topKey == KEY && mpamGroupConfigBuilder != nullptr) {    \
+        if(RC_IS_OK(rc)) {                                      \
+            rc = mpamGroupConfigBuilder->METHOD(value);         \
+        }                                                       \
+        break;                                                  \
+    }
+
+#define ADD_TO_CACHE_INFO_BUILDER(KEY, METHOD)                  \
+    if(topKey == KEY && cacheInfoBuilder != nullptr) {          \
+        if(RC_IS_OK(rc)) {                                      \
+            rc = cacheInfoBuilder->METHOD(value);               \
+        }                                                       \
+        break;                                                  \
+    }
 
 static int8_t isKey(const std::string& keyName) {
     if(keyName == TARGET_CONFIGS_ROOT) return true;
@@ -29,42 +44,56 @@ static int8_t isKey(const std::string& keyName) {
     if(keyName == TARGET_CLUSTER_SPREAD) return true;
     if(keyName == TARGET_PER_CLUSTER_CORE_COUNT) return true;
 
-    return false;
-}
+    if(keyName == RESOURCE_CONFIGS_ROOT) return true;
+    if(keyName == RESOURCE_CONFIGS_ELEM_RESOURCE_TYPE) return true;
+    if(keyName == RESOURCE_CONFIGS_ELEM_RESOURCE_ID) return true;
+    if(keyName == RESOURCE_CONFIGS_ELEM_RESOURCENAME) return true;
+    if(keyName == RESOURCE_CONFIGS_ELEM_RESOURCEPATH) return true;
+    if(keyName == RESOURCE_CONFIGS_ELEM_SUPPORTED) return true;
+    if(keyName == RESOURCE_CONFIGS_ELEM_HIGHTHRESHOLD) return true;
+    if(keyName == RESOURCE_CONFIGS_ELEM_LOWTHRESHOLD) return true;
+    if(keyName == RESOURCE_CONFIGS_ELEM_PERMISSIONS) return true;
+    if(keyName == RESOURCE_CONFIGS_ELEM_MODES) return true;
+    if(keyName == RESOURCE_CONFIGS_ELEM_POLICY) return true;
+    if(keyName == RESOURCE_CONFIGS_APPLY_TYPE) return true;
 
-static int8_t allowedKey(const std::string& keyName) {
-    if(keyName == TARGET_CONFIGS_ROOT) return true;
-    if(keyName == TARGET_NAME_LIST) return true;
-    if(keyName == TARGET_CLUSTER_INFO) return true;
-    if(keyName == TARGET_CLUSTER_SPREAD) return true;
+    if(keyName == INIT_CONFIGS_ROOT) return true;
+    if(keyName == INIT_CONFIGS_CGROUPS_LIST) return true;
+    if(keyName == INIT_CONFIGS_CGROUP_NAME) return true;
+    if(keyName == INIT_CONFIGS_CGROUP_IDENTIFIER) return true;
+    if(keyName == INIT_CONFIGS_CGROUP_CREATION) return true;
+    if(keyName == INIT_CONFIGS_CGROUP_THREADED) return true;
+
+    if(keyName == INIT_CONFIGS_CLUSTER_MAP) return true;
+    if(keyName == INIT_CONFIGS_CLUSTER_MAP_CLUSTER_ID) return true;
+    if(keyName == INIT_CONFIGS_CLUSTER_MAP_CLUSTER_TYPE) return true;
+
+    if(keyName == INIT_CONFIGS_MPAM_GROUPS_LIST) return true;
+    if(keyName == INIT_CONFIGS_MPAM_GROUP_NAME) return true;
+    if(keyName == INIT_CONFIGS_MPAM_GROUP_ID) return true;
+    if(keyName == INIT_CONFIGS_MPAM_GROUP_PRIORITY) return true;
+
+    if(keyName == INIT_CONFIGS_CACHE_INFO_LIST) return true;
+    if(keyName == INIT_CONFIGS_CACHE_INFO_CACHE_TYPE) return true;
+    if(keyName == INIT_CONFIGS_CACHE_INFO_CACHE_BLOCK_COUNT) return true;
+    if(keyName == INIT_CONFIGS_CACHE_INFO_CACHE_PRIORITY_AWARE) return true;
 
     return false;
 }
 
 ErrCode ConfigProcessor::parseResourceConfigYamlNode(const std::string& filePath, int8_t isBuSpecified) {
-    FILE* resourceConfigFile = fopen(filePath.c_str(), "r");
-    if(resourceConfigFile == nullptr) {
-        return RC_FILE_NOT_FOUND;
-    }
+    SETUP_LIBYAML_PARSING(filePath);
 
-    yaml_parser_t parser;
-    yaml_event_t event;
-
-    if(!yaml_parser_initialize(&parser)) {
-        fclose(resourceConfigFile);
-        return RC_YAML_PARSING_ERROR;
-    }
-
-    yaml_parser_set_input_file(&parser, resourceConfigFile);
+    ErrCode rc = RC_SUCCESS;
 
     int8_t parsingDone = false;
-    int8_t insideResourcesConfig = false;
+    int8_t docMarker = false;
     int8_t parsingResource = false;
-    int8_t inModesList = false;
 
     std::string currentKey;
     std::string value;
-    ErrCode rc = RC_SUCCESS;
+    std::string topKey;
+    std::stack<std::string> keyTracker;
 
     ResourceConfigInfoBuilder* resourceConfigInfoBuilder = nullptr;
 
@@ -79,8 +108,8 @@ ErrCode ConfigProcessor::parseResourceConfigYamlNode(const std::string& filePath
                 break;
 
             case YAML_MAPPING_START_EVENT:
-                if(!insideResourcesConfig) {
-                    insideResourcesConfig = true;
+                if(!docMarker) {
+                    docMarker = true;
                 } else {
                     // Individual Resource Config
                     resourceConfigInfoBuilder = new(std::nothrow) ResourceConfigInfoBuilder();
@@ -102,21 +131,18 @@ ErrCode ConfigProcessor::parseResourceConfigYamlNode(const std::string& filePath
                         registerResource(resourceConfigInfoBuilder->build(), isBuSpecified);
 
                     delete resourceConfigInfoBuilder;
+                    resourceConfigInfoBuilder = nullptr;
                     parsingResource = false;
                 }
-                break;
 
-            case YAML_SEQUENCE_START_EVENT:
-                if(currentKey == RESOURCE_CONFIGS_ELEM_MODES) {
-                    inModesList = true;
-                }
                 break;
 
             case YAML_SEQUENCE_END_EVENT:
-                if(inModesList) {
-                    currentKey.clear();
-                    inModesList = false;
+                if(keyTracker.empty()) {
+                    return RC_YAML_INVALID_SYNTAX;
                 }
+
+                keyTracker.pop();
                 break;
 
             case YAML_SCALAR_EVENT:
@@ -124,41 +150,32 @@ ErrCode ConfigProcessor::parseResourceConfigYamlNode(const std::string& filePath
                     value = reinterpret_cast<char*>(event.data.scalar.value);
                 }
 
-                if(value == RESOURCE_CONFIGS_ROOT) {
+                if(isKey(value)) {
+                    keyTracker.push(value);
                     break;
                 }
 
-                if(currentKey.length() == 0) {
-                    currentKey = value;
-                } else {
-                    if(inModesList) {
-                        rc = resourceConfigInfoBuilder->setModes(value);
-                        break;
-                    } else {
-                        if(currentKey == RESOURCE_CONFIGS_ELEM_RESOURCE_TYPE) {
-                            rc = resourceConfigInfoBuilder->setResType(value);
-                        } else if(currentKey == RESOURCE_CONFIGS_ELEM_RESOURCE_ID) {
-                            rc = resourceConfigInfoBuilder->setResID(value);
-                        } else if(currentKey == RESOURCE_CONFIGS_ELEM_RESOURCENAME) {
-                            rc = resourceConfigInfoBuilder->setName(value);
-                        } else if(currentKey == RESOURCE_CONFIGS_ELEM_RESOURCEPATH) {
-                            rc = resourceConfigInfoBuilder->setPath(value);
-                        } else if(currentKey == RESOURCE_CONFIGS_ELEM_SUPPORTED) {
-                            rc = resourceConfigInfoBuilder->setSupported(value);
-                        } else if(currentKey == RESOURCE_CONFIGS_ELEM_HIGHTHRESHOLD) {
-                            rc = resourceConfigInfoBuilder->setHighThreshold(value);
-                        } else if(currentKey == RESOURCE_CONFIGS_ELEM_LOWTHRESHOLD) {
-                            rc = resourceConfigInfoBuilder->setLowThreshold(value);
-                        } else if(currentKey == RESOURCE_CONFIGS_ELEM_PERMISSIONS) {
-                            rc = resourceConfigInfoBuilder->setPermissions(value);
-                        } else if(currentKey == RESOURCE_CONFIGS_ELEM_POLICY) {
-                            rc = resourceConfigInfoBuilder->setPolicy(value);
-                        } else if(currentKey == RESOURCE_CONFIGS_APPLY_TYPE) {
-                            rc = resourceConfigInfoBuilder->setApplyType(value);
-                        }
-                    }
-                    currentKey.clear();
+                if(keyTracker.empty()) {
+                    return RC_YAML_INVALID_SYNTAX;
                 }
+
+                topKey = keyTracker.top();
+                if(topKey != RESOURCE_CONFIGS_ELEM_MODES) {
+                    keyTracker.pop();
+                }
+
+                ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_RESOURCE_TYPE, setResType);
+                ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_RESOURCE_ID, setResID);
+                ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_RESOURCENAME, setName);
+                ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_RESOURCEPATH, setPath);
+                ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_SUPPORTED, setSupported);
+                ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_HIGHTHRESHOLD, setHighThreshold);
+                ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_LOWTHRESHOLD, setLowThreshold);
+                ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_PERMISSIONS, setPermissions);
+                ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_POLICY, setPolicy);
+                ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_APPLY_TYPE, setApplyType);
+                ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_MODES, setModes);
+
                 break;
 
             default:
@@ -168,30 +185,15 @@ ErrCode ConfigProcessor::parseResourceConfigYamlNode(const std::string& filePath
         yaml_event_delete(&event);
     }
 
-    yaml_parser_delete(&parser);
-    fclose(resourceConfigFile);
-
+    TEARDOWN_LIBYAML_PARSING
     return rc;
 }
 
 ErrCode ConfigProcessor::parsePropertiesConfigYamlNode(const std::string& filePath) {
-    FILE* propConfigFile = fopen(filePath.c_str(), "r");
-    if(propConfigFile == nullptr) {
-        return RC_FILE_NOT_FOUND;
-    }
-
-    yaml_parser_t parser;
-    yaml_event_t event;
-
-    if(!yaml_parser_initialize(&parser)) {
-        fclose(propConfigFile);
-        return RC_YAML_PARSING_ERROR;
-    }
-
-    yaml_parser_set_input_file(&parser, propConfigFile);
+    SETUP_LIBYAML_PARSING(filePath);
 
     int8_t parsingDone = false;
-    int8_t isKey = false;
+    int8_t isPropName = false;
 
     std::string currentKey = "";
     std::string currentValue = "";
@@ -224,14 +226,14 @@ ErrCode ConfigProcessor::parsePropertiesConfigYamlNode(const std::string& filePa
                 if(value == PROPERTIES_CONFIG_ROOT) {
                     break;
                 } else if(value == PROP_NAME) {
-                    isKey = true;
+                    isPropName = true;
                     break;
                 } else if(value == PROP_VALUE) {
-                    isKey = false;
+                    isPropName = false;
                     break;
                 }
 
-                if(isKey) {
+                if(isPropName) {
                     currentKey = value;
                 } else {
                     currentValue = value;
@@ -245,12 +247,9 @@ ErrCode ConfigProcessor::parsePropertiesConfigYamlNode(const std::string& filePa
         yaml_event_delete(&event);
     }
 
-    yaml_parser_delete(&parser);
-    fclose(propConfigFile);
-
+    TEARDOWN_LIBYAML_PARSING
     return RC_SUCCESS;
 }
-
 
 ErrCode ConfigProcessor::parseTargetConfigYamlNode(const std::string& filePath) {
     SETUP_LIBYAML_PARSING(filePath);
@@ -317,7 +316,11 @@ ErrCode ConfigProcessor::parseTargetConfigYamlNode(const std::string& filePath) 
                     value = reinterpret_cast<char*>(event.data.scalar.value);
                 }
 
-                if(isKey(value) && allowedKey(value)) {
+                if(isKey(value) && (value == TARGET_CONFIGS_ROOT)
+                                && (value == TARGET_NAME_LIST)
+                                && (value == TARGET_CLUSTER_INFO)
+                                && (value == TARGET_NAME_LIST)
+                                &&(value == TARGET_CLUSTER_SPREAD)) {
                     keyTracker.push(value);
                 } else {
                     valuesArray.push_back(value);
@@ -341,18 +344,15 @@ ErrCode ConfigProcessor::parseInitConfigYamlNode(const std::string& filePath) {
     ErrCode rc = RC_SUCCESS;
 
     int8_t parsingDone = false;
-    int8_t inClusterMapList = false;
-    int8_t inCgroupInfoList = false;
-    int8_t inMpamInfoList = false;
-    int8_t inCacheInfoList = false;
+    int8_t docMarker = false;
 
     std::string value;
-    std::string currentKey;
-    std::string currentValue;
+    std::string topKey;
+    std::stack<std::string> keyTracker;
 
-    CGroupConfigInfoBuilder* cGroupConfigBuilder;
-    MpamGroupConfigInfoBuilder* mpamGroupConfigBuilder;
-    CacheInfoBuilder* cacheInfoBuilder;
+    CGroupConfigInfoBuilder* cGroupConfigBuilder = nullptr;
+    MpamGroupConfigInfoBuilder* mpamGroupConfigBuilder = nullptr;
+    CacheInfoBuilder* cacheInfoBuilder = nullptr;
 
     while(!parsingDone) {
         if(!yaml_parser_parse(&parser, &event)) {
@@ -364,72 +364,72 @@ ErrCode ConfigProcessor::parseInitConfigYamlNode(const std::string& filePath) {
                 parsingDone = true;
                 break;
 
-            case YAML_SEQUENCE_START_EVENT:
-                if(currentKey == INIT_CONFIGS_CGROUPS_LIST) {
-                    inCgroupInfoList = true;
-                } else if(currentKey == INIT_CONFIGS_MPAM_GROUPS_LIST) {
-                    inMpamInfoList = true;
-                } else if(currentKey == INIT_CONFIGS_CACHE_INFO_LIST) {
-                    inCacheInfoList = true;
-                } else if(currentKey == INIT_CONFIGS_CLUSTER_MAP) {
-                    inClusterMapList = true;
-                }
-
-                break;
-
             case YAML_SEQUENCE_END_EVENT:
-                if(inCgroupInfoList) {
-                    inCgroupInfoList = false;
-                } else if(inMpamInfoList) {
-                    inMpamInfoList = false;
-                } else if(inCacheInfoList) {
-                    inCacheInfoList = false;
-                } else if(inClusterMapList) {
-                    inClusterMapList = false;
+                if(keyTracker.empty()) {
+                    return RC_YAML_INVALID_SYNTAX;
                 }
 
-                currentKey.clear();
+                keyTracker.pop();
                 break;
 
             case YAML_MAPPING_START_EVENT:
-                if(inCgroupInfoList) {
-                    cGroupConfigBuilder = new (std::nothrow) CGroupConfigInfoBuilder;
-                } else if(inMpamInfoList) {
-                    mpamGroupConfigBuilder = new (std::nothrow) MpamGroupConfigInfoBuilder;
-                } else if(inCacheInfoList) {
-                    cacheInfoBuilder = new (std::nothrow) CacheInfoBuilder;
+                if(!docMarker) {
+                    docMarker = true;
+                } else {
+                    if(keyTracker.empty()) {
+                        return RC_YAML_INVALID_SYNTAX;
+                    }
+
+                    topKey = keyTracker.top();
+                    if(topKey == INIT_CONFIGS_CGROUPS_LIST) {
+                        cGroupConfigBuilder = new (std::nothrow) CGroupConfigInfoBuilder;
+                    } else if(topKey == INIT_CONFIGS_MPAM_GROUPS_LIST) {
+                        mpamGroupConfigBuilder = new (std::nothrow) MpamGroupConfigInfoBuilder;
+                    } else if(topKey == INIT_CONFIGS_CACHE_INFO_LIST) {
+                        cacheInfoBuilder = new (std::nothrow) CacheInfoBuilder;
+                    }
                 }
 
-                currentKey.clear();
                 break;
 
             case YAML_MAPPING_END_EVENT:
-                if(inCgroupInfoList) {
+                if(keyTracker.empty()) {
+                    return RC_YAML_INVALID_SYNTAX;
+                }
+
+                topKey = keyTracker.top();
+                if(topKey == INIT_CONFIGS_CGROUPS_LIST) {
                     if(RC_IS_NOTOK(rc)) {
                         // Set the ID to -1, so that the Cgroup is not added and is cleaned up
                         cGroupConfigBuilder->setCGroupID("-1");
                     }
 
                     TargetRegistry::getInstance()->addCGroupMapping(cGroupConfigBuilder->build());
-                    delete cGroupConfigBuilder;
 
-                } else if(inMpamInfoList) {
+                    delete cGroupConfigBuilder;
+                    cGroupConfigBuilder = nullptr;
+
+                } else if(topKey == INIT_CONFIGS_MPAM_GROUPS_LIST) {
                     if(RC_IS_NOTOK(rc)) {
                         // Set the ID to -1, so that the Cgroup is not added and is cleaned up
                         mpamGroupConfigBuilder->setLgcID("-1");
                     }
 
                     TargetRegistry::getInstance()->addMpamGroupMapping(mpamGroupConfigBuilder->build());
-                    delete mpamGroupConfigBuilder;
 
-                } else if(inCacheInfoList) {
+                    delete mpamGroupConfigBuilder;
+                    mpamGroupConfigBuilder = nullptr;
+
+                } else if(topKey == INIT_CONFIGS_CACHE_INFO_LIST) {
                     if(RC_IS_NOTOK(rc)) {
                         cacheInfoBuilder->setType("");
                         cacheInfoBuilder->setNumBlocks("-1");
                     }
 
                     TargetRegistry::getInstance()->addCacheInfoMapping(cacheInfoBuilder->build());
+
                     delete cacheInfoBuilder;
+                    cacheInfoBuilder = nullptr;
                 }
 
                 break;
@@ -439,50 +439,39 @@ ErrCode ConfigProcessor::parseInitConfigYamlNode(const std::string& filePath) {
                     value = reinterpret_cast<char*>(event.data.scalar.value);
                 }
 
-                // Skip Labels
-                if(value == INIT_CONFIGS_ROOT) {
+                if(isKey(value)) {
+                    keyTracker.push(value);
                     break;
                 }
 
-                if(inClusterMapList) {
-                    break;
+                if(keyTracker.empty()) {
+                    return RC_YAML_INVALID_SYNTAX;
                 }
 
-                if(currentKey.length() == 0) {
-                    currentKey = value;
-                } else {
-                    if(inCgroupInfoList) {
-                        if(currentKey == INIT_CONFIGS_CGROUP_NAME) {
-                            rc = cGroupConfigBuilder->setCGroupName(value);
-                        } else if(currentKey == INIT_CONFIGS_CGROUP_IDENTIFIER) {
-                            rc = cGroupConfigBuilder->setCGroupID(value);
-                        } else if(currentKey == INIT_CONFIGS_CGROUP_CREATION) {
-                            rc = cGroupConfigBuilder->setCreationNeeded(value);
-                        } else if(currentKey == INIT_CONFIGS_CGROUP_THREADED) {
-                            rc = cGroupConfigBuilder->setThreaded(value);
-                        }
-
-                    } else if(inMpamInfoList) {
-                        if(currentKey == INIT_CONFIGS_MPAM_GROUP_NAME) {
-                            rc = mpamGroupConfigBuilder->setName(value);
-                        } else if(currentKey == INIT_CONFIGS_MPAM_GROUP_ID) {
-                            rc = mpamGroupConfigBuilder->setLgcID(value);
-                        } else if(currentKey == INIT_CONFIGS_MPAM_GROUP_PRIORITY) {
-                            rc = mpamGroupConfigBuilder->setPriority(value);
-                        }
-
-                    } else if(inCacheInfoList) {
-                        if(currentKey == INIT_CONFIGS_CACHE_INFO_CACHE_TYPE) {
-                            rc = cacheInfoBuilder->setType(value);
-                        } else if(currentKey == INIT_CONFIGS_CACHE_INFO_CACHE_BLOCK_COUNT) {
-                            cacheInfoBuilder->setNumBlocks(value);
-                        } else if(currentKey == INIT_CONFIGS_CACHE_INFO_CACHE_PRIORITY_AWARE) {
-                            rc = cacheInfoBuilder->setPriorityAware(value);
-                        }
-                    }
-                    currentKey.clear();
+                topKey = keyTracker.top();
+                if(topKey != INIT_CONFIGS_CLUSTER_MAP &&
+                   topKey !=  INIT_CONFIGS_CGROUPS_LIST &&
+                   topKey != INIT_CONFIGS_MPAM_GROUPS_LIST &&
+                   topKey != INIT_CONFIGS_CACHE_INFO_LIST) {
+                    keyTracker.pop();
                 }
 
+                ADD_TO_CGROUP_BUILDER(INIT_CONFIGS_CGROUP_NAME, setCGroupName);
+                ADD_TO_CGROUP_BUILDER(INIT_CONFIGS_CGROUP_IDENTIFIER, setCGroupID);
+                ADD_TO_CGROUP_BUILDER(INIT_CONFIGS_CGROUP_CREATION, setCreationNeeded);
+                ADD_TO_CGROUP_BUILDER(INIT_CONFIGS_CGROUP_THREADED, setThreaded);
+
+                ADD_TO_MPAM_GROUP_BUILDER(INIT_CONFIGS_MPAM_GROUP_NAME, setName);
+                ADD_TO_MPAM_GROUP_BUILDER(INIT_CONFIGS_MPAM_GROUP_ID, setLgcID);
+                ADD_TO_MPAM_GROUP_BUILDER(INIT_CONFIGS_MPAM_GROUP_PRIORITY, setPriority);
+
+                ADD_TO_CACHE_INFO_BUILDER(INIT_CONFIGS_CACHE_INFO_CACHE_TYPE, setType);
+                ADD_TO_CACHE_INFO_BUILDER(INIT_CONFIGS_CACHE_INFO_CACHE_BLOCK_COUNT, setNumBlocks);
+                ADD_TO_CACHE_INFO_BUILDER(INIT_CONFIGS_CACHE_INFO_CACHE_PRIORITY_AWARE, setPriorityAware);
+
+                break;
+
+            default:
                 break;
         }
         yaml_event_delete(&event);
