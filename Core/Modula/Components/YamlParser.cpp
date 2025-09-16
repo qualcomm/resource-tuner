@@ -3,6 +3,7 @@
 
 #include "YamlParser.h"
 
+// Replace yaml-cpp with libyaml
 ErrCode YamlParser::parse(const std::string& fileName, YAML::Node& result) {
     try {
         result = YAML::LoadFile(fileName);

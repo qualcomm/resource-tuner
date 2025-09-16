@@ -4,6 +4,7 @@
 #ifndef YAML_PARSER_H
 #define YAML_PARSER_H
 
+#include <yaml.h>
 #include <yaml-cpp/yaml.h>
 
 #include "ErrCodes.h"

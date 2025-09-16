@@ -160,16 +160,17 @@ private:
 
 public:
     ResourceConfigInfoBuilder();
+    ~ResourceConfigInfoBuilder();
 
     ErrCode setName(const std::string& resourceName);
     ErrCode setPath(const std::string& resourcePath);
     ErrCode setResType(const std::string& resTypeString);
     ErrCode setResID(const std::string& resIDString);
-    ErrCode setHighThreshold(int32_t highThreshold);
-    ErrCode setLowThreshold(int32_t lowThreshold);
+    ErrCode setHighThreshold(const std::string& highThreshold);
+    ErrCode setLowThreshold(const std::string& lowThreshold);
     ErrCode setPermissions(const std::string& permissionString);
     ErrCode setModes(const std::string& modeString);
-    ErrCode setSupported(int8_t supported);
+    ErrCode setSupported(const std::string& supported);
     ErrCode setPolicy(const std::string& policyString);
     ErrCode setApplyType(const std::string& applyTypeString);
 

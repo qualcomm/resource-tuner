@@ -11,7 +11,7 @@ It leverages kernel interfaces like procfs, sysfs and cgroups to enforce runtime
 
 This project depends on the following external libraries:
 * yaml-cpp – Used for parsing and handling YAML configuration files.
-* Installing yamlcpp:
+* Installing libyaml:
   * Yocto: Add the following to your recipe or image
     ```bash
     DEPENDS += "yaml-cpp"

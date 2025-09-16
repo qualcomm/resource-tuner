@@ -27,7 +27,6 @@
  * @{
  */
 
-#include <iostream>
 #include <vector>
 #include <exception>
 #include <mutex>

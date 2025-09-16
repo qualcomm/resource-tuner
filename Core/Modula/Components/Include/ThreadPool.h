@@ -34,13 +34,9 @@
  * @{
  */
 
-#include <assert.h>
-#include <iostream>
 #include <thread>
 #include <vector>
-#include <queue>
 #include <functional>
-#include <unistd.h>
 #include <mutex>
 #include <condition_variable>
 #include <exception>

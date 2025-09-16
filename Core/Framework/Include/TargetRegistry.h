@@ -96,8 +96,8 @@ public:
     ~TargetRegistry();
 
     // Methods for adding Target Info via TargetConfig.yaml
-    void addClusterSpreadInfo(int32_t physicalID, int32_t coreCount);
-    void addClusterMapping(int32_t logicalID, int32_t physicalID);
+    void addClusterSpreadInfo(const std::string& physicalID, const std::string& coreCount);
+    void addClusterMapping(const std::string& logicalID, const std::string& physicalID);
 
     // Method for adding CGroup configs from InitConfig.yaml
     void addCGroupMapping(CGroupConfigInfo* cGroupConfigInfo);
@@ -177,9 +177,9 @@ public:
     CGroupConfigInfoBuilder();
 
     ErrCode setCGroupName(const std::string& cGroupName);
-    ErrCode setCGroupID(int32_t cGroupIdentifier);
-    ErrCode setCreationNeeded(int8_t creationNeeded);
-    ErrCode setThreaded(int8_t isThreaded);
+    ErrCode setCGroupID(const std::string& cGroupIdentifier);
+    ErrCode setCreationNeeded(const std::string& creationNeeded);
+    ErrCode setThreaded(const std::string& isThreaded);
 
     CGroupConfigInfo* build();
 };
@@ -192,8 +192,8 @@ public:
     MpamGroupConfigInfoBuilder();
 
     ErrCode setName(const std::string& name);
-    ErrCode setLgcID(int32_t logicalID);
-    ErrCode setPriority(int32_t priority);
+    ErrCode setLgcID(const std::string& logicalID);
+    ErrCode setPriority(const std::string& priority);
 
     MpamGroupConfigInfo* build();
 };
@@ -206,8 +206,8 @@ public:
     CacheInfoBuilder();
 
     ErrCode setType(const std::string& type);
-    ErrCode setNumBlocks(int32_t numBlocks);
-    ErrCode setPriorityAware(int8_t isPriorityAware);
+    ErrCode setNumBlocks(const std::string& numBlocks);
+    ErrCode setPriorityAware(const std::string& isPriorityAware);
 
     CacheInfo* build();
 };

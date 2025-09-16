@@ -222,9 +222,16 @@ ResourceConfigInfoBuilder::ResourceConfigInfoBuilder() {
         return;
     }
 
+    // Initialize Default Values
     this->mResourceConfigInfo->mResourceApplierCallback = nullptr;
     this->mResourceConfigInfo->mResourceTearCallback = nullptr;
     this->mResourceConfigInfo->mModes = 0;
+    this->mResourceConfigInfo->mHighThreshold = this->mResourceConfigInfo->mLowThreshold = -1;
+    this->mResourceConfigInfo->mPermissions = PERMISSION_THIRD_PARTY;
+    this->mResourceConfigInfo->mSupported = false;
+    this->mResourceConfigInfo->mApplyType = ResourceApplyType::APPLY_GLOBAL;
+    this->mResourceConfigInfo->mResourcePath = "";
+    this->mResourceConfigInfo->mResourceName = "";
 }
 
 ErrCode ResourceConfigInfoBuilder::setName(const std::string& name) {
@@ -285,21 +292,43 @@ ErrCode ResourceConfigInfoBuilder::setResID(const std::string& resIDString) {
     return RC_SUCCESS;
 }
 
-ErrCode ResourceConfigInfoBuilder::setHighThreshold(int32_t highThreshold) {
+ErrCode ResourceConfigInfoBuilder::setHighThreshold(const std::string& highThresholdString) {
     if(this->mResourceConfigInfo == nullptr) {
         return RC_INVALID_VALUE;
     }
 
-    this->mResourceConfigInfo->mHighThreshold = highThreshold;
+    this->mResourceConfigInfo->mHighThreshold = 0;
+    try {
+        this->mResourceConfigInfo->mHighThreshold = (int32_t)stoi(highThresholdString, nullptr, 0);
+    } catch(const std::invalid_argument& e) {
+        TYPELOGV(RESOURCE_REGISTRY_PARSING_FAILURE, e.what());
+        return RC_INVALID_VALUE;
+
+    } catch(const std::out_of_range& e) {
+        TYPELOGV(RESOURCE_REGISTRY_PARSING_FAILURE, e.what());
+        return RC_INVALID_VALUE;
+    }
+
     return RC_SUCCESS;
 }
 
-ErrCode ResourceConfigInfoBuilder::setLowThreshold(int32_t lowThreshold) {
-    if(this->mResourceConfigInfo == nullptr) {
+ErrCode ResourceConfigInfoBuilder::setLowThreshold(const std::string& lowThresholdString) {
+        if(this->mResourceConfigInfo == nullptr) {
         return RC_INVALID_VALUE;
     }
 
-    this->mResourceConfigInfo->mLowThreshold = lowThreshold;
+    this->mResourceConfigInfo->mLowThreshold = 0;
+    try {
+        this->mResourceConfigInfo->mLowThreshold = (int32_t)stoi(lowThresholdString, nullptr, 0);
+    } catch(const std::invalid_argument& e) {
+        TYPELOGV(RESOURCE_REGISTRY_PARSING_FAILURE, e.what());
+        return RC_INVALID_VALUE;
+
+    } catch(const std::out_of_range& e) {
+        TYPELOGV(RESOURCE_REGISTRY_PARSING_FAILURE, e.what());
+        return RC_INVALID_VALUE;
+    }
+
     return RC_SUCCESS;
 }
 
@@ -342,12 +371,12 @@ ErrCode ResourceConfigInfoBuilder::setModes(const std::string& modeString) {
     return RC_SUCCESS;
 }
 
-ErrCode ResourceConfigInfoBuilder::setSupported(int8_t supported) {
+ErrCode ResourceConfigInfoBuilder::setSupported(const std::string& supportedString) {
     if(this->mResourceConfigInfo == nullptr) {
         return RC_INVALID_VALUE;
     }
 
-    this->mResourceConfigInfo->mSupported = supported;
+    this->mResourceConfigInfo->mSupported = (supportedString == "true");
     return RC_SUCCESS;
 }
 
@@ -370,7 +399,9 @@ ErrCode ResourceConfigInfoBuilder::setPolicy(const std::string& policyString) {
             return RC_INVALID_VALUE;
         }
     }
+
     this->mResourceConfigInfo->mPolicy = policy;
+
     return RC_SUCCESS;
 }
 
@@ -401,3 +432,5 @@ ErrCode ResourceConfigInfoBuilder::setApplyType(const std::string& applyTypeStri
 ResourceConfigInfo* ResourceConfigInfoBuilder::build() {
     return this->mResourceConfigInfo;
 }
+
+ResourceConfigInfoBuilder::~ResourceConfigInfoBuilder() {}

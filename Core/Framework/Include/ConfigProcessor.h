@@ -42,7 +42,6 @@
 #define TARGET_CLUSTER_INFO_PHYSICAL_ID "PhyId"
 #define TARGET_CLUSTER_SPREAD "ClusterSpread"
 #define TARGET_PER_CLUSTER_CORE_COUNT "NumCores"
-#define TARGET_TOTAL_CORE_COUNT "TotalCoreCount"
 #define TARGET_CONFIGS_ID "Id"
 #define TARGET_CONFIGS_TYPE "Type"
 
@@ -221,10 +220,10 @@
  */
 class ConfigProcessor {
 private:
-    void parseResourceConfigYamlNode(const YAML::Node& node, int8_t isBuSpecified);
-    void parsePropertiesConfigYamlNode(const YAML::Node& node);
-    void parseInitConfigYamlNode(const YAML::Node& node);
-    void parseTargetConfigYamlNode(const YAML::Node& node);
+    ErrCode parseResourceConfigYamlNode(const std::string& filePath, int8_t isBuSpecified);
+    ErrCode parsePropertiesConfigYamlNode(const std::string& filePath);
+    ErrCode parseInitConfigYamlNode(const std::string& filePath);
+    ErrCode parseTargetConfigYamlNode(const std::string& filePath);
 
 public:
     ErrCode parseResourceConfigs(const std::string& filePath, int8_t isBuSpecified=false);

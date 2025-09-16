@@ -18,22 +18,27 @@ file(GLOB SOURCES "../Framework/*.cpp")
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(YAMLCPP REQUIRED yaml-cpp)
+pkg_check_modules(LIBYAML REQUIRED yaml-0.1)
 add_library(Server ${SOURCES})
 set_target_properties(Server PROPERTIES VERSION 1.0.0 SOVERSION 1)
 target_include_directories(Server PRIVATE ${YAMLCPP_INCLUDE_DIRS})
+target_include_directories(Server PRIVATE ${LIBYAML_INCLUDE_DIRS})
 target_include_directories(Server PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../Framework/Include)
-target_link_libraries(Server PRIVATE Auxiliary SocketCommServer ExtAPIs ${YAMLCPP_LIBRARIES})
+target_link_libraries(Server PRIVATE Auxiliary SocketCommServer ExtAPIs ${YAMLCPP_LIBRARIES} ${LIBYAML_LIBRARIES})
 
 # MODULA
 file(GLOB SOURCES "../Modula/Components/*.cpp" "../Modula/Common/*.cpp" "../Modula/CoreModules/*.cpp")
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(YAMLCPP REQUIRED yaml-cpp)
+pkg_check_modules(LIBYAML REQUIRED yaml-0.1)
 
 add_library(Auxiliary ${SOURCES})
 set_target_properties(Auxiliary PROPERTIES VERSION 1.0.0 SOVERSION 1)
 target_include_directories(Auxiliary PRIVATE ${YAMLCPP_INCLUDE_DIRS})
+target_include_directories(Auxiliary PRIVATE ${LIBYAML_INCLUDE_DIRS})
 target_link_libraries(Auxiliary PRIVATE ${YAMLCPP_LIBRARIES})
+target_link_libraries(Auxiliary PRIVATE ${LIBYAML_LIBRARIES})
 
 target_include_directories(Auxiliary PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../Modula/Components/Include)
 target_include_directories(Auxiliary PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../Modula/Common/Include)
@@ -56,4 +61,5 @@ file(GLOB SOURCES "../Server/SysConfigs/*.cpp")
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(YAMLCPP REQUIRED yaml-cpp)
+pkg_check_modules(LIBYAML REQUIRED yaml-0.1)
 

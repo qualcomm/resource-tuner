@@ -25,6 +25,7 @@ static void TestInitConfigProcessorYAMLDataIntegrity1() {
 }
 
 static void TestInitConfigProcessorYAMLDataIntegrity2() {
+    std::cout<<"Count of Cgroups created: "<<TargetRegistry::getInstance()->getCreatedCGroupsCount()<<std::endl;
     C_ASSERT(TargetRegistry::getInstance()->getCreatedCGroupsCount() == 3);
 }
 

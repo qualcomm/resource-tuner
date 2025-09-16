@@ -8,6 +8,7 @@
 #include <cstring>
 #include <sstream>
 #include <fstream>
+#include <unistd.h>
 #include <getopt.h>
 
 #include "Logger.h"
