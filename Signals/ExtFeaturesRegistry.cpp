@@ -6,7 +6,7 @@
 static void* openLib(const std::string& libPath) {
     void* handle = dlopen(libPath.c_str(), RTLD_LAZY);
     if(handle == nullptr) {
-        TYPELOGV(EXT_FEATURE_LIB_OPEN_FAILED, libPath.c_str());
+        TYPELOGV(EXT_FEATURE_CONFIGS_ELEM_LIB_OPEN_FAILED, libPath.c_str());
         return nullptr;
     }
     return handle;

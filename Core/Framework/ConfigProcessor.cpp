@@ -55,28 +55,28 @@ static int8_t isKey(const std::string& keyName) {
     if(keyName == RESOURCE_CONFIGS_ELEM_PERMISSIONS) return true;
     if(keyName == RESOURCE_CONFIGS_ELEM_MODES) return true;
     if(keyName == RESOURCE_CONFIGS_ELEM_POLICY) return true;
-    if(keyName == RESOURCE_CONFIGS_APPLY_TYPE) return true;
+    if(keyName == RESOURCE_CONFIGS_ELEM_APPLY_TYPE) return true;
 
     if(keyName == INIT_CONFIGS_ROOT) return true;
-    if(keyName == INIT_CONFIGS_CGROUPS_LIST) return true;
-    if(keyName == INIT_CONFIGS_CGROUP_NAME) return true;
-    if(keyName == INIT_CONFIGS_CGROUP_IDENTIFIER) return true;
-    if(keyName == INIT_CONFIGS_CGROUP_CREATION) return true;
-    if(keyName == INIT_CONFIGS_CGROUP_THREADED) return true;
+    if(keyName == INIT_CONFIGS_ELEM_CGROUPS_LIST) return true;
+    if(keyName == INIT_CONFIGS_ELEM_CGROUP_NAME) return true;
+    if(keyName == INIT_CONFIGS_ELEM_CGROUP_IDENTIFIER) return true;
+    if(keyName == INIT_CONFIGS_ELEM_CGROUP_CREATION) return true;
+    if(keyName == INIT_CONFIGS_ELEM_CGROUP_THREADED) return true;
 
-    if(keyName == INIT_CONFIGS_CLUSTER_MAP) return true;
-    if(keyName == INIT_CONFIGS_CLUSTER_MAP_CLUSTER_ID) return true;
-    if(keyName == INIT_CONFIGS_CLUSTER_MAP_CLUSTER_TYPE) return true;
+    if(keyName == INIT_CONFIGS_ELEM_CLUSTER_MAP) return true;
+    if(keyName == INIT_CONFIGS_ELEM_CLUSTER_MAP_CLUSTER_ID) return true;
+    if(keyName == INIT_CONFIGS_ELEM_CLUSTER_MAP_CLUSTER_TYPE) return true;
 
-    if(keyName == INIT_CONFIGS_MPAM_GROUPS_LIST) return true;
-    if(keyName == INIT_CONFIGS_MPAM_GROUP_NAME) return true;
-    if(keyName == INIT_CONFIGS_MPAM_GROUP_ID) return true;
-    if(keyName == INIT_CONFIGS_MPAM_GROUP_PRIORITY) return true;
+    if(keyName == INIT_CONFIGS_ELEM_MPAM_GROUPS_LIST) return true;
+    if(keyName == INIT_CONFIGS_ELEM_MPAM_GROUP_NAME) return true;
+    if(keyName == INIT_CONFIGS_ELEM_MPAM_GROUP_ID) return true;
+    if(keyName == INIT_CONFIGS_ELEM_MPAM_GROUP_PRIORITY) return true;
 
-    if(keyName == INIT_CONFIGS_CACHE_INFO_LIST) return true;
-    if(keyName == INIT_CONFIGS_CACHE_INFO_CACHE_TYPE) return true;
-    if(keyName == INIT_CONFIGS_CACHE_INFO_CACHE_BLOCK_COUNT) return true;
-    if(keyName == INIT_CONFIGS_CACHE_INFO_CACHE_PRIORITY_AWARE) return true;
+    if(keyName == INIT_CONFIGS_ELEM_CACHE_INFO_LIST) return true;
+    if(keyName == INIT_CONFIGS_ELEM_CACHE_INFO_CACHE_TYPE) return true;
+    if(keyName == INIT_CONFIGS_ELEM_CACHE_INFO_CACHE_BLOCK_COUNT) return true;
+    if(keyName == INIT_CONFIGS_ELEM_CACHE_INFO_CACHE_PRIO_AWARE) return true;
 
     return false;
 }
@@ -172,7 +172,7 @@ ErrCode ConfigProcessor::parseResourceConfigYamlNode(const std::string& filePath
                 ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_LOWTHRESHOLD, setLowThreshold);
                 ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_PERMISSIONS, setPermissions);
                 ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_POLICY, setPolicy);
-                ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_APPLY_TYPE, setApplyType);
+                ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_APPLY_TYPE, setApplyType);
                 ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_MODES, setModes);
 
                 break;
@@ -222,12 +222,12 @@ ErrCode ConfigProcessor::parsePropertiesConfigYamlNode(const std::string& filePa
                     value = reinterpret_cast<char*>(event.data.scalar.value);
                 }
 
-                if(value == PROPERTIES_CONFIG_ROOT) {
+                if(value == PROPERTY_CONFIGS_ROOT) {
                     break;
-                } else if(value == PROP_NAME) {
+                } else if(value == PROPERTY_CONFIGS_ELEM_NAME) {
                     isPropName = true;
                     break;
-                } else if(value == PROP_VALUE) {
+                } else if(value == PROPERTY_CONFIGS_ELEM_VALUE) {
                     isPropName = false;
                     break;
                 }
@@ -405,19 +405,19 @@ ErrCode ConfigProcessor::parseInitConfigYamlNode(const std::string& filePath) {
                     }
 
                     topKey = keyTracker.top();
-                    if(topKey == INIT_CONFIGS_CGROUPS_LIST) {
+                    if(topKey == INIT_CONFIGS_ELEM_CGROUPS_LIST) {
                         cGroupConfigBuilder = new(std::nothrow) CGroupConfigInfoBuilder;
                         if(cGroupConfigBuilder == nullptr) {
                             return RC_MEMORY_ALLOCATION_FAILURE;
                         }
 
-                    } else if(topKey == INIT_CONFIGS_MPAM_GROUPS_LIST) {
+                    } else if(topKey == INIT_CONFIGS_ELEM_MPAM_GROUPS_LIST) {
                         mpamGroupConfigBuilder = new(std::nothrow) MpamGroupConfigInfoBuilder;
                         if(mpamGroupConfigBuilder == nullptr) {
                             return RC_MEMORY_ALLOCATION_FAILURE;
                         }
 
-                    } else if(topKey == INIT_CONFIGS_CACHE_INFO_LIST) {
+                    } else if(topKey == INIT_CONFIGS_ELEM_CACHE_INFO_LIST) {
                         cacheInfoBuilder = new(std::nothrow) CacheInfoBuilder;
                         if(cacheInfoBuilder == nullptr) {
                             return RC_MEMORY_ALLOCATION_FAILURE;
@@ -433,7 +433,7 @@ ErrCode ConfigProcessor::parseInitConfigYamlNode(const std::string& filePath) {
                 }
 
                 topKey = keyTracker.top();
-                if(topKey == INIT_CONFIGS_CGROUPS_LIST) {
+                if(topKey == INIT_CONFIGS_ELEM_CGROUPS_LIST) {
                     if(RC_IS_NOTOK(rc)) {
                         // Set the ID to -1, so that the Cgroup is not added and is cleaned up
                         cGroupConfigBuilder->setCGroupID("-1");
@@ -444,7 +444,7 @@ ErrCode ConfigProcessor::parseInitConfigYamlNode(const std::string& filePath) {
                     delete cGroupConfigBuilder;
                     cGroupConfigBuilder = nullptr;
 
-                } else if(topKey == INIT_CONFIGS_MPAM_GROUPS_LIST) {
+                } else if(topKey == INIT_CONFIGS_ELEM_MPAM_GROUPS_LIST) {
                     if(RC_IS_NOTOK(rc)) {
                         // Set the ID to -1, so that the Cgroup is not added and is cleaned up
                         mpamGroupConfigBuilder->setLgcID("-1");
@@ -455,7 +455,7 @@ ErrCode ConfigProcessor::parseInitConfigYamlNode(const std::string& filePath) {
                     delete mpamGroupConfigBuilder;
                     mpamGroupConfigBuilder = nullptr;
 
-                } else if(topKey == INIT_CONFIGS_CACHE_INFO_LIST) {
+                } else if(topKey == INIT_CONFIGS_ELEM_CACHE_INFO_LIST) {
                     if(RC_IS_NOTOK(rc)) {
                         cacheInfoBuilder->setType("");
                         cacheInfoBuilder->setNumBlocks("-1");
@@ -484,25 +484,25 @@ ErrCode ConfigProcessor::parseInitConfigYamlNode(const std::string& filePath) {
                 }
 
                 topKey = keyTracker.top();
-                if(topKey != INIT_CONFIGS_CLUSTER_MAP &&
-                   topKey !=  INIT_CONFIGS_CGROUPS_LIST &&
-                   topKey != INIT_CONFIGS_MPAM_GROUPS_LIST &&
-                   topKey != INIT_CONFIGS_CACHE_INFO_LIST) {
+                if(topKey != INIT_CONFIGS_ELEM_CLUSTER_MAP &&
+                   topKey !=  INIT_CONFIGS_ELEM_CGROUPS_LIST &&
+                   topKey != INIT_CONFIGS_ELEM_MPAM_GROUPS_LIST &&
+                   topKey != INIT_CONFIGS_ELEM_CACHE_INFO_LIST) {
                     keyTracker.pop();
                 }
 
-                ADD_TO_CGROUP_BUILDER(INIT_CONFIGS_CGROUP_NAME, setCGroupName);
-                ADD_TO_CGROUP_BUILDER(INIT_CONFIGS_CGROUP_IDENTIFIER, setCGroupID);
-                ADD_TO_CGROUP_BUILDER(INIT_CONFIGS_CGROUP_CREATION, setCreationNeeded);
-                ADD_TO_CGROUP_BUILDER(INIT_CONFIGS_CGROUP_THREADED, setThreaded);
+                ADD_TO_CGROUP_BUILDER(INIT_CONFIGS_ELEM_CGROUP_NAME, setCGroupName);
+                ADD_TO_CGROUP_BUILDER(INIT_CONFIGS_ELEM_CGROUP_IDENTIFIER, setCGroupID);
+                ADD_TO_CGROUP_BUILDER(INIT_CONFIGS_ELEM_CGROUP_CREATION, setCreationNeeded);
+                ADD_TO_CGROUP_BUILDER(INIT_CONFIGS_ELEM_CGROUP_THREADED, setThreaded);
 
-                ADD_TO_MPAM_GROUP_BUILDER(INIT_CONFIGS_MPAM_GROUP_NAME, setName);
-                ADD_TO_MPAM_GROUP_BUILDER(INIT_CONFIGS_MPAM_GROUP_ID, setLgcID);
-                ADD_TO_MPAM_GROUP_BUILDER(INIT_CONFIGS_MPAM_GROUP_PRIORITY, setPriority);
+                ADD_TO_MPAM_GROUP_BUILDER(INIT_CONFIGS_ELEM_MPAM_GROUP_NAME, setName);
+                ADD_TO_MPAM_GROUP_BUILDER(INIT_CONFIGS_ELEM_MPAM_GROUP_ID, setLgcID);
+                ADD_TO_MPAM_GROUP_BUILDER(INIT_CONFIGS_ELEM_MPAM_GROUP_PRIORITY, setPriority);
 
-                ADD_TO_CACHE_INFO_BUILDER(INIT_CONFIGS_CACHE_INFO_CACHE_TYPE, setType);
-                ADD_TO_CACHE_INFO_BUILDER(INIT_CONFIGS_CACHE_INFO_CACHE_BLOCK_COUNT, setNumBlocks);
-                ADD_TO_CACHE_INFO_BUILDER(INIT_CONFIGS_CACHE_INFO_CACHE_PRIORITY_AWARE, setPriorityAware);
+                ADD_TO_CACHE_INFO_BUILDER(INIT_CONFIGS_ELEM_CACHE_INFO_CACHE_TYPE, setType);
+                ADD_TO_CACHE_INFO_BUILDER(INIT_CONFIGS_ELEM_CACHE_INFO_CACHE_BLOCK_COUNT, setNumBlocks);
+                ADD_TO_CACHE_INFO_BUILDER(INIT_CONFIGS_ELEM_CACHE_INFO_CACHE_PRIO_AWARE, setPriorityAware);
 
                 break;
 

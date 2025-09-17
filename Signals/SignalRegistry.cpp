@@ -241,38 +241,43 @@ ErrCode SignalInfoBuilder::addPermission(const std::string& permissionString) {
     return RC_SUCCESS;
 }
 
-ErrCode SignalInfoBuilder::addTarget(int8_t isEnabled, const std::string& target) {
+ErrCode SignalInfoBuilder::addTargetEnabled(const std::string& target) {
     if(this->mSignalInfo == nullptr) {
         return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
     std::string targetName(target);
+    if(this->mSignalInfo->mTargetsEnabled == nullptr) {
+        this->mSignalInfo->mTargetsEnabled = new(std::nothrow) std::unordered_set<std::string>;
+    }
 
-    if(isEnabled) {
-        if(this->mSignalInfo->mTargetsEnabled == nullptr) {
-            this->mSignalInfo->mTargetsEnabled = new(std::nothrow) std::unordered_set<std::string>;
-        }
-
-        if(this->mSignalInfo->mTargetsEnabled != nullptr) {
-            std::transform(targetName.begin(), targetName.end(), targetName.begin(),
-                [](unsigned char ch) {return std::tolower(ch);});
-            this->mSignalInfo->mTargetsEnabled->insert(targetName);
-        } else {
-            return RC_INVALID_VALUE;
-        }
-
+    if(this->mSignalInfo->mTargetsEnabled != nullptr) {
+        std::transform(targetName.begin(), targetName.end(), targetName.begin(),
+            [](unsigned char ch) {return std::tolower(ch);});
+        this->mSignalInfo->mTargetsEnabled->insert(targetName);
     } else {
-        if(this->mSignalInfo->mTargetsDisabled == nullptr) {
-            this->mSignalInfo->mTargetsDisabled = new(std::nothrow) std::unordered_set<std::string>;
-        }
+        return RC_MEMORY_ALLOCATION_FAILURE;
+    }
 
-        if(this->mSignalInfo->mTargetsDisabled != nullptr) {
-            std::transform(targetName.begin(), targetName.end(), targetName.begin(),
-                [](unsigned char ch) {return std::tolower(ch);});
-            this->mSignalInfo->mTargetsDisabled->insert(targetName);
-        } else {
-            return RC_INVALID_VALUE;
-        }
+    return RC_SUCCESS;
+}
+
+ErrCode SignalInfoBuilder::addTargetDisabled(const std::string& target) {
+    if(this->mSignalInfo == nullptr) {
+        return RC_MEMORY_ALLOCATION_FAILURE;
+    }
+
+    std::string targetName(target);
+    if(this->mSignalInfo->mTargetsDisabled == nullptr) {
+        this->mSignalInfo->mTargetsDisabled = new(std::nothrow) std::unordered_set<std::string>;
+    }
+
+    if(this->mSignalInfo->mTargetsDisabled != nullptr) {
+        std::transform(targetName.begin(), targetName.end(), targetName.begin(),
+            [](unsigned char ch) {return std::tolower(ch);});
+        this->mSignalInfo->mTargetsDisabled->insert(targetName);
+    } else {
+        return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
     return RC_SUCCESS;

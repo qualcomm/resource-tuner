@@ -146,7 +146,8 @@ public:
     ErrCode setName(const std::string& signalName);
     ErrCode setTimeout(const std::string& timeoutString);
     ErrCode setIsEnabled(const std::string& isEnabledString);
-    ErrCode addTarget(int8_t isEnabled, const std::string& target);
+    ErrCode addTargetEnabled(const std::string& target);
+    ErrCode addTargetDisabled(const std::string& target);
     ErrCode addPermission(const std::string& permissionString);
     ErrCode addDerivative(const std::string& derivative);
     ErrCode addResource(Resource* resource);
