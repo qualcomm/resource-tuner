@@ -203,9 +203,7 @@ void ResourceRegistry::pluginModifications() {
     }
 }
 
-void ResourceRegistry::restoreResourcesToDefaultValues() {
-
-}
+void ResourceRegistry::restoreResourcesToDefaultValues() {}
 
 ResourceRegistry::~ResourceRegistry() {
     for(int32_t i = 0; i < this->mResourceConfig.size(); i++) {

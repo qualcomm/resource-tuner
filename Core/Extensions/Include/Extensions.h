@@ -31,11 +31,11 @@ enum ConfigType {
 };
 
 /**
-* @brief Extensions
-* @details Provides an Interface for Customizing Resource Tuner Behaviour. Through the Extension Interface,
-*          Custom Resource Callbacks / Appliers as well as Custom Config Files (for example: Resource
-*          Configs or Signal Configs) can be specified.
-*/
+ * @brief Extensions
+ * @details Provides an Interface for Customizing Resource Tuner Behaviour. Through the Extension Interface,
+ *          Custom Resource Callbacks / Appliers as well as Custom Config Files (for example: Resource
+ *          Configs or Signal Configs) can be specified.
+ */
 class Extensions {
 private:
     static std::vector<std::string> mModifiedConfigFiles;

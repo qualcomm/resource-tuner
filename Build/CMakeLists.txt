@@ -60,6 +60,9 @@ install(TARGETS resource_tuner RUNTIME DESTINATION bin)
 install(TARGETS Auxiliary SocketCommServer
         ClientAPIs Server ExtAPIs
         SysRequestReceiver LIBRARY DESTINATION lib)
+if(BUILD_TESTS)
+install(TARGETS TestSetupUtils DESTINATION lib)
+endif()
 if(BUILD_SIGNALS)
   install(TARGETS SysSignals DESTINATION lib)
 endif()
