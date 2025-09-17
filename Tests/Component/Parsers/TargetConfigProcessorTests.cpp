@@ -1,7 +1,6 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <thread>
 #include <cstdint>
 
 #include "TestUtils.h"
@@ -11,21 +10,22 @@
 #include "Extensions.h"
 #include "Utils.h"
 
-static void Init() {
-    ConfigProcessor configProcessor;
+static ErrCode parsingStatus = RC_SUCCESS;
 
-    if(RC_IS_NOTOK(configProcessor.parseTargetConfigs("/etc/resource-tuner/custom/TargetConfig.yaml"))) {
-        return;
-    }
+static void Init() {
+    ResourceTunerSettings::targetConfigs.targetName = "TestDevice";
+    ConfigProcessor configProcessor;
+    parsingStatus = configProcessor.parseTargetConfigs("/etc/resource-tuner/custom/TargetConfigDup.yaml");
 }
 
 static void TestTargetConfigProcessorYAMLDataIntegrity1() {
     C_ASSERT(TargetRegistry::getInstance() != nullptr);
+    C_ASSERT(parsingStatus == RC_SUCCESS);
 }
 
 static void TestTargetConfigProcessorYAMLDataIntegrity2() {
-    std::cout<<"determine core count = "<<ResourceTunerSettings::targetConfigs.mTotalCoreCount<<std::endl;
-    C_ASSERT(ResourceTunerSettings::targetConfigs.mTotalCoreCount == 10);
+    std::cout<<"Determined Cluster Count = "<<ResourceTunerSettings::targetConfigs.mTotalClusterCount<<std::endl;
+    C_ASSERT(ResourceTunerSettings::targetConfigs.mTotalClusterCount == 4);
 }
 
 static void TestTargetConfigProcessorYAMLDataIntegrity3() {
@@ -51,7 +51,7 @@ static void TestTargetConfigProcessorYAMLDataIntegrity4() {
 }
 
 int32_t main() {
-    std::cout<<"Running [TargetConfigProcessorTests] Test Suite\n"<<std::endl;
+    std::cout<<"Running Test Suite: [TargetConfigProcessorTests]\n"<<std::endl;
 
     Init();
     RUN_TEST(TestTargetConfigProcessorYAMLDataIntegrity1);

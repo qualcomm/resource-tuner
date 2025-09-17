@@ -1,7 +1,6 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <thread>
 #include <cstdint>
 #include <unordered_set>
 
@@ -12,19 +11,20 @@
 #include "Extensions.h"
 #include "Utils.h"
 
+static ErrCode parsingStatus = RC_SUCCESS;
+
 static void Init() {
     ConfigProcessor configProcessor;
-
-    if(RC_IS_NOTOK(configProcessor.parseInitConfigs("/etc/resource-tuner/custom/InitConfig.yaml"))) {
-        return;
-    }
+    parsingStatus = configProcessor.parseInitConfigs("/etc/resource-tuner/custom/InitConfig.yaml");
 }
 
 static void TestInitConfigProcessorYAMLDataIntegrity1() {
-    C_ASSERT(TargetRegistry::getInstance() != nullptr);
+    C_ASSERT(TargetRegistry::getInstance() != nullptr);\
+    C_ASSERT(parsingStatus == RC_SUCCESS);
 }
 
 static void TestInitConfigProcessorYAMLDataIntegrity2() {
+    std::cout<<"Count of Cgroups created: "<<TargetRegistry::getInstance()->getCreatedCGroupsCount()<<std::endl;
     C_ASSERT(TargetRegistry::getInstance()->getCreatedCGroupsCount() == 3);
 }
 
@@ -98,7 +98,7 @@ static void TestInitConfigProcessorYAMLDataIntegrity7() {
 }
 
 int32_t main() {
-    std::cout<<"Running [InitConfigParsingTests] Test Suite\n"<<std::endl;
+    std::cout<<"Running Test Suite: [InitConfigParsingTests]\n"<<std::endl;
 
     Init();
     RUN_TEST(TestInitConfigProcessorYAMLDataIntegrity1);

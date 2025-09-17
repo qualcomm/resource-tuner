@@ -1,7 +1,6 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <thread>
 #include <cstdint>
 
 #include "TestUtils.h"
@@ -12,23 +11,24 @@
 
 #define TOTAL_RESOURCE_CONFIGS_COUNT 15
 
+static ErrCode parsingStatus = RC_SUCCESS;
+
 static void Init() {
     ConfigProcessor configProcessor;
 
     std::string resourcesClassA = "/etc/resource-tuner/custom/ResourcesConfig.yaml";
     std::string resourcesClassB = "/etc/resource-tuner/custom/ResourcesConfigAddOn.yaml";
 
-    if(RC_IS_NOTOK(configProcessor.parseResourceConfigs(resourcesClassA))) {
-        return;
-    }
+    parsingStatus = configProcessor.parseResourceConfigs(resourcesClassA);
 
-    if(RC_IS_NOTOK(configProcessor.parseResourceConfigs(resourcesClassB, true))) {
-        return;
+    if(RC_IS_OK(parsingStatus)) {
+        parsingStatus = configProcessor.parseResourceConfigs(resourcesClassB, true);
     }
 }
 
 static void TestResourceParsingSanity() {
     C_ASSERT(ResourceRegistry::getInstance() != nullptr);
+    C_ASSERT(parsingStatus == RC_SUCCESS);
 }
 
 static void TestResourceParsingResourcesParsed() {
@@ -116,7 +116,7 @@ static void TestResourceParsingResourcesDefaultValuesCheck() {
     C_ASSERT(resourceConfigInfo->mSupported == false);
     C_ASSERT(resourceConfigInfo->mPolicy == LAZY_APPLY);
     C_ASSERT(resourceConfigInfo->mPermissions == PERMISSION_THIRD_PARTY);
-    C_ASSERT(resourceConfigInfo->mModes == MODE_DISPLAY_ON);
+    C_ASSERT(resourceConfigInfo->mModes == 0);
     C_ASSERT(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_GLOBAL);
 }
 

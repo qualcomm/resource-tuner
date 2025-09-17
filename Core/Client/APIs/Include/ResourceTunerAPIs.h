@@ -8,8 +8,7 @@
 /*!
  * \ingroup  RESOURCE_TUNER_CLIENT_APIS
  * \defgroup RESOURCE_TUNER_CLIENT_APIS Client APIs
- * \details This file contains all the Client-Facing Resource Tuner APIs. Using these APIs
- *          Clients, can send Requests to the Resource Tuner Server.
+ * \details Resource Tuner's Client-Facing APIs.
  *
  * @{
  */
@@ -26,6 +25,11 @@ extern "C" {
 #include <stdint.h>
 #endif
 
+/**
+ * @struct SysResource
+ * @brief Used to store information regarding Resources / Tunables which need to be
+ *        Provisioned as part of the tuneResources API.
+ */
 typedef struct {
     /**
      * @brief A uniqued 32-bit (unsigned) identifier for the Resource.
@@ -54,78 +58,78 @@ typedef struct {
 } SysResource;
 
 // Define Utilities to parse and set the mResInfo field in Resource struct.
-#define EXTRACT_RESOURCE_CORE_VALUE(resInfo)({ \
-    (int32_t) (resInfo) & ((1 << 8) - 1); \
-}) \
+#define EXTRACT_RESOURCE_CORE_VALUE(resInfo)({                                               \
+    (int32_t) (resInfo) & ((1 << 8) - 1);                                                    \
+})                                                                                           \
 
-#define EXTRACT_RESOURCE_CLUSTER_VALUE(resInfo)({ \
-    (int32_t) (resInfo >> 8) & ((1 << 8) - 1); \
-}) \
+#define EXTRACT_RESOURCE_CLUSTER_VALUE(resInfo)({                                            \
+    (int32_t) (resInfo >> 8) & ((1 << 8) - 1);                                               \
+})                                                                                           \
 
-#define SET_RESOURCE_CORE_VALUE(resInfo, newValue)({ \
-    (int32_t) (resInfo ^ EXTRACT_RESOURCE_CORE_VALUE(resInfo)) | newValue;  \
-}) \
+#define SET_RESOURCE_CORE_VALUE(resInfo, newValue)({                                         \
+    (int32_t) (resInfo ^ EXTRACT_RESOURCE_CORE_VALUE(resInfo)) | newValue;                   \
+})                                                                                           \
 
-#define SET_RESOURCE_CLUSTER_VALUE(resInfo, newValue)({ \
+#define SET_RESOURCE_CLUSTER_VALUE(resInfo, newValue)({                                      \
     (int32_t) (resInfo ^ (EXTRACT_RESOURCE_CLUSTER_VALUE(resInfo) << 8)) | (newValue << 8);  \
-}) \
+})                                                                                           \
 
 /**
-* @brief Tune Resource Values for finite or finite duration.
-* @details Use this API to issue Resource Provisioning / Tuning Requests.
-* @param duration Duration (in milliseconds) to provision the Resources for. A value of -1 denotes infinite duration.
-* @param properties A 32 bit signed Integer storing the Properties of the Request.
-*                   - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
-*                   - The Next 8 bits [17 - 24] represent a Boolean Flag, which indicates
-*                     if the Request should be processed in the background (in case of Display Off or Doze Mode).
-*
-* @param numRes Number of Resources to be tuned as part of the Request
-* @param resourceList List of Resources to be provisioned as part of the Request
-* @return int64_t :
-*              A Positive Integer Handle which uniquely identifies the issued Request. The handle is used for future retune / untune APIs.\n
-*              -1: If the Request could not be sent to the server.
-*/
+ * @brief Tune Resource Values for finite or finite duration.
+ * @details Use this API to issue Resource Provisioning / Tuning Requests.
+ * @param duration Duration (in milliseconds) to provision the Resources for. A value of -1 denotes infinite duration.
+ * @param properties A 32 bit signed Integer storing the Properties of the Request.
+ *                   - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
+ *                   - The Next 8 bits [17 - 24] represent a Boolean Flag, which indicates
+ *                     if the Request should be processed in the background (in case of Display Off or Doze Mode).
+ *
+ * @param numRes Number of Resources to be tuned as part of the Request
+ * @param resourceList List of Resources to be provisioned as part of the Request
+ * @return int64_t:\n
+ *            - A Positive Integer Handle which uniquely identifies the issued Request. The handle is used for future retune / untune APIs.\n
+ *            - -1: If the Request could not be sent to the server.
+ */
 int64_t tuneResources(int64_t duration, int32_t prop, int32_t numRes, SysResource* resourceList);
 
 /**
-* @brief Modify the duration of a previously issued Tune Request.
-* @details Use this API to increase the duration (in milliseconds) of an existing Request issued via.
-* @param handle Request Handle, returned by tuneResources.
-* @param duration The new duration for the previously issued Tune request. A value of -1 denotes infinite duration.
-* @return int8_t:
-*              0: If the Request was successfully submitted to the server.\n
-*              -1: Otherwise.
-*/
+ * @brief Modify the duration of a previously issued Tune Request.
+ * @details Use this API to increase the duration (in milliseconds) of an existing Request issued via.
+ * @param handle Request Handle, returned by tuneResources.
+ * @param duration The new duration for the previously issued Tune request. A value of -1 denotes infinite duration.
+ * @return int8_t:\n
+ *            - 0: If the Request was successfully submitted to the server.\n
+ *            - -1: Otherwise.
+ */
 int8_t retuneResources(int64_t handle, int64_t duration);
 
 /**
-* @brief Release (or free) the Request with the given handle.
-* @details Use this API to issue Signal De-Provisioning Requests.
-* @param handle Request Handle, returned by the tuneResources API call.
-* @return int8_t:
-*              0: If the Request was successfully submitted to the server.\n
-*              -1: Otherwise
-*/
+ * @brief Release (or free) the Request with the given handle.
+ * @details Use this API to issue Signal De-Provisioning Requests.
+ * @param handle Request Handle, returned by the tuneResources API call.
+ * @return int8_t:\n
+ *            - 0: If the Request was successfully submitted to the server.\n
+ *            - -1: Otherwise
+ */
 int8_t untuneResources(int64_t handle);
 
 /**
-* @brief Gets a property from the Config Store.
-* @details Use this API to fetch a SysConfig property by it's name, all of the properties were Parsed during Resource Tuner Server initialization.
-* @param prop Name of the Property to be fetched.
-* @param buffer A buffer to hold the result, i.e. the property value corresponding to the specified name.
-* @param bufferSize Size of the buffer
-* @param defValue Value to return in case a property with the specified Name is not found in the Config Store
-* @return int8_t:
-*              0: If the Request was successfully Submitted to the Server.\n
-*              -1: Otherwise\n\n
-* Note: The result of the Query itself is stored in the buffer (IN / OUT arg).
-*/
+ * @brief Gets a property from the Config Store.
+ * @details Use this API to fetch a Property by it's name, all the properties are Parsed during Resource Tuner Server initialization.
+ * @param prop Name of the Property to be fetched.
+ * @param buffer A buffer to hold the result, i.e. the property value corresponding to the specified name.
+ * @param bufferSize Size of the buffer
+ * @param defValue Value to return in case a property with the specified Name is not found in the Config Store
+ * @return int8_t:\n
+ *            - 0: If the Request was successfully Submitted to the Server.\n
+ *            - -1: Otherwise\n\n
+ * @note The result of the Query itself is stored in the buffer (IN / OUT arg).
+ */
 int8_t getProp(const char* prop, char* buffer, size_t bufferSize, const char* defValue);
 
 /**
  * @brief Tune the signal with the given ID.
  * @details Use this API to issue Signal Provisioning Requests, for a certain duration of time.
- * @param signalID ID of the Signal to be Tuned.
+ * @param signalCode A uniqued 32-bit (unsigned) identifier for the Signal
  * @param duration Duration (in milliseconds) to provision the Resources for. A value of -1 denotes infinite duration.
  * @param properties A 32 bit signed Integer storing the Properties of the Request.
  *                   - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
@@ -136,44 +140,42 @@ int8_t getProp(const char* prop, char* buffer, size_t bufferSize, const char* de
  * @param scenario Name of the Scenario that is issuing the Request
  * @param numArgs Number of Additional Arguments to be passed as part of the Request
  * @param list List of Additional Arguments to be passed as part of the Request
- * @return int64_t:
- *              A Positive Unique Handle to identify the issued Request. The handle is used for freeing the Provisioned signal later.\n
- *              -1: If the Request could not be sent to the server.
+ * @return int64_t:\n
+ *            - A Positive Unique Handle to identify the issued Request. The handle is used for freeing the Provisioned signal later.\n
+ *            - -1: If the Request could not be sent to the server.
  */
-int64_t tuneSignal(uint32_t signalID, int64_t duration, int32_t properties,
+int64_t tuneSignal(uint32_t signalCode, int64_t duration, int32_t properties,
                    const char* appName, const char* scenario, int32_t numArgs, uint32_t* list);
 
 /**
  * @brief Relay the signal to all the features subscribed to the signal with the given ID.
  * @details Use this API to issue Signal Relay Requests.
- * @param signalID ID of the Signal to be Tuned.
+ * @param signalCode A uniqued 32-bit (unsigned) identifier for the Signal
  * @param duration Duration (in milliseconds)
  * @param properties A 32 bit signed Integer storing the Properties of the Request.
  *                   - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
  *                   - The Next 8 bits [17 - 24] represent a Boolean Flag, which indicates
  *                     if the Request should be processed in the background (in case of Display Off or Doze Mode).
- *                   - The Next 8 bits [9 - 16] represent the order in which the Resources part of this Request
- *                     should be untuned. Possible values are: Forward Order [0] (default) and Reverse Order [1]
  *
  * @param appName Name of the Application that is issuing the Request
  * @param scenario Name of the Scenario that is issuing the Request
  * @param numArgs Number of Additional Arguments to be passed as part of the Request
  * @param list List of Additional Arguments to be passed as part of the Request
- * @return int8_t:
- *              0: If the Request was successfully sent to the server.\n
- *              -1: Otherwise
+ * @return int8_t:\n
+ *            - 0: If the Request was successfully sent to the server.\n
+ *            - -1: Otherwise
  */
-int8_t relaySignal(uint32_t signalID, int64_t duration, int32_t properties,
+int8_t relaySignal(uint32_t signalCode, int64_t duration, int32_t properties,
                    const char* appName, const char* scenario, int32_t numArgs, uint32_t* list);
 
 /**
  * @brief Release (or free) the signal with the given handle.
  * @details Use this API to issue Signal De-Provisioning Requests
  * @param handle Request Handle, returned by the tuneSignal API call.
- * @return int8_t:
- *              0: If the Request was successfully sent to the server.\n
- *              -1: Otherwise
-*/
+ * @return int8_t:\n
+ *            - 0: If the Request was successfully sent to the server.\n
+ *            - -1: Otherwise
+ */
 int8_t untuneSignal(int64_t handle);
 
 #ifdef __cplusplus

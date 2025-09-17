@@ -1,8 +1,6 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <thread>
-
 #include "TestUtils.h"
 #include "RequestManager.h"
 #include "RateLimiter.h"

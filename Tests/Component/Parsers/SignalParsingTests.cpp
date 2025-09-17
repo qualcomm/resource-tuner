@@ -1,7 +1,6 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <thread>
 #include <cstdint>
 #include <cstring>
 
@@ -13,28 +12,28 @@
 
 #define TOTAL_SIGNAL_CONFIGS_COUNT 10
 
+static ErrCode parsingStatus = RC_SUCCESS;
+
 static void Init() {
     SignalConfigProcessor configProcessor;
 
     std::string signalsClassA = "/etc/resource-tuner/custom/SignalsConfig.yaml";
     std::string signalsClassB = "/etc/resource-tuner/custom/SignalsConfigAddOn.yaml";
 
-    if(RC_IS_NOTOK(configProcessor.parseSignalConfigs(signalsClassA))) {
-        return;
-    }
-
-    if(RC_IS_NOTOK(configProcessor.parseSignalConfigs(signalsClassB, true))) {
-        return;
+    parsingStatus = configProcessor.parseSignalConfigs(signalsClassA);
+    if(RC_IS_OK(parsingStatus)) {
+        parsingStatus = configProcessor.parseSignalConfigs(signalsClassB, true);
     }
 }
 
 static void TestSignalParsingSanity() {
     C_ASSERT(SignalRegistry::getInstance() != nullptr);
+    C_ASSERT(parsingStatus == RC_SUCCESS);
 }
 
 static void TestSignalParsingSignalsParsed() {
-    std::cout<<"dee count = "<<SignalRegistry::getInstance()->getSignalsConfigCount()<<std::endl;
-    std::cout<<"expected count = "<<TOTAL_SIGNAL_CONFIGS_COUNT<<std::endl;
+    std::cout<<"Signals Parsed count = "<<SignalRegistry::getInstance()->getSignalsConfigCount()<<std::endl;
+    std::cout<<"Expected count = "<<TOTAL_SIGNAL_CONFIGS_COUNT<<std::endl;
     C_ASSERT(SignalRegistry::getInstance()->getSignalsConfigCount() == TOTAL_SIGNAL_CONFIGS_COUNT);
 }
 
@@ -215,6 +214,6 @@ int32_t main() {
     RUN_TEST(TestSignalParsingSignalsMerged4)
     RUN_TEST(TestSignalParsingSignalsMerged5)
 
-    std::cout<<"\nAll Tests from the suite: [SignalParsingTest], executed successfully"<<std::endl;
+    std::cout<<"\nAll Tests from the suite: [SignalParsingTests], executed successfully"<<std::endl;
     return 0;
 }

@@ -5,6 +5,7 @@
 #define TEST_BASELINE_H
 
 #include <unordered_map>
+#include <stack>
 
 #include "YamlParser.h"
 #include "ResourceTunerSettings.h"
@@ -17,8 +18,25 @@
 #define NUM_CLUSERS "NumClusters"
 #define NUM_CORES "NumCores"
 
-const static std::string baselineYamlFilePath =
-                         "/etc/resource-tuner/custom/Baseline.yaml";
+const static std::string baselineYamlFilePath = "/etc/resource-tuner/custom/Baseline.yaml";
+
+typedef struct {
+    int32_t mLogicalID;
+    int32_t mPhysicalID;
+} ClusterExpection;
+
+class ClusterExpectationBuilder {
+private:
+    ClusterExpection* mClusterExpectation;
+
+public:
+    ClusterExpectationBuilder();
+
+    ErrCode setLogicalID(const std::string& logicalIDString);
+    ErrCode setPhysicalID(const std::string& physicalIDString);
+
+    ClusterExpection* build();
+};
 
 class TestBaseline {
 private:
@@ -26,79 +44,15 @@ private:
     int32_t mTotalClusterCount;
     int32_t mTotalCoreCount;
 
-    int8_t parseTestConfigYamlNode(const YAML::Node& item) {
-        int8_t isConfigForCurrentTarget = false;
-        // Check if there exists a Target Config for this particular target in the Common Configs.
-        // Skip this check if the BU has provided their own Target Configs
-        std::string currTargetName = AuxRoutines::readFromFile("/sys/devices/soc0/machine");
-        if(isList(item[TARGET_NAME_LIST])) {
-            for(const auto& targetNameInfo : item[TARGET_NAME_LIST]) {
-                std::string name = safeExtract<std::string>(targetNameInfo, "");
-
-                if(name == "*" || name == currTargetName) {
-                    isConfigForCurrentTarget = true;
-                }
-            }
-        }
-
-        if(isConfigForCurrentTarget) {
-            if(isList(item[CLUSTER_EXPECTATIONS])) {
-                for(const auto& clusterInfo : item[CLUSTER_EXPECTATIONS]) {
-                    int32_t logicalID = safeExtract<int32_t>(clusterInfo[TARGET_CLUSTER_INFO_LOGICAL_ID], -1);
-                    int32_t physicalID = safeExtract<int32_t>(clusterInfo[TARGET_CLUSTER_INFO_PHYSICAL_ID], -1);
-
-                    if(logicalID != -1 && physicalID != -1) {
-                        this->mLogicalToPhysicalClusterMapping[logicalID] = physicalID;
-                    }
-                }
-            }
-
-            this->mTotalClusterCount = safeExtract<int32_t>(item[NUM_CLUSERS], 0);
-            this->mTotalCoreCount = safeExtract<int32_t>(item[NUM_CORES], 0);
-            return true;
-        }
-
-        return false;
-    }
+    ErrCode parseTestConfigYamlNode(const std::string& filePath);
 
 public:
-    ErrCode fetchBaseline() {
-        YAML::Node result;
-        ErrCode rc = YamlParser::parse(baselineYamlFilePath, result);
+    ErrCode fetchBaseline();
+    int32_t getExpectedClusterCount();
+    int32_t getExpectedCoreCount();
+    int32_t getExpectedPhysicalCluster(int32_t logicalID);
 
-        if(RC_IS_OK(rc)) {
-            if(result[TEST_ROOT].IsDefined() && result[TEST_ROOT].IsSequence()) {
-                for(const auto& testConfig : result[TEST_ROOT]) {
-                    try {
-                        if(parseTestConfigYamlNode(testConfig)) {
-                            return RC_SUCCESS;
-                        }
-                    } catch(const std::invalid_argument& e) {
-                        LOGE("RESTUNE_TARGET_PROCESSOR", "Error parsing Test Config: " + std::string(e.what()));
-                    }
-                }
-            }
-        }
-
-        return rc;
-    }
-
-    int32_t getExpectedClusterCount() {
-        return this->mTotalClusterCount;
-    }
-
-    int32_t getExpectedCoreCount() {
-        return this->mTotalCoreCount;
-    }
-
-    int32_t getExpectedPhysicalCluster(int32_t logicalID) {
-        if(this->mLogicalToPhysicalClusterMapping.find(logicalID) ==
-           this->mLogicalToPhysicalClusterMapping.end()) {
-            return -1;
-        }
-
-        return this->mLogicalToPhysicalClusterMapping[logicalID];
-    }
+    void displayBaseline();
 };
 
 #endif

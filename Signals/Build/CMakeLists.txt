@@ -1,10 +1,10 @@
 file(GLOB SOURCES "../*.cpp")
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(YAMLCPP REQUIRED yaml-cpp)
+pkg_check_modules(LIBYAML REQUIRED yaml-0.1)
 add_library(SysSignals ${SOURCES})
 set_target_properties(SysSignals PROPERTIES VERSION 1.0.0 SOVERSION 1)
 target_include_directories(SysSignals PRIVATE ${CMAKE_SOURCE_DIR}/Extensions/Include)
-target_include_directories(SysSignals PRIVATE ${YAMLCPP_INCLUDE_DIRS})
-target_link_libraries(SysSignals PUBLIC Server Auxiliary ExtAPIs ${YAMLCPP_LIBRARIES})
+target_include_directories(SysSignals PRIVATE ${LIBYAML_INCLUDE_DIRS})
+target_link_libraries(SysSignals PUBLIC Server Auxiliary ExtAPIs ${LIBYAML_LIBRARIES})
 target_include_directories(SysSignals PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../Include)

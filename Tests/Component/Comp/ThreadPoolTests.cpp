@@ -97,218 +97,168 @@ static void TestThreadPoolEnqueueStatus2_2() {
 	delete threadPool;
 }
 
-// static void TestThreadPoolEnqueueStatus4() {
-// 	ThreadPool* threadPool = new ThreadPool(2, 0, 2);
-// 	std::this_thread::sleep_for(std::chrono::seconds(1));
+void helperFunction(void* arg) {
+    for(int32_t i = 0; i < 1e7; i++) {
+        taskLock.lock();
+        sharedVariable++;
+        taskLock.unlock();
+    }
+}
 
-// 	int32_t* ptr = (int32_t*) malloc(sizeof(int32_t));
-// 	*ptr = 1;
+static void TestThreadPoolTaskProcessing1() {
+	ThreadPool* threadPool = new ThreadPool(2, 2);
+	std::this_thread::sleep_for(std::chrono::seconds(1));
 
-// 	int8_t ret1 = (threadPool->enqueueTask(threadPoolLongDurationTask, (void*)ptr));
-// 	int8_t ret2 = (threadPool->enqueueTask(threadPoolLongDurationTask, (void*)ptr));
-// 	int8_t ret3 = (threadPool->enqueueTask(threadPoolLongDurationTask, (void*)ptr));
-// 	std::this_thread::sleep_for(std::chrono::seconds(3));
-// 	int8_t ret4 = (threadPool->enqueueTask(threadPoolLongDurationTask, (void*)ptr));
+	int8_t ret1 = threadPool->enqueueTask(helperFunction, nullptr);
+	int8_t ret2 = threadPool->enqueueTask(helperFunction, nullptr);
 
-// 	C_ASSERT(ret1 == true);
-// 	C_ASSERT(ret2 == true);
-// 	C_ASSERT(ret3 == false);
-// 	C_ASSERT(ret4 == true);
+	C_ASSERT(ret1 == true);
+	C_ASSERT(ret2 == true);
 
-// 	delete ptr;
-// 	delete threadPool;
-// }
+	// Wait for both tasks to complete
+	std::this_thread::sleep_for(std::chrono::seconds(3));
 
-// void helperFunction(void* arg) {
-//     for(int32_t i = 0; i < 1e7; i++) {
-//         taskLock.lock();
-//         sharedVariable++;
-//         taskLock.unlock();
-//     }
-// }
+	C_ASSERT(sharedVariable == 2e7);
 
-// static void TestThreadPoolTaskProcessing1() {
-// 	ThreadPool* threadPool = new ThreadPool(2, 0, 2);
-// 	std::this_thread::sleep_for(std::chrono::seconds(1));
+	delete threadPool;
+}
 
-// 	int8_t ret1 = threadPool->enqueueTask(helperFunction, nullptr);
-// 	int8_t ret2 = threadPool->enqueueTask(helperFunction, nullptr);
+// Lambda Function
+static void TestThreadPoolTaskProcessing2() {
+	ThreadPool* threadPool = new ThreadPool(1, 1);
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+	sharedVariable = 0;
 
-// 	C_ASSERT(ret1 == true);
-// 	C_ASSERT(ret2 == true);
+	int8_t ret = threadPool->enqueueTask([&](void* arg) {
+		for(int32_t i = 0; i < 1e7; i++) {
+			sharedVariable++;
+		}
+	}, nullptr);
 
-// 	// Wait for both tasks to complete
-// 	std::this_thread::sleep_for(std::chrono::seconds(3));
+	C_ASSERT(ret == true);
 
-// 	C_ASSERT(sharedVariable == 2e7);
+	// Wait for both tasks to complete
+	std::this_thread::sleep_for(std::chrono::seconds(3));
 
-// 	delete threadPool;
-// }
+	C_ASSERT(sharedVariable == 1e7);
 
-// // Lambda Function
-// static void TestThreadPoolTaskProcessing2() {
-// 	ThreadPool* threadPool = new ThreadPool(1, 0, 1);
-// 	std::this_thread::sleep_for(std::chrono::seconds(1));
-// 	sharedVariable = 0;
+	delete threadPool;
+}
 
-// 	int8_t ret = threadPool->enqueueTask([&](void* arg) {
-// 		for(int32_t i = 0; i < 1e7; i++) {
-// 			sharedVariable++;
-// 		}
-// 	}, nullptr);
+static void TestThreadPoolTaskProcessing3() {
+	ThreadPool* threadPool = new ThreadPool(1, 1);
+	std::this_thread::sleep_for(std::chrono::seconds(1));
 
-// 	C_ASSERT(ret == true);
+	sharedVariable = 0;
+	int32_t* callID = (int32_t*) malloc(sizeof(int32_t));
+	*callID = 56;
 
-// 	// Wait for both tasks to complete
-// 	std::this_thread::sleep_for(std::chrono::seconds(3));
+	int8_t ret = threadPool->enqueueTask([&](void* arg) {
+		C_ASSERT(arg != nullptr);
+		sharedVariable = *(int32_t*)arg;
+	}, (void*)callID);
 
-// 	C_ASSERT(sharedVariable == 1e7);
+	C_ASSERT(ret == true);
 
-// 	delete threadPool;
-// }
+	// Wait for both tasks to complete
+	std::this_thread::sleep_for(std::chrono::seconds(3));
 
-// static void TestThreadPoolTaskProcessing3() {
-// 	ThreadPool* threadPool = new ThreadPool(1, 0, 1);
-// 	std::this_thread::sleep_for(std::chrono::seconds(1));
+	C_ASSERT(sharedVariable == *callID);
 
-// 	sharedVariable = 0;
-// 	int32_t* callID = (int32_t*) malloc(sizeof(int32_t));
-// 	*callID = 56;
+	delete callID;
+	delete threadPool;
+}
 
-// 	int8_t ret = threadPool->enqueueTask([&](void* arg) {
-// 		C_ASSERT(arg != nullptr);
-// 		sharedVariable = *(int32_t*)arg;
-// 	}, (void*)callID);
+void taskAFunc(void* arg) {
+    std::unique_lock<std::mutex> uniqueLock(taskLock);
+    sharedString.push_back('A');
+    taskCondition = true;
+    taskCV.notify_one();
+}
 
-// 	C_ASSERT(ret == true);
+void taskBFunc(void* arg) {
+    std::unique_lock<std::mutex> uniqueLock(taskLock);
+    while(!taskCondition) {
+        taskCV.wait(uniqueLock);
+    }
+    sharedString.push_back('B');
+}
 
-// 	// Wait for both tasks to complete
-// 	std::this_thread::sleep_for(std::chrono::seconds(3));
+static void TestThreadPoolTaskProcessing4() {
+	ThreadPool* threadPool = new ThreadPool(2, 2);
+	std::this_thread::sleep_for(std::chrono::seconds(1));
 
-// 	C_ASSERT(sharedVariable == *callID);
+	int8_t ret1 = threadPool->enqueueTask(taskAFunc, nullptr);
+	int8_t ret2 = threadPool->enqueueTask(taskBFunc, nullptr);
 
-// 	delete callID;
-// 	delete threadPool;
-// }
+	C_ASSERT(ret1 == true);
+	C_ASSERT(ret2 == true);
 
-// void taskAFunc(void* arg) {
-//     std::unique_lock<std::mutex> uniqueLock(taskLock);
-//     sharedString.push_back('A');
-//     taskCondition = true;
-//     taskCV.notify_one();
-// }
+	// Wait for both tasks to complete
+	std::this_thread::sleep_for(std::chrono::seconds(1));
 
-// void taskBFunc(void* arg) {
-//     std::unique_lock<std::mutex> uniqueLock(taskLock);
-//     while(!taskCondition) {
-//         taskCV.wait(uniqueLock);
-//     }
-//     sharedString.push_back('B');
-// }
+	C_ASSERT(sharedString == "AB");
 
-// static void TestThreadPoolTaskProcessing4() {
-// 	ThreadPool* threadPool = new ThreadPool(2, 0, 2);
-// 	std::this_thread::sleep_for(std::chrono::seconds(1));
+	delete threadPool;
+}
 
-// 	int8_t ret1 = threadPool->enqueueTask(taskAFunc, nullptr);
-// 	int8_t ret2 = threadPool->enqueueTask(taskBFunc, nullptr);
+// Tests For Thread Pool Scaling
+static void TestThreadPoolEnqueueStatusWithExpansion1() {
+	ThreadPool* threadPool = new ThreadPool(2, 3);
+	std::this_thread::sleep_for(std::chrono::seconds(1));
 
-// 	C_ASSERT(ret1 == true);
-// 	C_ASSERT(ret2 == true);
+	int32_t* ptr = (int32_t*) malloc(sizeof(int32_t));
+	*ptr = 3;
 
-// 	// Wait for both tasks to complete
-// 	std::this_thread::sleep_for(std::chrono::seconds(1));
+	int8_t ret1 = (threadPool->enqueueTask(threadPoolLongDurationTask, (void*)ptr));
+	int8_t ret2 = (threadPool->enqueueTask(threadPoolLongDurationTask, (void*)ptr));
+	int8_t ret3 = (threadPool->enqueueTask(threadPoolLongDurationTask, (void*)ptr));
 
-// 	C_ASSERT(sharedString == "AB");
+	C_ASSERT(ret1 == true);
+	C_ASSERT(ret2 == true);
+	C_ASSERT(ret3 == true);
 
-// 	delete threadPool;
-// }
+	std::this_thread::sleep_for(std::chrono::seconds(8));
+	delete ptr;
+	delete threadPool;
+}
 
-// // Tests For Thread Pool Scaling
-// static void TestThreadPoolEnqueueStatusWithExpansion1() {
-// 	ThreadPool* threadPool = new ThreadPool(2, 0, 3);
-// 	std::this_thread::sleep_for(std::chrono::seconds(1));
+static void TestThreadPoolEnqueueStatusWithExpansion2() {
+	ThreadPool* threadPool = new ThreadPool(2, 4);
+	std::this_thread::sleep_for(std::chrono::seconds(1));
 
-// 	int32_t* ptr = (int32_t*) malloc(sizeof(int32_t));
-// 	*ptr = 3;
+	int32_t* ptr = (int32_t*) malloc(sizeof(int32_t));
+	*ptr = 3;
 
-// 	int8_t ret1 = (threadPool->enqueueTask(threadPoolLongDurationTask, (void*)ptr));
-// 	int8_t ret2 = (threadPool->enqueueTask(threadPoolLongDurationTask, (void*)ptr));
-// 	int8_t ret3 = (threadPool->enqueueTask(threadPoolLongDurationTask, (void*)ptr));
+	int8_t ret1 = (threadPool->enqueueTask(threadPoolLongDurationTask, (void*)ptr));
+	int8_t ret2 = (threadPool->enqueueTask(threadPoolLongDurationTask, (void*)ptr));
+	int8_t ret3 = (threadPool->enqueueTask(threadPoolLongDurationTask, (void*)ptr));
+	int8_t ret4 = (threadPool->enqueueTask(threadPoolLongDurationTask, (void*)ptr));
 
-// 	C_ASSERT(ret1 == true);
-// 	C_ASSERT(ret2 == true);
-// 	C_ASSERT(ret3 == true);
+	C_ASSERT(ret1 == true);
+	C_ASSERT(ret2 == true);
+	C_ASSERT(ret3 == true);
+	C_ASSERT(ret4 == true);
 
-// 	std::this_thread::sleep_for(std::chrono::seconds(8));
-// 	delete ptr;
-// 	delete threadPool;
-// }
-
-// static void TestThreadPoolEnqueueStatusWithExpansion2() {
-// 	ThreadPool* threadPool = new ThreadPool(2, 0, 3);
-// 	std::this_thread::sleep_for(std::chrono::seconds(1));
-
-// 	int32_t* ptr = (int32_t*) malloc(sizeof(int32_t));
-// 	*ptr = 3;
-
-// 	int8_t ret1 = (threadPool->enqueueTask(threadPoolLongDurationTask, (void*)ptr));
-// 	int8_t ret2 = (threadPool->enqueueTask(threadPoolLongDurationTask, (void*)ptr));
-// 	int8_t ret3 = (threadPool->enqueueTask(threadPoolLongDurationTask, (void*)ptr));
-// 	int8_t ret4 = (threadPool->enqueueTask(threadPoolLongDurationTask, (void*)ptr));
-// 	std::this_thread::sleep_for(std::chrono::seconds(5));
-// 	int8_t ret5 = (threadPool->enqueueTask(threadPoolLongDurationTask, (void*)ptr));
-
-// 	C_ASSERT(ret1 == true);
-// 	C_ASSERT(ret2 == true);
-// 	C_ASSERT(ret3 == true);
-// 	C_ASSERT(ret4 == false);
-// 	C_ASSERT(ret5 == true);
-
-// 	std::this_thread::sleep_for(std::chrono::seconds(8));
-// 	delete ptr;
-// 	delete threadPool;
-// }
-
-// static void TestThreadPoolEnqueueStatusWithExpansion3() {
-// 	ThreadPool* threadPool = new ThreadPool(2, 0, 4);
-// 	std::this_thread::sleep_for(std::chrono::seconds(1));
-
-// 	int32_t* ptr = (int32_t*) malloc(sizeof(int32_t));
-// 	*ptr = 3;
-
-// 	int8_t ret1 = (threadPool->enqueueTask(threadPoolLongDurationTask, (void*)ptr));
-// 	int8_t ret2 = (threadPool->enqueueTask(threadPoolLongDurationTask, (void*)ptr));
-// 	int8_t ret3 = (threadPool->enqueueTask(threadPoolLongDurationTask, (void*)ptr));
-// 	int8_t ret4 = (threadPool->enqueueTask(threadPoolLongDurationTask, (void*)ptr));
-
-// 	C_ASSERT(ret1 == true);
-// 	C_ASSERT(ret2 == true);
-// 	C_ASSERT(ret3 == true);
-// 	C_ASSERT(ret4 == true);
-
-// 	std::this_thread::sleep_for(std::chrono::seconds(8));
-// 	delete ptr;
-// 	delete threadPool;
-// }
-
+	std::this_thread::sleep_for(std::chrono::seconds(8));
+	delete ptr;
+	delete threadPool;
+}
 
 int32_t main() {
-	std::cout<<"Running Test Suite: [ThreadPool Tests]\n"<<std::endl;
+	std::cout<<"Running Test Suite: [ThreadPoolTests]\n"<<std::endl;
 
     RUN_TEST(TestThreadPoolTaskPickup1);
     RUN_TEST(TestThreadPoolEnqueueStatus1);
     RUN_TEST(TestThreadPoolEnqueueStatus2_1);
     RUN_TEST(TestThreadPoolEnqueueStatus2_2);
-    // RUN_TEST(TestThreadPoolEnqueueStatus4);
-    // RUN_TEST(TestThreadPoolTaskProcessing1);
-    // RUN_TEST(TestThreadPoolTaskProcessing2);
-    // RUN_TEST(TestThreadPoolTaskProcessing3);
-    // RUN_TEST(TestThreadPoolTaskProcessing4);
-    // RUN_TEST(TestThreadPoolEnqueueStatusWithExpansion1);
-    // RUN_TEST(TestThreadPoolEnqueueStatusWithExpansion2);
-    // RUN_TEST(TestThreadPoolEnqueueStatusWithExpansion3);
+    RUN_TEST(TestThreadPoolTaskProcessing1);
+    RUN_TEST(TestThreadPoolTaskProcessing2);
+    RUN_TEST(TestThreadPoolTaskProcessing3);
+    RUN_TEST(TestThreadPoolTaskProcessing4);
+    RUN_TEST(TestThreadPoolEnqueueStatusWithExpansion1);
+    RUN_TEST(TestThreadPoolEnqueueStatusWithExpansion2);
 
-	std::cout<<"\nAll Tests from the suite: [ThreadPool Tests], executed successfully"<<std::endl;
+	std::cout<<"\nAll Tests from the suite: [ThreadPoolTests], executed successfully"<<std::endl;
     return 0;
 }

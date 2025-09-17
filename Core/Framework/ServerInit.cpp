@@ -38,9 +38,7 @@ static ErrCode fetchMetaConfigs() {
 
     try {
         // Fetch target Name
-        ResourceTunerSettings::targetConfigs.targetName =
-                    AuxRoutines::readFromFile("/sys/devices/soc0/machine");
-
+        ResourceTunerSettings::targetConfigs.targetName = AuxRoutines::getMachineName();
         TYPELOGV(NOTIFY_CURRENT_TARGET_NAME, ResourceTunerSettings::targetConfigs.targetName.c_str());
 
         submitPropGetRequest(MAX_CONCURRENT_REQUESTS, resultBuffer, "120");
@@ -58,7 +56,8 @@ static ErrCode fetchMetaConfigs() {
         submitPropGetRequest(GARBAGE_COLLECTOR_DURATION, resultBuffer, "83000");
         ResourceTunerSettings::metaConfigs.mClientGarbageCollectorDuration = (uint32_t)std::stol(resultBuffer);
 
-        ResourceTunerSettings::metaConfigs.mCleanupBatchSize = 5;
+        submitPropGetRequest(GARBAGE_COLLECTOR_BATCH_SIZE, resultBuffer, "5");
+        ResourceTunerSettings::metaConfigs.mCleanupBatchSize = (uint32_t)std::stol(resultBuffer);
 
         submitPropGetRequest(RATE_LIMITER_DELTA, resultBuffer, "5");
         ResourceTunerSettings::metaConfigs.mDelta = (uint32_t)std::stol(resultBuffer);
@@ -147,11 +146,8 @@ ErrCode fetchProperties() {
 
     // Parse Custom Properties Configs provided in /etc/resource-tuner/custom (if any)
     filePath = ResourceTunerSettings::mCustomPropertiesFilePath;
-    opStatus = parseUtil(filePath, CUSTOM_PROPERTIES, ConfigType::PROPERTIES_CONFIG);
-
-    // If file was not found, we simply return SUCCESS, since custom configs are optional
-    if(opStatus == RC_FILE_NOT_FOUND) {
-        opStatus = RC_SUCCESS;
+    if(AuxRoutines::fileExists(filePath)) {
+        opStatus = parseUtil(filePath, CUSTOM_PROPERTIES, ConfigType::PROPERTIES_CONFIG);
     }
 
     if(RC_IS_NOTOK(opStatus)) {
@@ -180,11 +176,8 @@ static ErrCode fetchResources() {
 
     // Parse Custom Resource Configs provided in /etc/resource-tuner/custom (if any)
     filePath = ResourceTunerSettings::mCustomResourceFilePath;
-    opStatus = parseUtil(filePath, CUSTOM_RESOURCE, ConfigType::RESOURCE_CONFIG, true);
-
-    // If file was not found, we simply return SUCCESS, since custom configs are optional
-    if(opStatus == RC_FILE_NOT_FOUND) {
-        return RC_SUCCESS;
+    if(AuxRoutines::fileExists(filePath)) {
+        return parseUtil(filePath, CUSTOM_RESOURCE, ConfigType::RESOURCE_CONFIG, true);
     }
 
     return opStatus;
@@ -208,14 +201,10 @@ static ErrCode fetchTargetInfo() {
     }
 
     filePath = ResourceTunerSettings::mCustomTargetFilePath;
-    opStatus = parseUtil(filePath, CUSTOM_TARGET, ConfigType::TARGET_CONFIG, true);
-
-    // If file was not found, we simply return SUCCESS, since custom configs are optional
-    if(opStatus == RC_FILE_NOT_FOUND) {
-        return RC_SUCCESS;
+    if(AuxRoutines::fileExists(filePath)) {
+        return parseUtil(filePath, CUSTOM_TARGET, ConfigType::TARGET_CONFIG, true);
     }
 
-    TargetRegistry::getInstance()->displayTargetInfo();
     return opStatus;
 }
 
@@ -237,11 +226,8 @@ static ErrCode fetchInitInfo() {
 
     // Parse Custom Init Configs provided in /etc/resource-tuner/custom (if any)
     filePath = ResourceTunerSettings::mCustomInitConfigFilePath;
-    opStatus = parseUtil(filePath, CUSTOM_INIT, ConfigType::INIT_CONFIG);
-
-    // If file was not found, we simply return SUCCESS, since custom configs are optional
-    if(opStatus == RC_FILE_NOT_FOUND) {
-        return RC_SUCCESS;
+    if(AuxRoutines::fileExists(filePath)) {
+        return parseUtil(filePath, CUSTOM_INIT, ConfigType::INIT_CONFIG);
     }
 
     return opStatus;
@@ -270,6 +256,7 @@ static ErrCode init(void* arg=nullptr) {
     if(RC_IS_NOTOK(opStatus)) {
         return opStatus;
     }
+    TargetRegistry::getInstance()->displayTargetInfo();
 
     // Fetch and Parse:
     // - Init Configs

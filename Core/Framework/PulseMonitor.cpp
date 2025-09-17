@@ -78,9 +78,15 @@ ErrCode PulseMonitor::startPulseMonitorDaemon() {
     return RC_SUCCESS;
 }
 
+void PulseMonitor::stopPulseMonitorDaemon() {
+    if(this->mTimer != nullptr) {
+        this->mTimer->killTimer();
+    }
+}
+
 PulseMonitor::~PulseMonitor() {
     if(this->mTimer != nullptr) {
-        delete this->mTimer;
+        FreeBlock<Timer>(this->mTimer);
         this->mTimer = nullptr;
     }
 }
@@ -90,4 +96,11 @@ ErrCode startPulseMonitorDaemon() {
         return RC_MEMORY_ALLOCATION_FAILURE;
     }
     return PulseMonitor::getInstance()->startPulseMonitorDaemon();
+}
+
+void stopPulseMonitorDaemon() {
+    if(PulseMonitor::getInstance() == nullptr) {
+        return;
+    }
+    return PulseMonitor::getInstance()->stopPulseMonitorDaemon();
 }

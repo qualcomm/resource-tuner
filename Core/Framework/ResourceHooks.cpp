@@ -60,6 +60,7 @@ static void truncateFile(const std::string& filePath) {
     ofStream.close();
 }
 
+// Default Applier Callback for Resources with ApplyType = "cluster"
 void defaultClusterLevelApplierCb(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
@@ -83,6 +84,7 @@ void defaultClusterLevelApplierCb(void* context) {
     resourceFileStream.close();
 }
 
+// Default Tear Callback for Resources with ApplyType = "cluster"
 void defaultClusterLevelTearCb(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
@@ -108,6 +110,7 @@ void defaultClusterLevelTearCb(void* context) {
     resourceFileStream.close();
 }
 
+// Default Applier Callback for Resources with ApplyType = "core"
 void defaultCoreLevelApplierCb(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
@@ -131,6 +134,7 @@ void defaultCoreLevelApplierCb(void* context) {
     resourceFileStream.close();
 }
 
+// Default Tear Callback for Resources with ApplyType = "core"
 void defaultCoreLevelTearCb(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
@@ -156,6 +160,7 @@ void defaultCoreLevelTearCb(void* context) {
     controllerFile.close();
 }
 
+// Default Applier Callback for Resources with ApplyType = "cgroup"
 void defaultCGroupLevelApplierCb(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
@@ -195,6 +200,7 @@ void defaultCGroupLevelApplierCb(void* context) {
     }
 }
 
+// Default Tear Callback for Resources with ApplyType = "cgroup"
 void defaultCGroupLevelTearCb(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
@@ -240,6 +246,7 @@ void defaultCGroupLevelTearCb(void* context) {
     }
 }
 
+// Default Applier Callback for Resources with ApplyType = "global"
 void defaultGlobalLevelApplierCb(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
@@ -253,6 +260,7 @@ void defaultGlobalLevelApplierCb(void* context) {
     }
 }
 
+// Default Tear Callback for Resources with ApplyType = "global"
 void defaultGlobalLevelTearCb(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
@@ -268,6 +276,8 @@ void defaultGlobalLevelTearCb(void* context) {
     }
 }
 
+// Specific callbacks for certain special Resources (which cannot be handled via the default versions)
+// are listed below:
 static void moveProcessToCGroup(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
@@ -288,7 +298,6 @@ static void moveProcessToCGroup(void* context) {
     defaultCGroupLevelApplierCb(context);
 }
 
-// Special Callbacks for some Resources
 static void setRunOnCores(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
@@ -527,6 +536,7 @@ static void resetRunOnCoresExclusively(void* context) {
     }
 }
 
+// Register the specific Callbacks
 RESTUNE_REGISTER_APPLIER_CB(0x00090000, moveProcessToCGroup);
 RESTUNE_REGISTER_APPLIER_CB(0x00090002, setRunOnCores);
 RESTUNE_REGISTER_APPLIER_CB(0x00090003, setRunOnCoresExclusively);

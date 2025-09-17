@@ -6,6 +6,7 @@
 
 #include <string>
 #include <vector>
+#include <stack>
 #include <fstream>
 #include <memory>
 #include <sstream>
@@ -32,7 +33,7 @@
 #define RESOURCE_CONFIGS_ELEM_PERMISSIONS "Permissions"
 #define RESOURCE_CONFIGS_ELEM_MODES "Modes"
 #define RESOURCE_CONFIGS_ELEM_POLICY "Policy"
-#define RESOURCE_CONFIGS_APPLY_TYPE "ApplyType"
+#define RESOURCE_CONFIGS_ELEM_APPLY_TYPE "ApplyType"
 
 // Target Info Config
 #define TARGET_CONFIGS_ROOT "TargetConfig"
@@ -42,39 +43,36 @@
 #define TARGET_CLUSTER_INFO_PHYSICAL_ID "PhyId"
 #define TARGET_CLUSTER_SPREAD "ClusterSpread"
 #define TARGET_PER_CLUSTER_CORE_COUNT "NumCores"
-#define TARGET_TOTAL_CORE_COUNT "TotalCoreCount"
-#define TARGET_CONFIGS_ID "Id"
-#define TARGET_CONFIGS_TYPE "Type"
 
 // CGroup Config
 #define INIT_CONFIGS_ROOT "InitConfigs"
-#define INIT_CONFIGS_CGROUPS_LIST "CgroupsInfo"
-#define INIT_CONFIGS_CGROUP_NAME "Name"
-#define INIT_CONFIGS_CGROUP_IDENTIFIER "ID"
-#define INIT_CONFIGS_CGROUP_CREATION "Create"
-#define INIT_CONFIGS_CGROUP_THREADED "IsThreaded"
+#define INIT_CONFIGS_ELEM_CGROUPS_LIST "CgroupsInfo"
+#define INIT_CONFIGS_ELEM_CGROUP_NAME "Name"
+#define INIT_CONFIGS_ELEM_CGROUP_IDENTIFIER "ID"
+#define INIT_CONFIGS_ELEM_CGROUP_CREATION "Create"
+#define INIT_CONFIGS_ELEM_CGROUP_THREADED "IsThreaded"
 
 // Cluster Map
-#define INIT_CONFIGS_CLUSTER_MAP "ClusterMap"
-#define INIT_CONFIGS_CLUSTER_MAP_CLUSTER_ID "Id"
-#define INIT_CONFIGS_CLUSTER_MAP_CLUSTER_TYPE "Type"
+#define INIT_CONFIGS_ELEM_CLUSTER_MAP "ClusterMap"
+#define INIT_CONFIGS_ELEM_CLUSTER_MAP_CLUSTER_ID "Id"
+#define INIT_CONFIGS_ELEM_CLUSTER_MAP_CLUSTER_TYPE "Type"
 
 // Mpam Config
-#define INIT_CONFIGS_MPAM_GROUPS_LIST "MPAMgroupsInfo"
-#define INIT_CONFIGS_MPAM_GROUP_NAME "Name"
-#define INIT_CONFIGS_MPAM_GROUP_ID "ID"
-#define INIT_CONFIGS_MPAM_GROUP_PRIORITY "Priority"
+#define INIT_CONFIGS_ELEM_MPAM_GROUPS_LIST "MPAMgroupsInfo"
+#define INIT_CONFIGS_ELEM_MPAM_GROUP_NAME "Name"
+#define INIT_CONFIGS_ELEM_MPAM_GROUP_ID "ID"
+#define INIT_CONFIGS_ELEM_MPAM_GROUP_PRIORITY "Priority"
 
 // Cache Info
-#define INIT_CONFIGS_CACHE_INFO_LIST "CacheInfo"
-#define INIT_CONFIGS_CACHE_INFO_CACHE_TYPE "Type"
-#define INIT_CONFIGS_CACHE_INFO_CACHE_BLOCK_COUNT "NumCacheBlocks"
-#define INIT_CONFIGS_CACHE_INFO_CACHE_PRIORITY_AWARE "PriorityAware"
+#define INIT_CONFIGS_ELEM_CACHE_INFO_LIST "CacheInfo"
+#define INIT_CONFIGS_ELEM_CACHE_INFO_TYPE "Type"
+#define INIT_CONFIGS_ELEM_CACHE_INFO_BLK_CNT "NumCacheBlocks"
+#define INIT_CONFIGS_ELEM_CACHE_INFO_PRIO_AWARE "PriorityAware"
 
 // Properties
-#define PROPERTIES_CONFIG_ROOT "PropertyConfigs"
-#define PROP_NAME "Name"
-#define PROP_VALUE "Value"
+#define PROPERTY_CONFIGS_ROOT "PropertyConfigs"
+#define PROPERTY_CONFIGS_ELEM_NAME "Name"
+#define PROPERTY_CONFIGS_ELEM_VALUE "Value"
 
 /**
  * The Resource Config file (ResourcesConfig.yaml) must follow a specific structure.
@@ -221,10 +219,10 @@
  */
 class ConfigProcessor {
 private:
-    void parseResourceConfigYamlNode(const YAML::Node& node, int8_t isBuSpecified);
-    void parsePropertiesConfigYamlNode(const YAML::Node& node);
-    void parseInitConfigYamlNode(const YAML::Node& node);
-    void parseTargetConfigYamlNode(const YAML::Node& node);
+    ErrCode parseResourceConfigYamlNode(const std::string& filePath, int8_t isBuSpecified);
+    ErrCode parsePropertiesConfigYamlNode(const std::string& filePath);
+    ErrCode parseInitConfigYamlNode(const std::string& filePath);
+    ErrCode parseTargetConfigYamlNode(const std::string& filePath);
 
 public:
     ErrCode parseResourceConfigs(const std::string& filePath, int8_t isBuSpecified=false);

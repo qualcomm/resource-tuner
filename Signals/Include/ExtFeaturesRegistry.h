@@ -29,10 +29,10 @@ typedef void (*ExtFeature)(void);
 typedef void (*RelayFeature)(uint32_t, const std::string&, const std::string&, int32_t, std::vector<uint32_t>*);
 
 /**
-* @brief ExtFeaturesRegistry
-* @details Stores information Relating to all the Ext Features registered with resource-tuner.
-*          Note: This information is extracted from Config YAML files.
-*/
+ * @brief ExtFeaturesRegistry
+ * @details Stores information Relating to all the Ext Features registered with resource-tuner.
+ *          Note: This information is extracted from Config YAML files.
+ */
 class ExtFeaturesRegistry {
 private:
     static std::shared_ptr<ExtFeaturesRegistry> extFeaturesRegistryInstance;
@@ -49,9 +49,9 @@ public:
     /**
      * @brief Fetch a Feature Config with the given ID.
      * @param featureId An unsigned 32-bit feature identifier
-     * @return ExtFeatureInfo*:
-     *             A Pointer to the registered ExtFeatureInfo object, if feature with the given ID exists.
-     *             nullptr: Otherwise
+     * @return ExtFeatureInfo*:\n
+     *             - A Pointer to the registered ExtFeatureInfo object, if feature with the given ID exists.\n
+     *             - nullptr: Otherwise
      */
     ExtFeatureInfo* getExtFeatureConfigById(uint32_t extFeatureId);
 

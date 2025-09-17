@@ -7,23 +7,24 @@
 ThreadPool* Timer::mTimerThreadPool = nullptr;
 
 Timer::Timer(std::function<void(void*)>callBack, int8_t isRecurring) {
-    this->mStop.store(false);
+    this->mTimerStop.store(false);
     this->mIsRecurring = isRecurring;
-    this->mCallBack = callBack;
+    this->mCallback = callBack;
 }
 
 void Timer::implementTimer() {
     try {
         do {
-            std::unique_lock<std::mutex> lock(mMutex);
-            mCv.wait_for(lock, std::chrono::milliseconds(this->mDuration), [this]{return mStop.load();});
+            std::unique_lock<std::mutex> lock(this->mTimerMutex);
+            this->mTimerCond.wait_for(lock, std::chrono::milliseconds(this->mDuration),
+                                     [this]{return mTimerStop.load();});
             lock.unlock();
-            if(!mStop.load()) {
-                if(this->mCallBack) {
-                    this->mCallBack(nullptr);
+            if(!this->mTimerStop.load()) {
+                if(this->mCallback) {
+                    this->mCallback(nullptr);
                 }
             }
-        } while(mIsRecurring && !mStop.load());
+        } while(this->mIsRecurring && !this->mTimerStop.load());
     } catch(const std::exception& e) {
         LOGE("RESTUNE_TIMER", "Timer Could not be started, Error: " + std::string(e.what()));
     }
@@ -54,10 +55,10 @@ int8_t Timer::startTimer(int64_t duration) {
 
 void Timer::killTimer() {
     LOGD("RESTUNE_TIMER", "Killing timer");
-    mStop.store(true);
-    mCv.notify_all();
+    this->mTimerStop.store(true);
+    this->mTimerCond.notify_all();
 }
 
 Timer::~Timer() {
-    killTimer();
+    this->killTimer();
 }

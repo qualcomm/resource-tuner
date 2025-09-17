@@ -56,9 +56,9 @@ public:
      *          If this value Reaches 0, then any further Requests from the Client
      *          shall be dropped.
      * @param clientTID TID of the client
-     * @return int8_t
-     *            1: If the Request can be accepted.
-     *            0: otherwise
+     * @return int8_t:\n
+     *            - 1: If the Request can be accepted.\n
+     *            - 0: otherwise
      */
     int8_t isRateLimitHonored(int32_t clientTID);
 
@@ -67,9 +67,9 @@ public:
      * @details Resource Tuner sets a cap on the number of Active Requests which can be
      *          served concurrently. If the current Count of Concurrent Active Requests
      *          hits this threshold, then any new Requests shall be dropped.
-     * @return int8_t
-     *            1: If the Request can be accepted.
-     *            0: otherwise
+     * @return int8_t:\n
+     *            - 1: If the Request can be accepted.\n
+     *            - 0: otherwise
      */
     int8_t isGlobalRateLimitHonored();
 

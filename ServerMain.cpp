@@ -41,8 +41,8 @@ static ErrCode parseServerStartupCLIOpts(int32_t argCount, char *argStrings[]) {
     };
 
     int32_t c;
-    while ((c = getopt_long(argCount, argStrings, shortPrompts, longPrompts, nullptr)) != -1) {
-        switch (c) {
+    while((c = getopt_long(argCount, argStrings, shortPrompts, longPrompts, nullptr)) != -1) {
+        switch(c) {
             case 's':
                 break;
             case 'h':
@@ -60,7 +60,7 @@ static ErrCode createResourceTunerDaemon(int32_t& childProcessID) {
     // Create a Child Process to Monitor the Parent (Server) Process
     // This is done to ensure that all the Resource sysfs Nodes are in a consistent state
     // If the Server Crashes or Terminates Abnormally.
-    childProcessID = fork();
+    childProcessID = AuxRoutines::createProcess();
     if(childProcessID < 0) {
         TYPELOGV(ERRNO_LOG, "fork", strerror(errno));
         return RC_MODULE_INIT_FAILURE;
@@ -81,7 +81,7 @@ static ErrCode createResourceTunerDaemon(int32_t& childProcessID) {
         }
 
         // Delete the Sysfs Persistent File
-        AuxRoutines::deleteFile("sysfsOriginalValues.txt");
+        AuxRoutines::deleteFile(ResourceTunerSettings::mPersistenceFile);
         exit(EXIT_SUCCESS);
     }
 
@@ -100,7 +100,7 @@ static ErrCode loadExtensionsLib() {
     }
 
     extensionsLibHandle = dlopen(libPath.c_str(), RTLD_NOW);
-    if (extensionsLibHandle == nullptr) {
+    if(extensionsLibHandle == nullptr) {
         TYPELOGV(NOTIFY_EXTENSIONS_LOAD_FAILED, dlerror());
         return RC_MODULE_INIT_FAILURE;  // Error if the library exists but can't be loaded
     }
@@ -116,11 +116,11 @@ static ErrCode preAllocateWorkers() {
 
     try {
         RequestReceiver::mRequestsThreadPool = new ThreadPool(desiredThreadCapacity,
-                                                              maxScalingCapacity, "request");
+                                                              maxScalingCapacity);
 
         // Allocate 2 extra threads for Pulse Monitor and Garbage Collector
         Timer::mTimerThreadPool = new ThreadPool(desiredThreadCapacity + 2,
-                                                 maxScalingCapacity, "timer");
+                                                 maxScalingCapacity);
 
     } catch(const std::bad_alloc& e) {
         TYPELOGV(THREAD_POOL_CREATION_FAILURE, e.what());
@@ -137,7 +137,7 @@ static void serverCleanup() {
 
 int32_t main(int32_t argc, char *argv[]) {
     // Initialize syslog
-    openlog("resource-tuner", LOG_PID | LOG_CONS, LOG_USER);
+    openlog(RESTUNE_IDENTIFIER, LOG_PID | LOG_CONS, LOG_USER);
 
     // PID of the Child Daemon
     ErrCode opStatus = RC_SUCCESS;
@@ -284,8 +284,15 @@ int32_t main(int32_t argc, char *argv[]) {
     // Restore all the Resources to Original Values
     ResourceRegistry::getInstance()->restoreResourcesToDefaultValues();
 
+    stopPulseMonitorDaemon();
+    stopClientGarbageCollectorDaemon();
+
     if(RequestReceiver::mRequestsThreadPool != nullptr) {
         delete RequestReceiver::mRequestsThreadPool;
+    }
+
+    if(Timer::mTimerThreadPool != nullptr) {
+        delete Timer::mTimerThreadPool;
     }
 
     if(childProcessID != -1) {
@@ -295,7 +302,7 @@ int32_t main(int32_t argc, char *argv[]) {
     }
 
     // Delete the Sysfs Persistent File
-    AuxRoutines::deleteFile("sysfsOriginalValues.txt");
+    AuxRoutines::deleteFile(ResourceTunerSettings::mPersistenceFile);
 
     if(extensionsLibHandle != nullptr) {
         dlclose(extensionsLibHandle);

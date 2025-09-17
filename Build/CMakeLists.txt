@@ -7,7 +7,7 @@ project("Resource Tuner")
 
 # Dependencies
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(YAMLCPP REQUIRED yaml-cpp)
+pkg_check_modules(LIBYAML REQUIRED yaml-0.1)
 
 # Enable Debug. should be removed in production.
 # set(CMAKE_BUILD_TYPE Debug)
@@ -42,13 +42,13 @@ endif()
 
 if(BUILD_SIGNALS)
   add_executable(resource_tuner ../ServerMain.cpp ../Signals/SignalInit.cpp)
-  target_include_directories(resource_tuner PRIVATE ${YAMLCPP_INCLUDE_DIRS})
+  target_include_directories(resource_tuner PRIVATE ${LIBYAML_INCLUDE_DIRS})
   target_include_directories(resource_tuner PRIVATE ${CMAKE_SOURCE_DIR}/Extensions/Include)
   target_link_libraries(resource_tuner PUBLIC SysSignals)
   target_link_libraries(resource_tuner PUBLIC ExtAPIs)
 else()
   add_executable(resource_tuner ../ServerMain.cpp)
-  target_include_directories(resource_tuner PRIVATE ${YAMLCPP_INCLUDE_DIRS})
+  target_include_directories(resource_tuner PRIVATE ${LIBYAML_INCLUDE_DIRS})
   target_include_directories(resource_tuner PRIVATE ${CMAKE_SOURCE_DIR}/Extensions/Include)
   target_link_libraries(resource_tuner PUBLIC ExtAPIs)
 endif()
@@ -60,6 +60,9 @@ install(TARGETS resource_tuner RUNTIME DESTINATION bin)
 install(TARGETS Auxiliary SocketCommServer
         ClientAPIs Server ExtAPIs
         SysRequestReceiver LIBRARY DESTINATION lib)
+if(BUILD_TESTS)
+install(TARGETS TestSetupUtils DESTINATION lib)
+endif()
 if(BUILD_SIGNALS)
   install(TARGETS SysSignals DESTINATION lib)
 endif()

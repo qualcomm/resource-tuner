@@ -13,7 +13,7 @@ std::string AuxRoutines::readFromFile(const std::string& fileName) {
     }
 
     if(!getline(fileStream, value)) {
-        LOGE("RESTUNE_AUX_ROUTINE", "Failed to read from file: " + fileName);
+        LOGE("RESTUNE_AUX_ROUTINE", "Failed to read from file: " + fileName + " Error: " + strerror(errno));
         return "";
     }
 
@@ -43,9 +43,9 @@ void AuxRoutines::writeSysFsDefaults() {
     // Write Defaults
     std::ifstream file;
 
-    file.open("sysfsOriginalValues.txt");
+    file.open(ResourceTunerSettings::mPersistenceFile);
     if(!file.is_open()) {
-        LOGE("RESTUNE_SERVER_INIT", "Failed to open sysfs original values file: sysfsOriginalValues.txt");
+        LOGE("RESTUNE_SERVER_INIT", "Failed to open sysfs original values file: resourceOriginalValues.txt");
         return;
     }
 
@@ -83,6 +83,14 @@ int8_t AuxRoutines::fileExists(const std::string& filePath) {
     return access(filePath.c_str(), F_OK) == 0;
 }
 
+int32_t AuxRoutines::createProcess() {
+    return fork();
+}
+
+std::string AuxRoutines::getMachineName() {
+    return AuxRoutines::readFromFile(ResourceTunerSettings::mDeviceNamePath);
+}
+
 void dumpRequest(Request* clientReq) {
     std::string LOG_TAG = "RESTUNE_SERVER";
 
@@ -111,7 +119,7 @@ void AuxRoutines::dumpRequest(Signal* clientReq) {
     LOGD(LOG_TAG, "Print Signal details:");
 
     LOGD(LOG_TAG, "Print Signal Request");
-    LOGD(LOG_TAG, "Signal ID: " + std::to_string(clientReq->getSignalID()));
+    LOGD(LOG_TAG, "Signal ID: " + std::to_string(clientReq->getSignalCode()));
     LOGD(LOG_TAG, "Handle: " + std::to_string(clientReq->getHandle()));
     LOGD(LOG_TAG, "Duration: " + std::to_string(clientReq->getDuration()));
     LOGD(LOG_TAG, "App Name: " + std::string(clientReq->getAppName()));

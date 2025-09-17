@@ -94,7 +94,7 @@ enum CommonMessageTypes {
     CLIENT_ENTRY_CREATION_FAILURE,
     REQUEST_MANAGER_DUPLICATE_FOUND,
     REQUEST_MANAGER_REQUEST_NOT_ACTIVE,
-    EXT_FEATURE_LIB_OPEN_FAILED,
+    EXT_FEATURE_CONFIGS_ELEM_LIB_OPEN_FAILED,
     EXT_FEATURE_ROUTINE_NOT_DEFINED,
     CORE_COUNT_EXTRACTION_FAILED,
     CLUSTER_CPU_LIST_EXTRACTION_FAILED,
@@ -105,7 +105,7 @@ enum CommonMessageTypes {
 /**
  * @brief Logger.
  * @details Provides a Simplified and Consistent interface for Logging across different Targets
- *          Currently We support 3 levels of Logging
+ *          Logging levels supported:\n
  *          1. Debug - For almost all non-essential debug statements.
  *          2. Info - For essential statements.
  *          3. Error - Statements if printed, shows errors.
@@ -126,18 +126,17 @@ public:
      *          1) What levels to Log, (User can specify an exact value say ERROR, or a Lower Bound say INFO).
      *             In case of Lower Bound Config for Logging, any Message with Log Level higher than the
      *             specified Level will be logged.
-     *          2) Output Redirection: Output can be captured in a File or directly in ftrace
+     *          2) Output Redirection: Output can be captured in a File or directly in syslog
      * @param level The exact level to Log or the Lower Bound Logging level.
      * @param levelSpecificLogging Indicates whether Exact Level Logging is needed, default behaviour is
      *                             Lower Bound Logging.
      * @param redirectOutputTo Indicates whether a new file needs to be created to capture the Logging,
-     *                         Or Ftrace should be used.
-     * @return int32_t: Number of blocks which were actually allocated (<= blockCount)
+     *                         Or syslog should be used.
      */
     static void configure(int32_t level, int8_t levelSpecificLogging, RedirectOptions redirectOutputTo);
 
     /**
-     * @brief Responsible for actually Logging a Message to the desired Medium (file or Ftrace)
+     * @brief Responsible for actually Logging a Message to the desired Medium (file or syslog)
      * @details Note, this Routine should not be called directly, instead the Macros
      *          LOGD, LOGE, LOGI, TYPELOGD and TYPELOGV should be used.
      */

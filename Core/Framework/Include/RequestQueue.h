@@ -9,6 +9,11 @@
 #include "OrderedQueue.h"
 #include "RequestManager.h"
 
+/**
+ * @brief This class represents a mutex-protected multiple producer, single consumer priority queue.
+ * @details It stores the pointer to the Requests and compares their priorities. The server thread picks up
+ *          these requests in the order of their priorities and processes them.
+ */
 class RequestQueue : public OrderedQueue {
 private:
     static std::shared_ptr<RequestQueue> mRequestQueueInstance;

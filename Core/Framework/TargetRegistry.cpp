@@ -40,11 +40,11 @@ static int32_t getOnlineCpuCount() {
         std::string line;
         std::getline(file, line);
 
-        std::stringstream ss(line);
+        std::stringstream cpuRangeStream(line);
         std::string token;
         int32_t cpuIndex = 0;
 
-        while(std::getline(ss, token, '-')) {
+        while(std::getline(cpuRangeStream, token, '-')) {
             cpuIndex = std::max(cpuIndex, std::stoi(token));
         }
 
@@ -238,28 +238,43 @@ void TargetRegistry::getClusterIdBasedMapping() {
 std::shared_ptr<TargetRegistry> TargetRegistry::targetRegistryInstance = nullptr;
 TargetRegistry::TargetRegistry() {}
 
-void TargetRegistry::addClusterMapping(int32_t logicalID, int32_t physicalID) {
-    if(this->mPhysicalClusters.find(physicalID) == this->mPhysicalClusters.end()) {
-        ClusterInfo* clusterInfo = new ClusterInfo;
+void TargetRegistry::addClusterMapping(const std::string& logicalIDString, const std::string& physicalIDString) {
+    try {
+        int32_t logicalID = std::stoi(logicalIDString);
+        int32_t physicalID = std::stoi(physicalIDString);
 
-        clusterInfo->mPhysicalID = physicalID;
-        clusterInfo->mNumCpus = 0;
-        clusterInfo->mCapacity = 0;
-        clusterInfo->mStartCpu = physicalID;
+        if(this->mPhysicalClusters.find(physicalID) == this->mPhysicalClusters.end()) {
+            ClusterInfo* clusterInfo = new ClusterInfo;
 
-        this->mPhysicalClusters[physicalID] = clusterInfo;
+            clusterInfo->mPhysicalID = physicalID;
+            clusterInfo->mNumCpus = 0;
+            clusterInfo->mCapacity = 0;
+            clusterInfo->mStartCpu = physicalID;
+
+            this->mPhysicalClusters[physicalID] = clusterInfo;
+        }
+
+        this->mLogicalToPhysicalClusterMapping[logicalID] = physicalID;
+        ResourceTunerSettings::targetConfigs.mTotalClusterCount = this->mPhysicalClusters.size();
+
+    } catch(const std::exception& e) {
+
     }
-
-    this->mLogicalToPhysicalClusterMapping[logicalID] = physicalID;
-    ResourceTunerSettings::targetConfigs.mTotalClusterCount = this->mPhysicalClusters.size();
 }
 
-void TargetRegistry::addClusterSpreadInfo(int32_t physicalID, int32_t numCores) {
-    if(this->mPhysicalClusters.find(physicalID) == this->mPhysicalClusters.end()) {
-        return;
-    }
+void TargetRegistry::addClusterSpreadInfo(const std::string& physicalIDString, const std::string& numCoresString) {
+    try {
+        int32_t physicalID = std::stoi(physicalIDString);
+        int32_t numCores = std::stoi(numCoresString);
 
-    this->mPhysicalClusters[physicalID]->mNumCpus = numCores;
+        if(this->mPhysicalClusters.find(physicalID) == this->mPhysicalClusters.end()) {
+            return;
+        }
+
+        this->mPhysicalClusters[physicalID]->mNumCpus = numCores;
+    } catch(const std::exception& e) {
+
+    }
 }
 
 void TargetRegistry::readTargetInfo() {
@@ -455,41 +470,60 @@ void TargetRegistry::addCacheInfoMapping(CacheInfo* cacheInfo) {
 // Methods for Building CGroup Config from InitConfigs.yaml
 CGroupConfigInfoBuilder::CGroupConfigInfoBuilder() {
     this->mCGroupConfigInfo = new(std::nothrow) CGroupConfigInfo;
+
+    if(this->mCGroupConfigInfo == nullptr) {
+        return;
+    }
+
+    this->mCGroupConfigInfo->mCgroupName = "";
+    this->mCGroupConfigInfo->mCgroupID = -1;
+    this->mCGroupConfigInfo->mCreationNeeded = false;
+    this->mCGroupConfigInfo->mIsThreaded = false;
 }
 
 ErrCode CGroupConfigInfoBuilder::setCGroupName(const std::string& name) {
     if(this->mCGroupConfigInfo == nullptr) {
-        return RC_INVALID_VALUE;
+        return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
     this->mCGroupConfigInfo->mCgroupName = name;
     return RC_SUCCESS;
 }
 
-ErrCode CGroupConfigInfoBuilder::setCGroupID(int32_t cGroupID) {
+ErrCode CGroupConfigInfoBuilder::setCGroupID(const std::string& cGroupIDString) {
     if(this->mCGroupConfigInfo == nullptr) {
+        return RC_MEMORY_ALLOCATION_FAILURE;
+    }
+
+    this->mCGroupConfigInfo->mCgroupID = -1;
+    try {
+        this->mCGroupConfigInfo->mCgroupID = std::stoi(cGroupIDString);
+        return RC_SUCCESS;
+
+    } catch(const std::exception& e) {
         return RC_INVALID_VALUE;
     }
 
-    this->mCGroupConfigInfo->mCgroupID = cGroupID;
+    return RC_INVALID_VALUE;
+}
+
+ErrCode CGroupConfigInfoBuilder::setCreationNeeded(const std::string& creationNeededString) {
+    if(this->mCGroupConfigInfo == nullptr) {
+        return RC_MEMORY_ALLOCATION_FAILURE;
+    }
+
+    this->mCGroupConfigInfo->mCreationNeeded = (creationNeededString == "true");
+
     return RC_SUCCESS;
 }
 
-ErrCode CGroupConfigInfoBuilder::setCreationNeeded(int8_t creationNeeded) {
+ErrCode CGroupConfigInfoBuilder::setThreaded(const std::string& isThreadedString) {
     if(this->mCGroupConfigInfo == nullptr) {
-        return RC_INVALID_VALUE;
+        return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
-    this->mCGroupConfigInfo->mCreationNeeded = creationNeeded;
-    return RC_SUCCESS;
-}
+    this->mCGroupConfigInfo->mIsThreaded = (isThreadedString == "true");
 
-ErrCode CGroupConfigInfoBuilder::setThreaded(int8_t isThreaded) {
-    if(this->mCGroupConfigInfo == nullptr) {
-        return RC_INVALID_VALUE;
-    }
-
-    this->mCGroupConfigInfo->mIsThreaded = isThreaded;
     return RC_SUCCESS;
 }
 
@@ -499,33 +533,53 @@ CGroupConfigInfo* CGroupConfigInfoBuilder::build() {
 
 MpamGroupConfigInfoBuilder::MpamGroupConfigInfoBuilder() {
     this->mMpamGroupInfo = new(std::nothrow) MpamGroupConfigInfo;
+    if(this->mMpamGroupInfo == nullptr) {
+        return;
+    }
+
+    this->mMpamGroupInfo->mMpamGroupInfoID = -1;
+    this->mMpamGroupInfo->mMpamGroupName = "";
+    this->mMpamGroupInfo->mPriority = 0;
 }
 
 ErrCode MpamGroupConfigInfoBuilder::setName(const std::string& name) {
     if(this->mMpamGroupInfo == nullptr) {
-        return RC_INVALID_VALUE;
+        return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
     this->mMpamGroupInfo->mMpamGroupName = name;
     return RC_SUCCESS;
 }
 
-ErrCode MpamGroupConfigInfoBuilder::setLgcID(int32_t logicalID) {
+ErrCode MpamGroupConfigInfoBuilder::setLgcID(const std::string& logicalIDString) {
     if(this->mMpamGroupInfo == nullptr) {
+        return RC_MEMORY_ALLOCATION_FAILURE;
+    }
+
+    try {
+        int32_t logicalID = std::stoi(logicalIDString);
+        this->mMpamGroupInfo->mMpamGroupInfoID = logicalID;
+        return RC_SUCCESS;
+
+    } catch(const std::exception& e) {
         return RC_INVALID_VALUE;
     }
 
-    this->mMpamGroupInfo->mMpamGroupInfoID = logicalID;
-    return RC_SUCCESS;
+    return RC_INVALID_VALUE;
 }
 
-ErrCode MpamGroupConfigInfoBuilder::setPriority(int32_t priority) {
+ErrCode MpamGroupConfigInfoBuilder::setPriority(const std::string& priorityString) {
     if(this->mMpamGroupInfo == nullptr) {
-        return RC_INVALID_VALUE;
+        return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
-    this->mMpamGroupInfo->mPriority = priority;
-    return RC_SUCCESS;
+    try {
+        this->mMpamGroupInfo->mPriority = std::stoi(priorityString);
+        return RC_SUCCESS;
+
+    } catch(const std::exception& e) {
+        return RC_INVALID_VALUE;
+    }
 }
 
 MpamGroupConfigInfo* MpamGroupConfigInfoBuilder::build() {
@@ -534,32 +588,48 @@ MpamGroupConfigInfo* MpamGroupConfigInfoBuilder::build() {
 
 CacheInfoBuilder::CacheInfoBuilder() {
     this->mCacheInfo = new(std::nothrow) CacheInfo;
+    if(this->mCacheInfo == nullptr) {
+        return;
+    }
+
+    this->mCacheInfo->mPriorityAware = false;
+    this->mCacheInfo->mCacheType = "";
+    this->mCacheInfo->mNumCacheBlocks == -1;
 }
 
 ErrCode CacheInfoBuilder::setType(const std::string& type) {
     if(this->mCacheInfo == nullptr) {
-        return RC_INVALID_VALUE;
+        return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
     this->mCacheInfo->mCacheType = type;
     return RC_SUCCESS;
 }
 
-ErrCode CacheInfoBuilder::setNumBlocks(int32_t numBlocks) {
+ErrCode CacheInfoBuilder::setNumBlocks(const std::string& numBlocksString) {
     if(this->mCacheInfo == nullptr) {
+        return RC_MEMORY_ALLOCATION_FAILURE;
+    }
+
+    try {
+        int32_t numBlocks = std::stoi(numBlocksString);
+        this->mCacheInfo->mNumCacheBlocks = numBlocks;
+        return RC_SUCCESS;
+
+    } catch(const std::exception& e) {
         return RC_INVALID_VALUE;
     }
 
-    this->mCacheInfo->mNumCacheBlocks = numBlocks;
-    return RC_SUCCESS;
+    return RC_INVALID_VALUE;
 }
 
-ErrCode CacheInfoBuilder::setPriorityAware(int8_t isPriorityAware) {
+ErrCode CacheInfoBuilder::setPriorityAware(const std::string& isPriorityAwareString) {
     if(this->mCacheInfo == nullptr) {
-        return RC_INVALID_VALUE;
+        return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
-    this->mCacheInfo->mPriorityAware = isPriorityAware;
+    this->mCacheInfo->mPriorityAware = (isPriorityAwareString == "true");
+
     return RC_SUCCESS;
 }
 

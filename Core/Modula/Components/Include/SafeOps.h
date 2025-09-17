@@ -19,87 +19,82 @@ enum OperationStatus {
     DIVISION_BY_ZERO
 };
 
-//return max or min limit.
-
-template < typename T >
+// Return max or min limit.
+template <typename T>
 T Add(T firstArg, T secondArg, OperationStatus& status) {
     status = SUCCESS;
     // Both arguments are +ve
     if(firstArg >= 0 && secondArg >= 0 && ((std::numeric_limits<T>::max() - firstArg) < secondArg)) {
-        status = OVERFLOW;
+        status = OperationStatus::OVERFLOW;
         return std::numeric_limits<T>::max();
     }
     // Both arguments are -ve
     else if(firstArg < 0 && secondArg < 0 && ((std::numeric_limits<T>::lowest() - firstArg) > secondArg)) {
-        status = UNDERFLOW;
+        status = OperationStatus::UNDERFLOW;
         return std::numeric_limits<T>::lowest();
     }
     return firstArg + secondArg;
 }
 
-template < typename T >
+template <typename T>
 T Subtract(T firstArg, T secondArg, OperationStatus& status)  {
     status = SUCCESS;
     //Only opposite signed arguments will cause undesired behaviour
     if(firstArg >= 0 && secondArg < 0 && ((firstArg - std::numeric_limits<T>::max()) > secondArg)) {
-        status = OVERFLOW;
+        status = OperationStatus::OVERFLOW;
         return std::numeric_limits<T>::max();
-    }
-    else if(firstArg < 0 && secondArg >=0  && ((firstArg - std::numeric_limits<T>::lowest()) < secondArg)) {
-        status = UNDERFLOW;
+    } else if(firstArg < 0 && secondArg >=0  && ((firstArg - std::numeric_limits<T>::lowest()) < secondArg)) {
+        status = OperationStatus::UNDERFLOW;
         return std::numeric_limits<T>::lowest();
     }
+
     return firstArg - secondArg;
 }
 
-template < typename T >
+template <typename T>
 T Multiply(T firstArg, T secondArg, OperationStatus& status)  {
     status = SUCCESS;
-    if(firstArg > 0 && secondArg >0  && ((std::numeric_limits<T>::max()/firstArg) < secondArg)) {
-        status = OVERFLOW;
+
+    if(firstArg > 0 && secondArg >0  && ((std::numeric_limits<T>::max() / firstArg) < secondArg)) {
+        status = OperationStatus::OVERFLOW;
         return std::numeric_limits<T>::max();
-    }
-    else if(firstArg < 0 && secondArg < 0  && ((std::numeric_limits<T>::max()/firstArg) > secondArg)) {
-        status = OVERFLOW;
+    } else if(firstArg < 0 && secondArg < 0  && ((std::numeric_limits<T>::max() / firstArg) > secondArg)) {
+        status = OperationStatus::OVERFLOW;
         return std::numeric_limits<T>::max();
-    }
-    else if(firstArg > 0 && secondArg < 0  && ((std::numeric_limits<T>::lowest()/firstArg) > secondArg)) {
-        status = UNDERFLOW;
+    } else if(firstArg > 0 && secondArg < 0  && ((std::numeric_limits<T>::lowest() / firstArg) > secondArg)) {
+        status = OperationStatus::UNDERFLOW;
+        return std::numeric_limits<T>::lowest();
+    } else if(firstArg < 0 && secondArg > 0  && ((std::numeric_limits<T>::lowest() / firstArg) < secondArg)) {
+        status = OperationStatus::UNDERFLOW;
         return std::numeric_limits<T>::lowest();
     }
-    else if(firstArg < 0 && secondArg > 0  && ((std::numeric_limits<T>::lowest()/firstArg) < secondArg)) {
-        status = UNDERFLOW;
-        return std::numeric_limits<T>::lowest();
-    }
-    return firstArg*secondArg;
+
+    return firstArg * secondArg;
 }
 
-
-template < typename T >
+template <typename T>
 T Divide(T firstArg, T secondArg, OperationStatus& status)  {
-    status = SUCCESS;
-    if(secondArg==0) {
+    status = OperationStatus::SUCCESS;
+    if(secondArg == 0) {
         status = DIVISION_BY_ZERO;
         return firstArg;
     }
-    if(secondArg > 0 && secondArg < 1 && firstArg > 0 && ((std::numeric_limits<T>::max()*secondArg) < firstArg)) {
-        status = OVERFLOW;
+
+    if(secondArg > 0 && secondArg < 1 && firstArg > 0 && ((std::numeric_limits<T>::max() * secondArg) < firstArg)) {
+        status = OperationStatus::OVERFLOW;
         return std::numeric_limits<T>::max();
-    }
-    else if(secondArg > 0 && secondArg < 1 && firstArg < 0 && ((std::numeric_limits<T>::lowest()*secondArg) > firstArg)) {
-        status = UNDERFLOW;
+    } else if(secondArg > 0 && secondArg < 1 && firstArg < 0 && ((std::numeric_limits<T>::lowest() * secondArg) > firstArg)) {
+        status = OperationStatus::UNDERFLOW;
         return std::numeric_limits<T>::lowest();
-    }
-    else if(secondArg < 0 && secondArg > -1 && firstArg > 0 && ((std::numeric_limits<T>::lowest()*secondArg) < firstArg)) {
-        status = UNDERFLOW;
+    } else if(secondArg < 0 && secondArg > -1 && firstArg > 0 && ((std::numeric_limits<T>::lowest() * secondArg) < firstArg)) {
+        status = OperationStatus::UNDERFLOW;
         return std::numeric_limits<T>::lowest();
-    }
-    else if(secondArg < 0 && secondArg > -1 && firstArg < 0 &&  ((std::numeric_limits<T>::max()*secondArg) > firstArg)) {
-        status = OVERFLOW;
+    } else if(secondArg < 0 && secondArg > -1 && firstArg < 0 &&  ((std::numeric_limits<T>::max() * secondArg) > firstArg)) {
+        status = OperationStatus::OVERFLOW;
         return std::numeric_limits<T>::max();
     }
 
-    return firstArg/secondArg;
+    return firstArg / secondArg;
 }
 
 #define SafeDeref(ptr) \

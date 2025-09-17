@@ -96,24 +96,25 @@ private:
     std::unordered_map<int32_t, int32_t> mFlatClusterMap;
 
     /**
-    * @brief The main data structure which is a 2D vector. It stores entries for each resource and each entry stores a priority vector.
-    *        For each resource, for each priority, you store a head (second) and tail (first) pointers to store a linked list in memory.
-    */
+     * @brief The main data structure which is a 2D vector. It stores entries for each resource and each entry stores a priority vector.
+     *        For each resource, for each priority, you store a head (second) and tail (first) pointers to store a linked list in memory.
+     */
     std::vector<std::vector<std::pair<CocoNode*, CocoNode*>>> mCocoTable;
 
     /**
-    * @brief Data structure storing the c2urrently applied priority for each resource. It is referred to whenever a new request comes in.
-    */
+     * @brief Data structure storing the c2urrently applied priority for each resource. It is referred to whenever a new request comes in.
+     */
     std::vector<int32_t> mCurrentlyAppliedPriority;
 
     CocoTable();
 
+    void timerExpired(Request* req);
     void applyAction(CocoNode* currNode, int32_t index, int8_t priority);
     void removeAction(int32_t index, Resource* resource);
     void processResourceCleanupAt(Request* request, int32_t index);
-    int32_t getCocoTablePrimaryIndex(uint32_t opId);
+
+    int32_t getCocoTablePrimaryIndex(uint32_t resCode);
     int32_t getCocoTableSecondaryIndex(Resource* resource, int8_t priority);
-    int32_t timerOver(Request* req);
 
     void deleteNode(CocoNode* node,
                     int32_t primaryIndex,
@@ -140,48 +141,46 @@ private:
                                        int32_t secondaryIndex,
                                        int8_t priority);
 
-    void triggerDisplayOffOrDozeResetting();
-
 public:
     ~CocoTable();
 
     /**
-    * @brief Used to insert a request into the CocoTable, so that it can be applied
-    *        to the desired Resource Nodes.
-    * @details As part of this routine, CocoNodes are allocated for each Resource part of
-    *          the Request, as well as creating and starting the timer, and finally inserting
-    *          the request to the appropriate Resource level Linked Lists.
-    * @param req A pointer to the Request to be inserted
-    * @return int8_t:
-    *           1: If the Request was inserted successfully into the CocoTable
-    *           0: Otherwise
-    */
+     * @brief Used to insert a request into the CocoTable, so that it can be applied
+     *        to the desired Resource Nodes.
+     * @details As part of this routine, CocoNodes are allocated for each Resource part of
+     *          the Request, as well as creating and starting the timer, and finally inserting
+     *          the request to the appropriate Resource level Linked Lists.
+     * @param req A pointer to the Request to be inserted
+     * @return int8_t:\n
+     *            - 1: If the Request was inserted successfully into the CocoTable
+     *            - 0: Otherwise
+     */
     int8_t insertRequest(Request* req);
 
     /**
-    * @brief Used to untune a previously issued Tune Request.
-    * @details This routine is invoked when an untune request is received, as part of
-    *          the routine, the Request Timer for the corresponding Tune Request will be killed,
-    *          and subsequently the Tune request will be cleaned up from the Resource Level Linked Lists.
-    *
-    * @param req A pointer to the Request to be removed
-    * @return int8_t:
-    *           1: If the Request was Removed successfully from the CocoTable
-    *           0: Otherwise
-    */
+     * @brief Used to untune a previously issued Tune Request.
+     * @details This routine is invoked when an untune request is received, as part of
+     *          the routine, the Request Timer for the corresponding Tune Request will be killed,
+     *          and subsequently the Tune request will be cleaned up from the Resource Level Linked Lists.
+     *
+     * @param req A pointer to the Request to be removed
+     * @return int8_t:\n
+     *            - 1: If the Request was Removed successfully from the CocoTable
+     *            - 0: Otherwise
+     */
     int8_t removeRequest(Request* req);
 
     /**
-    * @brief Used to update the duration of an Active Request
-    * @details This routine is invoked when a retune request is received, to modify the
-    *          duration of a previously issued Tune Request. Note, only extending the duration
-    *          is allowed.
-    * @param req A pointer to the Request to be modified
-    * @param duration The new duration of the request
-    * @return int8_t:
-    *           1: If the Request was updated successfully insider the CocoTable
-    *           0: Otherwise
-    */
+     * @brief Used to update the duration of an Active Request
+     * @details This routine is invoked when a retune request is received, to modify the
+     *          duration of a previously issued Tune Request. Note, only extending the duration
+     *          is allowed.
+     * @param req A pointer to the Request to be modified
+     * @param duration The new duration of the request
+     * @return int8_t:\n
+     *            - 1: If the Request was updated successfully insider the CocoTable
+     *            - 0: Otherwise
+     */
     int8_t updateRequest(Request* req, int64_t duration);
 
     static std::shared_ptr<CocoTable> getInstance() {

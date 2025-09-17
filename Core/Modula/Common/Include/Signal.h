@@ -26,14 +26,14 @@ public:
     Signal();
     ~Signal();
 
-    uint32_t getSignalID();
+    uint32_t getSignalCode();
     int32_t getNumArgs();
     const std::string getAppName();
     const std::string getScenario();
     uint32_t getListArgAt(int32_t index);
     std::vector<uint32_t>* getListArgs();
 
-    void setSignalCode(uint32_t signalID);
+    void setSignalCode(uint32_t signalCode);
     void setAppName(const std::string& appName);
     void setScenario(const std::string& scenario);
     void setNumArgs(int32_t numArgs);

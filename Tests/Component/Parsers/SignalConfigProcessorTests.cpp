@@ -1,7 +1,6 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <thread>
 #include <cstdint>
 #include <cstring>
 
@@ -11,21 +10,22 @@
 #include "Extensions.h"
 #include "Utils.h"
 
-#define TOTAL_SIGNAL_CONFIGS_COUNT 8                                                                                       \
+#define TOTAL_SIGNAL_CONFIGS_COUNT 8
+
+static ErrCode parsingStatus = RC_SUCCESS;
 
 static void Init() {
     SignalConfigProcessor configProcessor;
-
-    if(RC_IS_NOTOK(configProcessor.parseSignalConfigs("/etc/resource-tuner/custom/SignalsConfig.yaml"))) {
-        return;
-    }
+    parsingStatus = configProcessor.parseSignalConfigs("/etc/resource-tuner/custom/SignalsConfig.yaml");
 }
 
 static void TestSignalConfigProcessorYAMLDataIntegrity1() {
     C_ASSERT(SignalRegistry::getInstance() != nullptr);
+    C_ASSERT(parsingStatus == RC_SUCCESS);
 }
 
 static void TestSignalConfigProcessorYAMLDataIntegrity2() {
+    std::cout<<"Count of Signals Parsed = "<<SignalRegistry::getInstance()->getSignalsConfigCount()<<std::endl;
     C_ASSERT(SignalRegistry::getInstance()->getSignalsConfigCount() == TOTAL_SIGNAL_CONFIGS_COUNT);
 }
 

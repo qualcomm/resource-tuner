@@ -4,6 +4,10 @@
 #ifndef TARGET_REGISTRY_H
 #define TARGET_REGISTRY_H
 
+/*!
+ * \file  TargetRegistry.h
+ */
+
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -26,32 +30,53 @@
 #define ONLINE_CPU_FILE_PATH "/sys/devices/system/cpu/online"
 #define CPU_CAPACITY_FILE_PATH "/sys/devices/system/cpu/cpu%d/cpu_capacity"
 
+/**
+ * @struct CGroupConfigInfo
+ * @brief Representation of a single CGroup Configuration Info
+ */
 typedef struct {
-    std::string mCgroupName;
-    int32_t mCgroupID;
-    int8_t mCreationNeeded;
-    int8_t mIsThreaded;
+    std::string mCgroupName; //!< Cgroup Name
+    int32_t mCgroupID;  //!< 32-bit identifier for the Cgroup (to be used as part of tuneResources API)
+    int8_t mCreationNeeded; //!< Flag indicating if Cgroup needs to be created by Resource Tuner, or if it already exists
+    int8_t mIsThreaded; //!< Flag indicating if the Cgroup is threaded.
 } CGroupConfigInfo;
 
+/**
+ * @struct ClusterInfo
+ * @brief Representation for various Clusters detected on the device.
+ */
 typedef struct {
-    int32_t mPhysicalID;
-    int32_t mCapacity;
-    int32_t mStartCpu;
-    int32_t mNumCpus;
+    int32_t mPhysicalID; //!< Physical Cluster ID corresponding to the logical ID.
+    int32_t mCapacity; //!< Cluster Capacity
+    int32_t mStartCpu; //!< Starting CPU index in this cluster
+    int32_t mNumCpus; //!< Number of CPUs part of the Cluster
 } ClusterInfo;
 
+/**
+ * @struct MpamGroupConfigInfo
+ * @brief Representation of a single Mpam Group Configuration Info
+ */
 typedef struct {
-    int32_t mMpamGroupInfoID;
-    std::string mMpamGroupName;
-    int32_t mPriority;
+    int32_t mMpamGroupInfoID; //!< 32-bit identifier for the Mpam Group (to be used as part of tuneResources API)
+    std::string mMpamGroupName; //!< Mpam group Name
+    int32_t mPriority; //!< Mpam group Priority
 } MpamGroupConfigInfo;
 
+/**
+ * @struct CacheInfo
+ * @brief Representation for a single Cluster Type Info.
+ */
 typedef struct {
-    std::string mCacheType;
-    int32_t mNumCacheBlocks;
-    int8_t mPriorityAware;
+    std::string mCacheType; //!< Cache Type, for example: L2 or L3
+    int32_t mNumCacheBlocks; //!< Number of cache blocks for this type
+    int8_t mPriorityAware; //!< Flag indicating if the Cache type is priority aware.
 } CacheInfo;
 
+/**
+ * @brief TargetRegistry
+ * @details Stores all the target related info, fetched dynamically or provided
+ *          statically via Target and Init Config files.
+ */
 class TargetRegistry {
 private:
     static std::shared_ptr<TargetRegistry> targetRegistryInstance;
@@ -71,8 +96,8 @@ public:
     ~TargetRegistry();
 
     // Methods for adding Target Info via TargetConfig.yaml
-    void addClusterSpreadInfo(int32_t physicalID, int32_t coreCount);
-    void addClusterMapping(int32_t logicalID, int32_t physicalID);
+    void addClusterSpreadInfo(const std::string& physicalID, const std::string& coreCount);
+    void addClusterMapping(const std::string& logicalID, const std::string& physicalID);
 
     // Method for adding CGroup configs from InitConfig.yaml
     void addCGroupMapping(CGroupConfigInfo* cGroupConfigInfo);
@@ -91,9 +116,9 @@ public:
      *                         when issuing a tuneResources API call.
      * @param logicalCoreId The Logical Core ID, passed via the mResInfo field (part of the Resource struct)
      *                      when issuing a tuneResources API call.
-     * @return: int32_t
-     *              A Non-Negative Integer, representing the corresponding physical Core ID.
-     *              -1: otherwise
+     * @return int32_t:\n
+     *            - A Non-Negative Integer, representing the corresponding physical Core ID.
+     *            - -1: otherwise
      */
     int32_t getPhysicalCoreId(int32_t logicalClusterId, int32_t logicalCoreId);
 
@@ -102,9 +127,9 @@ public:
      * @details This routine performs Logical to Physical Cluster Translation.
      * @param logicalClusterId The Logical Cluster ID, passed via the mResInfo field (part of the Resource struct)
      *                         when issuing a tuneResources API call.
-     * @return: int32_t
-     *              A Non-Negative Integer, representing the corresponding physical Cluster ID.
-     *              -1: otherwise
+     * @return int32_t:\n
+     *            - A Non-Negative Integer, representing the corresponding physical Cluster ID.
+     *            - -1: otherwise
      */
     int32_t getPhysicalClusterId(int32_t logicalClusterId);
 
@@ -152,9 +177,9 @@ public:
     CGroupConfigInfoBuilder();
 
     ErrCode setCGroupName(const std::string& cGroupName);
-    ErrCode setCGroupID(int32_t cGroupIdentifier);
-    ErrCode setCreationNeeded(int8_t creationNeeded);
-    ErrCode setThreaded(int8_t isThreaded);
+    ErrCode setCGroupID(const std::string& cGroupIdentifier);
+    ErrCode setCreationNeeded(const std::string& creationNeeded);
+    ErrCode setThreaded(const std::string& isThreaded);
 
     CGroupConfigInfo* build();
 };
@@ -167,8 +192,8 @@ public:
     MpamGroupConfigInfoBuilder();
 
     ErrCode setName(const std::string& name);
-    ErrCode setLgcID(int32_t logicalID);
-    ErrCode setPriority(int32_t priority);
+    ErrCode setLgcID(const std::string& logicalID);
+    ErrCode setPriority(const std::string& priority);
 
     MpamGroupConfigInfo* build();
 };
@@ -181,8 +206,8 @@ public:
     CacheInfoBuilder();
 
     ErrCode setType(const std::string& type);
-    ErrCode setNumBlocks(int32_t numBlocks);
-    ErrCode setPriorityAware(int8_t isPriorityAware);
+    ErrCode setNumBlocks(const std::string& numBlocks);
+    ErrCode setPriorityAware(const std::string& isPriorityAware);
 
     CacheInfo* build();
 };

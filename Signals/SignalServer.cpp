@@ -37,15 +37,17 @@ static int8_t getRequestPriority(int8_t clientPermissions, int8_t reqSpecifiedPr
  *          It ensures that the Signal exists in the registry and that the request is valid.
  *
  * @param req Pointer to the Request object.
- * @return int8_t True if the request is valid, false otherwise.
+ * @return int8_t:\n
+ *            - 1: if the request is valid.
+ *            - 0: otherwise.
  */
 static int8_t VerifyIncomingRequest(Signal* signal) {
     // Check if a Signal with the given ID exists in the Registry
-    SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(signal->getSignalID());
+    SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(signal->getSignalCode());
 
     // Basic sanity: Invalid ResCode
     if(signalInfo == nullptr) {
-        TYPELOGV(VERIFIER_INVALID_OPCODE, signal->getSignalID());
+        TYPELOGV(VERIFIER_INVALID_OPCODE, signal->getSignalCode());
         return false;
     }
 
@@ -68,7 +70,7 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
 
     // Check if the Signal is enabled for provisioning
     if(!signalInfo->mIsEnabled) {
-        TYPELOGV(VERIFIER_UNSUPPORTED_SIGNAL_TUNING, signal->getSignalID());
+        TYPELOGV(VERIFIER_UNSUPPORTED_SIGNAL_TUNING, signal->getSignalCode());
         return false;
     }
 
@@ -82,7 +84,7 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
 
     // Client does not have the necessary permissions to tune this Resource.
     if(!permissionCheck) {
-        TYPELOGV(VERIFIER_NOT_SUFFICIENT_SIGNAL_ACQ_PERMISSION, signal->getSignalID());
+        TYPELOGV(VERIFIER_NOT_SUFFICIENT_SIGNAL_ACQ_PERMISSION, signal->getSignalCode());
         return false;
     }
 
@@ -90,12 +92,12 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
     std::string targetName = ResourceTunerSettings::targetConfigs.targetName;
     if(signalInfo->mTargetsEnabled != nullptr) {
         if(signalInfo->mTargetsEnabled->find(targetName) == signalInfo->mTargetsEnabled->end()) {
-            TYPELOGV(VERIFIER_TARGET_CHECK_FAILED, signal->getSignalID());
+            TYPELOGV(VERIFIER_TARGET_CHECK_FAILED, signal->getSignalCode());
             return false;
         }
     } else if(signalInfo->mTargetsDisabled != nullptr) {
         if(signalInfo->mTargetsDisabled->find(targetName) != signalInfo->mTargetsDisabled->end()) {
-            TYPELOGV(VERIFIER_TARGET_CHECK_FAILED, signal->getSignalID());
+            TYPELOGV(VERIFIER_TARGET_CHECK_FAILED, signal->getSignalCode());
             return false;
         }
     }
@@ -155,8 +157,8 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
 // Fills in any optional fields in the Signal that are not specified in the Config file
 // with the values specified in the tuneSignal API's list argument.
 static int8_t fillDefaults(Signal* signal) {
-    uint32_t signalID = signal->getSignalID();
-    SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(signalID);
+    uint32_t signalCode = signal->getSignalCode();
+    SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(signalCode);
     if(signalInfo == nullptr) return false;
     if(signalInfo->mSignalResources == nullptr) return true;
 

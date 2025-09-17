@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <memory>
+#include <stack>
 
 #include "YamlParser.h"
 #include "SignalRegistry.h"
@@ -13,26 +14,27 @@
 #include "ExtFeaturesRegistry.h"
 
 #define SIGNAL_CONFIGS_ROOT "SignalConfigs"
-#define SIGNAL_SIGID "SigId"
-#define SIGNAL_CATEGORY "Category"
-#define SIGNAL_NAME "Name"
-#define SIGNAL_TIMEOUT "Timeout"
-#define SIGNAL_ENABLE "Enable"
-#define SIGNAL_TARGETS_ENABLED "TargetsEnabled"
-#define SIGNAL_TARGETS_DISABLED "TargetsDisabled"
-#define SIGNAL_PERMISSIONS "Permissions"
-#define SIGNAL_DERIVATIVES "Derivatives"
-#define SIGNAL_RESOURCES "Resources"
+#define SIGNAL_CONFIGS_ELEM_SIGID "SigId"
+#define SIGNAL_CONFIGS_ELEM_CATEGORY "Category"
+#define SIGNAL_CONFIGS_ELEM_NAME "Name"
+#define SIGNAL_CONFIGS_ELEM_TIMEOUT "Timeout"
+#define SIGNAL_CONFIGS_ELEM_ENABLE "Enable"
+#define SIGNAL_CONFIGS_ELEM_TARGETS_ENABLED "TargetsEnabled"
+#define SIGNAL_CONFIGS_ELEM_TARGETS_DISABLED "TargetsDisabled"
+#define SIGNAL_CONFIGS_ELEM_PERMISSIONS "Permissions"
+#define SIGNAL_CONFIGS_ELEM_DERIVATIVES "Derivatives"
+#define SIGNAL_CONFIGS_ELEM_RESOURCES "Resources"
 
-#define SIGNAL_RESOURCE_CODE "ResCode"
-#define SIGNAL_RESINFO "ResInfo"
-#define SIGNAL_VALUES "Values"
+#define SIGNAL_CONFIGS_ELEM_RESOURCE_CODE "ResCode"
+#define SIGNAL_CONFIGS_ELEM_RESOURCE_RESINFO "ResInfo"
+#define SIGNAL_CONFIGS_ELEM_RESOURCE_VALUES "Values"
 
-#define EXT_FEATURES_CONFIGS_ROOT "FeatureConfigs"
-#define EXT_FEATURE_ID "FeatId"
-#define EXT_FEATURE_LIB "LibPath"
-#define EXT_FEATURE_NAME "Name"
-#define EXT_FEATURE_SUBSCRIBER_LIST "Signals"
+#define EXT_FEATURE_CONFIGS_ROOT "FeatureConfigs"
+#define EXT_FEATURE_CONFIGS_ELEM_ID "FeatId"
+#define EXT_FEATURE_CONFIGS_ELEM_LIB "LibPath"
+#define EXT_FEATURE_CONFIGS_ELEM_NAME "Name"
+#define EXT_FEATURE_CONFIGS_ELEM_DESCRIPTION "Description"
+#define EXT_FEATURE_CONFIGS_ELEM_SUBSCRIBER_LIST "Signals"
 
 /**
  * The Signal configuration file (SignalsConfig.yaml) must follow a specific structure.
@@ -81,8 +83,8 @@
 
 class SignalConfigProcessor {
 private:
-    void parseSignalConfigYamlNode(const YAML::Node& result, int8_t isBuSpecified);
-    void parseExtFeatureConfigYamlNode(const YAML::Node& result);
+    ErrCode parseSignalConfigYamlNode(const std::string& filePath, int8_t isBuSpecified);
+    ErrCode parseExtFeatureConfigYamlNode(const std::string& filePath);
 
 public:
     ErrCode parseSignalConfigs(const std::string& filePath, int8_t isBuSpecified=false);

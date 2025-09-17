@@ -11,7 +11,8 @@
  * \details Runs as a Daemon Thread and Periodically (Every 60 seconds) checks if any of the Clients with
  *          Active or Pending Requests with the Resource Tuner Server have died or terminated.
  *          When such a Client is Found it is added to the Garbage Collector Queue, so that it
- *          can be cleaned up.\n\n
+ *          can be cleaned up.
+ *
  *          Pulse Monitor Flow:\n\n
  *          1) The Pulse Monitor, retrieves the list of Clients (i.e. clients with Outstanding Requests)
  *             from the ClientDataManager.\n\n
@@ -56,7 +57,17 @@ private:
 public:
     ~PulseMonitor();
 
+    /**
+     * @brief Starts the Pulse Monitor
+     * @details To start the pulse monitor a recurring timer is created by using a
+     *          thread from the Thread Pool. This Thread will wake up periodically
+     *          and check for dead clients and if found add them to the garbage collector queue.
+     * @return ErrCode:\n
+     *            - RC_SUCCESS If the Pulse Monitor is successfully started\n
+     *            - Enum Code indicating error: Otherwise.
+     */
     ErrCode startPulseMonitorDaemon();
+    void stopPulseMonitorDaemon();
 
     static std::shared_ptr<PulseMonitor> getInstance() {
         if(mPulseMonitorInstance == nullptr) {
@@ -67,6 +78,7 @@ public:
 };
 
 ErrCode startPulseMonitorDaemon();
+void stopPulseMonitorDaemon();
 
 #endif
 

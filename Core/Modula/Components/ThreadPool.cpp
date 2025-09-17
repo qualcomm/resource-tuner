@@ -187,9 +187,8 @@ int8_t ThreadPool::addNewThread(int8_t isCoreThread) {
     return false;
 }
 
-ThreadPool::ThreadPool(int32_t desiredCapacity, int32_t maxCapacity, std::string label) {
+ThreadPool::ThreadPool(int32_t desiredCapacity, int32_t maxCapacity) {
     this->mThreadQueueHead = this->mThreadQueueTail = nullptr;
-    this->mThreadPoolLabel = label;
 
     this->mDesiredPoolCapacity = desiredCapacity;
     this->mCurrentThreadsCount = 0;

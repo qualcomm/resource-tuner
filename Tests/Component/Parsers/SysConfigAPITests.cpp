@@ -3,7 +3,6 @@
 
 #include <cstdint>
 #include <string.h>
-#include <thread>
 
 #include "Utils.h"
 #include "TestUtils.h"
@@ -11,21 +10,22 @@
 #include "PropertiesRegistry.h"
 #include "ConfigProcessor.h"
 
-#define TOTAL_SYS_CONFIGS_PROPS_COUNT 14
+#define TOTAL_SYS_CONFIGS_PROPS_COUNT 15
+
+static ErrCode parsingStatus = RC_SUCCESS;
 
 static void Init() {
     ConfigProcessor configProcessor;
-    if(RC_IS_NOTOK(configProcessor.parsePropertiesConfigs("/etc/resource-tuner/custom/PropertiesConfig.yaml"))) {
-        return;
-    }
+    parsingStatus = configProcessor.parsePropertiesConfigs("/etc/resource-tuner/custom/PropertiesConfig.yaml");
 }
 
 static void TestSysConfigProcessorYAMLDataIntegrity1() {
     C_ASSERT(PropertiesRegistry::getInstance() != nullptr);
+    C_ASSERT(parsingStatus == RC_SUCCESS);
 }
 
 static void TestSysConfigPropertiesParsing() {
-    std::cout<<"grub: "<<PropertiesRegistry::getInstance()->getPropertiesCount()<<std::endl;
+    std::cout<<"Total Properties Parsed: "<<PropertiesRegistry::getInstance()->getPropertiesCount()<<std::endl;
     C_ASSERT(PropertiesRegistry::getInstance()->getPropertiesCount() == TOTAL_SYS_CONFIGS_PROPS_COUNT);
 }
 
@@ -87,7 +87,7 @@ static void TestSysConfigGetPropConcurrentRetrieval() {
 }
 
 int32_t main() {
-    std::cout<<"Running [SysConfigAPITests] Test Suite\n"<<std::endl;
+    std::cout<<"Running Test Suite: [SysConfigAPITests]\n"<<std::endl;
 
     Init();
     RUN_TEST(TestSysConfigPropertiesParsing);

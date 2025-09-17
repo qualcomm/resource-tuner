@@ -603,7 +603,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             Logger::log(LOG_ERR, "RESTUNE_REQUEST_MANAGER", funcName, std::string(buffer));
             break;
 
-        case CommonMessageTypes::EXT_FEATURE_LIB_OPEN_FAILED:
+        case CommonMessageTypes::EXT_FEATURE_CONFIGS_ELEM_LIB_OPEN_FAILED:
             vsnprintf(buffer, sizeof(buffer),
                       "Lib with the Path: [%s] could not be opened", args);
 

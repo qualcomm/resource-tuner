@@ -60,11 +60,8 @@ static ErrCode fetchSignals() {
 
     // Parse Custom Signal Configs provided in /etc/resource-tuner/custom (if any)
     filePath = ResourceTunerSettings::mCustomSignalFilePath;
-    opStatus = parseUtil(filePath, CUSTOM_SIGNAL, ConfigType::SIGNALS_CONFIG, true);
-
-    // If file was not found, we simply return SUCCESS, since custom configs are optional
-    if(opStatus == RC_FILE_NOT_FOUND) {
-        return RC_SUCCESS;
+    if(AuxRoutines::fileExists(filePath)) {
+        return parseUtil(filePath, CUSTOM_SIGNAL, ConfigType::SIGNALS_CONFIG, true);
     }
 
     return opStatus;
@@ -85,11 +82,8 @@ static ErrCode fetchExtFeatureConfigs() {
     }
 
     filePath = ResourceTunerSettings::mCustomExtFeaturesFilePath;
-    opStatus = parseUtil(filePath, CUSTOM_EXT_FEATURE, ConfigType::EXT_FEATURES_CONFIG, true);
-
-    // If file was not found, we simply return SUCCESS, since custom configs are optional
-    if(opStatus == RC_FILE_NOT_FOUND) {
-        return RC_SUCCESS;
+    if(AuxRoutines::fileExists(filePath)) {
+        return parseUtil(filePath, CUSTOM_EXT_FEATURE, ConfigType::EXT_FEATURES_CONFIG, true);
     }
 
     return opStatus;

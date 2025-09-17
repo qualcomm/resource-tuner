@@ -4,7 +4,7 @@
 /**
  * @brief Sample Usage of Resource Tuner APIs.
  *
- * @example ResourceTunerCoreAPIs.cpp
+ * @example CoreAPIsExamples.cpp
  * This files covers examples of the following APIs:
  * - tuneResources
  * - retuneResources
@@ -16,9 +16,8 @@
 
 #define UCLAMP_MIN_RES 0x00030000
 #define UCLAMP_BOOST_VAL 750
-#define TUNE_DURATION 5000 #duration in msec
+#define TUNE_DURATION 5000 // duration in msec
 #define FAIL -1
-
 
 // EXAMPLE #1
 // In the following Example the Client Sends:

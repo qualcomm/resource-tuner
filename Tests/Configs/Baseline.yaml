@@ -29,7 +29,6 @@ TestConfigs:
     # Logical Cluster: 2 maps to Physical Cluster: 7
     # Logical Cluster: 1 maps to Physical Cluster: 4
     # Logical Cluster: 0 maps to Physical Cluster: 0
-
     ClusterExpectations:
       - LgcId: 0
         PhyId: 0

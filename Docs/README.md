@@ -4,12 +4,12 @@
 
 - [Introduction](#introduction)
 - [Resource Tuner Key Points](#resource-tuner-key-points)
-- [Resource Tuner Features](#resource-tuner-features)
-- [Config Files Format](#config-files-format)
 - [Resource Tuner APIs](#resource-tuner-apis)
-- [Resource Structure](#resource-format)
+- [Config Files Format](#config-files-format)
+- [Resource Format](#resource-format)
 - [Example Usage](#example-usage-of-resource-tuner-apis)
 - [Extension Interface](#extension-interface)
+- [Resource Tuner Features](#resource-tuner-features)
 - [Client CLI](#client-cli)
 
 <div style="page-break-after: always;"></div>
@@ -28,7 +28,7 @@ Resource-tuner framework supports `Signals` which is dynamic provisioning of sys
 
 <div style="page-break-after: always;"></div>
 
-# Getting Started
+## Getting Started
 
 To get started with the project:
 [Build and install](../README.md#build-and-install-instructions)
@@ -37,7 +37,7 @@ Refer the Examples Tab for guidance on resource-tuner API usage.
 
 ---
 
-# Flexible Packaging: Packaging required modules
+## Flexible Packaging: Packaging required modules
 - Core -> Core module which contains server, client, framwork and helper libraries.
 - Signals -> Contains support for provisioning system for the recieved signal
 - Tests -> Unit tests and module level tests
@@ -52,7 +52,11 @@ option(BUILD_TESTS "Testing" OFF)
 option(BUILD_CLI "CLI" OFF)
 ```
 
-# Project Structure
+---
+
+<div style="page-break-after: always;"></div>
+
+## Project Structure
 
 ```text
 /
@@ -68,6 +72,8 @@ option(BUILD_CLI "CLI" OFF)
 └── Docs                         # Documentation
 ```
 
+---
+
 <div style="page-break-after: always;"></div>
 
 # Resource-tuner Key Points
@@ -82,123 +88,214 @@ option(BUILD_CLI "CLI" OFF)
 - Resource-tuner uses YAML based config files, for fetching information relating to resources/signals and properties.
 
 ---
-<div style="page-break-after: always;"></div>
-
-# Resource Tuner Features
-
-<img src="design_resource_tuner.png" alt="Resource Tuner Design" width="70%"/>
-
-Resource-tuner architecture is captured above.
-
-## Initialization
-- During the server initialization phase, the YAML config files are read to build up the resource registry, property store etc.
-- If the target chipset has registered any custom resources, signals or custom YAML files via the extension interface, then these changes are detected during this phase itself to build up a consolidated system view, before it can start serving requests.
-- During the initialization phase, memory is pre-allocated for commonly used types (via MemoryPool), and worker (thread) capacity is reserved in advance via the ThreadPool, to avoid any delays during the request processing phase.
-- Resource-tuner will also fetch the target details, like target name, total number of cores, logical to physical cluster / core mapping in this phase.
-- If the Signals module is plugged in, it will be initialized as well and the signal configs will be parsed similarly to resource configs.
-- Once all the initialization is completed, the server is ready to serve requests, a new listener thread is created for handling requests.
 
 <div style="page-break-after: always;"></div>
 
-## Request Processing
-- The client can use the resource-tuner client library to send their requests.
-- Resource-tuner supports sockets and binders for client-server communication.
-- As soon as the request is received on the server end, a handle is generated and returned to the client. This handle uniquely identifies the request and can be used for subsequent retune (retuneResources) or untune (untuneResources) API calls.
-- The request is submitted to the ThreadPool for async processing.
-- When the request is picked up by a worker thread (from the ThreadPool), it will decode the request message and then validate the request.
-- The request verifier, will run a series of checks on the request like permission checks, and on the resources part of the request, like config value bounds check.
-- Once request is verified, a duplicate check is performed, to verify if the client has already submitted the same request before. This is done so as to the improve system efficiency and performace.
-- Next the request is added to an queue, which is essentially PriorityQueue, which orders requests based on their priorities (for more details on Priority Levels, refer the next Section). This is done so that the request with the highest priority is always served first.
-- To handle concurrent requests for the same resource, we maintain resource level linked lists of pending requests, which are ordered according to the request priority and resource policy. This ensures that the request with the higher priority will always be applied first. For two requests with the same priority, the application order will depend on resource policy. For example, in case of resource with "higher is better" policy, the request with a higher configuration value for the resource shall take effect first.
-- Once a request reaches the head of the resource level linked list, it is applied, i.e. the config value specified by this request for the resource takes effect on the corresponding sysfs node.
-- A timer is created and used to keep track of a request, i.e. check if it has expired. Once it is detected that the request has expired an untune request for the same handle as this request, is automatically generated and submitted, it will take care of resetting the effected resource nodes to their original values.
-- Client modules can provide their own custom resource actions for any resource. The default action provided by resource-tuner is writing to the resource sysfs node.
+# Resource Tuner APIs
+This API suite allows you to manage system resource provisioning through tuning requests. You can issue, modify, or withdraw resource tuning requests with specified durations and priorities.
+
+## tuneResources
+
+**Description:**
+Issues a resource provisioning (or tuning) request for a finite or infinite duration.
+
+**API Signature:**
+```cpp
+int64_t tuneResources(int64_t duration,
+                      int32_t prop,
+                      int32_t numRes,
+                      SysResource* resourceList);
+
+```
+
+**Parameters:**
+
+- `duration` (`int64_t`): Duration in milliseconds for which the Resource(s) should be Provisioned. Use `-1` for an infinite duration.
+
+- `properties` (`int32_t`): Properties of the Request.
+                            - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
+                            - The Next 8 bits [17 - 24] represent a Boolean Flag, which indicates
+                              if the Request should be processed in the background (in case of Display Off or Doze Mode).
+
+- `numRes` (`int32_t`): Number of resources to be tuned as part of the Request.
+
+- `resourceList` (`SysResource*`): List of Resources to be provisioned as part of the Request.
+
+**Returns:**
+`int64_t`
+- **A positive unique handle** identifying the issued request (used for future `retune` or `untune` operations)
+- `-1` otherwise.
 
 ---
 <div style="page-break-after: always;"></div>
 
-Here is a more detailed explanation of the key features discussed above:
+## retuneResources
 
-## 1. Client-Level Permissions
-Certain resources can be tuned only by system clients and some which have no such restrictions and can be tuned even by third party clients. The client permissions are dynamically determined, the first time it makes a request. If a client with third party permissions tries to tune a resource, which allows only clients with system permissions to tune it, then the request shall be dropped.
+**Description:**
+Modifies the duration of an existing tune request.
 
-## 2. Resource-Level Policies
-To ensure efficient and predictable handling of concurrent requests, each system resource is governed by one of four predefined policies. Selecting the appropriate policy helps maintain system stability, optimize performance/power, and align resource behavior with application requirements.
+**API Signature:**
+```cpp
+int8_t retuneResources(int64_t handle,
+                       int64_t duration);
+```
 
-- Instant Apply: This policy is for resources where the latest request needs to be honored. This is kept as the default policy.
-- Higher is better: This policy honors the request writing the highest value to the node. One of the cases where this makes sense is for resources that describe the upper bound value. By applying the higher-valued request, the lower-valued request is implicitly honored.
-- Lower is better: Works exactly opposite of the higher is better policy.
-- Lazy Apply: Sometimes, you want the resources to apply requests in a first-in-first-out manner.
+**Parameters:**
 
-## 3. Request-Level Priorities
-As part of the tuneResources API call, client is allowed to specify a desired priority level for the request. Resource-tuner supports 2 priority levels:
-- High
-- Low
+- `handle` (`int64_t`): Handle of the original request, returned by the call to `tuneResources`.
+- `duration` (`int64_t`): New duration in milliseconds. Use `-1` for an infinite duration.
 
-However when multiplexed with client-level permissions, effetive request level priorities would be
-- System High [SH]
-- System Low [SL]
-- Third Party High (or Regular High) [TPH]
-- Third Party Low (or Regular Low) [TPL]
-
-Requests with a higher priority will always be prioritized, over another request with a lower priority. Note, the request priorities are related to the client permissions. A client with system permission is allowed to acquire any priority level it wants, however a client with third party permissions can only acquire either third party high (TPH) or third party low (TPL) level of priorities. If a client with third party permissions tries to acquire a System High or System Low level of priority, then the request will not be honoured.
-
-## 4. Pulse Monitor: Detection of Dead Clients and Subsequent Cleanup
-To improve efficiency and conserve memory, it is essential to regularly check for dead clients and free up any system resources associated with them. This includes, untuning all (if any) ongoing tune request issued by this client and freeing up the memory used to store client specific data (Example: client's list of requests (handles), health, permissions, threads associated with the client etc). resource-tuner ensures that such clients are detected and cleaned up within 90 seconds of the client terminated.
-
-Resource-tuner performs these actions by making use of two components:
-- Pulse check: scans the list of the active clients, and checks if any of the client (PID) is dead. If it finds a dead client, it schedules the cleanup by adding this PID to a queue.
-- Garbage collection: When the thread runs it iterates over the GC queue and performs the cleanup.
-
-Pulse Monitor runs on a seperate thread peroidically.
-
-## 5. Rate Limiter: Preventing System Abuse
-Resource-tuner has rate limiter module that prevents abuse of the system by limiting the number of requests a client can make within a given time frame. This helps to prevent clients from overwhelming the system with requests and ensures that the system remains responsive and efficient. Rate limiter works on a reward/punishment methodology. Whenever a client requests the system for the first time, it is assigned a "Health" of 100. A punishment is handed over if a client makes subsequent new requests in a very short time interval (called delta, say 2 ms).
-A Reward results in increasing the health of a client (not above 100), while a punishment involves decreasing the health of the client. If at any point this value of Health reaches zero then any further requests from this client wil be dropped. Value of delta, punishment and rewards are target-configurable.
-
-## 6. Duplicate Checking
-Resource-tuner's RequestManager component is responsible for detecting any duplicate requests issued by a client, and dropping them. This is done by checking against a list of all the requests issued by a clientto identify a duplicate. If it is, then the request is dropped. If it is not, then the request is added and processed. Duplicate checking helps to improve system efficiency, by saving wasteful CPU time on processing duplicates.
-
-## 7. Dynamic Mapper: Logical to Physical Mapping
-Logical to physical core/cluster mapping helps to achieve application code portability across different chipsets on client side. Client can specify logical values for core and cluster. Resource-tuner will translate these values to their physical counterparts and apply the request accordingly. Logical to physical mapping helps to create system independent layer and helps to make the same client code interchangable across different targets.
-
-Logical mapping entries can be found in InitConfig.yaml and can be modified if required.
-
-Logical layer values always arranged from lower to higher cluster capacities.
-If no names assigned to entries in the dynamic mapping table then cluster'number' will be the name of the cluster
-for ex. LgcId 4 named as "cluster4"
-
-below table present in InitConfigs->ClusterMap section
-| LgcId  |     Name   |
-|--------|------------|
-|   0    |   "little" |
-|   1    |   "big"    |
-|   2    |    "prime" |
-
-resource-tuner reads machine topology and prepares logical to physical table dynamically in the init phase, similar to below one
-| LgcId  |  PhyId  |
-|--------|---------|
-|   0    |     0   |
-|   1    |     1   |
-|   2    |     3   |
-|   3    |     2   |
-
-
-## 8. Display-Aware Operational Modes
-The system's operational modes are influenced by the state of the device's display. To conserve power, certain system resources are optimized only when the display is active. However, for critical components that require consistent performance—such as during background processing or time-sensitive tasks, resource tuning can still be applied even when the display is off, including during low-power states like doze mode. This ensures that essential operations maintain responsiveness without compromising overall energy efficiency.
-
-## 9. Crash Recovery
-In case of server crash, resource-tuner ensures that all the resource sysfs nodes are restored to a sane state, i.e. they are reset to their original values. This is done by maintaining a backup of all the resource's original values, before any modification was made on behalf of the clients by resource tuner. In the event of server crash, reset to their original values in the backup.
-
-## 10. Flexible Packaging
-The Users are free to pick and choose the resource-tuner modules they want for their use-case and which fit their constraints. The Framework Module is the core/central module, however if the users choose they can add on top of it other Modules: signals and profiles.
-
-## 11. Pre-Allocate Capacity for efficiency
-Resource Tuner provides a MemoryPool component, which allows for pre-allocation of memory for certain commonly used type at the time of server initialization. This is done to improve the efficiency of the system, by reducing the number of memory allocations and deallocations that are required during the processing of requests. The allocated memory is managed as a series of blocks which can be recycled without any system call overhead. This reduces the overhead of memory allocation and deallocation, and improves the performance of the system.
-
-Further, a ThreadPool component is provided to pre-allocate processing capacity. This is done to improve the efficiency of the system, by reducing the number of thread creation and destruction required during the processing of Requests, further ThreadPool allows for the threads to be repeatedly reused for processing different tasks.
+**Returns:**
+`int8_t`
+- `0` if the request was successfully submitted.
+- `-1` otherwise.
 
 ---
+
+<div style="page-break-after: always;"></div>
+
+## untuneResources
+
+**Description:**
+Withdraws a previously issued resource provisioning (or tune) request.
+
+**API Signature:**
+```cpp
+int8_t untuneResources(int64_t handle);
+```
+
+**Parameters:**
+
+- `handle` (`int64_t`): Handle of the original request, returned by the call to `tuneResources`.
+
+**Returns:**
+`int8_t`
+- `0` if the request was successfully submitted.
+- `-1` otherwise.
+
+---
+<div style="page-break-after: always;"></div>
+
+## getProp
+
+**Description:**
+Gets a property from the config store
+
+**API Signature:**
+```cpp
+int8_t getProp(const char* prop,
+               char* buffer,
+               size_t buffer_size,
+               const char* def_value);
+```
+
+**Parameters:**
+
+- `prop` (`const char*`): Name of the Property to be fetched.
+- `buffer` (`char*`): Pointer to a buffer to hold the result, i.e. the property value corresponding to the specified name.
+- `buffer_size` (`size_t`): Size of the buffer.
+- `def_value` (`const char*`): Value to be written to the buffer in case a property with the specified Name is not found in the Config Store
+
+**Returns:**
+`int8_t`
+- `0` If the Property was found in the store, and successfully fetched
+- `-1` otherwise.
+
+---
+<div style="page-break-after: always;"></div>
+
+## tuneSignal
+
+**Description:**
+Tune the signal with the given ID.
+
+**API Signature:**
+```cpp
+int64_t tuneSignal(uint32_t signalCode,
+                   int64_t duration,
+                   int32_t properties,
+                   const char* appName,
+                   const char* scenario,
+                   int32_t numArgs,
+                   uint32_t* list);
+```
+
+**Parameters:**
+
+- `signalCode` (`uint32_t`): A uniqued 32-bit (unsigned) identifier for the Signal
+- `duration` (`int64_t`): Duration (in milliseconds) to tune the Signal for. A value of -1 denotes infinite duration.
+- `properties` (`int32_t`): Properties of the Request.
+                            - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
+                            - The Next 8 bits [17 - 24] represent a Boolean Flag, which indicates
+                              if the Request should be processed in the background (in case of Display Off or Doze Mode).
+- `appName` (`const char*`): Name of the Application that is issuing the Request
+- `scenario` (`const char*`): Use-Case Scenario
+- `numArgs` (`int32_t`): Number of Additional Arguments to be passed as part of the Request
+- `list` (`uint32_t*`): List of Additional Arguments to be passed as part of the Request
+
+**Returns:**
+`int64_t`
+- A Positive Unique Handle to identify the issued Request. The handle is used for freeing the Provisioned signal later.
+- `-1`: If the Request could not be sent to the server.
+
+---
+<div style="page-break-after: always;"></div>
+
+## untuneSignal
+
+**Description:**
+Release (or free) the signal with the given handle.
+
+**API Signature:**
+```cpp
+int8_t untuneSignal(int64_t handle);
+```
+
+**Parameters:**
+
+- `handle` (`int64_t`): Request Handle, returned by the tuneSignal API call.
+
+**Returns:**
+`int8_t`
+- `0`: If the Request was successfully sent to the server.
+- `-1`: Otherwise
+
+---
+<div style="page-break-after: always;"></div>
+
+## relaySignal
+
+**Description:**
+Tune the signal with the given ID.
+
+**API Signature:**
+```cpp
+int64_t relaySignal(uint32_t signalCode,
+                    int64_t duration,
+                    int32_t properties,
+                    const char* appName,
+                    const char* scenario,
+                    int32_t numArgs,
+                    uint32_t* list);
+```
+
+**Parameters:**
+
+- `signalCode` (`uint32_t`): A uniqued 32-bit (unsigned) identifier for the Signal
+- `duration` (`int64_t`): Duration (in milliseconds)
+- `properties` (`int32_t`): Properties of the Request.
+- `appName` (`const char*`): Name of the Application that is issuing the Request
+- `scenario` (`const char*`): Name of the Scenario that is issuing the Request
+- `numArgs` (`int32_t`): Number of Additional Arguments to be passed as part of the Request
+- `numArgs` (`uint32_t*`): List of Additional Arguments to be passed as part of the Request
+
+**Returns:**
+`int8_t`
+- `0`: If the Request was successfully sent to the server.
+- `-1`: Otherwise
+
+---
+
 <div style="page-break-after: always;"></div>
 
 # Config Files Format
@@ -554,214 +651,9 @@ FeatureConfigs:
     Description: "Simple Observer-Observable Feature, defined by the BU"
     Subscribers: ["0x00050000", "0x00050002"]
 ```
-<div style="page-break-after: always;"></div>
-
-# Resource Tuner APIs
-This API suite allows you to manage system resource provisioning through tuning requests. You can issue, modify, or withdraw resource tuning requests with specified durations and priorities.
 
 ---
 
-## tuneResources
-
-**Description:**
-Issues a resource provisioning (or tuning) request for a finite or infinite duration.
-
-**Function Signature:**
-```cpp
-int64_t tuneResources(int64_t duration,
-                      int32_t prop,
-                      int32_t numRes,
-                      SysResource* resourceList);
-
-```
-
-**Parameters:**
-
-- `duration` (`int64_t`): Duration in milliseconds for which the Resource(s) should be Provisioned. Use `-1` for an infinite duration.
-
-- `properties` (`int32_t`): Properties of the Request.
-                            - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
-                            - The Next 8 bits [17 - 24] represent a Boolean Flag, which indicates
-                              if the Request should be processed in the background (in case of Display Off or Doze Mode).
-
-- `numRes` (`int32_t`): Number of resources to be tuned as part of the Request.
-
-- `resourceList` (`SysResource*`): List of Resources to be provisioned as part of the Request.
-
-**Returns:**
-`int64_t`
-- **A positive unique handle** identifying the issued request (used for future `retune` or `untune` operations)
-- `-1` otherwise.
-
----
-<div style="page-break-after: always;"></div>
-
-## retuneResources
-
-**Description:**
-Modifies the duration of an existing tune request.
-
-**Function Signature:**
-```cpp
-int8_t retuneResources(int64_t handle,
-                       int64_t duration);
-```
-
-**Parameters:**
-
-- `handle` (`int64_t`): Handle of the original request, returned by the call to `tuneResources`.
-- `duration` (`int64_t`): New duration in milliseconds. Use `-1` for an infinite duration.
-
-**Returns:**
-`int8_t`
-- `0` if the request was successfully submitted.
-- `-1` otherwise.
-
----
-
-<div style="page-break-after: always;"></div>
-
-## untuneResources
-
-**Description:**
-Withdraws a previously issued resource provisioning (or tune) request.
-
-**Function Signature:**
-```cpp
-int8_t untuneResources(int64_t handle);
-```
-
-**Parameters:**
-
-- `handle` (`int64_t`): Handle of the original request, returned by the call to `tuneResources`.
-
-**Returns:**
-`int8_t`
-- `0` if the request was successfully submitted.
-- `-1` otherwise.
-
----
-<div style="page-break-after: always;"></div>
-
-## getProp
-
-**Description:**
-Gets a property from the config store
-
-**Function Signature:**
-```cpp
-int8_t getProp(const char* prop,
-               char* buffer,
-               size_t buffer_size,
-               const char* def_value);
-```
-
-**Parameters:**
-
-- `prop` (`const char*`): Name of the Property to be fetched.
-- `buffer` (`char*`): Pointer to a buffer to hold the result, i.e. the property value corresponding to the specified name.
-- `buffer_size` (`size_t`): Size of the buffer.
-- `def_value` (`const char*`): Value to be written to the buffer in case a property with the specified Name is not found in the Config Store
-
-**Returns:**
-`int8_t`
-- `0` If the Property was found in the store, and successfully fetched
-- `-1` otherwise.
-
----
-<div style="page-break-after: always;"></div>
-
-## tuneSignal
-
-**Description:**
-Tune the signal with the given ID.
-
-**Function Signature:**
-```cpp
-int64_t tuneSignal(uint32_t signalID,
-                   int64_t duration,
-                   int32_t properties,
-                   const char* appName,
-                   const char* scenario,
-                   int32_t numArgs,
-                   uint32_t* list);
-```
-
-**Parameters:**
-
-- `signalID` (`int64_t`): ID of the Signal to be Tuned.
-- `duration` (`int64_t`): Duration (in milliseconds) to tune the Signal for. A value of -1 denotes infinite duration.
-- `properties` (`int32_t`): Properties of the Request.
-                            - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
-                            - The Next 8 bits [17 - 24] represent a Boolean Flag, which indicates
-                              if the Request should be processed in the background (in case of Display Off or Doze Mode).
-- `appName` (`const char*`): Name of the Application that is issuing the Request
-- `scenario` (`const char*`): Use-Case Scenario
-- `numArgs` (`int32_t`): Number of Additional Arguments to be passed as part of the Request
-- `list` (`uint32_t*`): List of Additional Arguments to be passed as part of the Request
-
-**Returns:**
-`int64_t`
-- A Positive Unique Handle to identify the issued Request. The handle is used for freeing the Provisioned signal later.
-- `-1`: If the Request could not be sent to the server.
-
----
-<div style="page-break-after: always;"></div>
-
-## untuneSignal
-
-**Description:**
-Release (or free) the signal with the given handle.
-
-**Function Signature:**
-```cpp
-int8_t untuneSignal(int64_t handle);
-```
-
-**Parameters:**
-
-- `handle` (`int64_t`): Request Handle, returned by the tuneSignal API call.
-
-**Returns:**
-`int8_t`
-- `0`: If the Request was successfully sent to the server.
-- `-1`: Otherwise
-
----
-<div style="page-break-after: always;"></div>
-
-## relaySignal
-
-**Description:**
-Tune the signal with the given ID.
-
-**Function Signature:**
-```cpp
-int64_t relaySignal(uint32_t signalID,
-                    int64_t duration,
-                    int32_t properties,
-                    const char* appName,
-                    const char* scenario,
-                    int32_t numArgs,
-                    uint32_t* list);
-```
-
-**Parameters:**
-
-- `signalID` (`int64_t`): ID of the Signal to be Tuned.
-- `duration` (`int64_t`): Duration (in milliseconds)
-- `properties` (`int32_t`): Properties of the Request.
-- `appName` (`const char*`): Name of the Application that is issuing the Request
-- `scenario` (`const char*`): Name of the Scenario that is issuing the Request
-- `numArgs` (`int32_t`): Number of Additional Arguments to be passed as part of the Request
-- `numArgs` (`uint32_t*`): List of Additional Arguments to be passed as part of the Request
-
-**Returns:**
-`int8_t`
-- `0`: If the Request was successfully sent to the server.
-- `-1`: Otherwise
-
----
 <div style="page-break-after: always;"></div>
 
 # Resource Format
@@ -807,8 +699,8 @@ Essentially, the resource code (unsigned 32 bit) is composed of two fields:
 These fields can uniquely identify a resource across targets, hence making the code operating on these resources interchangable. In essence, we ensure that the resource with code "x", refers to the same tunable resource across different targets.
 
 Examples:
-- The Resource OpCode: 65536 (0x00010000) [00000000 00000001 00000000 00000000], Refers to the Default Resource with ResID 0 and ResType 1.
-- The Resource OpCode: 2147549185 (0x80010001) [10000000 00000001 00000000 00000001], Refers to the Custom Resource with ResID 1 and ResType 1.
+- The ResCode: 65536 (0x00010000) [00000000 00000001 00000000 00000000], Refers to the Default Resource with ResID 0 and ResType 1.
+- The ResCode: 2147549185 (0x80010001) [10000000 00000001 00000000 00000001], Refers to the Custom Resource with ResID 1 and ResType 1.
 
 #### List Of Resource Types (Use this table to get the value of ResType for a Resource)
 
@@ -822,7 +714,7 @@ Examples:
 |    NPU         |    `6`   | |
 |    MEMORY      |    `7`   | |
 |    MPAM        |    `8`   | |
-| Cgroup         |    `9`   | |
+| Cgroup         |    `9`   | `/sys/fs/cgroup/%s/cgroup.procs`, `/sys/fs/cgroup/%s/cgroup.threads`, `/sys/fs/cgroup/%s/cpuset.cpus`, `/sys/fs/cgroup/%s/cpuset.cpus.partition`, `/sys/fs/cgroup/%s/cgroup.freeze`, `/sys/fs/cgroup/%s/cpu.max`, `/sys/fs/cgroup/%s/cpu.idle`, `/sys/fs/cgroup/%s/cpu.uclamp.min`, `/sys/fs/cgroup/%s/cpu.uclamp.max`, `/sys/fs/cgroup/%s/cpu.weight`, `/sys/fs/cgroup/%s/memory.max`, `/sys/fs/cgroup/%s/memory.min`, `/sys/fs/cgroup/%s/cpu.weight.nice` |
 
 ---
 
@@ -843,9 +735,9 @@ This example demonstrates the use of tuneResources API for resource provisioning
 void sendRequest() {
     // Define resources
     SysResource* resourceList = new SysResource[1];
-    resourceList[0].mOpCode = 65536;
+    resourceList[0].mResCode = 65536;
     resourceList[0].mNumValues = 1;
-    resourceList[0].mConfigValue.singleValue = 980;
+    resourceList[0].mResValue.value = 980;
 
     // Issue the Tune Request
     int64_t handle = tuneResources(5000, 0, 1, resourceList);
@@ -891,6 +783,8 @@ void sendRequest() {
 }
 ```
 
+---
+
 <div style="page-break-after: always;"></div>
 
 # Extension Interface
@@ -901,8 +795,6 @@ Specifically the extension interface provides the following capabilities:
 - Registering custom resource handlers
 - Registering custom configuration files (This includes resource configs, signal configs and property configs). This allows, for example the specification of custom resources.
 
----
-
 ## Extension APIs
 
 ### RESTUNE_REGISTER_APPLIER_CB
@@ -912,13 +804,15 @@ Now, instead of the default resource handler (provided by resource-tuner), this 
 
 ### Usage Example
 ```cpp
-int32_t applyCustomCpuFreqCustom(Resource* res) {
+void applyCustomCpuFreqCustom(void* res) {
     // Custom logic to apply CPU frequency
     return 0;
 }
 
 RESTUNE_REGISTER_APPLIER_CB(0x00010001, applyCustomCpuFreqCustom);
 ```
+
+---
 
 ### RESTUNE_REGISTER_TEAR_CB
 
@@ -927,7 +821,7 @@ Now, instead of the normal resource handler (provided by resource-tuner), this c
 
 ### Usage Example
 ```cpp
-int32_t resetCustomCpuFreqCustom(Resource* res) {
+void resetCustomCpuFreqCustom(void* res) {
     // Custom logic to clear currently applied CPU frequency
     return 0;
 }
@@ -954,6 +848,124 @@ Custom signal config file can be specified similarly:
 ```cpp
 RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/bin/targetSignalConfigCustom.yaml");
 ```
+
+---
+<div style="page-break-after: always;"></div>
+
+
+# Resource Tuner Features
+
+<img src="design_resource_tuner.png" alt="Resource Tuner Design" width="70%"/>
+
+Resource-tuner architecture is captured above.
+
+## Initialization
+- During the server initialization phase, the YAML config files are read to build up the resource registry, property store etc.
+- If the target chipset has registered any custom resources, signals or custom YAML files via the extension interface, then these changes are detected during this phase itself to build up a consolidated system view, before it can start serving requests.
+- During the initialization phase, memory is pre-allocated for commonly used types (via MemoryPool), and worker (thread) capacity is reserved in advance via the ThreadPool, to avoid any delays during the request processing phase.
+- Resource-tuner will also fetch the target details, like target name, total number of cores, logical to physical cluster / core mapping in this phase.
+- If the Signals module is plugged in, it will be initialized as well and the signal configs will be parsed similarly to resource configs.
+- Once all the initialization is completed, the server is ready to serve requests, a new listener thread is created for handling requests.
+
+<div style="page-break-after: always;"></div>
+
+## Request Processing
+- The client can use the resource-tuner client library to send their requests.
+- Resource-tuner supports sockets and binders for client-server communication.
+- As soon as the request is received on the server end, a handle is generated and returned to the client. This handle uniquely identifies the request and can be used for subsequent retune (retuneResources) or untune (untuneResources) API calls.
+- The request is submitted to the ThreadPool for async processing.
+- When the request is picked up by a worker thread (from the ThreadPool), it will decode the request message and then validate the request.
+- The request verifier, will run a series of checks on the request like permission checks, and on the resources part of the request, like config value bounds check.
+- Once request is verified, a duplicate check is performed, to verify if the client has already submitted the same request before. This is done so as to the improve system efficiency and performace.
+- Next the request is added to an queue, which is essentially PriorityQueue, which orders requests based on their priorities (for more details on Priority Levels, refer the next Section). This is done so that the request with the highest priority is always served first.
+- To handle concurrent requests for the same resource, we maintain resource level linked lists of pending requests, which are ordered according to the request priority and resource policy. This ensures that the request with the higher priority will always be applied first. For two requests with the same priority, the application order will depend on resource policy. For example, in case of resource with "higher is better" policy, the request with a higher configuration value for the resource shall take effect first.
+- Once a request reaches the head of the resource level linked list, it is applied, i.e. the config value specified by this request for the resource takes effect on the corresponding sysfs node.
+- A timer is created and used to keep track of a request, i.e. check if it has expired. Once it is detected that the request has expired an untune request for the same handle as this request, is automatically generated and submitted, it will take care of resetting the effected resource nodes to their original values.
+- Client modules can provide their own custom resource actions for any resource. The default action provided by resource-tuner is writing to the resource sysfs node.
+
+---
+<div style="page-break-after: always;"></div>
+
+Here is a more detailed explanation of the key features discussed above:
+
+## 1. Client-Level Permissions
+Certain resources can be tuned only by system clients and some which have no such restrictions and can be tuned even by third party clients. The client permissions are dynamically determined, the first time it makes a request. If a client with third party permissions tries to tune a resource, which allows only clients with system permissions to tune it, then the request shall be dropped.
+
+## 2. Resource-Level Policies
+To ensure efficient and predictable handling of concurrent requests, each system resource is governed by one of four predefined policies. Selecting the appropriate policy helps maintain system stability, optimize performance/power, and align resource behavior with application requirements.
+
+- Instant Apply: This policy is for resources where the latest request needs to be honored. This is kept as the default policy.
+- Higher is better: This policy honors the request writing the highest value to the node. One of the cases where this makes sense is for resources that describe the upper bound value. By applying the higher-valued request, the lower-valued request is implicitly honored.
+- Lower is better: Works exactly opposite of the higher is better policy.
+- Lazy Apply: Sometimes, you want the resources to apply requests in a first-in-first-out manner.
+
+## 3. Request-Level Priorities
+As part of the tuneResources API call, client is allowed to specify a desired priority level for the request. Resource-tuner supports 2 priority levels:
+- High
+- Low
+
+However when multiplexed with client-level permissions, effetive request level priorities would be
+- System High [SH]
+- System Low [SL]
+- Third Party High (or Regular High) [TPH]
+- Third Party Low (or Regular Low) [TPL]
+
+Requests with a higher priority will always be prioritized, over another request with a lower priority. Note, the request priorities are related to the client permissions. A client with system permission is allowed to acquire any priority level it wants, however a client with third party permissions can only acquire either third party high (TPH) or third party low (TPL) level of priorities. If a client with third party permissions tries to acquire a System High or System Low level of priority, then the request will not be honoured.
+
+## 4. Pulse Monitor: Detection of Dead Clients and Subsequent Cleanup
+To improve efficiency and conserve memory, it is essential to regularly check for dead clients and free up any system resources associated with them. This includes, untuning all (if any) ongoing tune request issued by this client and freeing up the memory used to store client specific data (Example: client's list of requests (handles), health, permissions, threads associated with the client etc). resource-tuner ensures that such clients are detected and cleaned up within 90 seconds of the client terminated.
+
+Resource-tuner performs these actions by making use of two components:
+- Pulse check: scans the list of the active clients, and checks if any of the client (PID) is dead. If it finds a dead client, it schedules the cleanup by adding this PID to a queue.
+- Garbage collection: When the thread runs it iterates over the GC queue and performs the cleanup.
+
+Pulse Monitor runs on a seperate thread peroidically.
+
+## 5. Rate Limiter: Preventing System Abuse
+Resource-tuner has rate limiter module that prevents abuse of the system by limiting the number of requests a client can make within a given time frame. This helps to prevent clients from overwhelming the system with requests and ensures that the system remains responsive and efficient. Rate limiter works on a reward/punishment methodology. Whenever a client requests the system for the first time, it is assigned a "Health" of 100. A punishment is handed over if a client makes subsequent new requests in a very short time interval (called delta, say 2 ms).
+A Reward results in increasing the health of a client (not above 100), while a punishment involves decreasing the health of the client. If at any point this value of Health reaches zero then any further requests from this client wil be dropped. Value of delta, punishment and rewards are target-configurable.
+
+## 6. Duplicate Checking
+Resource-tuner's RequestManager component is responsible for detecting any duplicate requests issued by a client, and dropping them. This is done by checking against a list of all the requests issued by a clientto identify a duplicate. If it is, then the request is dropped. If it is not, then the request is added and processed. Duplicate checking helps to improve system efficiency, by saving wasteful CPU time on processing duplicates.
+
+## 7. Dynamic Mapper: Logical to Physical Mapping
+Logical to physical core/cluster mapping helps to achieve application code portability across different chipsets on client side. Client can specify logical values for core and cluster. Resource-tuner will translate these values to their physical counterparts and apply the request accordingly. Logical to physical mapping helps to create system independent layer and helps to make the same client code interchangable across different targets.
+
+Logical mapping entries can be found in InitConfig.yaml and can be modified if required.
+
+Logical layer values always arranged from lower to higher cluster capacities.
+If no names assigned to entries in the dynamic mapping table then cluster'number' will be the name of the cluster
+for ex. LgcId 4 named as "cluster4"
+
+below table present in InitConfigs->ClusterMap section
+| LgcId  |     Name   |
+|--------|------------|
+|   0    |   "little" |
+|   1    |   "big"    |
+|   2    |    "prime" |
+
+resource-tuner reads machine topology and prepares logical to physical table dynamically in the init phase, similar to below one
+| LgcId  |  PhyId  |
+|--------|---------|
+|   0    |     0   |
+|   1    |     1   |
+|   2    |     3   |
+|   3    |     2   |
+
+
+## 8. Display-Aware Operational Modes
+The system's operational modes are influenced by the state of the device's display. To conserve power, certain system resources are optimized only when the display is active. However, for critical components that require consistent performance—such as during background processing or time-sensitive tasks, resource tuning can still be applied even when the display is off, including during low-power states like doze mode. This ensures that essential operations maintain responsiveness without compromising overall energy efficiency.
+
+## 9. Crash Recovery
+In case of server crash, resource-tuner ensures that all the resource sysfs nodes are restored to a sane state, i.e. they are reset to their original values. This is done by maintaining a backup of all the resource's original values, before any modification was made on behalf of the clients by resource tuner. In the event of server crash, reset to their original values in the backup.
+
+## 10. Flexible Packaging
+The Users are free to pick and choose the resource-tuner modules they want for their use-case and which fit their constraints. The Framework Module is the core/central module, however if the users choose they can add on top of it other Modules: signals and profiles.
+
+## 11. Pre-Allocate Capacity for efficiency
+Resource Tuner provides a MemoryPool component, which allows for pre-allocation of memory for certain commonly used type at the time of server initialization. This is done to improve the efficiency of the system, by reducing the number of memory allocations and deallocations that are required during the processing of requests. The allocated memory is managed as a series of blocks which can be recycled without any system call overhead. This reduces the overhead of memory allocation and deallocation, and improves the performance of the system.
+
+Further, a ThreadPool component is provided to pre-allocate processing capacity. This is done to improve the efficiency of the system, by reducing the number of thread creation and destruction required during the processing of Requests, further ThreadPool allows for the threads to be repeatedly reused for processing different tasks.
 
 ---
 <div style="page-break-after: always;"></div>

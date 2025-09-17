@@ -13,16 +13,8 @@ static TestBaseline baseline;
 /*
  * These tests mirror the Client Perspective, i.e. how the client interacts with various
  * Resource Tuner APIs like tuneResources / untuneResources, tuneSignal etc.
- * The results of these are evaluated by validating the Resource sysfs Nodes.
+ * The results of these are evaluated by validating the Resource Nodes.
  * As part of these Tests Request Verification and Application are Covered.
- * How to run:
- * Option A)
- * - Start a Resource Tuner Server instance in test mode (sudo ./resource_tuner --test)
- * - Run the system tests executable
- * - Upon completion of tests, terminate the server.
- * Option B)
- * - Run the system tests via Script (sudo python pre_commit.py), this script will
- *   automatically start, Run the Tests and then terminate the server.
  */
 
 /*
@@ -746,6 +738,8 @@ namespace SignalVerification {
         LOG_START
 
         int64_t handle = tuneSignal(1, -2, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
+
         assert(handle == RC_REQ_SUBMISSION_FAILURE);
 
         LOG_END
@@ -777,6 +771,7 @@ namespace SignalVerification {
 
         int64_t handle =
             tuneSignal(0x800d0001, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -811,6 +806,7 @@ namespace SignalVerification {
 
         int64_t handle =
             tuneSignal(0x800d0002, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -847,6 +843,7 @@ namespace SignalVerification {
 
         int64_t handle =
             tuneSignal(0x800d0000, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -879,6 +876,7 @@ namespace SignalVerification {
 
         int64_t handle =
             tuneSignal(0x800d0003, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -3268,7 +3266,7 @@ namespace SystemSysfsNodesTests {
             return;
         }
 
-        int pid1 = fork();
+        int32_t pid1 = fork();
         if(pid1 == 0) {
             SysResource* resourceList = new SysResource[1];
             memset(&resourceList[0], 0, sizeof(SysResource));
@@ -3461,6 +3459,7 @@ namespace SignalApplicationTests {
 
         int64_t handle =
             tuneSignal(0x800d0004, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -3510,6 +3509,7 @@ namespace SignalApplicationTests {
 
         int64_t handle =
             tuneSignal(0x800d0005, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 

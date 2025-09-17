@@ -17,11 +17,15 @@
 #include "Extensions.h"
 #include "Logger.h"
 
+/**
+ * @struct ResourceApplyType
+ * @brief Application type or level for a Resource
+ */
 enum ResourceApplyType {
-    APPLY_CORE,
-    APPLY_CLUSTER,
-    APPLY_GLOBAL,
-    APPLY_CGROUP
+    APPLY_CORE, //!< Resource can have different configured values across different cores
+    APPLY_CLUSTER, //!< Resource can have different configured values across different clusters
+    APPLY_GLOBAL,  //!< Resource is global, i.e. the same configured value across the system.
+    APPLY_CGROUP  //!< Resource can have different configured values across different cgroups
 };
 
 /**
@@ -90,10 +94,10 @@ typedef struct {
 } ResourceConfigInfo;
 
 /**
-* @brief ResourceRegistry
-* @details Stores information Relating to all the Resources available for Tuning.
-*          Note: This information is extracted from Config YAML files.
-*/
+ * @brief ResourceRegistry
+ * @details Stores information Relating to all the Resources available for Tuning.
+ *          Note: This information is extracted from Config YAML files.
+ */
 class ResourceRegistry {
 private:
     static std::shared_ptr<ResourceRegistry> resourceRegistryInstance;
@@ -123,28 +127,24 @@ public:
     std::vector<ResourceConfigInfo*> getRegisteredResources();
 
     /**
-    * @brief Get the ResourceConfigInfo object corresponding to the given Resource ID.
-    * @param resourceId An unsigned 32 bit integer, representing the Resource ID.
-    * @return ResourceConfigInfo*:
-    *          - A pointer to the ResourceConfigInfo object
-    *          - nullptr, if no ResourceConfigInfo object with the given Resource ID exists.
-    */
+     * @brief Get the ResourceConfigInfo object corresponding to the given Resource ID.
+     * @param resourceId An unsigned 32 bit integer, representing the Resource ID.
+     * @return ResourceConfigInfo*:\n
+     *          - A pointer to the ResourceConfigInfo object
+     *          - nullptr, if no ResourceConfigInfo object with the given Resource ID exists.
+     */
     ResourceConfigInfo* getResourceById(uint32_t resourceId);
 
     int32_t getResourceTableIndex(uint32_t resourceId);
-
     int32_t getTotalResourcesCount();
+    std::string getDefaultValue(const std::string& fileName);
 
     void addDefaultValue(const std::string& key, const std::string& value);
-
-    std::string getDefaultValue(const std::string& fileName);
+    void restoreResourcesToDefaultValues();
+    void displayResources();
 
     // Merge the Changes provided by the BU with the existing ResourceTable.
     void pluginModifications();
-
-    void restoreResourcesToDefaultValues();
-
-    void displayResources();
 
     static std::shared_ptr<ResourceRegistry> getInstance() {
         if(resourceRegistryInstance == nullptr) {
@@ -160,16 +160,17 @@ private:
 
 public:
     ResourceConfigInfoBuilder();
+    ~ResourceConfigInfoBuilder();
 
     ErrCode setName(const std::string& resourceName);
     ErrCode setPath(const std::string& resourcePath);
     ErrCode setResType(const std::string& resTypeString);
     ErrCode setResID(const std::string& resIDString);
-    ErrCode setHighThreshold(int32_t highThreshold);
-    ErrCode setLowThreshold(int32_t lowThreshold);
+    ErrCode setHighThreshold(const std::string& highThreshold);
+    ErrCode setLowThreshold(const std::string& lowThreshold);
     ErrCode setPermissions(const std::string& permissionString);
     ErrCode setModes(const std::string& modeString);
-    ErrCode setSupported(int8_t supported);
+    ErrCode setSupported(const std::string& supported);
     ErrCode setPolicy(const std::string& policyString);
     ErrCode setApplyType(const std::string& applyTypeString);
 

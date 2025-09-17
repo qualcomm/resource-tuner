@@ -4,101 +4,25 @@
 #ifndef YAML_PARSER_H
 #define YAML_PARSER_H
 
-#include <yaml-cpp/yaml.h>
+#include <yaml.h>
 
 #include "ErrCodes.h"
-#include "Logger.h"
 
-enum NodeExtractionStatus {
-    NODE_MISSING,
-    NODE_PRESENT_VALUE_VALID,
-    NODE_PRESENT_VALUE_INVALID
-};
+#define SETUP_LIBYAML_PARSING(filePath)                     \
+    FILE* configFile = fopen(filePath.c_str(), "r");        \
+    if(configFile == nullptr) {                             \
+        return RC_FILE_NOT_FOUND;                           \
+    }                                                       \
+    yaml_parser_t parser;                                   \
+    yaml_event_t event;                                     \
+    if(!yaml_parser_initialize(&parser)) {                  \
+        fclose(configFile);                                 \
+        return RC_YAML_PARSING_ERROR;                       \
+    }                                                       \
+    yaml_parser_set_input_file(&parser, configFile);        \
 
-/**
- * @brief YamlParser
- * @details Utility for Reading and Parsing Yaml files (Note, Resource Tuner Configs are based in Yaml).
- *          Note, it internally uses the external yaml-cpp lib.
- */
-
-class YamlParser {
-public:
-    /**
-     * @brief Parse a YAML file.
-     * @param fileName Path to the file to be parsed.
-     * @param result A variable of type YAML::Node to hold the Parsed Output.
-     * @return ErrCode:
-     *            RC_SUCCESS: if the file was successfully parsed,
-     *            Enum code representing the Error (for example: RC_YAML_INVALID_SYNTAX): otherwise.
-     */
-    static ErrCode parse(const std::string& fileName, YAML::Node& result);
-};
-
-template <typename T>
-inline T safeExtract(const YAML::Node& node) {
-    try {
-        if(node.IsDefined() && node.IsScalar()) {
-            return node.as<T>();
-        }
-    } catch(const YAML::TypedBadConversion<T>& e) {
-        throw std::invalid_argument("Could not parse Yaml Node, Error: " + std::string(e.what()));
-    }
-
-    throw std::invalid_argument("Could not parse Yaml Node as it is Null or Not a Scalar");
-}
-
-template <typename T>
-inline T safeExtract(const YAML::Node& node, T defaultValue) {
-    try {
-        if(node.IsDefined() && node.IsScalar()) {
-            return node.as<T>();
-        }
-    } catch(const YAML::TypedBadConversion<T>& e) {
-        LOGE("RESTUNE_YAML_PARSER",
-             "Failed to parse Node to Yaml, Error: " + std::string(e.what()) + " " +
-             "returning specified default Value");
-        return defaultValue;
-    }
-
-    LOGE("RESTUNE_YAML_PARSER",
-         "Could not parse Yaml Node as it is Null or Not a Scalar, " \
-         "returning specified default Value");
-    return defaultValue;
-}
-
-template <typename T>
-inline T safeExtract(const YAML::Node& node, T defaultValue, NodeExtractionStatus& status) {
-    try {
-        if(!node.IsDefined()) {
-            status = NodeExtractionStatus::NODE_MISSING;
-            return defaultValue;
-        }
-
-        if(node.IsScalar()) {
-            status = NODE_PRESENT_VALUE_VALID;
-            return node.as<T>();
-        } else {
-            status = NODE_PRESENT_VALUE_INVALID;
-        }
-
-    } catch(const YAML::TypedBadConversion<T>& e) {
-        status = NODE_PRESENT_VALUE_INVALID;
-
-        LOGE("RESTUNE_YAML_PARSER",
-             "Failed to parse Node to Yaml, Error: " + std::string(e.what()) + " " +
-             "returning specified default Value");
-        return defaultValue;
-    }
-
-    status = NODE_PRESENT_VALUE_INVALID;
-    LOGE("RESTUNE_YAML_PARSER",
-         "Could not parse Yaml Node as it is Null or Not a Scalar, " \
-         "returning specified default Value");
-    return defaultValue;
-}
-
-inline int8_t isList(const YAML::Node& node) {
-    return node.IsDefined() && node.IsSequence();
-}
+#define TEARDOWN_LIBYAML_PARSING                            \
+    yaml_parser_delete(&parser);                            \
+    fclose(configFile);                                     \
 
 #endif

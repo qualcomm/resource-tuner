@@ -17,6 +17,9 @@ PropertyConfigs:
   - Name: "resource_tuner.garbage_collection.duration"
     Value: "83000000"
 
+  - Name: resource_tuner.garbage_collection.batch_size
+    Value: "5"
+
   - Name: "resource_tuner.rate_limiter.delta"
     Value: "5"
 

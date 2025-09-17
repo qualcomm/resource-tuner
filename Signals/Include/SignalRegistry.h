@@ -77,10 +77,10 @@ typedef struct {
 } SignalInfo;
 
 /**
-* @brief SignalRegistry
-* @details Stores information Relating to all the Signals available for Tuning.
-*          Note: This information is extracted from Config YAML files.
-*/
+ * @brief SignalRegistry
+ * @details Stores information Relating to all the Signals available for Tuning.
+ *          Note: This information is extracted from Config YAML files.
+ */
 class SignalRegistry {
 private:
     static std::shared_ptr<SignalRegistry> signalRegistryInstance;
@@ -109,17 +109,15 @@ public:
    /**
     * @brief Get the SignalInfo object corresponding to the given Resource ID.
     * @param resourceId An unsigned 32 bit integer, representing the Signal ID.
-    * @return SignalInfo*:
+    * @return SignalInfo*:\n
     *          - A pointer to the SignalInfo object
     *          - nullptr, if no SignalInfo object with the given Signal ID exists.
     */
-    SignalInfo* getSignalConfigById(uint32_t signalID);
+    SignalInfo* getSignalConfigById(uint32_t signalCode);
 
     int32_t getSignalsConfigCount();
-
+    int32_t getSignalTableIndex(uint32_t signalCode);
     void displaySignals();
-
-    int32_t getSignalTableIndex(uint32_t signalID);
 
     static std::shared_ptr<SignalRegistry> getInstance() {
         if(signalRegistryInstance == nullptr) {
@@ -141,13 +139,15 @@ private:
 
 public:
     SignalInfoBuilder();
+    ~SignalInfoBuilder();
 
     ErrCode setSignalID(const std::string& signalOpIdString);
     ErrCode setSignalCategory(const std::string& categoryString);
     ErrCode setName(const std::string& signalName);
-    ErrCode setTimeout(int32_t timeout);
-    ErrCode setIsEnabled(int8_t isEnabled);
-    ErrCode addTarget(int8_t isEnabled, const std::string& target);
+    ErrCode setTimeout(const std::string& timeoutString);
+    ErrCode setIsEnabled(const std::string& isEnabledString);
+    ErrCode addTargetEnabled(const std::string& target);
+    ErrCode addTargetDisabled(const std::string& target);
     ErrCode addPermission(const std::string& permissionString);
     ErrCode addDerivative(const std::string& derivative);
     ErrCode addResource(Resource* resource);
@@ -165,7 +165,7 @@ public:
     ErrCode setResCode(const std::string& resCodeString);
     ErrCode setResInfo(const std::string& resInfoString);
     ErrCode setNumValues(int32_t valuesCount);
-    ErrCode addValue(int32_t value);
+    ErrCode addValue(const std::string& value);
 
     Resource* build();
 };

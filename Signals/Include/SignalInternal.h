@@ -18,11 +18,11 @@
 #include "ServerInternal.h"
 
 /**
-* @brief Internal API for submitting Signal Requests for Processing if the Signals
-*        module is enabled.
-* @details Resource Tuner Modules can directly use this API to submit Requests rather than
-*          using the Client Interface.
-*/
+ * @brief Internal API for submitting Signal Requests for Processing if the Signals
+ *        module is enabled.
+ * @details Resource Tuner Modules can directly use this API to submit Requests rather than
+ *          using the Client Interface.
+ */
 ErrCode submitSignalRequest(void* clientReq);
 
 #endif

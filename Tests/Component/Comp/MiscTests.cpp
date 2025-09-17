@@ -1,7 +1,6 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <thread>
 #include <cstdint>
 
 #include "TestUtils.h"
@@ -132,7 +131,7 @@ static void TestSignalSerializingAndDeserializing() {
         C_ASSERT(firstSignal->getClientPID() == 1003);
         C_ASSERT(firstSignal->getClientTID() == 1009);
         C_ASSERT(firstSignal->getHandle() == 15);
-        C_ASSERT(firstSignal->getSignalID() == 78099);
+        C_ASSERT(firstSignal->getSignalCode() == 78099);
         C_ASSERT(firstSignal->getDuration() == 5600);
         C_ASSERT(firstSignal->isBackgroundProcessingEnabled() == 1);
         C_ASSERT(firstSignal->getPriority() == 1);
@@ -183,12 +182,38 @@ static void TestSignalSerializingAndDeserializing() {
     } catch(const std::exception& e) {}
 }
 
+static void TestHandleGeneration() {
+    for(int32_t i = 1; i <= 2e7; i++) {
+        int64_t handle = AuxRoutines::generateUniqueHandle();
+        C_ASSERT(handle == i);
+    }
+}
+
+static void TestAuxRoutineFileExists() {
+    int8_t fileExists = AuxRoutines::fileExists("AuxParserTest.yaml");
+    C_ASSERT(fileExists == false);
+
+    fileExists = AuxRoutines::fileExists("/etc/resource-tuner/custom/NetworkConfig.yaml");
+    C_ASSERT(fileExists == false);
+
+    fileExists = AuxRoutines::fileExists(ResourceTunerSettings::mCommonResourceFilePath);
+    C_ASSERT(fileExists == true);
+
+    fileExists = AuxRoutines::fileExists(ResourceTunerSettings::mCommonPropertiesFilePath);
+    C_ASSERT(fileExists == true);
+
+    fileExists = AuxRoutines::fileExists("");
+    C_ASSERT(fileExists == false);
+}
+
 int32_t main() {
     std::cout<<"Running Test Suite: [MiscTests]\n"<<std::endl;
 
     RUN_TEST(TestResourceStructCoreClusterSettingAndExtraction);
     RUN_TEST(TestRequestSerializingAndDeserializing);
     RUN_TEST(TestSignalSerializingAndDeserializing);
+    RUN_TEST(TestHandleGeneration);
+    RUN_TEST(TestAuxRoutineFileExists);
 
     std::cout<<"\nAll Tests from the suite: [MiscTests], executed successfully"<<std::endl;
     return 0;

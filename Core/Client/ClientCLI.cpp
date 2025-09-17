@@ -2,11 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include <iostream>
-#include <thread>
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
+#include <thread>
 #include <exception>
 #include <sstream>
 #include <memory>
@@ -132,7 +129,7 @@ void sendUntuneRequest(int64_t handle) {
     }
 }
 
-static void sendSysConfigRequest(const char* prop) {
+static void sendPropRequest(const char* prop) {
     char buffer[1024];
     int8_t status = getProp(prop, buffer, sizeof(buffer), "prop_not_found");
     if(status == 0) {
@@ -260,8 +257,8 @@ static void startPersistentMode() {
 }
 
 int32_t main(int32_t argc, char* argv[]) {
-    const char* short_prompts = "turd:p:l:n:h:s:gk:";
-    const struct option long_prompts[] = {
+    const char* shortPrompts = "turd:p:l:n:h:s:gk:";
+    const struct option longPrompts[] = {
         {"tune", no_argument, nullptr, 't'},
         {"untune", no_argument, nullptr, 'u'},
         {"retune", no_argument, nullptr, 'r'},
@@ -287,8 +284,8 @@ int32_t main(int32_t argc, char* argv[]) {
     const char* propKey = nullptr;
     int8_t persistent = false;
 
-    while ((c = getopt_long(argc, argv, short_prompts, long_prompts, nullptr)) != -1) {
-        switch (c) {
+    while((c = getopt_long(argc, argv, shortPrompts, longPrompts, nullptr)) != -1) {
+        switch(c) {
             case 't':
                 requestType = REQ_RESOURCE_TUNING;
                 break;
@@ -317,7 +314,7 @@ int32_t main(int32_t argc, char* argv[]) {
                 persistent = true;
                 break;
             case 'g':
-                requestType = REQ_SYSCONFIG_GET_PROP;
+                requestType = REQ_PROP_GET;
                 break;
             case 'k':
                 propKey = optarg;
@@ -365,13 +362,13 @@ int32_t main(int32_t argc, char* argv[]) {
             sendUntuneRequest(handle);
             break;
 
-        case REQ_SYSCONFIG_GET_PROP:
+        case REQ_PROP_GET:
             if(propKey == nullptr) {
                 std::cout<<"Invalid Params for Get Prop request"<< std::endl;
                 std::cout<<"Usage: --getProp --key <key>"<<std::endl;
                 break;
             }
-            sendSysConfigRequest(propKey);
+            sendPropRequest(propKey);
             break;
 
         default:
