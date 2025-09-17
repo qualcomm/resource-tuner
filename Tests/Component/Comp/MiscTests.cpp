@@ -190,6 +190,23 @@ static void TestHandleGeneration() {
     }
 }
 
+static void TestAuxRoutineFileExists() {
+    int8_t fileExists = AuxRoutines::fileExists("AuxParserTest.yaml");
+    C_ASSERT(fileExists == false);
+
+    fileExists = AuxRoutines::fileExists("/etc/resource-tuner/custom/NetworkConfig.yaml");
+    C_ASSERT(fileExists == false);
+
+    fileExists = AuxRoutines::fileExists(ResourceTunerSettings::mCommonResourceFilePath);
+    C_ASSERT(fileExists == true);
+
+    fileExists = AuxRoutines::fileExists(ResourceTunerSettings::mCommonPropertiesFilePath);
+    C_ASSERT(fileExists == true);
+
+    fileExists = AuxRoutines::fileExists("");
+    C_ASSERT(fileExists == false);
+}
+
 int32_t main() {
     std::cout<<"Running Test Suite: [MiscTests]\n"<<std::endl;
 
@@ -197,6 +214,7 @@ int32_t main() {
     RUN_TEST(TestRequestSerializingAndDeserializing);
     RUN_TEST(TestSignalSerializingAndDeserializing);
     RUN_TEST(TestHandleGeneration);
+    RUN_TEST(TestAuxRoutineFileExists);
 
     std::cout<<"\nAll Tests from the suite: [MiscTests], executed successfully"<<std::endl;
     return 0;

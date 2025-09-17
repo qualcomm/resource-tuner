@@ -4,14 +4,19 @@
 #include "ClientGarbageCollector.h"
 
 std::shared_ptr<ClientGarbageCollector> ClientGarbageCollector::mClientGarbageCollectorInstance = nullptr;
+
 ClientGarbageCollector::ClientGarbageCollector() {
     this->mTimer = nullptr;
-    this->mGarbageCollectionDuration = ResourceTunerSettings::metaConfigs.mClientGarbageCollectorDuration;
+    this->mGarbageCollectionDuration =
+        ResourceTunerSettings::metaConfigs.mClientGarbageCollectorDuration;
 }
 
 void ClientGarbageCollector::submitClientThreadsForCleanup(int32_t clientPid) {
     const std::lock_guard<std::mutex> lock(this->mGcQueueMutex);
-    std::vector<int32_t>* clientThreads = ClientDataManager::getInstance()->getThreadsByClientId(clientPid);
+
+    std::vector<int32_t>* clientThreads =
+        ClientDataManager::getInstance()->getThreadsByClientId(clientPid);
+
     for(int32_t threadId: *clientThreads) {
         this->mGcQueue.push(threadId);
     }
@@ -19,6 +24,7 @@ void ClientGarbageCollector::submitClientThreadsForCleanup(int32_t clientPid) {
 
 void ClientGarbageCollector::performCleanup() {
     const std::lock_guard<std::mutex> lock(this->mGcQueueMutex);
+
     uint32_t batchSize = ResourceTunerSettings::metaConfigs.mCleanupBatchSize;
     for(uint32_t count = 0; count < std::min((uint32_t)this->mGcQueue.size(), batchSize); count++) {
         int32_t clientTID = this->mGcQueue.front();
@@ -32,7 +38,6 @@ void ClientGarbageCollector::performCleanup() {
 
         // Issue Untune Requests, to remove the corresponding Tune Requests from the CocoTable
         // Delete this Request from RequestManager's activeList and tracker.
-
         std::vector<int64_t> handlesToRemove;
         for(int64_t handle: *clientHandles) {
             handlesToRemove.push_back(handle);
@@ -81,9 +86,15 @@ ErrCode ClientGarbageCollector::startClientGarbageCollectorDaemon() {
     return RC_SUCCESS;
 }
 
+void ClientGarbageCollector::stopClientGarbageCollectorDaemon() {
+    if(this->mTimer != nullptr) {
+        this->mTimer->killTimer();
+    }
+}
+
 ClientGarbageCollector::~ClientGarbageCollector() {
     if(this->mTimer != nullptr) {
-        delete this->mTimer;
+        FreeBlock<Timer>(this->mTimer);
         this->mTimer = nullptr;
     }
 }
@@ -93,4 +104,11 @@ ErrCode startClientGarbageCollectorDaemon() {
         return RC_MEMORY_ALLOCATION_FAILURE;
     }
     return ClientGarbageCollector::getInstance()->startClientGarbageCollectorDaemon();
+}
+
+void stopClientGarbageCollectorDaemon() {
+    if(ClientGarbageCollector::getInstance() == nullptr) {
+        return;
+    }
+    return ClientGarbageCollector::getInstance()->stopClientGarbageCollectorDaemon();
 }

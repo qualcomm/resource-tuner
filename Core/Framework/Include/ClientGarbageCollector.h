@@ -43,10 +43,10 @@ class ClientGarbageCollector {
 private:
     static std::shared_ptr<ClientGarbageCollector> mClientGarbageCollectorInstance;
 
-    std::mutex mGcQueueMutex;
     Timer* mTimer;
-    uint32_t mGarbageCollectionDuration;
+    std::mutex mGcQueueMutex;
     std::queue<int32_t> mGcQueue;
+    uint32_t mGarbageCollectionDuration;
 
     ClientGarbageCollector();
 
@@ -55,9 +55,19 @@ private:
 public:
     ~ClientGarbageCollector();
 
-    void submitClientThreadsForCleanup(int32_t clientTid);
-
+    /**
+     * @brief Starts the Client Garbage Collector
+     * @details To start the Client Garbage Collector a recurring timer is created by using a
+     *          thread from the Thread Pool. This Thread will wake up periodically
+     *          and cleanup clients present in the garbage collector queue.
+     * @return ErrCode:\n
+     *            - RC_SUCCESS If the Client Garbage Collector is successfully started\n
+     *            - Enum Code indicating error: Otherwise.
+     */
     ErrCode startClientGarbageCollectorDaemon();
+
+    void stopClientGarbageCollectorDaemon();
+    void submitClientThreadsForCleanup(int32_t clientTid);
 
     static std::shared_ptr<ClientGarbageCollector> getInstance() {
         if(mClientGarbageCollectorInstance == nullptr) {
@@ -68,6 +78,7 @@ public:
 };
 
 ErrCode startClientGarbageCollectorDaemon();
+void stopClientGarbageCollectorDaemon();
 
 #endif
 

@@ -284,8 +284,15 @@ int32_t main(int32_t argc, char *argv[]) {
     // Restore all the Resources to Original Values
     ResourceRegistry::getInstance()->restoreResourcesToDefaultValues();
 
+    stopPulseMonitorDaemon();
+    stopClientGarbageCollectorDaemon();
+
     if(RequestReceiver::mRequestsThreadPool != nullptr) {
         delete RequestReceiver::mRequestsThreadPool;
+    }
+
+    if(Timer::mTimerThreadPool != nullptr) {
+        delete Timer::mTimerThreadPool;
     }
 
     if(childProcessID != -1) {
