@@ -37,6 +37,9 @@ const std::string ResourceTunerSettings::mCustomExtFeaturesFilePath =
 const std::string ResourceTunerSettings::mExtensionsPluginLibPath =
                                     "/etc/resource-tuner/custom/libplugin.so";
 
+const std::string ResourceTunerSettings::mDeviceNamePath =
+                                    "/sys/devices/soc0/machine";
+
 const std::string ResourceTunerSettings::mBaseCGroupPath =
                                     "/sys/fs/cgroup/";
 

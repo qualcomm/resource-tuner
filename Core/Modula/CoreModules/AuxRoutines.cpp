@@ -88,7 +88,7 @@ int32_t AuxRoutines::createProcess() {
 }
 
 std::string AuxRoutines::getMachineName() {
-    return AuxRoutines::readFromFile("/sys/devices/soc0/machine");
+    return AuxRoutines::readFromFile(ResourceTunerSettings::mDeviceNamePath);
 }
 
 void dumpRequest(Request* clientReq) {

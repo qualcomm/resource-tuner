@@ -3,3 +3,201 @@
 
 #include "TestBaseline.h"
 #include "TestUtils.h"
+
+static int8_t isKey(const std::string& keyName) {
+    if(keyName == TEST_ROOT) return true;
+    if(keyName == TARGET_NAME_LIST) return true;
+    if(keyName == CLUSTER_EXPECTATIONS) return true;
+    if(keyName == TARGET_CLUSTER_INFO_LOGICAL_ID) return true;
+    if(keyName == TARGET_CLUSTER_INFO_PHYSICAL_ID) return true;
+    if(keyName == NUM_CLUSERS) return true;
+    if(keyName == NUM_CORES) return true;
+
+    return false;
+}
+
+ClusterExpectationBuilder::ClusterExpectationBuilder() {
+    this->mClusterExpectation = new(std::nothrow) ClusterExpection;
+    if(this->mClusterExpectation == nullptr) {
+        return;
+    }
+
+    this->mClusterExpectation->mLogicalID = -1;
+    this->mClusterExpectation->mPhysicalID = -1;
+}
+
+ErrCode ClusterExpectationBuilder::setLogicalID(const std::string& logicalIDString) {
+    this->mClusterExpectation->mLogicalID = -1;
+    try {
+        this->mClusterExpectation->mLogicalID = std::stoi(logicalIDString);
+        return RC_SUCCESS;
+
+    } catch(const std::exception& e) {
+        return RC_INVALID_VALUE;
+    }
+
+    return RC_INVALID_VALUE;
+}
+
+ErrCode ClusterExpectationBuilder::setPhysicalID(const std::string& physicalIDString) {
+    this->mClusterExpectation->mPhysicalID = -1;
+    try {
+        this->mClusterExpectation->mPhysicalID = std::stoi(physicalIDString);
+        return RC_SUCCESS;
+
+    } catch(const std::exception& e) {
+        return RC_INVALID_VALUE;
+    }
+
+    return RC_INVALID_VALUE;
+}
+
+ClusterExpection* ClusterExpectationBuilder::build() {
+    return this->mClusterExpectation;
+}
+
+ErrCode TestBaseline::parseTestConfigYamlNode(const std::string& filePath) {
+    SETUP_LIBYAML_PARSING(filePath);
+
+    // Check if there exists a Target Config for this particular target in the Common Configs.
+    // Skip this check if the BU has provided their own Target Configs
+    std::string currTargetName =
+        AuxRoutines::readFromFile(ResourceTunerSettings::mDeviceNamePath);
+
+    int8_t parsingDone = false;
+    int8_t docMarker = false;
+    int8_t parsingClusterExpectation = false;
+    int32_t targetMatchCount = 0;
+
+    std::string value;
+    std::string topKey;
+    std::stack<std::string> keyTracker;
+
+    ClusterExpectationBuilder* clusterExpectationBuilder = nullptr;
+
+    while(!parsingDone) {
+        if(!yaml_parser_parse(&parser, &event)) {
+            return RC_YAML_PARSING_ERROR;
+        }
+
+        switch(event.type) {
+            case YAML_STREAM_END_EVENT:
+                parsingDone = true;
+                break;
+
+            case YAML_SEQUENCE_END_EVENT:
+                if(keyTracker.empty()) {
+                    return RC_YAML_INVALID_SYNTAX;
+                }
+
+                keyTracker.pop();
+                break;
+
+            case YAML_MAPPING_START_EVENT:
+                if(!docMarker) {
+                    docMarker = true;
+                } else {
+                    parsingClusterExpectation = true;
+                    clusterExpectationBuilder = new(std::nothrow) ClusterExpectationBuilder;
+                    if(clusterExpectationBuilder == nullptr) {
+                        return RC_YAML_INVALID_SYNTAX;
+                    }
+                }
+
+                break;
+
+            case YAML_MAPPING_END_EVENT:
+                if(keyTracker.empty()) {
+                    return RC_YAML_INVALID_SYNTAX;
+                } else if(parsingClusterExpectation) {
+                    parsingClusterExpectation = false;
+
+                    if(targetMatchCount == 1) {
+                        ClusterExpection* info = clusterExpectationBuilder->build();
+                        this->mLogicalToPhysicalClusterMapping[info->mLogicalID] = info->mPhysicalID;
+                    }
+
+                    delete clusterExpectationBuilder;
+                    clusterExpectationBuilder = nullptr;
+                }
+
+                break;
+
+            case YAML_SCALAR_EVENT:
+                if(event.data.scalar.value != nullptr) {
+                    value = reinterpret_cast<char*>(event.data.scalar.value);
+                }
+
+                if(isKey(value)) {
+                    keyTracker.push(value);
+                    break;
+                }
+
+                if(keyTracker.empty()) {
+                    return RC_YAML_INVALID_SYNTAX;
+                }
+
+                topKey = keyTracker.top();
+                if(topKey != TARGET_NAME_LIST &&
+                   topKey != CLUSTER_EXPECTATIONS) {
+                    keyTracker.pop();
+                }
+
+                if(topKey == TARGET_NAME_LIST) {
+                    if(value == "*" || value == ResourceTunerSettings::targetConfigs.targetName) {
+                        targetMatchCount++;
+                    }
+                } else if(topKey == TARGET_CLUSTER_INFO_LOGICAL_ID) {
+                    clusterExpectationBuilder->setLogicalID(value);
+                } else if(topKey == TARGET_CLUSTER_INFO_PHYSICAL_ID) {
+                    clusterExpectationBuilder->setPhysicalID(value);
+                } else if(topKey == NUM_CLUSERS) {
+                    if(targetMatchCount == 1) {
+                        this->mTotalClusterCount = std::stoi(value);
+                    }
+                } else if(topKey == NUM_CORES) {
+                    if(targetMatchCount == 1) {
+                        this->mTotalCoreCount = std::stoi(value);
+                    }
+                }
+
+            default:
+                break;
+        }
+        yaml_event_delete(&event);
+    }
+
+    TEARDOWN_LIBYAML_PARSING
+    return RC_SUCCESS;
+}
+
+ErrCode TestBaseline::fetchBaseline() {
+    return parseTestConfigYamlNode(baselineYamlFilePath);
+}
+
+void TestBaseline::displayBaseline() {
+    std::cout<<"Total Cluster Count: "<<this->getExpectedClusterCount()<<std::endl;
+    std::cout<<"Total Core Count: "<<this->getExpectedCoreCount()<<std::endl;
+
+    for(auto it = this->mLogicalToPhysicalClusterMapping.begin();
+             it != this->mLogicalToPhysicalClusterMapping.end(); it++) {
+        std::cout<<"Logical ID "<<it->first<<" mapped to Physical ID: "<<it->second<<std::endl;
+    }
+}
+
+int32_t TestBaseline::getExpectedClusterCount() {
+    return this->mTotalClusterCount;
+}
+
+int32_t TestBaseline::getExpectedCoreCount() {
+    return this->mTotalCoreCount;
+}
+
+int32_t TestBaseline::getExpectedPhysicalCluster(int32_t logicalID) {
+    if(this->mLogicalToPhysicalClusterMapping.find(logicalID) ==
+        this->mLogicalToPhysicalClusterMapping.end()) {
+        return -1;
+    }
+
+    return this->mLogicalToPhysicalClusterMapping[logicalID];
+}

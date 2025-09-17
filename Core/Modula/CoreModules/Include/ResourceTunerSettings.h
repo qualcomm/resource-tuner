@@ -64,6 +64,7 @@ public:
 
     static const std::string mExtensionsPluginLibPath;
 
+    static const std::string mDeviceNamePath;
     static const std::string mBaseCGroupPath;
 
     static std::shared_timed_mutex mModeLock;

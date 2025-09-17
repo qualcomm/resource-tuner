@@ -113,6 +113,8 @@ TargetConfig:
         NumCores: 1
 ```
 
+---
+
 # 5. How to add a new Property
 Common Properties are defined by resource-tuner in the /etc/resource-tuner/common/PropertiesConfig.yaml file, to add your own custom properties one of the following 2 strategies can be followed:
 1. Add the Custom PropertiesConfig.yaml at /etc/resource-tuner/custom. Note the file name must exactly match "PropertiesConfig.yaml". As part of initialization, resource-tuner will check if this file is present, if it is, it will be parsed alongside the Common Properties.
@@ -138,3 +140,6 @@ PropertyConfigs:
   - Name: resource_tuner.logging.level.exact
     Value: "false"
 ```
+
+---
+

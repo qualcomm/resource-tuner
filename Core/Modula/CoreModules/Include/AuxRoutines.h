@@ -14,6 +14,7 @@
 #include "Logger.h"
 #include "Request.h"
 #include "Signal.h"
+#include "ResourceTunerSettings.h"
 
 class AuxRoutines {
 public:

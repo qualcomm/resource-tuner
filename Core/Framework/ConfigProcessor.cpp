@@ -74,9 +74,24 @@ static int8_t isKey(const std::string& keyName) {
     if(keyName == INIT_CONFIGS_ELEM_MPAM_GROUP_PRIORITY) return true;
 
     if(keyName == INIT_CONFIGS_ELEM_CACHE_INFO_LIST) return true;
-    if(keyName == INIT_CONFIGS_ELEM_CACHE_INFO_CACHE_TYPE) return true;
-    if(keyName == INIT_CONFIGS_ELEM_CACHE_INFO_CACHE_BLOCK_COUNT) return true;
-    if(keyName == INIT_CONFIGS_ELEM_CACHE_INFO_CACHE_PRIO_AWARE) return true;
+    if(keyName == INIT_CONFIGS_ELEM_CACHE_INFO_TYPE) return true;
+    if(keyName == INIT_CONFIGS_ELEM_CACHE_INFO_BLK_CNT) return true;
+    if(keyName == INIT_CONFIGS_ELEM_CACHE_INFO_PRIO_AWARE) return true;
+
+    return false;
+}
+
+static int8_t isKeyTypeList(const std::string& keyName) {
+    if(keyName == TARGET_NAME_LIST) return true;
+    if(keyName == TARGET_CLUSTER_INFO) return true;
+    if(keyName == TARGET_CLUSTER_SPREAD) return true;
+
+    if(keyName == INIT_CONFIGS_ELEM_CLUSTER_MAP) return true;
+    if(keyName == INIT_CONFIGS_ELEM_CGROUPS_LIST) return true;
+    if(keyName == INIT_CONFIGS_ELEM_MPAM_GROUPS_LIST) return true;
+    if(keyName == INIT_CONFIGS_ELEM_CACHE_INFO_LIST) return true;
+
+    if(keyName == RESOURCE_CONFIGS_ELEM_MODES) return true;
 
     return false;
 }
@@ -159,7 +174,7 @@ ErrCode ConfigProcessor::parseResourceConfigYamlNode(const std::string& filePath
                 }
 
                 topKey = keyTracker.top();
-                if(topKey != RESOURCE_CONFIGS_ELEM_MODES) {
+                if(!isKeyTypeList(topKey)) {
                     keyTracker.pop();
                 }
 
@@ -256,7 +271,7 @@ ErrCode ConfigProcessor::parseTargetConfigYamlNode(const std::string& filePath) 
     int8_t parsingDone = false;
     int8_t docMarker = false;
     int8_t parsingItem = false;
-    int8_t isConfigForCurrentTarget = false;
+    int32_t targetMatchCount = 0;
 
     std::string value;
     std::string topKey;
@@ -301,13 +316,13 @@ ErrCode ConfigProcessor::parseTargetConfigYamlNode(const std::string& filePath) 
 
                     topKey = keyTracker.top();
                     if(topKey == TARGET_CLUSTER_INFO) {
-                        if(isConfigForCurrentTarget) {
+                        if(targetMatchCount == 1) {
                             TargetRegistry::getInstance()->addClusterMapping(lgcClusterID, phyClusterID);
                             lgcClusterID.clear();
                             phyClusterID.clear();
                         }
                     } else if(topKey == TARGET_CLUSTER_SPREAD) {
-                        if(isConfigForCurrentTarget) {
+                        if(targetMatchCount == 1) {
                             TargetRegistry::getInstance()->addClusterSpreadInfo(phyClusterID, numCoresString);
                             phyClusterID.clear();
                             numCoresString.clear();
@@ -332,15 +347,13 @@ ErrCode ConfigProcessor::parseTargetConfigYamlNode(const std::string& filePath) 
                 }
 
                 topKey = keyTracker.top();
-                if(topKey != TARGET_NAME_LIST &&
-                   topKey != TARGET_CLUSTER_INFO &&
-                   topKey != TARGET_CLUSTER_SPREAD) {
+                if(!isKeyTypeList(topKey)) {
                     keyTracker.pop();
                 }
 
                 if(topKey == TARGET_NAME_LIST) {
                     if(value == "*" || value == ResourceTunerSettings::targetConfigs.targetName) {
-                        isConfigForCurrentTarget = true;
+                        targetMatchCount++;
                     }
                 } else if(topKey == TARGET_CLUSTER_INFO_LOGICAL_ID) {
                     lgcClusterID = value;
@@ -484,10 +497,7 @@ ErrCode ConfigProcessor::parseInitConfigYamlNode(const std::string& filePath) {
                 }
 
                 topKey = keyTracker.top();
-                if(topKey != INIT_CONFIGS_ELEM_CLUSTER_MAP &&
-                   topKey !=  INIT_CONFIGS_ELEM_CGROUPS_LIST &&
-                   topKey != INIT_CONFIGS_ELEM_MPAM_GROUPS_LIST &&
-                   topKey != INIT_CONFIGS_ELEM_CACHE_INFO_LIST) {
+                if(!isKeyTypeList(topKey)) {
                     keyTracker.pop();
                 }
 
@@ -500,9 +510,9 @@ ErrCode ConfigProcessor::parseInitConfigYamlNode(const std::string& filePath) {
                 ADD_TO_MPAM_GROUP_BUILDER(INIT_CONFIGS_ELEM_MPAM_GROUP_ID, setLgcID);
                 ADD_TO_MPAM_GROUP_BUILDER(INIT_CONFIGS_ELEM_MPAM_GROUP_PRIORITY, setPriority);
 
-                ADD_TO_CACHE_INFO_BUILDER(INIT_CONFIGS_ELEM_CACHE_INFO_CACHE_TYPE, setType);
-                ADD_TO_CACHE_INFO_BUILDER(INIT_CONFIGS_ELEM_CACHE_INFO_CACHE_BLOCK_COUNT, setNumBlocks);
-                ADD_TO_CACHE_INFO_BUILDER(INIT_CONFIGS_ELEM_CACHE_INFO_CACHE_PRIO_AWARE, setPriorityAware);
+                ADD_TO_CACHE_INFO_BUILDER(INIT_CONFIGS_ELEM_CACHE_INFO_TYPE, setType);
+                ADD_TO_CACHE_INFO_BUILDER(INIT_CONFIGS_ELEM_CACHE_INFO_BLK_CNT, setNumBlocks);
+                ADD_TO_CACHE_INFO_BUILDER(INIT_CONFIGS_ELEM_CACHE_INFO_PRIO_AWARE, setPriorityAware);
 
                 break;
 
