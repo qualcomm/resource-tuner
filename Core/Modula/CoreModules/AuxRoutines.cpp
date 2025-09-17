@@ -13,7 +13,7 @@ std::string AuxRoutines::readFromFile(const std::string& fileName) {
     }
 
     if(!getline(fileStream, value)) {
-        LOGE("RESTUNE_AUX_ROUTINE", "Failed to read from file: " + fileName);
+        LOGE("RESTUNE_AUX_ROUTINE", "Failed to read from file: " + fileName + " Error: " + strerror(errno));
         return "";
     }
 

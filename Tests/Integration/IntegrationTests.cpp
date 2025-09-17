@@ -3964,27 +3964,26 @@ namespace CGroupApplicationTests {
 
 int32_t main(int32_t argc, const char* argv[]) {
     baseline.fetchBaseline();
-    baseline.displayBaseline();
 
-    // // Run the Tests
-    // RUN_INTEGRATION_TEST(TestHandleGeneration)
-    // RUN_INTEGRATION_TEST(TestPropFetch)
+    // Run the Tests
+    RUN_INTEGRATION_TEST(TestHandleGeneration)
+    RUN_INTEGRATION_TEST(TestPropFetch)
 
-    // // Request-Verification Tests
-    // ResourceTuningRequestVerification::RunTestGroup();
-    // SignalVerification::RunTestGroup();
+    // Request-Verification Tests
+    ResourceTuningRequestVerification::RunTestGroup();
+    SignalVerification::RunTestGroup();
 
-    // // Request Application Tests
-    // RequestApplicationTests::RunTestGroup();
+    // Request Application Tests
+    RequestApplicationTests::RunTestGroup();
 
-    // // Tests on Real Sysfs Nodes (QLI)
-    // SystemSysfsNodesTests::RunTestGroup();
+    // Tests on Real Sysfs Nodes (QLI)
+    SystemSysfsNodesTests::RunTestGroup();
 
-    // // Signal Application
-    // SignalApplicationTests::RunTestGroup();
+    // Signal Application
+    SignalApplicationTests::RunTestGroup();
 
-    // // Tests for CGroup Resources
-    // CGroupApplicationTests::RunTestGroup();
+    // Tests for CGroup Resources
+    CGroupApplicationTests::RunTestGroup();
 
     return 0;
 }

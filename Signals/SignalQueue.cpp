@@ -57,6 +57,7 @@ static Request* createResourceUntuneRequest(Signal* signal) {
     request->setClientPID(signal->getClientPID());
     request->setClientTID(signal->getClientTID());
     request->setNumResources(0);
+    request->setResources(nullptr);
 
     return request;
 }
