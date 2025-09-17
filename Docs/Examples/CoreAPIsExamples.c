@@ -4,7 +4,7 @@
 /**
  * @brief Resource Tuner APIs can be integrated and called as part of a C-based program
  *        as well. This file provides an example of using the APIs with C.
- * @example ResourceTunerCoreAPIs.c
+ * @example CoreAPIsExamples.c
  */
 
 #include <stdio.h>

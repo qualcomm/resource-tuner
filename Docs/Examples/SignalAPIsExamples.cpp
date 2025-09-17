@@ -4,7 +4,7 @@
 /**
  * @brief Sample Usage of Resource Tuner Signal APIs.
  *
- * @example ResourceTunerSignalAPIs.cpp
+ * @example SignalAPIsExamples.cpp
  * This files covers examples of the following APIs:
  * - tuneSignal
  * - untuneSignal

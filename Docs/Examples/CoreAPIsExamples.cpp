@@ -4,7 +4,7 @@
 /**
  * @brief Sample Usage of Resource Tuner APIs.
  *
- * @example ResourceTunerCoreAPIs.cpp
+ * @example CoreAPIsExamples.cpp
  * This files covers examples of the following APIs:
  * - tuneResources
  * - retuneResources

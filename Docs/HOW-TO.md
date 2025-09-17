@@ -1,4 +1,4 @@
-\page usage Usage Guide
+\page usage General Usage Guide
 
 # 1. How to add a custom resource
 Resource tuner is configured with a default set of [Resources](../Core/Configs/ResourcesConfig.yaml),

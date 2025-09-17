@@ -84,3 +84,5 @@ RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/opt/custom/ResourcesConfig.yaml")
 ```
 
 This will tell Resource Tuner that the custom Resources Config file is located at: "/opt/custom/ResourcesConfig.yaml". Similar strategy can be followed for Signals, Properties, Ext Features etc.
+
+---
