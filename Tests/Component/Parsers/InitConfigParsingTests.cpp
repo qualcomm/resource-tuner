@@ -12,16 +12,16 @@
 #include "Extensions.h"
 #include "Utils.h"
 
+static ErrCode parsingStatus = RC_SUCCESS;
+
 static void Init() {
     ConfigProcessor configProcessor;
-
-    if(RC_IS_NOTOK(configProcessor.parseInitConfigs("/etc/resource-tuner/custom/InitConfig.yaml"))) {
-        return;
-    }
+    parsingStatus = configProcessor.parseInitConfigs("/etc/resource-tuner/custom/InitConfig.yaml");
 }
 
 static void TestInitConfigProcessorYAMLDataIntegrity1() {
-    C_ASSERT(TargetRegistry::getInstance() != nullptr);
+    C_ASSERT(TargetRegistry::getInstance() != nullptr);\
+    C_ASSERT(parsingStatus == RC_SUCCESS);
 }
 
 static void TestInitConfigProcessorYAMLDataIntegrity2() {

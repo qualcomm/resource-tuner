@@ -12,16 +12,17 @@
 
 #define TOTAL_RESOURCE_CONFIGS_COUNT 13
 
+static ErrCode parsingStatus = RC_SUCCESS;
+
 static void Init() {
     ConfigProcessor configProcessor;
 
-    if(RC_IS_NOTOK(configProcessor.parseResourceConfigs("/etc/resource-tuner/custom/ResourcesConfig.yaml", true))) {
-        return;
-    }
+    parsingStatus = configProcessor.parseResourceConfigs("/etc/resource-tuner/custom/ResourcesConfig.yaml", true);
 }
 
 static void TestResourceConfigProcessorYAMLDataIntegrity1() {
     C_ASSERT(ResourceRegistry::getInstance() != nullptr);
+    C_ASSERT(parsingStatus == RC_SUCCESS);
 }
 
 static void TestResourceConfigProcessorYAMLDataIntegrity2() {

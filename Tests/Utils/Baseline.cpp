@@ -153,11 +153,17 @@ ErrCode TestBaseline::parseTestConfigYamlNode(const std::string& filePath) {
                     clusterExpectationBuilder->setPhysicalID(value);
                 } else if(topKey == NUM_CLUSERS) {
                     if(targetMatchCount == 1) {
-                        this->mTotalClusterCount = std::stoi(value);
+                        this->mTotalClusterCount = -1;
+                        try {
+                            this->mTotalClusterCount = std::stoi(value);
+                        } catch(const std::exception& e) {}
                     }
                 } else if(topKey == NUM_CORES) {
                     if(targetMatchCount == 1) {
-                        this->mTotalCoreCount = std::stoi(value);
+                        this->mTotalCoreCount = -1;
+                        try {
+                            this->mTotalCoreCount = std::stoi(value);
+                        } catch(const std::exception& e) {}
                     }
                 }
 

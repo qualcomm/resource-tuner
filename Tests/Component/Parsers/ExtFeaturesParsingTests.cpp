@@ -13,16 +13,16 @@
 
 #define TOTAL_EXT_FEAT_CONFIGS_COUNT 2
 
+static ErrCode parsingStatus = RC_SUCCESS;
+
 static void Init() {
     SignalConfigProcessor configProcessor;
-
-    if(RC_IS_NOTOK(configProcessor.parseExtFeaturesConfigs("/etc/resource-tuner/custom/ExtFeaturesConfig.yaml"))) {
-        return;
-    }
+    parsingStatus = configProcessor.parseExtFeaturesConfigs("/etc/resource-tuner/custom/ExtFeaturesConfig.yaml");
 }
 
 static void TestExtFearConfigProcessorYAMLDataIntegrity1() {
     C_ASSERT(ExtFeaturesRegistry::getInstance() != nullptr);
+    C_ASSERT(parsingStatus == RC_SUCCESS);
 }
 
 static void TestExtFearConfigProcessorYAMLDataIntegrity2() {

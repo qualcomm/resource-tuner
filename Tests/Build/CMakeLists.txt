@@ -13,10 +13,6 @@ if(BUILD_TESTS)
     target_include_directories(resource_tuner_tests PRIVATE ${LIBYAML_INCLUDE_DIRS})
     install(TARGETS resource_tuner_tests RUNTIME DESTINATION bin)
 
-    add_executable(YamlParserTests ../Component/Parsers/YamlParserTests.cpp)
-    target_link_libraries(YamlParserTests Auxiliary TestSetupUtils)
-    install(TARGETS YamlParserTests DESTINATION bin)
-
     add_executable(MemoryPoolTests ../Component/Comp/MemoryPoolTests.cpp)
     target_link_libraries(MemoryPoolTests Auxiliary TestSetupUtils)
     install(TARGETS MemoryPoolTests DESTINATION bin)

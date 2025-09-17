@@ -223,6 +223,8 @@ ResourceConfigInfoBuilder::ResourceConfigInfoBuilder() {
     }
 
     // Initialize Default Values
+    this->mResourceConfigInfo->mResourceResType = 0;
+    this->mResourceConfigInfo->mResourceResID = 0;
     this->mResourceConfigInfo->mResourceApplierCallback = nullptr;
     this->mResourceConfigInfo->mResourceTearCallback = nullptr;
     this->mResourceConfigInfo->mModes = 0;

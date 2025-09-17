@@ -13,15 +13,16 @@
 
 #define TOTAL_SYS_CONFIGS_PROPS_COUNT 15
 
+static ErrCode parsingStatus = RC_SUCCESS;
+
 static void Init() {
     ConfigProcessor configProcessor;
-    if(RC_IS_NOTOK(configProcessor.parsePropertiesConfigs("/etc/resource-tuner/custom/PropertiesConfig.yaml"))) {
-        return;
-    }
+    parsingStatus = configProcessor.parsePropertiesConfigs("/etc/resource-tuner/custom/PropertiesConfig.yaml");
 }
 
 static void TestSysConfigProcessorYAMLDataIntegrity1() {
     C_ASSERT(PropertiesRegistry::getInstance() != nullptr);
+    C_ASSERT(parsingStatus == RC_SUCCESS);
 }
 
 static void TestSysConfigPropertiesParsing() {

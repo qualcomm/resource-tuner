@@ -11,16 +11,16 @@
 #include "Extensions.h"
 #include "Utils.h"
 
+static ErrCode parsingStatus = RC_SUCCESS;
+
 static void Init() {
     ConfigProcessor configProcessor;
-
-    if(RC_IS_NOTOK(configProcessor.parseTargetConfigs("/etc/resource-tuner/custom/TargetConfig.yaml"))) {
-        return;
-    }
+    parsingStatus = configProcessor.parseTargetConfigs("/etc/resource-tuner/custom/TargetConfig.yaml");
 }
 
 static void TestTargetConfigProcessorYAMLDataIntegrity1() {
     C_ASSERT(TargetRegistry::getInstance() != nullptr);
+    C_ASSERT(parsingStatus == RC_SUCCESS);
 }
 
 static void TestTargetConfigProcessorYAMLDataIntegrity2() {

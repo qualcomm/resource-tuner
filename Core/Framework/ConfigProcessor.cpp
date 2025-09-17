@@ -308,10 +308,7 @@ ErrCode ConfigProcessor::parseTargetConfigYamlNode(const std::string& filePath) 
                 break;
 
             case YAML_MAPPING_END_EVENT:
-                if(keyTracker.empty()) {
-                    return RC_YAML_INVALID_SYNTAX;
-
-                } else if(parsingItem) {
+                if(!keyTracker.empty() && parsingItem) {
                     parsingItem = false;
 
                     topKey = keyTracker.top();
@@ -442,7 +439,7 @@ ErrCode ConfigProcessor::parseInitConfigYamlNode(const std::string& filePath) {
 
             case YAML_MAPPING_END_EVENT:
                 if(keyTracker.empty()) {
-                    return RC_YAML_INVALID_SYNTAX;
+                    break;
                 }
 
                 topKey = keyTracker.top();

@@ -123,14 +123,21 @@ SignalRegistry::~SignalRegistry() {
 
 SignalInfoBuilder::SignalInfoBuilder() {
     this->mSignalInfo = new(std::nothrow) SignalInfo;
-
-    if(this->mSignalInfo != nullptr) {
-        this->mSignalInfo->mTargetsEnabled = nullptr;
-        this->mSignalInfo->mTargetsDisabled = nullptr;
-        this->mSignalInfo->mDerivatives = nullptr;
-        this->mSignalInfo->mPermissions = nullptr;
-        this->mSignalInfo->mSignalResources = nullptr;
+    if(this->mSignalInfo == nullptr) {
+        return;
     }
+
+    this->mSignalInfo->mSignalID = 0;
+    this->mSignalInfo->mSignalCategory = 0;
+    this->mSignalInfo->mSignalName = "";
+    this->mSignalInfo->mIsEnabled = false;
+    this->mSignalInfo->mTimeout = 1;
+
+    this->mSignalInfo->mTargetsEnabled = nullptr;
+    this->mSignalInfo->mTargetsDisabled = nullptr;
+    this->mSignalInfo->mDerivatives = nullptr;
+    this->mSignalInfo->mPermissions = nullptr;
+    this->mSignalInfo->mSignalResources = nullptr;
 }
 
 ErrCode SignalInfoBuilder::setSignalID(const std::string& signalIdString) {

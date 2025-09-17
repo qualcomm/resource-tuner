@@ -13,23 +13,23 @@
 
 #define TOTAL_SIGNAL_CONFIGS_COUNT 10
 
+static ErrCode parsingStatus = RC_SUCCESS;
+
 static void Init() {
     SignalConfigProcessor configProcessor;
 
     std::string signalsClassA = "/etc/resource-tuner/custom/SignalsConfig.yaml";
     std::string signalsClassB = "/etc/resource-tuner/custom/SignalsConfigAddOn.yaml";
 
-    if(RC_IS_NOTOK(configProcessor.parseSignalConfigs(signalsClassA))) {
-        return;
-    }
-
-    if(RC_IS_NOTOK(configProcessor.parseSignalConfigs(signalsClassB, true))) {
-        return;
+    parsingStatus = configProcessor.parseSignalConfigs(signalsClassA);
+    if(RC_IS_OK(parsingStatus)) {
+        parsingStatus = configProcessor.parseSignalConfigs(signalsClassB, true);
     }
 }
 
 static void TestSignalParsingSanity() {
     C_ASSERT(SignalRegistry::getInstance() != nullptr);
+    C_ASSERT(parsingStatus == RC_SUCCESS);
 }
 
 static void TestSignalParsingSignalsParsed() {

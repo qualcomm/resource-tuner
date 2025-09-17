@@ -12,23 +12,24 @@
 
 #define TOTAL_RESOURCE_CONFIGS_COUNT 15
 
+static ErrCode parsingStatus = RC_SUCCESS;
+
 static void Init() {
     ConfigProcessor configProcessor;
 
     std::string resourcesClassA = "/etc/resource-tuner/custom/ResourcesConfig.yaml";
     std::string resourcesClassB = "/etc/resource-tuner/custom/ResourcesConfigAddOn.yaml";
 
-    if(RC_IS_NOTOK(configProcessor.parseResourceConfigs(resourcesClassA))) {
-        return;
-    }
+    parsingStatus = configProcessor.parseResourceConfigs(resourcesClassA);
 
-    if(RC_IS_NOTOK(configProcessor.parseResourceConfigs(resourcesClassB, true))) {
-        return;
+    if(RC_IS_OK(parsingStatus)) {
+        parsingStatus = configProcessor.parseResourceConfigs(resourcesClassB, true);
     }
 }
 
 static void TestResourceParsingSanity() {
     C_ASSERT(ResourceRegistry::getInstance() != nullptr);
+    C_ASSERT(parsingStatus == RC_SUCCESS);
 }
 
 static void TestResourceParsingResourcesParsed() {

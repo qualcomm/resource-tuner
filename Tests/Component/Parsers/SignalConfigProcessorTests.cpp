@@ -13,16 +13,16 @@
 
 #define TOTAL_SIGNAL_CONFIGS_COUNT 8
 
+static ErrCode parsingStatus = RC_SUCCESS;
+
 static void Init() {
     SignalConfigProcessor configProcessor;
-
-    if(RC_IS_NOTOK(configProcessor.parseSignalConfigs("/etc/resource-tuner/custom/SignalsConfig.yaml"))) {
-        return;
-    }
+    parsingStatus = configProcessor.parseSignalConfigs("/etc/resource-tuner/custom/SignalsConfig.yaml");
 }
 
 static void TestSignalConfigProcessorYAMLDataIntegrity1() {
     C_ASSERT(SignalRegistry::getInstance() != nullptr);
+    C_ASSERT(parsingStatus == RC_SUCCESS);
 }
 
 static void TestSignalConfigProcessorYAMLDataIntegrity2() {

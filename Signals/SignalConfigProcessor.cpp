@@ -295,7 +295,7 @@ ErrCode SignalConfigProcessor::parseExtFeatureConfigYamlNode(const std::string& 
                 }
 
                 topKey = keyTracker.top();
-                if(isKeyTypeList(topKey)) {
+                if(!isKeyTypeList(topKey)) {
                     keyTracker.pop();
                 }
 

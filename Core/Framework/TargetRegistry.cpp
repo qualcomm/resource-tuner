@@ -476,6 +476,7 @@ CGroupConfigInfoBuilder::CGroupConfigInfoBuilder() {
     }
 
     this->mCGroupConfigInfo->mCgroupName = "";
+    this->mCGroupConfigInfo->mCgroupID = -1;
     this->mCGroupConfigInfo->mCreationNeeded = false;
     this->mCGroupConfigInfo->mIsThreaded = false;
 }
@@ -494,6 +495,7 @@ ErrCode CGroupConfigInfoBuilder::setCGroupID(const std::string& cGroupIDString) 
         return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
+    this->mCGroupConfigInfo->mCgroupID = -1;
     try {
         this->mCGroupConfigInfo->mCgroupID = std::stoi(cGroupIDString);
         return RC_SUCCESS;
@@ -535,6 +537,7 @@ MpamGroupConfigInfoBuilder::MpamGroupConfigInfoBuilder() {
         return;
     }
 
+    this->mMpamGroupInfo->mMpamGroupInfoID = -1;
     this->mMpamGroupInfo->mMpamGroupName = "";
     this->mMpamGroupInfo->mPriority = 0;
 }
@@ -590,6 +593,8 @@ CacheInfoBuilder::CacheInfoBuilder() {
     }
 
     this->mCacheInfo->mPriorityAware = false;
+    this->mCacheInfo->mCacheType = "";
+    this->mCacheInfo->mNumCacheBlocks == -1;
 }
 
 ErrCode CacheInfoBuilder::setType(const std::string& type) {
