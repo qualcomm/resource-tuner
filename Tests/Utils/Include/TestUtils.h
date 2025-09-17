@@ -8,7 +8,6 @@
 #include <fstream>
 #include <ctime>
 #include <chrono>
-#include <thread>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>

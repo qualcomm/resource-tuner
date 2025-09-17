@@ -67,7 +67,8 @@ ErrCode TestBaseline::parseTestConfigYamlNode(const std::string& filePath) {
     int8_t parsingDone = false;
     int8_t docMarker = false;
     int8_t parsingClusterExpectation = false;
-    int32_t targetMatchCount = 0;
+    int8_t isConfigForCurrentTarget = false;
+    int8_t deviceParsingDone = false;
 
     std::string value;
     std::string topKey;
@@ -108,11 +109,11 @@ ErrCode TestBaseline::parseTestConfigYamlNode(const std::string& filePath) {
 
             case YAML_MAPPING_END_EVENT:
                 if(keyTracker.empty()) {
-                    return RC_YAML_INVALID_SYNTAX;
+                    break;
                 } else if(parsingClusterExpectation) {
                     parsingClusterExpectation = false;
 
-                    if(targetMatchCount == 1) {
+                    if(isConfigForCurrentTarget) {
                         ClusterExpection* info = clusterExpectationBuilder->build();
                         this->mLogicalToPhysicalClusterMapping[info->mLogicalID] = info->mPhysicalID;
                     }
@@ -129,6 +130,9 @@ ErrCode TestBaseline::parseTestConfigYamlNode(const std::string& filePath) {
                 }
 
                 if(isKey(value)) {
+                    if(value == TARGET_NAME_LIST) {
+                        isConfigForCurrentTarget = false;
+                    }
                     keyTracker.push(value);
                     break;
                 }
@@ -144,22 +148,25 @@ ErrCode TestBaseline::parseTestConfigYamlNode(const std::string& filePath) {
                 }
 
                 if(topKey == TARGET_NAME_LIST) {
-                    if(value == "*" || value == ResourceTunerSettings::targetConfigs.targetName) {
-                        targetMatchCount++;
+                    if(value == "*" || value == currTargetName) {
+                        if(!deviceParsingDone) {
+                            isConfigForCurrentTarget = true;
+                            deviceParsingDone = true;
+                        }
                     }
                 } else if(topKey == TARGET_CLUSTER_INFO_LOGICAL_ID) {
                     clusterExpectationBuilder->setLogicalID(value);
                 } else if(topKey == TARGET_CLUSTER_INFO_PHYSICAL_ID) {
                     clusterExpectationBuilder->setPhysicalID(value);
                 } else if(topKey == NUM_CLUSERS) {
-                    if(targetMatchCount == 1) {
+                    if(isConfigForCurrentTarget) {
                         this->mTotalClusterCount = -1;
                         try {
                             this->mTotalClusterCount = std::stoi(value);
                         } catch(const std::exception& e) {}
                     }
                 } else if(topKey == NUM_CORES) {
-                    if(targetMatchCount == 1) {
+                    if(isConfigForCurrentTarget) {
                         this->mTotalCoreCount = -1;
                         try {
                             this->mTotalCoreCount = std::stoi(value);

@@ -3,7 +3,6 @@
 
 #include <cstdint>
 #include <string.h>
-#include <thread>
 
 #include "Utils.h"
 #include "TestUtils.h"

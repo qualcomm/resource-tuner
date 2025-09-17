@@ -271,7 +271,8 @@ ErrCode ConfigProcessor::parseTargetConfigYamlNode(const std::string& filePath) 
     int8_t parsingDone = false;
     int8_t docMarker = false;
     int8_t parsingItem = false;
-    int32_t targetMatchCount = 0;
+    int8_t isConfigForCurrentTarget = false;
+    int8_t deviceParsingDone = false;
 
     std::string value;
     std::string topKey;
@@ -313,13 +314,13 @@ ErrCode ConfigProcessor::parseTargetConfigYamlNode(const std::string& filePath) 
 
                     topKey = keyTracker.top();
                     if(topKey == TARGET_CLUSTER_INFO) {
-                        if(targetMatchCount == 1) {
+                        if(isConfigForCurrentTarget) {
                             TargetRegistry::getInstance()->addClusterMapping(lgcClusterID, phyClusterID);
                             lgcClusterID.clear();
                             phyClusterID.clear();
                         }
-                    } else if(topKey == TARGET_CLUSTER_SPREAD) {
-                        if(targetMatchCount == 1) {
+                    } else if(isConfigForCurrentTarget) {
+                        if(isConfigForCurrentTarget) {
                             TargetRegistry::getInstance()->addClusterSpreadInfo(phyClusterID, numCoresString);
                             phyClusterID.clear();
                             numCoresString.clear();
@@ -335,6 +336,9 @@ ErrCode ConfigProcessor::parseTargetConfigYamlNode(const std::string& filePath) 
                 }
 
                 if(isKey(value)) {
+                    if(value == TARGET_NAME_LIST) {
+                        isConfigForCurrentTarget = false;
+                    }
                     keyTracker.push(value);
                     break;
                 }
@@ -350,7 +354,10 @@ ErrCode ConfigProcessor::parseTargetConfigYamlNode(const std::string& filePath) 
 
                 if(topKey == TARGET_NAME_LIST) {
                     if(value == "*" || value == ResourceTunerSettings::targetConfigs.targetName) {
-                        targetMatchCount++;
+                        if(!deviceParsingDone) {
+                            isConfigForCurrentTarget = true;
+                            deviceParsingDone = true;
+                        }
                     }
                 } else if(topKey == TARGET_CLUSTER_INFO_LOGICAL_ID) {
                     lgcClusterID = value;

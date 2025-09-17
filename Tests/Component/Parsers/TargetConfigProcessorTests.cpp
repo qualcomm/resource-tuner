@@ -1,7 +1,6 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <thread>
 #include <cstdint>
 
 #include "TestUtils.h"
@@ -14,8 +13,9 @@
 static ErrCode parsingStatus = RC_SUCCESS;
 
 static void Init() {
+    ResourceTunerSettings::targetConfigs.targetName = "TestDevice";
     ConfigProcessor configProcessor;
-    parsingStatus = configProcessor.parseTargetConfigs("/etc/resource-tuner/custom/TargetConfig.yaml");
+    parsingStatus = configProcessor.parseTargetConfigs("/etc/resource-tuner/custom/TargetConfigDup.yaml");
 }
 
 static void TestTargetConfigProcessorYAMLDataIntegrity1() {

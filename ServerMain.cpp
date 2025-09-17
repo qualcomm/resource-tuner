@@ -81,7 +81,7 @@ static ErrCode createResourceTunerDaemon(int32_t& childProcessID) {
         }
 
         // Delete the Sysfs Persistent File
-        AuxRoutines::deleteFile("resourceOriginalValues.txt");
+        AuxRoutines::deleteFile(ResourceTunerSettings::mPersistenceFile);
         exit(EXIT_SUCCESS);
     }
 
@@ -137,7 +137,7 @@ static void serverCleanup() {
 
 int32_t main(int32_t argc, char *argv[]) {
     // Initialize syslog
-    openlog("resource-tuner", LOG_PID | LOG_CONS, LOG_USER);
+    openlog(RESTUNE_IDENTIFIER, LOG_PID | LOG_CONS, LOG_USER);
 
     // PID of the Child Daemon
     ErrCode opStatus = RC_SUCCESS;
@@ -302,7 +302,7 @@ int32_t main(int32_t argc, char *argv[]) {
     }
 
     // Delete the Sysfs Persistent File
-    AuxRoutines::deleteFile("resourceOriginalValues.txt");
+    AuxRoutines::deleteFile(ResourceTunerSettings::mPersistenceFile);
 
     if(extensionsLibHandle != nullptr) {
         dlclose(extensionsLibHandle);

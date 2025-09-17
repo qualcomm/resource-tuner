@@ -43,6 +43,9 @@ const std::string ResourceTunerSettings::mDeviceNamePath =
 const std::string ResourceTunerSettings::mBaseCGroupPath =
                                     "/sys/fs/cgroup/";
 
+const std::string ResourceTunerSettings::mPersistenceFile =
+                                    "resourceOriginalValues.txt";
+
 int32_t ResourceTunerSettings::isServerOnline() {
     return serverOnlineStatus;
 }

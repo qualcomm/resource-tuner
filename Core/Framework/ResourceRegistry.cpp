@@ -40,7 +40,7 @@ void ResourceRegistry::addDefaultValue(const std::string& filePath, const std::s
     this->mDefaultValueStore[filePath] = value;
 
     if(value.length() != 0) {
-        std::fstream persistenceFile("resourceOriginalValues.txt", std::ios::out | std::ios::app);
+        std::fstream persistenceFile(ResourceTunerSettings::mPersistenceFile, std::ios::out | std::ios::app);
         std::string resourceData = filePath;
         resourceData.push_back(',');
         resourceData.append(value);

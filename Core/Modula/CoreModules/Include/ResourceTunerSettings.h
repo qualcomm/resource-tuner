@@ -13,6 +13,7 @@
 #include "SafeOps.h"
 #include "Utils.h"
 
+#define RESTUNE_IDENTIFIER "resource-tuner"
 #define REQ_BUFFER_SIZE 1024
 
 // Operational Tunable Parameters for Resource Tuner
@@ -66,6 +67,8 @@ public:
 
     static const std::string mDeviceNamePath;
     static const std::string mBaseCGroupPath;
+
+    static const std::string mPersistenceFile;
 
     static std::shared_timed_mutex mModeLock;
     static MetaConfigs metaConfigs;

@@ -43,7 +43,7 @@ void AuxRoutines::writeSysFsDefaults() {
     // Write Defaults
     std::ifstream file;
 
-    file.open("resourceOriginalValues.txt");
+    file.open(ResourceTunerSettings::mPersistenceFile);
     if(!file.is_open()) {
         LOGE("RESTUNE_SERVER_INIT", "Failed to open sysfs original values file: resourceOriginalValues.txt");
         return;

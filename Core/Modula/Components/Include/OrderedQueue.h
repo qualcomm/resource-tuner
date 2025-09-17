@@ -5,7 +5,6 @@
 #define ORDERED_QUEUE_H
 
 #include <iostream>
-#include <thread>
 #include <queue>
 #include <vector>
 #include <mutex>
