@@ -58,18 +58,18 @@ target_link_libraries(resource_tuner PUBLIC Server Auxiliary SysRequestReceiver)
 # Install libs
 install(TARGETS resource_tuner RUNTIME DESTINATION bin)
 install(TARGETS Auxiliary SocketCommServer
-        ClientAPIs Server ExtAPIs
-        SysRequestReceiver LIBRARY DESTINATION lib)
+                ClientAPIs Server ExtAPIs
+                SysRequestReceiver LIBRARY DESTINATION lib)
 if(BUILD_TESTS)
-install(TARGETS TestSetupUtils DESTINATION lib)
+  install(TARGETS TestSetupUtils DESTINATION lib)
 endif()
 if(BUILD_SIGNALS)
   install(TARGETS SysSignals DESTINATION lib)
 endif()
 
 # Install headers
-install(DIRECTORY ../Core/Client/APIs/Include/ DESTINATION include/ResourceTuner)
-install(DIRECTORY ../Core/Extensions/Include/ DESTINATION include/ResourceTuner)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/../Core/Client/APIs/Include/ DESTINATION include/ResourceTuner)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/../Core/Extensions/Include/ DESTINATION include/ResourceTuner)
 
 # Install core config files
 install(

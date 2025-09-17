@@ -116,7 +116,11 @@ TargetConfig:
 ---
 
 # 5. How to add a new Property
+Resource Tuner provides a set of Common Properties that are applicable to all devices. Users can specify their own custom Properties on top of the common ones.
+Custom Properties can be specified in a yaml file (similar to Common Properties).
+
 Common Properties are defined by resource-tuner in the /etc/resource-tuner/common/PropertiesConfig.yaml file, to add your own custom properties one of the following 2 strategies can be followed:
+
 1. Add the Custom PropertiesConfig.yaml at /etc/resource-tuner/custom. Note the file name must exactly match "PropertiesConfig.yaml". As part of initialization, resource-tuner will check if this file is present, if it is, it will be parsed alongside the Common Properties.
 
 2. The custom Properties file can also be placed in a different location other than /etc/resource-tuner/custom/. This can be done through Resource Tuner's Extension Interface. For example if the file is present at /opt/custom/PropertiesConfig.yaml, then the RESTUNE_REGISTER_CONFIG macro can be used as follows:
@@ -124,6 +128,11 @@ Common Properties are defined by resource-tuner in the /etc/resource-tuner/commo
 ```cpp
 RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/opt/custom/PropertiesConfig.yaml")
 ```
+
+Note:
+Each Property is indexed by the Prop Name, if Custom Properties are provided then one of the following scenarios will take place:
+- If a Property with the same name already exists (in the Common Properties), the new value will overwrite the older value.
+- If a Property with the same name does not exist (in the Common Properties), then a new Property with the provided Name and Value shall be created and stored in the Property Registry.
 
 ## Sample Properties config file.
 ```yaml
@@ -142,4 +151,3 @@ PropertyConfigs:
 ```
 
 ---
-
