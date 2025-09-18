@@ -29,7 +29,7 @@ static void handleSIGTSTP(int32_t sig) {
 
 static ErrCode parseServerStartupCLIOpts(int32_t argCount, char *argStrings[]) {
     if(argCount != 2) {
-        std::cout<<"Usage: "<<argStrings[0]<<" <start|stop|test>"<<std::endl;
+        std::cout<<"Usage: "<<argStrings[0]<<" --[start|help]"<<std::endl;
         return RC_MODULE_INIT_FAILURE;
     }
 
@@ -47,6 +47,7 @@ static ErrCode parseServerStartupCLIOpts(int32_t argCount, char *argStrings[]) {
                 break;
             case 'h':
                 std::cout<<"Help Options"<<std::endl;
+                std::cout<<"--start : Start the Resource Tuner Server"<<std::endl;
                 return RC_MODULE_INIT_FAILURE;
             default:
                 std::cout<<"Invalid CLI Option specified"<<std::endl;

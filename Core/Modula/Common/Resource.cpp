@@ -34,11 +34,11 @@ void Resource::setClusterValue(int32_t cluster) {
     this->mResInfo = (this->mResInfo ^ (this->getClusterValue() << 8)) | (cluster << 8);
 }
 
-void Resource::setResourceID(int16_t resID) {
+void Resource::setResourceID(uint16_t resID) {
     this->mResCode |= (uint32_t)resID;
 }
 
-void Resource::setResourceType(int8_t resType) {
+void Resource::setResourceType(uint8_t resType) {
     this->mResCode |= ((uint32_t)resType << 16);
 }
 

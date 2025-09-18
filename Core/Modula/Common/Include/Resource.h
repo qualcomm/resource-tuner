@@ -53,8 +53,8 @@ public:
 
     void setCoreValue(int32_t core);
     void setClusterValue(int32_t cluster);
-    void setResourceID(int16_t resID);
-    void setResourceType(int8_t resType);
+    void setResourceID(uint16_t resID);
+    void setResourceType(uint8_t resType);
     void setResCode(uint32_t resCode);
     void setResInfo(int32_t resInfo);
     void setOptionalInfo(int32_t optionalInfo);

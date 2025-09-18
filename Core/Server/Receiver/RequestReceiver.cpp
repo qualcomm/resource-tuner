@@ -5,6 +5,7 @@
 
 std::shared_ptr<RequestReceiver> RequestReceiver::mRequestReceiverInstance = nullptr;
 ThreadPool* RequestReceiver::mRequestsThreadPool = nullptr;
+
 RequestReceiver::RequestReceiver() {}
 
 void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgForwardInfo) {
