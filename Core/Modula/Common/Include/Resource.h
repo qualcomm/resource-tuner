@@ -7,6 +7,8 @@
 #include <cstdint>
 #include <vector>
 
+#include "MemoryPool.h"
+
 /**
  * @brief Used to store information regarding Resources / Tunables which need to be
  *        Provisioned as part of the tuneResources API.
@@ -42,14 +44,17 @@ public:
     Resource() : mResCode(0), mResInfo(0), mOptionalInfo(0), mNumValues(0) {
         mResValue.values = nullptr;
     }
-    ~Resource() {}
+    ~Resource();
 
-    int32_t getCoreValue();
-    int32_t getClusterValue();
-    int32_t getResInfo();
-    int32_t getOptionalInfo();
-    uint32_t getResCode();
-    int32_t getValuesCount();
+    // Copy Constructor
+    Resource(const Resource& resource);
+
+    int32_t getCoreValue() const;
+    int32_t getClusterValue() const;
+    int32_t getResInfo() const;
+    int32_t getOptionalInfo() const;
+    uint32_t getResCode() const;
+    int32_t getValuesCount() const;
 
     void setCoreValue(int32_t core);
     void setClusterValue(int32_t cluster);

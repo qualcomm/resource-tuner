@@ -201,7 +201,9 @@ void Request::cleanUpRequest(Request* request) {
 
     for(int32_t i = 0; i < request->getResourcesCount(); i++) {
         Resource* resource = request->getResourceAt(i);
-        FreeBlock<Resource>(static_cast<void*>(resource));
+        if(resource != nullptr) {
+            FreeBlock<Resource>(static_cast<void*>(resource));
+        }
     }
 
     // Note: For CocoNodes strictly use the member mNumCocoNodes vector for iteration, instead of relying

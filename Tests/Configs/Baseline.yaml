@@ -3,6 +3,7 @@
 
 TestConfigs:
   - TargetName: ["SA8775P"]
+    # Lemans
     # Total Core Count - 8
     # Total cluster count - 2
     # Cluster to Core Mapping
@@ -20,6 +21,7 @@ TestConfigs:
     NumCores: 8
 
   - TargetName: ["QCS6490"]
+    # Kodiak
     # Total Core Count - 8
     # Total cluster count - 3
     # Cluster to Core Mapping
@@ -36,6 +38,27 @@ TestConfigs:
         PhyId: 4
       - LgcId: 2
         PhyId: 7
+    NumClusters: 3
+    NumCores: 8
+
+  - TargetName: ["SA7255P"]
+    # Monaco
+    # Total Core Count - 8
+    # Total cluster count - 3
+    # Cluster to Core Mapping
+    # 4 -> 4, 5, 6, 7 (count: 4)
+    # 2 -> 2, 3 (count: 2)
+    # 0 -> 0, 1 (count: 2)
+    # Logical Cluster: 2 maps to Physical Cluster: 2
+    # Logical Cluster: 1 maps to Physical Cluster: 0
+    # Logical Cluster: 0 maps to Physical Cluster: 4
+    ClusterExpectations:
+      - LgcId: 0
+        PhyId: 4
+      - LgcId: 1
+        PhyId: 0
+      - LgcId: 2
+        PhyId: 2
     NumClusters: 3
     NumCores: 8
 

@@ -390,13 +390,13 @@ int8_t untuneSignal(int64_t handle) {
 
         char buf[1024];
         int8_t* ptr8 = (int8_t*)buf;
-        ASSIGN_AND_INCR(ptr8, REQ_SIGNAL_TUNING);
+        ASSIGN_AND_INCR(ptr8, REQ_SIGNAL_UNTUNING);
 
         int32_t* ptr = (int32_t*)ptr8;
         ASSIGN_AND_INCR(ptr, 0);
 
         int64_t* ptr64 = (int64_t*)ptr;
-        ASSIGN_AND_INCR(ptr64, 0);
+        ASSIGN_AND_INCR(ptr64, handle);
         ASSIGN_AND_INCR(ptr64, -1);
 
         const char* charIterator = "";

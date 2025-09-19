@@ -25,7 +25,10 @@ static Request* createResourceTuningRequest(Signal* signal) {
         resourceList->resize(request->getResourcesCount());
 
         for(int32_t i = 0; i < signalLocks->size(); i++) {
-            (*resourceList)[i] = (*signalLocks)[i];
+            if((*signalLocks)[i] == nullptr) {
+                continue;
+            }
+            (*resourceList)[i] = new (GetBlock<Resource>()) Resource(*((*signalLocks)[i]));
         }
 
         request->setResources(resourceList);
