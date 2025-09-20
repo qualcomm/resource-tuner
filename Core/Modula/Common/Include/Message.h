@@ -21,15 +21,14 @@ protected:
 public:
     Message() : mProperties(0) {}
 
-    int8_t getRequestType();
-    int64_t getDuration();
-    int32_t getClientPID();
-    int32_t getClientTID();
-    int64_t getHandle();
-    int8_t getPriority();
-    int8_t isBackgroundProcessingEnabled();
-    int8_t getUntuneProcessingOrder();
-    int32_t getProperties();
+    int8_t getRequestType() const;
+    int64_t getDuration() const;
+    int32_t getClientPID() const;
+    int32_t getClientTID() const;
+    int64_t getHandle() const;
+    int8_t getPriority() const;
+    int8_t isBackgroundProcessingEnabled() const;
+    int32_t getProperties() const;
 
     void setRequestType(int8_t reqType);
     void setDuration(int64_t duration);

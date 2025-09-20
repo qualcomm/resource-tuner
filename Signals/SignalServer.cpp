@@ -228,13 +228,13 @@ static void processIncomingRequest(Signal* signal) {
         return;
     }
 
-    // Fill any Placeholders in the Signal Config
-    if(!fillDefaults(signal)) {
-        Signal::cleanUpSignal(signal);
-        return;
-    }
-
     if(signal->getRequestType() == REQ_SIGNAL_TUNING) {
+        // Fill any Placeholders in the Signal Config
+        if(!fillDefaults(signal)) {
+            Signal::cleanUpSignal(signal);
+            return;
+        }
+
         if(!VerifyIncomingRequest(signal)) {
             TYPELOGV(VERIFIER_STATUS_FAILURE, signal->getHandle());
             Signal::cleanUpSignal(signal);

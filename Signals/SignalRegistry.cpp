@@ -3,6 +3,41 @@
 
 #include "SignalRegistry.h"
 
+static void freeSignalConfig(SignalInfo* signalInfo) {
+    if(signalInfo != nullptr) {
+        if(signalInfo->mTargetsEnabled != nullptr) {
+            delete signalInfo->mTargetsEnabled;
+            signalInfo->mTargetsEnabled = nullptr;
+        }
+
+        if(signalInfo->mTargetsDisabled != nullptr) {
+            delete signalInfo->mTargetsDisabled;
+            signalInfo->mTargetsDisabled = nullptr;
+        }
+
+        if(signalInfo->mPermissions != nullptr) {
+            delete signalInfo->mPermissions;
+            signalInfo->mPermissions = nullptr;
+        }
+
+        if(signalInfo->mDerivatives != nullptr) {
+            delete signalInfo->mDerivatives;
+            signalInfo->mDerivatives = nullptr;
+        }
+
+        if(signalInfo->mSignalResources != nullptr) {
+            for(int32_t i = 0; i < signalInfo->mSignalResources->size(); i++) {
+                delete (*signalInfo->mSignalResources)[i];
+            }
+
+            delete signalInfo->mSignalResources;
+            signalInfo->mSignalResources = nullptr;
+        }
+
+        delete signalInfo;
+    }
+}
+
 std::shared_ptr<SignalRegistry> SignalRegistry::signalRegistryInstance = nullptr;
 
 SignalRegistry::SignalRegistry() {
@@ -17,9 +52,8 @@ int8_t SignalRegistry::isSignalConfigMalformed(SignalInfo* sConf) {
 
 void SignalRegistry::registerSignal(SignalInfo* signalInfo, int8_t isBuSpecified) {
     if(this->isSignalConfigMalformed(signalInfo)) {
-        if(signalInfo != nullptr) {
-            delete signalInfo;
-        }
+        freeSignalConfig(signalInfo);
+        signalInfo = nullptr;
         return;
     }
 
@@ -94,30 +128,7 @@ int32_t SignalRegistry::getSignalTableIndex(uint32_t signalCode) {
 
 SignalRegistry::~SignalRegistry() {
     for(int32_t i = 0; i < this->mTotalSignals; i++) {
-        if(this->mSignalsConfigs[i] != nullptr) {
-            if(this->mSignalsConfigs[i]->mTargetsEnabled != nullptr) {
-                delete this->mSignalsConfigs[i]->mTargetsEnabled;
-                this->mSignalsConfigs[i]->mTargetsEnabled = nullptr;
-            }
-
-            if(this->mSignalsConfigs[i]->mTargetsDisabled != nullptr) {
-                delete this->mSignalsConfigs[i]->mTargetsDisabled;
-                this->mSignalsConfigs[i]->mTargetsDisabled = nullptr;
-            }
-
-            if(this->mSignalsConfigs[i]->mPermissions != nullptr) {
-                delete this->mSignalsConfigs[i]->mPermissions;
-                this->mSignalsConfigs[i]->mPermissions = nullptr;
-            }
-
-            if(this->mSignalsConfigs[i]->mDerivatives != nullptr) {
-                delete this->mSignalsConfigs[i]->mDerivatives;
-                this->mSignalsConfigs[i]->mDerivatives = nullptr;
-            }
-
-            delete(this->mSignalsConfigs[i]);
-            this->mSignalsConfigs[i] = nullptr;
-        }
+        freeSignalConfig(this->mSignalsConfigs[i]);
     }
 }
 
@@ -313,7 +324,7 @@ ErrCode SignalInfoBuilder::addDerivative(const std::string& derivative) {
 }
 
 ErrCode SignalInfoBuilder::addResource(Resource* resource) {
-    if(this->mSignalInfo == nullptr) {
+    if(this->mSignalInfo == nullptr || resource == nullptr) {
         return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
@@ -328,7 +339,7 @@ ErrCode SignalInfoBuilder::addResource(Resource* resource) {
             return RC_INVALID_VALUE;
         }
     } else {
-        return RC_INVALID_VALUE;
+        return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
     return RC_SUCCESS;
@@ -403,11 +414,16 @@ ErrCode ResourceBuilder::addValue(const std::string& valueString) {
     }
 
     int32_t value = -1;
-    try {
-        value = std::stoi(valueString);
 
-    } catch(const std::exception& e) {
-        return RC_INVALID_VALUE;
+    // Check if the value is a placeholder, i.e. the actual value will be populated
+    // dynamically at runtime via the "list" argument passed to tuneSignal API.
+    if(valueString != "%d") {
+        try {
+            value = std::stoi(valueString);
+
+        } catch(const std::exception& e) {
+            return RC_INVALID_VALUE;
+        }
     }
 
     if(this->mResource->getValuesCount() == 1) {

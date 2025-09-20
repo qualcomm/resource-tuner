@@ -39,7 +39,7 @@ Contributors should develop on branches based off of `main` and pull requests sh
 7. After committing your changes on the topic branch, sync it with the upstream branch:
 
     ```bash
-    git pull --rebase upstream main
+    git pull origin main
     ```
 
 8. Push to your fork.

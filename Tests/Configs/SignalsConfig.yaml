@@ -4,7 +4,7 @@
 SignalConfigs:
   - SigId: "0x0000"
     Category: "0x0d"
-    Name: "INSTALL"
+    Name: TEST_SIGNAL_1
     Enable: true
     TargetsEnabled: ["sun", "moon"]
     Permissions: ["third_party"]
@@ -15,7 +15,7 @@ SignalConfigs:
 
   - SigId: "0x0001"
     Category: "0x0d"
-    Name: "EARLY_WAKEUP"
+    Name: TEST_SIGNAL_2
     Enable: true
     TargetsDisabled: ["sun"]
     Permissions: ["system"]
@@ -27,7 +27,7 @@ SignalConfigs:
 
   - SigId: "0x0002"
     Category: "0x0d"
-    Name: "LIGHTNING_LAUNCHES"
+    Name: TEST_SIGNAL_3
     Enable: true
     TargetsEnabled: ["sun", "moon"]
     Permissions: ["third_party"]
@@ -38,7 +38,7 @@ SignalConfigs:
 
   - SigId: "0x0003"
     Category: "0x0d"
-    Name: "SMOOTH_SCROLL"
+    Name: TEST_SIGNAL_4
     Enable: false
     TargetsEnabled: ["SUN", "QLI"]
     Permissions: ["third_party"]
@@ -52,7 +52,7 @@ SignalConfigs:
 
   - SigId: "0x0004"
     Category: "0x0d"
-    Name: "TEST_SIGNAL-1"
+    Name: TEST_SIGNAL_5
     Enable: true
     TargetsDisabled: ["qli-test"]
     Permissions: ["third_party", "system"]
@@ -63,7 +63,7 @@ SignalConfigs:
 
   - SigId: "0x0005"
     Category: "0x0d"
-    Name: "TEST_SIGNAL-2"
+    Name: TEST_SIGNAL_6
     Enable: true
     TargetsDisabled: ["qli-test"]
     Permissions: ["third_party", "system"]
@@ -74,22 +74,22 @@ SignalConfigs:
     - {ResCode: "0x80ff0001", ResInfo: "0x00000000", Values: [920]}
     - {ResCode: "0x80ff0003", ResInfo: "0x00000000", Values: [1555]}
 
-  # - SigId: "0x0006"
-  #   Category: "0x0d"
-  #   Name: "TEST_SIGNAL-3"
-  #   Enable: true
-  #   TargetsEnabled: ["qli-test"]
-  #   Permissions: ["third_party"]
-  #   Derivatives: ["solar"]
-  #   Timeout: 4000
-  #   Resources:
-  #   - {ResCode: "0x80010000", ResInfo: "0x00000000", Values: [883]}
-  #   - {ResCode: "0x80010001", ResInfo: "0x00000000", Values: [920]}
-  #   - {ResCode: "Zero", ResInfo: "0x00000000", Values: [1555]}
+  - SigId: "0x0006"
+    Category: "0x0d"
+    Name: "TEST_SIGNAL_INVALID"
+    Enable: true
+    TargetsEnabled: ["qli-test"]
+    Permissions: ["third_party"]
+    Derivatives: ["solar"]
+    Timeout: 4000
+    Resources:
+    - {ResCode: "0x80010000", ResInfo: "0x00000000", Values: [883]}
+    - {ResCode: "0x80010001", ResInfo: "0x00000000", Values: [920]}
+    - {ResCode: "Zero", ResInfo: "0x00000000", Values: [1555]}
 
-  - SigId: "0x0000"
-    Category: "0x01"
-    Name: OVERRIDE_SIGNAL_1
+  - SigId: "0x0006"
+    Category: "0x0d"
+    Name: TEST_SIGNAL_7
     Enable: true
     TargetsEnabled: ["qti-cli-test"]
     Derivatives: ["test-derivative"]
@@ -98,12 +98,12 @@ SignalConfigs:
     Resources:
       - {ResCode: "0x80dbaaa0", ResInfo: "0x000776aa", Values: [887]}
 
-  - SigId: "0x0002"
-    Category: "0x08"
-    Name: MOVE_TID_CUSTOMIZABLE
+  - SigId: "0x0007"
+    Category: "0x0d"
+    Name: TEST_SIGNAL_8
     Enable: true
     Timeout: 5500
     Permissions: ["third_party"]
     Resources:
-      - {ResCode: "0x000900aa", Values: [1, -1, 68]}
-      - {ResCode: "0x000900dc", Values: [1, -1, 50, 512]}
+      - {ResCode: "0x000900aa", Values: ["%d", "%d", 68]}
+      - {ResCode: "0x000900dc", Values: ["%d", "%d", 50, 512]}

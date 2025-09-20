@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include "OrderedQueue.h"
-#include <cassert>
 
 OrderedQueue::OrderedQueue() {
     this->mElementCount = 0;
@@ -39,7 +38,7 @@ void OrderedQueue::wait() {
             this->mOrderedQueueCondition.wait(lock);
         }
 
-        orderedQueueConsumerHook();
+        this->orderedQueueConsumerHook();
         lock.unlock();
 
     } catch(const std::system_error& e) {
@@ -57,11 +56,7 @@ int8_t OrderedQueue::hasPendingTasks() {
 }
 
 Message* OrderedQueue::pop() {
-    try {
-        if(this->mElementCount == 0) {
-            throw std::range_error("Request Queue is empty");
-        }
-    } catch(const std::exception& e) {
+    if(this->mElementCount == 0) {
         return nullptr;
     }
 

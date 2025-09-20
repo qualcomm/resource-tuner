@@ -3435,6 +3435,7 @@ namespace SignalApplicationTests {
     * This Section contains tests which aim to verify the correctness of Signal (GRAB / FREE) Application.
     * The tests are enumerated as follows:
     * => Single Client - Single Signal Tuning [A]
+    * => Signal Untuning [B]
     */
     std::string __testGroupName = "Signal Application Checks";
 
@@ -3542,11 +3543,52 @@ namespace SignalApplicationTests {
         LOG_END
     }
 
+    static void TestSignalUntuning() {
+        LOG_START
+
+        std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min";
+        int32_t testResourceOriginalValue = 300;
+
+        std::string value;
+        int32_t originalValue, newValue;
+
+        value = AuxRoutines::readFromFile(testResourceName);
+        originalValue = C_STOI(value);
+
+        int64_t handle =
+            tuneSignal(0x800d0004, -1, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        value = AuxRoutines::readFromFile(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == 917);
+
+        std::this_thread::sleep_for(std::chrono::seconds(8));
+
+        value = AuxRoutines::readFromFile(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == 917);
+
+        int8_t status = untuneSignal(handle);
+        assert(status == 0);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        value = AuxRoutines::readFromFile(testResourceName);
+        newValue = C_STOI(value);
+        assert(newValue == testResourceOriginalValue);
+
+        LOG_END
+    }
+
     static void RunTestGroup() {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
         RUN_INTEGRATION_TEST(TestSingleClientTuneSignal1);
         RUN_INTEGRATION_TEST(TestSingleClientTuneSignal2);
+        RUN_INTEGRATION_TEST(TestSignalUntuning);
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
     }

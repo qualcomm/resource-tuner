@@ -11,6 +11,7 @@
 #include <mutex>
 #include <condition_variable>
 
+#include "Logger.h"
 #include "ThreadPool.h"
 
 /**

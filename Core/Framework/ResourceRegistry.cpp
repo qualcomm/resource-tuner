@@ -95,6 +95,7 @@ void ResourceRegistry::registerResource(ResourceConfigInfo* resourceConfigInfo,
     if(this->isResourceConfigMalformed(resourceConfigInfo)) {
         if(resourceConfigInfo != nullptr) {
             delete resourceConfigInfo;
+            resourceConfigInfo = nullptr;
         }
         return;
     }
@@ -203,7 +204,14 @@ void ResourceRegistry::pluginModifications() {
     }
 }
 
-void ResourceRegistry::restoreResourcesToDefaultValues() {}
+void ResourceRegistry::restoreResourcesToDefaultValues() {
+    for(std::pair<std::string, std::string> defaultConfig: this->mDefaultValueStore) {
+        std::string filePath = defaultConfig.first;
+        std::string value = defaultConfig.second;
+
+        AuxRoutines::writeToFile(filePath, value);
+    }
+}
 
 ResourceRegistry::~ResourceRegistry() {
     for(int32_t i = 0; i < this->mResourceConfig.size(); i++) {

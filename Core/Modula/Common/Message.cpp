@@ -3,40 +3,36 @@
 
 #include "Message.h"
 
-int8_t Message::getRequestType() {
+int8_t Message::getRequestType() const {
     return this->mReqType;
 }
 
-int64_t Message::getHandle() {
+int64_t Message::getHandle() const {
     return this->mHandle;
 }
 
-int32_t Message::getClientPID() {
+int32_t Message::getClientPID() const {
     return this->mClientPID;
 }
 
-int32_t Message::getClientTID() {
+int32_t Message::getClientTID() const {
     return this->mClientTID;
 }
 
-int8_t Message::getPriority() {
+int8_t Message::getPriority() const {
     return (int8_t)(this->mProperties & (((int32_t) 1 << 8)) - 1);
 }
 
-int64_t Message::getDuration() {
+int64_t Message::getDuration() const {
     return this->mDuration;
 }
 
-int32_t Message::getProperties() {
+int32_t Message::getProperties() const {
     return this->mProperties;
 }
 
-int8_t Message::isBackgroundProcessingEnabled() {
+int8_t Message::isBackgroundProcessingEnabled() const {
     return (int8_t)((this->mProperties >> 8) & (((int32_t) 1 << 8)) - 1);
-}
-
-int8_t Message::getUntuneProcessingOrder() {
-    return (int8_t)((this->mProperties >> 16) & (((int32_t) 1 << 8)) - 1);
 }
 
 void Message::setRequestType(int8_t reqType) {

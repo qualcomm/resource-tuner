@@ -5,8 +5,8 @@
  * \file SignalInternal.h
  */
 
-#ifndef SYS_SIGNAL_INTERNAL_H
-#define SYS_SIGNAL_INTERNAL_H
+#ifndef SIGNAL_INTERNAL_H
+#define SIGNAL_INTERNAL_H
 
 #include "ErrCodes.h"
 #include "Signal.h"

@@ -35,7 +35,7 @@ static void TestSignalConfigProcessorYAMLDataIntegrity3_1() {
     C_ASSERT(signalInfo != nullptr);
     C_ASSERT(signalInfo->mSignalID == 0);
     C_ASSERT(signalInfo->mSignalCategory == 0x0d);
-    C_ASSERT(strcmp((const char*)signalInfo->mSignalName.data(), "INSTALL") == 0);
+    C_ASSERT(strcmp((const char*)signalInfo->mSignalName.data(), "TEST_SIGNAL_1") == 0);
     C_ASSERT(signalInfo->mIsEnabled == true);
     C_ASSERT(signalInfo->mTimeout == 4000);
 
@@ -72,7 +72,7 @@ static void TestSignalConfigProcessorYAMLDataIntegrity3_2() {
     C_ASSERT(signalInfo != nullptr);
     C_ASSERT(signalInfo->mSignalID == 1);
     C_ASSERT(signalInfo->mSignalCategory == 0x0d);
-    C_ASSERT(strcmp((const char*)signalInfo->mSignalName.data(), "EARLY_WAKEUP") == 0);
+    C_ASSERT(strcmp((const char*)signalInfo->mSignalName.data(), "TEST_SIGNAL_2") == 0);
     C_ASSERT(signalInfo->mIsEnabled == true);
     C_ASSERT(signalInfo->mTimeout == 5000);
 
@@ -114,7 +114,7 @@ static void TestSignalConfigProcessorYAMLDataIntegrity3_3() {
     C_ASSERT(signalInfo != nullptr);
     C_ASSERT(signalInfo->mSignalID == 3);
     C_ASSERT(signalInfo->mSignalCategory == 0x0d);
-    C_ASSERT(strcmp((const char*)signalInfo->mSignalName.data(), "SMOOTH_SCROLL") == 0);
+    C_ASSERT(strcmp((const char*)signalInfo->mSignalName.data(), "TEST_SIGNAL_4") == 0);
     C_ASSERT(signalInfo->mIsEnabled == false);
     C_ASSERT(signalInfo->mTimeout == 4000);
 
@@ -169,18 +169,61 @@ static void TestSignalConfigProcessorYAMLDataIntegrity3_3() {
     C_ASSERT(resource4->getResInfo() == 512);
 }
 
+static void TestSignalConfigProcessorYAMLDataIntegrity3_4() {
+    SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x000d0007);
+
+    C_ASSERT(signalInfo != nullptr);
+    C_ASSERT(signalInfo->mSignalID == 0x0007);
+    C_ASSERT(signalInfo->mSignalCategory == 0x0d);
+    C_ASSERT(strcmp((const char*)signalInfo->mSignalName.data(), "TEST_SIGNAL_8") == 0);
+    C_ASSERT(signalInfo->mIsEnabled == true);
+    C_ASSERT(signalInfo->mTimeout == 5500);
+
+    C_ASSERT(signalInfo->mTargetsEnabled == nullptr);
+    C_ASSERT(signalInfo->mTargetsDisabled == nullptr);
+    C_ASSERT(signalInfo->mPermissions != nullptr);
+    C_ASSERT(signalInfo->mDerivatives == nullptr);
+    C_ASSERT(signalInfo->mSignalResources != nullptr);
+
+    C_ASSERT(signalInfo->mPermissions->size() == 1);
+    C_ASSERT(signalInfo->mSignalResources->size() == 2);
+
+    C_ASSERT(signalInfo->mPermissions->at(0) == PERMISSION_THIRD_PARTY);
+
+    Resource* resource1 = signalInfo->mSignalResources->at(0);
+    C_ASSERT(resource1->getResCode() == 0x000900aa);
+    C_ASSERT(resource1->getValuesCount() == 3);
+    C_ASSERT((*resource1->mResValue.values)[0] == -1);
+    C_ASSERT((*resource1->mResValue.values)[1] == -1);
+    C_ASSERT((*resource1->mResValue.values)[2] == 68);
+    C_ASSERT(resource1->getResInfo() == 0);
+
+    Resource* resource2 = signalInfo->mSignalResources->at(1);
+    C_ASSERT(resource2->getResCode() == 0x000900dc);
+    C_ASSERT(resource2->getValuesCount() == 4);
+    C_ASSERT((*resource2->mResValue.values)[0] == -1);
+    C_ASSERT((*resource2->mResValue.values)[1] == -1);
+    C_ASSERT((*resource2->mResValue.values)[2] == 50);
+    C_ASSERT((*resource2->mResValue.values)[3] == 512);
+    C_ASSERT(resource2->getResInfo() == 0);
+}
+
 static void TestSignalConfigProcessorYAMLDataIntegrity4() {
     std::vector<SignalInfo*> signalConfigs = SignalRegistry::getInstance()->getSignalConfigs();
     C_ASSERT(signalConfigs.size() == TOTAL_SIGNAL_CONFIGS_COUNT);
 
-    std::vector<std::string> signalNames {"INSTALL", "EARLY_WAKEUP", "LIGHTNING_LAUNCHES",
-                                          "SMOOTH_SCROLL", "TEST_SIGNAL-1", "TEST_SIGNAL-2",
-                                          "OVERRIDE_SIGNAL_1", "MOVE_TID_CUSTOMIZABLE"};
+    std::vector<std::string> signalNames;
+
+    for(int32_t i = 1; i <= TOTAL_SIGNAL_CONFIGS_COUNT; i++) {
+        char buf[32];
+        snprintf(buf, sizeof(buf), "TEST_SIGNAL_%d", i);
+        signalNames.push_back(std::string(buf));
+    }
 
     C_ASSERT(signalNames.size() == signalConfigs.size());
 
     for(int32_t i = 0; i < signalConfigs.size(); i++) {
-        C_ASSERT(strcmp((const char*)signalConfigs[i]->mSignalName.data(), (const char*)signalNames[i].data()) == 0);
+        C_ASSERT(signalConfigs[i]->mSignalName == signalNames[i]);
     }
 }
 
@@ -193,6 +236,7 @@ int32_t main() {
     RUN_TEST(TestSignalConfigProcessorYAMLDataIntegrity3_1);
     RUN_TEST(TestSignalConfigProcessorYAMLDataIntegrity3_2);
     RUN_TEST(TestSignalConfigProcessorYAMLDataIntegrity3_3);
+    RUN_TEST(TestSignalConfigProcessorYAMLDataIntegrity3_4);
     RUN_TEST(TestSignalConfigProcessorYAMLDataIntegrity4);
 
     std::cout<<"\nAll Tests from the suite: [SignalConfigProcessorTests], executed successfully"<<std::endl;
