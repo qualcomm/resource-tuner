@@ -25,13 +25,11 @@ static void freeSignalConfig(SignalInfo* signalInfo) {
             signalInfo->mDerivatives = nullptr;
         }
 
-        for(int32_t i = 0; i < signalInfo->mSignalResources->size(); i++) {
-            if(signalInfo->mSignalResources != nullptr) {
-                FreeBlock<Resource>(static_cast<void*>((*signalInfo->mSignalResources)[i]));
-            }
-        }
-
         if(signalInfo->mSignalResources != nullptr) {
+            for(int32_t i = 0; i < signalInfo->mSignalResources->size(); i++) {
+                delete (*signalInfo->mSignalResources)[i];
+            }
+
             delete signalInfo->mSignalResources;
             signalInfo->mSignalResources = nullptr;
         }
@@ -341,7 +339,7 @@ ErrCode SignalInfoBuilder::addResource(Resource* resource) {
             return RC_INVALID_VALUE;
         }
     } else {
-        return RC_INVALID_VALUE;
+        return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
     return RC_SUCCESS;
