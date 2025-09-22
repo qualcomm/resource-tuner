@@ -11,17 +11,18 @@
 /*!
  * \ingroup MEMORY_POOL
  * \defgroup MEMORY_POOL Memory Pool
- * \details Used to Pre-Allocate Memory for commonly used types Capacity.
+ * \details Used to Pre-Allocate Memory for commonly used types.
  *          - To pre-allocate memory make use of the MakeAlloc API. This API takes
  *            the type for which reservation needs to be made and the number of blocks of
  *            memory which need to be reserved for this type. For example: MakeAlloc<X>(y), refers
  *            to a request to reserve "y" number of blocks of type "X".\n\n
  *          - To get a memory block make use of the GetBlock API. This API returns a pointer to a
  *            block of memory, if blocks are available, else it throws a std::bad_alloc exception.
- *            This API is intended to be used in conjunction with the placement new operator. For example:
+ *            This API is intended to be used in conjunction with the "placement new" operator. For example:
  *            To get a memory block of type X, use the API as follows:\n
  *            => X* xPtr = new (GetBlock<X>()) X(...);\n\n
- *          - To free a memory block make use of the FreeBlock API, as follows:\n
+ *          - To free a memory block, retrieved via the Memory Pool, make use of the FreeBlock API,
+ *            as follows:\n
  *            => FreeBlock<X>(xPtr);
  *
  * @{
@@ -131,7 +132,7 @@ public:
     /**
      * @brief Free an allocated block of the specified type T.
      * @details As part of this routine, the destructor of the type will be invoked.
-     * @param block Pointer to the block to be freed.
+     * @param block Pointer to the block of memory to be freed.
      */
     template<typename T>
     typename std::enable_if<std::is_class<T>::value, void>::type
@@ -140,6 +141,10 @@ public:
         freeBlock(std::type_index(typeid(T)), block);
     }
 
+    /**
+     * @brief Free an allocated block of the specified type T.
+     * @param block Pointer to the block of memory to be freed.
+     */
     template<typename T>
     typename std::enable_if<!std::is_class<T>::value, void>::type
     freeBlock(void* block) {
