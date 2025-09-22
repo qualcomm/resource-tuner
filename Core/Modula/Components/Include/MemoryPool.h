@@ -108,16 +108,32 @@ public:
     PoolWrapper() {}
     ~PoolWrapper() {}
 
+    /**
+     * @brief Allocate memory for the specified type T.
+     * @details This routine will allocate the number of memory blocks for the type specified by the client.
+     * @param int32_t Number of blocks to be allocated.
+     */
     template <typename T>
     int32_t makeAllocation(int32_t blockCount) {
         return makeAllocation(blockCount, sizeof(T), std::type_index(typeid(T)));
     }
 
+    /**
+     * @brief Get an allocated block for the already allocated type T.
+     * @details This routine should only be called after the makeAllocation call for a particular type
+     * @return void*:\n
+     *           - Pointer to the allocated type.
+     */
     template <typename T>
     void* getBlock() {
         return getBlock(sizeof(T), std::type_index(typeid(T)));
     }
 
+    /**
+     * @brief Free an allocated block of the specified type T.
+     * @details As part of this routine, the destructor of the type will be invoked.
+     * @param block Pointer to the block of memory to be freed.
+     */
     template<typename T>
     typename std::enable_if<std::is_class<T>::value, void>::type
     freeBlock(void* block) {
@@ -125,6 +141,10 @@ public:
         freeBlock(std::type_index(typeid(T)), block);
     }
 
+    /**
+     * @brief Free an allocated block of the specified type T.
+     * @param block Pointer to the block of memory to be freed.
+     */
     template<typename T>
     typename std::enable_if<!std::is_class<T>::value, void>::type
     freeBlock(void* block) {
@@ -134,32 +154,16 @@ public:
 
 std::shared_ptr<PoolWrapper> getPoolWrapper();
 
-/**
- * @brief Allocate memory for the specified type T.
- * @details This routine will allocate the number of memory blocks for the type specified by the client.
- * @param int32_t Number of blocks to be allocated.
- */
 template <typename T>
 inline void MakeAlloc(int32_t blockCount) {
     getPoolWrapper()->makeAllocation<T>(blockCount);
 }
 
-/**
- * @brief Get an allocated block for the already allocated type T.
- * @details This routine should only be called after the makeAllocation call for a particular type
- * @return void*:\n
- *           - Pointer to the allocated type.
- */
 template <typename T>
 inline void* GetBlock() {
     return getPoolWrapper()->getBlock<T>();
 }
 
-/**
- * @brief Free an allocated block of the specified type T.
- * @details As part of this routine, the destructor of the type will be invoked.
- * @param block Pointer to the block to be freed.
- */
 template <typename T>
 inline void FreeBlock(void* block) {
     getPoolWrapper()->freeBlock<T>(block);
