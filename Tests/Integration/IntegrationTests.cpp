@@ -3,6 +3,7 @@
 
 #include <cstdint>
 
+#include "Common.h"
 #include "Utils.h"
 #include "TestUtils.h"
 #include "TestBaseline.h"

@@ -70,6 +70,12 @@ static int8_t performPhysicalMapping(int32_t& coreValue, int32_t& clusterValue) 
 static int8_t VerifyIncomingRequest(Request* req) {
     if(req->getDuration() < -1 || req->getDuration() == 0) return false;
 
+    // Check if the Request can be processed in the current mode
+    if((ResourceTunerSettings::targetConfigs.currMode & req->getProcessingModes()) == 0) {
+        // Request cannot be accepted in the current device mode
+        return false;
+    }
+
     std::vector<Resource*> resourcesToBeTuned = *(req->getResources());
 
     // No Resources to be Tuned, Reject this Request

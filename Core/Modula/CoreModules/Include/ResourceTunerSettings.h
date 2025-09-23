@@ -36,7 +36,7 @@ typedef struct {
     // Determine whether the system is in Display On or Off / Doze Mode
     // This needs to be tracked, so that only those Requests for which background Processing
     // is Enabled can be processed during Display Off / Doze.
-    uint8_t currMode;
+    int8_t currMode;
 } TargetConfigs;
 
 class ResourceTunerSettings {

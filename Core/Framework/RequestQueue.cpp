@@ -31,7 +31,7 @@ void RequestQueue::orderedQueueConsumerHook() {
 
         // Check for System Mode and Request Compatability
         uint8_t currentMode = ResourceTunerSettings::targetConfigs.currMode;
-        if((currentMode == MODE_DISPLAY_OFF || currentMode == MODE_DOZE) && !req->isBackgroundProcessingEnabled()) {
+        if((currentMode == MODE_DISPLAY_OFF || currentMode == MODE_DOZE) && !req->getProcessingModes()) {
             // Cannot continue with this Request
             LOGD("RESTUNE_SERVER_REQUESTS", "Request cannot be processed in current mode");
             continue;

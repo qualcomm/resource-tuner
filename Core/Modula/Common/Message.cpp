@@ -31,8 +31,8 @@ int32_t Message::getProperties() const {
     return this->mProperties;
 }
 
-int8_t Message::isBackgroundProcessingEnabled() const {
-    return (int8_t)((this->mProperties >> 8) & (((int32_t) 1 << 8)) - 1);
+int8_t Message::getProcessingModes() const {
+    return (int8_t) ((this->mProperties >> 8) & (((int32_t) 1 << 8)) - 1);
 }
 
 void Message::setRequestType(int8_t reqType) {

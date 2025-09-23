@@ -221,7 +221,7 @@ void RequestManager::triggerDisplayOffOrDozeMode() {
             RequestQueue::getInstance()->addAndWakeup(untuneRequest);
         }
 
-        if(request->isBackgroundProcessingEnabled() == false) {
+        if(request->getProcessingModes() == false) {
             // If the Request is not a background Request, then add it to the Pending List
             // and remove it from the activeRequestsList
             if(getRequestProcessingStatus(request->getHandle()) != REQ_CANCELLED) {

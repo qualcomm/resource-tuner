@@ -9,6 +9,7 @@
 
 #include "SafeOps.h"
 #include "Logger.h"
+#include "Message.h"
 #include "MemoryPool.h"
 
 /**

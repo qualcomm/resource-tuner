@@ -10,6 +10,7 @@
 #include "Timer.h"
 #include "SafeOps.h"
 #include "Utils.h"
+#include "Message.h"
 #include "Resource.h"
 
 class CocoNode {

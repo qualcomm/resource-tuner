@@ -9,6 +9,7 @@
 #include <memory>
 #include <unordered_map>
 
+#include "Common.h"
 #include "Utils.h"
 #include "TargetRegistry.h"
 #include "Resource.h"

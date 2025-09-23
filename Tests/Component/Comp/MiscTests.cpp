@@ -1,8 +1,7 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <cstdint>
-
+#include "Common.h"
 #include "TestUtils.h"
 #include "MemoryPool.h"
 #include "Request.h"
@@ -27,6 +26,75 @@ static void TestResourceStructCoreClusterSettingAndExtraction() {
     delete resource;
 }
 
+static void TestResourceStructOps1() {
+    int32_t properties = -1;
+    properties = SET_REQUEST_PRIORITY(properties, REQ_PRIORITY_HIGH);
+    C_ASSERT(properties == -1);
+}
+
+static void TestResourceStructOps2() {
+    int32_t properties = 0;
+    properties = SET_REQUEST_PRIORITY(properties, 44);
+    C_ASSERT(properties == -1);
+
+    properties = 0;
+    properties = SET_REQUEST_PRIORITY(properties, -3);
+    C_ASSERT(properties == -1);
+}
+
+static void TestResourceStructOps3() {
+    int32_t properties = 0;
+    properties = SET_REQUEST_PRIORITY(properties, REQ_PRIORITY_HIGH);
+    int8_t priority = EXTRACT_REQUEST_PRIORITY(properties);
+    C_ASSERT(priority == REQ_PRIORITY_HIGH);
+
+    properties = 0;
+    properties = SET_REQUEST_PRIORITY(properties, REQ_PRIORITY_LOW);
+    priority = EXTRACT_REQUEST_PRIORITY(properties);
+    C_ASSERT(priority == REQ_PRIORITY_LOW);
+}
+
+static void TestResourceStructOps4() {
+    int32_t properties = 0;
+    properties = ADD_ALLOWED_MODE(properties, MODE_DISPLAY_ON);
+    int8_t allowedModes = EXTRACT_ALLOWED_MODES(properties);
+    C_ASSERT(allowedModes == MODE_DISPLAY_ON);
+
+    properties = 0;
+    properties = ADD_ALLOWED_MODE(properties, MODE_DISPLAY_ON | MODE_DOZE);
+    allowedModes = EXTRACT_ALLOWED_MODES(properties);
+    C_ASSERT(allowedModes == (MODE_DISPLAY_ON | MODE_DOZE));
+}
+
+static void TestResourceStructOps5() {
+    int32_t properties = 0;
+    properties = ADD_ALLOWED_MODE(properties, 87);
+    C_ASSERT(properties == -1);
+}
+
+static void TestResourceStructOps6() {
+    int32_t properties = 0;
+    properties = ADD_ALLOWED_MODE(properties, MODE_DISPLAY_ON);
+    properties = ADD_ALLOWED_MODE(properties, MODE_DISPLAY_OFF);
+    int8_t allowedModes = EXTRACT_ALLOWED_MODES(properties);
+    C_ASSERT(allowedModes == (MODE_DISPLAY_ON | MODE_DISPLAY_OFF));
+}
+
+static void TestResourceStructOps7() {
+    int32_t properties = 0;
+    properties = ADD_ALLOWED_MODE(properties, MODE_DISPLAY_ON);
+    properties = ADD_ALLOWED_MODE(properties, -1);
+    int8_t allowedModes = EXTRACT_ALLOWED_MODES(properties);
+    C_ASSERT(allowedModes == -1);
+}
+
+static void TestResourceStructOps8() {
+    int32_t resInfo = 0;
+    resInfo = SET_RESOURCE_MPAM_VALUE(resInfo, 30);
+    int8_t mpamValue = EXTRACT_RESOURCE_MPAM_VALUE(resInfo);
+    C_ASSERT(mpamValue == 30);
+}
+
 static void TestRequestSerializingAndDeserializing() {
     try {
         MakeAlloc<Request> (5);
@@ -48,7 +116,7 @@ static void TestRequestSerializingAndDeserializing() {
         C_ASSERT(firstRequest->getHandle() == 15);
         C_ASSERT(firstRequest->getResourcesCount() == 1);
         C_ASSERT(firstRequest->getDuration() == 5600);
-        C_ASSERT(firstRequest->isBackgroundProcessingEnabled() == 1);
+        C_ASSERT(firstRequest->getProcessingModes() == 1);
         C_ASSERT(firstRequest->getPriority() == 1);
 
         std::vector<Resource*>* firstReqResourceList = new (GetBlock<std::vector<Resource*>>())
@@ -85,7 +153,7 @@ static void TestRequestSerializingAndDeserializing() {
         C_ASSERT(firstRequest->getPriority() == secondRequest->getPriority());
         C_ASSERT(firstRequest->getHandle() == secondRequest->getHandle());
         C_ASSERT(firstRequest->getDuration() == secondRequest->getDuration());
-        C_ASSERT(firstRequest->isBackgroundProcessingEnabled() == secondRequest->isBackgroundProcessingEnabled());
+        C_ASSERT(firstRequest->getProcessingModes() == secondRequest->getProcessingModes());
         C_ASSERT(firstRequest->getPriority() == secondRequest->getPriority());
 
         C_ASSERT(firstRequest->getResourcesCount() == secondRequest->getResourcesCount());
@@ -133,7 +201,7 @@ static void TestSignalSerializingAndDeserializing() {
         C_ASSERT(firstSignal->getHandle() == 15);
         C_ASSERT(firstSignal->getSignalCode() == 78099);
         C_ASSERT(firstSignal->getDuration() == 5600);
-        C_ASSERT(firstSignal->isBackgroundProcessingEnabled() == 1);
+        C_ASSERT(firstSignal->getProcessingModes() == 1);
         C_ASSERT(firstSignal->getPriority() == 1);
         C_ASSERT(firstSignal->getNumArgs() == 1);
         C_ASSERT(firstSignal->getAppName() == "example-app-name");
@@ -166,7 +234,7 @@ static void TestSignalSerializingAndDeserializing() {
         C_ASSERT(firstSignal->getHandle() == secondSignal->getHandle());
         C_ASSERT(firstSignal->getDuration() == secondSignal->getDuration());
         C_ASSERT(firstSignal->getProperties() == secondSignal->getProperties());
-        C_ASSERT(firstSignal->isBackgroundProcessingEnabled() == secondSignal->isBackgroundProcessingEnabled());
+        C_ASSERT(firstSignal->getProcessingModes() == secondSignal->getProcessingModes());
         C_ASSERT(firstSignal->getPriority() == secondSignal->getPriority());
 
         C_ASSERT(firstSignal->getNumArgs() == secondSignal->getNumArgs());
@@ -210,6 +278,14 @@ int32_t main() {
     std::cout<<"Running Test Suite: [MiscTests]\n"<<std::endl;
 
     RUN_TEST(TestResourceStructCoreClusterSettingAndExtraction);
+    RUN_TEST(TestResourceStructOps1);
+    RUN_TEST(TestResourceStructOps2);
+    RUN_TEST(TestResourceStructOps3);
+    RUN_TEST(TestResourceStructOps4);
+    RUN_TEST(TestResourceStructOps5);
+    RUN_TEST(TestResourceStructOps6);
+    RUN_TEST(TestResourceStructOps7);
+    RUN_TEST(TestResourceStructOps8);
     RUN_TEST(TestRequestSerializingAndDeserializing);
     RUN_TEST(TestSignalSerializingAndDeserializing);
     RUN_TEST(TestHandleGeneration);
