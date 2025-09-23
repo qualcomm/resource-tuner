@@ -89,6 +89,19 @@ static void TestResourceStructOps7() {
 }
 
 static void TestResourceStructOps8() {
+    int32_t properties = 0;
+    properties = SET_REQUEST_PRIORITY(properties, REQ_PRIORITY_LOW);
+    properties = ADD_ALLOWED_MODE(properties, MODE_DISPLAY_ON);
+    properties = ADD_ALLOWED_MODE(properties, MODE_DISPLAY_OFF);
+
+    int8_t priority = EXTRACT_REQUEST_PRIORITY(properties);
+    int8_t allowedModes = EXTRACT_ALLOWED_MODES(properties);
+
+    C_ASSERT(priority == REQ_PRIORITY_LOW);
+    C_ASSERT(allowedModes == (MODE_DISPLAY_ON | MODE_DISPLAY_OFF));
+}
+
+static void TestResourceStructOps9() {
     int32_t resInfo = 0;
     resInfo = SET_RESOURCE_MPAM_VALUE(resInfo, 30);
     int8_t mpamValue = EXTRACT_RESOURCE_MPAM_VALUE(resInfo);

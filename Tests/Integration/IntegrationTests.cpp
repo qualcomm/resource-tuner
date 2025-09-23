@@ -2299,9 +2299,10 @@ namespace RequestApplicationTests {
 
         int32_t physicalClusterID = baseline.getExpectedPhysicalCluster(0);
         if(physicalClusterID == -1) {
-            std::cout<<LOG_BASE<<"Logical Cluster: 0 not found on test device, Aborting Test Case"<<std::endl;
+            LOG_SKIP("Logical Cluster: 0 not found on test device, Skipping Test Case")
             return;
         }
+
         std::string nodePath = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/cluster_type_resource_%d_cluster_id";
 
         char path[128];
@@ -2350,7 +2351,7 @@ namespace RequestApplicationTests {
 
         int32_t physicalClusterID = baseline.getExpectedPhysicalCluster(2);
         if(physicalClusterID == -1) {
-            std::cout<<LOG_BASE<<"Logical Cluster: 2 not found on test device, Aborting Test Case"<<std::endl;
+            LOG_SKIP("Logical Cluster: 2 not found on test device, Skipping Test Case")
             return;
         }
 
@@ -2884,6 +2885,11 @@ namespace SystemSysfsNodesTests {
         int32_t physicalClusterID = baseline.getExpectedPhysicalCluster(0);
         std::string nodePath = "/sys/devices/system/cpu/cpufreq/policy%d/scaling_min_freq";
 
+        if(physicalClusterID == -1) {
+            LOG_SKIP("Logical Cluster: 0 not found on test device, Skipping Test Case")
+            return;
+        }
+
         char path[128];
         snprintf(path, sizeof(path), nodePath.c_str(), physicalClusterID);
         std::string testResourceName = std::string(path);
@@ -2946,6 +2952,11 @@ namespace SystemSysfsNodesTests {
         // i.e. logical cluster id = 1
         int32_t physicalClusterID = baseline.getExpectedPhysicalCluster(1);
         std::string nodePath = "/sys/devices/system/cpu/cpufreq/policy%d/scaling_min_freq";
+
+        if(physicalClusterID == -1) {
+            LOG_SKIP("Logical Cluster: 1 not found on test device, Skipping Test Case")
+            return;
+        }
 
         char path[128];
         snprintf(path, sizeof(path), nodePath.c_str(), physicalClusterID);
@@ -3016,6 +3027,11 @@ namespace SystemSysfsNodesTests {
         // i.e. logical cluster id = 1
         int32_t physicalClusterID = baseline.getExpectedPhysicalCluster(1);
         std::string nodePath = "/sys/devices/system/cpu/cpufreq/policy%d/scaling_min_freq";
+
+        if(physicalClusterID == -1) {
+            LOG_SKIP("Logical Cluster: 1 not found on test device, Skipping Test Case")
+            return;
+        }
 
         char path[128];
         snprintf(path, sizeof(path), nodePath.c_str(), physicalClusterID);

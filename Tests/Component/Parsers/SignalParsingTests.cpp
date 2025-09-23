@@ -10,7 +10,7 @@
 #include "Extensions.h"
 #include "Utils.h"
 
-#define TOTAL_SIGNAL_CONFIGS_COUNT 10
+#define TOTAL_SIGNAL_CONFIGS_COUNT 11
 
 static ErrCode parsingStatus = RC_SUCCESS;
 
@@ -32,17 +32,17 @@ static void TestSignalParsingSanity() {
 }
 
 static void TestSignalParsingSignalsParsed() {
-    std::cout<<"Signals Parsed count = "<<SignalRegistry::getInstance()->getSignalsConfigCount()<<std::endl;
-    std::cout<<"Expected count = "<<TOTAL_SIGNAL_CONFIGS_COUNT<<std::endl;
+    int32_t signalsParsed = SignalRegistry::getInstance()->getSignalsConfigCount();
+    std::cout<<"Signals Parsed count: "<<signalsParsed<<", Expected: ["<<TOTAL_SIGNAL_CONFIGS_COUNT<<"]"<<std::endl;
     C_ASSERT(SignalRegistry::getInstance()->getSignalsConfigCount() == TOTAL_SIGNAL_CONFIGS_COUNT);
 }
 
 static void TestSignalParsingSignalsMerged1() {
-    SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x00010000);
+    SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x80deaadd);
 
     C_ASSERT(signalInfo != nullptr);
-    C_ASSERT(signalInfo->mSignalID == 0);
-    C_ASSERT(signalInfo->mSignalCategory == 1);
+    C_ASSERT(signalInfo->mSignalID == 0xaadd);
+    C_ASSERT(signalInfo->mSignalCategory == 0xde);
     C_ASSERT(strcmp((const char*)signalInfo->mSignalName.data(), "OVERRIDE_SIGNAL_1") == 0);
     C_ASSERT(signalInfo->mIsEnabled == true);
     C_ASSERT(signalInfo->mTimeout == 14500);
@@ -73,12 +73,12 @@ static void TestSignalParsingSignalsMerged1() {
 }
 
 static void TestSignalParsingSignalsMerged2() {
-    SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x00080002);
+    SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x000d0007);
 
     C_ASSERT(signalInfo != nullptr);
-    C_ASSERT(signalInfo->mSignalID == 2);
-    C_ASSERT(signalInfo->mSignalCategory == 0x08);
-    C_ASSERT(strcmp((const char*)signalInfo->mSignalName.data(), "MOVE_TID_CUSTOMIZABLE") == 0);
+    C_ASSERT(signalInfo->mSignalID == 0x0007);
+    C_ASSERT(signalInfo->mSignalCategory == 0x0d);
+    C_ASSERT(strcmp((const char*)signalInfo->mSignalName.data(), "TEST_SIGNAL_8") == 0);
     C_ASSERT(signalInfo->mIsEnabled == true);
     C_ASSERT(signalInfo->mTimeout == 5500);
 
@@ -96,7 +96,7 @@ static void TestSignalParsingSignalsMerged2() {
     Resource* resource1 = signalInfo->mSignalResources->at(0);
     C_ASSERT(resource1->getResCode() == 0x000900aa);
     C_ASSERT(resource1->getValuesCount() == 3);
-    C_ASSERT((*resource1->mResValue.values)[0] == 1);
+    C_ASSERT((*resource1->mResValue.values)[0] == -1);
     C_ASSERT((*resource1->mResValue.values)[1] == -1);
     C_ASSERT((*resource1->mResValue.values)[2] == 68);
     C_ASSERT(resource1->getResInfo() == 0);
@@ -104,7 +104,7 @@ static void TestSignalParsingSignalsMerged2() {
     Resource* resource2 = signalInfo->mSignalResources->at(1);
     C_ASSERT(resource2->getResCode() == 0x000900dc);
     C_ASSERT(resource2->getValuesCount() == 4);
-    C_ASSERT((*resource2->mResValue.values)[0] == 1);
+    C_ASSERT((*resource2->mResValue.values)[0] == -1);
     C_ASSERT((*resource2->mResValue.values)[1] == -1);
     C_ASSERT((*resource2->mResValue.values)[2] == 50);
     C_ASSERT((*resource2->mResValue.values)[3] == 512);
@@ -161,11 +161,11 @@ static void TestSignalParsingSignalsMerged4() {
 }
 
 static void TestSignalParsingSignalsMerged5() {
-    SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x80080000);
+    SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x80ceffcf);
 
     C_ASSERT(signalInfo != nullptr);
-    C_ASSERT(signalInfo->mSignalID == 0x0000);
-    C_ASSERT(signalInfo->mSignalCategory == 0x08);
+    C_ASSERT(signalInfo->mSignalID == 0xffcf);
+    C_ASSERT(signalInfo->mSignalCategory == 0xce);
     C_ASSERT(strcmp((const char*)signalInfo->mSignalName.data(), "CAMERA_OPEN_CUSTOM") == 0);
     C_ASSERT(signalInfo->mIsEnabled == true);
     C_ASSERT(signalInfo->mTimeout == 1);

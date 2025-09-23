@@ -148,7 +148,12 @@ ErrCode TestBaseline::parseTestConfigYamlNode(const std::string& filePath) {
                 }
 
                 if(topKey == TARGET_NAME_LIST) {
-                    if(value == "*" || value == currTargetName) {
+                    if(value == currTargetName) {
+                        if(!deviceParsingDone) {
+                            isConfigForCurrentTarget = true;
+                            deviceParsingDone = true;
+                        }
+                    } else if(currTargetName.length() == 0 && value == "*") {
                         if(!deviceParsingDone) {
                             isConfigForCurrentTarget = true;
                             deviceParsingDone = true;

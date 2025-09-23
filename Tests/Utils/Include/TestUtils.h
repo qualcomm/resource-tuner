@@ -17,22 +17,22 @@
 #include "AuxRoutines.h"
 
 /*
-* TEST RESOURCES DESCRIPTION:
-* |-------------------------------------|-------------|---------|-----------|-----------|---------|---------------|----------------|---------------|
-* |               Name                  |   ResType   | ResCode | Def Value | ApplyType | Enabled | Permissions   | High Threshold | Low Threshold |
-* |-------------------------------------|-------------|---------|-----------|-----------|---------|---------------|----------------|---------------|
-* |         sched_util_clamp_min        |     ff      |   00    |    300    |   global  |  True   | [third_party] |      1024      |      0        |
-* |         sched_util_clamp_max        |     ff      |   01    |    684    |   global  |  True   | [third_party] |      1024      |      0        |
-* |         scaling_min_freq            |     ff      |   02    |    107    |   global  |  True   | [third_party] |      1024      |      0        |
-* |         scaling_max_freq            |     ff      |   03    |    114    |   global  |  True   | [third_party] |      2048      |      0        |
-* |         target_test_resource1       |     ff      |   04    |    240    |   global  |  True   | [system]      |      400       |      0        |
-* |         target_test_resource2       |     ff      |   05    |    333    |   global  |  True   | [third_party] |      6500      |      50       |
-* |         target_test_resource3       |     ff      |   06    |    4400   |   global  |  True   | [third_party] |      5511      |      4000     |
-* |         target_test_resource4       |     ff      |   07    |    516    |   global  |  False  | [third_party] |      900       |      300      |
-* |         target_test_resource5       |     ff      |   08    |    17     |   global  |  True   | [third_party] |      20        |      0        |
-* | cluster_type_resource_%d_cluster_id |     ff      |   000a  |    180    |   cluster |  True   | [third_party] |      2048      |      0        |
-* |-------------------------------------|-------------|---------|-----------|---------------------|---------------|----------------|---------------|
-*/
+ * TEST RESOURCES DESCRIPTION:
+ * |-------------------------------------|-------------|---------|-----------|-----------|---------|---------------|----------------|---------------|
+ * |               Name                  |   ResType   | ResCode | Def Value | ApplyType | Enabled | Permissions   | High Threshold | Low Threshold |
+ * |-------------------------------------|-------------|---------|-----------|-----------|---------|---------------|----------------|---------------|
+ * |         sched_util_clamp_min        |     ff      |   00    |    300    |   global  |  True   | [third_party] |      1024      |      0        |
+ * |         sched_util_clamp_max        |     ff      |   01    |    684    |   global  |  True   | [third_party] |      1024      |      0        |
+ * |         scaling_min_freq            |     ff      |   02    |    107    |   global  |  True   | [third_party] |      1024      |      0        |
+ * |         scaling_max_freq            |     ff      |   03    |    114    |   global  |  True   | [third_party] |      2048      |      0        |
+ * |         target_test_resource1       |     ff      |   04    |    240    |   global  |  True   | [system]      |      400       |      0        |
+ * |         target_test_resource2       |     ff      |   05    |    333    |   global  |  True   | [third_party] |      6500      |      50       |
+ * |         target_test_resource3       |     ff      |   06    |    4400   |   global  |  True   | [third_party] |      5511      |      4000     |
+ * |         target_test_resource4       |     ff      |   07    |    516    |   global  |  False  | [third_party] |      900       |      300      |
+ * |         target_test_resource5       |     ff      |   08    |    17     |   global  |  True   | [third_party] |      20        |      0        |
+ * | cluster_type_resource_%d_cluster_id |     ff      |   000a  |    180    |   cluster |  True   | [third_party] |      2048      |      0        |
+ * |-------------------------------------|-------------|---------|-----------|---------------------|---------------|----------------|---------------|
+ */
 
 void SetUp() {
     // Make sure all the tests have a sane starting point
@@ -63,6 +63,7 @@ static std::string getTimestamp() {
 #define LOG_START std::cout<<"\n["<<getTimestamp()<<"] Running Test: "<<__func__<<std::endl;
 #define LOG_END std::cout<<"["<<getTimestamp()<<"] "<<__func__<<": Run Successful"<<std::endl;
 #define LOG_BASE "["<<getTimestamp()<<"] "<<__func__<<":"<<__LINE__<<") "
+#define LOG_SKIP(message) std::cout<<"["<<getTimestamp()<<"] "<<__func__<<": Skipped, Reason:"<<message<<std::endl;
 
 #define RUN_TEST(test)                                                              \
 do {                                                                                \
@@ -113,7 +114,7 @@ do {                                                                            
     }                                                                                                                                 \
 
 #define C_ASSERT_NEAR(val1, val2, tol)                                                                      \
-    if(std::fabs((val1) - (val2)) > (tol)) {                                                               \
+    if(std::fabs((val1) - (val2)) > (tol)) {                                                                \
         std::cerr<<"["<<getTimestamp()<<"] Condition Check on line:["<<__LINE__<<"]  failed"<<std::endl;    \
         std::cerr<<"["<<getTimestamp()<<"] Test: ["<<__func__<<"] Failed, Terminating Suite\n"<<std::endl;  \
         exit(EXIT_FAILURE);                                                                                 \

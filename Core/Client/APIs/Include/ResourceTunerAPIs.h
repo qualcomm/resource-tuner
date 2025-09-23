@@ -85,9 +85,12 @@ int8_t getProp(const char* prop, char* buffer, size_t bufferSize, const char* de
  * @param signalCode A uniqued 32-bit (unsigned) identifier for the Signal
  * @param duration Duration (in milliseconds) to provision the Resources for. A value of -1 denotes infinite duration.
  * @param properties A 32 bit signed Integer storing the Properties of the Request.
- *                   - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
- *                   - The Next 8 bits [17 - 24] represent a Boolean Flag, which indicates
- *                     if the Request should be processed in the background (in case of Display Off or Doze Mode).
+ *                   - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW).
+ *                     Defaults to HIGH (0)
+ *                   - The Next 8 bits [17 - 24] represent a Bitmask, which indicates
+ *                     The Device modes in which the Request should be processed (Modes: display on / dispaly off / doze),
+ *                     If the device is currently in one of the modes specified via the mask, only then will the request be processed.
+ *                     Defaults to DISPLAY_ON (0)
  *
  * @param appName Name of the Application that is issuing the Request
  * @param scenario Name of the Scenario that is issuing the Request
@@ -106,10 +109,12 @@ int64_t tuneSignal(uint32_t signalCode, int64_t duration, int32_t properties,
  * @param signalCode A uniqued 32-bit (unsigned) identifier for the Signal
  * @param duration Duration (in milliseconds)
  * @param properties A 32 bit signed Integer storing the Properties of the Request.
- *                   - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
- *                   - The Next 8 bits [17 - 24] represent a Boolean Flag, which indicates
- *                     if the Request should be processed in the background (in case of Display Off or Doze Mode).
- *
+ *                   - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW).
+ *                     Defaults to HIGH (0)
+ *                   - The Next 8 bits [17 - 24] represent a Bitmask, which indicates
+ *                     The Device modes in which the Request should be processed (Modes: display on / dispaly off / doze),
+ *                     If the device is currently in one of the modes specified via the mask, only then will the request be processed.
+ *                     Defaults to DISPLAY_ON (0)
  * @param appName Name of the Application that is issuing the Request
  * @param scenario Name of the Scenario that is issuing the Request
  * @param numArgs Number of Additional Arguments to be passed as part of the Request
