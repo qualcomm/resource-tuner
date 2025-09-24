@@ -73,6 +73,7 @@ static int8_t VerifyIncomingRequest(Request* req) {
     // Check if the Request can be processed in the current mode
     if((ResourceTunerSettings::targetConfigs.currMode & req->getProcessingModes()) == 0) {
         // Request cannot be accepted in the current device mode
+        TYPELOGV(VERIFIER_INVALID_MODE, req->getHandle());
         return false;
     }
 
@@ -394,7 +395,7 @@ void toggleDisplayModes() {
 
         // First drain out the CocoTable, and move Requests to Pending Queue (which
         // cannot be processed in Background)
-        RequestManager::getInstance()->triggerDisplayOffOrDozeMode();
+        RequestManager::getInstance()->triggerDisplayOffMode();
 
     } else {
         // Toggle to Display On

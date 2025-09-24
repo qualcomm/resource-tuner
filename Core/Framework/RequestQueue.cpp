@@ -20,7 +20,6 @@ void RequestQueue::orderedQueueConsumerHook() {
 
         // This is a custom Request used to clean up the Server.
         if(message->getPriority() == SERVER_CLEANUP_TRIGGER_PRIORITY) {
-            LOGI("RESTUNE_SERVER_REQUESTS", "Called Cleanup Request");
             return;
         }
 
@@ -30,10 +29,11 @@ void RequestQueue::orderedQueueConsumerHook() {
         }
 
         // Check for System Mode and Request Compatability
-        uint8_t currentMode = ResourceTunerSettings::targetConfigs.currMode;
-        if((currentMode == MODE_DISPLAY_OFF || currentMode == MODE_DOZE) && !req->getProcessingModes()) {
+        int8_t currentMode = ResourceTunerSettings::targetConfigs.currMode;
+        if((currentMode & req->getProcessingModes()) == 0) {
             // Cannot continue with this Request
-            LOGD("RESTUNE_SERVER_REQUESTS", "Request cannot be processed in current mode");
+            TYPELOGV(VERIFIER_INVALID_MODE, req->getHandle());
+            Request::cleanUpRequest(req);
             continue;
         }
 
@@ -43,6 +43,7 @@ void RequestQueue::orderedQueueConsumerHook() {
             if(requestProcessingStatus == REQ_CANCELLED || requestProcessingStatus == REQ_COMPLETED) {
                 // Request has already been untuned or expired (Edge Cases)
                 // No need to process it again.
+                Request::cleanUpRequest(req);
                 continue;
             }
 
@@ -50,6 +51,7 @@ void RequestQueue::orderedQueueConsumerHook() {
             if(!cocoTable->insertRequest(req)) {
                 // Request could not be inserted, clean it up.
                 Request::cleanUpRequest(req);
+                continue;
             }
 
         } else {
@@ -75,13 +77,17 @@ void RequestQueue::orderedQueueConsumerHook() {
 
             if(req->getRequestType() == REQ_RESOURCE_UNTUNING) {
                 cocoTable->removeRequest(correspondingTuneRequest);
-                requestManager->removeRequest(correspondingTuneRequest);
+                // If this is not an untune request (issued during DISPLAY_OFF/DOZE mode transition)
+                // Then don't cleanup the corresponding Tune Request, as it is still valid.
+                if(req->getPriority() != HIGH_TRANSFER_PRIORITY) {
+                    requestManager->removeRequest(correspondingTuneRequest);
+
+                    // Free up the Corresponding Tune Request Resources
+                    Request::cleanUpRequest(correspondingTuneRequest);
+                }
 
                 // Free Up the Untune Request
                 Request::cleanUpRequest(req);
-
-                // Free up the Corresponding Tune Request Resources
-                Request::cleanUpRequest(correspondingTuneRequest);
 
             } else if(req->getRequestType() == REQ_RESOURCE_RETUNING) {
                 int64_t newDuration = req->getDuration();
