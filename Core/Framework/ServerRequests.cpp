@@ -70,10 +70,14 @@ static int8_t performPhysicalMapping(int32_t& coreValue, int32_t& clusterValue) 
 static int8_t VerifyIncomingRequest(Request* req) {
     if(req->getDuration() < -1 || req->getDuration() == 0) return false;
 
-    // Check if the Request can be processed in the current mode
-    if((ResourceTunerSettings::targetConfigs.currMode & req->getProcessingModes()) == 0) {
+    // Default: All Requests are supported in Display On Mode
+    req->addProcessingMode(MODE_DISPLAY_ON);
+
+    // If the Device is in Display Off or Doze Mode, then no new Requests
+    // shall be accepted.
+    if(ResourceTunerSettings::targetConfigs.currMode != MODE_DISPLAY_ON) {
         // Request cannot be accepted in the current device mode
-        TYPELOGV(VERIFIER_INVALID_MODE, req->getHandle());
+        TYPELOGV(VERIFIER_INVALID_DEVICE_MODE, req->getHandle());
         return false;
     }
 

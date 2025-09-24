@@ -60,9 +60,9 @@ enum RequestPriority {
  *          performed regardless of the display state, including during doze mode.
  */
 enum Modes {
-    MODE_DISPLAY_ON = 0, //!< Tuning allowed when the display is on.
-    MODE_DISPLAY_OFF, //!< Tuning allowed when the display is off.
-    MODE_DOZE //!< Tuning allowed during doze (low-power idle) mode.
+    MODE_DISPLAY_ON = 0x01, //!< Tuning allowed when the display is on.
+    MODE_DISPLAY_OFF = 0x02, //!< Tuning allowed when the display is off.
+    MODE_DOZE = 0x04 //!< Tuning allowed during doze (low-power idle) mode.
 };
 
 #define SET_REQUEST_PRIORITY(properties, priority)({                                          \

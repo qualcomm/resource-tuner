@@ -213,7 +213,7 @@ int32_t TestBaseline::getExpectedCoreCount() {
 
 int32_t TestBaseline::getExpectedPhysicalCluster(int32_t logicalID) {
     if(this->mLogicalToPhysicalClusterMapping.find(logicalID) ==
-        this->mLogicalToPhysicalClusterMapping.end()) {
+       this->mLogicalToPhysicalClusterMapping.end()) {
         return -1;
     }
 

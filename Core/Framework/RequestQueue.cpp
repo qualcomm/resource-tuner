@@ -32,7 +32,7 @@ void RequestQueue::orderedQueueConsumerHook() {
         int8_t currentMode = ResourceTunerSettings::targetConfigs.currMode;
         if((currentMode & req->getProcessingModes()) == 0) {
             // Cannot continue with this Request
-            TYPELOGV(VERIFIER_INVALID_MODE, req->getHandle());
+            TYPELOGV(VERIFIER_INVALID_DEVICE_MODE, req->getHandle());
             Request::cleanUpRequest(req);
             continue;
         }

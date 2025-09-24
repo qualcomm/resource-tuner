@@ -61,7 +61,8 @@ static void TestResourceStructOps4() {
     C_ASSERT(allowedModes == MODE_DISPLAY_ON);
 
     properties = 0;
-    properties = ADD_ALLOWED_MODE(properties, MODE_DISPLAY_ON | MODE_DOZE);
+    properties = ADD_ALLOWED_MODE(properties, MODE_DISPLAY_ON);
+    properties = ADD_ALLOWED_MODE(properties, MODE_DOZE);
     allowedModes = EXTRACT_ALLOWED_MODES(properties);
     C_ASSERT(allowedModes == (MODE_DISPLAY_ON | MODE_DOZE));
 }
@@ -287,6 +288,19 @@ static void TestAuxRoutineFileExists() {
     C_ASSERT(fileExists == false);
 }
 
+static void TestRequestModeAddition() {
+    Request request;
+    request.setProperties(0);
+    request.addProcessingMode(MODE_DISPLAY_ON);
+    C_ASSERT(request.getProcessingModes() == MODE_DISPLAY_ON);
+
+    request.setProperties(0);
+    request.addProcessingMode(MODE_DISPLAY_ON);
+    request.addProcessingMode(MODE_DISPLAY_OFF);
+    request.addProcessingMode(MODE_DOZE);
+    C_ASSERT(request.getProcessingModes() == (MODE_DISPLAY_ON | MODE_DISPLAY_OFF | MODE_DOZE));
+}
+
 int32_t main() {
     std::cout<<"Running Test Suite: [MiscTests]\n"<<std::endl;
 
@@ -303,6 +317,7 @@ int32_t main() {
     RUN_TEST(TestSignalSerializingAndDeserializing);
     RUN_TEST(TestHandleGeneration);
     RUN_TEST(TestAuxRoutineFileExists);
+    RUN_TEST(TestRequestModeAddition);
 
     std::cout<<"\nAll Tests from the suite: [MiscTests], executed successfully"<<std::endl;
     return 0;

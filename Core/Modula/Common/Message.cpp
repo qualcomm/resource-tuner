@@ -63,6 +63,10 @@ void Message::setPriority(int8_t priority) {
     this->mProperties |= (int8_t) priority;
 }
 
+void Message::addProcessingMode(int8_t processingMode) {
+    this->mProperties |= (((this->mProperties >> 8) | processingMode) << 8);
+}
+
 void Message::setBackgroundProcessing(int8_t backgroundProcessing) {
     this->mProperties |= ((int32_t) backgroundProcessing << 8);
 }

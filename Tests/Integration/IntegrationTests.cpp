@@ -462,6 +462,12 @@ namespace ResourceTuningRequestVerification {
     static void TestResourceLogicalToPhysicalTranslationVerification3() {
         LOG_START
 
+        int32_t physicalClusterID = baseline.getExpectedPhysicalCluster(0);
+        if(physicalClusterID == -1) {
+            LOG_SKIP("Logical Cluster: 0 not found on test device, Skipping Test Case")
+            return;
+        }
+
         std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource2";
         int32_t testResourceOriginalValue = 333;
 

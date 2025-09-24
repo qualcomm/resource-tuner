@@ -377,7 +377,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             Logger::log(LOG_ERR, "RESTUNE_REQUEST_VERIFIER", funcName, std::string(buffer));
             break;
 
-        case CommonMessageTypes::VERIFIER_INVALID_MODE:
+        case CommonMessageTypes::VERIFIER_INVALID_DEVICE_MODE:
             vsnprintf(buffer, sizeof(buffer),
                       "Request [%ld], cannot be processed in current Device Mode. " \
                       "Dropping Request.", args);

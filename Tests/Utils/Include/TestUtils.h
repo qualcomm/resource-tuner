@@ -52,18 +52,18 @@ void SetUp() {
 
 static std::string getTimestamp() {
     auto now = std::chrono::system_clock::now();
-    time_t now_c = std::chrono::system_clock::to_time_t(now);
-    tm local_tm = *localtime(&now_c);
+    time_t nowC = std::chrono::system_clock::to_time_t(now);
+    tm localTm = *localtime(&nowC);
 
     char buffer[64];
-    strftime(buffer, sizeof(buffer), "%b %d %H:%M:%S", &local_tm);
+    strftime(buffer, sizeof(buffer), "%b %d %H:%M:%S", &localTm);
     return std::string(buffer);
 }
 
 #define LOG_START std::cout<<"\n["<<getTimestamp()<<"] Running Test: "<<__func__<<std::endl;
 #define LOG_END std::cout<<"["<<getTimestamp()<<"] "<<__func__<<": Run Successful"<<std::endl;
 #define LOG_BASE "["<<getTimestamp()<<"] "<<__func__<<":"<<__LINE__<<") "
-#define LOG_SKIP(message) std::cout<<"["<<getTimestamp()<<"] "<<__func__<<": Skipped, Reason:"<<message<<std::endl;
+#define LOG_SKIP(message) std::cout<<"["<<getTimestamp()<<"] "<<__func__<<": Skipped, Reason: "<<message<<std::endl;
 
 #define RUN_TEST(test)                                                              \
 do {                                                                                \

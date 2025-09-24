@@ -36,6 +36,7 @@ public:
     void setClientTID(int32_t clientTID);
     void setProperties(int32_t properties);
     void setPriority(int8_t priority);
+    void addProcessingMode(int8_t processingMode);
     void setUntuneProcessingOrder(int8_t untuneProcessingOrder);
     void setHandle(int64_t handle);
     void setBackgroundProcessing(int8_t backgroundProcessing);
