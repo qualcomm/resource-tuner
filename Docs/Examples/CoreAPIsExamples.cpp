@@ -58,10 +58,7 @@ void func1() {
 
     // Create Helpers for these
     // To set the Priority as Low
-    properties |= (1 << 0); // REQ_PRIORITY_LOW corresponds to a value of 1.
-
-    // To set the Background Processing Status as True
-    properties |= (1 << 8);
+    properties = SET_REQUEST_PRIORITY(properties, REQ_PRIORITY_LOW);
 
     SysResource resourceList[] = {
         {
@@ -104,11 +101,12 @@ void func2() {
     // Setup Request Properties
     int32_t properties = 0;
 
-    // Here the Priority as Low
-    properties |= (1 << 0); // REQ_PRIORITY_LOW corresponds to a value of 1.
+    // Set the Priority as High
+    properties = SET_REQUEST_PRIORITY(properties, REQ_PRIORITY_HIGH);
 
-    // Set the Background Processing Status as True
-    properties |= (1 << 8);
+    // To mark the Request as eligible for Background Processing
+    properties = ADD_ALLOWED_MODE(properties, MODE_DISPLAY_ON);
+    properties = ADD_ALLOWED_MODE(properties, MODE_DISPLAY_OFF);
 
     // Create the List of Resources which need to be Provisioned
     // Resource Struct Creation
@@ -180,11 +178,13 @@ void func3() {
     // Setup Request Properties
     int32_t properties = 0;
 
-    // Here the Priority as Low
-    properties |= (1 << 0); // REQ_PRIORITY_LOW corresponds to a value of 1.
+    // Here the Priority is High
+    properties = SET_REQUEST_PRIORITY(properties, REQ_PRIORITY_HIGH);
 
-    // Set the Background Processing Status as True
-    properties |= (1 << 8);
+    // This Request should only be processed when the Device Display is On,
+    // i.e. not a background Request.
+    // Optional (since MODE_DISPLAY_ON is enabled by default)
+    properties = ADD_ALLOWED_MODE(properties, MODE_DISPLAY_ON);
 
     // Create the List of Resources which need to be Provisioned
     // Resource Struct Creation
@@ -244,7 +244,6 @@ void func3() {
     }
 }
 
-
 int32_t main(int32_t argc, char* argv[]) {
     func1();
 }
@@ -252,8 +251,8 @@ int32_t main(int32_t argc, char* argv[]) {
 // Compilation Notes:
 // The executable needs to be linked to the ClientAPIs lib, where these APIs
 // are defined. This can be done, as follows:
-// GCC: g++ ResourceTunerCoreAPIs.cpp -o ResourceTunerCoreAPIs -lClientAPIs
-// CMake: This can be done as part of the C/C++ project by adding the Library
-// to the target link libraries. For example, if the executalbe is called clientExec,
+// GCC: g++ CoreAPIsExamples.cpp -o ResourceTunerCoreAPIs -lClientAPIs
+// CMake: This can be done as part of the C/C++ project by linking to the Library
+// via the target_link_libraries command. For example, if the executalbe is called clientExec,
 // it can be linked as follows:
 // target_link_libraries(clientExec ClientAPIs)

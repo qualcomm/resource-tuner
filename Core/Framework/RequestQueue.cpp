@@ -28,15 +28,6 @@ void RequestQueue::orderedQueueConsumerHook() {
             continue;
         }
 
-        // Check for System Mode and Request Compatability
-        int8_t currentMode = ResourceTunerSettings::targetConfigs.currMode;
-        if((currentMode & req->getProcessingModes()) == 0) {
-            // Cannot continue with this Request
-            TYPELOGV(VERIFIER_INVALID_DEVICE_MODE, req->getHandle());
-            Request::cleanUpRequest(req);
-            continue;
-        }
-
         if(req->getRequestType() == REQ_RESOURCE_TUNING) {
             int64_t requestProcessingStatus = requestManager->getRequestProcessingStatus(req->getHandle());
             // Find better status code

@@ -81,10 +81,16 @@ static int8_t VerifyIncomingRequest(Request* req) {
         return false;
     }
 
+    if(req->getResources() == nullptr) {
+        return false;
+    }
+
     std::vector<Resource*> resourcesToBeTuned = *(req->getResources());
 
     // No Resources to be Tuned, Reject this Request
-    if(resourcesToBeTuned.size() == 0) return false;
+    if(resourcesToBeTuned.size() == 0) {
+        return false;
+    }
 
     int8_t clientPermissions =
         ClientDataManager::getInstance()->getClientLevelByClientID(req->getClientPID());
@@ -397,8 +403,8 @@ void toggleDisplayModes() {
         ResourceTunerSettings::targetConfigs.currMode &= ~MODE_DISPLAY_ON;
         ResourceTunerSettings::targetConfigs.currMode |= MODE_DISPLAY_OFF;
 
-        // First drain out the CocoTable, and move Requests to Pending Queue (which
-        // cannot be processed in Background)
+        // First drain out the CocoTable, and move Requests to the Pending List
+        // (the ones which cannot be processed in Background)
         RequestManager::getInstance()->triggerDisplayOffMode();
 
     } else {

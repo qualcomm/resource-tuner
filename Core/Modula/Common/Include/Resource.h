@@ -22,12 +22,14 @@ private:
      *        - In addition for Custom Resources, then the MSB must be set to 1 as well
      */
     uint32_t mResCode;
+
     /**
      * @brief Holds Logical Core and Cluster Information:
      *        - The last 8 bits (25-32) hold the Logical Core Value
      *        - The next 8 bits (17-24) hold the Logical Cluster Value
+     *        - The next 16 bits hold the Mpam Group ID
      */
-    int32_t mResInfo;
+    uint32_t mResInfo;
     int32_t mOptionalInfo; //!< Field to hold optional information for Request Processing
     /**
      * @brief Number of values to be configured for the Resource,
@@ -64,7 +66,6 @@ public:
     void setResInfo(int32_t resInfo);
     void setOptionalInfo(int32_t optionalInfo);
     void setNumValues(int32_t numValues);
-    void setAsCustom();
 };
 
 #endif

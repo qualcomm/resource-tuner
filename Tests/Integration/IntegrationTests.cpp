@@ -600,7 +600,7 @@ namespace ResourceTuningRequestVerification {
     * API under test: Tune
     * - The Client issues a Tune Request for a Resource which supports Processing in Display Off mode only
     * - However, the current System mode is Display On. In this case, the Configured value for the Resource
-    * - as part of the API call should not take effect on the Sysfs Node.
+    *   as part of the API call should not take effect on the Sysfs Node.
     * - Verify that the Resource Node's value remains unchanged.
     *  Cross-Reference id: [I]
     */
