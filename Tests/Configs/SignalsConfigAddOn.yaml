@@ -14,8 +14,8 @@ SignalConfigs:
     - {ResCode: "0x80f10000", ResInfo: "0x0a00f000", Values: [665]}
     - {ResCode: "0x800100d0", ResInfo: "0x00100112", Values: [679, 812]}
 
-  - SigId: "0x0000"
-    Category: "0x08"
+  - SigId: "0xffcf"
+    Category: "0xce"
     Name: CAMERA_OPEN_CUSTOM
     TargetsDisabled: ["target1", "target2"]
     Enable: true
@@ -23,3 +23,14 @@ SignalConfigs:
     Resources:
       - {ResCode: "0x80d9aa00", Values: [1, 556]}
       - {ResCode: "0x80c6500f", Values: [1, 900, 965]}
+
+  - SigId: "0xaadd"
+    Category: "0xde"
+    Name: OVERRIDE_SIGNAL_1
+    Enable: true
+    TargetsEnabled: ["qti-cli-test"]
+    Derivatives: ["test-derivative"]
+    Permissions: ["system"]
+    Timeout: 14500
+    Resources:
+      - {ResCode: "0x80dbaaa0", ResInfo: "0x000776aa", Values: [887]}

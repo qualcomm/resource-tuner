@@ -19,16 +19,30 @@ static void Init() {
 static void TestDeviceClusterCount() {
     int32_t clusterCount = ResourceTunerSettings::targetConfigs.mTotalClusterCount;
     int32_t expectedClusterCount = baseline.getExpectedClusterCount();
+
     std::cout<<"Determined Cluster Count: "<<clusterCount<<std::endl;
     std::cout<<"Expected Cluster Count: "<<expectedClusterCount<<std::endl;
+
+    if(expectedClusterCount == -1) {
+        LOG_SKIP("Baseline Could not be fetched for the Target, skipping");
+        return;
+    }
+
     C_ASSERT(clusterCount == expectedClusterCount);
 }
 
 static void TestDeviceCoreCount() {
     int32_t coreCount = ResourceTunerSettings::targetConfigs.mTotalCoreCount;
     int32_t expectedCoreCount = baseline.getExpectedCoreCount();
+
     std::cout<<"Determined Core Count: "<<coreCount<<std::endl;
     std::cout<<"Expected Core Count: "<<expectedCoreCount<<std::endl;
+
+    if(expectedCoreCount == -1) {
+        LOG_SKIP("Baseline Could not be fetched for the Target, skipping");
+        return;
+    }
+
     C_ASSERT(coreCount == expectedCoreCount);
 }
 

@@ -27,7 +27,7 @@ public:
     int32_t getClientTID() const;
     int64_t getHandle() const;
     int8_t getPriority() const;
-    int8_t isBackgroundProcessingEnabled() const;
+    int8_t getProcessingModes() const;
     int32_t getProperties() const;
 
     void setRequestType(int8_t reqType);
@@ -36,6 +36,7 @@ public:
     void setClientTID(int32_t clientTID);
     void setProperties(int32_t properties);
     void setPriority(int8_t priority);
+    void addProcessingMode(int8_t processingMode);
     void setUntuneProcessingOrder(int8_t untuneProcessingOrder);
     void setHandle(int64_t handle);
     void setBackgroundProcessing(int8_t backgroundProcessing);

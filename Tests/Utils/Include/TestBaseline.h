@@ -47,6 +47,8 @@ private:
     ErrCode parseTestConfigYamlNode(const std::string& filePath);
 
 public:
+    TestBaseline(): mTotalClusterCount(-1), mTotalCoreCount(-1) {}
+
     ErrCode fetchBaseline();
     int32_t getExpectedClusterCount();
     int32_t getExpectedCoreCount();

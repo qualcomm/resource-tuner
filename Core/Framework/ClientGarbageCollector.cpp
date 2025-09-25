@@ -59,10 +59,11 @@ void ClientGarbageCollector::performCleanup() {
                      "Failed to Allocate Memory for Untune Request. Error: " + std::string(e.what()));
             }
 
-            // Keep the Untune Request's Priority as high as possible
-            // So that all the existing Requests are untuned before the new Requests are Added.
+            // Keep the Untune Request's Priority as: "high"
+            // So that most of (if not all) the existing Requests are untuned before
+            // more new Requests are Added.
             if(untuneRequest != nullptr) {
-                untuneRequest->setPriority(HIGH_TRANSFER_PRIORITY);
+                untuneRequest->setPriority(REQ_PRIORITY_HIGH);
                 RequestQueue::getInstance()->addAndWakeup(untuneRequest);
             }
         }

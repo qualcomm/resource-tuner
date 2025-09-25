@@ -9,11 +9,9 @@
 #define UTILS_H
 
 #include <cstdint>
-#include <vector>
+#include <string>
 
 #include "ErrCodes.h"
-#include "Message.h"
-#include "Logger.h"
 
 /**
  * @enum RequestType
@@ -41,16 +39,6 @@ enum Permissions {
 };
 
 /**
- * @enum RequestPriority
- * @brief Requests can have 2 levels of Priorities, HIGH or LOW.
- */
-enum RequestPriority {
-    REQ_PRIORITY_HIGH = 0,
-    REQ_PRIORITY_LOW,
-    NUMBER_REQUEST_PRIORITIES
-};
-
-/**
  * @enum PriorityLevel
  * @brief Resource Tuner Priority Levels
  * @details Each Request will have a priority level. This is used to determine the order in which
@@ -62,19 +50,6 @@ enum PriorityLevel {
     THIRD_PARTY_HIGH,
     THIRD_PARTY_LOW,
     TOTAL_PRIORITIES
-};
-
-/**
- * @enum Modes
- * @brief Represents the operational modes based on the device's display state.
- * @details Certain system resources are optimized only when the device display is active,
- *          primarily to conserve power. However, for critical components, tuning may be
- *          performed regardless of the display state, including during doze mode.
- */
-enum Modes {
-    MODE_DISPLAY_ON  = 0x001, //!< Tuning allowed when the display is on.
-    MODE_DISPLAY_OFF = 0x002, //!< Tuning allowed when the display is off.
-    MODE_DOZE        = 0x004  //!< Tuning allowed during doze (low-power idle) mode.
 };
 
 /**

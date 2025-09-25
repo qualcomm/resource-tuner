@@ -122,8 +122,23 @@ public:
 
     std::unordered_map<int64_t, Request*> getActiveRequests();
 
-    void triggerDisplayOffOrDozeMode();
+    /**
+     * @brief Handles Device Mode transition from DISPLAY_ON to DISPLAY_OFF / DOZE
+     * @details As part of this routine, the CocoTable will be drained out, i.e. all active
+     *          Requests will be untuned, and the Resources restored to their original values.
+     *          Requests which are not eligible for background processing will be removed from the
+     *          Active List and put into the Pending List, so that they get processed again when the
+     *          Device transitions back to the DISPLAY_ON mode.
+     *
+     */
+    void triggerDisplayOffMode();
 
+    /**
+     * @brief Handles Device Mode transition from DISPLAY_OFF / DOZE to DISPLAY_ON
+     * @details As part of this routine, the CocoTable will be drained out, i.e. all active
+     *          Requests will be untuned, and the Resources restored to their original values.
+     *          All the Requests from the Active and Pending Lists will be submitted for processing.
+     */
     void triggerDisplayOnMode();
 
     void floodInRequestsForProcessing();

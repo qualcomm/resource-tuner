@@ -4,6 +4,7 @@
 #ifndef REQUEST_QUEUE_H
 #define REQUEST_QUEUE_H
 
+#include "Common.h"
 #include "Utils.h"
 #include "Request.h"
 #include "OrderedQueue.h"
