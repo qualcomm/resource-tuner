@@ -39,7 +39,7 @@ sudo cmake --install .
 cmake --install . --prefix /tmp/ResourceTuner-install
 ```
 
-## Development  
+## Development
 
 How to develop new features/fixes for the software. Maybe different than "usage". Also provide details on how to contribute via a [CONTRIBUTING.md file](CONTRIBUTING.md).
 
