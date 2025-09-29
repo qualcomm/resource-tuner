@@ -11,8 +11,8 @@ on:
 jobs:
   build:
     runs-on:
-      group: "GHA-CSEPerf-prd-SelfHosted-RG"
-      labels: [self-hosted", "cseperf-prd-u2204-arm64-xlrg-od-ephem"]
+      group: GHA-CSEPerf-prd-SelfHosted-RG
+      labels: [self-hosted, cseperf-prd-u2204-arm64-xlrg-od-ephem]
 
     steps:
       - uses: actions/checkout@v5
