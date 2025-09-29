@@ -1,27 +1,51 @@
 name: Build Resource Tuner
 
 on:
-  pull_request:
+  workflow_dispatch:
+  pull_request_target: # requiring access to base repo
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+    # paths-ignore: #update if something has to be ignored.
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on:
+      group: "GHA-CSEPerf-prd-SelfHosted-RG"
+      labels: [self-hosted", "cseperf-prd-u2204-arm64-xlrg-od-ephem"]
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - uses: actions/checkout@v5
+        with:
+          repository: qualcomm/urm-image
+          token: ${{ secrets.MY_PAT }}
 
-    - name: Install Cmake
-      run: sudo apt update && sudo apt install -y cmake
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Install dependencies
-      run: sudo apt update && sudo apt-get install libyaml-dev
+      - name: Build URM image (from Git URL) and load locally
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          tags: urm-image:ci
+          load: true
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-    - name: Build project
-      run: |
-        cd Build
-        mkdir build
-        cd build
-        cmake .. -DBUILD_SIGNALS=ON -DBUILD_CLI=ON -DBUILD_TESTS=ON
-        cmake --build .
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.ref }}
 
+      - name: Build resource-tuner in the URM container
+        run: |
+          docker run --rm -v "$PWD":/workspace -w /workspace urm-image:ci bash -lc '
+            set -euo pipefail
+            cd Build
+            mkdir build
+            cd build
+            cmake .. -DBUILD_SIGNALS=ON -DBUILD_CLI=ON -DBUILD_TESTS=ON
+            cmake --build .
+          '
+          
