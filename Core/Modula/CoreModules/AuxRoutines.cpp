@@ -101,7 +101,7 @@ void dumpRequest(Request* clientReq) {
     LOGD(LOG_TAG, "Priority: " + std::to_string(clientReq->getPriority()));
     LOGD(LOG_TAG, "client PID: " +std::to_string(clientReq->getClientPID()));
     LOGD(LOG_TAG, "client TID: " + std::to_string(clientReq->getClientTID()));
-    LOGD(LOG_TAG, "Background Processing Enabled?: " + std::to_string((int32_t)clientReq->isBackgroundProcessingEnabled()));
+    LOGD(LOG_TAG, "Background Processing Enabled?: " + std::to_string((int32_t)clientReq->getProcessingModes()));
     LOGD(LOG_TAG, "Number of Resources: " + std::to_string(clientReq->getResourcesCount()));
 
     LOGD(LOG_TAG, "Values for resources are as:");

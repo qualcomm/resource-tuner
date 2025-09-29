@@ -148,7 +148,12 @@ ErrCode TestBaseline::parseTestConfigYamlNode(const std::string& filePath) {
                 }
 
                 if(topKey == TARGET_NAME_LIST) {
-                    if(value == "*" || value == currTargetName) {
+                    if(value == currTargetName) {
+                        if(!deviceParsingDone) {
+                            isConfigForCurrentTarget = true;
+                            deviceParsingDone = true;
+                        }
+                    } else if(currTargetName.length() == 0 && value == "*") {
                         if(!deviceParsingDone) {
                             isConfigForCurrentTarget = true;
                             deviceParsingDone = true;
@@ -208,7 +213,7 @@ int32_t TestBaseline::getExpectedCoreCount() {
 
 int32_t TestBaseline::getExpectedPhysicalCluster(int32_t logicalID) {
     if(this->mLogicalToPhysicalClusterMapping.find(logicalID) ==
-        this->mLogicalToPhysicalClusterMapping.end()) {
+       this->mLogicalToPhysicalClusterMapping.end()) {
         return -1;
     }
 

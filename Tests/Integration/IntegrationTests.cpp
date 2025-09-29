@@ -3,6 +3,7 @@
 
 #include <cstdint>
 
+#include "Common.h"
 #include "Utils.h"
 #include "TestUtils.h"
 #include "TestBaseline.h"
@@ -461,6 +462,12 @@ namespace ResourceTuningRequestVerification {
     static void TestResourceLogicalToPhysicalTranslationVerification3() {
         LOG_START
 
+        int32_t physicalClusterID = baseline.getExpectedPhysicalCluster(0);
+        if(physicalClusterID == -1) {
+            LOG_SKIP("Logical Cluster: 0 not found on test device, Skipping Test Case")
+            return;
+        }
+
         std::string testResourceName = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource2";
         int32_t testResourceOriginalValue = 333;
 
@@ -593,7 +600,7 @@ namespace ResourceTuningRequestVerification {
     * API under test: Tune
     * - The Client issues a Tune Request for a Resource which supports Processing in Display Off mode only
     * - However, the current System mode is Display On. In this case, the Configured value for the Resource
-    * - as part of the API call should not take effect on the Sysfs Node.
+    *   as part of the API call should not take effect on the Sysfs Node.
     * - Verify that the Resource Node's value remains unchanged.
     *  Cross-Reference id: [I]
     */
@@ -2298,9 +2305,10 @@ namespace RequestApplicationTests {
 
         int32_t physicalClusterID = baseline.getExpectedPhysicalCluster(0);
         if(physicalClusterID == -1) {
-            std::cout<<LOG_BASE<<"Logical Cluster: 0 not found on test device, Aborting Test Case"<<std::endl;
+            LOG_SKIP("Logical Cluster: 0 not found on test device, Skipping Test Case")
             return;
         }
+
         std::string nodePath = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/cluster_type_resource_%d_cluster_id";
 
         char path[128];
@@ -2349,7 +2357,7 @@ namespace RequestApplicationTests {
 
         int32_t physicalClusterID = baseline.getExpectedPhysicalCluster(2);
         if(physicalClusterID == -1) {
-            std::cout<<LOG_BASE<<"Logical Cluster: 2 not found on test device, Aborting Test Case"<<std::endl;
+            LOG_SKIP("Logical Cluster: 2 not found on test device, Skipping Test Case")
             return;
         }
 
@@ -2883,6 +2891,11 @@ namespace SystemSysfsNodesTests {
         int32_t physicalClusterID = baseline.getExpectedPhysicalCluster(0);
         std::string nodePath = "/sys/devices/system/cpu/cpufreq/policy%d/scaling_min_freq";
 
+        if(physicalClusterID == -1) {
+            LOG_SKIP("Logical Cluster: 0 not found on test device, Skipping Test Case")
+            return;
+        }
+
         char path[128];
         snprintf(path, sizeof(path), nodePath.c_str(), physicalClusterID);
         std::string testResourceName = std::string(path);
@@ -2945,6 +2958,11 @@ namespace SystemSysfsNodesTests {
         // i.e. logical cluster id = 1
         int32_t physicalClusterID = baseline.getExpectedPhysicalCluster(1);
         std::string nodePath = "/sys/devices/system/cpu/cpufreq/policy%d/scaling_min_freq";
+
+        if(physicalClusterID == -1) {
+            LOG_SKIP("Logical Cluster: 1 not found on test device, Skipping Test Case")
+            return;
+        }
 
         char path[128];
         snprintf(path, sizeof(path), nodePath.c_str(), physicalClusterID);
@@ -3015,6 +3033,11 @@ namespace SystemSysfsNodesTests {
         // i.e. logical cluster id = 1
         int32_t physicalClusterID = baseline.getExpectedPhysicalCluster(1);
         std::string nodePath = "/sys/devices/system/cpu/cpufreq/policy%d/scaling_min_freq";
+
+        if(physicalClusterID == -1) {
+            LOG_SKIP("Logical Cluster: 1 not found on test device, Skipping Test Case")
+            return;
+        }
 
         char path[128];
         snprintf(path, sizeof(path), nodePath.c_str(), physicalClusterID);

@@ -25,54 +25,7 @@ extern "C" {
 #include <stdint.h>
 #endif
 
-/**
- * @struct SysResource
- * @brief Used to store information regarding Resources / Tunables which need to be
- *        Provisioned as part of the tuneResources API.
- */
-typedef struct {
-    /**
-     * @brief A uniqued 32-bit (unsigned) identifier for the Resource.
-     *        - The last 16 bits (17-32) are used to specify the ResId
-     *        - The next 8 bits (9-16) are used to specify the ResType (type of the Resource)
-     *        - In addition for Custom Resources, then the MSB must be set to 1 as well
-     */
-    uint32_t mResCode;
-    /**
-     * @brief Holds Logical Core and Cluster Information:
-     *        - The last 8 bits (25-32) hold the Logical Core Value
-     *        - The next 8 bits (17-24) hold the Logical Cluster Value
-     */
-    int32_t mResInfo;
-    int32_t mOptionalInfo; //!< Field to hold optional information for Request Processing
-    /**
-     * @brief Number of values to be configured for the Resource,
-     *        both single-valued and multi-valued Resources are supported.
-     */
-    int32_t mNumValues;
-
-    union {
-        int32_t value; //!< Use this field for single Valued Resources
-        int32_t* values; //!< Use this field for Multi Valued Resources
-    } mResValue; //!< The value to be Configured for this Resource Node.
-} SysResource;
-
-// Define Utilities to parse and set the mResInfo field in Resource struct.
-#define EXTRACT_RESOURCE_CORE_VALUE(resInfo)({                                               \
-    (int32_t) (resInfo) & ((1 << 8) - 1);                                                    \
-})                                                                                           \
-
-#define EXTRACT_RESOURCE_CLUSTER_VALUE(resInfo)({                                            \
-    (int32_t) (resInfo >> 8) & ((1 << 8) - 1);                                               \
-})                                                                                           \
-
-#define SET_RESOURCE_CORE_VALUE(resInfo, newValue)({                                         \
-    (int32_t) (resInfo ^ EXTRACT_RESOURCE_CORE_VALUE(resInfo)) | newValue;                   \
-})                                                                                           \
-
-#define SET_RESOURCE_CLUSTER_VALUE(resInfo, newValue)({                                      \
-    (int32_t) (resInfo ^ (EXTRACT_RESOURCE_CLUSTER_VALUE(resInfo) << 8)) | (newValue << 8);  \
-})                                                                                           \
+#include "Common.h"
 
 /**
  * @brief Tune Resource Values for finite or finite duration.
@@ -132,9 +85,12 @@ int8_t getProp(const char* prop, char* buffer, size_t bufferSize, const char* de
  * @param signalCode A uniqued 32-bit (unsigned) identifier for the Signal
  * @param duration Duration (in milliseconds) to provision the Resources for. A value of -1 denotes infinite duration.
  * @param properties A 32 bit signed Integer storing the Properties of the Request.
- *                   - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
- *                   - The Next 8 bits [17 - 24] represent a Boolean Flag, which indicates
- *                     if the Request should be processed in the background (in case of Display Off or Doze Mode).
+ *                   - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW).
+ *                     Defaults to HIGH (0)
+ *                   - The Next 8 bits [17 - 24] represent a Bitmask, which indicates
+ *                     The Device modes in which the Request should be processed (Modes: display on / dispaly off / doze),
+ *                     If the device is currently in one of the modes specified via the mask, only then will the request be processed.
+ *                     Defaults to DISPLAY_ON (0)
  *
  * @param appName Name of the Application that is issuing the Request
  * @param scenario Name of the Scenario that is issuing the Request
@@ -153,10 +109,12 @@ int64_t tuneSignal(uint32_t signalCode, int64_t duration, int32_t properties,
  * @param signalCode A uniqued 32-bit (unsigned) identifier for the Signal
  * @param duration Duration (in milliseconds)
  * @param properties A 32 bit signed Integer storing the Properties of the Request.
- *                   - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
- *                   - The Next 8 bits [17 - 24] represent a Boolean Flag, which indicates
- *                     if the Request should be processed in the background (in case of Display Off or Doze Mode).
- *
+ *                   - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW).
+ *                     Defaults to HIGH (0)
+ *                   - The Next 8 bits [17 - 24] represent a Bitmask, which indicates
+ *                     The Device modes in which the Request should be processed (Modes: display on / dispaly off / doze),
+ *                     If the device is currently in one of the modes specified via the mask, only then will the request be processed.
+ *                     Defaults to DISPLAY_ON (0)
  * @param appName Name of the Application that is issuing the Request
  * @param scenario Name of the Scenario that is issuing the Request
  * @param numArgs Number of Additional Arguments to be passed as part of the Request

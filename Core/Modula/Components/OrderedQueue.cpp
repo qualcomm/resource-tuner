@@ -21,9 +21,7 @@ int8_t OrderedQueue::addAndWakeup(Message* queueItem) {
         return true;
 
     } catch(const std::exception& e) {
-        LOGE("RESTUNE_ORDERED_QUEUE",
-             "Call to addAndWakeup failed, error: " + std::string(e.what()));
-
+        TYPELOGV(GENERIC_CALL_FAILURE_LOG, e.what());
         return false;
     }
 
@@ -42,12 +40,10 @@ void OrderedQueue::wait() {
         lock.unlock();
 
     } catch(const std::system_error& e) {
-        LOGE("RESTUNE_ORDERED_QUEUE",
-             "Cannot wait on Ordered Queue, error: " + std::string(e.what()));
+        TYPELOGV(GENERIC_CALL_FAILURE_LOG, e.what());
 
     } catch(const std::exception& e) {
-        LOGE("RESTUNE_ORDERED_QUEUE",
-             "Cannot wait on Ordered Queue, error: " + std::string(e.what()));
+        TYPELOGV(GENERIC_CALL_FAILURE_LOG, e.what());
     }
 }
 

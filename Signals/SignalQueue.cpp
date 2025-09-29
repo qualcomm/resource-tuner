@@ -79,7 +79,6 @@ void SignalQueue::orderedQueueConsumerHook() {
 
         // This is a custom Request used to clean up the Server.
         if(message->getPriority() == SERVER_CLEANUP_TRIGGER_PRIORITY) {
-            LOGI("RESTUNE_SERVER", "Called Cleanup Request");
             return;
         }
 

@@ -70,10 +70,27 @@ static int8_t performPhysicalMapping(int32_t& coreValue, int32_t& clusterValue) 
 static int8_t VerifyIncomingRequest(Request* req) {
     if(req->getDuration() < -1 || req->getDuration() == 0) return false;
 
+    // Default: All Requests are supported in Display On Mode
+    req->addProcessingMode(MODE_DISPLAY_ON);
+
+    // If the Device is in Display Off or Doze Mode, then no new Requests
+    // shall be accepted.
+    if(ResourceTunerSettings::targetConfigs.currMode != MODE_DISPLAY_ON) {
+        // Request cannot be accepted in the current device mode
+        TYPELOGV(VERIFIER_INVALID_DEVICE_MODE, req->getHandle());
+        return false;
+    }
+
+    if(req->getResources() == nullptr) {
+        return false;
+    }
+
     std::vector<Resource*> resourcesToBeTuned = *(req->getResources());
 
     // No Resources to be Tuned, Reject this Request
-    if(resourcesToBeTuned.size() == 0) return false;
+    if(resourcesToBeTuned.size() == 0) {
+        return false;
+    }
 
     int8_t clientPermissions =
         ClientDataManager::getInstance()->getClientLevelByClientID(req->getClientPID());
@@ -386,9 +403,9 @@ void toggleDisplayModes() {
         ResourceTunerSettings::targetConfigs.currMode &= ~MODE_DISPLAY_ON;
         ResourceTunerSettings::targetConfigs.currMode |= MODE_DISPLAY_OFF;
 
-        // First drain out the CocoTable, and move Requests to Pending Queue (which
-        // cannot be processed in Background)
-        RequestManager::getInstance()->triggerDisplayOffOrDozeMode();
+        // First drain out the CocoTable, and move Requests to the Pending List
+        // (the ones which cannot be processed in Background)
+        RequestManager::getInstance()->triggerDisplayOffMode();
 
     } else {
         // Toggle to Display On

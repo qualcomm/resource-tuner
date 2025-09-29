@@ -377,6 +377,14 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             Logger::log(LOG_ERR, "RESTUNE_REQUEST_VERIFIER", funcName, std::string(buffer));
             break;
 
+        case CommonMessageTypes::VERIFIER_INVALID_DEVICE_MODE:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Request [%ld], cannot be processed in current Device Mode. " \
+                      "Dropping Request.", args);
+
+            Logger::log(LOG_ERR, "RESTUNE_REQUEST_VERIFIER", funcName, std::string(buffer));
+            break;
+
         case CommonMessageTypes::VERIFIER_INVALID_PERMISSION:
             vsnprintf(buffer, sizeof(buffer),
                       "Permissions for Client [PID: %d, TID: %d] Could not be Fetched, " \
@@ -615,6 +623,13 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
                       "No Routine with the Name: [%s] defined by the lib: [%s]", args);
 
             Logger::log(LOG_ERR, "RESTUNE_EXT_FEATURES", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::GENERIC_CALL_FAILURE_LOG:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Call Failed, Error: %s", args);
+
+            Logger::log(LOG_ERR, "RESTUNE_ORDERED_QUEUE", funcName, std::string(buffer));
             break;
 
         default:

@@ -32,7 +32,7 @@ int32_t Resource::getClusterValue() const {
     return (int32_t)(this->mResInfo >> 8) & ((1 << 8) - 1);
 }
 
-int32_t Resource::getResInfo()const  {
+int32_t Resource::getResInfo() const {
     return this->mResInfo;
 }
 
@@ -78,10 +78,6 @@ void Resource::setOptionalInfo(int32_t optionalInfo) {
 
 void Resource::setNumValues(int32_t numValues) {
     this->mNumValues = numValues;
-}
-
-void Resource::setAsCustom() {
-    this->mResCode |= (1 << 31);
 }
 
 Resource::~Resource() {
