@@ -1,0 +1,42 @@
+cc_defaults {
+    name:"resource_tuner_defaults",
+    visibility: ["//visibility:public"],
+    cflags: [
+        "-fexceptions",
+        "-frtti",
+        "-Wno-error",
+        "-Wno-non-virtual-dtor"
+    ],
+    cppflags:["-DANDROID_BUILD"],
+    shared_libs: ["libc++"],
+    rtti: true,
+}
+
+cc_binary {
+    name: "resource_tuner_cli",
+    defaults:["resource_tuner_defaults"],
+    srcs: [
+        "Core/Client/APIs/ResourceTunerAPIs.cpp",
+        "Core/Client/ClientCLI.cpp",
+    ],
+    shared_libs: [
+        "libClientAPIs",
+        "libAuxiliary"
+    ],
+    installable: true
+}
+
+cc_binary {
+    name: "resource_tuner",
+    defaults:["resource_tuner_defaults"],
+    srcs: ["ServerMain.cpp"],
+    shared_libs: [
+        "libAuxiliary",
+        "libSocketCommServer",
+        "libSysRequestReceiver",
+        "libExtAPIs",
+        "libServer",
+        "liblog"
+    ],
+    installable: true
+}

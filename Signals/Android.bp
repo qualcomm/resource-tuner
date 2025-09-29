@@ -1,0 +1,16 @@
+cc_library_shared {
+    name: "libSysSignals",
+    defaults:["resource_tuner_defaults"],
+    srcs: ["*.cpp"],
+    shared_libs: [
+        "libServer",
+        "libAuxiliary",
+        "libExtAPIs",
+        "libyaml"
+    ],
+    header_libs: ["libyaml_headers"],
+    export_header_lib_headers: ["libyaml_headers"],
+    local_include_dirs: ["Include"],
+    export_include_dirs: ["Include"],
+    installable: true,
+}

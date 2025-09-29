@@ -12,6 +12,10 @@
 #include <sstream>
 #include <syslog.h>
 
+#if defined(ANDROID_BUILD)
+    #include <android/log.h>
+#endif
+
 #define LOGD(tag, message) Logger::log(LOG_DEBUG, tag, __func__, message)
 #define LOGI(tag, message) Logger::log(LOG_INFO, tag, __func__, message)
 #define LOGE(tag, message) Logger::log(LOG_ERR, tag, __func__, message)

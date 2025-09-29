@@ -55,6 +55,16 @@ void Logger::log(int32_t level, const std::string& tag, const std::string& funcN
     std::string timestamp = getTimestamp();
     std::string levelStr = levelToString(level);
 
+#if defined(ANDROID_BUILD)
+    if (level == LOG_DEBUG) {
+        __android_log_print(ANDROID_LOG_DEBUG, tag.c_str(), "[%s] %s", funcName.c_str(), message.c_str());
+    } else if (level == LOG_INFO) {
+        __android_log_print(ANDROID_LOG_INFO, tag.c_str(), "[%s] %s", funcName.c_str(), message.c_str());
+    } else if(level == LOG_ERR) {
+        __android_log_print(ANDROID_LOG_ERROR, tag.c_str(),"[%s] %s", funcName.c_str(), message.c_str());
+    }
+
+#else
     if(mRedirectOutputTo == RedirectOptions::LOG_TOSYSLOG) {
         std::ostringstream logStream;
         logStream << "[" << tag << "] [" << levelStr << "] " << funcName <<": "<< message << std::endl;
@@ -67,6 +77,7 @@ void Logger::log(int32_t level, const std::string& tag, const std::string& funcN
             logFile.close();
         }
     }
+#endif
 }
 
 void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) {

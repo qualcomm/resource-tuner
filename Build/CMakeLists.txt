@@ -48,7 +48,6 @@ else()
 endif()
 
 target_include_directories(resource_tuner PRIVATE ${LIBYAML_INCLUDE_DIRS})
-target_include_directories(resource_tuner PRIVATE ${CMAKE_SOURCE_DIR}/Extensions/Include)
 
 target_link_libraries(resource_tuner PUBLIC Server Auxiliary SysRequestReceiver)
 target_link_libraries(resource_tuner PUBLIC ExtAPIs)
