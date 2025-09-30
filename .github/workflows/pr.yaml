@@ -60,7 +60,7 @@ jobs:
         uses: ./.github/actions/aws_s3_helper
         with:
           s3_bucket: qli-prd-cseperf-gh-artifacts
-          mode: multi-Upload
+          mode: multi-upload
           local_file: file_list.txt
             
 
