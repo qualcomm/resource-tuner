@@ -75,7 +75,7 @@ install(FILES ${CMAKE_SOURCE_DIR}/../Core/Modula/Common/Include/Common.h DESTINA
 # Install core config files
 install(
   DIRECTORY ${CMAKE_SOURCE_DIR}/../Core/Configs/
-  DESTINATION  /etc/resource-tuner/common/
+  DESTINATION  etc/resource-tuner/common/
   FILES_MATCHING
   PATTERN "*.yaml"
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
@@ -84,7 +84,7 @@ install(
 # Install Signal config files
 install(
   DIRECTORY ${CMAKE_SOURCE_DIR}/../Signals/Configs/
-  DESTINATION /etc/resource-tuner/common/
+  DESTINATION etc/resource-tuner/common/
   FILES_MATCHING
   PATTERN "*.yaml"
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
@@ -94,7 +94,7 @@ install(
 if(BUILD_TESTS)
   install(
     DIRECTORY ${CMAKE_SOURCE_DIR}/../Tests/Configs/
-    DESTINATION /etc/resource-tuner/custom/
+    DESTINATION etc/resource-tuner/custom/
     FILES_MATCHING
     PATTERN "*.yaml"
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
@@ -105,8 +105,12 @@ endif()
 if(BUILD_TESTS)
   install(
     DIRECTORY ${CMAKE_SOURCE_DIR}/../Tests/Configs/ResourceSysFsNodes/
-    DESTINATION /etc/resource-tuner/tests/Configs/ResourceSysFsNodes/
+    DESTINATION etc/resource-tuner/tests/Configs/ResourceSysFsNodes/
     PATTERN "*"
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
   )
 endif()
+
+# Install service file
+install(FILES ${CMAKE_SOURCE_DIR}/../Services/resource-tuner.service DESTINATION lib/systemd/system/)
+
