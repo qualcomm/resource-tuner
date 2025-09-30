@@ -107,7 +107,7 @@ if(BUILD_TESTS)
     DIRECTORY ${CMAKE_SOURCE_DIR}/../Tests/Configs/ResourceSysFsNodes/
     DESTINATION etc/resource-tuner/tests/Configs/ResourceSysFsNodes/
     FILES_MATCHING
-    PATTERN "*"
+    PATTERN "*.txt"
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
   )
 endif()
