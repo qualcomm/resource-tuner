@@ -49,13 +49,14 @@ jobs:
             cd Build
             mkdir build
             cd build
-            cmake .. -DBUILD_SIGNALS=ON -DBUILD_CLI=ON -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=./resource-tuner
+            cmake .. -DBUILD_SIGNALS=ON -DBUILD_CLI=ON -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=./resource-tuner-bins
             cmake --build .
+            make install
           '
       - name: Create a tar file of build
         run: |
-          cd Build
-          tar -cjf "${{ github.workspace }}/resource-tuner-bins.tar.gz" build/
+          cd Build/build
+          tar -cjf "${{ github.workspace }}/resource-tuner-bins.tar.gz" resource-tuner-bins
           cd ${{ github.workspace }}
           touch file_list.txt
           echo "${{ github.workspace }}/resource-tuner-bins.tar.gz" >> file_list.txt
