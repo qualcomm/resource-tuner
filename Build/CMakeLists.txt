@@ -106,6 +106,7 @@ if(BUILD_TESTS)
   install(
     DIRECTORY ${CMAKE_SOURCE_DIR}/../Tests/Configs/ResourceSysFsNodes/
     DESTINATION etc/resource-tuner/tests/Configs/ResourceSysFsNodes/
+    FILES_MATCHING
     PATTERN "*"
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
   )
