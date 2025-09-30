@@ -45,7 +45,23 @@ jobs:
             cd Build
             mkdir build
             cd build
-            cmake .. -DBUILD_SIGNALS=ON -DBUILD_CLI=ON -DBUILD_TESTS=ON
+            cmake .. -DBUILD_SIGNALS=ON -DBUILD_CLI=ON -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=./resource-tuner
             cmake --build .
           '
+      - name: Create a tar file of build
+        run: |
+          cd Build
+          tar -cjf "${{ github.workspace }}/resource-tuner-bins.tar.gz" build/
+          cd ${{ github.workspace }}
+          touch file_list.txt
+          echo "${{ github.workspace }}/resource-tuner-bins.tar.gz" >> file_list.txt
+
+      - name: Upload artifacts to S3
+        uses: ./.github/actions/aws_s3_helper
+        with:
+          s3_bucket: qli-prd-cseperf-gh-artifacts
+          mode: multi-upload
+          local_file: file_list.txt
+            
+
           
