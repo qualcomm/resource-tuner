@@ -34,9 +34,13 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - uses: actions/checkout@v5
+      - name: Sync codebase
+        uses: qualcomm/resource-tuner/.github/actions/sync@main
         with:
-          ref: ${{ github.ref }}
+          event_name: ${{ github.event_name }}
+          pr_ref: ${{ github.event.pull_request.head.ref }}
+          pr_repo: ${{ github.event.pull_request.head.repo.full_name }}
+          base_ref: ${{ github.ref_name }}
 
       - name: Build resource-tuner in the URM container
         run: |
@@ -57,11 +61,8 @@ jobs:
           echo "${{ github.workspace }}/resource-tuner-bins.tar.gz" >> file_list.txt
 
       - name: Upload artifacts to S3
-        uses: ./.github/actions/aws_s3_helper
+        uses: qualcomm/resource-tuner/.github/actions/aws_s3_helper@main
         with:
           s3_bucket: qli-prd-cseperf-gh-artifacts
           mode: multi-upload
           local_file: file_list.txt
-            
-
-          
