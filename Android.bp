@@ -10,6 +10,7 @@ cc_defaults {
     cppflags:["-DANDROID_BUILD"],
     shared_libs: ["libc++"],
     rtti: true,
+    vendor: true,
 }
 
 cc_binary {
@@ -21,9 +22,10 @@ cc_binary {
     ],
     shared_libs: [
         "libClientAPIs",
-        "libAuxiliary"
+        "libAuxiliary",
+        "liblog",
     ],
-    installable: true
+    installable: true,
 }
 
 cc_binary {
@@ -36,7 +38,7 @@ cc_binary {
         "libSysRequestReceiver",
         "libExtAPIs",
         "libServer",
-        "liblog"
+        "liblog",
     ],
-    installable: true
+    installable: true,
 }

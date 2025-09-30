@@ -33,8 +33,8 @@ endif()
 
 if(BUILD_CLI)
   add_executable(resource_tuner_cli
-    ${CMAKE_SOURCE_DIR}/../Core/Client/APIs/ResourceTunerAPIs.cpp
     ${CMAKE_SOURCE_DIR}/../Core/Client/ClientCLI.cpp
+    ${CMAKE_SOURCE_DIR}/../Core/Client/Comm/Socket/ResourceTunerAPIs.cpp
   )
   target_link_libraries(resource_tuner_cli ClientAPIs)
   install(TARGETS resource_tuner_cli RUNTIME DESTINATION bin)

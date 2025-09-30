@@ -6,11 +6,13 @@ cc_library_shared {
         "libServer",
         "libAuxiliary",
         "libExtAPIs",
-        "libyaml"
+        "libyaml",
+        "liblog",
     ],
     header_libs: ["libyaml_headers"],
     export_header_lib_headers: ["libyaml_headers"],
     local_include_dirs: ["Include"],
     export_include_dirs: ["Include"],
     installable: true,
+    vendor: true,
 }

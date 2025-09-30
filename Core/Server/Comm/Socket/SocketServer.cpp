@@ -1,9 +1,9 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include "ResourceTunerSocketServer.h"
+#include "SocketServer.h"
 
-ResourceTunerSocketServer::ResourceTunerSocketServer(
+SocketServer::SocketServer(
         uint32_t mListeningPort,
         ServerOnlineCheckCallback mServerOnlineCheckCb,
         ResourceTunerMessageReceivedCallback mResourceTunerMessageRecvCb) {
@@ -15,7 +15,7 @@ ResourceTunerSocketServer::ResourceTunerSocketServer(
 }
 
 // Called by server, this will put the server in listening mode
-int32_t ResourceTunerSocketServer::ListenForClientRequests() {
+int32_t SocketServer::ListenForClientRequests() {
     if((this->sockFd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         TYPELOGV(ERRNO_LOG, "socket", strerror(errno));
         LOGE("RESTUNE_SOCKET_SERVER", "Failed to initialize Server Socket");
@@ -119,14 +119,14 @@ int32_t ResourceTunerSocketServer::ListenForClientRequests() {
     return RC_SUCCESS;
 }
 
-int32_t ResourceTunerSocketServer::closeConnection() {
+int32_t SocketServer::closeConnection() {
     if(this->sockFd != -1) {
         return close(this->sockFd);
     }
     return RC_SOCKET_FD_CLOSE_FAILURE;
 }
 
-ResourceTunerSocketServer::~ResourceTunerSocketServer() {
+SocketServer::~SocketServer() {
     if(this->sockFd != -1) {
         close(this->sockFd);
     }

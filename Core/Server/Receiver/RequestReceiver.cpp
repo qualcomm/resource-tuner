@@ -143,10 +143,9 @@ void onMsgRecvCallback(int32_t clientSocket, MsgForwardInfo* msgForwardInfo) {
 }
 
 void listenerThreadStartRoutine() {
-    ResourceTunerSocketServer* connection;
-    pthread_setname_np(pthread_self(), "listenerThread");
+    SocketServer* connection;
     try {
-        connection = new ResourceTunerSocketServer(ResourceTunerSettings::metaConfigs.mListeningPort,
+        connection = new SocketServer(ResourceTunerSettings::metaConfigs.mListeningPort,
                                                    checkServerOnlineStatus,
                                                    onMsgRecvCallback);
     } catch(const std::bad_alloc& e) {

@@ -11,7 +11,7 @@
 #include <sstream>
 
 #include "Logger.h"
-#include "ResourceTunerSocketServer.h"
+#include "SocketServer.h"
 #include "ResourceTunerSettings.h"
 #include "AuxRoutines.h"
 #include "ComponentRegistry.h"

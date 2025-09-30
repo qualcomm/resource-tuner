@@ -1,8 +1,8 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#ifndef RESOURCE_TUNER_SOCKET_SERVER_H
-#define RESOURCE_TUNER_SOCKET_SERVER_H
+#ifndef SOCKET_SERVER_H
+#define SOCKET_SERVER_H
 
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -24,7 +24,7 @@
 
 static const uint32_t maxEvents = 128;
 
-class ResourceTunerSocketServer : public ServerEndpoint {
+class SocketServer : public ServerEndpoint {
 private:
     int32_t sockFd;
     uint32_t mListeningPort;
@@ -32,12 +32,11 @@ private:
     ResourceTunerMessageReceivedCallback mResourceTunerMessageRecvCb;
 
 public:
-    ResourceTunerSocketServer(
-                        uint32_t mListeningPort,
-                        ServerOnlineCheckCallback mServerOnlineCheckCb,
-                        ResourceTunerMessageReceivedCallback mResourceTunerMessageRecvCb);
+    SocketServer(uint32_t mListeningPort,
+                 ServerOnlineCheckCallback mServerOnlineCheckCb,
+                 ResourceTunerMessageReceivedCallback mResourceTunerMessageRecvCb);
 
-    ~ResourceTunerSocketServer();
+    ~SocketServer();
 
     virtual int32_t ListenForClientRequests();
     virtual int32_t closeConnection();

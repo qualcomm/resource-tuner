@@ -1,13 +1,13 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include "ResourceTunerSocketClient.h"
+#include "SocketClient.h"
 
-ResourceTunerSocketClient::ResourceTunerSocketClient() {
+SocketClient::SocketClient() {
     this->sockFd = -1;
 }
 
-int32_t ResourceTunerSocketClient::initiateConnection() {
+int32_t SocketClient::initiateConnection() {
     if((this->sockFd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         TYPELOGV(ERRNO_LOG, "socket", strerror(errno));
         return RC_SOCKET_CONN_NOT_INITIALIZED;
@@ -26,7 +26,7 @@ int32_t ResourceTunerSocketClient::initiateConnection() {
     return RC_SUCCESS;
 }
 
-int32_t ResourceTunerSocketClient::sendMsg(char* buf, size_t bufSize) {
+int32_t SocketClient::sendMsg(char* buf, size_t bufSize) {
     if(buf == nullptr) return RC_BAD_ARG;
 
     if(write(this->sockFd, buf, bufSize) == -1) {
@@ -37,7 +37,7 @@ int32_t ResourceTunerSocketClient::sendMsg(char* buf, size_t bufSize) {
     return RC_SUCCESS;
 }
 
-int32_t ResourceTunerSocketClient::readMsg(char* buf, size_t bufSize) {
+int32_t SocketClient::readMsg(char* buf, size_t bufSize) {
     if(buf == nullptr || bufSize == 0) {
         return RC_BAD_ARG;
     }
@@ -51,14 +51,14 @@ int32_t ResourceTunerSocketClient::readMsg(char* buf, size_t bufSize) {
     return RC_SUCCESS;
 }
 
-int32_t ResourceTunerSocketClient::closeConnection() {
+int32_t SocketClient::closeConnection() {
     if(this->sockFd != -1) {
         return close(this->sockFd);
     }
     return RC_SOCKET_FD_CLOSE_FAILURE;
 }
 
-ResourceTunerSocketClient::~ResourceTunerSocketClient() {
+SocketClient::~SocketClient() {
     if(this->sockFd != -1) {
         close(this->sockFd);
     }
