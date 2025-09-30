@@ -9,6 +9,8 @@ cc_library_shared {
     shared_libs: [
         "libyaml",
         "liblog",
+        "libbinder",
+        "libbinder_ndk",
     ],
     header_libs: ["libyaml_headers"],
     export_header_lib_headers: ["libyaml_headers"],
@@ -31,19 +33,19 @@ cc_library_shared {
     defaults:["resource_tuner_defaults"],
     srcs: [
         "Client/APIs/*.cpp",
-        "Client/Comm/Socket/*.cpp"
+        "Client/Comm/Binder/*.cpp"
     ],
     shared_libs: [
         "libAuxiliary",
         "liblog",
+        "libbinder",
+        "libbinder_ndk",
     ],
     local_include_dirs: [
         "Client/APIs/Include",
-        "Client/Comm/Socket/Include"
     ],
     export_include_dirs: [
         "Client/APIs/Include",
-        "Client/Comm/Socket/Include"
     ],
     installable: true,
     vendor: true,
@@ -56,6 +58,8 @@ cc_library_shared {
     shared_libs: [
         "libAuxiliary",
         "liblog",
+        "libbinder",
+        "libbinder_ndk",
     ],
     local_include_dirs: ["Extensions/Include"],
     export_include_dirs: ["Extensions/Include"],
@@ -64,30 +68,17 @@ cc_library_shared {
 }
 
 cc_library_shared {
-    name: "libSocketCommServer",
+    name: "libBinderCommServer",
     defaults:["resource_tuner_defaults"],
-    srcs: ["Server/Socket/*.cpp"],
+    srcs: ["Server/Comm/Binder/*.cpp"],
     shared_libs: [
         "libAuxiliary",
-        "liblog"
-    ],
-    local_include_dirs: ["Server/Socket/Include"],
-    export_include_dirs: ["Server/Socket/Include"],
-    installable: true,
-    vendor: true,
-}
-
-cc_library_shared {
-    name: "libSysRequestReceiver",
-    defaults:["resource_tuner_defaults"],
-    srcs: ["Server/Receiver/*.cpp"],
-    shared_libs: [
-        "libAuxiliary",
-        "libSocketCommServer",
         "liblog",
+        "libbinder",
+        "libbinder_ndk",
     ],
-    local_include_dirs: ["Server/Receiver/Include"],
-    export_include_dirs: ["Server/Receiver/Include"],
+    local_include_dirs: ["Server/Comm/Binder/Include"],
+    export_include_dirs: ["Server/Comm/Binder/Include"],
     installable: true,
     vendor: true,
 }
@@ -98,10 +89,12 @@ cc_library_shared {
     srcs: ["Framework/*.cpp"],
     shared_libs: [
         "libAuxiliary",
-        "libSocketCommServer",
+        "libBinderCommServer",
         "libExtAPIs",
         "libyaml",
         "liblog",
+        "libbinder",
+        "libbinder_ndk",
     ],
     header_libs: ["libyaml_headers"],
     export_header_lib_headers: ["libyaml_headers"],

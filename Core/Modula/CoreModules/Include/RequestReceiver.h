@@ -11,7 +11,6 @@
 #include <sstream>
 
 #include "Logger.h"
-#include "SocketServer.h"
 #include "ResourceTunerSettings.h"
 #include "AuxRoutines.h"
 #include "ComponentRegistry.h"
@@ -25,23 +24,36 @@
 class RequestReceiver {
 private:
     static std::shared_ptr<RequestReceiver> mRequestReceiverInstance;
+    static std::mutex instanceProtectionLock;
+    ThreadPool* mRequestsThreadPool;
+    ThreadPool* mTimerThreadPool;
 
     RequestReceiver();
 
 public:
-    static ThreadPool* mRequestsThreadPool;
+    ~RequestReceiver();
 
-    void forwardMessage(int32_t clientSocket, MsgForwardInfo* msgForwardInfo);
+    ThreadPool* getRequestThreadPool();
+    ThreadPool* getTimerThreadPool();
+
+    ErrCode preAllocateWorkers();
 
     static std::shared_ptr<RequestReceiver> getInstance() {
         if(mRequestReceiverInstance == nullptr) {
-            mRequestReceiverInstance = std::shared_ptr<RequestReceiver>(new RequestReceiver());
+            instanceProtectionLock.lock();
+            if(mRequestReceiverInstance == nullptr) {
+                try {
+                    mRequestReceiverInstance = std::shared_ptr<RequestReceiver> (new RequestReceiver());
+                } catch(const std::bad_alloc& e) {
+                    instanceProtectionLock.unlock();
+                    return nullptr;
+                }
+            }
+            instanceProtectionLock.unlock();
         }
         return mRequestReceiverInstance;
     }
 };
-
-void OnResourceTunerMessageReceiverCallback(int32_t callbackID, char* message, uint64_t bufferSize);
 
 void listenerThreadStartRoutine();
 

@@ -34,6 +34,7 @@ static int8_t isRootProcess(pid_t pid) {
 
 std::mutex ClientDataManager::instanceProtectionLock {};
 std::shared_ptr<ClientDataManager> ClientDataManager::mClientDataManagerInstance = nullptr;
+
 ClientDataManager::ClientDataManager() {}
 
 int8_t ClientDataManager::clientExists(int32_t clientPID, int32_t clientTID) {

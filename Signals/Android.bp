@@ -8,6 +8,8 @@ cc_library_shared {
         "libExtAPIs",
         "libyaml",
         "liblog",
+        "libbinder",
+        "libbinder_ndk",
     ],
     header_libs: ["libyaml_headers"],
     export_header_lib_headers: ["libyaml_headers"],

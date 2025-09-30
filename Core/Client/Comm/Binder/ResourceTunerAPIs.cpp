@@ -3,31 +3,41 @@
 
 #include <memory>
 #include <mutex>
+#include <android/binder_manager.h>
+#include <android/binder_process.h>
+#include <android/binder_interface_utils.h>
 
 #include "Utils.h"
+#include "Logger.h"
 #include "ResourceTunerAPIs.h"
+
+using IRestuneAidl = ::aidl::vendor::qti::hardware::restune::IRestune;
+using ::ndk::SpAIBinder;
 
 #define REQ_SEND_ERR(e) "Failed to send Request to Server, Error: " + std::string(e)
 #define CONN_SEND_FAIL "Failed to send Request to Server"
 #define CONN_INIT_FAIL "Failed to initialize Connection to resource-tuner Server"
 
-using ::aidl::vendor::qti::hardware::restune::IRestune;
 
 static const std::string resourceTunerAidl = "vendor.qti.hardware.restune.IRestune";
 
 class BinderManager {
 private:
-    IRestune* mRestuneAidl;
+    IRestuneAidl* mRestuneAidl;
 
 public:
     BinderManager() {
-        mRestuneAidl = IRestune::fromBinder(
+        this->mRestuneAidl = IRestuneAidl::fromBinder(
             ndk::SpAIBinder(AServiceManager_getService(resourceTunerAidl.c_str()))
         );
 
         if(this->mRestuneAidl == nullptr) {
-            LOGE("RESTUNE_CLIENT", REQ_SEND_ERR(e.what()));
+            LOGE("RESTUNE_CLIENT", "Failed to get Binder Proxy");
         }
+    }
+
+    IRestuneAidl* getRestuneAidl() {
+        return this->mRestuneAidl;
     }
 
     ~BinderManager() {
@@ -48,14 +58,15 @@ public:
     }
 };
 
-static ClientLogger clientLogger;
 static BinderManager binderManager;
+static ClientLogger clientLogger;
+static std::mutex apiLock;
 
 int64_t tuneResources(int64_t duration, int32_t properties, int32_t numRes, SysResource* resourceList) {
     // Only one client Thread can send a Request at any moment
     try {
         const std::lock_guard<std::mutex> lock(apiLock);
-        IRestune* restuneAidl = binderManager.getRestuneAidl();
+        IRestuneAidl* restuneAidl = binderManager.getRestuneAidl();
 
         if(restuneAidl == nullptr) {
             LOGE("RESTUNE_CLIENT", CONN_INIT_FAIL);
@@ -75,7 +86,7 @@ int64_t tuneResources(int64_t duration, int32_t properties, int32_t numRes, SysR
 int8_t retuneResources(int64_t handle, int64_t duration) {
     try {
         const std::lock_guard<std::mutex> lock(apiLock);
-        IRestune* restuneAidl = binderManager.getRestuneAidl();
+        IRestuneAidl* restuneAidl = binderManager.getRestuneAidl();
 
         if(restuneAidl == nullptr) {
             LOGE("RESTUNE_CLIENT", CONN_INIT_FAIL);
@@ -96,7 +107,7 @@ int8_t retuneResources(int64_t handle, int64_t duration) {
 int8_t untuneResources(int64_t handle) {
     try {
         const std::lock_guard<std::mutex> lock(apiLock);
-        IRestune* restuneAidl = binderManager.getRestuneAidl();
+        IRestuneAidl* restuneAidl = binderManager.getRestuneAidl();
 
         if(restuneAidl == nullptr) {
             LOGE("RESTUNE_CLIENT", CONN_INIT_FAIL);
@@ -117,7 +128,7 @@ int8_t untuneResources(int64_t handle) {
 int8_t getProp(const char* prop, char* buffer, size_t bufferSize, const char* defValue) {
     try {
         const std::lock_guard<std::mutex> lock(apiLock);
-        IRestune* restuneAidl = binderManager.getRestuneAidl();
+        IRestuneAidl* restuneAidl = binderManager.getRestuneAidl();
 
         if(restuneAidl == nullptr) {
             LOGE("RESTUNE_CLIENT", CONN_INIT_FAIL);
@@ -149,7 +160,7 @@ int64_t tuneSignal(uint32_t signalCode, int64_t duration, int32_t properties,
                    uint32_t* list) {
     try {
         const std::lock_guard<std::mutex> lock(apiLock);
-        IRestune* restuneAidl = binderManager.getRestuneAidl();
+        IRestuneAidl* restuneAidl = binderManager.getRestuneAidl();
 
         if(restuneAidl == nullptr) {
             LOGE("RESTUNE_CLIENT", CONN_INIT_FAIL);
@@ -169,7 +180,7 @@ int64_t tuneSignal(uint32_t signalCode, int64_t duration, int32_t properties,
 int8_t untuneSignal(int64_t handle) {
     try {
         const std::lock_guard<std::mutex> lock(apiLock);
-        IRestune* restuneAidl = binderManager.getRestuneAidl();
+        IRestuneAidl* restuneAidl = binderManager.getRestuneAidl();
 
         if(restuneAidl == nullptr) {
             LOGE("RESTUNE_CLIENT", CONN_INIT_FAIL);
@@ -191,7 +202,7 @@ int8_t relaySignal(uint32_t signalCode, int64_t duration, int32_t properties,
                    const char* appName, const char* scenario, int32_t numArgs, uint32_t* list) {
     try {
         const std::lock_guard<std::mutex> lock(apiLock);
-        IRestune* restuneAidl = binderManager.getRestuneAidl();
+        IRestuneAidl* restuneAidl = binderManager.getRestuneAidl();
 
         if(restuneAidl == nullptr) {
             LOGE("RESTUNE_CLIENT", CONN_INIT_FAIL);

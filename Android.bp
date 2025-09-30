@@ -17,13 +17,15 @@ cc_binary {
     name: "resource_tuner_cli",
     defaults:["resource_tuner_defaults"],
     srcs: [
-        "Core/Client/APIs/ResourceTunerAPIs.cpp",
+        "Core/Client/Comm/Binder/ResourceTunerAPIs.cpp",
         "Core/Client/ClientCLI.cpp",
     ],
     shared_libs: [
         "libClientAPIs",
         "libAuxiliary",
         "liblog",
+        "libbinder",
+        "libbinder_ndk",
     ],
     installable: true,
 }
@@ -34,11 +36,12 @@ cc_binary {
     srcs: ["ServerMain.cpp"],
     shared_libs: [
         "libAuxiliary",
-        "libSocketCommServer",
-        "libSysRequestReceiver",
+        "libBinderCommServer",
         "libExtAPIs",
         "libServer",
         "liblog",
+        "libbinder",
+        "libbinder_ndk",
     ],
     installable: true,
 }

@@ -17,25 +17,21 @@
 #include "Request.h"
 #include "Signal.h"
 #include "SafeOps.h"
-#include "ServerEndpoint.h"
+#include "ComponentRegistry.h"
+#include "RequestReceiver.h"
 #include "ResourceTunerSettings.h"
 #include "ErrCodes.h"
 #include "Logger.h"
 
 static const uint32_t maxEvents = 128;
 
-class SocketServer : public ServerEndpoint {
+class SocketServer {
 private:
     int32_t sockFd;
     uint32_t mListeningPort;
-    ServerOnlineCheckCallback mServerOnlineCheckCb;
-    ResourceTunerMessageReceivedCallback mResourceTunerMessageRecvCb;
 
 public:
-    SocketServer(uint32_t mListeningPort,
-                 ServerOnlineCheckCallback mServerOnlineCheckCb,
-                 ResourceTunerMessageReceivedCallback mResourceTunerMessageRecvCb);
-
+    SocketServer(uint32_t mListeningPort);
     ~SocketServer();
 
     virtual int32_t ListenForClientRequests();

@@ -49,14 +49,12 @@ endif()
 
 target_include_directories(resource_tuner PRIVATE ${LIBYAML_INCLUDE_DIRS})
 
-target_link_libraries(resource_tuner PUBLIC Server Auxiliary SysRequestReceiver)
-target_link_libraries(resource_tuner PUBLIC ExtAPIs)
+target_link_libraries(resource_tuner PUBLIC Server Auxiliary ExtAPIs SocketCommServer)
 
 # Install libs
 install(TARGETS resource_tuner RUNTIME DESTINATION bin)
 install(TARGETS Auxiliary SocketCommServer
-                ClientAPIs Server ExtAPIs
-                SysRequestReceiver LIBRARY DESTINATION lib)
+                ClientAPIs Server ExtAPIs LIBRARY DESTINATION lib)
 
 if(BUILD_TESTS)
   install(TARGETS TestSetupUtils DESTINATION lib)

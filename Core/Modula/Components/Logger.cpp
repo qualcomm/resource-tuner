@@ -192,6 +192,18 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
 
             break;
 
+        case CommonMessageTypes::INCOMING_REQUEST_THREAD_POOL_INIT_NOT_DONE:
+            Logger::log(LOG_ERR, "RESTUNE_THREAD_POOL", funcName,
+                        "Thread pool not initialized, Dropping the Request");
+
+            break;
+
+        case CommonMessageTypes::INCOMING_REQUEST_THREAD_POOL_ENQUEUE_FAILURE:
+            Logger::log(LOG_ERR, "RESTUNE_THREAD_POOL", funcName,
+                        "Failed to enqueue the Request to the Thread Pool");
+
+            break;
+
         case CommonMessageTypes::TIMER_START_FAILURE:
             vsnprintf(buffer, sizeof(buffer),
                       "Failed to start Timer for Request [%ld], Dropping Request.", args);

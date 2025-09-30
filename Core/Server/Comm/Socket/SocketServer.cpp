@@ -3,15 +3,134 @@
 
 #include "SocketServer.h"
 
-SocketServer::SocketServer(
-        uint32_t mListeningPort,
-        ServerOnlineCheckCallback mServerOnlineCheckCb,
-        ResourceTunerMessageReceivedCallback mResourceTunerMessageRecvCb) {
+static int8_t isServerOnline() {
+    return ResourceTunerSettings::isServerOnline();
+}
+
+static void onMsgRecv(int32_t clientSocket, MsgForwardInfo* msgForwardInfo) {
+    std::shared_ptr<RequestReceiver> receiver = RequestReceiver::getInstance();
+
+    int8_t requestType = *(int8_t*) msgForwardInfo->buffer;
+    ThreadPool* requestPool = receiver->getRequestThreadPool();
+
+    switch(requestType) {
+        // Resource Provisioning Requests
+        case REQ_RESOURCE_TUNING: {
+            if(!ComponentRegistry::isModuleEnabled(MOD_CORE)) {
+                TYPELOGV(NOTIFY_MODULE_NOT_ENABLED, "Core");
+                return;
+            }
+            msgForwardInfo->handle = AuxRoutines::generateUniqueHandle();
+            if(msgForwardInfo->handle < 0) {
+                // Handle Generation Failure
+                LOGE("RESTUNE_REQUEST_RECEIVER",
+                     "Failed to Generate Request handle");
+                return;
+            }
+        }
+        case REQ_RESOURCE_RETUNING:
+        case REQ_RESOURCE_UNTUNING: {
+            if(!ComponentRegistry::isModuleEnabled(MOD_CORE)) {
+                TYPELOGV(NOTIFY_MODULE_NOT_ENABLED, "Core");
+                return;
+            }
+            // Enqueue the Request to the Thread Pool for async processing.
+            if(requestPool != nullptr) {
+                if(!requestPool->enqueueTask(
+                    ComponentRegistry::getEventCallback(MOD_CORE_ON_MSG_RECV), msgForwardInfo)) {
+                    TYPELOGD(INCOMING_REQUEST_THREAD_POOL_ENQUEUE_FAILURE);
+                }
+            } else {
+                TYPELOGD(INCOMING_REQUEST_THREAD_POOL_INIT_NOT_DONE);
+            }
+
+            // Only in Case of Tune Requests, Write back the handle to the client.
+            if(requestType == REQ_RESOURCE_TUNING) {
+                if(write(clientSocket, (const void*)&msgForwardInfo->handle, sizeof(int64_t)) == -1) {
+                    TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+                }
+            }
+            break;
+        }
+        // Prop Get Requests
+        case REQ_PROP_GET: {
+            // Decode Prop Fetch Request
+            PropConfig propConfig;
+            memset(&propConfig, 0, sizeof(propConfig));
+
+            int8_t* ptr8 = (int8_t*)msgForwardInfo->buffer;
+            (void) DEREF_AND_INCR(ptr8, int8_t);
+
+            char* charIterator = (char*)ptr8;
+            propConfig.mPropName = charIterator;
+
+            while(*charIterator != '\0') {
+                charIterator++;
+            }
+            charIterator++;
+
+            uint64_t* ptr64 = (uint64_t*)charIterator;
+            propConfig.mBufferSize = DEREF_AND_INCR(ptr64, uint64_t);
+
+            ComponentRegistry::getEventCallback(PROP_ON_MSG_RECV)(&propConfig);
+            std::string result = propConfig.mResult;
+
+            size_t maxSafeSize = result.size() + 1;
+            size_t bytesToWrite = std::min(propConfig.mBufferSize, maxSafeSize);
+
+            if(write(clientSocket, (const void*)result.c_str(), bytesToWrite) == -1) {
+                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+            }
+            break;
+        }
+        // Signal Requests
+        case REQ_SIGNAL_TUNING: {
+            if(!ComponentRegistry::isModuleEnabled(MOD_SIGNAL)) {
+                TYPELOGV(NOTIFY_MODULE_NOT_ENABLED, "Signals");
+                return;
+            }
+            msgForwardInfo->handle = AuxRoutines::generateUniqueHandle();
+            if(msgForwardInfo->handle < 0) {
+                // Handle Generation Failure
+                LOGE("RESTUNE_REQUEST_RECEIVER",
+                     "Failed to Generate Request handle");
+                return;
+            }
+        }
+        case REQ_SIGNAL_UNTUNING:
+        case REQ_SIGNAL_RELAY: {
+            if(!ComponentRegistry::isModuleEnabled(MOD_SIGNAL)) {
+                TYPELOGV(NOTIFY_MODULE_NOT_ENABLED, "Signals");
+                return;
+            }
+            // Enqueue the Request to the Thread Pool for async processing.
+            if(requestPool != nullptr) {
+                if(!requestPool->enqueueTask(
+                    ComponentRegistry::getEventCallback(MOD_SIGNAL_ON_MSG_RECV), msgForwardInfo)) {
+                    TYPELOGD(INCOMING_REQUEST_THREAD_POOL_ENQUEUE_FAILURE);
+                }
+            } else {
+                TYPELOGD(INCOMING_REQUEST_THREAD_POOL_INIT_NOT_DONE);
+            }
+
+            // Only in Case of Tune Signals, Write back the handle to the client.
+            if(requestType == REQ_SIGNAL_TUNING) {
+                if(write(clientSocket, (const void*)&msgForwardInfo->handle, sizeof(int64_t)) == -1) {
+                    TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+                }
+            }
+            break;
+        }
+        default:
+            LOGE("RESTUNE_SOCKET_SERVER", "Invalid Request Type");
+            break;
+    }
+}
+
+SocketServer::SocketServer(uint32_t mListeningPort) {
 
     this->sockFd = -1;
     this->mListeningPort = mListeningPort;
-    this->mServerOnlineCheckCb = mServerOnlineCheckCb;
-    this->mResourceTunerMessageRecvCb = mResourceTunerMessageRecvCb;
 }
 
 // Called by server, this will put the server in listening mode
@@ -55,7 +174,7 @@ int32_t SocketServer::ListenForClientRequests() {
         return RC_SOCKET_CONN_NOT_INITIALIZED;
     }
 
-    while(this->mServerOnlineCheckCb()) {
+    while(isServerOnline()) {
         int32_t clientsFdCount = epoll_wait(epollFd, events, maxEvents, -1);
 
         for(int32_t i = 0; i < clientsFdCount; i++) {
@@ -107,7 +226,7 @@ int32_t SocketServer::ListenForClientRequests() {
                         }
 
                         if(bytesRead > 0) {
-                            this->mResourceTunerMessageRecvCb(clientSocket, info);
+                            onMsgRecv(clientSocket, info);
                         }
                         close(clientSocket);
                     }
@@ -131,4 +250,31 @@ SocketServer::~SocketServer() {
         close(this->sockFd);
     }
     this->sockFd = -1;
+}
+
+void listenerThreadStartRoutine() {
+    SocketServer* connection;
+    try {
+        connection = new SocketServer(ResourceTunerSettings::metaConfigs.mListeningPort);
+    } catch(const std::bad_alloc& e) {
+        LOGE("RESTUNE_REQUEST_RECEIVER",
+             "Failed to allocate memory for Resource Tuner Socket Server-Endpoint, Resource Tuner \
+              Server startup failed: " + std::string(e.what()));
+
+        return;
+    } catch(const std::exception& e) {
+        LOGE("RESTUNE_REQUEST_RECEIVER",
+             "Failed to start the Resource Tuner Listener, error: " + std::string(e.what()));
+
+        return;
+    }
+
+    if(RC_IS_NOTOK(connection->ListenForClientRequests())) {
+        LOGE("RESTUNE_REQUEST_RECEIVER", "Server Socket Endpoint crashed");
+    }
+
+    if(connection != nullptr) {
+        delete(connection);
+    }
+    return;
 }
