@@ -35,7 +35,7 @@ static void TestResourceConfigProcessorYAMLDataIntegrity3_1() {
     C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
     C_ASSERT(resourceConfigInfo->mResourceResID == 0);
     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "TEST_RESOURCE_1") == 0);
-    C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min") == 0);
+    C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min.txt") == 0);
     C_ASSERT(resourceConfigInfo->mHighThreshold == 1024);
     C_ASSERT(resourceConfigInfo->mLowThreshold == 0);
     C_ASSERT(resourceConfigInfo->mSupported == true);
@@ -52,7 +52,7 @@ static void TestResourceConfigProcessorYAMLDataIntegrity3_2() {
     C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
     C_ASSERT(resourceConfigInfo->mResourceResID == 1);
     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "TEST_RESOURCE_2") == 0);
-    C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_max") == 0);
+    C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_max.txt") == 0);
     C_ASSERT(resourceConfigInfo->mHighThreshold == 1024);
     C_ASSERT(resourceConfigInfo->mLowThreshold == 512);
     C_ASSERT(resourceConfigInfo->mSupported == true);
@@ -69,7 +69,7 @@ static void TestResourceConfigProcessorYAMLDataIntegrity3_3() {
     C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
     C_ASSERT(resourceConfigInfo->mResourceResID == 5);
     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "TEST_RESOURCE_6") == 0);
-    C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource2") == 0);
+    C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource2.txt") == 0);
     C_ASSERT(resourceConfigInfo->mHighThreshold == 6500);
     C_ASSERT(resourceConfigInfo->mLowThreshold == 50);
     C_ASSERT(resourceConfigInfo->mSupported == true);
