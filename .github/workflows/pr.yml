@@ -52,6 +52,12 @@ jobs:
             cmake .. -DBUILD_SIGNALS=ON -DBUILD_CLI=ON -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=./resource-tuner-bins
             cmake --build .
             make install
+            mkdir -p resource-tuner-bins/etc/resource-tuner/{common,custom,tests}
+            mkdir -p resource-tuner-bins/etc/resource-tuner/tests/Configs/ResourceSysFsNodes
+            cp ../../Core/Configs/*.yaml resource-tuner-bins/etc/resource-tuner/common/
+            cp ../../Signals/Configs/*.yaml resource-tuner-bins/etc/resource-tuner/common/
+            cp ../../Tests/Configs/*.yaml resource-tuner-bins/etc/resource-tuner/custom/
+            cp ../../Tests/Configs/ResourceSysFsNodes/*.txt resource-tuner-bins/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/
           '
       - name: Create a tar file of build
         run: |
