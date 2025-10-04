@@ -9,8 +9,8 @@ cc_defaults {
     ],
     cppflags:["-DANDROID_BUILD"],
     shared_libs: ["libc++"],
-    rtti: true,
     vendor: true,
+    rtti: true,
 }
 
 cc_binary {
@@ -26,6 +26,7 @@ cc_binary {
         "liblog",
         "libbinder",
         "libbinder_ndk",
+        "vendor.qti.hardware.restune-V1-ndk",
     ],
     installable: true,
 }
@@ -42,6 +43,7 @@ cc_binary {
         "liblog",
         "libbinder",
         "libbinder_ndk",
+        "vendor.qti.hardware.restune-V1-ndk",
     ],
     installable: true,
 }

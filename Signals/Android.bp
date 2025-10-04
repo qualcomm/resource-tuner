@@ -10,6 +10,7 @@ cc_library_shared {
         "liblog",
         "libbinder",
         "libbinder_ndk",
+        "vendor.qti.hardware.restune-V1-ndk",
     ],
     header_libs: ["libyaml_headers"],
     export_header_lib_headers: ["libyaml_headers"],
