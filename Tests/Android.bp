@@ -1,0 +1,297 @@
+cc_library_shared {
+    name: "libTestSetupUtils",
+    defaults:["resource_tuner_defaults"],
+    srcs: ["Utils/*.cpp"],
+    shared_libs: [
+        "libAuxiliary",
+        "libyaml",
+        "liblog",
+    ],
+    header_libs: ["libyaml_headers"],
+    export_header_lib_headers: ["libyaml_headers"],
+    local_include_dirs: ["Utils/Include"],
+    export_include_dirs: ["Utils/Include"],
+    installable: true,
+}
+
+cc_binary {
+    name: "resource_tuner_tests",
+    defaults:["resource_tuner_defaults"],
+    srcs: ["Integration/IntegrationTests.cpp"],
+    shared_libs: [
+        "libClientAPIs",
+        "libAuxiliary",
+        "libTestSetupUtils",
+        "liblog",
+    ],
+    installable: true,
+}
+
+cc_binary {
+    name: "MemoryPoolTests",
+    defaults:["resource_tuner_defaults"],
+    srcs: ["Component/Comp/MemoryPoolTests.cpp"],
+    shared_libs: [
+        "libAuxiliary",
+        "libTestSetupUtils",
+        "liblog",
+    ],
+    installable: true,
+}
+
+cc_binary {
+    name: "SafeOpsTests",
+    defaults:["resource_tuner_defaults"],
+    srcs: ["Component/Comp/SafeOpsTests.cpp"],
+    shared_libs: [
+        "libAuxiliary",
+        "libTestSetupUtils",
+        "liblog",
+    ],
+    installable: true,
+}
+
+cc_binary {
+    name: "ThreadPoolTests",
+    defaults:["resource_tuner_defaults"],
+    srcs: ["Component/Comp/ThreadPoolTests.cpp"],
+    shared_libs: [
+        "libAuxiliary",
+        "libTestSetupUtils",
+        "liblog",
+    ],
+    installable: true,
+}
+
+cc_binary {
+    name: "TimerTests",
+    defaults:["resource_tuner_defaults"],
+    srcs: ["Component/Comp/TimerTests.cpp"],
+    shared_libs: [
+        "libAuxiliary",
+        "libTestSetupUtils",
+        "liblog",
+    ],
+    installable: true,
+}
+
+cc_binary {
+    name: "MiscTests",
+    defaults:["resource_tuner_defaults"],
+    srcs: ["Component/Comp/MiscTests.cpp"],
+    shared_libs: [
+        "libAuxiliary",
+        "libTestSetupUtils",
+        "liblog",
+    ],
+    installable: true,
+}
+
+cc_binary {
+    name: "ClientDataManagerTests",
+    defaults:["resource_tuner_defaults"],
+    srcs: ["Component/Comp/ClientDataManagerTests.cpp"],
+    shared_libs: [
+        "libAuxiliary",
+        "libTestSetupUtils",
+        "libServer",
+        "liblog",
+    ],
+    installable: true,
+}
+
+cc_binary {
+    name: "RequestMapTests",
+    defaults:["resource_tuner_defaults"],
+    srcs: ["Component/Comp/RequestMapTests.cpp"],
+    shared_libs: [
+        "libAuxiliary",
+        "libTestSetupUtils",
+        "libServer",
+        "libExtAPIs",
+        "liblog",
+    ],
+    installable: true,
+}
+
+cc_binary {
+    name: "RequestQueueTests",
+    defaults:["resource_tuner_defaults"],
+    srcs: ["Component/Comp/RequestQueueTests.cpp"],
+    shared_libs: [
+        "libAuxiliary",
+        "libTestSetupUtils",
+        "libServer",
+        "libExtAPIs",
+        "liblog",
+    ],
+    installable: true,
+}
+
+cc_binary {
+    name: "RateLimiterTests",
+    defaults:["resource_tuner_defaults"],
+    srcs: ["Component/Comp/RateLimiterTests.cpp"],
+    shared_libs: [
+        "libAuxiliary",
+        "libTestSetupUtils",
+        "libServer",
+        "libExtAPIs",
+        "liblog",
+    ],
+    installable: true,
+}
+
+cc_binary {
+    name: "CocoTableTests",
+    defaults:["resource_tuner_defaults"],
+    srcs: ["Component/Comp/CocoTableTests.cpp"],
+    shared_libs: [
+        "libAuxiliary",
+        "libTestSetupUtils",
+        "libServer",
+        "libExtAPIs",
+        "liblog",
+    ],
+    installable: true,
+}
+
+cc_binary {
+    name: "DeviceInfoTests",
+    defaults:["resource_tuner_defaults"],
+    srcs: ["Component/Device/DeviceInfoTests.cpp"],
+    shared_libs: [
+        "libAuxiliary",
+        "libTestSetupUtils",
+        "libServer",
+        "libExtAPIs",
+        "liblog",
+    ],
+    installable: true,
+}
+
+cc_binary {
+    name: "ResourceProcessorTests",
+    defaults:["resource_tuner_defaults"],
+    srcs: ["Component/Parsers/ResourceProcessorTests.cpp"],
+    shared_libs: [
+        "libAuxiliary",
+        "libTestSetupUtils",
+        "libServer",
+        "libExtAPIs",
+        "liblog",
+    ],
+    installable: true,
+}
+
+cc_binary {
+    name: "ResourceParsingTests",
+    defaults:["resource_tuner_defaults"],
+    srcs: ["Component/Parsers/ResourceParsingTests.cpp"],
+    shared_libs: [
+        "libAuxiliary",
+        "libTestSetupUtils",
+        "libServer",
+        "libExtAPIs",
+        "liblog",
+    ],
+    installable: true,
+}
+
+cc_binary {
+    name: "TargetConfigProcessorTests",
+    defaults:["resource_tuner_defaults"],
+    srcs: ["Component/Parsers/TargetConfigProcessorTests.cpp"],
+    shared_libs: [
+        "libAuxiliary",
+        "libTestSetupUtils",
+        "libServer",
+        "libExtAPIs",
+        "liblog",
+    ],
+    installable: true,
+}
+
+cc_binary {
+    name: "SysConfigAPITests",
+    defaults:["resource_tuner_defaults"],
+    srcs: ["Component/Parsers/SysConfigAPITests.cpp"],
+    shared_libs: [
+        "libAuxiliary",
+        "libTestSetupUtils",
+        "libServer",
+        "libExtAPIs",
+        "liblog",
+    ],
+    installable: true,
+}
+
+cc_binary {
+    name: "InitConfigParsingTests",
+    defaults:["resource_tuner_defaults"],
+    srcs: ["Component/Parsers/InitConfigParsingTests.cpp"],
+    shared_libs: [
+        "libAuxiliary",
+        "libTestSetupUtils",
+        "libServer",
+        "libExtAPIs",
+        "liblog",
+    ],
+    installable: true,
+}
+
+cc_binary {
+    name: "ExtensionIntfTests",
+    defaults:["resource_tuner_defaults"],
+    srcs: ["Component/Comp/ExtensionIntfTests.cpp"],
+    shared_libs: [
+        "libAuxiliary",
+        "libTestSetupUtils",
+        "libServer",
+        "libExtAPIs",
+        "liblog",
+    ],
+    installable: true,
+}
+
+cc_binary {
+    name: "SignalConfigProcessorTests",
+    defaults:["resource_tuner_defaults"],
+    srcs: ["Component/Parsers/SignalConfigProcessorTests.cpp"],
+    shared_libs: [
+        "libAuxiliary",
+        "libTestSetupUtils",
+        "libSysSignals",
+        "libExtAPIs",
+        "liblog",
+    ],
+    installable: true,
+}
+
+cc_binary {
+    name: "SignalParsingTests",
+    defaults:["resource_tuner_defaults"],
+    srcs: ["Component/Parsers/SignalParsingTests.cpp"],
+    shared_libs: [
+        "libAuxiliary",
+        "libTestSetupUtils",
+        "libSysSignals",
+        "libExtAPIs",
+        "liblog",
+    ],
+    installable: true,
+}
+
+cc_binary {
+    name: "ExtFeaturesParsingTests",
+    defaults:["resource_tuner_defaults"],
+    srcs: ["Component/Parsers/ExtFeaturesParsingTests.cpp"],
+    shared_libs: [
+        "libAuxiliary",
+        "libTestSetupUtils",
+        "libSysSignals",
+        "libExtAPIs",
+        "liblog",
+    ],
+    installable: true,
+}

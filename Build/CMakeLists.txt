@@ -33,8 +33,8 @@ endif()
 
 if(BUILD_CLI)
   add_executable(resource_tuner_cli
-    ${CMAKE_SOURCE_DIR}/../Core/Client/APIs/ResourceTunerAPIs.cpp
     ${CMAKE_SOURCE_DIR}/../Core/Client/ClientCLI.cpp
+    ${CMAKE_SOURCE_DIR}/../Core/Client/Comm/Socket/ResourceTunerAPIs.cpp
   )
   target_link_libraries(resource_tuner_cli ClientAPIs)
   install(TARGETS resource_tuner_cli RUNTIME DESTINATION bin)
@@ -48,16 +48,13 @@ else()
 endif()
 
 target_include_directories(resource_tuner PRIVATE ${LIBYAML_INCLUDE_DIRS})
-target_include_directories(resource_tuner PRIVATE ${CMAKE_SOURCE_DIR}/Extensions/Include)
 
-target_link_libraries(resource_tuner PUBLIC Server Auxiliary SysRequestReceiver)
-target_link_libraries(resource_tuner PUBLIC ExtAPIs)
+target_link_libraries(resource_tuner PUBLIC Server Auxiliary ExtAPIs SocketCommServer)
 
 # Install libs
 install(TARGETS resource_tuner RUNTIME DESTINATION bin)
 install(TARGETS Auxiliary SocketCommServer
-                ClientAPIs Server ExtAPIs
-                SysRequestReceiver LIBRARY DESTINATION lib)
+                ClientAPIs Server ExtAPIs LIBRARY DESTINATION lib)
 
 if(BUILD_TESTS)
   install(TARGETS TestSetupUtils DESTINATION lib)

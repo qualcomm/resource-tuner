@@ -110,27 +110,6 @@ static ErrCode loadExtensionsLib() {
     return RC_SUCCESS;
 }
 
-// Initialize Request and Timer ThreadPools
-static ErrCode preAllocateWorkers() {
-    int32_t desiredThreadCapacity = ResourceTunerSettings::desiredThreadCount;
-    int32_t maxScalingCapacity = ResourceTunerSettings::maxScalingCapacity;
-
-    try {
-        RequestReceiver::mRequestsThreadPool = new ThreadPool(desiredThreadCapacity,
-                                                              maxScalingCapacity);
-
-        // Allocate 2 extra threads for Pulse Monitor and Garbage Collector
-        Timer::mTimerThreadPool = new ThreadPool(desiredThreadCapacity + 2,
-                                                 maxScalingCapacity);
-
-    } catch(const std::bad_alloc& e) {
-        TYPELOGV(THREAD_POOL_CREATION_FAILURE, e.what());
-        return RC_MODULE_INIT_FAILURE;
-    }
-
-    return RC_SUCCESS;
-}
-
 static void serverCleanup() {
     LOGE("RESTUNE_SERVER_INIT", "Server Stopped, Cleanup Initiated");
     ResourceTunerSettings::setServerOnlineStatus(false);
@@ -176,7 +155,13 @@ int32_t main(int32_t argc, char *argv[]) {
     if(RC_IS_OK(opStatus)) {
         ResourceTunerSettings::setServerOnlineStatus(true);
         ResourceTunerSettings::targetConfigs.currMode = MODE_DISPLAY_ON;
-        opStatus = preAllocateWorkers();
+
+        std::shared_ptr<RequestReceiver> receiver = RequestReceiver::getInstance();
+        opStatus = receiver->preAllocateWorkers();
+
+        if(RC_IS_OK(opStatus)) {
+            Timer::mTimerThreadPool = receiver->getTimerThreadPool();
+        }
     }
 
     if(RC_IS_OK(opStatus)) {
@@ -286,14 +271,6 @@ int32_t main(int32_t argc, char *argv[]) {
 
     stopPulseMonitorDaemon();
     stopClientGarbageCollectorDaemon();
-
-    if(RequestReceiver::mRequestsThreadPool != nullptr) {
-        delete RequestReceiver::mRequestsThreadPool;
-    }
-
-    if(Timer::mTimerThreadPool != nullptr) {
-        delete Timer::mTimerThreadPool;
-    }
 
     if(childProcessID != -1) {
         kill(childProcessID, SIGKILL);

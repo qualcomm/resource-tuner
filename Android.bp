@@ -1,0 +1,49 @@
+cc_defaults {
+    name:"resource_tuner_defaults",
+    visibility: ["//visibility:public"],
+    cflags: [
+        "-fexceptions",
+        "-frtti",
+        "-Wno-error",
+        "-Wno-non-virtual-dtor"
+    ],
+    cppflags:["-DANDROID_BUILD"],
+    shared_libs: ["libc++"],
+    vendor: true,
+    rtti: true,
+}
+
+cc_binary {
+    name: "resource_tuner_cli",
+    defaults:["resource_tuner_defaults"],
+    srcs: [
+        "Core/Client/Comm/Binder/ResourceTunerAPIs.cpp",
+        "Core/Client/ClientCLI.cpp",
+    ],
+    shared_libs: [
+        "libClientAPIs",
+        "libAuxiliary",
+        "liblog",
+        "libbinder",
+        "libbinder_ndk",
+        "vendor.qti.hardware.restune-V1-ndk",
+    ],
+    installable: true,
+}
+
+cc_binary {
+    name: "resource_tuner",
+    defaults:["resource_tuner_defaults"],
+    srcs: ["ServerMain.cpp"],
+    shared_libs: [
+        "libAuxiliary",
+        "libBinderCommServer",
+        "libExtAPIs",
+        "libServer",
+        "liblog",
+        "libbinder",
+        "libbinder_ndk",
+        "vendor.qti.hardware.restune-V1-ndk",
+    ],
+    installable: true,
+}

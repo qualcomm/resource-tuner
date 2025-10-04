@@ -12,6 +12,10 @@
 #include <sstream>
 #include <syslog.h>
 
+#if defined(ANDROID_BUILD)
+    #include <android/log.h>
+#endif
+
 #define LOGD(tag, message) Logger::log(LOG_DEBUG, tag, __func__, message)
 #define LOGI(tag, message) Logger::log(LOG_INFO, tag, __func__, message)
 #define LOGE(tag, message) Logger::log(LOG_ERR, tag, __func__, message)
@@ -53,6 +57,8 @@ enum CommonMessageTypes {
     THREAD_POOL_THREAD_TERMINATED,
     THREAD_POOL_ENQUEUE_TASK_FAILURE,
     THREAD_POOL_FULL_ALERT,
+    INCOMING_REQUEST_THREAD_POOL_INIT_NOT_DONE,
+    INCOMING_REQUEST_THREAD_POOL_ENQUEUE_FAILURE,
     TIMER_START_FAILURE,
     VERIFIER_INVALID_OPCODE,
     VERIFIER_INVALID_DEVICE_MODE,

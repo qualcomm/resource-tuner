@@ -4,11 +4,9 @@
 #include <memory>
 #include <mutex>
 
-#include "ResourceTunerAPIs.h"
 #include "Utils.h"
-#include "Request.h"
-#include "Signal.h"
-#include "ResourceTunerSocketClient.h"
+#include "SocketClient.h"
+#include "ResourceTunerAPIs.h"
 
 #define REQ_SEND_ERR(e) "Failed to send Request to Server, Error: " + std::string(e)
 #define CONN_SEND_FAIL "Failed to send Request to Server"
@@ -16,10 +14,10 @@
 
 class ConnectionManager {
 private:
-    std::shared_ptr<ClientEndpoint> connection;
+    std::shared_ptr<SocketClient> connection;
 
 public:
-    ConnectionManager(std::shared_ptr<ClientEndpoint> connection) {
+    ConnectionManager(std::shared_ptr<SocketClient> connection) {
         this->connection = connection;
     }
 
@@ -41,7 +39,7 @@ public:
     }
 };
 
-static std::shared_ptr<ClientEndpoint> conn(new ResourceTunerSocketClient());
+static std::shared_ptr<SocketClient> conn(new SocketClient());
 static ClientLogger clientLogger;
 static std::mutex apiLock;
 

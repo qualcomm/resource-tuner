@@ -1,0 +1,110 @@
+cc_library_shared {
+    name: "libAuxiliary",
+    defaults:["resource_tuner_defaults"],
+    srcs: [
+        "Modula/Components/*.cpp",
+        "Modula/Common/*.cpp",
+        "Modula/CoreModules/*.cpp"
+    ],
+    shared_libs: [
+        "libyaml",
+        "liblog",
+        "libbinder",
+        "libbinder_ndk",
+        "vendor.qti.hardware.restune-V1-ndk",
+    ],
+    header_libs: ["libyaml_headers"],
+    export_header_lib_headers: ["libyaml_headers"],
+    local_include_dirs: [
+        "Modula/Components/Include",
+        "Modula/Common/Include",
+        "Modula/CoreModules/Include"
+    ],
+    export_include_dirs: [
+        "Modula/Components/Include",
+        "Modula/Common/Include",
+        "Modula/CoreModules/Include"
+    ],
+    installable: true,
+    vendor: true,
+}
+
+cc_library_shared {
+    name: "libClientAPIs",
+    defaults:["resource_tuner_defaults"],
+    srcs: [
+        "Client/APIs/*.cpp",
+        "Client/Comm/Binder/*.cpp"
+    ],
+    shared_libs: [
+        "libAuxiliary",
+        "liblog",
+        "libbinder",
+        "libbinder_ndk",
+        "vendor.qti.hardware.restune-V1-ndk",
+    ],
+    local_include_dirs: [
+        "Client/APIs/Include",
+    ],
+    export_include_dirs: [
+        "Client/APIs/Include",
+    ],
+    installable: true,
+    vendor: true,
+}
+
+cc_library_shared {
+    name: "libExtAPIs",
+    defaults:["resource_tuner_defaults"],
+    srcs: ["Extensions/*.cpp"],
+    shared_libs: [
+        "libAuxiliary",
+        "liblog",
+        "libbinder",
+        "libbinder_ndk",
+        "vendor.qti.hardware.restune-V1-ndk",
+    ],
+    local_include_dirs: ["Extensions/Include"],
+    export_include_dirs: ["Extensions/Include"],
+    installable: true,
+    vendor: true,
+}
+
+cc_library_shared {
+    name: "libBinderCommServer",
+    defaults:["resource_tuner_defaults"],
+    srcs: ["Server/Comm/Binder/*.cpp"],
+    shared_libs: [
+        "libAuxiliary",
+        "liblog",
+        "libbinder",
+        "libbinder_ndk",
+        "vendor.qti.hardware.restune-V1-ndk",
+    ],
+    local_include_dirs: ["Server/Comm/Binder/Include"],
+    export_include_dirs: ["Server/Comm/Binder/Include"],
+    installable: true,
+    vendor: true,
+}
+
+cc_library_shared {
+    name: "libServer",
+    defaults:["resource_tuner_defaults"],
+    srcs: ["Framework/*.cpp"],
+    shared_libs: [
+        "libAuxiliary",
+        "libBinderCommServer",
+        "libExtAPIs",
+        "libyaml",
+        "liblog",
+        "libbinder",
+        "libbinder_ndk",
+        "vendor.qti.hardware.restune-V1-ndk",
+    ],
+    header_libs: ["libyaml_headers"],
+    export_header_lib_headers: ["libyaml_headers"],
+    local_include_dirs: ["Framework/Include"],
+    export_include_dirs: ["Framework/Include"],
+    installable: true,
+    vendor: true,
+}
