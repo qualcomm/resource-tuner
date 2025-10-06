@@ -204,6 +204,16 @@ int32_t main(int32_t argc, char *argv[]) {
         }
     }
 
+    if(RC_IS_OK(opStatus)) {
+        if(ComponentRegistry::isModuleEnabled(ModuleIdentifier::MOD_DISPLAY_DETECTOR)) {
+            TYPELOGV(NOTIFY_MODULE_ENABLED, "Display_Detector");
+            opStatus = ComponentRegistry::getEventCallback(EventIdentifier::MOD_DISPLAY_DETECTOR_INIT)(nullptr);
+            if(RC_IS_NOTOK(opStatus)) {
+                TYPELOGV(MODULE_INIT_FAILED, "Display_Detector");
+            }
+        }
+    }
+
     // Start the Pulse Monitor and Garbage Collector Daemon Threads
     if(RC_IS_OK(opStatus)) {
         opStatus = startPulseMonitorDaemon();
@@ -273,6 +283,10 @@ int32_t main(int32_t argc, char *argv[]) {
 
     if(ComponentRegistry::isModuleEnabled(ModuleIdentifier::MOD_SIGNAL)) {
         ComponentRegistry::getEventCallback(EventIdentifier::MOD_SIGNAL_TEAR)(nullptr);
+    }
+
+    if(ComponentRegistry::isModuleEnabled(ModuleIdentifier::MOD_DISPLAY_DETECTOR)) {
+        ComponentRegistry::getEventCallback(EventIdentifier::MOD_DISPLAY_DETECTOR_TEAR)(nullptr);
     }
 
     if(resourceTunerListener.joinable()) {

@@ -11,7 +11,8 @@
 
 enum ModuleIdentifier {
     MOD_CORE,
-    MOD_SIGNAL
+    MOD_SIGNAL,
+    MOD_DISPLAY_DETECTOR,
 };
 
 enum EventIdentifier {
@@ -21,7 +22,9 @@ enum EventIdentifier {
     MOD_SIGNAL_INIT,
     MOD_SIGNAL_TEAR,
     MOD_SIGNAL_ON_MSG_RECV,
-    PROP_ON_MSG_RECV
+    PROP_ON_MSG_RECV,
+    MOD_DISPLAY_DETECTOR_INIT,
+    MOD_DISPLAY_DETECTOR_TEAR,
 };
 
 /**

@@ -8,6 +8,7 @@ project("Resource Tuner")
 # Dependencies
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBYAML REQUIRED yaml-0.1)
+pkg_check_modules(SYSTEMD REQUIRED libsystemd)
 
 # Enable Debug. should be removed in production.
 # set(CMAKE_BUILD_TYPE Debug)
@@ -19,6 +20,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 option(BUILD_SIGNALS "Signals" OFF)
 option(BUILD_TESTS "Testing" OFF)
 option(BUILD_CLI "CLI" OFF)
+option(BUILD_DISPLAY_DETECTOR "Display Detector" OFF)
 
 # Mandatory Builds
 add_subdirectory(${CMAKE_SOURCE_DIR}/../Core/Build ${CMAKE_BINARY_DIR}/CoreBuild)
@@ -40,18 +42,32 @@ if(BUILD_CLI)
   install(TARGETS resource_tuner_cli RUNTIME DESTINATION bin)
 endif()
 
-if(BUILD_SIGNALS)
-  add_executable(resource_tuner ${CMAKE_SOURCE_DIR}/../ServerMain.cpp ${CMAKE_SOURCE_DIR}/../Signals/SignalInit.cpp)
-  target_link_libraries(resource_tuner PUBLIC SysSignals)
-else()
-  add_executable(resource_tuner ${CMAKE_SOURCE_DIR}/../ServerMain.cpp)
+set(SERVER_EXECUTABLE "")
+list(APPEND SERVER_EXECUTABLE ${CMAKE_SOURCE_DIR}/../ServerMain.cpp)
+
+set(SERVER_LIBS "")
+list(APPEND SERVER_LIBS
+  Server
+  Auxiliary
+  SysRequestReceiver
+  ExtAPIs
+)
+
+if(BUILD_DISPLAY_DETECTOR)
+  list(APPEND SERVER_EXECUTABLE ${CMAKE_SOURCE_DIR}/../Display/Detection.cpp)
 endif()
 
-target_include_directories(resource_tuner PRIVATE ${LIBYAML_INCLUDE_DIRS})
-target_include_directories(resource_tuner PRIVATE ${CMAKE_SOURCE_DIR}/Extensions/Include)
+if(BUILD_SIGNALS)
+  list(APPEND SERVER_EXECUTABLE ${CMAKE_SOURCE_DIR}/../Signals/SignalInit.cpp)
+  list(APPEND SERVER_LIBS SysSignals)
+endif()
 
-target_link_libraries(resource_tuner PUBLIC Server Auxiliary SysRequestReceiver)
-target_link_libraries(resource_tuner PUBLIC ExtAPIs)
+add_executable(resource_tuner ${SERVER_EXECUTABLE})
+target_link_libraries(resource_tuner PUBLIC ${SERVER_LIBS})
+target_link_libraries(resource_tuner PUBLIC ${SYSTEMD_LDFLAGS})
+target_include_directories(resource_tuner PRIVATE ${LIBYAML_INCLUDE_DIRS})
+target_include_directories(resource_tuner PRIVATE ${SYSTEMD_INCLUDE_DIRS})
+target_include_directories(resource_tuner PRIVATE ${CMAKE_SOURCE_DIR}/Extensions/Include)
 
 # Install libs
 install(TARGETS resource_tuner RUNTIME DESTINATION bin)

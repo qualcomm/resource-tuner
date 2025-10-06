@@ -36,6 +36,11 @@ ComponentRegistry::ComponentRegistry(
             mEventCallbacks[MOD_SIGNAL_ON_MSG_RECV] = onMsgRecv;
             break;
         }
+        case ModuleIdentifier::MOD_DISPLAY_DETECTOR: {
+            mEventCallbacks[MOD_DISPLAY_DETECTOR_INIT] = init;
+            mEventCallbacks[MOD_DISPLAY_DETECTOR_TEAR] = teardown;
+            break;
+        }
         default:
             return;
     }
