@@ -8,7 +8,7 @@ project("Resource Tuner")
 # Dependencies
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBYAML REQUIRED yaml-0.1)
-pkg_check_modules(SYSTEMD REQUIRED libsystemd)
+pkg_check_modules(SYSTEMD REQUIRED systemd)
 
 # Enable Debug. should be removed in production.
 # set(CMAKE_BUILD_TYPE Debug)
@@ -55,6 +55,7 @@ list(APPEND SERVER_LIBS
 
 if(BUILD_DISPLAY_DETECTOR)
   list(APPEND SERVER_EXECUTABLE ${CMAKE_SOURCE_DIR}/../Display/Detection.cpp)
+  list(APPEND SERVER_LIBS systemd)
 endif()
 
 if(BUILD_SIGNALS)
@@ -64,10 +65,7 @@ endif()
 
 add_executable(resource_tuner ${SERVER_EXECUTABLE})
 target_link_libraries(resource_tuner PUBLIC ${SERVER_LIBS})
-target_link_libraries(resource_tuner PUBLIC ${SYSTEMD_LDFLAGS})
 target_include_directories(resource_tuner PRIVATE ${LIBYAML_INCLUDE_DIRS})
-target_include_directories(resource_tuner PRIVATE ${SYSTEMD_INCLUDE_DIRS})
-target_include_directories(resource_tuner PRIVATE ${CMAKE_SOURCE_DIR}/Extensions/Include)
 
 # Install libs
 install(TARGETS resource_tuner RUNTIME DESTINATION bin)
