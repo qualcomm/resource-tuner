@@ -40,9 +40,16 @@ static void cleanup() {
 }
 
 static int32_t onSdBusMessageReceived(sd_bus_message* message,
-                               void *userdata,
-                               sd_bus_error* retError) {
+                                      void *userdata,
+                                      sd_bus_error* retError) {
     std::cout<<"sd-bus signal received"<<std::endl;
+    return 0;
+}
+
+static int32_t customTerminator(sd_event_source *s,
+                                const struct signalfd_siginfo *si,
+                                void *userdata) {
+    sd_event_exit(event, 0);
     return 0;
 }
 
@@ -57,19 +64,6 @@ static void initHelper() {
     // Create the Event Loop object
     if(sd_event_default(&event) < 0) {
         LOGE("RESTUNE_DISPLAY_AWARE_OPS", "Failed to create event-loop");
-        cleanup();
-        return;
-    }
-
-    // Register for UNIX signals (to control event loop termination)
-    if(sd_event_add_signal(event, nullptr, SIGINT, nullptr, nullptr) < 0) {
-        LOGE("RESTUNE_DISPLAY_AWARE_OPS", "Failed to Attach SIGINT handler");
-        cleanup();
-        return;
-    }
-
-    if(sd_event_add_signal(event, nullptr, SIGTERM, nullptr, nullptr) < 0) {
-        LOGE("RESTUNE_DISPLAY_AWARE_OPS", "Failed to Attach SIGTERM handler");
         cleanup();
         return;
     }
@@ -106,7 +100,6 @@ static void initHelper() {
 }
 
 // Register Module's Callback functions
-
 static ErrCode init(void* arg) {
     try {
         eventTrackerThread = std::thread(initHelper);

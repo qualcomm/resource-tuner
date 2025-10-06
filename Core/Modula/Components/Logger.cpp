@@ -79,7 +79,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             vsnprintf(buffer, sizeof(buffer),
                      "Module: [%s] is Enabled, Proceeding with Initialization", args);
 
-            Logger::log(LOG_INFO, "RESTUNE_CLIENT_DATA_MANAGER",
+            Logger::log(LOG_INFO, "RESTUNE_COMPONENT_REGISTRY",
                         funcName, std::string(buffer));
             break;
 
