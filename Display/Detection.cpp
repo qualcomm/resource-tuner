@@ -20,7 +20,26 @@ static sd_event* event = nullptr;
 
 static std::thread eventTrackerThread;
 
-int32_t onSdBusMessageReceived(sd_bus_message* message,
+static void cleanup() {
+    // Cleanup
+    if(event != nullptr) {
+        sd_event_unref(event);
+    }
+
+    if(slot != nullptr) {
+        sd_bus_slot_unref(slot);
+    }
+
+    if(bus != nullptr) {
+        sd_bus_unref(bus);
+    }
+
+    event = nullptr;
+    slot = nullptr;
+    bus = nullptr;
+}
+
+static int32_t onSdBusMessageReceived(sd_bus_message* message,
                                void *userdata,
                                sd_bus_error* retError) {
     std::cout<<"sd-bus signal received"<<std::endl;
@@ -31,23 +50,27 @@ static void initHelper() {
     // Connect to the system bus
     if(sd_bus_default_system(&bus) < 0) {
         LOGE("RESTUNE_DISPLAY_AWARE_OPS", "Failed to establish connection with system bus");
+        cleanup();
         return;
     }
 
     // Create the Event Loop object
     if(sd_event_default(&event) < 0) {
         LOGE("RESTUNE_DISPLAY_AWARE_OPS", "Failed to create event-loop");
+        cleanup();
         return;
     }
 
     // Register for UNIX signals (to control event loop termination)
     if(sd_event_add_signal(event, nullptr, SIGINT, nullptr, nullptr) < 0) {
         LOGE("RESTUNE_DISPLAY_AWARE_OPS", "Failed to Attach SIGINT handler");
+        cleanup();
         return;
     }
 
     if(sd_event_add_signal(event, nullptr, SIGTERM, nullptr, nullptr) < 0) {
         LOGE("RESTUNE_DISPLAY_AWARE_OPS", "Failed to Attach SIGTERM handler");
+        cleanup();
         return;
     }
 
@@ -61,24 +84,37 @@ static void initHelper() {
                            onSdBusMessageReceived,
                            nullptr) < 0) {
         LOGE("RESTUNE_DISPLAY_AWARE_OPS", "Failed to subscribe to PrepareForSleep (D-Bus) signal");
+        cleanup();
         return;
     }
 
     // Listen for D-Bus events
     if(sd_bus_attach_event(bus, event, 0) < 0) {
         LOGE("RESTUNE_DISPLAY_AWARE_OPS", "Failed to start event-loop");
+        cleanup();
         return;
     }
 
     // Start the Event Loop
     if(sd_event_loop(event) < 0) {
         LOGE("RESTUNE_DISPLAY_AWARE_OPS", "Failed to start event-loop");
+        cleanup();
         return;
     }
+
+    cleanup();
 }
 
+// Register Module's Callback functions
+
 static ErrCode init(void* arg) {
-    eventTrackerThread = std::thread(initHelper);
+    try {
+        eventTrackerThread = std::thread(initHelper);
+    } catch(const std::system_error& e) {
+        TYPELOGV(SYSTEM_THREAD_CREATION_FAILURE, "State_Optimizer", e.what());
+        return RC_MODULE_INIT_FAILURE;
+    }
+
     return RC_SUCCESS;
 }
 
@@ -87,14 +123,7 @@ static ErrCode tear(void* arg) {
         eventTrackerThread.join();
     }
 
-    sd_event_unref(event);
-    sd_bus_slot_unref(slot);
-    sd_bus_unref(bus);
-
-    event = nullptr;
-    slot = nullptr;
-    bus = nullptr;
     return RC_SUCCESS;
 }
 
-RESTUNE_REGISTER_MODULE(MOD_DISPLAY_DETECTOR, init, tear, nullptr);
+RESTUNE_REGISTER_MODULE(MOD_STATE_OPTIMIZER, init, tear, nullptr);

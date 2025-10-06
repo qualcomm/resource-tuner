@@ -36,9 +36,9 @@ ComponentRegistry::ComponentRegistry(
             mEventCallbacks[MOD_SIGNAL_ON_MSG_RECV] = onMsgRecv;
             break;
         }
-        case ModuleIdentifier::MOD_DISPLAY_DETECTOR: {
-            mEventCallbacks[MOD_DISPLAY_DETECTOR_INIT] = init;
-            mEventCallbacks[MOD_DISPLAY_DETECTOR_TEAR] = teardown;
+        case ModuleIdentifier::MOD_STATE_OPTIMIZER: {
+            mEventCallbacks[MOD_STATE_OPTIMIZER_INIT] = init;
+            mEventCallbacks[MOD_STATE_OPTIMIZER_TEAR] = teardown;
             break;
         }
         default:

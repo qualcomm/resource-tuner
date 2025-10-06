@@ -205,9 +205,9 @@ int32_t main(int32_t argc, char *argv[]) {
     }
 
     if(RC_IS_OK(opStatus)) {
-        if(ComponentRegistry::isModuleEnabled(ModuleIdentifier::MOD_DISPLAY_DETECTOR)) {
+        if(ComponentRegistry::isModuleEnabled(ModuleIdentifier::MOD_STATE_OPTIMIZER)) {
             TYPELOGV(NOTIFY_MODULE_ENABLED, "Display_Detector");
-            opStatus = ComponentRegistry::getEventCallback(EventIdentifier::MOD_DISPLAY_DETECTOR_INIT)(nullptr);
+            opStatus = ComponentRegistry::getEventCallback(EventIdentifier::MOD_STATE_OPTIMIZER_INIT)(nullptr);
             if(RC_IS_NOTOK(opStatus)) {
                 TYPELOGV(MODULE_INIT_FAILED, "Display_Detector");
             }
@@ -285,8 +285,8 @@ int32_t main(int32_t argc, char *argv[]) {
         ComponentRegistry::getEventCallback(EventIdentifier::MOD_SIGNAL_TEAR)(nullptr);
     }
 
-    if(ComponentRegistry::isModuleEnabled(ModuleIdentifier::MOD_DISPLAY_DETECTOR)) {
-        ComponentRegistry::getEventCallback(EventIdentifier::MOD_DISPLAY_DETECTOR_TEAR)(nullptr);
+    if(ComponentRegistry::isModuleEnabled(ModuleIdentifier::MOD_STATE_OPTIMIZER)) {
+        ComponentRegistry::getEventCallback(EventIdentifier::MOD_STATE_OPTIMIZER_TEAR)(nullptr);
     }
 
     if(resourceTunerListener.joinable()) {
