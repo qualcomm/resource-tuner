@@ -8,6 +8,8 @@
 
 #include "Logger.h"
 #include "ComponentRegistry.h"
+#include "ResourceTunerSettings.h"
+#include "ServerInternal.h"
 
 #define DBUS_SIGNAL_SENDER "org.freedesktop.login1"
 #define DBUS_SIGNAL_SENDER_PATH "/org/freedesktop/login1"
@@ -42,7 +44,26 @@ static void cleanup() {
 static int32_t onSdBusMessageReceived(sd_bus_message* message,
                                       void *userdata,
                                       sd_bus_error* retError) {
-    std::cout<<"sd-bus signal received"<<std::endl;
+    int8_t sleepStatus;
+    LOGI("RESTUNE_MODE_DETECTION", "sd-bus signal received");
+
+    if(sd_bus_message_read(message, "b", &sleepStatus) < 0) {
+        LOGE("RESTUNE_MODE_DETECTION", "Failed to parse Signal Parameter");
+        return 0;
+    }
+
+    if(sleepStatus) {
+        // System is suspending
+        if(ResourceTunerSettings::targetConfigs.currMode == MODE_DISPLAY_ON) {
+            toggleDisplayModes();
+        }
+    } else {
+        // System has resumed
+        if(ResourceTunerSettings::targetConfigs.currMode == MODE_DISPLAY_OFF) {
+            toggleDisplayModes();
+        }
+    }
+
     return 0;
 }
 

@@ -8,6 +8,7 @@
 
 #include "ComponentRegistry.h"
 #include "ServerInternal.h"
+#include "ResourceTunerSettings.h"
 #include "ClientGarbageCollector.h"
 #include "PulseMonitor.h"
 #include "RequestReceiver.h"
@@ -21,10 +22,6 @@ static void handleSIGINT(int32_t sig) {
 
 static void handleSIGTERM(int32_t sig) {
     terminateServer = true;
-}
-
-static void handleSIGTSTP(int32_t sig) {
-    toggleDisplayModes();
 }
 
 static ErrCode parseServerStartupCLIOpts(int32_t argCount, char *argStrings[]) {
