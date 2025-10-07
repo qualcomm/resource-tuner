@@ -52,24 +52,42 @@ static int32_t onSdBusMessageReceived(sd_bus_message* message,
         return 0;
     }
 
+    std::shared_ptr<RequestManager> requestManager = RequestManager::getInstance();
     if(sleepStatus) {
         // System is suspending
-        if(ResourceTunerSettings::targetConfigs.currMode == MODE_DISPLAY_ON) {
-            toggleDisplayModes();
+        LOGI("RESTUNE_MODE_DETECTION", "System is suspending");
+        if(ResourceTunerSettings::targetConfigs.currMode & MODE_RESUME) {
+            // Toggle to Display Off
+            ResourceTunerSettings::targetConfigs.currMode &= ~MODE_RESUME;
+            ResourceTunerSettings::targetConfigs.currMode |= MODE_SUSPEND;
+
+            // First drain out the CocoTable, and move Requests to the Pending List
+            // (the ones which cannot be processed in Background)
+            requestManager->moveToPendingList();
         }
     } else {
         // System has resumed
-        if(ResourceTunerSettings::targetConfigs.currMode == MODE_DISPLAY_OFF) {
-            toggleDisplayModes();
+        LOGI("RESTUNE_MODE_DETECTION", "System is resuming");
+        if(ResourceTunerSettings::targetConfigs.currMode & MODE_SUSPEND) {
+            // Toggle to Display On
+            ResourceTunerSettings::targetConfigs.currMode &= ~MODE_SUSPEND;
+            ResourceTunerSettings::targetConfigs.currMode |= MODE_RESUME;
+
+            // Add all the Requests from the Pending List into the Active List
+            std::vector<Request*> pendingRequests = requestManager->getPendingList();
+            for(Request* request: pendingRequests) {
+                submitResProvisionRequest(request, false);
+            }
+            requestManager->clearPending();
         }
     }
 
     return 0;
 }
 
-static int32_t customTerminator(sd_event_source *s,
-                                const struct signalfd_siginfo *si,
-                                void *userdata) {
+static int32_t eventLoopTerminator(sd_event_source *s,
+                                   const struct signalfd_siginfo *si,
+                                   void *userdata) {
     sd_event_exit(event, 0);
     return 0;
 }
@@ -92,7 +110,7 @@ static void initHelper() {
     // Subscribe to D-Bus signal (PrepareForSleep)
     if(sd_bus_match_signal(bus,
                            &slot,
-                           DBUS_SIGNAL_SENDER,
+                           nullptr,
                            DBUS_SIGNAL_SENDER_PATH,
                            DBUS_SIGNAL_INTERFACE,
                            DBUS_SIGNAL_NAME,

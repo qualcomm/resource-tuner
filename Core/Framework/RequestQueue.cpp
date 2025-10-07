@@ -68,11 +68,10 @@ void RequestQueue::orderedQueueConsumerHook() {
 
             if(req->getRequestType() == REQ_RESOURCE_UNTUNING) {
                 cocoTable->removeRequest(correspondingTuneRequest);
-                // If this is not an untune request (issued during DISPLAY_OFF/DOZE mode transition)
+                // If this is an untune request issued during SUSPEND mode transition
                 // Then don't cleanup the corresponding Tune Request, as it is still valid.
+                requestManager->removeRequest(correspondingTuneRequest);
                 if(req->getPriority() != HIGH_TRANSFER_PRIORITY) {
-                    requestManager->removeRequest(correspondingTuneRequest);
-
                     // Free up the Corresponding Tune Request Resources
                     Request::cleanUpRequest(correspondingTuneRequest);
                 }

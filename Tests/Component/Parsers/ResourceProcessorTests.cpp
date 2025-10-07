@@ -41,7 +41,7 @@ static void TestResourceConfigProcessorYAMLDataIntegrity3_1() {
     C_ASSERT(resourceConfigInfo->mSupported == true);
     C_ASSERT(resourceConfigInfo->mPolicy == HIGHER_BETTER);
     C_ASSERT(resourceConfigInfo->mPermissions == PERMISSION_THIRD_PARTY);
-    C_ASSERT(resourceConfigInfo->mModes == (MODE_DISPLAY_ON | MODE_DOZE));
+    C_ASSERT(resourceConfigInfo->mModes == (MODE_RESUME | MODE_DOZE));
     C_ASSERT(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_GLOBAL);
 }
 
@@ -58,7 +58,7 @@ static void TestResourceConfigProcessorYAMLDataIntegrity3_2() {
     C_ASSERT(resourceConfigInfo->mSupported == true);
     C_ASSERT(resourceConfigInfo->mPolicy == HIGHER_BETTER);
     C_ASSERT(resourceConfigInfo->mPermissions == PERMISSION_THIRD_PARTY);
-    C_ASSERT(resourceConfigInfo->mModes == (MODE_DISPLAY_ON | MODE_DOZE));
+    C_ASSERT(resourceConfigInfo->mModes == (MODE_RESUME | MODE_DOZE));
     C_ASSERT(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_GLOBAL);
 }
 
@@ -75,7 +75,7 @@ static void TestResourceConfigProcessorYAMLDataIntegrity3_3() {
     C_ASSERT(resourceConfigInfo->mSupported == true);
     C_ASSERT(resourceConfigInfo->mPolicy == HIGHER_BETTER);
     C_ASSERT(resourceConfigInfo->mPermissions == PERMISSION_THIRD_PARTY);
-    C_ASSERT(resourceConfigInfo->mModes == MODE_DISPLAY_ON);
+    C_ASSERT(resourceConfigInfo->mModes == MODE_RESUME);
     C_ASSERT(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_CORE);
 }
 

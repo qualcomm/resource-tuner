@@ -56,15 +56,15 @@ static void TestResourceStructOps3() {
 
 static void TestResourceStructOps4() {
     int32_t properties = 0;
-    properties = ADD_ALLOWED_MODE(properties, MODE_DISPLAY_ON);
+    properties = ADD_ALLOWED_MODE(properties, MODE_RESUME);
     int8_t allowedModes = EXTRACT_ALLOWED_MODES(properties);
-    C_ASSERT(allowedModes == MODE_DISPLAY_ON);
+    C_ASSERT(allowedModes == MODE_RESUME);
 
     properties = 0;
-    properties = ADD_ALLOWED_MODE(properties, MODE_DISPLAY_ON);
+    properties = ADD_ALLOWED_MODE(properties, MODE_RESUME);
     properties = ADD_ALLOWED_MODE(properties, MODE_DOZE);
     allowedModes = EXTRACT_ALLOWED_MODES(properties);
-    C_ASSERT(allowedModes == (MODE_DISPLAY_ON | MODE_DOZE));
+    C_ASSERT(allowedModes == (MODE_RESUME | MODE_DOZE));
 }
 
 static void TestResourceStructOps5() {
@@ -75,15 +75,15 @@ static void TestResourceStructOps5() {
 
 static void TestResourceStructOps6() {
     int32_t properties = 0;
-    properties = ADD_ALLOWED_MODE(properties, MODE_DISPLAY_ON);
-    properties = ADD_ALLOWED_MODE(properties, MODE_DISPLAY_OFF);
+    properties = ADD_ALLOWED_MODE(properties, MODE_RESUME);
+    properties = ADD_ALLOWED_MODE(properties, MODE_SUSPEND);
     int8_t allowedModes = EXTRACT_ALLOWED_MODES(properties);
-    C_ASSERT(allowedModes == (MODE_DISPLAY_ON | MODE_DISPLAY_OFF));
+    C_ASSERT(allowedModes == (MODE_RESUME | MODE_SUSPEND));
 }
 
 static void TestResourceStructOps7() {
     int32_t properties = 0;
-    properties = ADD_ALLOWED_MODE(properties, MODE_DISPLAY_ON);
+    properties = ADD_ALLOWED_MODE(properties, MODE_RESUME);
     properties = ADD_ALLOWED_MODE(properties, -1);
     int8_t allowedModes = EXTRACT_ALLOWED_MODES(properties);
     C_ASSERT(allowedModes == -1);
@@ -92,14 +92,14 @@ static void TestResourceStructOps7() {
 static void TestResourceStructOps8() {
     int32_t properties = 0;
     properties = SET_REQUEST_PRIORITY(properties, REQ_PRIORITY_LOW);
-    properties = ADD_ALLOWED_MODE(properties, MODE_DISPLAY_ON);
-    properties = ADD_ALLOWED_MODE(properties, MODE_DISPLAY_OFF);
+    properties = ADD_ALLOWED_MODE(properties, MODE_RESUME);
+    properties = ADD_ALLOWED_MODE(properties, MODE_SUSPEND);
 
     int8_t priority = EXTRACT_REQUEST_PRIORITY(properties);
     int8_t allowedModes = EXTRACT_ALLOWED_MODES(properties);
 
     C_ASSERT(priority == REQ_PRIORITY_LOW);
-    C_ASSERT(allowedModes == (MODE_DISPLAY_ON | MODE_DISPLAY_OFF));
+    C_ASSERT(allowedModes == (MODE_RESUME | MODE_SUSPEND));
 }
 
 static void TestResourceStructOps9() {
@@ -291,14 +291,14 @@ static void TestAuxRoutineFileExists() {
 static void TestRequestModeAddition() {
     Request request;
     request.setProperties(0);
-    request.addProcessingMode(MODE_DISPLAY_ON);
-    C_ASSERT(request.getProcessingModes() == MODE_DISPLAY_ON);
+    request.addProcessingMode(MODE_RESUME);
+    C_ASSERT(request.getProcessingModes() == MODE_RESUME);
 
     request.setProperties(0);
-    request.addProcessingMode(MODE_DISPLAY_ON);
-    request.addProcessingMode(MODE_DISPLAY_OFF);
+    request.addProcessingMode(MODE_RESUME);
+    request.addProcessingMode(MODE_SUSPEND);
     request.addProcessingMode(MODE_DOZE);
-    C_ASSERT(request.getProcessingModes() == (MODE_DISPLAY_ON | MODE_DISPLAY_OFF | MODE_DOZE));
+    C_ASSERT(request.getProcessingModes() == (MODE_RESUME | MODE_SUSPEND | MODE_DOZE));
 }
 
 int32_t main() {

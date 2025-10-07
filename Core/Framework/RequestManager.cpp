@@ -203,7 +203,7 @@ void RequestManager::moveToPendingList() {
         // - Send Corresponding Untune Request for each of the Requests
         // - Add the Requests to the Pending List, which are not eligible for background processing
         //   while removing them from the activeRequestsList
-        if((request->getProcessingModes() & MODE_DISPLAY_OFF) == 0) {
+        if((request->getProcessingModes() & MODE_SUSPEND) == 0) {
             Request* untuneRequest = nullptr;
             try {
                 untuneRequest = new (GetBlock<Request>()) Request();

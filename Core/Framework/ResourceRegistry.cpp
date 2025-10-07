@@ -367,9 +367,9 @@ ErrCode ResourceConfigInfoBuilder::setModes(const std::string& modeString) {
     }
 
     if(modeString == "display_on") {
-        this->mResourceConfigInfo->mModes = this->mResourceConfigInfo->mModes | MODE_DISPLAY_ON;
+        this->mResourceConfigInfo->mModes = this->mResourceConfigInfo->mModes | MODE_RESUME;
     } else if(modeString == "display_off") {
-        this->mResourceConfigInfo->mModes = this->mResourceConfigInfo->mModes | MODE_DISPLAY_OFF;
+        this->mResourceConfigInfo->mModes = this->mResourceConfigInfo->mModes | MODE_SUSPEND;
     } else if(modeString == "doze") {
         this->mResourceConfigInfo->mModes = this->mResourceConfigInfo->mModes | MODE_DOZE;
     } else {

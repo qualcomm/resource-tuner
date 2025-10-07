@@ -119,12 +119,12 @@ public:
     std::vector<Request*> getPendingList();
 
     /**
-     * @brief Handles Device Mode transition from DISPLAY_ON to DISPLAY_OFF / DOZE
+     * @brief Handles Device Mode transition from RESUME to SUSPEND
      * @details As part of this routine, the CocoTable will be drained out, i.e. all active
      *          Requests will be untuned, and the Resources restored to their original values.
      *          Requests which are not eligible for background processing will be removed from the
      *          Active List and put into the Pending List, so that they get processed again when the
-     *          Device transitions back to the DISPLAY_ON mode.
+     *          Device transitions back to the RESUME mode.
      *
      */
     void moveToPendingList();
