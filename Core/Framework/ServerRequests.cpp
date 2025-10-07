@@ -398,6 +398,8 @@ ErrCode submitPropRequest(void* context) {
 }
 
 void toggleDisplayModes() {
+    std::shared_ptr<RequestManager> requestManager = RequestManager::getInstance();
+
     if(ResourceTunerSettings::targetConfigs.currMode & MODE_DISPLAY_ON) {
         // Toggle to Display Off
         ResourceTunerSettings::targetConfigs.currMode &= ~MODE_DISPLAY_ON;
@@ -405,21 +407,18 @@ void toggleDisplayModes() {
 
         // First drain out the CocoTable, and move Requests to the Pending List
         // (the ones which cannot be processed in Background)
-        RequestManager::getInstance()->triggerDisplayOffMode();
+        requestManager->moveToPendingList();
 
     } else {
         // Toggle to Display On
         ResourceTunerSettings::targetConfigs.currMode &= ~MODE_DISPLAY_OFF;
         ResourceTunerSettings::targetConfigs.currMode |= MODE_DISPLAY_ON;
 
-        // First drain out the CocoTable, and move all Requests to the Active Queue
-        // from the Pending Queue.
-        RequestManager::getInstance()->triggerDisplayOnMode();
+        // Add all the Requests from the Pending List into the Active List
+        std::vector<Request*> pendingRequests = requestManager->getPendingList();
+        for(Request* request: pendingRequests) {
+            submitResProvisionRequest(request, false);
+        }
+        requestManager->clearPending();
     }
-
-    // Reset All Resource Nodes to their original values
-    ResourceRegistry::getInstance()->restoreResourcesToDefaultValues();
-
-    // Restart Request Processing
-    RequestManager::getInstance()->floodInRequestsForProcessing();
 }
