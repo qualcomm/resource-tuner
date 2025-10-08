@@ -20,7 +20,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 option(BUILD_SIGNALS "Signals" OFF)
 option(BUILD_TESTS "Testing" OFF)
 option(BUILD_CLI "CLI" OFF)
-option(BUILD_DISPLAY_DETECTOR "Display Detector" OFF)
+option(BUILD_STATE_DETECTOR "Display Detector" OFF)
 
 # Mandatory Builds
 add_subdirectory(${CMAKE_SOURCE_DIR}/../Core/Build ${CMAKE_BINARY_DIR}/CoreBuild)
@@ -53,8 +53,8 @@ list(APPEND SERVER_LIBS
   ExtAPIs
 )
 
-if(BUILD_DISPLAY_DETECTOR)
-  list(APPEND SERVER_EXECUTABLE ${CMAKE_SOURCE_DIR}/../Display/Detection.cpp)
+if(BUILD_STATE_DETECTOR)
+  list(APPEND SERVER_EXECUTABLE ${CMAKE_SOURCE_DIR}/../StateDetector.cpp)
   list(APPEND SERVER_LIBS systemd)
 endif()
 
