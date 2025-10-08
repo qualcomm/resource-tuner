@@ -105,6 +105,7 @@ void func2() {
     properties = SET_REQUEST_PRIORITY(properties, REQ_PRIORITY_HIGH);
 
     // To mark the Request as eligible for Background Processing
+    // Note, specifying MODE_RESUME is optional, since it is enabled by default.
     properties = ADD_ALLOWED_MODE(properties, MODE_RESUME);
     properties = ADD_ALLOWED_MODE(properties, MODE_SUSPEND);
 

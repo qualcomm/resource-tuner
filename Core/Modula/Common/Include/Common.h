@@ -77,7 +77,7 @@ enum Modes {
 
 #define ADD_ALLOWED_MODE(properties, mode)({                                                  \
     int32_t retVal;                                                                           \
-    if(properties < 0 || mode < MODE_RESUME || mode > MODE_DOZE) {                        \
+    if(properties < 0 || mode < MODE_RESUME || mode > MODE_DOZE) {                            \
         retVal = -1;                                                                          \
     } else {                                                                                  \
         retVal = (int32_t) (properties | (((properties >> 8) | mode) << 8));                  \

@@ -20,8 +20,8 @@
 static void tune_uclamp_min() {
     int32_t properties = 0;
 
-    properties |= (1 << 0);
-    properties |= (1 << 8);
+    properties = SET_REQUEST_PRIORITY(properties, REQ_PRIORITY_LOW);
+    properties = ADD_ALLOWED_MODE(properties, MODE_SUSPEND);
 
     SysResource resourceList[] = {
         {
