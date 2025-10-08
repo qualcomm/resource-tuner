@@ -60,8 +60,8 @@ enum RequestPriority {
  *          performed regardless of the display state, including during doze mode.
  */
 enum Modes {
-    MODE_DISPLAY_ON = 0x01, //!< Tuning allowed when the display is on.
-    MODE_DISPLAY_OFF = 0x02, //!< Tuning allowed when the display is off.
+    MODE_RESUME = 0x01, //!< Tuning allowed when the display is on.
+    MODE_SUSPEND = 0x02, //!< Tuning allowed when the display is off.
     MODE_DOZE = 0x04 //!< Tuning allowed during doze (low-power idle) mode.
 };
 
@@ -77,7 +77,7 @@ enum Modes {
 
 #define ADD_ALLOWED_MODE(properties, mode)({                                                  \
     int32_t retVal;                                                                           \
-    if(properties < 0 || mode < MODE_DISPLAY_ON || mode > MODE_DOZE) {                        \
+    if(properties < 0 || mode < MODE_RESUME || mode > MODE_DOZE) {                            \
         retVal = -1;                                                                          \
     } else {                                                                                  \
         retVal = (int32_t) (properties | (((properties >> 8) | mode) << 8));                  \

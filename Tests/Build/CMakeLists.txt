@@ -13,6 +13,10 @@ if(BUILD_TESTS)
     target_include_directories(resource_tuner_tests PRIVATE ${LIBYAML_INCLUDE_DIRS})
     install(TARGETS resource_tuner_tests RUNTIME DESTINATION bin)
 
+    add_executable(StateDetectionTests ../Integration/StateDetectionTests.cpp)
+    target_link_libraries(StateDetectionTests PUBLIC Auxiliary ClientAPIs TestSetupUtils)
+    install(TARGETS StateDetectionTests RUNTIME DESTINATION bin)
+
     add_executable(MemoryPoolTests ../Component/Comp/MemoryPoolTests.cpp)
     target_link_libraries(MemoryPoolTests Auxiliary TestSetupUtils)
     install(TARGETS MemoryPoolTests DESTINATION bin)

@@ -19,21 +19,31 @@ ComponentRegistry::ComponentRegistry(
                                EventCallback init,
                                EventCallback teardown,
                                EventCallback onMsgRecv) {
-    if(init == nullptr || teardown == nullptr || onMsgRecv == nullptr) {
-        return;
-    }
-
     switch(moduleIdentifier) {
         case ModuleIdentifier::MOD_CORE: {
+            if(init == nullptr || teardown == nullptr || onMsgRecv == nullptr) {
+                return;
+            }
             mEventCallbacks[MOD_CORE_INIT] = init;
             mEventCallbacks[MOD_CORE_TEAR] = teardown;
             mEventCallbacks[MOD_CORE_ON_MSG_RECV] = onMsgRecv;
             break;
         }
         case ModuleIdentifier::MOD_SIGNAL: {
+            if(init == nullptr || teardown == nullptr || onMsgRecv == nullptr) {
+                return;
+            }
             mEventCallbacks[MOD_SIGNAL_INIT] = init;
             mEventCallbacks[MOD_SIGNAL_TEAR] = teardown;
             mEventCallbacks[MOD_SIGNAL_ON_MSG_RECV] = onMsgRecv;
+            break;
+        }
+        case ModuleIdentifier::MOD_STATE_OPTIMIZER: {
+            if(init == nullptr || teardown == nullptr) {
+                return;
+            }
+            mEventCallbacks[MOD_STATE_OPTIMIZER_INIT] = init;
+            mEventCallbacks[MOD_STATE_OPTIMIZER_TEAR] = teardown;
             break;
         }
         default:

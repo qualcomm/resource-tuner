@@ -48,7 +48,7 @@ static void TestResourceParsingResourcesMerged1() {
     C_ASSERT(resourceConfigInfo->mSupported == true);
     C_ASSERT(resourceConfigInfo->mPolicy == LOWER_BETTER);
     C_ASSERT(resourceConfigInfo->mPermissions == PERMISSION_SYSTEM);
-    C_ASSERT(resourceConfigInfo->mModes == (MODE_DISPLAY_ON | MODE_DOZE));
+    C_ASSERT(resourceConfigInfo->mModes == (MODE_RESUME | MODE_DOZE));
     C_ASSERT(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_CORE);
 }
 
@@ -82,7 +82,7 @@ static void TestResourceParsingResourcesMerged3() {
     C_ASSERT(resourceConfigInfo->mSupported == true);
     C_ASSERT(resourceConfigInfo->mPolicy == LOWER_BETTER);
     C_ASSERT(resourceConfigInfo->mPermissions == PERMISSION_SYSTEM);
-    C_ASSERT(resourceConfigInfo->mModes == MODE_DISPLAY_ON);
+    C_ASSERT(resourceConfigInfo->mModes == MODE_RESUME);
     C_ASSERT(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_GLOBAL);
 }
 
@@ -99,7 +99,7 @@ static void TestResourceParsingResourcesMerged4() {
     C_ASSERT(resourceConfigInfo->mSupported == true);
     C_ASSERT(resourceConfigInfo->mPolicy == INSTANT_APPLY);
     C_ASSERT(resourceConfigInfo->mPermissions == PERMISSION_THIRD_PARTY);
-    C_ASSERT(resourceConfigInfo->mModes == (MODE_DISPLAY_ON | MODE_DOZE));
+    C_ASSERT(resourceConfigInfo->mModes == (MODE_RESUME | MODE_DOZE));
     C_ASSERT(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_GLOBAL);
 }
 

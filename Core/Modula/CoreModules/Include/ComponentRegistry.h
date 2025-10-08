@@ -11,7 +11,8 @@
 
 enum ModuleIdentifier {
     MOD_CORE,
-    MOD_SIGNAL
+    MOD_SIGNAL,
+    MOD_STATE_OPTIMIZER,
 };
 
 enum EventIdentifier {
@@ -21,7 +22,9 @@ enum EventIdentifier {
     MOD_SIGNAL_INIT,
     MOD_SIGNAL_TEAR,
     MOD_SIGNAL_ON_MSG_RECV,
-    PROP_ON_MSG_RECV
+    PROP_ON_MSG_RECV,
+    MOD_STATE_OPTIMIZER_INIT,
+    MOD_STATE_OPTIMIZER_TEAR,
 };
 
 /**
@@ -54,4 +57,5 @@ public:
 
 #define RESTUNE_REGISTER_EVENT_CALLBACK(identifier, handler) \
         static ComponentRegistry CONCAT(_eventCB, identifier)(identifier, handler);
+
 #endif

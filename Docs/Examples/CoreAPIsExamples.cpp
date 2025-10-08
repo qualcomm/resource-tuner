@@ -105,8 +105,9 @@ void func2() {
     properties = SET_REQUEST_PRIORITY(properties, REQ_PRIORITY_HIGH);
 
     // To mark the Request as eligible for Background Processing
-    properties = ADD_ALLOWED_MODE(properties, MODE_DISPLAY_ON);
-    properties = ADD_ALLOWED_MODE(properties, MODE_DISPLAY_OFF);
+    // Note, specifying MODE_RESUME is optional, since it is enabled by default.
+    properties = ADD_ALLOWED_MODE(properties, MODE_RESUME);
+    properties = ADD_ALLOWED_MODE(properties, MODE_SUSPEND);
 
     // Create the List of Resources which need to be Provisioned
     // Resource Struct Creation
@@ -183,8 +184,8 @@ void func3() {
 
     // This Request should only be processed when the Device Display is On,
     // i.e. not a background Request.
-    // Optional (since MODE_DISPLAY_ON is enabled by default)
-    properties = ADD_ALLOWED_MODE(properties, MODE_DISPLAY_ON);
+    // Optional (since MODE_RESUME is enabled by default)
+    properties = ADD_ALLOWED_MODE(properties, MODE_RESUME);
 
     // Create the List of Resources which need to be Provisioned
     // Resource Struct Creation

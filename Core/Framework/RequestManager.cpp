@@ -15,7 +15,7 @@ int8_t RequestManager::isSane(Request* request) {
         }
     } catch(const std::exception& e) {
         LOGE("RESTUNE_REQUEST_MANAGER",
-            "Cannot Check Request Sanity: " +  std::string(e.what()));
+             "Cannot Check Request Sanity: " +  std::string(e.what()));
         return false;
     }
 
@@ -107,10 +107,6 @@ Request* RequestManager::getRequestFromMap(int64_t handle) {
     return request;
 }
 
-int8_t RequestManager::isRequestAlive(int64_t handle) {
-   return this->mActiveRequests.find(handle) != this->mActiveRequests.end();
-}
-
 int8_t RequestManager::shouldRequestBeAdded(Request* request) {
     //sanity check.
     if(!isSane(request)) return false;
@@ -164,11 +160,14 @@ void RequestManager::removeRequest(Request* request) {
     this->mRequestMapMutex.unlock();
 }
 
-std::unordered_map<int64_t, Request*> RequestManager::getActiveRequests() {
+std::vector<Request*> RequestManager::getPendingList() {
     this->mRequestMapMutex.lock_shared();
-    std::unordered_map<int64_t, Request*> activeRequests = this->mActiveRequests;
+    std::vector<Request*> pendingList;
+    for(Request* request: this->mRequestsList[PENDING_TUNE]) {
+        pendingList.push_back(request);
+    }
     this->mRequestMapMutex.unlock_shared();
-    return activeRequests;
+    return pendingList;
 }
 
 void RequestManager::disableRequestProcessing(int64_t handle) {
@@ -193,85 +192,46 @@ int64_t RequestManager::getRequestProcessingStatus(int64_t handle) {
     return this->mRequestProcessingStatus[handle];
 }
 
-void RequestManager::triggerDisplayOffMode() {
+void RequestManager::moveToPendingList() {
     this->mRequestMapMutex.lock();
 
     // This method will essentially drain out the CocoTable
     // The Requests will be moved to the Pending List or Kept in the Active Requests List
     // based on whether background Processing is enabled for the Request.
-    std::vector<Request*> requestsToBeRemoved;
-
     for(Request* request: this->mRequestsList[ACTIVE_TUNE]) {
         // Iterate over all the Requests in the activeRequestsList
         // - Send Corresponding Untune Request for each of the Requests
         // - Add the Requests to the Pending List, which are not eligible for background processing
         //   while removing them from the activeRequestsList
-        Request* untuneRequest = nullptr;
-        try {
-            untuneRequest = new (GetBlock<Request>()) Request();
-        } catch(const std::bad_alloc& e) {
-            LOGI("RESTUNE_REQUEST_MANAGER"
-                 "Failed to create Untune Request for Request: ", std::to_string(request->getHandle()));
-        }
-
-        if(untuneRequest != nullptr) {
-            request->populateUntuneRequest(untuneRequest);
-
-            // Keep the Untune Request's Priority as high as possible
-            // So that all the existing Requests are untuned before the new Requests are Added.
-            untuneRequest->setPriority(HIGH_TRANSFER_PRIORITY);
-            RequestQueue::getInstance()->addAndWakeup(untuneRequest);
-        }
-
-        if(request->getProcessingModes() & (MODE_DISPLAY_OFF | MODE_DOZE)) {
-            // If the Request is not a background Request, then add it to the Pending List
-            // and remove it from the activeRequestsList
-            if(getRequestProcessingStatus(request->getHandle()) != REQ_CANCELLED) {
-                this->mRequestsList[PENDING_TUNE].insert(request);
-                requestsToBeRemoved.push_back(request);
+        if((request->getProcessingModes() & MODE_SUSPEND) == 0) {
+            Request* untuneRequest = nullptr;
+            try {
+                untuneRequest = new (GetBlock<Request>()) Request();
+            } catch(const std::bad_alloc& e) {
+                LOGI("RESTUNE_REQUEST_MANAGER"
+                     "Failed to create Untune Request for Request: ", std::to_string(request->getHandle()));
             }
-        } else {
-            if(getRequestProcessingStatus(request->getHandle()) == REQ_CANCELLED) {
-                requestsToBeRemoved.push_back(request);
-            }
-        }
-    }
 
-    // All the Active Tune Requests have been Untuned
-    // Now, delete all the Requests which are not eligible for background processing from the Active List
-    // Also delete any Background Requests from the Active List for which we have received an Untune Request.
-    for(Request* request: requestsToBeRemoved) {
-        this->mRequestsList[ACTIVE_TUNE].erase(request);
+            if(untuneRequest != nullptr) {
+                request->populateUntuneRequest(untuneRequest);
+
+                // Keep the Untune Request's Priority as high as possible
+                // So that all the existing Requests are untuned before the new Requests are Added.
+                untuneRequest->setPriority(HIGH_TRANSFER_PRIORITY);
+                RequestQueue::getInstance()->addAndWakeup(untuneRequest);
+            }
+
+            this->mRequestsList[PENDING_TUNE].insert(request);
+        }
     }
 
     this->mRequestMapMutex.unlock();
 }
 
-void RequestManager::triggerDisplayOnMode() {
+void RequestManager::clearPending() {
     this->mRequestMapMutex.lock();
-
-    // Add all the Requests from the pending list into the Active List
-    for(Request* request: this->mRequestsList[PENDING_TUNE]) {
-        this->mRequestsList[ACTIVE_TUNE].insert(request);
-    }
-
+    this->mRequestsList[PENDING_TUNE].clear();
     this->mRequestMapMutex.unlock();
-}
-
-void RequestManager::floodInRequestsForProcessing() {
-    this->mRequestMapMutex.lock_shared();
-
-    // Issue back all the Tune Requests, which can be processed in Background.
-    std::vector<Request*> tuneRequests;
-    for(Request* request: this->mRequestsList[ACTIVE_TUNE]) {
-        tuneRequests.push_back(request);
-    }
-
-    for(Request* request: tuneRequests) {
-        RequestQueue::getInstance()->addAndWakeup(request);
-    }
-
-    this->mRequestMapMutex.unlock_shared();
 }
 
 RequestManager::~RequestManager() {}

@@ -15,8 +15,6 @@
 enum RequestListType {
     ACTIVE_TUNE,
     PENDING_TUNE,
-    ACTIVE_UNTUNE,
-    ACTIVE_RETUNE
 };
 
 enum RequestProcessingStatus {
@@ -99,8 +97,6 @@ public:
      */
     int64_t getActiveReqeustsCount();
 
-    int8_t isRequestAlive(int64_t handle);
-
     /**
      * @brief Mark the Request Handle, so that the Request won't be applied.
      * @details This method is used to Handle Untune Requests, as soon as an Untune
@@ -120,28 +116,20 @@ public:
 
     int64_t getRequestProcessingStatus(int64_t handle);
 
-    std::unordered_map<int64_t, Request*> getActiveRequests();
+    std::vector<Request*> getPendingList();
 
     /**
-     * @brief Handles Device Mode transition from DISPLAY_ON to DISPLAY_OFF / DOZE
+     * @brief Handles Device Mode transition from RESUME to SUSPEND
      * @details As part of this routine, the CocoTable will be drained out, i.e. all active
      *          Requests will be untuned, and the Resources restored to their original values.
      *          Requests which are not eligible for background processing will be removed from the
      *          Active List and put into the Pending List, so that they get processed again when the
-     *          Device transitions back to the DISPLAY_ON mode.
+     *          Device transitions back to the RESUME mode.
      *
      */
-    void triggerDisplayOffMode();
+    void moveToPendingList();
 
-    /**
-     * @brief Handles Device Mode transition from DISPLAY_OFF / DOZE to DISPLAY_ON
-     * @details As part of this routine, the CocoTable will be drained out, i.e. all active
-     *          Requests will be untuned, and the Resources restored to their original values.
-     *          All the Requests from the Active and Pending Lists will be submitted for processing.
-     */
-    void triggerDisplayOnMode();
-
-    void floodInRequestsForProcessing();
+    void clearPending();
 
     static std::shared_ptr<RequestManager> getInstance() {
         if(mReqeustManagerInstance == nullptr) {

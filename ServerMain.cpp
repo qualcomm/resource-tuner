@@ -8,6 +8,7 @@
 
 #include "ComponentRegistry.h"
 #include "ServerInternal.h"
+#include "ResourceTunerSettings.h"
 #include "ClientGarbageCollector.h"
 #include "PulseMonitor.h"
 #include "RequestReceiver.h"
@@ -21,10 +22,6 @@ static void handleSIGINT(int32_t sig) {
 
 static void handleSIGTERM(int32_t sig) {
     terminateServer = true;
-}
-
-static void handleSIGTSTP(int32_t sig) {
-    toggleDisplayModes();
 }
 
 static ErrCode parseServerStartupCLIOpts(int32_t argCount, char *argStrings[]) {
@@ -175,7 +172,7 @@ int32_t main(int32_t argc, char *argv[]) {
 
     if(RC_IS_OK(opStatus)) {
         ResourceTunerSettings::setServerOnlineStatus(true);
-        ResourceTunerSettings::targetConfigs.currMode = MODE_DISPLAY_ON;
+        ResourceTunerSettings::targetConfigs.currMode = MODE_RESUME;
         opStatus = preAllocateWorkers();
     }
 
@@ -200,6 +197,16 @@ int32_t main(int32_t argc, char *argv[]) {
             opStatus = ComponentRegistry::getEventCallback(EventIdentifier::MOD_SIGNAL_INIT)(nullptr);
             if(RC_IS_NOTOK(opStatus)) {
                 TYPELOGV(MODULE_INIT_FAILED, "Signal");
+            }
+        }
+    }
+
+    if(RC_IS_OK(opStatus)) {
+        if(ComponentRegistry::isModuleEnabled(ModuleIdentifier::MOD_STATE_OPTIMIZER)) {
+            TYPELOGV(NOTIFY_MODULE_ENABLED, "Display_Detector");
+            opStatus = ComponentRegistry::getEventCallback(EventIdentifier::MOD_STATE_OPTIMIZER_INIT)(nullptr);
+            if(RC_IS_NOTOK(opStatus)) {
+                TYPELOGV(MODULE_INIT_FAILED, "Display_Detector");
             }
         }
     }
@@ -273,6 +280,10 @@ int32_t main(int32_t argc, char *argv[]) {
 
     if(ComponentRegistry::isModuleEnabled(ModuleIdentifier::MOD_SIGNAL)) {
         ComponentRegistry::getEventCallback(EventIdentifier::MOD_SIGNAL_TEAR)(nullptr);
+    }
+
+    if(ComponentRegistry::isModuleEnabled(ModuleIdentifier::MOD_STATE_OPTIMIZER)) {
+        ComponentRegistry::getEventCallback(EventIdentifier::MOD_STATE_OPTIMIZER_TEAR)(nullptr);
     }
 
     if(resourceTunerListener.joinable()) {

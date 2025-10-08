@@ -71,11 +71,11 @@ static int8_t VerifyIncomingRequest(Request* req) {
     if(req->getDuration() < -1 || req->getDuration() == 0) return false;
 
     // Default: All Requests are supported in Display On Mode
-    req->addProcessingMode(MODE_DISPLAY_ON);
+    req->addProcessingMode(MODE_RESUME);
 
     // If the Device is in Display Off or Doze Mode, then no new Requests
     // shall be accepted.
-    if(ResourceTunerSettings::targetConfigs.currMode != MODE_DISPLAY_ON) {
+    if(ResourceTunerSettings::targetConfigs.currMode != MODE_RESUME) {
         // Request cannot be accepted in the current device mode
         TYPELOGV(VERIFIER_INVALID_DEVICE_MODE, req->getHandle());
         return false;
@@ -395,31 +395,4 @@ ErrCode submitPropRequest(void* context) {
     submitPropGetRequest(propConfig->mPropName, propConfig->mResult, defaultValue);
 
     return RC_SUCCESS;
-}
-
-void toggleDisplayModes() {
-    if(ResourceTunerSettings::targetConfigs.currMode & MODE_DISPLAY_ON) {
-        // Toggle to Display Off
-        ResourceTunerSettings::targetConfigs.currMode &= ~MODE_DISPLAY_ON;
-        ResourceTunerSettings::targetConfigs.currMode |= MODE_DISPLAY_OFF;
-
-        // First drain out the CocoTable, and move Requests to the Pending List
-        // (the ones which cannot be processed in Background)
-        RequestManager::getInstance()->triggerDisplayOffMode();
-
-    } else {
-        // Toggle to Display On
-        ResourceTunerSettings::targetConfigs.currMode &= ~MODE_DISPLAY_OFF;
-        ResourceTunerSettings::targetConfigs.currMode |= MODE_DISPLAY_ON;
-
-        // First drain out the CocoTable, and move all Requests to the Active Queue
-        // from the Pending Queue.
-        RequestManager::getInstance()->triggerDisplayOnMode();
-    }
-
-    // Reset All Resource Nodes to their original values
-    ResourceRegistry::getInstance()->restoreResourcesToDefaultValues();
-
-    // Restart Request Processing
-    RequestManager::getInstance()->floodInRequestsForProcessing();
 }

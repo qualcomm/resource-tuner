@@ -16,15 +16,15 @@ static int8_t firstTest = true;
 static int8_t funcCalled = false;
 static int32_t invokeCounter = 0;
 
-void customApplier1(void* context) {
+static void customApplier1(void* context) {
     funcCalled = true;
 }
 
-void customApplier2(void* context) {
+static void customApplier2(void* context) {
     invokeCounter++;
 }
 
-void customTear1(void* context) {
+static void customTear1(void* context) {
     funcCalled = true;
 }
 

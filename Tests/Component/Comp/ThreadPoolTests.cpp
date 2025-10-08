@@ -6,20 +6,20 @@
 #include "TestUtils.h"
 #include "ThreadPool.h"
 
-std::mutex taskLock;
-std::condition_variable taskCV;
+static std::mutex taskLock;
+static std::condition_variable taskCV;
 
-int32_t sharedVariable = 0;
-std::string sharedString = "";
-int8_t taskCondition = false;
+static int32_t sharedVariable = 0;
+static std::string sharedString = "";
+static int8_t taskCondition = false;
 
-void threadPoolTask(void* arg) {
+static void threadPoolTask(void* arg) {
 	assert(arg != nullptr);
 	*(int32_t*)arg = 64;
 	return;
 }
 
-void threadPoolLongDurationTask(void* arg) {
+static void threadPoolLongDurationTask(void* arg) {
 	std::this_thread::sleep_for(std::chrono::seconds(*(int32_t*)arg));
 }
 
@@ -97,7 +97,7 @@ static void TestThreadPoolEnqueueStatus2_2() {
 	delete threadPool;
 }
 
-void helperFunction(void* arg) {
+static void helperFunction(void* arg) {
     for(int32_t i = 0; i < 1e7; i++) {
         taskLock.lock();
         sharedVariable++;
@@ -106,6 +106,8 @@ void helperFunction(void* arg) {
 }
 
 static void TestThreadPoolTaskProcessing1() {
+	sharedVariable = 0;
+
 	ThreadPool* threadPool = new ThreadPool(2, 2);
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -118,6 +120,7 @@ static void TestThreadPoolTaskProcessing1() {
 	// Wait for both tasks to complete
 	std::this_thread::sleep_for(std::chrono::seconds(3));
 
+	std::cout<<"sharedVariable value = "<<sharedVariable<<std::endl;
 	C_ASSERT(sharedVariable == 2e7);
 
 	delete threadPool;
@@ -169,14 +172,14 @@ static void TestThreadPoolTaskProcessing3() {
 	delete threadPool;
 }
 
-void taskAFunc(void* arg) {
+static void taskAFunc(void* arg) {
     std::unique_lock<std::mutex> uniqueLock(taskLock);
     sharedString.push_back('A');
     taskCondition = true;
     taskCV.notify_one();
 }
 
-void taskBFunc(void* arg) {
+static void taskBFunc(void* arg) {
     std::unique_lock<std::mutex> uniqueLock(taskLock);
     while(!taskCondition) {
         taskCV.wait(uniqueLock);

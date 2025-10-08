@@ -31,8 +31,6 @@
  */
 ErrCode fetchProperties();
 
-void toggleDisplayModes();
-
 /**
  * @brief Submit a Resource Provisioning Request from a Client for processing.
  * @details Note: This API acts an interface for other Resource Tuner components like Signals
