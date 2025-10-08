@@ -1,0 +1,27 @@
+var searchData=
+[
+  ['a_20custom_20resource_0',['1. How to add a custom resource',['../usage.html#autotoc_md108',1,'']]],
+  ['a_20getprop_20request_1',['4. Send a getProp Request',['../index.html#autotoc_md105',1,'']]],
+  ['a_20new_20property_2',['5. How to add a new Property',['../usage.html#autotoc_md120',1,'']]],
+  ['a_20resource_3',['List Of Resource Types (Use this table to get the value of ResType for a Resource)',['../index.html#autotoc_md65',1,'']]],
+  ['a_20retune_20request_4',['3. Send a Retune Request',['../index.html#autotoc_md104',1,'']]],
+  ['a_20system_20resource_20provisioning_20framework_5',['Resource Tuner: A System Resource Provisioning Framework',['../index.html',1,'']]],
+  ['a_20tune_20request_6',['1. Send a Tune Request',['../index.html#autotoc_md102',1,'']]],
+  ['abuse_7',['5. Rate Limiter: Preventing System Abuse',['../index.html#autotoc_md92',1,'']]],
+  ['add_20a_20custom_20resource_8',['1. How to add a custom resource',['../usage.html#autotoc_md108',1,'']]],
+  ['add_20a_20new_20property_9',['5. How to add a new Property',['../usage.html#autotoc_md120',1,'']]],
+  ['add_20init_20configs_10',['3. How to add init configs',['../usage.html#autotoc_md114',1,'']]],
+  ['addandwakeup_11',['addAndWakeup',['../classOrderedQueue.html#a53ac39682c907d01c0daa2d7e4760d2c',1,'OrderedQueue']]],
+  ['addrequest_12',['addRequest',['../classRequestManager.html#a6a6cf773a9e777e2d0d6227804cf2912',1,'RequestManager']]],
+  ['allocate_20capacity_20for_20efficiency_13',['11. Pre-Allocate Capacity for efficiency',['../index.html#autotoc_md98',1,'']]],
+  ['an_20untune_20request_14',['2. Send an Untune Request',['../index.html#autotoc_md103',1,'']]],
+  ['and_20features_15',['1. Making Use of Relay Signals and Features',['../ext_features.html#autotoc_md127',1,'']]],
+  ['and_20subsequent_20cleanup_16',['4. Pulse Monitor: Detection of Dead Clients and Subsequent Cleanup',['../index.html#autotoc_md91',1,'']]],
+  ['and_20teardown_20callbacks_17',['2. Applier and Teardown Callbacks',['../extensions.html#autotoc_md124',1,'']]],
+  ['and_20teardown_20capabilities_18',['2. Defining feature init, relay and teardown capabilities',['../ext_features.html#autotoc_md129',1,'']]],
+  ['and_20untune_20functionalities_19',['2. How to override the Resource tune and untune functionalities.',['../usage.html#autotoc_md112',1,'']]],
+  ['apis_20',['apis',['../group__RESOURCE__TUNER__CLIENT__APIS.html',1,'Client APIs'],['../index.html#autotoc_md67',1,'Example Usage of Resource Tuner APIs'],['../index.html#autotoc_md73',1,'Extension APIs'],['../index.html#autotoc_md12',1,'Resource Tuner APIs']]],
+  ['applier_20and_20teardown_20callbacks_21',['2. Applier and Teardown Callbacks',['../extensions.html#autotoc_md124',1,'']]],
+  ['architecture_20details_22',['4. How to enforce CPU architecture details',['../usage.html#autotoc_md117',1,'']]],
+  ['aware_20operational_20modes_23',['8. Display-Aware Operational Modes',['../index.html#autotoc_md95',1,'']]]
+];
