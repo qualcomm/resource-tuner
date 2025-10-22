@@ -282,20 +282,50 @@ static void moveProcessToCGroup(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
 
-    if(resource->getValuesCount() != 2) return;
+    if(resource->mResValue.values == nullptr) return;
+    if(resource->getValuesCount() < 2) return;
 
     int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
-    int32_t pid = (*resource->mResValue.values)[1];
+    // Get the corresponding cGroupConfig, this is needed to identify the
+    // correct CGroup Name.
+    CGroupConfigInfo* cGroupConfig =
+        TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
-    std::string currentCGroupFilePath = "/proc/" + std::to_string(pid) + "/cgroup";
-    std::string currentCGroup = AuxRoutines::readFromFile(currentCGroupFilePath);
-
-    if(currentCGroup.length() > 4) {
-        currentCGroup = currentCGroup.substr(4);
+    if(cGroupConfig == nullptr) {
+        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
+        return;
     }
 
-    ResourceRegistry::getInstance()->addDefaultValue(currentCGroupFilePath, currentCGroup);
-    defaultCGroupLevelApplierCb(context);
+    const std::string cGroupName = cGroupConfig->mCgroupName;
+    if(cGroupName.length() == 0) {
+        return;
+    }
+
+    std::string controllerFilePath = getCGroupTypeResourceNodePath(resource, cGroupName);
+    for(int32_t i = 1; i < resource->getValuesCount(); i++) {
+        int32_t pid = (*resource->mResValue.values)[i];
+        std::string currentCGroupFilePath = "/proc/" + std::to_string(pid) + "/cgroup";
+        std::string currentCGroup = AuxRoutines::readFromFile(currentCGroupFilePath);
+
+        if(currentCGroup.length() > 4) {
+            currentCGroup = currentCGroup.substr(4);
+            ResourceRegistry::getInstance()->addDefaultValue(currentCGroupFilePath, currentCGroup);
+        }
+
+        TYPELOGV(NOTIFY_NODE_WRITE, controllerFilePath.c_str(), std::to_string(pid));
+        std::ofstream controllerFile(controllerFilePath);
+        if(!controllerFile.is_open()) {
+            TYPELOGV(ERRNO_LOG, "open", strerror(errno));
+            return;
+        }
+
+        controllerFile<<pid<<std::endl;
+
+        if(controllerFile.fail()) {
+            TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+        }
+        controllerFile.close();
+    }
 }
 
 static void setRunOnCores(void* context) {
@@ -430,29 +460,33 @@ static void removeProcessFromCGroup(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
 
-    if(resource->getValuesCount() != 2) return;
     if(resource->mResValue.values == nullptr) return;
+    if(resource->getValuesCount() < 2) return;
 
-    int32_t pid = (*resource->mResValue.values)[1];
+    for(int32_t i = 1; i < resource->getValuesCount(); i++) {
+        int32_t pid = (*resource->mResValue.values)[i];
 
-    std::string cGroupPath =
-        ResourceRegistry::getInstance()->getDefaultValue("/proc/" + std::to_string(pid) + "/cgroup");
-    if(cGroupPath.length() == 0) {
-        cGroupPath = "/sys/fs/cgroup/cgroup.procs";
+        std::string cGroupPath =
+            ResourceRegistry::getInstance()->getDefaultValue("/proc/" + std::to_string(pid) + "/cgroup");
+        if(cGroupPath.length() == 0) {
+            cGroupPath = ResourceTunerSettings::mBaseCGroupPath + "cgroup.procs";
+        } else {
+            cGroupPath =  ResourceTunerSettings::mBaseCGroupPath + cGroupPath + "/cgroup.procs";
+        }
+
+        std::ofstream controllerFile(cGroupPath, std::ios::app);
+        if(!controllerFile.is_open()) {
+            TYPELOGV(ERRNO_LOG, "open", strerror(errno));
+            return;
+        }
+
+        controllerFile<<pid<<std::endl;
+
+        if(controllerFile.fail()) {
+            TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+        }
+        controllerFile.close();
     }
-
-    std::ofstream controllerFile(cGroupPath, std::ios::app);
-    if(!controllerFile.is_open()) {
-        TYPELOGV(ERRNO_LOG, "open", strerror(errno));
-        return;
-    }
-
-    controllerFile<<pid<<std::endl;
-
-    if(controllerFile.fail()) {
-        TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-    }
-    controllerFile.close();
 }
 
 static void removeThreadFromCGroup(void* context) {
@@ -464,7 +498,7 @@ static void removeThreadFromCGroup(void* context) {
 
     int32_t tid = (*resource->mResValue.values)[1];
 
-    std::string parentCGroupProcsPath = "/sys/fs/cgroup/cgroup.threads";
+    std::string parentCGroupProcsPath = ResourceTunerSettings::mBaseCGroupPath + "cgroup.threads";
     std::ofstream controllerFile(parentCGroupProcsPath, std::ios::app);
 
     if(!controllerFile.is_open()) {

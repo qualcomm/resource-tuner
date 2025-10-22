@@ -257,3 +257,7 @@ int32_t main(int32_t argc, char* argv[]) {
 // via the target_link_libraries command. For example, if the executalbe is called clientExec,
 // it can be linked as follows:
 // target_link_libraries(clientExec ClientAPIs)
+
+// More Examples?
+// Refer: IntegrationTests.cpp in the $(root)/Tests/Integration/ directory, which exhaustively
+// demonstrates the use of all these APIs. This file contains test code which mirrors the client perspective.
