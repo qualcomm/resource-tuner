@@ -152,6 +152,16 @@ ResourceConfigs:
 
   - ResType: "0x09"
     ResID: "0x000a"
+    Name: "RES_TUNER_CGROUP_HIGH_MEMORY"
+    Path: "/sys/fs/cgroup/%s/memory.high"
+    Supported: true
+    Permissions: "system"
+    ApplyType: "cgroup"
+    Modes: ["display_on"]
+    Policy: higher_is_better
+
+  - ResType: "0x09"
+    ResID: "0x000b"
     Name: "RES_TUNER_CGROUP_MAX_MEMORY"
     Path: "/sys/fs/cgroup/%s/memory.max"
     Supported: true
@@ -161,7 +171,7 @@ ResourceConfigs:
     Policy: higher_is_better
 
   - ResType: "0x09"
-    ResID: "0x000b"
+    ResID: "0x000c"
     Name: "RES_TUNER_CGROUP_MIN_MEMORY"
     Path: "/sys/fs/cgroup/%s/memory.min"
     Supported: true
@@ -171,7 +181,37 @@ ResourceConfigs:
     Policy: lower_is_better
 
   - ResType: "0x09"
-    ResID: "0x000c"
+    ResID: "0x000d"
+    Name: "RES_TUNER_CGROUP_SWAP_MAX_MEMORY"
+    Path: "/sys/fs/cgroup/%s/memory.swap.max"
+    Supported: true
+    Permissions: "system"
+    ApplyType: "cgroup"
+    Modes: ["display_on"]
+    Policy: higher_is_better
+
+  - ResType: "0x09"
+    ResID: "0x000e"
+    Name: "RES_TUNER_CGROUP_IO_WEIGHT"
+    Path: "/sys/fs/cgroup/%s/io.weight"
+    Supported: true
+    Permissions: "system"
+    ApplyType: "cgroup"
+    Modes: ["display_on"]
+    Policy: instant_apply
+
+  - ResType: "0x09"
+    ResID: "0x000f"
+    Name: "RES_TUNER_CGROUP_IO_WEIGHT"
+    Path: "/sys/fs/cgroup/%s/io.bfq.weight"
+    Supported: true
+    Permissions: "system"
+    ApplyType: "cgroup"
+    Modes: ["display_on"]
+    Policy: instant_apply
+
+  - ResType: "0x09"
+    ResID: "0x0010"
     Name: "RES_TUNER_CGROUP_CPU_LATENCY"
     Path: "/sys/fs/cgroup/%s/cpu.weight.nice"
     Supported: true
