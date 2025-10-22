@@ -3855,7 +3855,7 @@ namespace CGroupApplicationTests {
         if(rc == 0) {
             SysResource* resourceList = new SysResource[1];
             memset(&resourceList[0], 0, sizeof(SysResource));
-            resourceList[0].mResCode = 0x0009000a;
+            resourceList[0].mResCode = 0x0009000b;
             resourceList[0].mNumValues = 2;
             resourceList[0].mResValue.values = new int32_t[2];
             resourceList[0].mResValue.values[0] = 1;
