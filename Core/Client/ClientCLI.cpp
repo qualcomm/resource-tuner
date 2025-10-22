@@ -25,7 +25,7 @@ int8_t parseResources(const std::string& input,
         std::string resInfo = "";
         size_t colonPos = token.find(':');
         if(colonPos == std::string::npos) {
-            return false;
+            return -1;
         }
 
         std::string opCode = token.substr(0, colonPos);
@@ -48,9 +48,9 @@ int8_t parseResources(const std::string& input,
             try {
                 resourceMap[(uint32_t)stol(opCode, nullptr, 0)].second.push_back(std::stoi(value));
             } catch (const std::invalid_argument&) {
-                return false;
+                return -1;
             } catch (const std::out_of_range&) {
-                return false;
+                return -1;
             }
         }
     }
@@ -59,16 +59,17 @@ int8_t parseResources(const std::string& input,
         resourceVec.push_back({entry.first, {entry.second.first, entry.second.second}});
     }
 
-    return true;
+    return 0;
 }
 
 void sendTuneRequest(int64_t duration, int32_t priority, int32_t count, const std::string& resourceInfo) {
     std::vector<std::pair<uint32_t, std::pair<int32_t, std::vector<int32_t>>>> resourceVec;
-    if(parseResources(resourceInfo, resourceVec) == -1) {
+    if(parseResources(resourceInfo, resourceVec) == -1 || resourceVec.size() > count) {
         std::cout<<"Failed to parse Resource List"<<std::endl;
         return;
     }
 
+    std::cout<<"Number of unique resources in the request: "<<resourceVec.size()<<std::endl;
     SysResource* resourceList = new SysResource[resourceVec.size()];
 
     for(int32_t i = 0; i < resourceVec.size(); i++) {
@@ -87,7 +88,7 @@ void sendTuneRequest(int64_t duration, int32_t priority, int32_t count, const st
     }
 
     // Log the resources
-    for(int32_t idx = 0; idx < count; idx++) {
+    for(int32_t idx = 0; idx < resourceVec.size(); idx++) {
         std::cout<<"Printing Resource at index = "<<idx<<std::endl;
         std::cout<<"ResCode for this Resource = "<<resourceList[idx].mResCode<<std::endl;
         std::cout<<"ResInfo for this Resource = "<<resourceList[idx].mResInfo<<std::endl;
@@ -103,7 +104,7 @@ void sendTuneRequest(int64_t duration, int32_t priority, int32_t count, const st
         }
     }
 
-    int64_t handle = tuneResources(duration, priority, count, resourceList);
+    int64_t handle = tuneResources(duration, priority, resourceVec.size(), resourceList);
     if(handle == -1) {
         std::cout<<"Failed to send Tune Request"<<std::endl;
     } else {
@@ -340,7 +341,6 @@ int32_t main(int32_t argc, char* argv[]) {
             }
             if(resources != nullptr) {
                 sendTuneRequest(duration, priority, numResources, resources);
-                std::this_thread::sleep_for(std::chrono::seconds(3));
             }
             break;
 

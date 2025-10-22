@@ -997,10 +997,10 @@ Example:
 ./resource_tuner_cli --tune --duration 9500 --priority 0 --num 1 --res "0x00090002:0,0,1,3,5"
 
 # Specifying ResInfo (useful for Core and Cluster type Resources)
-./resource_tuner_cli --tune --duration 5000 --priority 0 --num 1 --res "0x00040000#0x00000300:1620438"
+./resource_tuner_cli --tune --duration 5000 --priority 0 --num 1 --res "0x00040000#0x00000100:1620438"
 
-# All at once
-./resource_tuner_cli --tune --duration 6500 --priority 0 --num 2 --res "0x00030000:800;0x00040011#0x00000100:50000,100000"
+# Everything at once
+./resource_tuner_cli --tune --duration 6500 --priority 0 --num 2 --res "0x00030000:800;0x00040011#0x00000101:50000,100000"
 ```
 
 ### 2. Send an Untune Request
