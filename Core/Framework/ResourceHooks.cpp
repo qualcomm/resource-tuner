@@ -92,15 +92,15 @@ void defaultClusterLevelTearCb(void* context) {
     // Get the Cluster ID
     int32_t clusterID = resource->getClusterValue();
     std::string resourceNodePath = getClusterTypeResourceNodePath(resource, clusterID);
-    std::ofstream resourceFileStream(resourceNodePath);
+    std::string defaultValue =
+        ResourceRegistry::getInstance()->getDefaultValue(resourceNodePath);
 
+    TYPELOGV(NOTIFY_NODE_RESET, resourceNodePath.c_str(), defaultValue.c_str());
+    std::ofstream resourceFileStream(resourceNodePath);
     if(!resourceFileStream.is_open()) {
         TYPELOGV(ERRNO_LOG, "open", strerror(errno));
         return;
     }
-
-    std::string defaultValue =
-        ResourceRegistry::getInstance()->getDefaultValue(resourceNodePath);
 
     resourceFileStream<<defaultValue<<std::endl;
 
@@ -110,13 +110,7 @@ void defaultClusterLevelTearCb(void* context) {
     resourceFileStream.close();
 }
 
-// Default Applier Callback for Resources with ApplyType = "core"
-void defaultCoreLevelApplierCb(void* context) {
-    if(context == nullptr) return;
-    Resource* resource = static_cast<Resource*>(context);
-
-    // Get the Core ID
-    int32_t coreID = resource->getCoreValue();
+static void defaultCoreLevelApplierHelper(Resource* resource, int32_t coreID) {
     std::string resourceNodePath = getCoreTypeResourceNodePath(resource, coreID);
 
     TYPELOGV(NOTIFY_NODE_WRITE, resourceNodePath.c_str(), resource->mResValue.value);
@@ -134,23 +128,40 @@ void defaultCoreLevelApplierCb(void* context) {
     resourceFileStream.close();
 }
 
-// Default Tear Callback for Resources with ApplyType = "core"
-void defaultCoreLevelTearCb(void* context) {
+// Default Applier Callback for Resources with ApplyType = "core"
+void defaultCoreLevelApplierCb(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
 
     // Get the Core ID
     int32_t coreID = resource->getCoreValue();
-    std::string resourceNodePath = getClusterTypeResourceNodePath(resource, coreID);
-    std::ofstream controllerFile(resourceNodePath);
+    if(coreID == 0) {
+        // Apply to all cores in the specified cluster
+        int32_t clusterID = resource->getClusterValue();
+        ClusterInfo* cinfo = TargetRegistry::getInstance()->getClusterInfo(clusterID);
+        if(cinfo == nullptr) {
+            return;
+        }
 
+        for(int32_t i = cinfo->mStartCpu; i < cinfo->mStartCpu + cinfo->mNumCpus; i++) {
+            defaultCoreLevelApplierHelper(resource, i);
+        }
+    } else {
+        defaultCoreLevelApplierHelper(resource, coreID);
+    }
+}
+
+static void defaultCoreLevelTearHelper(Resource* resource, int32_t coreID) {
+    std::string resourceNodePath = getClusterTypeResourceNodePath(resource, coreID);
+    std::string defaultValue =
+        ResourceRegistry::getInstance()->getDefaultValue(resourceNodePath);
+
+    TYPELOGV(NOTIFY_NODE_RESET, resourceNodePath.c_str(), defaultValue.c_str());
+    std::ofstream controllerFile(resourceNodePath);
     if(!controllerFile.is_open()) {
         TYPELOGV(ERRNO_LOG, "open", strerror(errno));
         return;
     }
-
-    std::string defaultValue =
-        ResourceRegistry::getInstance()->getDefaultValue(resourceNodePath);
 
     controllerFile<<defaultValue<<std::endl;
 
@@ -158,6 +169,29 @@ void defaultCoreLevelTearCb(void* context) {
         TYPELOGV(ERRNO_LOG, "write", strerror(errno));
     }
     controllerFile.close();
+}
+
+// Default Tear Callback for Resources with ApplyType = "core"
+void defaultCoreLevelTearCb(void* context) {
+    if(context == nullptr) return;
+    Resource* resource = static_cast<Resource*>(context);
+
+    // Get the Core ID
+    int32_t coreID = resource->getCoreValue();
+    if(coreID == 0) {
+        // Apply to all cores in the specified cluster
+        int32_t clusterID = resource->getClusterValue();
+        ClusterInfo* cinfo = TargetRegistry::getInstance()->getClusterInfo(clusterID);
+        if(cinfo == nullptr) {
+            return;
+        }
+
+        for(int32_t i = cinfo->mStartCpu; i < cinfo->mStartCpu + cinfo->mNumCpus; i++) {
+            defaultCoreLevelTearHelper(resource, i);
+        }
+    } else {
+        defaultCoreLevelTearHelper(resource, coreID);
+    }
 }
 
 // Default Applier Callback for Resources with ApplyType = "cgroup"
@@ -229,8 +263,8 @@ void defaultCGroupLevelTearCb(void* context) {
         if(defaultValue.length() == 0) {
             truncateFile(controllerFilePath);
         } else {
+            TYPELOGV(NOTIFY_NODE_RESET, controllerFilePath.c_str(), defaultValue.c_str());
             std::ofstream controllerFile(controllerFilePath);
-
             if(!controllerFile.is_open()) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
                 return;
@@ -272,6 +306,7 @@ void defaultGlobalLevelTearCb(void* context) {
         std::string defaultValue =
             ResourceRegistry::getInstance()->getDefaultValue(resourceConfig->mResourcePath);
 
+        TYPELOGV(NOTIFY_NODE_RESET, resourceConfig->mResourcePath.c_str(), defaultValue.c_str());
         AuxRoutines::writeToFile(resourceConfig->mResourcePath, defaultValue);
     }
 }

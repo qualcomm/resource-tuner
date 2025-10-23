@@ -350,6 +350,10 @@ int32_t TargetRegistry::getPhysicalCoreId(int32_t logicalClusterId, int32_t logi
     return clusterInfo->mStartCpu + logicalCoreCount - 1;
 }
 
+ClusterInfo* TargetRegistry::getClusterInfo(int32_t physicalClusterID) {
+    return this->mPhysicalClusters[physicalClusterID];
+}
+
 void TargetRegistry::getCGroupNames(std::vector<std::string>& cGroupNames) {
     for(std::pair<int32_t, CGroupConfigInfo*> cGroup: this->mCGroupMapping) {
         cGroupNames.push_back(cGroup.second->mCgroupName);
