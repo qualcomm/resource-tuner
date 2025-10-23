@@ -50,6 +50,7 @@ Resources which can have different configured value on different cores. To tune 
 
     // Populate the logical cluster
     resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 2);
+    // Populate the logical core
     resourceList[0].mResInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mResInfo, 2);
 
     int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
@@ -59,6 +60,17 @@ Resources which can have different configured value on different cores. To tune 
 
 Note: Setting the logical core ID only effectuates change, if the targeted resource actually has an ApplyType of "core" (this can be verified by referring "ResourcesConfig.yaml").
 
+To configure a value for all the cores part of a cluster, specify a logical core ID of 0.
+
+```cpp
+    // Populate the logical cluster
+    resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 2);
+
+    // Set Logical Core ID to 0
+    resourceList[0].mResInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mResInfo, 0);
+```
+
+The above snippet will apply the request to all the cores (resource nodes) part of the physical cluster corresponding to the logical cluster ID 2.
 
 - CGroup Apply Type Resources
 

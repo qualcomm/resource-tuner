@@ -706,7 +706,7 @@ Examples:
 
 | Name           | ResType  | Examples |
 |----------------|----------|----------|
-|    LPM       |    `1`   | `/dev/cpu_dma_latency`, `/sys/devices/system/cpu/cpu%d/power/pm_qos_resume_latency_us` |
+|    LPM       |    `1`   | `/dev/cpu_dma_latency`, `/sys/devices/system/cpu/cpu<>/power/pm_qos_resume_latency_us` |
 |    CACHES    |    `2`   | |
 |    CPU_SCHED   |    `3`   | `/proc/sys/kernel/sched_util_clamp_min`, `/proc/sys/kernel/sched_util_clamp_max` |
 |    CPU_DCVS    |    `4`   | `/sys/devices/system/cpu/cpufreq/policy<>/scaling_min_freq`, `/sys/devices/system/cpu/cpufreq/policy<>/scaling_max_freq` |
