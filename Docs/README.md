@@ -706,7 +706,7 @@ Examples:
 
 | Name           | ResType  | Examples |
 |----------------|----------|----------|
-|    LPM       |    `1`   | |
+|    LPM       |    `1`   | `/dev/cpu_dma_latency`, `/sys/devices/system/cpu/cpu%d/power/pm_qos_resume_latency_us` |
 |    CACHES    |    `2`   | |
 |    CPU_SCHED   |    `3`   | `/proc/sys/kernel/sched_util_clamp_min`, `/proc/sys/kernel/sched_util_clamp_max` |
 |    CPU_DCVS    |    `4`   | `/sys/devices/system/cpu/cpufreq/policy<>/scaling_min_freq`, `/sys/devices/system/cpu/cpufreq/policy<>/scaling_max_freq` |
@@ -715,6 +715,7 @@ Examples:
 |    MEMORY      |    `7`   | |
 |    MPAM        |    `8`   | |
 | Cgroup         |    `9`   | `/sys/fs/cgroup/%s/cgroup.procs`, `/sys/fs/cgroup/%s/cgroup.threads`, `/sys/fs/cgroup/%s/cpuset.cpus`, `/sys/fs/cgroup/%s/cpuset.cpus.partition`, `/sys/fs/cgroup/%s/cgroup.freeze`, `/sys/fs/cgroup/%s/cpu.max`, `/sys/fs/cgroup/%s/cpu.idle`, `/sys/fs/cgroup/%s/cpu.uclamp.min`, `/sys/fs/cgroup/%s/cpu.uclamp.max`, `/sys/fs/cgroup/%s/cpu.weight`, `/sys/fs/cgroup/%s/memory.max`, `/sys/fs/cgroup/%s/memory.min`, `/sys/fs/cgroup/%s/cpu.weight.nice` |
+|    STORAGE      |    `a`   | |
 
 ---
 

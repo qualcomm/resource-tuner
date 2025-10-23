@@ -4,7 +4,7 @@
 ResourceConfigs:
   - ResType: "0x01"
     ResID: "0x0000"
-    Name: "CPU_DMA_LATENCY"
+    Name: "RES_TUNER_CPU_DMA_LATENCY"
     Path: "/dev/cpu_dma_latency"
     Supported: true
     LowThreshold: 0
@@ -15,7 +15,7 @@ ResourceConfigs:
 
   - ResType: "0x01"
     ResID: "0x0001"
-    Name: "PM_QOS_LATENCY"
+    Name: "RES_TUNER_PM_QOS_LATENCY"
     Path: "/sys/devices/system/cpu/cpu%d/power/pm_qos_resume_latency_us"
     Supported: true
     LowThreshold: 0
@@ -26,7 +26,7 @@ ResourceConfigs:
 
   - ResType: "0x03"
     ResID: "0x0000"
-    Name: "SCHED_UTIL_CLAMP_MIN"
+    Name: "RES_TUNER_SCHED_UTIL_CLAMP_MIN"
     Path: "/proc/sys/kernel/sched_util_clamp_min"
     Supported: true
     HighThreshold: 1024
@@ -38,7 +38,7 @@ ResourceConfigs:
 
   - ResType: "0x03"
     ResID: "0x0001"
-    Name: "SCHED_UTIL_CLAMP_MAX"
+    Name: "RES_TUNER_SCHED_UTIL_CLAMP_MAX"
     Path: "/proc/sys/kernel/sched_util_clamp_max"
     Supported: true
     HighThreshold: 1024
@@ -50,7 +50,7 @@ ResourceConfigs:
 
   - ResType: "0x04"
     ResID: "0x0000"
-    Name: "SCALING_MIN_FREQ"
+    Name: "RES_TUNER_SCALING_MIN_FREQ"
     Path: "/sys/devices/system/cpu/cpufreq/policy%d/scaling_min_freq"
     Supported: true
     HighThreshold: 1939200
@@ -62,7 +62,7 @@ ResourceConfigs:
 
   - ResType: "0x04"
     ResID: "0x0001"
-    Name: "SCALING_MAX_FREQ"
+    Name: "RES_TUNER_SCALING_MAX_FREQ"
     Path: "/sys/devices/system/cpu/cpufreq/policy%d/scaling_max_freq"
     Supported: true
     HighThreshold: 1939200

@@ -133,6 +133,8 @@ public:
      */
     int32_t getPhysicalClusterId(int32_t logicalClusterId);
 
+    ClusterInfo* getClusterInfo(int32_t physicalClusterID);
+
     /**
      * @brief Called during Server Init, to read and Parse the Logical To Physical Core / Cluster Mappings.
      * @details This routine will extract the physical Core IDs and the list of CPU cores part of each Physical Cluster

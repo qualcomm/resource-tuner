@@ -488,6 +488,13 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             Logger::log(LOG_INFO, "RESTUNE_COCO_TABLE", funcName, std::string(buffer));
             break;
 
+        case CommonMessageTypes::NOTIFY_NODE_RESET:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Resetting Node: [%s], to Value: [%s]", args);
+
+            Logger::log(LOG_INFO, "RESTUNE_COCO_TABLE", funcName, std::string(buffer));
+            break;
+
         case CommonMessageTypes::RATE_LIMITER_RATE_LIMITED:
             vsnprintf(buffer, sizeof(buffer),
                       "Client TID: [%d] Rate Limited, Dropping Request [%lld].", args);

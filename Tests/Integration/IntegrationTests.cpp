@@ -540,7 +540,7 @@ namespace ResourceTuningRequestVerification {
         resourceList[0].mResInfo = 0;
         // Invalid Translation
         resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 1);
-        resourceList[0].mResInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mResInfo, 0);
+        resourceList[0].mResInfo = SET_RESOURCE_CORE_VALUE(resourceList[0].mResInfo, 87);
 
         int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
         std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;

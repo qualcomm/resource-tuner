@@ -45,7 +45,16 @@ static int8_t performPhysicalMapping(int32_t& coreValue, int32_t& clusterValue) 
     if(targetRegistry == nullptr) return false;
 
     int32_t physicalClusterValue = targetRegistry->getPhysicalClusterId(clusterValue);
-    int32_t physicalCoreValue = targetRegistry->getPhysicalCoreId(clusterValue, coreValue);
+    int32_t physicalCoreValue = 0;
+
+    // For resources with ApplyType == "core":
+    // A coreValue of 0, indicates apply the config value to all the cores part of the physical
+    // cluster corresponding to the specified logical cluster ID.
+    if(coreValue != 0) {
+        // if a non-zero coreValue is provided, translate it and apply the config value
+        // only to that physical core's resource node.
+        physicalCoreValue = targetRegistry->getPhysicalCoreId(clusterValue, coreValue);
+    }
 
     if(physicalCoreValue != -1 && physicalClusterValue != -1) {
         coreValue = physicalCoreValue;
@@ -159,7 +168,7 @@ static int8_t VerifyIncomingRequest(Request* req) {
             int32_t coreValue = resource->getCoreValue();
             int32_t clusterValue = resource->getClusterValue();
 
-            if(coreValue <= 0) {
+            if(coreValue < 0) {
                 TYPELOGV(VERIFIER_INVALID_LOGICAL_CORE, coreValue);
                 return false;
             }
