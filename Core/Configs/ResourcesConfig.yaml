@@ -2,6 +2,28 @@
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 
 ResourceConfigs:
+  - ResType: "0x01"
+    ResID: "0x0000"
+    Name: "CPU_DMA_LATENCY"
+    Path: "/dev/cpu_dma_latency"
+    Supported: true
+    LowThreshold: 0
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: "lower_is_better"
+    ApplyType: "global"
+
+  - ResType: "0x01"
+    ResID: "0x0001"
+    Name: "PM_QOS_LATENCY"
+    Path: "/sys/devices/system/cpu/cpu%d/power/pm_qos_resume_latency_us"
+    Supported: true
+    LowThreshold: 0
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: "lower_is_better"
+    ApplyType: "core"
+
   - ResType: "0x03"
     ResID: "0x0000"
     Name: "SCHED_UTIL_CLAMP_MIN"
