@@ -44,6 +44,7 @@ If you would like to register your own Features, then you need to provide your o
 - Or, If you would like more flexibility in terms of File Placement, then you can make use of the Extension Interface's RESTUNE_REGISTER_CONFIG macro, to notify Resource Tuner where the file would be placed.
 
 For example:
+
 ```cpp
 RESTUNE_REGISTER_CONFIG(EXT_FEATURES_CONFIG, "/opt/custom/ExtFeaturesConfig.yaml")
 ```

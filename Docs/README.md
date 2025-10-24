@@ -443,8 +443,8 @@ Each resource is defined with the following fields:
 
 | Field           | Type       | Description | Default Value |
 |----------------|------------|-------------|-----------------|
-| `ResID`        | `string` (Mandatory)   | 16-bit Resource Identifier, unique within the Resource Type. | Not Applicable |
-| `ResType`       | `string` (Mandatory)  | 8-bit Type of the Resource, for example: cpu / dcvs | Not Applicable |
+| `ResID`        | `Integer` (Mandatory)   | unsigned 16-bit Resource Identifier, unique within the Resource Type. | Not Applicable |
+| `ResType`       | `Integer` (Mandatory)  | unsigned 8-bit integer, indicating the Type of the Resource, for example: cpu / dcvs | Not Applicable |
 | `Name`          | `string` (Optional)   | Descriptive name | `Empty String` |
 | `Path`          | `string` (Optional)   | Full resource path of sysfs or procfs file path (if applicable). | `Empty String` |
 | `Supported`     | `boolean` (Optional)  | Indicates if the Resource is Eligible for Provisioning. | `False` |
@@ -529,8 +529,8 @@ The file SignalsConfig.yaml defines the signal configs.
 
 | Field           | Type       | Description | Default Value |
 |----------------|------------|-------------|---------------|
-| `SigId`          | `string` (Mandatory)   | Signal Identifier | Not Applicable |
-| `Category`          | `string` (Mandatory)   | Category of the Signal, for example: Generic, App Lifecycle. | Not Applicable |
+| `SigId`          | `Integer` (Mandatory)   | 16 bit unsigned Signal Identifier, unique within the signal category | Not Applicable |
+| `Category`          | `Integer` (Mandatory)   | 8 bit unsigned integer, indicating the Category of the Signal, for example: Generic, App Lifecycle. | Not Applicable |
 | `Name`          | `string` (Optional)  | |`Empty String` |
 | `Enable`          | `boolean` (Optional)   | Indicates if the Signal is Eligible for Provisioning. | `False` |
 | `TargetsEnabled`          | `array` (Optional)   | List of Targets on which this Signal can be Tuned | `Empty List` |
@@ -629,7 +629,7 @@ Refer the Examples section for more details on how to use the relaySignal API.
 
 | Field           | Type       | Description | Default Value |
 |----------------|------------|-------------|---------------|
-| `FeatId`          | `string` | Unique Feature Identifier | Not Applicable |
+| `FeatId`          | `Integer` | unsigned 32-bit Unique Feature Identifier | Not Applicable |
 | `LibPath`         | `string` | Path to the associated library | Not Applicable |
 | `Signals`         | `array` |  List of signals to subscribe the feature to | Not Applicable |
 

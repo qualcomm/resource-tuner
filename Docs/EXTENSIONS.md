@@ -79,6 +79,7 @@ RESTUNE_REGISTER_APPLIER_CB(0x00090005, limitCpuTime);
 Resource Tuner allows users to provide their own Config files for different entities like: Resources, Signals, Properties etc. In order for these custom config files to be read and parsed they can either be placed in /etc/resource-tuner or if the user wants even more flexibility in terms of location, they can specify the location of the Config file, using the Extensions Interface's RESTUNE_REGISTER_CONFIG macro.
 
 For example:
+
 ```cpp
 RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/opt/custom/ResourcesConfig.yaml")
 ```

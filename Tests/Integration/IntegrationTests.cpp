@@ -2457,7 +2457,6 @@ namespace SystemSysfsNodesTests {
         LOG_START
 
         std::string testResourceName = "/proc/sys/kernel/sched_util_clamp_min";
-        int32_t testResourceOriginalValue = 1024;
 
         // Check the original value for the Resource
         std::string value = AuxRoutines::readFromFile(testResourceName);
@@ -2514,7 +2513,6 @@ namespace SystemSysfsNodesTests {
         LOG_START
 
         std::string testResourceName = "/proc/sys/kernel/sched_util_clamp_min";
-        int32_t testResourceOriginalValue = 1024;
 
         // Check the original value for the Resource
         std::string value = AuxRoutines::readFromFile(testResourceName);
@@ -2596,7 +2594,6 @@ namespace SystemSysfsNodesTests {
         LOG_START
 
         std::string testResourceName = "/proc/sys/kernel/sched_util_clamp_min";
-        int32_t testResourceOriginalValue = 1024;
 
         // Check the original value for the Resource
         std::string value = AuxRoutines::readFromFile(testResourceName);
@@ -2680,7 +2677,6 @@ namespace SystemSysfsNodesTests {
         LOG_START
 
         std::string testResourceName = "/proc/sys/kernel/sched_util_clamp_min";
-        int32_t testResourceOriginalValue = 1024;
 
         // Check the original value for the Resource
         std::string value = AuxRoutines::readFromFile(testResourceName);
@@ -2741,7 +2737,6 @@ namespace SystemSysfsNodesTests {
         LOG_START
 
         std::string testResourceName = "/proc/sys/kernel/sched_util_clamp_min";
-        int32_t testResourceOriginalValue = 1024;
 
         // Check the original value for the Resource
         std::string value = AuxRoutines::readFromFile(testResourceName);
@@ -2819,7 +2814,6 @@ namespace SystemSysfsNodesTests {
         LOG_START
 
         std::string testResourceName = "/proc/sys/kernel/sched_util_clamp_min";
-        int32_t testResourceOriginalValue = 1024;
 
         // Check the original value for the Resource
         std::string value = AuxRoutines::readFromFile(testResourceName);
@@ -2840,6 +2834,7 @@ namespace SystemSysfsNodesTests {
 
         int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
         std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
+        assert(handle > 0);
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -3151,7 +3146,6 @@ namespace SystemSysfsNodesTests {
         LOG_START
 
         std::string testResourceName1 = "/proc/sys/kernel/sched_util_clamp_min";
-        int32_t testResourceOriginalValue = 1024;
 
         // Check the original value for the Resource
         std::string value = AuxRoutines::readFromFile(testResourceName1);
@@ -3172,6 +3166,7 @@ namespace SystemSysfsNodesTests {
 
         int64_t handle = tuneResources(25000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
         std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
+        assert(handle > 0);
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -3244,7 +3239,6 @@ namespace SystemSysfsNodesTests {
         LOG_START
 
         std::string testResourceName1 = "/proc/sys/kernel/sched_util_clamp_min";
-        int32_t testResourceOriginalValue = 1024;
 
         // Check the original value for the Resource
         std::string value = AuxRoutines::readFromFile(testResourceName1);
@@ -3265,6 +3259,7 @@ namespace SystemSysfsNodesTests {
 
         int64_t handle = tuneResources(45000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
         std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
+        assert(handle > 0);
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -3370,7 +3365,6 @@ namespace SystemSysfsNodesTests {
         LOG_START
 
         std::string testResourceName = "/proc/sys/kernel/sched_util_clamp_min";
-        int32_t testResourceOriginalValue = 1024;
 
         // Check the original value for the Resource
         std::string value = AuxRoutines::readFromFile(testResourceName);
@@ -3426,6 +3420,126 @@ namespace SystemSysfsNodesTests {
         LOG_END
     }
 
+    static void TestWriteTo_pm_qos_resume_latency_us1() {
+        LOG_START
+
+        int32_t logicalClusterID = 0;
+        int32_t physicalClusterID = baseline.getExpectedPhysicalCluster(logicalClusterID);
+
+        if(physicalClusterID == -1) {
+            LOG_SKIP("Logical Cluster: 0 not found on test device, Skipping Test Case")
+            return;
+        }
+
+        std::string nodePath = "/sys/devices/system/cpu/cpu%d/power/pm_qos_resume_latency_us";
+        char path[128];
+        snprintf(path, sizeof(path), nodePath.c_str(), physicalClusterID);
+        std::string testResourceName = std::string(path);
+
+        // Check the original value for the Resource
+        std::string value = AuxRoutines::readFromFile(testResourceName);
+        int32_t originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
+
+        if(originalValue == -1) {
+            // Node does not exist on test device, can't proceed with this test
+            std::cout<<LOG_BASE<<testResourceName<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
+            return;
+        }
+
+        SysResource* resourceList = new SysResource[1];
+        memset(&resourceList[0], 0, sizeof(SysResource));
+        resourceList[0].mResCode = 0x00010001;
+        resourceList[0].mResInfo = 0x00000001; // first core in little cluster
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mResValue.value = 236;
+
+        int64_t handle = tuneResources(7000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
+        assert(handle > 0);
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        // Check if the new value was successfully written to the node
+        value = AuxRoutines::readFromFile(testResourceName);
+        int32_t newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
+        assert(newValue == 236);
+
+        std::this_thread::sleep_for(std::chrono::seconds(8));
+
+        // Wait for the Request to expire, check if the value resets
+        value = AuxRoutines::readFromFile(testResourceName);
+        newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
+        if(originalValue != -1) {
+            assert(newValue == originalValue);
+        }
+
+        delete resourceList;
+        LOG_END
+    }
+
+    static void TestWriteTo_pm_qos_resume_latency_us2() {
+        LOG_START
+
+        int32_t logicalClusterID = 1;
+        int32_t physicalClusterID = baseline.getExpectedPhysicalCluster(logicalClusterID);
+
+        if(physicalClusterID == -1) {
+            LOG_SKIP("Logical Cluster: 1 not found on test device, Skipping Test Case")
+            return;
+        }
+
+        std::string nodePath = "/sys/devices/system/cpu/cpu%d/power/pm_qos_resume_latency_us";
+        char path[128];
+        snprintf(path, sizeof(path), nodePath.c_str(), physicalClusterID);
+        std::string testResourceName = std::string(path);
+
+        // Check the original value for the Resource
+        std::string value = AuxRoutines::readFromFile(testResourceName);
+        int32_t originalValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
+
+        if(originalValue == -1) {
+            // Node does not exist on test device, can't proceed with this test
+            std::cout<<LOG_BASE<<testResourceName<<"Node: "<<testResourceName<<" not found on test device, Aborting Test Case"<<std::endl;
+            return;
+        }
+
+        SysResource* resourceList = new SysResource[1];
+        memset(&resourceList[0], 0, sizeof(SysResource));
+        resourceList[0].mResCode = 0x00010001;
+        resourceList[0].mResInfo = 0x00000101; // first core in gold cluster
+        resourceList[0].mNumValues = 1;
+        resourceList[0].mResValue.value = 214;
+
+        int64_t handle = tuneResources(7000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
+        std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
+        assert(handle > 0);
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        // Check if the new value was successfully written to the node
+        value = AuxRoutines::readFromFile(testResourceName);
+        int32_t newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
+        assert(newValue == 214);
+
+        std::this_thread::sleep_for(std::chrono::seconds(8));
+
+        // Wait for the Request to expire, check if the value resets
+        value = AuxRoutines::readFromFile(testResourceName);
+        newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
+        if(originalValue != -1) {
+            assert(newValue == originalValue);
+        }
+
+        delete resourceList;
+        LOG_END
+    }
+
     static void RunTestGroup() {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
@@ -3441,6 +3555,8 @@ namespace SystemSysfsNodesTests {
         RUN_INTEGRATION_TEST(TestWriteTo_sched_util_clamp_max_Node1)
         RUN_INTEGRATION_TEST(TestWriteTo_sched_util_clamp_max_Node2)
         RUN_INTEGRATION_TEST(TestHeavyLoadWriteTo_sched_util_clamp_min_Node)
+        RUN_INTEGRATION_TEST(TestWriteTo_pm_qos_resume_latency_us1)
+        RUN_INTEGRATION_TEST(TestWriteTo_pm_qos_resume_latency_us2)
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
     }
