@@ -120,10 +120,10 @@ static void TestThreadPoolTaskProcessing1() {
 	// Wait for both tasks to complete
 	std::this_thread::sleep_for(std::chrono::seconds(3));
 
+	delete threadPool;
+
 	std::cout<<"sharedVariable value = "<<sharedVariable<<std::endl;
 	C_ASSERT(sharedVariable == 2e7);
-
-	delete threadPool;
 }
 
 // Lambda Function

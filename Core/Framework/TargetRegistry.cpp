@@ -14,7 +14,12 @@ static ErrCode createCGroup(CGroupConfigInfo* cGroupConfig) {
             AuxRoutines::writeToFile(cGroupPath + "/cgroup.type", "threaded");
         }
     } else {
-        TYPELOGV(ERRNO_LOG, "mkdir", strerror(errno));
+        if(errno == EEXIST) {
+            return RC_SUCCESS; // Already exists, treat as success
+        } else {
+            TYPELOGV(ERRNO_LOG, "mkdir", strerror(errno));
+            return RC_CGROUP_CREATION_FAILURE;
+        }
     }
 
     return RC_SUCCESS;
