@@ -3483,9 +3483,7 @@ namespace SystemSysfsNodesTests {
     static void TestWriteTo_pm_qos_resume_latency_us2() {
         LOG_START
 
-        int32_t logicalClusterID = 1;
-        int32_t physicalClusterID = baseline.getExpectedPhysicalCluster(logicalClusterID);
-
+        int32_t physicalClusterID = baseline.getExpectedPhysicalCluster(1);
         if(physicalClusterID == -1) {
             LOG_SKIP("Logical Cluster: 1 not found on test device, Skipping Test Case")
             return;
