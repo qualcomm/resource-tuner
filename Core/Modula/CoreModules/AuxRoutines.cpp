@@ -45,7 +45,8 @@ void AuxRoutines::writeSysFsDefaults() {
 
     file.open(ResourceTunerSettings::mPersistenceFile);
     if(!file.is_open()) {
-        LOGE("RESTUNE_SERVER_INIT", "Failed to open sysfs original values file: resourceOriginalValues.txt");
+        LOGE("RESTUNE_SERVER_INIT",
+             "Failed to open sysfs original values file: " + ResourceTunerSettings::mPersistenceFile);
         return;
     }
 

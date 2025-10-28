@@ -48,15 +48,16 @@ public:
     static const int32_t maxPendingQueueSize = 17;
     static const int32_t maxScalingCapacity = 30;
 
+    // Support both versions: Common and Custom
     static const std::string mCommonResourceFilePath;
     static const std::string mCustomResourceFilePath;
     static const std::string mCommonSignalFilePath;
     static const std::string mCustomSignalFilePath;
     static const std::string mCommonPropertiesFilePath;
     static const std::string mCustomPropertiesFilePath;
-    static const std::string mCustomTargetFilePath;
 
-    // Only Custom Config is supported for Ext Features Config
+    // Only Custom Config is supported for Target and Ext Features Config
+    static const std::string mCustomTargetFilePath;
     static const std::string mCustomExtFeaturesFilePath;
 
     // Support both versions: Common and Custom
@@ -70,7 +71,6 @@ public:
 
     static const std::string mPersistenceFile;
 
-    static std::shared_timed_mutex mModeLock;
     static MetaConfigs metaConfigs;
     static TargetConfigs targetConfigs;
 
