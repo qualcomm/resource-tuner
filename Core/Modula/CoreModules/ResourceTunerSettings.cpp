@@ -3,7 +3,6 @@
 
 #include "ResourceTunerSettings.h"
 
-std::shared_timed_mutex ResourceTunerSettings::mModeLock{};
 int32_t ResourceTunerSettings::serverOnlineStatus = false;
 MetaConfigs ResourceTunerSettings::metaConfigs{};
 TargetConfigs ResourceTunerSettings::targetConfigs{};
@@ -44,7 +43,7 @@ const std::string ResourceTunerSettings::mBaseCGroupPath =
                                     "/sys/fs/cgroup/";
 
 const std::string ResourceTunerSettings::mPersistenceFile =
-                                    "resourceOriginalValues.txt";
+                                    "/etc/resource-tuner/data/resource_original_values.txt";
 
 int32_t ResourceTunerSettings::isServerOnline() {
     return serverOnlineStatus;
