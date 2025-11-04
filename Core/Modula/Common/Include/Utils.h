@@ -62,7 +62,8 @@ enum Policy {
     INSTANT_APPLY, //!< This policy is for resources where the latest request needs to be honored.
     HIGHER_BETTER, //!< This policy first applies the request writing the highest value to the node.
     LOWER_BETTER, //!< Self-explanatory. Works exactly opposite of the higher is better policy.
-    LAZY_APPLY //!< The requests are applied in a first-in-first-out manner.
+    LAZY_APPLY, //!< The requests are applied in a first-in-first-out manner.
+    PASS_THROUGH
 };
 
 typedef struct {

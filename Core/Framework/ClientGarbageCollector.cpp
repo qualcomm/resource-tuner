@@ -52,7 +52,7 @@ void ClientGarbageCollector::performCleanup() {
             Request* untuneRequest = nullptr;
 
             try {
-                untuneRequest = new (GetBlock<Request>()) Request();
+                untuneRequest = MPLACED(Request);
                 request->populateUntuneRequest(untuneRequest);
             } catch(const std::bad_alloc& e) {
                 LOGI("RESTUNE_CLIENT_GARBAGE_COLLECTOR",
@@ -72,8 +72,7 @@ void ClientGarbageCollector::performCleanup() {
 
 ErrCode ClientGarbageCollector::startClientGarbageCollectorDaemon() {
     try {
-        this->mTimer = new (GetBlock<Timer>())
-                            Timer(std::bind(&ClientGarbageCollector::performCleanup, this), true);
+        this->mTimer = MPLACEV(Timer, std::bind(&ClientGarbageCollector::performCleanup, this), true);
 
     } catch(const std::bad_alloc& e) {
         return RC_MEMORY_ALLOCATION_FAILURE;

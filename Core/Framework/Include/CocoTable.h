@@ -92,8 +92,10 @@ private:
     static std::shared_ptr<CocoTable> mCocoTableInstance;
     static std::mutex instanceProtectionLock;
 
-    std::vector<ResourceConfigInfo*> mResourceTable;
+    std::vector<ResConfInfo*> mResourceTable;
     std::unordered_map<int32_t, int32_t> mFlatClusterMap;
+
+    ResourceRegistry* mResourceRegistry;
 
     /**
      * @brief The main data structure which is a 2D vector. It stores entries for each resource and each entry stores a priority vector.
@@ -102,7 +104,7 @@ private:
     std::vector<std::vector<std::pair<CocoNode*, CocoNode*>>> mCocoTable;
 
     /**
-     * @brief Data structure storing the c2urrently applied priority for each resource. It is referred to whenever a new request comes in.
+     * @brief Data structure storing the currently applied priority for each resource.
      */
     std::vector<int32_t> mCurrentlyAppliedPriority;
 

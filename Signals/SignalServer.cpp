@@ -110,7 +110,7 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
     // Perform Resource Level Checking, using the ResourceRegistry
     for(int32_t i = 0; i < signalInfo->mSignalResources->size(); i++) {
         Resource* resource = signalInfo->mSignalResources->at(i);
-        ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
+        ResConfInfo* resourceConfig = ResourceRegistry::getInstance()->getResConf(resource->getResCode());
 
         // Basic sanity: Invalid ResCode
         if(resourceConfig == nullptr) {
@@ -261,7 +261,7 @@ ErrCode submitSignalRequest(void* msg) {
 
     if(RC_IS_OK(opStatus)) {
         try {
-            signal = new (GetBlock<Signal>()) Signal();
+            signal = MPLACED(Signal);
             opStatus = signal->deserialize(info->buffer);
             if(RC_IS_NOTOK(opStatus)) {
                 Signal::cleanUpSignal(signal);

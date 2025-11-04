@@ -60,7 +60,7 @@ static void TestExtensionIntfModifiedInitConfigPath() {
 }
 
 static void TestExtensionIntfCustomResourceApplier1() {
-    ResourceConfigInfo* info = ResourceRegistry::getInstance()->getResourceById(0x80ff0000);
+    ResConfInfo* info = ResourceRegistry::getInstance()->getResConf(0x80ff0000);
     C_ASSERT(info != nullptr);
     funcCalled = false;
     C_ASSERT(info->mResourceApplierCallback != nullptr);
@@ -69,7 +69,7 @@ static void TestExtensionIntfCustomResourceApplier1() {
 }
 
 static void TestExtensionIntfCustomResourceApplier2() {
-    ResourceConfigInfo* info = ResourceRegistry::getInstance()->getResourceById(0x80ff0002);
+    ResConfInfo* info = ResourceRegistry::getInstance()->getResConf(0x80ff0002);
     C_ASSERT(info != nullptr);
     C_ASSERT(info->mResourceApplierCallback != nullptr);
     info->mResourceApplierCallback(nullptr);
@@ -77,7 +77,7 @@ static void TestExtensionIntfCustomResourceApplier2() {
 }
 
 static void TestExtensionIntfCustomResourceTear() {
-    ResourceConfigInfo* info = ResourceRegistry::getInstance()->getResourceById(0x80ff0001);
+    ResConfInfo* info = ResourceRegistry::getInstance()->getResConf(0x80ff0001);
     C_ASSERT(info != nullptr);
     funcCalled = false;
     C_ASSERT(info->mResourceTearCallback != nullptr);

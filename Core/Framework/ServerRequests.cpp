@@ -128,7 +128,7 @@ static int8_t VerifyIncomingRequest(Request* req) {
             return false;
         }
 
-        ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
+        ResConfInfo* resourceConfig = ResourceRegistry::getInstance()->getResConf(resource->getResCode());
 
         // Basic sanity: Invalid ResCode
         if(resourceConfig == nullptr) {
@@ -354,7 +354,7 @@ ErrCode submitResProvisionRequest(void* msg) {
 
     if(RC_IS_OK(opStatus)) {
         try {
-            request = new (GetBlock<Request>()) Request();
+            request = MPLACED(Request);
             opStatus = request->deserialize(info->buffer);
             if(RC_IS_NOTOK(opStatus)) {
                 Request::cleanUpRequest(request);

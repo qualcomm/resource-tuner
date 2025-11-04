@@ -127,7 +127,7 @@ ErrCode Signal::deserialize(char* buf) {
         this->mClientPID = DEREF_AND_INCR(ptr, int32_t);
         this->mClientTID = DEREF_AND_INCR(ptr, int32_t);
 
-        this->mListArgs = new (GetBlock<std::vector<uint32_t>>()) std::vector<uint32_t>;
+        this->mListArgs = MPLACED(std::vector<uint32_t>);
         this->mListArgs->resize(this->mNumArgs);
 
         for(int32_t i = 0; i < this->mNumArgs; i++) {

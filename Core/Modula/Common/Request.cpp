@@ -148,13 +148,12 @@ ErrCode Request::deserialize(char* buf) {
         this->mClientTID = DEREF_AND_INCR(ptr, int32_t);
 
         if(this->mReqType == REQ_RESOURCE_TUNING) {
-            this->mResources = new (GetBlock<std::vector<Resource*>>())
-                                    std::vector<Resource*>;
+            this->mResources = MPLACED(std::vector<Resource*>);
 
             this->mResources->resize(this->getResourcesCount());
 
             for(int32_t i = 0; i < this->getResourcesCount(); i++) {
-                Resource* resource = new (GetBlock<Resource>()) Resource;
+                Resource* resource = MPLACED(Resource);
 
                 resource->setResCode(DEREF_AND_INCR(ptr, int32_t));
                 resource->setResInfo(DEREF_AND_INCR(ptr, int32_t));
@@ -166,8 +165,7 @@ ErrCode Request::deserialize(char* buf) {
                 } else {
                     for(int32_t j = 0; j < resource->getValuesCount(); j++) {
                         if(resource->mResValue.values == nullptr) {
-                            resource->mResValue.values = new (GetBlock<std::vector<int32_t>>())
-                                                              std::vector<int32_t>;
+                            resource->mResValue.values = MPLACED(std::vector<int32_t>);
                         }
                         resource->mResValue.values->push_back(DEREF_AND_INCR(ptr, int32_t));
                     }

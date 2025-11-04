@@ -9,13 +9,13 @@ ResourceRegistry::ResourceRegistry() {
     this->mTotalResources = 0;
 }
 
-int8_t ResourceRegistry::isResourceConfigMalformed(ResourceConfigInfo* rConf) {
+int8_t ResourceRegistry::isResourceConfigMalformed(ResConfInfo* rConf) {
     if(rConf == nullptr) return true;
     if(rConf->mResourceResType == 0) return true;
     return false;
 }
 
-void ResourceRegistry::setLifeCycleCallbacks(ResourceConfigInfo* resourceConfigInfo) {
+void ResourceRegistry::setLifeCycleCallbacks(ResConfInfo* resourceConfigInfo) {
     switch(resourceConfigInfo->mApplyType) {
         case APPLY_CLUSTER:
             resourceConfigInfo->mResourceApplierCallback = defaultClusterLevelApplierCb;
@@ -49,7 +49,7 @@ void ResourceRegistry::addDefaultValue(const std::string& filePath, const std::s
     }
 }
 
-void ResourceRegistry::fetchAndStoreDefaults(ResourceConfigInfo* resourceConfigInfo) {
+void ResourceRegistry::fetchAndStoreDefaults(ResConfInfo* resourceConfigInfo) {
     if(resourceConfigInfo == nullptr) return;
     switch(resourceConfigInfo->mApplyType) {
         case APPLY_CLUSTER: {
@@ -89,7 +89,7 @@ void ResourceRegistry::fetchAndStoreDefaults(ResourceConfigInfo* resourceConfigI
     }
 }
 
-void ResourceRegistry::registerResource(ResourceConfigInfo* resourceConfigInfo,
+void ResourceRegistry::registerResource(ResConfInfo* resourceConfigInfo,
                                         int8_t isBuSpecified) {
     // Invalid Resource, skip.
     if(this->isResourceConfigMalformed(resourceConfigInfo)) {
@@ -151,11 +151,11 @@ void ResourceRegistry::displayResources() {
     }
 }
 
-std::vector<ResourceConfigInfo*> ResourceRegistry::getRegisteredResources() {
+std::vector<ResConfInfo*> ResourceRegistry::getRegisteredResources() {
     return mResourceConfig;
 }
 
-ResourceConfigInfo* ResourceRegistry::getResourceById(uint32_t resourceId) {
+ResConfInfo* ResourceRegistry::getResConf(uint32_t resourceId) {
     if(this->mSystemIndependentLayerMappings.find(resourceId) == this->mSystemIndependentLayerMappings.end()) {
         TYPELOGV(RESOURCE_REGISTRY_RESOURCE_NOT_FOUND, resourceId);
         return nullptr;
@@ -223,7 +223,7 @@ ResourceRegistry::~ResourceRegistry() {
 }
 
 ResourceConfigInfoBuilder::ResourceConfigInfoBuilder() {
-    this->mResourceConfigInfo = new (std::nothrow) ResourceConfigInfo;
+    this->mResourceConfigInfo = new (std::nothrow) ResConfInfo;
     if(this->mResourceConfigInfo == nullptr) {
         return;
     }
@@ -438,7 +438,7 @@ ErrCode ResourceConfigInfoBuilder::setApplyType(const std::string& applyTypeStri
     return RC_SUCCESS;
 }
 
-ResourceConfigInfo* ResourceConfigInfoBuilder::build() {
+ResConfInfo* ResourceConfigInfoBuilder::build() {
     return this->mResourceConfigInfo;
 }
 

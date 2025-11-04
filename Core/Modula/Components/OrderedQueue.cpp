@@ -69,7 +69,7 @@ Message* OrderedQueue::pop() {
 void OrderedQueue::forcefulAwake() {
     Message* message = nullptr;
     try {
-        message = new (GetBlock<Message>()) Message();
+        message = MPLACED(Message);
     } catch(const std::bad_alloc& e) {
         return;
     }

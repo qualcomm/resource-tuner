@@ -206,7 +206,7 @@ void RequestManager::moveToPendingList() {
         if((request->getProcessingModes() & MODE_SUSPEND) == 0) {
             Request* untuneRequest = nullptr;
             try {
-                untuneRequest = new (GetBlock<Request>()) Request();
+                untuneRequest = MPLACED(Request);
             } catch(const std::bad_alloc& e) {
                 LOGI("RESTUNE_REQUEST_MANAGER"
                      "Failed to create Untune Request for Request: ", std::to_string(request->getHandle()));

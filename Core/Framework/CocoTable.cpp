@@ -11,12 +11,17 @@ static int8_t comparison(int32_t first, int32_t second, int32_t policy) {
     }
 }
 
+static int8_t needAllocation(Resource* res) {
+    ResConfInfo* rConf = this->mResourceRegistry->getResConf(res->getResCode());
+    return (rConf->mPolicy != Policy::PASS_THROUGH);
+}
+
 std::shared_ptr<CocoTable> CocoTable::mCocoTableInstance = nullptr;
 std::mutex CocoTable::instanceProtectionLock {};
 
 CocoTable::CocoTable() {
-    this->mResourceTable = ResourceRegistry::getInstance()->getRegisteredResources();
-    int32_t totalResources = ResourceRegistry::getInstance()->getTotalResourcesCount();
+    this->mResourceRegistry = ResourceRegistry::getInstance();
+    int32_t totalResources = this->mResourceRegistry->getTotalResourcesCount();
 
     this->mCurrentlyAppliedPriority.resize(totalResources, -1);
 
@@ -66,7 +71,7 @@ CocoTable::CocoTable() {
                 ]
         ]
     */
-    for(ResourceConfigInfo* resourceConfig: this->mResourceTable) {
+    for(ResConfInfo* resourceConfig: this->mResourceRegistry->getRegisteredResources()) {
         if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CORE) {
             int32_t totalCoreCount = ResourceTunerSettings::targetConfigs.mTotalCoreCount;
             this->mCocoTable.push_back(std::vector<std::pair<CocoNode*, CocoNode*>>(TOTAL_PRIORITIES * totalCoreCount));
@@ -92,7 +97,7 @@ void CocoTable::applyAction(CocoNode* currNode, int32_t index, int8_t priority) 
 
     if(this->mCurrentlyAppliedPriority[index] >= priority ||
        this->mCurrentlyAppliedPriority[index] == -1) {
-        ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
+        ResConfInfo* resourceConfig = this->mResourceRegistry->getResConf(resource->getResCode());
         if(resourceConfig->mModes & ResourceTunerSettings::targetConfigs.currMode) {
             // Check if a custom Applier (Callback) has been provided for this Resource, if yes, then call it
             // Note for resources with multiple values, the BU will need to provide a custom applier, which provides
@@ -107,10 +112,10 @@ void CocoTable::applyAction(CocoNode* currNode, int32_t index, int8_t priority) 
 
 void CocoTable::removeAction(int32_t index, Resource* resource) {
     if(resource == nullptr) return;
-    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
-    if(resourceConfigInfo != nullptr) {
-        if(resourceConfigInfo->mResourceTearCallback != nullptr) {
-            resourceConfigInfo->mResourceTearCallback(resource);
+    ResConfInfo* resConfInfo = this->mResourceRegistry->getResConf(resource->getResCode());
+    if(resConfInfo != nullptr) {
+        if(resConfInfo->mResourceTearCallback != nullptr) {
+            resConfInfo->mResourceTearCallback(resource);
         }
         this->mCurrentlyAppliedPriority[index] = -1;
     }
@@ -193,7 +198,7 @@ void CocoTable::insertInCocoTableHigherLower(CocoNode* newNode, int32_t primaryI
         newNode->next = nullptr;
         newNode->prev = tail;
 
-        if(tail) {
+        if(tail != nullptr) {
             tail->next = newNode;
         } else {
             this->mCocoTable[primaryIndex][secondaryIndex].second = newNode;
@@ -248,33 +253,31 @@ void CocoTable::insertInCocoTableInstantApply(CocoNode* newNode, int32_t primary
 }
 
 int32_t CocoTable::getCocoTablePrimaryIndex(uint32_t opId) {
-    if(ResourceRegistry::getInstance()->getResourceById(opId) == nullptr) {
+    if(this->mResourceRegistry->getResConf(opId) == nullptr) {
         return -1;
     }
 
-    return ResourceRegistry::getInstance()->getResourceTableIndex(opId);
+    return this->mResourceRegistry->getResourceTableIndex(opId);
 }
 
 int32_t CocoTable::getCocoTableSecondaryIndex(Resource* resource, int8_t priority) {
-    std::shared_ptr<ResourceRegistry> resourceRegistry = ResourceRegistry::getInstance();
-    if(resourceRegistry->getResourceById(resource->getResCode()) == nullptr) {
+    if(this->mResourceRegistry->getResConf(resource->getResCode()) == nullptr) {
         return -1;
     }
 
-    ResourceConfigInfo* resourceConfigInfo =
-        resourceRegistry->getResourceById(resource->getResCode());
+    ResConfInfo* resConfInfo = this->mResourceRegistry->getResConf(resource->getResCode());
 
-    if(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_CORE) {
+    if(resConfInfo->mApplyType == ResourceApplyType::APPLY_CORE) {
         int32_t physicalCore = resource->getCoreValue();
         return physicalCore * TOTAL_PRIORITIES + priority;
 
-    } else if(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_CLUSTER) {
+    } else if(resConfInfo->mApplyType == ResourceApplyType::APPLY_CLUSTER) {
         int32_t physicalCluster = resource->getClusterValue();
         if(physicalCluster == -1) return -1;
         int32_t index = this->mFlatClusterMap[physicalCluster];
         return index * TOTAL_PRIORITIES + priority;
 
-    } else if(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_CGROUP) {
+    } else if(resConfInfo->mApplyType == ResourceApplyType::APPLY_CGROUP) {
         int32_t cGroupIdentifier = -1;
         if(resource->getValuesCount() == 1) {
             cGroupIdentifier = resource->mResValue.value;
@@ -285,7 +288,7 @@ int32_t CocoTable::getCocoTableSecondaryIndex(Resource* resource, int8_t priorit
         if(cGroupIdentifier == -1) return -1;
         return cGroupIdentifier * TOTAL_PRIORITIES + priority;
 
-    } else if(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_GLOBAL) {
+    } else if(resConfInfo->mApplyType == ResourceApplyType::APPLY_GLOBAL) {
         return priority;
     }
 
@@ -301,7 +304,7 @@ int8_t CocoTable::insertInCocoTable(CocoNode* currNode, Resource* resource, int8
         return false;
     }
 
-    enum Policy policy = ResourceRegistry::getInstance()->getResourceById(resource->getResCode())->mPolicy;
+    enum Policy policy = this->mResourceRegistry->getResConf(resource->getResCode())->mPolicy;
 
     switch(policy) {
         case INSTANT_APPLY:
@@ -330,13 +333,16 @@ int8_t CocoTable::insertInCocoTable(CocoNode* currNode, Resource* resource, int8
 // We allocate as many CocoNodes as possible for the Request.
 int8_t CocoTable::insertRequest(Request* req) {
     if(req == nullptr) return false;
-
     TYPELOGV(NOTIFY_COCO_TABLE_INSERT_START, req->getHandle());
+
+    int32_t allocatedCocoNodesCount = 0;
+    int32_t requiredCocoNodesCount = req->getResourcesCount();
+
     // Create a List to Hold all the CocoNodes for the Request
     std::vector<CocoNode*>* cocoNodesList = nullptr;
     try {
         cocoNodesList = new (GetBlock<std::vector<CocoNode*>>()) std::vector<CocoNode*>;
-        cocoNodesList->resize(req->getResourcesCount(), nullptr);
+        cocoNodesList->resize(requiredCocoNodesCount, nullptr);
 
     } catch(const std::bad_alloc& e) {
         TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE_HANDLE, req->getHandle(), e.what());
@@ -344,29 +350,36 @@ int8_t CocoTable::insertRequest(Request* req) {
     }
 
     // Allocate as many CocoNodes as Possible
-    int32_t allocatedCocoNodesCount = 0;
     for(int32_t i = 0; i < req->getResourcesCount(); i++) {
         Resource* resource = req->getResourceAt(i);
+        if(!needAllocation(resource)) {
+            requiredCocoNodesCount--;
+
+            // Apply it straightaway
+            this->fastPathApply(resource);
+            continue;
+        }
+
         CocoNode* currNode = nullptr;
 
         try {
-            currNode = new (GetBlock<CocoNode>()) CocoNode;
-            allocatedCocoNodesCount++;
+            currNode = MPLACED(CocoNode);
 
         } catch(const std::bad_alloc& e) {
             break;
         }
 
         if(currNode != nullptr) {
+            allocatedCocoNodesCount++;
             currNode->mResource = resource;
-            (*cocoNodesList)[i] = currNode;
         }
+        (*cocoNodesList)[i] = currNode;
     }
 
     req->setCocoNodes(cocoNodesList);
     req->setNumCocoNodes(allocatedCocoNodesCount);
 
-    if(allocatedCocoNodesCount == 0) {
+    if(allocatedCocoNodesCount == 0 && requiredCocoNodesCount > 0) {
         // No Point of Processing this Request any Further
         TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE_HANDLE, req->getHandle(), "Insufficient Memory");
         return false;
@@ -375,8 +388,7 @@ int8_t CocoTable::insertRequest(Request* req) {
     // Create a time to associate with the request
     Timer* requestTimer = nullptr;
     try {
-        requestTimer = new (GetBlock<Timer>())
-                            Timer(std::bind(&CocoTable::timerExpired, this, req));
+        requestTimer = MPLACEV(Timer, std::bind(&CocoTable::timerExpired, this, req));
     } catch(const std::bad_alloc& e) {
         TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE_HANDLE, req->getHandle(), e.what());
         return false;
@@ -394,7 +406,6 @@ int8_t CocoTable::insertRequest(Request* req) {
     // This will actually trigger the Lock Provisioning Flow
     for(int32_t i = 0; i < allocatedCocoNodesCount; i++) {
         CocoNode* currNode = (*cocoNodesList)[i];
-
         if(currNode != nullptr) {
             Resource* resource = currNode->mResource;
 
@@ -423,8 +434,7 @@ int8_t CocoTable::updateRequest(Request* req, int64_t duration) {
     // Create a time to associate with the request
     Timer* requestTimer = nullptr;
     try {
-        requestTimer = new (GetBlock<Timer>())
-                            Timer(std::bind(&CocoTable::timerExpired, this, req));
+        requestTimer = MPLACEV(Timer, std::bind(&CocoTable::timerExpired, this, req));
     } catch(const std::bad_alloc& e) {
         TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE_HANDLE, req->getHandle(), e.what());
         return false;
@@ -465,6 +475,8 @@ void CocoTable::processResourceCleanupAt(Request* request, int32_t index) {
                 nodeIsHead = true;
             }
             this->deleteNode(nodeToDelete, primaryIndex, secondaryIndex, priority);
+        } else {
+            this->fastPathReset(resource);
         }
     }
 
@@ -477,7 +489,7 @@ void CocoTable::processResourceCleanupAt(Request* request, int32_t index) {
     if(this->mCocoTable[primaryIndex][secondaryIndex].second == nullptr) {
         int8_t allListsEmpty = true;
         int32_t reIndexIncrement = 0;
-        ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
+        ResConfInfo* resourceConfig = this->mResourceRegistry->getResConf(resource->getResCode());
 
         if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CORE ||
             resourceConfig->mApplyType == ResourceApplyType::APPLY_CLUSTER ||
@@ -526,7 +538,7 @@ void CocoTable::timerExpired(Request* request) {
 
     Request* untuneRequest = nullptr;
     try {
-        untuneRequest = new (GetBlock<Request>()) Request();
+        untuneRequest = MPLACED(Request);
     } catch(const std::bad_alloc& e) {
         return;
     }

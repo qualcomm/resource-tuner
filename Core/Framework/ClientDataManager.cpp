@@ -64,11 +64,10 @@ int8_t ClientDataManager::createNewClient(int32_t clientPID, int32_t clientTID) 
 
     ClientTidData* clientData = nullptr;
     try {
-        clientData = new (GetBlock<ClientTidData>()) ClientTidData;
+        clientData = MPLACED(ClientTidData);
         clientData->mLastRequestTimestamp = 0;
         clientData->mHealth = 100.0;
-        clientData->mClientHandles =
-            new (GetBlock<std::unordered_set<int64_t>>()) std::unordered_set<int64_t>;
+        clientData->mClientHandles = MPLACED(std::unordered_set<int64_t>);
 
     } catch(const std::bad_alloc& e) {
         TYPELOGV(CLIENT_ALLOCATION_FAILURE, clientPID, clientTID, e.what());
@@ -93,10 +92,8 @@ int8_t ClientDataManager::createNewClient(int32_t clientPID, int32_t clientTID) 
     } else {
         // If it doesn't, then create a new entry in the mClientRepo table
         try {
-            ClientInfo* clientInfo = new (GetBlock<ClientInfo>()) ClientInfo;
-            clientInfo->mClientTIDs =
-                new (GetBlock<std::vector<int32_t>>())
-                std::vector<int32_t>;
+            ClientInfo* clientInfo = MPLACED(ClientInfo);
+            clientInfo->mClientTIDs = MPLACED(std::vector<int32_t>);
 
             clientInfo->mClientTIDs->push_back(clientTID);
             clientInfo->mClientType = isRootProcess(clientPID);

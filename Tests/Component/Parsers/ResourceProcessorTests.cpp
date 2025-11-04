@@ -29,7 +29,7 @@ static void TestResourceConfigProcessorYAMLDataIntegrity2() {
 }
 
 static void TestResourceConfigProcessorYAMLDataIntegrity3_1() {
-    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(0x80ff0000);
+    ResConfInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResConf(0x80ff0000);
 
     C_ASSERT(resourceConfigInfo != nullptr);
     C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
@@ -46,7 +46,7 @@ static void TestResourceConfigProcessorYAMLDataIntegrity3_1() {
 }
 
 static void TestResourceConfigProcessorYAMLDataIntegrity3_2() {
-    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(0x80ff0001);
+    ResConfInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResConf(0x80ff0001);
 
     C_ASSERT(resourceConfigInfo != nullptr);
     C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
@@ -63,7 +63,7 @@ static void TestResourceConfigProcessorYAMLDataIntegrity3_2() {
 }
 
 static void TestResourceConfigProcessorYAMLDataIntegrity3_3() {
-    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(0x80ff0005);
+    ResConfInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResConf(0x80ff0005);
 
     C_ASSERT(resourceConfigInfo != nullptr);
     C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);

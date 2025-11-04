@@ -1,2 +1,15 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause-Clear
+
+InitConfigs:
+  - CgroupsInfo:
+    - Name: "init.scope"
+      Create: false
+      ID: 1
+    - Name: "system.slice"
+      Create: true
+      ID: 2
+    - Name: "user.slice"
+      Create: true
+      IsThreaded: true
+      ID: 3

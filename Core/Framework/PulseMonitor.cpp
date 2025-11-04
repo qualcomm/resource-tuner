@@ -60,8 +60,7 @@ int8_t PulseMonitor::checkForDeadClients() {
 
 ErrCode PulseMonitor::startPulseMonitorDaemon() {
     try {
-        this->mTimer = new (GetBlock<Timer>())
-                            Timer(std::bind(&PulseMonitor::checkForDeadClients, this), true);
+        this->mTimer = MPLACEV(Timer, std::bind(&PulseMonitor::checkForDeadClients, this), true);
 
     } catch(const std::bad_alloc& e) {
         return RC_MEMORY_ALLOCATION_FAILURE;

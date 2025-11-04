@@ -10,8 +10,8 @@
 #include "ResourceRegistry.h"
 
 static std::string getClusterTypeResourceNodePath(Resource* resource, int32_t clusterID) {
-    ResourceConfigInfo* resourceConfig =
-        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
+    ResConfInfo* resourceConfig =
+        ResourceRegistry::getInstance()->getResConf(resource->getResCode());
 
     if(resourceConfig == nullptr) return "";
     std::string filePath = resourceConfig->mResourcePath;
@@ -25,8 +25,8 @@ static std::string getClusterTypeResourceNodePath(Resource* resource, int32_t cl
 }
 
 static std::string getCoreTypeResourceNodePath(Resource* resource, int32_t coreID) {
-    ResourceConfigInfo* resourceConfig =
-        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
+    ResConfInfo* resourceConfig =
+        ResourceRegistry::getInstance()->getResConf(resource->getResCode());
 
     if(resourceConfig == nullptr) return "";
     std::string filePath = resourceConfig->mResourcePath;
@@ -40,8 +40,8 @@ static std::string getCoreTypeResourceNodePath(Resource* resource, int32_t coreI
 }
 
 static std::string getCGroupTypeResourceNodePath(Resource* resource, const std::string& cGroupName) {
-    ResourceConfigInfo* resourceConfig =
-        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
+    ResConfInfo* resourceConfig =
+        ResourceRegistry::getInstance()->getResConf(resource->getResCode());
 
     if(resourceConfig == nullptr) return "";
     std::string filePath = resourceConfig->mResourcePath;
@@ -238,8 +238,8 @@ void defaultCGroupLevelApplierCb(void* context) {
 void defaultCGroupLevelTearCb(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
-    ResourceConfigInfo* resourceConfigInfo =
-        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
+    ResConfInfo* resourceConfigInfo =
+        ResourceRegistry::getInstance()->getResConf(resource->getResCode());
 
     if(resourceConfigInfo == nullptr) return;
     if(resource->mResValue.values == nullptr) return;
@@ -285,8 +285,8 @@ void defaultGlobalLevelApplierCb(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
 
-    ResourceConfigInfo* resourceConfig =
-        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
+    ResConfInfo* resourceConfig =
+        ResourceRegistry::getInstance()->getResConf(resource->getResCode());
 
     if(resourceConfig != nullptr) {
         TYPELOGV(NOTIFY_NODE_WRITE, resourceConfig->mResourcePath.c_str(), resource->mResValue.value);
@@ -299,8 +299,8 @@ void defaultGlobalLevelTearCb(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
 
-    ResourceConfigInfo* resourceConfig =
-        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
+    ResConfInfo* resourceConfig =
+        ResourceRegistry::getInstance()->getResConf(resource->getResCode());
 
     if(resourceConfig != nullptr) {
         std::string defaultValue =

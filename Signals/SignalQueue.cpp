@@ -8,7 +8,7 @@ static Request* createResourceTuningRequest(Signal* signal) {
         SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(signal->getSignalCode());
         if(signalInfo == nullptr) return nullptr;
 
-        Request* request = new (GetBlock<Request>()) Request();
+        Request* request = MPLACED(Request);
 
         request->setRequestType(REQ_RESOURCE_TUNING);
         request->setHandle(signal->getHandle());
@@ -20,15 +20,14 @@ static Request* createResourceTuningRequest(Signal* signal) {
         std::vector<Resource*>* signalLocks = signalInfo->mSignalResources;
         request->setNumResources(signalLocks->size());
 
-        std::vector<Resource*>* resourceList =
-            new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
+        std::vector<Resource*>* resourceList = MPLACED(std::vector<Resource*>);
         resourceList->resize(request->getResourcesCount());
 
         for(int32_t i = 0; i < signalLocks->size(); i++) {
             if((*signalLocks)[i] == nullptr) {
                 continue;
             }
-            (*resourceList)[i] = new (GetBlock<Resource>()) Resource(*((*signalLocks)[i]));
+            (*resourceList)[i] = MPLACEV(Resource, (*((*signalLocks)[i])));
         }
 
         request->setResources(resourceList);
@@ -46,7 +45,7 @@ static Request* createResourceUntuneRequest(Signal* signal) {
     Request* request = nullptr;
 
     try {
-        request = new(GetBlock<Request>()) Request();
+        request = MPLACED(Request);
 
     } catch(const std::bad_alloc& e) {
         TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE_HANDLE, signal->getHandle(), e.what());
