@@ -7,9 +7,8 @@ InitConfigs:
       Create: false
       ID: 1
     - Name: "system.slice"
-      Create: true
+      Create: false
       ID: 2
     - Name: "user.slice"
-      Create: true
-      IsThreaded: true
+      Create: false
       ID: 3
