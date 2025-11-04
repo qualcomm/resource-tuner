@@ -12,46 +12,31 @@
 #include "Utils.h"
 #include "Message.h"
 #include "Resource.h"
+#include "DLManager.h"
 
-class CocoNode {
-public:
-    Resource* mResource;
-    CocoNode* next;
-    CocoNode* prev;
-
-    CocoNode() : mResource(nullptr), next(nullptr), prev(nullptr) {}
-};
+#define REQUEST_DL_NR 1
+#define COCO_TABLE_DL_NR 2
 
 /**
-* @brief Encapsulation type for a Resource Provisioning Request.
-*/
+ * @brief Encapsulation type for a Resource Provisioning Request.
+ */
 class Request : public Message {
 private:
-    int32_t mNumResources; //!< Number of resources to be tuned as Part of the Request.
-    int32_t mNumCocoNodes; //!< Number of coco nodes Allocated for the Request.
-    std::vector<Resource*>* mResources; //!< Pointer to a vector, storing all the Resources to be tuned.
-    std::vector<CocoNode*>* mCocoNodes; //!< Pointer to a vector, storing all the CocoNodes for the Request.
     Timer* mTimer; //!< Timer associated with the request.
+    DLManager* mResourceList;
 
 public:
-    Request() : mNumResources(0), mNumCocoNodes(0), mResources(nullptr),
-                mCocoNodes(nullptr), mTimer(nullptr) {}
+    Request();
     ~Request();
 
     int32_t getResourcesCount();
-    int32_t getCocoNodesCount();
-    std::vector<Resource*>* getResources();
-    Resource* getResourceAt(int32_t index);
-    std::vector<CocoNode*>* getCocoNodes();
-    CocoNode* getCocoNodeAt(int32_t index);
     Timer* getTimer();
+    DLManager* getResDlMgr();
 
-    void setNumResources(int32_t numResources);
-    void setNumCocoNodes(int32_t numCocoNodes);
+    void addResource(CoreIterable* resIterable);
     void setTimer(Timer* timer);
     void unsetTimer();
-    void setResources(std::vector<Resource*>* resources);
-    void setCocoNodes(std::vector<CocoNode*>* cocoNodes);
+    void clearResources();
 
     ErrCode serialize(char* buf);
     ErrCode deserialize(char* buf);

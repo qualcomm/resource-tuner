@@ -30,8 +30,9 @@ int8_t RequestManager::isSane(Request* request) {
         return false;
     }
 
-    for(int32_t i = 0; i < request->getResourcesCount(); i++) {
-        if(request->getResourceAt(i) == nullptr) return false;
+    if(request->getResDlMgr() == nullptr) return false;
+    DL_ITERATE(request->getResDlMgr()) {
+        if(iter == nullptr || iter->mData == nullptr) return false;
     }
 
     return true;
@@ -60,25 +61,25 @@ int8_t RequestManager::requestMatch(Request* request) {
 
         // This covers the case where the client fires the exact same request
         // multiple times
-        for(int32_t i = 0; i < request->getResourcesCount(); i++) {
-            Resource* res1 = request->getResourceAt(i);
-            Resource* res2 = targetRequest->getResourceAt(i);
+        // for(int32_t i = 0; i < request->getResourcesCount(); i++) {
+        //     Resource* res1 = request->getResourceAt(i);
+        //     Resource* res2 = targetRequest->getResourceAt(i);
 
-            if(res1->getResCode() != res2->getResCode()) return false;
-            if(res1->getResInfo() != res2->getResInfo()) return false;
-            if(res1->getOptionalInfo() != res2->getOptionalInfo()) return false;
-            if(res1->getValuesCount() != res2->getValuesCount()) return false;
+        //     if(res1->getResCode() != res2->getResCode()) return false;
+        //     if(res1->getResInfo() != res2->getResInfo()) return false;
+        //     if(res1->getOptionalInfo() != res2->getOptionalInfo()) return false;
+        //     if(res1->getValuesCount() != res2->getValuesCount()) return false;
 
-            if(res1->getValuesCount() == 1) {
-                if(res1->mResValue.value != res2->mResValue.value) {
-                    return false;
-                }
-            } else {
-                for(int32_t i = 0; i < res1->getValuesCount(); i++) {
-                    if(res1->mResValue.values[i] != res2->mResValue.values[i]) return false;
-                }
-            }
-        }
+        //     if(res1->getValuesCount() == 1) {
+        //         if(res1->mResValue.value != res2->mResValue.value) {
+        //             return false;
+        //         }
+        //     } else {
+        //         for(int32_t i = 0; i < res1->getValuesCount(); i++) {
+        //             if(res1->mResValue.values[i] != res2->mResValue.values[i]) return false;
+        //         }
+        //     }
+        // }
 
         // Consideration:
         // How to efficiently check duplicate in cases where the client sends 2

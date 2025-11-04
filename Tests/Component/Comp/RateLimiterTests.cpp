@@ -55,10 +55,10 @@ static void TestClientSpammingScenario() {
             request->setHandle(300 + i);
             request->setDuration(-1);
             request->setPriority(REQ_PRIORITY_HIGH);
-            request->setNumResources(1);
+            // request->setNumResources(1);
             request->setClientPID(clientPID);
             request->setClientTID(clientTID);
-            request->setResources(resources);
+            // request->setResources(resources);
 
             if(!clientDataManager->clientExists(request->getClientPID(), request->getClientTID())) {
                 clientDataManager->createNewClient(request->getClientPID(), request->getClientTID());
@@ -113,11 +113,11 @@ static void TestClientHealthInCaseOfGoodRequests() {
             req->setRequestType(REQ_RESOURCE_TUNING);
             req->setHandle(300 + i);
             req->setDuration(-1);
-            req->setNumResources(1);
+            // req->setNumResources(1);
             req->setPriority(REQ_PRIORITY_HIGH);
             req->setClientPID(clientPID);
             req->setClientTID(clientTID);
-            req->setResources(resources);
+            // req->setResources(resources);
 
             if(!clientDataManager->clientExists(req->getClientPID(), req->getClientTID())) {
                 clientDataManager->createNewClient(req->getClientPID(), req->getClientTID());
@@ -167,11 +167,11 @@ static void TestClientSpammingWithGoodRequests() {
             req->setRequestType(REQ_RESOURCE_TUNING);
             req->setHandle(300 + i);
             req->setDuration(-1);
-            req->setNumResources(1);
+            // req->setNumResources(1);
             req->setPriority(REQ_PRIORITY_HIGH);
             req->setClientPID(clientPID);
             req->setClientTID(clientTID);
-            req->setResources(resources);
+            // req->setResources(resources);
 
             if(!clientDataManager->clientExists(req->getClientPID(), req->getClientTID())) {
                 clientDataManager->createNewClient(req->getClientPID(), req->getClientTID());

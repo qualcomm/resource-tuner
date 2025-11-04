@@ -105,14 +105,6 @@ void dumpRequest(Request* clientReq) {
     LOGD(LOG_TAG, "Background Processing Enabled?: " + std::to_string((int32_t)clientReq->getProcessingModes()));
     LOGD(LOG_TAG, "Number of Resources: " + std::to_string(clientReq->getResourcesCount()));
 
-    LOGD(LOG_TAG, "Values for resources are as:");
-
-    for(int32_t i = 0; i < clientReq->getResourcesCount(); i++) {
-        Resource* res = clientReq->getResourceAt(i);
-        LOGD(LOG_TAG, "Resource " + std::to_string(i + 1) + ":");
-        LOGD(LOG_TAG, "ResCode: " + std::to_string(res->getResCode()));
-        LOGD(LOG_TAG, "Number of Values: " + std::to_string(res->getValuesCount()));
-    }
 }
 
 void AuxRoutines::dumpRequest(Signal* clientReq) {

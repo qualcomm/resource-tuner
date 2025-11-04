@@ -95,13 +95,13 @@ private:
     std::vector<ResConfInfo*> mResourceTable;
     std::unordered_map<int32_t, int32_t> mFlatClusterMap;
 
-    ResourceRegistry* mResourceRegistry;
+    std::shared_ptr<ResourceRegistry> mResourceRegistry;
 
     /**
      * @brief The main data structure which is a 2D vector. It stores entries for each resource and each entry stores a priority vector.
      *        For each resource, for each priority, you store a head (second) and tail (first) pointers to store a linked list in memory.
      */
-    std::vector<std::vector<std::pair<CocoNode*, CocoNode*>>> mCocoTable;
+    std::vector<std::vector<DLManager*>> mCocoTable;
 
     /**
      * @brief Data structure storing the currently applied priority for each resource.
@@ -111,37 +111,21 @@ private:
     CocoTable();
 
     void timerExpired(Request* req);
-    void applyAction(CocoNode* currNode, int32_t index, int8_t priority);
+    void applyAction(CoreIterable* currNode, int32_t index, int8_t priority);
     void removeAction(int32_t index, Resource* resource);
-    void processResourceCleanupAt(Request* request, int32_t index);
 
     int32_t getCocoTablePrimaryIndex(uint32_t resCode);
     int32_t getCocoTableSecondaryIndex(Resource* resource, int8_t priority);
 
-    void deleteNode(CocoNode* node,
+    void deleteNode(CoreIterable* node,
                     int32_t primaryIndex,
-                    int32_t secondaryIndex,
-                    int8_t priority);
+                    int32_t secondaryIndex);
 
-    int8_t insertInCocoTable(CocoNode* currNode,
-                             Resource* resource,
-                             int8_t priority);
+    int8_t insertInCocoTable(CoreIterable* currNode, int8_t priority);
 
-    void insertInCocoTableHigherLower(CocoNode* newNode,
-                                      int32_t primaryIndex,
-                                      int32_t secondaryIndex,
-                                      int32_t policy,
-                                      int8_t priority);
-
-    void insertInCocoTableLazyApply(CocoNode* newNode,
-                                    int32_t primaryIndex,
-                                    int32_t secondaryIndex,
-                                    int8_t priority);
-
-    void insertInCocoTableInstantApply(CocoNode* newNode,
-                                       int32_t primaryIndex,
-                                       int32_t secondaryIndex,
-                                       int8_t priority);
+    void fastPathApply(Resource* resource);
+    void fastPathReset(Resource* resource);
+    int8_t needAllocation(Resource* res);
 
 public:
     ~CocoTable();

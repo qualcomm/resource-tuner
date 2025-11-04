@@ -90,17 +90,6 @@ static int8_t VerifyIncomingRequest(Request* req) {
         return false;
     }
 
-    if(req->getResources() == nullptr) {
-        return false;
-    }
-
-    std::vector<Resource*> resourcesToBeTuned = *(req->getResources());
-
-    // No Resources to be Tuned, Reject this Request
-    if(resourcesToBeTuned.size() == 0) {
-        return false;
-    }
-
     int8_t clientPermissions =
         ClientDataManager::getInstance()->getClientLevelByClientID(req->getClientPID());
     // If the client permissions could not be determined, reject this request.
@@ -122,8 +111,10 @@ static int8_t VerifyIncomingRequest(Request* req) {
     if(allowedPriority == -1) return false;
     req->setPriority(allowedPriority);
 
-    for(int32_t i = 0; i < resourcesToBeTuned.size(); i++) {
-        Resource* resource = resourcesToBeTuned[i];
+    DL_ITERATE(req->getResDlMgr()) {
+        if(iter == nullptr || iter->mData == nullptr) return false;
+
+        Resource* resource = (Resource*) iter->mData;
         if(resource == nullptr) {
             return false;
         }
@@ -357,6 +348,7 @@ ErrCode submitResProvisionRequest(void* msg) {
             request = MPLACED(Request);
             opStatus = request->deserialize(info->buffer);
             if(RC_IS_NOTOK(opStatus)) {
+                std::cout<<"Request could not be deserailzied"<<std::endl;
                 Request::cleanUpRequest(request);
             }
 

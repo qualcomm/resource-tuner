@@ -341,6 +341,7 @@ int32_t main(int32_t argc, char* argv[]) {
             }
             if(resources != nullptr) {
                 sendTuneRequest(duration, priority, numResources, resources);
+                std::this_thread::sleep_for(std::chrono::seconds(3));
             }
             break;
 

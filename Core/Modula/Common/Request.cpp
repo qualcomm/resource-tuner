@@ -3,55 +3,25 @@
 
 #include "Request.h"
 
+Request::Request() {
+    this->mTimer = nullptr;
+    this->mResourceList = new DLManager(REQUEST_DL_NR);
+}
+
 int32_t Request::getResourcesCount() {
-    return this->mNumResources;
-}
-
-int32_t Request::getCocoNodesCount() {
-    return this->mNumCocoNodes;
-}
-
-std::vector<Resource*>* Request::getResources() {
-    return this->mResources;
-}
-
-Resource* Request::getResourceAt(int32_t index) {
-    if(index < 0 || index >= mNumResources || this->mResources == nullptr) {
-        return nullptr;
-    }
-    return (*this->mResources)[index];
-}
-
-std::vector<CocoNode*>* Request::getCocoNodes() {
-    return this->mCocoNodes;
-}
-
-CocoNode* Request::getCocoNodeAt(int32_t index) {
-    if(index < 0 || index >= mNumCocoNodes) {
-        return nullptr;
-    }
-
-    return (*this->mCocoNodes)[index];
+    return this->mResourceList->getLen();
 }
 
 Timer* Request::getTimer() {
     return this->mTimer;
 }
 
-void Request::setNumResources(int32_t numResources) {
-    this->mNumResources = numResources;
+DLManager* Request::getResDlMgr() {
+    return this->mResourceList;
 }
 
-void Request::setNumCocoNodes(int32_t numCocoNodes) {
-    this->mNumCocoNodes = numCocoNodes;
-}
-
-void Request::setResources(std::vector<Resource*>* resources) {
-    this->mResources = resources;
-}
-
-void Request::setCocoNodes(std::vector<CocoNode*>* cocoNodes) {
-    this->mCocoNodes = cocoNodes;
+void Request::addResource(CoreIterable* resIterable) {
+    this->mResourceList->insert(resIterable);
 }
 
 // Define Methods to update the Request
@@ -63,6 +33,10 @@ void Request::unsetTimer() {
     this->mTimer = nullptr;
 }
 
+void Request::clearResources() {
+    this->mResourceList->destroy();
+}
+
 // Use cleanpUpRequest for clearing a Request and it's associated components
 Request::~Request() {}
 
@@ -72,9 +46,6 @@ void Request::populateUntuneRequest(Request* untuneRequest) {
     untuneRequest->mHandle = this->getHandle();
     untuneRequest->mClientPID = this->getClientPID();
     untuneRequest->mClientTID = this->getClientTID();
-    untuneRequest->mNumResources = 0;
-    untuneRequest->mResources = nullptr;
-    untuneRequest->mCocoNodes = nullptr;
     untuneRequest->mTimer = nullptr;
 }
 
@@ -103,8 +74,12 @@ ErrCode Request::serialize(char* buf) {
         ASSIGN_AND_INCR(ptr, this->getClientPID());
         ASSIGN_AND_INCR(ptr, this->getClientTID());
 
-        for(int32_t i = 0; i < this->getResourcesCount(); i++) {
-            Resource* resource = this->getResourceAt(i);
+        DL_ITERATE(this->getResDlMgr()) {
+            if(iter == nullptr || iter->mData == nullptr) {
+                return RC_INVALID_VALUE;
+            }
+
+            Resource* resource = (Resource*) iter->mData;
             if(resource == nullptr) {
                 return RC_INVALID_VALUE;
             }
@@ -133,7 +108,8 @@ ErrCode Request::serialize(char* buf) {
 }
 
 ErrCode Request::deserialize(char* buf) {
-     try {
+    try {
+        int32_t numResources = 0;
         int8_t* ptr8 = (int8_t*)buf;
         this->mReqType = DEREF_AND_INCR(ptr8, int8_t);
 
@@ -142,17 +118,14 @@ ErrCode Request::deserialize(char* buf) {
         this->mDuration = DEREF_AND_INCR(ptr64, int64_t);
 
         int32_t* ptr = (int32_t*)ptr64;
-        this->mNumResources = DEREF_AND_INCR(ptr, int32_t);
+        numResources = DEREF_AND_INCR(ptr, int32_t);
         this->mProperties = DEREF_AND_INCR(ptr, int32_t);
         this->mClientPID = DEREF_AND_INCR(ptr, int32_t);
         this->mClientTID = DEREF_AND_INCR(ptr, int32_t);
 
         if(this->mReqType == REQ_RESOURCE_TUNING) {
-            this->mResources = MPLACED(std::vector<Resource*>);
-
-            this->mResources->resize(this->getResourcesCount());
-
-            for(int32_t i = 0; i < this->getResourcesCount(); i++) {
+            for(int32_t i = 0; i < numResources; i++) {
+                CoreIterable* resIterable = MPLACED(CoreIterable);
                 Resource* resource = MPLACED(Resource);
 
                 resource->setResCode(DEREF_AND_INCR(ptr, int32_t));
@@ -171,7 +144,8 @@ ErrCode Request::deserialize(char* buf) {
                     }
                 }
 
-                (*this->mResources)[i] = resource;
+                resIterable->mData = resource;
+                this->addResource(resIterable);
             }
         }
 
@@ -195,37 +169,7 @@ ErrCode Request::deserialize(char* buf) {
 // Request Utils
 void Request::cleanUpRequest(Request* request) {
     if(request == nullptr) return;
-    // Note: Resources and CocoNodes are expected to be allocated via the MemoryPool.
-
-    for(int32_t i = 0; i < request->getResourcesCount(); i++) {
-        Resource* resource = request->getResourceAt(i);
-        if(resource != nullptr) {
-            FreeBlock<Resource>(static_cast<void*>(resource));
-        }
-    }
-
-    // Note: For CocoNodes strictly use the member mNumCocoNodes vector for iteration, instead of relying
-    // on request->getResourcesCount() or request->getCocoNodes()->size(). Since it is possible that for a Request no CocoNodes
-    // were allocated, and hence mCocoNodes vector is empty.
-    for(int32_t i = 0; i < request->getCocoNodesCount(); i++) {
-        CocoNode* cocoNode = request->getCocoNodeAt(i);
-        if(cocoNode != nullptr) {
-            // Safe Check, should not be needed
-            FreeBlock<CocoNode>(static_cast<void*>(cocoNode));
-        }
-    }
-
-    if(request->mResources != nullptr) {
-        FreeBlock<std::vector<Resource*>>
-                (static_cast<void*>(request->mResources));
-        request->mResources = nullptr;
-    }
-
-    if(request->mCocoNodes != nullptr) {
-        FreeBlock<std::vector<CocoNode*>>
-                (static_cast<void*>(request->mCocoNodes));
-        request->mCocoNodes = nullptr;
-    }
+    request->clearResources();
 
     // Free timer block
     if(request->mTimer != nullptr) {

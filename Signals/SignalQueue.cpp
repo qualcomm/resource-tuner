@@ -18,7 +18,7 @@ static Request* createResourceTuningRequest(Signal* signal) {
         request->setClientTID(signal->getClientTID());
 
         std::vector<Resource*>* signalLocks = signalInfo->mSignalResources;
-        request->setNumResources(signalLocks->size());
+        // request->setNumResources(signalLocks->size());
 
         std::vector<Resource*>* resourceList = MPLACED(std::vector<Resource*>);
         resourceList->resize(request->getResourcesCount());
@@ -30,7 +30,7 @@ static Request* createResourceTuningRequest(Signal* signal) {
             (*resourceList)[i] = MPLACEV(Resource, (*((*signalLocks)[i])));
         }
 
-        request->setResources(resourceList);
+        // request->setResources(resourceList);
         return request;
 
     } catch(const std::bad_alloc& e) {
@@ -58,8 +58,6 @@ static Request* createResourceUntuneRequest(Signal* signal) {
     request->setProperties(signal->getProperties());
     request->setClientPID(signal->getClientPID());
     request->setClientTID(signal->getClientTID());
-    request->setNumResources(0);
-    request->setResources(nullptr);
 
     return request;
 }
