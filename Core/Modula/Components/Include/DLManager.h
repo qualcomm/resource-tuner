@@ -78,8 +78,10 @@ public:
     int32_t getLen();
 };
 
-#define DL_ITERATE(dlm)                                                                     \
-    CoreIterable* iter;                                                                     \
-    for(iter = dlm->mHead; iter != nullptr; iter = iter->mLinkages[dlm->mLinkerInUse].next)
+#define DL_ITERATE(dlm) \
+    for(CoreIterable* iter = dlm->mHead; iter != nullptr; iter = iter->mLinkages[dlm->mLinkerInUse].next)
+
+#define DL_BACK(dlm) \
+    for(CoreIterable* iter = dlm->mTail; iter != nullptr; iter = iter->mLinkages[dlm->mLinkerInUse].prev)
 
 #endif

@@ -218,7 +218,6 @@ int8_t DLManager::matchAgainst(DLManager* target, DLPolicy cmpPolicy) {
 
     if(srcCur == nullptr && targetCur == nullptr) return true;
     if(srcCur == nullptr || targetCur == nullptr) return false;
-
     return true;
 }
 

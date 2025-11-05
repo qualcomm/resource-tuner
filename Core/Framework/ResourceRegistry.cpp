@@ -428,6 +428,16 @@ ErrCode ResourceConfigInfoBuilder::setTranslationUnit(const std::string& unitStr
         unit = U_MB;
     } else if(unitString == "GB" || unitString == "gb") {
         unit = U_GB;
+    } else if(unitString == "KHz" || unitString == "khz") {
+        unit = U_KHz;
+    } else if(unitString == "MHz" || unitString == "mhz") {
+        unit = U_MHz;
+    } else if(unitString == "GHz" || unitString == "ghz") {
+        unit = U_GHz;
+    } else if(unitString == "Hz" || unitString == "hz") {
+        unit = U_Hz;
+    } else if(unitString == "byte") {
+        unit = U_BYTE;
     } else if(unitString == "NA" || unitString == "na") {
         unit = U_NA;
     } else {

@@ -1,6 +1,8 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 
+# Note: High and Low thresholds to config values should be specified in custom Resource Configs.
+
 ResourceConfigs:
   - ResType: "0x01"
     ResID: "0x0000"
@@ -50,11 +52,10 @@ ResourceConfigs:
 
   - ResType: "0x04"
     ResID: "0x0000"
+    Unit: "Hz"
     Name: "RES_TUNER_SCALING_MIN_FREQ"
     Path: "/sys/devices/system/cpu/cpufreq/policy%d/scaling_min_freq"
     Supported: true
-    HighThreshold: 1939200
-    LowThreshold: 1267200
     Permissions: third_party
     Modes: ["display_on", "doze"]
     Policy: lower_is_better
@@ -62,11 +63,10 @@ ResourceConfigs:
 
   - ResType: "0x04"
     ResID: "0x0001"
+    Unit: "Hz"
     Name: "RES_TUNER_SCALING_MAX_FREQ"
     Path: "/sys/devices/system/cpu/cpufreq/policy%d/scaling_max_freq"
     Supported: true
-    HighThreshold: 1939200
-    LowThreshold: 1267200
     Permissions: third_party
     Modes: ["display_on", "doze"]
     Policy: higher_is_better
@@ -197,6 +197,17 @@ ResourceConfigs:
   - ResType: "0x09"
     ResID: "0x000c"
     Unit: "KB"
+    Name: "RES_TUNER_CGROUP_LOW_MEMORY"
+    Path: "/sys/fs/cgroup/%s/memory.low"
+    Supported: true
+    Permissions: "system"
+    ApplyType: "cgroup"
+    Modes: ["display_on"]
+    Policy: lower_is_better
+
+  - ResType: "0x09"
+    ResID: "0x000d"
+    Unit: "KB"
     Name: "RES_TUNER_CGROUP_MIN_MEMORY"
     Path: "/sys/fs/cgroup/%s/memory.min"
     Supported: true
@@ -206,7 +217,7 @@ ResourceConfigs:
     Policy: lower_is_better
 
   - ResType: "0x09"
-    ResID: "0x000d"
+    ResID: "0x000e"
     Unit: "KB"
     Name: "RES_TUNER_CGROUP_SWAP_MAX_MEMORY"
     Path: "/sys/fs/cgroup/%s/memory.swap.max"
@@ -217,7 +228,7 @@ ResourceConfigs:
     Policy: higher_is_better
 
   - ResType: "0x09"
-    ResID: "0x000e"
+    ResID: "0x000f"
     Name: "RES_TUNER_CGROUP_IO_WEIGHT"
     Path: "/sys/fs/cgroup/%s/io.weight"
     Supported: true
@@ -227,7 +238,7 @@ ResourceConfigs:
     Policy: instant_apply
 
   - ResType: "0x09"
-    ResID: "0x000f"
+    ResID: "0x0010"
     Name: "RES_TUNER_CGROUP_IO_WEIGHT"
     Path: "/sys/fs/cgroup/%s/io.bfq.weight"
     Supported: true
@@ -237,7 +248,7 @@ ResourceConfigs:
     Policy: instant_apply
 
   - ResType: "0x09"
-    ResID: "0x0010"
+    ResID: "0x0011"
     Name: "RES_TUNER_CGROUP_CPU_LATENCY"
     Path: "/sys/fs/cgroup/%s/cpu.weight.nice"
     Supported: true

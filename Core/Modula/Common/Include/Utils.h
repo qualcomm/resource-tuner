@@ -68,9 +68,14 @@ enum Policy {
 
 enum TranslationUnit {
     U_NA = 1,
-    U_GB = 1024 * 1024 * 1024,
-    U_MB = 1024 * 1024,
+    U_BYTE = 1,
     U_KB = 1024,
+    U_MB = 1024 * 1024,
+    U_GB = 1024 * 1024 * 1024,
+    U_Hz = 1,
+    U_KHz = 1000,
+    U_MHz = 1000 * 1000,
+    U_GHz = 1000 * 1000 * 1000,
 };
 
 typedef struct {

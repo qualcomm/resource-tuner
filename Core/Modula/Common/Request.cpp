@@ -188,5 +188,6 @@ void Request::cleanUpRequest(Request* request) {
         request->mTimer = nullptr;
     }
 
+    // Free the Request struct itself
     FreeBlock<Request>(static_cast<void*>(request));
 }

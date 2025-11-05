@@ -64,19 +64,33 @@ static void truncateFile(const std::string& filePath) {
 void defaultClusterLevelApplierCb(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
+    ResConfInfo* rConf = ResourceRegistry::getInstance()->getResConf(resource->getResCode());
 
     // Get the Cluster ID
     int32_t clusterID = resource->getClusterValue();
     std::string resourceNodePath = getClusterTypeResourceNodePath(resource, clusterID);
 
-    TYPELOGV(NOTIFY_NODE_WRITE, resourceNodePath.c_str(), resource->mResValue.value);
+    // 32-bit, unit-dependent value to be written
+    int32_t valueToBeWritten = resource->mResValue.value;
+
+    OperationStatus status = OperationStatus::SUCCESS;
+    int64_t translatedValue = Multiply(static_cast<int64_t>(valueToBeWritten),
+                                       static_cast<int64_t>(rConf->mUnit),
+                                       status);
+
+    if(status != OperationStatus::SUCCESS) {
+        // Overflow detected, return to LONG_MAX (64-bit)
+        translatedValue = std::numeric_limits<int64_t>::max();
+    }
+
+    TYPELOGV(NOTIFY_NODE_WRITE, resourceNodePath.c_str(), valueToBeWritten);
     std::ofstream resourceFileStream(resourceNodePath);
     if(!resourceFileStream.is_open()) {
         TYPELOGV(ERRNO_LOG, "open", strerror(errno));
         return;
     }
 
-    resourceFileStream<<resource->mResValue.value<<std::endl;
+    resourceFileStream<<translatedValue<<std::endl;
 
     if(resourceFileStream.fail()) {
         TYPELOGV(ERRNO_LOG, "write", strerror(errno));
@@ -112,15 +126,29 @@ void defaultClusterLevelTearCb(void* context) {
 
 static void defaultCoreLevelApplierHelper(Resource* resource, int32_t coreID) {
     std::string resourceNodePath = getCoreTypeResourceNodePath(resource, coreID);
+    ResConfInfo* rConf = ResourceRegistry::getInstance()->getResConf(resource->getResCode());
 
-    TYPELOGV(NOTIFY_NODE_WRITE, resourceNodePath.c_str(), resource->mResValue.value);
+    // 32-bit, unit-dependent value to be written
+    int32_t valueToBeWritten = resource->mResValue.value;
+
+    OperationStatus status = OperationStatus::SUCCESS;
+    int64_t translatedValue = Multiply(static_cast<int64_t>(valueToBeWritten),
+                                       static_cast<int64_t>(rConf->mUnit),
+                                       status);
+
+    if(status != OperationStatus::SUCCESS) {
+        // Overflow detected, return to LONG_MAX (64-bit)
+        translatedValue = std::numeric_limits<int64_t>::max();
+    }
+
+    TYPELOGV(NOTIFY_NODE_WRITE, resourceNodePath.c_str(), valueToBeWritten);
     std::ofstream resourceFileStream(resourceNodePath);
     if(!resourceFileStream.is_open()) {
         TYPELOGV(ERRNO_LOG, "open", strerror(errno));
         return;
     }
 
-    resourceFileStream<<resource->mResValue.value<<std::endl;
+    resourceFileStream<<translatedValue<<std::endl;
 
     if(resourceFileStream.fail()) {
         TYPELOGV(ERRNO_LOG, "write", strerror(errno));
@@ -198,7 +226,6 @@ void defaultCoreLevelTearCb(void* context) {
 void defaultCGroupLevelApplierCb(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
-
     if(resource->getValuesCount() != 2) return;
 
     ResConfInfo* rConf = ResourceRegistry::getInstance()->getResConf(resource->getResCode());
