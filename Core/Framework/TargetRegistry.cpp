@@ -1,6 +1,5 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
-
 #include "TargetRegistry.h"
 
 // Create all the CGroups specified via InitConfig.yaml during the init phase.
@@ -9,6 +8,7 @@ static ErrCode createCGroup(CGroupConfigInfo* cGroupConfig) {
     if(!cGroupConfig->mCreationNeeded) return RC_SUCCESS;
 
     std::string cGroupPath = ResourceTunerSettings::mBaseCGroupPath + cGroupConfig->mCgroupName;
+    errno = 0;
     if(mkdir(cGroupPath.c_str(), 0755) == 0) {
         if(cGroupConfig->mIsThreaded) {
             AuxRoutines::writeToFile(cGroupPath + "/cgroup.type", "threaded");

@@ -19,12 +19,40 @@ static Request* createResourceTuningRequest(Signal* signal) {
 
         std::vector<Resource*>* signalLocks = signalInfo->mSignalResources;
 
+        int32_t listIndex = 0;
         for(int32_t i = 0; i < signalLocks->size(); i++) {
             if((*signalLocks)[i] == nullptr) {
                 continue;
             }
 
             Resource* resource = MPLACEV(Resource, (*((*signalLocks)[i])));
+
+            // fill defaults
+            int32_t valueCount = resource->getValuesCount();
+            if(valueCount == 1) {
+                if(resource->mResValue.value == -1) {
+                    if(signal->getListArgs() == nullptr) return nullptr;
+                    if(listIndex < signal->getNumArgs()) {
+                        resource->mResValue.value = signal->getListArgAt(listIndex);
+                        listIndex++;
+                    } else {
+                        return nullptr;
+                    }
+                }
+            } else {
+                for(int32_t i = 0; i < valueCount; i++) {
+                    if((*resource->mResValue.values)[i] == -1) {
+                        if(signal->getListArgs() == nullptr) return nullptr;
+                        if(listIndex >= 0 && listIndex < signal->getNumArgs()) {
+                            (*resource->mResValue.values)[i] = signal->getListArgAt(listIndex);
+                            listIndex++;
+                        } else {
+                            return nullptr;
+                        }
+                    }
+                }
+            }
+
             CoreIterable* resIterable = MPLACED(CoreIterable);
             resIterable->mData = resource;
             request->addResource(resIterable);
@@ -91,6 +119,8 @@ void SignalQueue::orderedQueueConsumerHook() {
                 // Submit the Resource Provisioning request for processing
                 if(request != nullptr) {
                     submitResProvisionRequest(request, true);
+                } else {
+                    LOGE("RESTUNE_SIGNAL_QUEUE", "Malformd Signal Request");
                 }
                 break;
             }

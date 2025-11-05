@@ -153,7 +153,7 @@ static int8_t VerifyIncomingRequest(Request* req) {
             return false;
         }
 
-        // If ApplyType for the Resource is set to Core, then perform Logical to Physical Translation
+        // If ApplyType for the Resource is set to Core or Cluster, then perform Logical to Physical Translation
         if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CORE) {
             // Check for invalid Core / cluster values, these are the logical values
             int32_t coreValue = resource->getCoreValue();

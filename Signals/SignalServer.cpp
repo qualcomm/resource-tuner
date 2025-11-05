@@ -3,6 +3,32 @@
 
 #include "SignalInternal.h"
 
+static int8_t performPhysicalMapping(int32_t& coreValue, int32_t& clusterValue) {
+    std::shared_ptr<TargetRegistry> targetRegistry = TargetRegistry::getInstance();
+    if(targetRegistry == nullptr) return false;
+
+    int32_t physicalClusterValue = targetRegistry->getPhysicalClusterId(clusterValue);
+    int32_t physicalCoreValue = 0;
+
+    // For resources with ApplyType == "core":
+    // A coreValue of 0, indicates apply the config value to all the cores part of the physical
+    // cluster corresponding to the specified logical cluster ID.
+    if(coreValue != 0) {
+        // if a non-zero coreValue is provided, translate it and apply the config value
+        // only to that physical core's resource node.
+        physicalCoreValue = targetRegistry->getPhysicalCoreId(clusterValue, coreValue);
+    }
+
+    if(physicalCoreValue != -1 && physicalClusterValue != -1) {
+        coreValue = physicalCoreValue;
+        clusterValue = physicalClusterValue;
+    } else {
+        return false;
+    }
+
+    return true;
+}
+
 static int8_t getRequestPriority(int8_t clientPermissions, int8_t reqSpecifiedPriority) {
     if(clientPermissions == PERMISSION_SYSTEM) {
         switch(reqSpecifiedPriority) {
@@ -141,6 +167,52 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
             TYPELOGV(VERIFIER_NOT_SUFFICIENT_PERMISSION, resource->getResCode());
             return false;
         }
+
+        // If ApplyType for the Resource is set to Core or Cluster, then perform Logical to Physical Translation
+        if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CORE) {
+            // Check for invalid Core / cluster values, these are the logical values
+            int32_t coreValue = resource->getCoreValue();
+            int32_t clusterValue = resource->getClusterValue();
+
+            if(coreValue < 0) {
+                TYPELOGV(VERIFIER_INVALID_LOGICAL_CORE, coreValue);
+                return false;
+            }
+
+            if(clusterValue < 0) {
+                TYPELOGV(VERIFIER_INVALID_LOGICAL_CLUSTER, clusterValue);
+                return false;
+            }
+
+            // Perform logical to physical mapping here, as part of which verification can happen
+            // Replace mResInfo with the Physical values here:
+            if(!performPhysicalMapping(coreValue, clusterValue)) {
+                TYPELOGV(VERIFIER_LOGICAL_TO_PHYSICAL_MAPPING_FAILED, resource->getResCode());
+                return false;
+            }
+
+            resource->setCoreValue(coreValue);
+            resource->setClusterValue(clusterValue);
+
+        } else if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CLUSTER) {
+            // Check for invalid Core / cluster values, these are the logical values
+            int32_t clusterValue = resource->getClusterValue();
+
+            if(clusterValue < 0) {
+                TYPELOGV(VERIFIER_INVALID_LOGICAL_CLUSTER, clusterValue);
+                return false;
+            }
+
+            // Perform logical to physical mapping here, as part of which verification can happen
+            // Replace mResInfo with the Physical values here:
+            int32_t physicalClusterID = TargetRegistry::getInstance()->getPhysicalClusterId(clusterValue);
+            if(physicalClusterID == -1) {
+                TYPELOGV(VERIFIER_LOGICAL_TO_PHYSICAL_MAPPING_FAILED, resource->getResCode());
+                return false;
+            }
+
+            resource->setClusterValue(physicalClusterID);
+        }
     }
 
     if(signal->getDuration() == 0) {
@@ -151,41 +223,6 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
     }
 
     TYPELOGV(VERIFIER_REQUEST_VALIDATED, signal->getHandle());
-    return true;
-}
-
-// Fills in any optional fields in the Signal that are not specified in the Config file
-// with the values specified in the tuneSignal API's list argument.
-static int8_t fillDefaults(Signal* signal) {
-    uint32_t signalCode = signal->getSignalCode();
-    SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(signalCode);
-    if(signalInfo == nullptr) return false;
-    if(signalInfo->mSignalResources == nullptr) return true;
-
-    int32_t listIndex = 0;
-    for(Resource* resource : (*signalInfo->mSignalResources)) {
-        int32_t valueCount = resource->getValuesCount();
-        if(valueCount == 1) {
-            if(resource->mResValue.value == -1) {
-                if(signal->getListArgs() == nullptr) return false;
-                resource->mResValue.value = signal->getListArgAt(listIndex);
-                listIndex++;
-            }
-        } else {
-            for(int32_t i = 0; i < valueCount; i++) {
-                if((*resource->mResValue.values)[i] == -1) {
-                    if(signal->getListArgs() == nullptr) return false;
-                    if(listIndex >= 0 && listIndex < signal->getNumArgs()) {
-                        (*resource->mResValue.values)[i] = signal->getListArgAt(listIndex);
-                        listIndex++;
-                    } else {
-                        return false;
-                    }
-                }
-            }
-        }
-    }
-
     return true;
 }
 
@@ -229,12 +266,6 @@ static void processIncomingRequest(Signal* signal) {
     }
 
     if(signal->getRequestType() == REQ_SIGNAL_TUNING) {
-        // Fill any Placeholders in the Signal Config
-        if(!fillDefaults(signal)) {
-            Signal::cleanUpSignal(signal);
-            return;
-        }
-
         if(!VerifyIncomingRequest(signal)) {
             TYPELOGV(VERIFIER_STATUS_FAILURE, signal->getHandle());
             Signal::cleanUpSignal(signal);
