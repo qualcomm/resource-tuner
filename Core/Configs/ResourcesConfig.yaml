@@ -80,7 +80,7 @@ ResourceConfigs:
     Permissions: "system"
     ApplyType: "cgroup"
     Modes: ["display_on"]
-    Policy: pass_through
+    Policy: "pass_through"
 
   - ResType: "0x09"
     ResID: "0x0001"
@@ -90,7 +90,7 @@ ResourceConfigs:
     Permissions: "system"
     ApplyType: "cgroup"
     Modes: ["display_on"]
-    Policy: pass_through
+    Policy: "pass_through"
 
   - ResType: "0x09"
     ResID: "0x0002"

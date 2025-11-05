@@ -18,19 +18,18 @@ static Request* createResourceTuningRequest(Signal* signal) {
         request->setClientTID(signal->getClientTID());
 
         std::vector<Resource*>* signalLocks = signalInfo->mSignalResources;
-        // request->setNumResources(signalLocks->size());
-
-        std::vector<Resource*>* resourceList = MPLACED(std::vector<Resource*>);
-        resourceList->resize(request->getResourcesCount());
 
         for(int32_t i = 0; i < signalLocks->size(); i++) {
             if((*signalLocks)[i] == nullptr) {
                 continue;
             }
-            (*resourceList)[i] = MPLACEV(Resource, (*((*signalLocks)[i])));
+
+            Resource* resource = MPLACEV(Resource, (*((*signalLocks)[i])));
+            CoreIterable* resIterable = MPLACED(CoreIterable);
+            resIterable->mData = resource;
+            request->addResource(resIterable);
         }
 
-        // request->setResources(resourceList);
         return request;
 
     } catch(const std::bad_alloc& e) {

@@ -348,7 +348,6 @@ ErrCode submitResProvisionRequest(void* msg) {
             request = MPLACED(Request);
             opStatus = request->deserialize(info->buffer);
             if(RC_IS_NOTOK(opStatus)) {
-                std::cout<<"Request could not be deserailzied"<<std::endl;
                 Request::cleanUpRequest(request);
             }
 

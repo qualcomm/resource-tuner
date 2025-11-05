@@ -404,6 +404,8 @@ ErrCode ResourceConfigInfoBuilder::setPolicy(const std::string& policyString) {
         policy = LAZY_APPLY;
     } else if(policyString == "instant_apply") {
         policy = INSTANT_APPLY;
+    } else if(policyString == "pass_through") {
+        policy = PASS_THROUGH;
     } else {
         if(policyString.length() != 0) {
             return RC_INVALID_VALUE;

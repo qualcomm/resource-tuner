@@ -103,6 +103,7 @@ enum CommonMessageTypes {
     NOTIFY_NODE_WRITE,
     NOTIFY_NODE_RESET,
     GENERIC_CALL_FAILURE_LOG,
+    INV_ATTR_VAL,
 };
 
 /**

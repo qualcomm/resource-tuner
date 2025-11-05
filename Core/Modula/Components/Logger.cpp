@@ -639,6 +639,13 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             Logger::log(LOG_ERR, "RESTUNE_ORDERED_QUEUE", funcName, std::string(buffer));
             break;
 
+        case CommonMessageTypes::INV_ATTR_VAL:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Encountered Attribute with Invalid Value: Attr [%s], Value: [%s]", args);
+
+            Logger::log(LOG_ERR, "RESTUNE_CONFIG_PROCESSOR", funcName, std::string(buffer));
+            break;
+
         default:
             break;
     }
