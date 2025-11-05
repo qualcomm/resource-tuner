@@ -195,6 +195,33 @@ int8_t DLManager::isNodeNth(int32_t n, CoreIterable* node) {
     return false;
 }
 
+int8_t DLManager::matchAgainst(DLManager* target, DLPolicy cmpPolicy) {
+    if(target == nullptr) return false;
+    if(this->getLen() != target->getLen()) return false;
+
+    CoreIterable* srcCur = this->mHead;
+    CoreIterable* targetCur = target->mHead;
+
+    while(srcCur != nullptr && targetCur != nullptr) {
+        if(cmpPolicy == nullptr) {
+            // Match raw addresses
+            if(srcCur != targetCur) return false;
+        } else {
+            if(!cmpPolicy(srcCur, targetCur)) {
+                return false;
+            }
+        }
+
+        srcCur = srcCur->mLinkages[this->mLinkerInUse].next;
+        targetCur = targetCur->mLinkages[target->mLinkerInUse].next;
+    }
+
+    if(srcCur == nullptr && targetCur == nullptr) return true;
+    if(srcCur == nullptr || targetCur == nullptr) return false;
+
+    return true;
+}
+
 int32_t DLManager::getLen() {
     return this->mSize;
 }
@@ -229,7 +256,7 @@ ErrCode DLManager::deleteNode(CoreIterable* node) {
     return RC_SUCCESS;
 }
 
-ErrCode DLManager::destroy() {
+void DLManager::destroy() {
+    this->mHead = this->mTail = nullptr;
     this->mSize = 0;
-    return RC_SUCCESS;
 }

@@ -174,6 +174,7 @@ ResourceConfigs:
 
   - ResType: "0x09"
     ResID: "0x000a"
+    Unit: "KB"
     Name: "RES_TUNER_CGROUP_HIGH_MEMORY"
     Path: "/sys/fs/cgroup/%s/memory.high"
     Supported: true
@@ -184,6 +185,7 @@ ResourceConfigs:
 
   - ResType: "0x09"
     ResID: "0x000b"
+    Unit: "KB"
     Name: "RES_TUNER_CGROUP_MAX_MEMORY"
     Path: "/sys/fs/cgroup/%s/memory.max"
     Supported: true
@@ -194,6 +196,7 @@ ResourceConfigs:
 
   - ResType: "0x09"
     ResID: "0x000c"
+    Unit: "KB"
     Name: "RES_TUNER_CGROUP_MIN_MEMORY"
     Path: "/sys/fs/cgroup/%s/memory.min"
     Supported: true
@@ -204,6 +207,7 @@ ResourceConfigs:
 
   - ResType: "0x09"
     ResID: "0x000d"
+    Unit: "KB"
     Name: "RES_TUNER_CGROUP_SWAP_MAX_MEMORY"
     Path: "/sys/fs/cgroup/%s/memory.swap.max"
     Supported: true

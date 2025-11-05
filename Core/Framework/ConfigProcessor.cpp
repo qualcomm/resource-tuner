@@ -187,6 +187,7 @@ ErrCode ConfigProcessor::parseResourceConfigYamlNode(const std::string& filePath
                 ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_LOWTHRESHOLD, setLowThreshold);
                 ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_PERMISSIONS, setPermissions);
                 ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_POLICY, setPolicy);
+                ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_T_UNIT, setTranslationUnit);
                 ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_APPLY_TYPE, setApplyType);
                 ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_MODES, setModes);
 

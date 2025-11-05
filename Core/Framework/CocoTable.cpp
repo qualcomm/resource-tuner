@@ -155,15 +155,13 @@ void CocoTable::applyAction(CoreIterable* currNode, int32_t index, int8_t priori
 
 void CocoTable::fastPathApply(Resource* resource) {
     ResConfInfo* rConf = this->mResourceRegistry->getResConf(resource->getResCode());
-    if(resource != nullptr) {
-        rConf->mResourceApplierCallback(resource);
-    }
-}
-
-void CocoTable::fastPathReset(Resource* resource) {
-    ResConfInfo* rConf = this->mResourceRegistry->getResConf(resource->getResCode());
-    if(resource != nullptr) {
-        rConf->mResourceTearCallback(resource);
+    if(rConf->mModes & ResourceTunerSettings::targetConfigs.currMode) {
+        // Check if a custom Applier (Callback) has been provided for this Resource, if yes, then call it
+        // Note for resources with multiple values, the BU will need to provide a custom applier, which provides
+        // the aggregation / selection logic.
+        if(rConf->mResourceApplierCallback != nullptr) {
+            rConf->mResourceApplierCallback(resource);
+        }
     }
 }
 
@@ -178,9 +176,11 @@ void CocoTable::removeAction(int32_t index, Resource* resource) {
     }
 }
 
-void CocoTable::deleteNode(CoreIterable* resIter, int32_t primaryIndex, int32_t secondaryIndex) {
-    DLManager* dlm = this->mCocoTable[primaryIndex][secondaryIndex];
-    dlm->deleteNode(resIter);
+void CocoTable::fastPathReset(Resource* resource) {
+    ResConfInfo* rConf = this->mResourceRegistry->getResConf(resource->getResCode());
+    if(rConf->mResourceApplierCallback != nullptr) {
+        rConf->mResourceApplierCallback(resource);
+    }
 }
 
 int32_t CocoTable::getCocoTablePrimaryIndex(uint32_t opId) {
@@ -229,6 +229,12 @@ int32_t CocoTable::getCocoTableSecondaryIndex(Resource* resource, int8_t priorit
 int8_t CocoTable::insertInCocoTable(CoreIterable* newNode, int8_t priority) {
     if(newNode == nullptr) return false;
     Resource* resource = (Resource*) newNode->mData;
+    ResConfInfo* rConf = this->mResourceRegistry->getResConf(resource->getResCode());
+    if(rConf->mPolicy == Policy::PASS_THROUGH) {
+        // straightaway apply the action
+        this->fastPathApply(resource);
+        return true;
+    }
 
     int32_t primaryIndex = this->getCocoTablePrimaryIndex(resource->getResCode());
     int32_t secondaryIndex = this->getCocoTableSecondaryIndex(resource, priority);
@@ -357,6 +363,12 @@ int8_t CocoTable::removeRequest(Request* request) {
         if(iter == nullptr || iter->mData == nullptr) continue;
         Resource* resource = (Resource*) iter->mData;
 
+        ResConfInfo* resourceConfig = this->mResourceRegistry->getResConf(resource->getResCode());
+        if(resourceConfig->mPolicy == Policy::PASS_THROUGH) {
+            this->fastPathReset(resource);
+            continue;
+        }
+
         int8_t priority = request->getPriority();
         int32_t primaryIndex = this->getCocoTablePrimaryIndex(resource->getResCode());
         int32_t secondaryIndex = this->getCocoTableSecondaryIndex(resource, priority);
@@ -366,8 +378,11 @@ int8_t CocoTable::removeRequest(Request* request) {
             continue;
         }
 
-        this->deleteNode(iter, primaryIndex, secondaryIndex);
+        DLManager* dlm = this->mCocoTable[primaryIndex][secondaryIndex];
+        int8_t nodeIsHead = dlm->isNodeNth(0, iter);
 
+        // Proceed with removal of the node from CocoTable
+        dlm->deleteNode(iter);
 
         // Reset the Resource Node value or if there are pending Requests for this Resource
         // then apply those Requests in the order determined by Resource Policy and Priority Level.
@@ -375,10 +390,9 @@ int8_t CocoTable::removeRequest(Request* request) {
         // If the current list becomes empty, start from the highest priority
         // and look for available requests.
         // If all lists are empty, apply default action.
-        if(this->mCocoTable[primaryIndex][secondaryIndex]->mHead == nullptr) {
+        if(dlm->mHead == nullptr) {
             int8_t allListsEmpty = true;
             int32_t reIndexIncrement = 0;
-            ResConfInfo* resourceConfig = this->mResourceRegistry->getResConf(resource->getResCode());
 
             if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CORE ||
                 resourceConfig->mApplyType == ResourceApplyType::APPLY_CLUSTER ||
@@ -403,10 +417,10 @@ int8_t CocoTable::removeRequest(Request* request) {
         } else {
             // Current list is not empty.
             // Check if current node is at the head
-            // if(nodeIsHead) {
-            //     // If it is head, Apply the next node (i.e. the next Request)
-            //     this->applyAction(this->mCocoTable[primaryIndex][secondaryIndex].second, primaryIndex, priority);
-            // }
+            if(nodeIsHead) {
+                // If it is head, Apply the next node (i.e. the next Request)
+                this->applyAction(dlm->mHead, primaryIndex, priority);
+            }
             // If node is not head, it implies some other Request is already applied
             // for this Resource, hence no action is needed here.
         }

@@ -86,7 +86,10 @@ typedef struct {
      *        the BU via the Extension Interface.
      */
     ResourceLifecycleCallback mResourceApplierCallback;
-
+    /**
+     * @brief Translation Unit for the Resource, for example KB, MB, MHz etc.
+     */
+    enum TranslationUnit mUnit;
     /**
      * @brief Optional Custom Resource Tear Callback, it needs to be supplied by
      *        the BU via the Extension Interface.
@@ -173,6 +176,7 @@ public:
     ErrCode setModes(const std::string& modeString);
     ErrCode setSupported(const std::string& supported);
     ErrCode setPolicy(const std::string& policyString);
+    ErrCode setTranslationUnit(const std::string& unitString);
     ErrCode setApplyType(const std::string& applyTypeString);
 
     ResConfInfo* build();

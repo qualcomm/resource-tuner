@@ -34,6 +34,17 @@ void Request::unsetTimer() {
 }
 
 void Request::clearResources() {
+    DL_ITERATE(this->mResourceList) {
+        if(iter != nullptr && iter->mData != nullptr) {
+            // Delete Resource struct
+            FreeBlock<Resource>(iter->mData);
+        }
+
+        if(iter != nullptr) {
+            // Delete CoreIterable itself
+            FreeBlock<CoreIterable>(iter);
+        }
+    }
     this->mResourceList->destroy();
 }
 

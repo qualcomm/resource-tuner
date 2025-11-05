@@ -201,8 +201,20 @@ void defaultCGroupLevelApplierCb(void* context) {
 
     if(resource->getValuesCount() != 2) return;
 
+    ResConfInfo* rConf = ResourceRegistry::getInstance()->getResConf(resource->getResCode());
+
     int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
     int32_t valueToBeWritten = (*resource->mResValue.values)[1];
+
+    OperationStatus status = OperationStatus::SUCCESS;
+    int64_t translatedValue = Multiply(static_cast<int64_t>(valueToBeWritten),
+                                       static_cast<int64_t>(rConf->mUnit),
+                                       status);
+
+    if(status != OperationStatus::SUCCESS) {
+        // Overflow detected, return to LONG_MAX (64-bit)
+        translatedValue = std::numeric_limits<int64_t>::max();
+    }
 
     // Get the corresponding cGroupConfig, this is needed to identify the
     // correct CGroup Name.
@@ -222,7 +234,7 @@ void defaultCGroupLevelApplierCb(void* context) {
                 return;
             }
 
-            controllerFile<<valueToBeWritten<<std::endl;
+            controllerFile<<translatedValue<<std::endl;
 
             if(controllerFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));

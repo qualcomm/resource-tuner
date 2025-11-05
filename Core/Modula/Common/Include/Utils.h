@@ -66,6 +66,13 @@ enum Policy {
     PASS_THROUGH
 };
 
+enum TranslationUnit {
+    U_NA = 1,
+    U_GB = 1024 * 1024 * 1024,
+    U_MB = 1024 * 1024,
+    U_KB = 1024,
+};
+
 typedef struct {
     char* buffer;
     uint64_t bufferSize;

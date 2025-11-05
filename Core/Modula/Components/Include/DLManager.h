@@ -5,6 +5,7 @@
 #define DL_MANAGER_H
 
 #include <cstdint>
+
 #include "ErrCodes.h"
 
 struct DLMover {
@@ -14,6 +15,7 @@ struct DLMover {
 
 typedef struct DLMover DLMover;
 
+// An 8-way linkage node
 typedef struct _core_iterable {
     void* mData;
     // static, At most 8 linkages or movers are allowed as of now.
@@ -42,6 +44,10 @@ enum DLOptions {
     INSERT_N_NODE_START,
 };
 
+// Note this class is exclusively for Linked List operations management, i.e. node manipulations
+// It does not perform any allocations or deallocations itself
+// All nodes Should be allocated and freed by the client itself
+// All fields in this class are kept public to allow finer operations wherever needed by any client.
 class DLManager {
 public:
     CoreIterable* mHead;
@@ -65,9 +71,10 @@ public:
     ErrCode insertDesc(CoreIterable* node); // .mDescPolicy must be set
 
     ErrCode deleteNode(CoreIterable* node);
-    ErrCode destroy();
+    void destroy();
 
     int8_t isNodeNth(int32_t n, CoreIterable* node); // 0 based indexing
+    int8_t matchAgainst(DLManager* target, DLPolicy policy = nullptr);
     int32_t getLen();
 };
 

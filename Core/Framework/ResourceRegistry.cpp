@@ -239,6 +239,7 @@ ResourceConfigInfoBuilder::ResourceConfigInfoBuilder() {
     this->mResourceConfigInfo->mSupported = false;
     this->mResourceConfigInfo->mApplyType = ResourceApplyType::APPLY_GLOBAL;
     this->mResourceConfigInfo->mPolicy = Policy::LAZY_APPLY;
+    this->mResourceConfigInfo->mUnit = TranslationUnit::U_NA;
     this->mResourceConfigInfo->mResourcePath = "";
     this->mResourceConfigInfo->mResourceName = "";
 }
@@ -410,7 +411,30 @@ ErrCode ResourceConfigInfoBuilder::setPolicy(const std::string& policyString) {
     }
 
     this->mResourceConfigInfo->mPolicy = policy;
+    return RC_SUCCESS;
+}
 
+ErrCode ResourceConfigInfoBuilder::setTranslationUnit(const std::string& unitString) {
+    if(this->mResourceConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
+
+    enum TranslationUnit unit = U_NA;
+    if(unitString == "KB" || unitString == "kb") {
+        unit = U_KB;
+    } else if(unitString == "MB" || unitString == "mb") {
+        unit = U_MB;
+    } else if(unitString == "GB" || unitString == "gb") {
+        unit = U_GB;
+    } else if(unitString == "NA" || unitString == "na") {
+        unit = U_NA;
+    } else {
+        if(unitString.length() != 0) {
+            return RC_INVALID_VALUE;
+        }
+    }
+
+    this->mResourceConfigInfo->mUnit = unit;
     return RC_SUCCESS;
 }
 
