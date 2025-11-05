@@ -140,6 +140,17 @@ static void sendPropRequest(const char* prop) {
     }
 }
 
+static void sendTuneSignal(const char* scode) {
+    std::cout<<"Sending tuneSignal request for SigCode: "<<scode<<std::endl;
+    uint32_t sigCode = (uint32_t)stol(std::string(scode), nullptr, 0);
+    int64_t handle = tuneSignal(sigCode, 0, 0, "", "", 0, nullptr);
+    if(handle == -1) {
+        std::cout<<"Failed to send tuneSignal Request"<<std::endl;
+    } else {
+        std::cout<<"Handle Received from Server is: "<<handle<<std::endl;
+    }
+}
+
 static int8_t processCommands() {
     std::string input;
 
@@ -258,7 +269,7 @@ static void startPersistentMode() {
 }
 
 int32_t main(int32_t argc, char* argv[]) {
-    const char* shortPrompts = "turd:p:l:n:h:s:gk:";
+    const char* shortPrompts = "turd:p:l:n:h:s:gk:qm:";
     const struct option longPrompts[] = {
         {"tune", no_argument, nullptr, 't'},
         {"untune", no_argument, nullptr, 'u'},
@@ -271,6 +282,8 @@ int32_t main(int32_t argc, char* argv[]) {
         {"getProp", no_argument, nullptr, 'g'},
         {"key", required_argument, nullptr, 'k'},
         {"persistent", no_argument, nullptr, 's'},
+        {"signal", no_argument, nullptr, 'q'},
+        {"scode", required_argument, nullptr, 'm'},
         {nullptr, no_argument, nullptr, 0}
     };
 
@@ -283,6 +296,7 @@ int32_t main(int32_t argc, char* argv[]) {
     int32_t numResources = -1;
     const char* resources = nullptr;
     const char* propKey = nullptr;
+    const char* sigCode = nullptr;
     int8_t persistent = false;
 
     while((c = getopt_long(argc, argv, shortPrompts, longPrompts, nullptr)) != -1) {
@@ -319,6 +333,12 @@ int32_t main(int32_t argc, char* argv[]) {
                 break;
             case 'k':
                 propKey = optarg;
+                break;
+            case 'q':
+                requestType = REQ_SIGNAL_TUNING;
+                break;
+            case 'm':
+                sigCode = optarg;
                 break;
             default:
                 break;
@@ -370,6 +390,16 @@ int32_t main(int32_t argc, char* argv[]) {
                 break;
             }
             sendPropRequest(propKey);
+            break;
+
+        case REQ_SIGNAL_TUNING:
+            if(sigCode == nullptr) {
+                std::cout<<"Invalid Params for tune signal request"<< std::endl;
+                std::cout<<"Usage: --signal --scode <key>"<<std::endl;
+                break;
+            }
+
+            sendTuneSignal(sigCode);
             break;
 
         default:

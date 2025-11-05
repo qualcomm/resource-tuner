@@ -63,10 +63,16 @@ CocoTable::CocoTable() {
 
     std::vector<int32_t> clusterIDs;
     TargetRegistry::getInstance()->getClusterIDs(clusterIDs);
-
     for(int32_t clusterID : clusterIDs) {
         int32_t index = this->mFlatClusterMap.size();
         this->mFlatClusterMap[clusterID] = index;
+    }
+
+    std::vector<CGroupConfigInfo*> cGroupConfigs;
+    TargetRegistry::getInstance()->getCGroupConfigs(cGroupConfigs);
+    for(CGroupConfigInfo* cGroupConfig: cGroupConfigs) {
+        int32_t index = this->mFlatCGroupMap.size();
+        this->mFlatCGroupMap[cGroupConfig->mCgroupID] = index;
     }
 
     /*
@@ -217,7 +223,8 @@ int32_t CocoTable::getCocoTableSecondaryIndex(Resource* resource, int8_t priorit
         }
 
         if(cGroupIdentifier == -1) return -1;
-        return cGroupIdentifier * TOTAL_PRIORITIES + priority;
+        int32_t index = this->mFlatCGroupMap[cGroupIdentifier];
+        return index * TOTAL_PRIORITIES + priority;
 
     } else if(resConfInfo->mApplyType == ResourceApplyType::APPLY_GLOBAL) {
         return priority;
@@ -241,6 +248,7 @@ int8_t CocoTable::insertInCocoTable(CoreIterable* newNode, int8_t priority) {
 
     if(primaryIndex < 0 || secondaryIndex < 0 ||
        primaryIndex >= this->mCocoTable.size() || secondaryIndex >= this->mCocoTable[primaryIndex].size()) {
+        TYPELOGV(INV_COCO_TBL_INDEX, resource->getResCode(), primaryIndex, secondaryIndex);
         return false;
     }
 

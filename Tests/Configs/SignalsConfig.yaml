@@ -115,21 +115,33 @@ SignalConfigs:
     Permissions: ["system"]
     Timeout: 50000
     Resources:
-      - {ResCode: "0x00090000", ResInfo: "0x00000000", Values: [4,"%d"]}
-      - {ResCode: "0x00090000", ResInfo: "0x00000000", Values: [4,"%d"]}
-      - {ResCode: "0x00090000", ResInfo: "0x00000000", Values: [7,"%d"]}
-      - {ResCode: "0x00090009", ResInfo: "0x00000000", Values: [7, 250]}
-      - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [7, 0,1,2,3,4]}
-      - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [2, 0,1,2,3]}
-      - {ResCode: "0x00090009", ResInfo: "0x00000000", Values: [2, 170]}
-      - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [3, 4,5,6]}
-      - {ResCode: "0x00090009", ResInfo: "0x00000000", Values: [3, 90]}
-      - {ResCode: "0x0009000a", ResInfo: "0x00000000", Values: [3, 1073741824]}
-      - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [4, 0,1,2,3,4,5,6]}
-      - {ResCode: "0x00090009", ResInfo: "0x00000000", Values: [4, 150]}
-      - {ResCode: "0x00090010", ResInfo: "0x00000000", Values: [4, -20]}
-      - {ResCode: "0x00090011", ResInfo: "0x00000000", Values: [4, 519430400]}
-      - {ResCode: "0x0009000c", ResInfo: "0x00000000", Values: [4, 119430400]}
+      - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [2, 0,1,2,3,4]} # system.slice
+      - {ResCode: "0x00090009", ResInfo: "0x00000000", Values: [2, 170]} # system.slice
+      - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [3, 4,5,6]} # user.slice
+      - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [4, 0,1,2,3,4,5,6]} # camera-cgroup
+      - {ResCode: "0x00090009", ResInfo: "0x00000000", Values: [4, 150]} # camera-cgroup
+      - {ResCode: "0x00090011", ResInfo: "0x00000000", Values: [4, -20]} # camera-cgroup
+
+  - SigId: "0x0009"
+    Category: "0x0d"
+    Name: CAM_PREVIEW_TEST
+    Enable: true
+    Permissions: ["system"]
+    Timeout: 500000
+    Resources:
+      - {ResCode: "0x00090000", ResInfo: "0x00000000", Values: [4, "%d"]} # camera-cgroup
+      - {ResCode: "0x00090000", ResInfo: "0x00000000", Values: [4, "%d"]} # camera-cgroup
+      - {ResCode: "0x00090000", ResInfo: "0x00000000", Values: [3, "%d"]} # user.slice
+      - {ResCode: "0x00090009", ResInfo: "0x00000000", Values: [2, 250]} # system.slice
+      - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [2, 0,1,2,3,4]} # system.slice
+      - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [3, 0,1,2,3]} # user.slice
+      - {ResCode: "0x00090009", ResInfo: "0x00000000", Values: [3, 170]} # user.slice
+      - {ResCode: "0x0009000a", ResInfo: "0x00000000", Values: [3, 1073741824]} # user.slice
+      - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [4, 0,1,2,3,4,5,6]} # camera-cgroup
+      - {ResCode: "0x00090009", ResInfo: "0x00000000", Values: [4, 150]} # camera-cgroup
+      - {ResCode: "0x00090011", ResInfo: "0x00000000", Values: [4, -20]} # camera-cgroup
+      - {ResCode: "0x0009000c", ResInfo: "0x00000000", Values: [4, 519430400]} # camera-cgroup
+      - {ResCode: "0x0009000d", ResInfo: "0x00000000", Values: [4, 119430400]} # camera-cgroup
       - {ResCode: "0x00040001", ResInfo: "0x00000000", Values: [1804800]}
       - {ResCode: "0x00040001", ResInfo: "0x00000400", Values: [940800]}
       - {ResCode: "0x00040001", ResInfo: "0x00000700", Values: [806400]}

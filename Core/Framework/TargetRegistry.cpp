@@ -369,10 +369,15 @@ CGroupConfigInfo* TargetRegistry::getCGroupConfig(int32_t cGroupID) {
     return this->mCGroupMapping[cGroupID];
 }
 
+void TargetRegistry::getCGroupConfigs(std::vector<CGroupConfigInfo*>& cGroupConfigs) {
+    for(std::pair<int32_t, CGroupConfigInfo*> cGroup: this->mCGroupMapping) {
+        cGroupConfigs.push_back(cGroup.second);
+    }
+}
+
 int32_t TargetRegistry::getCreatedCGroupsCount() {
     return this->mCGroupMapping.size();
 }
-
 
 void TargetRegistry::getMpamGroupNames(std::vector<std::string>& mpamGroupNames) {
     for(std::pair<int32_t, MpamGroupConfigInfo*> mpamGroup: this->mMpamGroupMapping) {

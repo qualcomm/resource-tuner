@@ -3720,12 +3720,97 @@ namespace SignalApplicationTests {
         LOG_END
     }
 
+    static void TestSuperSignal1() {
+        LOG_START
+
+        std::unordered_map<std::string, std::string> expectations = {
+            {"/sys/fs/cgroup/system.slice/cpuset.cpus", "0-4"},
+            {"/sys/fs/cgroup/system.slice/cpu.weight", "170"},
+            {"/sys/fs/cgroup/user.slice/cpuset.cpus", "4-6"},
+            {"/sys/fs/cgroup/camera-cgroup/cpuset.cpus", "0-6"},
+            {"/sys/fs/cgroup/camera-cgroup/cpu.weight", "150"},
+            {"/sys/fs/cgroup/camera-cgroup/cpu.weight.nice", "-20"},
+        };
+
+        std::unordered_map<std::string, std::string> originals;
+        for(std::pair<std::string, std::string> entry: expectations) {
+            originals[entry.first] = AuxRoutines::readFromFile(entry.first);
+        }
+
+        int64_t handle = tuneSignal(0x800d0008, 0, 0, "", "", 0, nullptr);
+        assert(handle > 0);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        for(std::pair<std::string, std::string> entry: expectations) {
+            std::string newValue = AuxRoutines::readFromFile(entry.first);
+            assert(((newValue == entry.second) == true));
+        }
+
+        std::this_thread::sleep_for(std::chrono::seconds(60));
+
+        for(std::pair<std::string, std::string> entry: originals) {
+            std::string newValue = AuxRoutines::readFromFile(entry.first);
+            assert(((newValue == entry.second) == true));
+        }
+
+        LOG_END;
+    }
+
+    static void TestSuperSignal2() {
+        LOG_START
+
+        std::vector<std::string> keys = {
+            "/sys/fs/cgroup/camera-cgroup/cgroup.procs",
+            "/sys/fs/cgroup/user.slice/cgroup.procs",
+            "/sys/fs/cgroup/system.slice/cpu.weight",
+            "/sys/fs/cgroup/system.slice/cpuset.cpus",
+            "/sys/fs/cgroup/user.slice/cpuset.cpus",
+            "/sys/fs/cgroup/user.slice/cpu.weight",
+            "/sys/fs/cgroup/user.slice/memory.high",
+            "/sys/fs/cgroup/camera-cgroup/cpuset.cpus",
+            "/sys/fs/cgroup/camera-cgroup/cpu.weight",
+            "/sys/fs/cgroup/camera-cgroup/cpu.weight.nice",
+            "/sys/fs/cgroup/camera-cgroup/memory.low",
+            "/sys/fs/cgroup/camera-cgroup/memory.min",
+            "/sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq",
+            "/sys/devices/system/cpu/cpufreq/policy4/scaling_min_freq",
+            "/sys/devices/system/cpu/cpufreq/policy7/scaling_min_freq",
+        };
+
+        for(const std::string key: keys) {
+            std::cout<<key<<": ["<<AuxRoutines::readFromFile(key)<<"]"<<std::endl;
+        }
+
+        uint32_t* list = (uint32_t*) calloc(3, sizeof(uint32_t));
+        list[0] = getpid();
+        list[1] = getppid();
+        list[2] = 2010;
+
+        int64_t handle = tuneSignal(0x800d0009, 0, 0, "", "", 3, list);
+        assert(handle > 0);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        for(const std::string key: keys) {
+            std::cout<<key<<": ["<<AuxRoutines::readFromFile(key)<<"]"<<std::endl;
+        }
+
+        std::this_thread::sleep_for(std::chrono::seconds(60));
+        for(const std::string key: keys) {
+            std::cout<<key<<": ["<<AuxRoutines::readFromFile(key)<<"]"<<std::endl;
+        }
+
+        LOG_END;
+    }
+
     static void RunTestGroup() {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
         RUN_INTEGRATION_TEST(TestSingleClientTuneSignal1);
         RUN_INTEGRATION_TEST(TestSingleClientTuneSignal2);
         RUN_INTEGRATION_TEST(TestSignalUntuning);
+        RUN_INTEGRATION_TEST(TestSuperSignal2);
+        RUN_INTEGRATION_TEST(TestSuperSignal1);
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
     }

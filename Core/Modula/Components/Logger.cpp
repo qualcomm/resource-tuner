@@ -653,6 +653,14 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             Logger::log(LOG_ERR, "RESTUNE_CONFIG_PROCESSOR", funcName, std::string(buffer));
             break;
 
+        case CommonMessageTypes::INV_COCO_TBL_INDEX:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Encountered Invalid Coco Indexes for Resource: [%lu], \
+                       Primary Index: [%d], Secondary Index: [%d]", args);
+
+            Logger::log(LOG_ERR, "RESTUNE_COCO_TABLE", funcName, std::string(buffer));
+            break;
+
         default:
             break;
     }

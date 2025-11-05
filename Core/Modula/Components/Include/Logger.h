@@ -105,6 +105,7 @@ enum CommonMessageTypes {
     NOTIFY_NODE_RESET,
     GENERIC_CALL_FAILURE_LOG,
     INV_ATTR_VAL,
+    INV_COCO_TBL_INDEX,
 };
 
 /**
