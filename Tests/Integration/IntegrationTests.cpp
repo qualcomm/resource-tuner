@@ -3973,7 +3973,7 @@ namespace CGroupApplicationTests {
             resourceList[0].mNumValues = 2;
             resourceList[0].mResValue.values = new int32_t[2];
             resourceList[0].mResValue.values[0] = 1;
-            resourceList[0].mResValue.values[1] = 1224 * 1024;
+            resourceList[0].mResValue.values[1] = 1224;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
             std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
@@ -3985,7 +3985,7 @@ namespace CGroupApplicationTests {
         } else if(rc > 0) {
             SysResource* resourceList = new SysResource[1];
             memset(&resourceList[0], 0, sizeof(SysResource));
-            resourceList[0].mResCode = 0x0009000a;
+            resourceList[0].mResCode = 0x0009000b;
             resourceList[0].mNumValues = 2;
             resourceList[0].mResValue.values = new int32_t[2];
             resourceList[0].mResValue.values[0] = 1;
@@ -4150,7 +4150,7 @@ int32_t main(int32_t argc, const char* argv[]) {
 
     // Request-Verification Tests
     ResourceTuningRequestVerification::RunTestGroup();
-    // SignalVerification::RunTestGroup();
+    SignalVerification::RunTestGroup();
 
     // Request Application Tests
     RequestApplicationTests::RunTestGroup();
@@ -4158,8 +4158,8 @@ int32_t main(int32_t argc, const char* argv[]) {
     // Tests on Real Sysfs Nodes (QLI)
     SystemSysfsNodesTests::RunTestGroup();
 
-    // // Signal Application
-    // SignalApplicationTests::RunTestGroup();
+    // Signal Application
+    SignalApplicationTests::RunTestGroup();
 
     // Tests for CGroup Resources
     CGroupApplicationTests::RunTestGroup();

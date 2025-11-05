@@ -488,6 +488,13 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             Logger::log(LOG_INFO, "RESTUNE_COCO_TABLE", funcName, std::string(buffer));
             break;
 
+        case CommonMessageTypes::NOTIFY_NODE_WRITE_S:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Writing to Node: [%s], Value: [%s]", args);
+
+            Logger::log(LOG_INFO, "RESTUNE_COCO_TABLE", funcName, std::string(buffer));
+            break;
+
         case CommonMessageTypes::NOTIFY_NODE_RESET:
             vsnprintf(buffer, sizeof(buffer),
                       "Resetting Node: [%s], to Value: [%s]", args);

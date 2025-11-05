@@ -386,7 +386,7 @@ static void moveProcessToCGroup(void* context) {
             ResourceRegistry::getInstance()->addDefaultValue(currentCGroupFilePath, currentCGroup);
         }
 
-        TYPELOGV(NOTIFY_NODE_WRITE, controllerFilePath.c_str(), std::to_string(pid));
+        TYPELOGV(NOTIFY_NODE_WRITE, controllerFilePath.c_str(), pid);
         std::ofstream controllerFile(controllerFilePath);
         if(!controllerFile.is_open()) {
             TYPELOGV(ERRNO_LOG, "open", strerror(errno));
@@ -425,8 +425,9 @@ static void setRunOnCores(void* context) {
             }
 
             std::string controllerFilePath = getCGroupTypeResourceNodePath(resource, cGroupName);
-            std::ofstream controllerFile(controllerFilePath);
 
+            TYPELOGV(NOTIFY_NODE_WRITE_S, controllerFilePath.c_str(), cpusString.c_str());
+            std::ofstream controllerFile(controllerFilePath);
             if(!controllerFile.is_open()) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
                 return;
@@ -469,6 +470,7 @@ static void setRunOnCoresExclusively(void* context) {
                 }
             }
 
+            TYPELOGV(NOTIFY_NODE_WRITE_S, cGroupControllerFilePath.c_str(), cpusString.c_str());
             std::ofstream controllerFile(cGroupControllerFilePath);
             if(!controllerFile.is_open()) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
@@ -573,8 +575,8 @@ static void removeThreadFromCGroup(void* context) {
     int32_t tid = (*resource->mResValue.values)[1];
 
     std::string parentCGroupProcsPath = ResourceTunerSettings::mBaseCGroupPath + "cgroup.threads";
-    std::ofstream controllerFile(parentCGroupProcsPath, std::ios::app);
 
+    std::ofstream controllerFile(parentCGroupProcsPath, std::ios::app);
     if(!controllerFile.is_open()) {
         TYPELOGV(ERRNO_LOG, "open", strerror(errno));
         return;
@@ -605,14 +607,15 @@ static void resetRunOnCoresExclusively(void* context) {
             const std::string cGroupCpuSetFilePath =
                 ResourceTunerSettings::mBaseCGroupPath + cGroupName + "/cpuset.cpus";
 
+            std::string defaultValue =
+                ResourceRegistry::getInstance()->getDefaultValue(cGroupCpuSetFilePath);
+
+            TYPELOGV(NOTIFY_NODE_RESET, cGroupCpuSetFilePath.c_str(), defaultValue.c_str());
             std::ofstream controllerFile(cGroupCpuSetFilePath);
             if(!controllerFile.is_open()) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
                 return;
             }
-
-            std::string defaultValue =
-                ResourceRegistry::getInstance()->getDefaultValue(cGroupCpuSetFilePath);
 
             controllerFile<<defaultValue<<std::endl;
 

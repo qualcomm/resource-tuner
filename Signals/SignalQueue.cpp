@@ -25,9 +25,10 @@ static Request* createResourceTuningRequest(Signal* signal) {
                 continue;
             }
 
+            // Copy
             Resource* resource = MPLACEV(Resource, (*((*signalLocks)[i])));
 
-            // fill defaults
+            // fill placeholders if any
             int32_t valueCount = resource->getValuesCount();
             if(valueCount == 1) {
                 if(resource->mResValue.value == -1) {
