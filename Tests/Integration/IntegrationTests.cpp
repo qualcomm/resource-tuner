@@ -3838,7 +3838,7 @@ namespace CGroupApplicationTests {
         resourceList[0].mResCode = 0x00090007;
         resourceList[0].mNumValues = 2;
         resourceList[0].mResValue.values = new int32_t[resourceList[0].mNumValues];
-        resourceList[0].mResValue.values[0] = 1;
+        resourceList[0].mResValue.values[0] = 5;
         resourceList[0].mResValue.values[1] = 52;
 
         int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_LOW, 1, resourceList);
@@ -3876,7 +3876,7 @@ namespace CGroupApplicationTests {
         resourceList1[0].mResCode = 0x00090007;
         resourceList1[0].mNumValues = 2;
         resourceList1[0].mResValue.values = new int32_t[2];
-        resourceList1[0].mResValue.values[0] = 1;
+        resourceList1[0].mResValue.values[0] = 5;
         resourceList1[0].mResValue.values[1] = 52;
         int64_t handle = tuneResources(25000, RequestPriority::REQ_PRIORITY_LOW, 1, resourceList1);
         std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
@@ -3888,7 +3888,7 @@ namespace CGroupApplicationTests {
         resourceList[0].mResCode = 0x00090007;
         resourceList[0].mNumValues = 2;
         resourceList[0].mResValue.values = new int32_t[2];
-        resourceList[0].mResValue.values[0] = 1;
+        resourceList[0].mResValue.values[0] = 5;
         resourceList[0].mResValue.values[1] = 57;
         handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
         std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
@@ -3934,7 +3934,7 @@ namespace CGroupApplicationTests {
             resourceList[0].mResCode = 0x00090007;
             resourceList[0].mNumValues = 2;
             resourceList[0].mResValue.values = new int32_t[2];
-            resourceList[0].mResValue.values[0] = 1;
+            resourceList[0].mResValue.values[0] = 5;
             resourceList[0].mResValue.values[1] = 53;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
@@ -3950,7 +3950,7 @@ namespace CGroupApplicationTests {
             resourceList[0].mResCode = 0x00090007;
             resourceList[0].mNumValues = 2;
             resourceList[0].mResValue.values = new int32_t[2];
-            resourceList[0].mResValue.values[0] = 1;
+            resourceList[0].mResValue.values[0] = 5;
             resourceList[0].mResValue.values[1] = 57;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
@@ -3994,7 +3994,7 @@ namespace CGroupApplicationTests {
             resourceList[0].mResCode = 0x00090008;
             resourceList[0].mNumValues = 2;
             resourceList[0].mResValue.values = new int32_t[2];
-            resourceList[0].mResValue.values[0] = 1;
+            resourceList[0].mResValue.values[0] = 5;
             resourceList[0].mResValue.values[1] = 75;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
@@ -4010,7 +4010,7 @@ namespace CGroupApplicationTests {
             resourceList[0].mResCode = 0x00090008;
             resourceList[0].mNumValues = 2;
             resourceList[0].mResValue.values = new int32_t[2];
-            resourceList[0].mResValue.values[0] = 1;
+            resourceList[0].mResValue.values[0] = 5;
             resourceList[0].mResValue.values[1] = 68;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
@@ -4057,7 +4057,7 @@ namespace CGroupApplicationTests {
             resourceList[0].mResCode = 0x0009000b;
             resourceList[0].mNumValues = 2;
             resourceList[0].mResValue.values = new int32_t[2];
-            resourceList[0].mResValue.values[0] = 1;
+            resourceList[0].mResValue.values[0] = 5;
             resourceList[0].mResValue.values[1] = 1224;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
@@ -4073,7 +4073,7 @@ namespace CGroupApplicationTests {
             resourceList[0].mResCode = 0x0009000b;
             resourceList[0].mNumValues = 2;
             resourceList[0].mResValue.values = new int32_t[2];
-            resourceList[0].mResValue.values[0] = 1;
+            resourceList[0].mResValue.values[0] = 5;
             resourceList[0].mResValue.values[1] = 950; // KB as per configs
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
@@ -4127,14 +4127,14 @@ namespace CGroupApplicationTests {
         resourceList[0].mResCode = 0x00090007;
         resourceList[0].mNumValues = 2;
         resourceList[0].mResValue.values = new int32_t[2];
-        resourceList[0].mResValue.values[0] = 0;
+        resourceList[0].mResValue.values[0] = 4;
         resourceList[0].mResValue.values[1] = 55;
 
         memset(&resourceList[1], 0, sizeof(SysResource));
         resourceList[1].mResCode = 0x00090007;
         resourceList[1].mNumValues = 2;
         resourceList[1].mResValue.values = new int32_t[2];
-        resourceList[1].mResValue.values[0] = 1;
+        resourceList[1].mResValue.values[0] = 5;
         resourceList[1].mResValue.values[1] = 58;
 
         int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_LOW, 2, resourceList);
@@ -4187,7 +4187,7 @@ namespace CGroupApplicationTests {
         resourceList1[0].mResCode = 0x00090002;
         resourceList1[0].mNumValues = 4;
         resourceList1[0].mResValue.values = new int32_t[resourceList1[0].mNumValues];
-        resourceList1[0].mResValue.values[0] = 1;
+        resourceList1[0].mResValue.values[0] = 5;
         resourceList1[0].mResValue.values[1] = 0;
         resourceList1[0].mResValue.values[2] = 1;
         resourceList1[0].mResValue.values[3] = 3;

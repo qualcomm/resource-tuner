@@ -127,7 +127,7 @@ SignalConfigs:
     Name: CAM_PREVIEW_TEST
     Enable: true
     Permissions: ["system"]
-    Timeout: 500000
+    Timeout: 50000
     Resources:
       - {ResCode: "0x00090000", ResInfo: "0x00000000", Values: [4, "%d"]} # camera-cgroup
       - {ResCode: "0x00090000", ResInfo: "0x00000000", Values: [4, "%d"]} # camera-cgroup
@@ -143,5 +143,5 @@ SignalConfigs:
       - {ResCode: "0x0009000c", ResInfo: "0x00000000", Values: [4, 519430400]} # camera-cgroup
       - {ResCode: "0x0009000d", ResInfo: "0x00000000", Values: [4, 119430400]} # camera-cgroup
       - {ResCode: "0x00040001", ResInfo: "0x00000000", Values: [1804800]}
-      - {ResCode: "0x00040001", ResInfo: "0x00000400", Values: [940800]}
-      - {ResCode: "0x00040001", ResInfo: "0x00000700", Values: [806400]}
+      - {ResCode: "0x00040001", ResInfo: "0x00000100", Values: [940800]}
+      - {ResCode: "0x00040001", ResInfo: "0x00000200", Values: [806400]}
