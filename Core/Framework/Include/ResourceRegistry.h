@@ -30,10 +30,10 @@ enum ResourceApplyType {
 };
 
 /**
- * @struct ResourceConfigInfo
+ * @struct ResConfInfo
  * @brief Representation of a single Resource Configuration
  * @details This information is read from the Config files.\n
- *          Note this (ResourceConfigInfo) struct is separate from the Resource struct.
+ *          Note this (ResConfInfo) struct is separate from the Resource struct.
  */
 typedef struct {
     /**
@@ -86,13 +86,16 @@ typedef struct {
      *        the BU via the Extension Interface.
      */
     ResourceLifecycleCallback mResourceApplierCallback;
-
+    /**
+     * @brief Translation Unit for the Resource, for example KB, MB, MHz etc.
+     */
+    enum TranslationUnit mUnit;
     /**
      * @brief Optional Custom Resource Tear Callback, it needs to be supplied by
      *        the BU via the Extension Interface.
      */
     ResourceLifecycleCallback mResourceTearCallback;
-} ResourceConfigInfo;
+} ResConfInfo;
 
 /**
  * @brief ResourceRegistry
@@ -104,15 +107,15 @@ private:
     static std::shared_ptr<ResourceRegistry> resourceRegistryInstance;
     int32_t mTotalResources;
 
-    std::vector<ResourceConfigInfo*> mResourceConfig;
+    std::vector<ResConfInfo*> mResourceConfig;
     std::unordered_map<uint32_t, int32_t> mSystemIndependentLayerMappings;
     std::unordered_map<std::string, std::string> mDefaultValueStore;
 
     ResourceRegistry();
 
-    int8_t isResourceConfigMalformed(ResourceConfigInfo* resourceConfigInfo);
-    void setLifeCycleCallbacks(ResourceConfigInfo* resourceConfigInfo);
-    void fetchAndStoreDefaults(ResourceConfigInfo* resourceConfigInfo);
+    int8_t isResourceConfigMalformed(ResConfInfo* resourceConfigInfo);
+    void setLifeCycleCallbacks(ResConfInfo* resourceConfigInfo);
+    void fetchAndStoreDefaults(ResConfInfo* resourceConfigInfo);
 
 public:
     ~ResourceRegistry();
@@ -123,18 +126,18 @@ public:
      *          Malformed, then it will be freed as part of this routine, else it will
      *          be added to the "mResourceConfig" vector.
      */
-    void registerResource(ResourceConfigInfo* resourceConfigInfo, int8_t isBuSpecified=false);
+    void registerResource(ResConfInfo* resourceConfigInfo, int8_t isBuSpecified=false);
 
-    std::vector<ResourceConfigInfo*> getRegisteredResources();
+    std::vector<ResConfInfo*> getRegisteredResources();
 
     /**
-     * @brief Get the ResourceConfigInfo object corresponding to the given Resource ID.
+     * @brief Get the ResConfInfo object corresponding to the given Resource ID.
      * @param resourceId An unsigned 32 bit integer, representing the Resource ID.
-     * @return ResourceConfigInfo*:\n
-     *          - A pointer to the ResourceConfigInfo object
-     *          - nullptr, if no ResourceConfigInfo object with the given Resource ID exists.
+     * @return ResConfInfo*:\n
+     *          - A pointer to the ResConfInfo object
+     *          - nullptr, if no ResConfInfo object with the given Resource ID exists.
      */
-    ResourceConfigInfo* getResourceById(uint32_t resourceId);
+    ResConfInfo* getResConf(uint32_t resourceId);
 
     int32_t getResourceTableIndex(uint32_t resourceId);
     int32_t getTotalResourcesCount();
@@ -157,7 +160,7 @@ public:
 
 class ResourceConfigInfoBuilder {
 private:
-    ResourceConfigInfo* mResourceConfigInfo;
+    ResConfInfo* mResourceConfigInfo;
 
 public:
     ResourceConfigInfoBuilder();
@@ -173,9 +176,10 @@ public:
     ErrCode setModes(const std::string& modeString);
     ErrCode setSupported(const std::string& supported);
     ErrCode setPolicy(const std::string& policyString);
+    ErrCode setTranslationUnit(const std::string& unitString);
     ErrCode setApplyType(const std::string& applyTypeString);
 
-    ResourceConfigInfo* build();
+    ResConfInfo* build();
 };
 
 void defaultClusterLevelApplierCb(void* context);

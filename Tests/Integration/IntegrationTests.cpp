@@ -1,8 +1,7 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <cstdint>
-
+#include "ErrCodes.h"
 #include "Common.h"
 #include "Utils.h"
 #include "TestUtils.h"
@@ -3720,12 +3719,108 @@ namespace SignalApplicationTests {
         LOG_END
     }
 
+    static void TestSuperSignal1() {
+        LOG_START
+
+        std::unordered_map<std::string, std::string> expectations = {
+            {"/sys/fs/cgroup/system.slice/cpuset.cpus", "0-4"},
+            {"/sys/fs/cgroup/system.slice/cpu.weight", "170"},
+            {"/sys/fs/cgroup/user.slice/cpuset.cpus", "4-6"},
+            {"/sys/fs/cgroup/camera-cgroup/cpuset.cpus", "0-6"},
+            // {"/sys/fs/cgroup/camera-cgroup/cpu.weight", "150"},
+            {"/sys/fs/cgroup/camera-cgroup/cpu.weight.nice", "-20"},
+        };
+
+        std::unordered_map<std::string, std::string> originals;
+        for(std::pair<std::string, std::string> entry: expectations) {
+            originals[entry.first] = AuxRoutines::readFromFile(entry.first);
+            std::cout<<"Original: ["<<entry.first<<", "<<originals[entry.first]<<"]"<<std::endl;
+        }
+
+        int64_t handle = tuneSignal(0x800d0008, 0, 0, "", "", 0, nullptr);
+        assert(handle > 0);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        for(std::pair<std::string, std::string> entry: expectations) {
+            std::string newValue = AuxRoutines::readFromFile(entry.first);
+            std::cout<<LOG_BASE<<entry.first<<" Configured Value: "<<newValue<<std::endl;
+            std::cout<<LOG_BASE<<entry.first<<" Expected Config Value: "<<entry.second<<std::endl;
+            assert(((newValue == entry.second) == true));
+        }
+
+        std::this_thread::sleep_for(std::chrono::seconds(60));
+
+        for(std::pair<std::string, std::string> entry: originals) {
+            std::string newValue = AuxRoutines::readFromFile(entry.first);
+            std::cout<<LOG_BASE<<entry.first<<" Configured Value: "<<newValue<<std::endl;
+            std::cout<<LOG_BASE<<entry.first<<" Expected Reset Value: "<<entry.second<<std::endl;
+            assert(((newValue == entry.second) == true));
+        }
+
+        LOG_END;
+    }
+
+    // Observe only as of now
+    static void TestSuperSignal2() {
+        LOG_START
+
+        std::vector<std::string> keys = {
+            "/sys/fs/cgroup/camera-cgroup/cgroup.procs",
+            "/sys/fs/cgroup/user.slice/cgroup.procs",
+            "/sys/fs/cgroup/system.slice/cpu.weight",
+            "/sys/fs/cgroup/system.slice/cpuset.cpus",
+            "/sys/fs/cgroup/user.slice/cpuset.cpus",
+            "/sys/fs/cgroup/user.slice/cpu.weight",
+            "/sys/fs/cgroup/user.slice/memory.high",
+            "/sys/fs/cgroup/camera-cgroup/cpuset.cpus",
+            "/sys/fs/cgroup/camera-cgroup/cpu.weight",
+            "/sys/fs/cgroup/camera-cgroup/cpu.weight.nice",
+            "/sys/fs/cgroup/camera-cgroup/memory.low",
+            "/sys/fs/cgroup/camera-cgroup/memory.min",
+            "/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq",
+            "/sys/devices/system/cpu/cpufreq/policy4/scaling_max_freq",
+            "/sys/devices/system/cpu/cpufreq/policy7/scaling_max_freq",
+        };
+
+        std::cout<<"Initial"<<std::endl;
+        for(const std::string key: keys) {
+            std::cout<<key<<": ["<<AuxRoutines::readFromFile(key)<<"]"<<std::endl;
+        }
+
+        uint32_t* list = (uint32_t*) calloc(3, sizeof(uint32_t));
+        list[0] = getpid();
+        list[1] = getppid();
+        list[2] = 2010;
+
+        int64_t handle = tuneSignal(0x800d0009, 0, 0, "", "", 3, list);
+        assert(handle > 0);
+
+        std::this_thread::sleep_for(std::chrono::seconds(3));
+
+        std::cout<<"Request Applied"<<std::endl;
+        for(const std::string key: keys) {
+            std::cout<<key<<": ["<<AuxRoutines::readFromFile(key)<<"]"<<std::endl;
+        }
+
+        std::this_thread::sleep_for(std::chrono::seconds(60));
+
+        std::cout<<"Request Reset"<<std::endl;
+        for(const std::string key: keys) {
+            std::cout<<key<<": ["<<AuxRoutines::readFromFile(key)<<"]"<<std::endl;
+        }
+
+        LOG_END;
+    }
+
     static void RunTestGroup() {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
         RUN_INTEGRATION_TEST(TestSingleClientTuneSignal1);
         RUN_INTEGRATION_TEST(TestSingleClientTuneSignal2);
         RUN_INTEGRATION_TEST(TestSignalUntuning);
+        RUN_INTEGRATION_TEST(TestSuperSignal2);
+        RUN_INTEGRATION_TEST(TestSuperSignal1);
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
     }
@@ -3753,7 +3848,7 @@ namespace CGroupApplicationTests {
         resourceList[0].mResCode = 0x00090007;
         resourceList[0].mNumValues = 2;
         resourceList[0].mResValue.values = new int32_t[resourceList[0].mNumValues];
-        resourceList[0].mResValue.values[0] = 1;
+        resourceList[0].mResValue.values[0] = 5;
         resourceList[0].mResValue.values[1] = 52;
 
         int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_LOW, 1, resourceList);
@@ -3791,7 +3886,7 @@ namespace CGroupApplicationTests {
         resourceList1[0].mResCode = 0x00090007;
         resourceList1[0].mNumValues = 2;
         resourceList1[0].mResValue.values = new int32_t[2];
-        resourceList1[0].mResValue.values[0] = 1;
+        resourceList1[0].mResValue.values[0] = 5;
         resourceList1[0].mResValue.values[1] = 52;
         int64_t handle = tuneResources(25000, RequestPriority::REQ_PRIORITY_LOW, 1, resourceList1);
         std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
@@ -3803,7 +3898,7 @@ namespace CGroupApplicationTests {
         resourceList[0].mResCode = 0x00090007;
         resourceList[0].mNumValues = 2;
         resourceList[0].mResValue.values = new int32_t[2];
-        resourceList[0].mResValue.values[0] = 1;
+        resourceList[0].mResValue.values[0] = 5;
         resourceList[0].mResValue.values[1] = 57;
         handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
         std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
@@ -3849,7 +3944,7 @@ namespace CGroupApplicationTests {
             resourceList[0].mResCode = 0x00090007;
             resourceList[0].mNumValues = 2;
             resourceList[0].mResValue.values = new int32_t[2];
-            resourceList[0].mResValue.values[0] = 1;
+            resourceList[0].mResValue.values[0] = 5;
             resourceList[0].mResValue.values[1] = 53;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
@@ -3865,7 +3960,7 @@ namespace CGroupApplicationTests {
             resourceList[0].mResCode = 0x00090007;
             resourceList[0].mNumValues = 2;
             resourceList[0].mResValue.values = new int32_t[2];
-            resourceList[0].mResValue.values[0] = 1;
+            resourceList[0].mResValue.values[0] = 5;
             resourceList[0].mResValue.values[1] = 57;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
@@ -3909,7 +4004,7 @@ namespace CGroupApplicationTests {
             resourceList[0].mResCode = 0x00090008;
             resourceList[0].mNumValues = 2;
             resourceList[0].mResValue.values = new int32_t[2];
-            resourceList[0].mResValue.values[0] = 1;
+            resourceList[0].mResValue.values[0] = 5;
             resourceList[0].mResValue.values[1] = 75;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
@@ -3925,7 +4020,7 @@ namespace CGroupApplicationTests {
             resourceList[0].mResCode = 0x00090008;
             resourceList[0].mNumValues = 2;
             resourceList[0].mResValue.values = new int32_t[2];
-            resourceList[0].mResValue.values[0] = 1;
+            resourceList[0].mResValue.values[0] = 5;
             resourceList[0].mResValue.values[1] = 68;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
@@ -3972,8 +4067,8 @@ namespace CGroupApplicationTests {
             resourceList[0].mResCode = 0x0009000b;
             resourceList[0].mNumValues = 2;
             resourceList[0].mResValue.values = new int32_t[2];
-            resourceList[0].mResValue.values[0] = 1;
-            resourceList[0].mResValue.values[1] = 1224 * 1024;
+            resourceList[0].mResValue.values[0] = 5;
+            resourceList[0].mResValue.values[1] = 1224;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
             std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
@@ -3985,11 +4080,11 @@ namespace CGroupApplicationTests {
         } else if(rc > 0) {
             SysResource* resourceList = new SysResource[1];
             memset(&resourceList[0], 0, sizeof(SysResource));
-            resourceList[0].mResCode = 0x0009000a;
+            resourceList[0].mResCode = 0x0009000b;
             resourceList[0].mNumValues = 2;
             resourceList[0].mResValue.values = new int32_t[2];
-            resourceList[0].mResValue.values[0] = 1;
-            resourceList[0].mResValue.values[1] = 950 * 1024;
+            resourceList[0].mResValue.values[0] = 5;
+            resourceList[0].mResValue.values[1] = 950; // KB as per configs
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
             std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
@@ -4042,14 +4137,14 @@ namespace CGroupApplicationTests {
         resourceList[0].mResCode = 0x00090007;
         resourceList[0].mNumValues = 2;
         resourceList[0].mResValue.values = new int32_t[2];
-        resourceList[0].mResValue.values[0] = 0;
+        resourceList[0].mResValue.values[0] = 4;
         resourceList[0].mResValue.values[1] = 55;
 
         memset(&resourceList[1], 0, sizeof(SysResource));
         resourceList[1].mResCode = 0x00090007;
         resourceList[1].mNumValues = 2;
         resourceList[1].mResValue.values = new int32_t[2];
-        resourceList[1].mResValue.values[0] = 1;
+        resourceList[1].mResValue.values[0] = 5;
         resourceList[1].mResValue.values[1] = 58;
 
         int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_LOW, 2, resourceList);
@@ -4102,7 +4197,7 @@ namespace CGroupApplicationTests {
         resourceList1[0].mResCode = 0x00090002;
         resourceList1[0].mNumValues = 4;
         resourceList1[0].mResValue.values = new int32_t[resourceList1[0].mNumValues];
-        resourceList1[0].mResValue.values[0] = 1;
+        resourceList1[0].mResValue.values[0] = 5;
         resourceList1[0].mResValue.values[1] = 0;
         resourceList1[0].mResValue.values[2] = 1;
         resourceList1[0].mResValue.values[3] = 3;

@@ -22,14 +22,13 @@ static void preAllocateMemory() {
     MakeAlloc<Request> (concurrentRequestsUB);
     MakeAlloc<Timer> (concurrentRequestsUB);
     MakeAlloc<Resource> (maxBlockCount);
-    MakeAlloc<CocoNode> (maxBlockCount);
     MakeAlloc<ClientInfo> (maxBlockCount);
     MakeAlloc<ClientTidData> (maxBlockCount);
     MakeAlloc<std::unordered_set<int64_t>> (maxBlockCount);
     MakeAlloc<std::vector<Resource*>> (maxBlockCount);
     MakeAlloc<std::vector<int32_t>> (maxBlockCount);
-    MakeAlloc<std::vector<CocoNode*>> (maxBlockCount);
     MakeAlloc<MsgForwardInfo> (maxBlockCount);
+    MakeAlloc<CoreIterable> (maxBlockCount);
     MakeAlloc<char[REQ_BUFFER_SIZE]> (maxBlockCount);
 }
 

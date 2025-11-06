@@ -3,6 +3,36 @@
 
 #include "RequestManager.h"
 
+static int8_t resourceCmpPolicy(CoreIterable* src, CoreIterable* target) {
+    if(target == nullptr) return false;
+    // This covers the case where the client fires the exact same request multiple times
+    Resource* res1 = (Resource*) src->mData;
+    Resource* res2 = (Resource*) target->mData;
+
+    if(res1->getResCode() != res2->getResCode()) return false;
+    if(res1->getResInfo() != res2->getResInfo()) return false;
+    if(res1->getOptionalInfo() != res2->getOptionalInfo()) return false;
+    if(res1->getValuesCount() != res2->getValuesCount()) return false;
+
+    if(res1->getValuesCount() == 1) {
+        if(res1->mResValue.value != res2->mResValue.value) {
+            return false;
+        }
+    } else {
+        for(int32_t i = 0; i < res1->getValuesCount(); i++) {
+            if(res1->mResValue.values[i] != res2->mResValue.values[i]) return false;
+        }
+    }
+
+    // Consideration:
+    // How to efficiently check duplicate in cases where the client sends 2
+    // requests with the same Resources, but in different orders. For example:
+    // Rq1 -> Rs1, Rs2, Rs3
+    // Rq2 - Rs1, Rs3, Rs2
+    // - These requests are still duplicates, but the above logic won't catch it
+    return true;
+}
+
 std::shared_ptr<RequestManager> RequestManager::mReqeustManagerInstance = nullptr;
 std::mutex RequestManager::instanceProtectionLock{};
 
@@ -30,8 +60,9 @@ int8_t RequestManager::isSane(Request* request) {
         return false;
     }
 
-    for(int32_t i = 0; i < request->getResourcesCount(); i++) {
-        if(request->getResourceAt(i) == nullptr) return false;
+    if(request->getResDlMgr() == nullptr) return false;
+    DL_ITERATE(request->getResDlMgr()) {
+        if(iter == nullptr || iter->mData == nullptr) return false;
     }
 
     return true;
@@ -58,34 +89,9 @@ int8_t RequestManager::requestMatch(Request* request) {
             return false;
         }
 
-        // This covers the case where the client fires the exact same request
-        // multiple times
-        for(int32_t i = 0; i < request->getResourcesCount(); i++) {
-            Resource* res1 = request->getResourceAt(i);
-            Resource* res2 = targetRequest->getResourceAt(i);
-
-            if(res1->getResCode() != res2->getResCode()) return false;
-            if(res1->getResInfo() != res2->getResInfo()) return false;
-            if(res1->getOptionalInfo() != res2->getOptionalInfo()) return false;
-            if(res1->getValuesCount() != res2->getValuesCount()) return false;
-
-            if(res1->getValuesCount() == 1) {
-                if(res1->mResValue.value != res2->mResValue.value) {
-                    return false;
-                }
-            } else {
-                for(int32_t i = 0; i < res1->getValuesCount(); i++) {
-                    if(res1->mResValue.values[i] != res2->mResValue.values[i]) return false;
-                }
-            }
+        if(!request->getResDlMgr()->matchAgainst(targetRequest->getResDlMgr(), resourceCmpPolicy)) {
+            return false;
         }
-
-        // Consideration:
-        // How to efficiently check duplicate in cases where the client sends 2
-        // requests with the same Resources, but in different orders. For example:
-        // Rq1 -> Rs1, Rs2, Rs3
-        // Rq2 - Rs1, Rs3, Rs2
-        // - These requests are still duplicates, but the above logic won't catch it
     }
 
     return true;
@@ -206,7 +212,7 @@ void RequestManager::moveToPendingList() {
         if((request->getProcessingModes() & MODE_SUSPEND) == 0) {
             Request* untuneRequest = nullptr;
             try {
-                untuneRequest = new (GetBlock<Request>()) Request();
+                untuneRequest = MPLACED(Request);
             } catch(const std::bad_alloc& e) {
                 LOGI("RESTUNE_REQUEST_MANAGER"
                      "Failed to create Untune Request for Request: ", std::to_string(request->getHandle()));

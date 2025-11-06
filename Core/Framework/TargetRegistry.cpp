@@ -1,6 +1,5 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
-
 #include "TargetRegistry.h"
 
 // Create all the CGroups specified via InitConfig.yaml during the init phase.
@@ -9,6 +8,7 @@ static ErrCode createCGroup(CGroupConfigInfo* cGroupConfig) {
     if(!cGroupConfig->mCreationNeeded) return RC_SUCCESS;
 
     std::string cGroupPath = ResourceTunerSettings::mBaseCGroupPath + cGroupConfig->mCgroupName;
+    errno = 0;
     if(mkdir(cGroupPath.c_str(), 0755) == 0) {
         if(cGroupConfig->mIsThreaded) {
             AuxRoutines::writeToFile(cGroupPath + "/cgroup.type", "threaded");
@@ -369,10 +369,15 @@ CGroupConfigInfo* TargetRegistry::getCGroupConfig(int32_t cGroupID) {
     return this->mCGroupMapping[cGroupID];
 }
 
+void TargetRegistry::getCGroupConfigs(std::vector<CGroupConfigInfo*>& cGroupConfigs) {
+    for(std::pair<int32_t, CGroupConfigInfo*> cGroup: this->mCGroupMapping) {
+        cGroupConfigs.push_back(cGroup.second);
+    }
+}
+
 int32_t TargetRegistry::getCreatedCGroupsCount() {
     return this->mCGroupMapping.size();
 }
-
 
 void TargetRegistry::getMpamGroupNames(std::vector<std::string>& mpamGroupNames) {
     for(std::pair<int32_t, MpamGroupConfigInfo*> mpamGroup: this->mMpamGroupMapping) {

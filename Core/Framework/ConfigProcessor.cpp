@@ -7,6 +7,9 @@
     if(topKey == KEY && resourceConfigInfoBuilder != nullptr) { \
         if(RC_IS_OK(rc)) {                                      \
             rc = resourceConfigInfoBuilder->METHOD(value);      \
+            if(RC_IS_NOTOK(rc)) {                               \
+                TYPELOGV(INV_ATTR_VAL, KEY, value.c_str());     \
+            }                                                   \
         }                                                       \
         break;                                                  \
     }
@@ -36,47 +39,49 @@
     }
 
 static int8_t isKey(const std::string& keyName) {
-    if(keyName == TARGET_CONFIGS_ROOT) return true;
-    if(keyName == TARGET_NAME_LIST) return true;
-    if(keyName == TARGET_CLUSTER_INFO) return true;
-    if(keyName == TARGET_CLUSTER_INFO_LOGICAL_ID) return true;
-    if(keyName == TARGET_CLUSTER_INFO_PHYSICAL_ID) return true;
-    if(keyName == TARGET_CLUSTER_SPREAD) return true;
-    if(keyName == TARGET_PER_CLUSTER_CORE_COUNT) return true;
+    std::vector<std::string> keys = {
+        TARGET_CONFIGS_ROOT,
+        TARGET_NAME_LIST,
+        TARGET_CLUSTER_INFO,
+        TARGET_CLUSTER_INFO_LOGICAL_ID,
+        TARGET_CLUSTER_INFO_PHYSICAL_ID,
+        TARGET_CLUSTER_SPREAD,
+        TARGET_PER_CLUSTER_CORE_COUNT,
+        RESOURCE_CONFIGS_ROOT,
+        RESOURCE_CONFIGS_ELEM_RESOURCE_TYPE,
+        RESOURCE_CONFIGS_ELEM_RESOURCE_ID,
+        RESOURCE_CONFIGS_ELEM_RESOURCENAME,
+        RESOURCE_CONFIGS_ELEM_RESOURCEPATH,
+        RESOURCE_CONFIGS_ELEM_SUPPORTED,
+        RESOURCE_CONFIGS_ELEM_HIGHTHRESHOLD,
+        RESOURCE_CONFIGS_ELEM_LOWTHRESHOLD,
+        RESOURCE_CONFIGS_ELEM_PERMISSIONS,
+        RESOURCE_CONFIGS_ELEM_MODES,
+        RESOURCE_CONFIGS_ELEM_POLICY,
+        RESOURCE_CONFIGS_ELEM_T_UNIT,
+        RESOURCE_CONFIGS_ELEM_APPLY_TYPE,
+        INIT_CONFIGS_ROOT,
+        INIT_CONFIGS_ELEM_CGROUPS_LIST,
+        INIT_CONFIGS_ELEM_CGROUP_NAME,
+        INIT_CONFIGS_ELEM_CGROUP_IDENTIFIER,
+        INIT_CONFIGS_ELEM_CGROUP_CREATION,
+        INIT_CONFIGS_ELEM_CGROUP_THREADED,
+        INIT_CONFIGS_ELEM_CLUSTER_MAP,
+        INIT_CONFIGS_ELEM_CLUSTER_MAP_CLUSTER_ID,
+        INIT_CONFIGS_ELEM_CLUSTER_MAP_CLUSTER_TYPE,
+        INIT_CONFIGS_ELEM_MPAM_GROUPS_LIST,
+        INIT_CONFIGS_ELEM_MPAM_GROUP_NAME,
+        INIT_CONFIGS_ELEM_MPAM_GROUP_ID,
+        INIT_CONFIGS_ELEM_MPAM_GROUP_PRIORITY,
+        INIT_CONFIGS_ELEM_CACHE_INFO_LIST,
+        INIT_CONFIGS_ELEM_CACHE_INFO_TYPE,
+        INIT_CONFIGS_ELEM_CACHE_INFO_BLK_CNT,
+        INIT_CONFIGS_ELEM_CACHE_INFO_PRIO_AWARE,
+    };
 
-    if(keyName == RESOURCE_CONFIGS_ROOT) return true;
-    if(keyName == RESOURCE_CONFIGS_ELEM_RESOURCE_TYPE) return true;
-    if(keyName == RESOURCE_CONFIGS_ELEM_RESOURCE_ID) return true;
-    if(keyName == RESOURCE_CONFIGS_ELEM_RESOURCENAME) return true;
-    if(keyName == RESOURCE_CONFIGS_ELEM_RESOURCEPATH) return true;
-    if(keyName == RESOURCE_CONFIGS_ELEM_SUPPORTED) return true;
-    if(keyName == RESOURCE_CONFIGS_ELEM_HIGHTHRESHOLD) return true;
-    if(keyName == RESOURCE_CONFIGS_ELEM_LOWTHRESHOLD) return true;
-    if(keyName == RESOURCE_CONFIGS_ELEM_PERMISSIONS) return true;
-    if(keyName == RESOURCE_CONFIGS_ELEM_MODES) return true;
-    if(keyName == RESOURCE_CONFIGS_ELEM_POLICY) return true;
-    if(keyName == RESOURCE_CONFIGS_ELEM_APPLY_TYPE) return true;
-
-    if(keyName == INIT_CONFIGS_ROOT) return true;
-    if(keyName == INIT_CONFIGS_ELEM_CGROUPS_LIST) return true;
-    if(keyName == INIT_CONFIGS_ELEM_CGROUP_NAME) return true;
-    if(keyName == INIT_CONFIGS_ELEM_CGROUP_IDENTIFIER) return true;
-    if(keyName == INIT_CONFIGS_ELEM_CGROUP_CREATION) return true;
-    if(keyName == INIT_CONFIGS_ELEM_CGROUP_THREADED) return true;
-
-    if(keyName == INIT_CONFIGS_ELEM_CLUSTER_MAP) return true;
-    if(keyName == INIT_CONFIGS_ELEM_CLUSTER_MAP_CLUSTER_ID) return true;
-    if(keyName == INIT_CONFIGS_ELEM_CLUSTER_MAP_CLUSTER_TYPE) return true;
-
-    if(keyName == INIT_CONFIGS_ELEM_MPAM_GROUPS_LIST) return true;
-    if(keyName == INIT_CONFIGS_ELEM_MPAM_GROUP_NAME) return true;
-    if(keyName == INIT_CONFIGS_ELEM_MPAM_GROUP_ID) return true;
-    if(keyName == INIT_CONFIGS_ELEM_MPAM_GROUP_PRIORITY) return true;
-
-    if(keyName == INIT_CONFIGS_ELEM_CACHE_INFO_LIST) return true;
-    if(keyName == INIT_CONFIGS_ELEM_CACHE_INFO_TYPE) return true;
-    if(keyName == INIT_CONFIGS_ELEM_CACHE_INFO_BLK_CNT) return true;
-    if(keyName == INIT_CONFIGS_ELEM_CACHE_INFO_PRIO_AWARE) return true;
+    for(const std::string& key: keys) {
+        if(key == keyName) return true;
+    }
 
     return false;
 }
@@ -187,6 +192,7 @@ ErrCode ConfigProcessor::parseResourceConfigYamlNode(const std::string& filePath
                 ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_LOWTHRESHOLD, setLowThreshold);
                 ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_PERMISSIONS, setPermissions);
                 ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_POLICY, setPolicy);
+                ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_T_UNIT, setTranslationUnit);
                 ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_APPLY_TYPE, setApplyType);
                 ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_MODES, setModes);
 

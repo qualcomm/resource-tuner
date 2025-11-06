@@ -8,7 +8,6 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <cstdint>
 #include <string>
 
 #include "ErrCodes.h"
@@ -62,7 +61,20 @@ enum Policy {
     INSTANT_APPLY, //!< This policy is for resources where the latest request needs to be honored.
     HIGHER_BETTER, //!< This policy first applies the request writing the highest value to the node.
     LOWER_BETTER, //!< Self-explanatory. Works exactly opposite of the higher is better policy.
-    LAZY_APPLY //!< The requests are applied in a first-in-first-out manner.
+    LAZY_APPLY, //!< The requests are applied in a first-in-first-out manner.
+    PASS_THROUGH
+};
+
+enum TranslationUnit {
+    U_NA = 1,
+    U_BYTE = 1,
+    U_KB = 1024,
+    U_MB = 1024 * 1024,
+    U_GB = 1024 * 1024 * 1024,
+    U_Hz = 1,
+    U_KHz = 1000,
+    U_MHz = 1000 * 1000,
+    U_GHz = 1000 * 1000 * 1000,
 };
 
 typedef struct {

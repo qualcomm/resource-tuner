@@ -10,8 +10,8 @@
 #include "ResourceRegistry.h"
 
 static std::string getClusterTypeResourceNodePath(Resource* resource, int32_t clusterID) {
-    ResourceConfigInfo* resourceConfig =
-        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
+    ResConfInfo* resourceConfig =
+        ResourceRegistry::getInstance()->getResConf(resource->getResCode());
 
     if(resourceConfig == nullptr) return "";
     std::string filePath = resourceConfig->mResourcePath;
@@ -25,8 +25,8 @@ static std::string getClusterTypeResourceNodePath(Resource* resource, int32_t cl
 }
 
 static std::string getCoreTypeResourceNodePath(Resource* resource, int32_t coreID) {
-    ResourceConfigInfo* resourceConfig =
-        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
+    ResConfInfo* resourceConfig =
+        ResourceRegistry::getInstance()->getResConf(resource->getResCode());
 
     if(resourceConfig == nullptr) return "";
     std::string filePath = resourceConfig->mResourcePath;
@@ -40,8 +40,8 @@ static std::string getCoreTypeResourceNodePath(Resource* resource, int32_t coreI
 }
 
 static std::string getCGroupTypeResourceNodePath(Resource* resource, const std::string& cGroupName) {
-    ResourceConfigInfo* resourceConfig =
-        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
+    ResConfInfo* resourceConfig =
+        ResourceRegistry::getInstance()->getResConf(resource->getResCode());
 
     if(resourceConfig == nullptr) return "";
     std::string filePath = resourceConfig->mResourcePath;
@@ -64,19 +64,33 @@ static void truncateFile(const std::string& filePath) {
 void defaultClusterLevelApplierCb(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
+    ResConfInfo* rConf = ResourceRegistry::getInstance()->getResConf(resource->getResCode());
 
     // Get the Cluster ID
     int32_t clusterID = resource->getClusterValue();
     std::string resourceNodePath = getClusterTypeResourceNodePath(resource, clusterID);
 
-    TYPELOGV(NOTIFY_NODE_WRITE, resourceNodePath.c_str(), resource->mResValue.value);
+    // 32-bit, unit-dependent value to be written
+    int32_t valueToBeWritten = resource->mResValue.value;
+
+    OperationStatus status = OperationStatus::SUCCESS;
+    int64_t translatedValue = Multiply(static_cast<int64_t>(valueToBeWritten),
+                                       static_cast<int64_t>(rConf->mUnit),
+                                       status);
+
+    if(status != OperationStatus::SUCCESS) {
+        // Overflow detected, return to LONG_MAX (64-bit)
+        translatedValue = std::numeric_limits<int64_t>::max();
+    }
+
+    TYPELOGV(NOTIFY_NODE_WRITE, resourceNodePath.c_str(), valueToBeWritten);
     std::ofstream resourceFileStream(resourceNodePath);
     if(!resourceFileStream.is_open()) {
         TYPELOGV(ERRNO_LOG, "open", strerror(errno));
         return;
     }
 
-    resourceFileStream<<resource->mResValue.value<<std::endl;
+    resourceFileStream<<translatedValue<<std::endl;
 
     if(resourceFileStream.fail()) {
         TYPELOGV(ERRNO_LOG, "write", strerror(errno));
@@ -112,15 +126,29 @@ void defaultClusterLevelTearCb(void* context) {
 
 static void defaultCoreLevelApplierHelper(Resource* resource, int32_t coreID) {
     std::string resourceNodePath = getCoreTypeResourceNodePath(resource, coreID);
+    ResConfInfo* rConf = ResourceRegistry::getInstance()->getResConf(resource->getResCode());
 
-    TYPELOGV(NOTIFY_NODE_WRITE, resourceNodePath.c_str(), resource->mResValue.value);
+    // 32-bit, unit-dependent value to be written
+    int32_t valueToBeWritten = resource->mResValue.value;
+
+    OperationStatus status = OperationStatus::SUCCESS;
+    int64_t translatedValue = Multiply(static_cast<int64_t>(valueToBeWritten),
+                                       static_cast<int64_t>(rConf->mUnit),
+                                       status);
+
+    if(status != OperationStatus::SUCCESS) {
+        // Overflow detected, return to LONG_MAX (64-bit)
+        translatedValue = std::numeric_limits<int64_t>::max();
+    }
+
+    TYPELOGV(NOTIFY_NODE_WRITE, resourceNodePath.c_str(), valueToBeWritten);
     std::ofstream resourceFileStream(resourceNodePath);
     if(!resourceFileStream.is_open()) {
         TYPELOGV(ERRNO_LOG, "open", strerror(errno));
         return;
     }
 
-    resourceFileStream<<resource->mResValue.value<<std::endl;
+    resourceFileStream<<translatedValue<<std::endl;
 
     if(resourceFileStream.fail()) {
         TYPELOGV(ERRNO_LOG, "write", strerror(errno));
@@ -198,11 +226,22 @@ void defaultCoreLevelTearCb(void* context) {
 void defaultCGroupLevelApplierCb(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
-
     if(resource->getValuesCount() != 2) return;
+
+    ResConfInfo* rConf = ResourceRegistry::getInstance()->getResConf(resource->getResCode());
 
     int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
     int32_t valueToBeWritten = (*resource->mResValue.values)[1];
+
+    OperationStatus status = OperationStatus::SUCCESS;
+    int64_t translatedValue = Multiply(static_cast<int64_t>(valueToBeWritten),
+                                       static_cast<int64_t>(rConf->mUnit),
+                                       status);
+
+    if(status != OperationStatus::SUCCESS) {
+        // Overflow detected, return to LONG_MAX (64-bit)
+        translatedValue = std::numeric_limits<int64_t>::max();
+    }
 
     // Get the corresponding cGroupConfig, this is needed to identify the
     // correct CGroup Name.
@@ -216,13 +255,14 @@ void defaultCGroupLevelApplierCb(void* context) {
             std::string controllerFilePath = getCGroupTypeResourceNodePath(resource, cGroupName);
 
             TYPELOGV(NOTIFY_NODE_WRITE, controllerFilePath.c_str(), valueToBeWritten);
+            LOGD("RESTUNE_COCO_TABLE", "Actual value to be written = " + std::to_string(translatedValue));
             std::ofstream controllerFile(controllerFilePath);
             if(!controllerFile.is_open()) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
                 return;
             }
 
-            controllerFile<<valueToBeWritten<<std::endl;
+            controllerFile<<translatedValue<<std::endl;
 
             if(controllerFile.fail()) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));
@@ -238,8 +278,8 @@ void defaultCGroupLevelApplierCb(void* context) {
 void defaultCGroupLevelTearCb(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
-    ResourceConfigInfo* resourceConfigInfo =
-        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
+    ResConfInfo* resourceConfigInfo =
+        ResourceRegistry::getInstance()->getResConf(resource->getResCode());
 
     if(resourceConfigInfo == nullptr) return;
     if(resource->mResValue.values == nullptr) return;
@@ -260,23 +300,19 @@ void defaultCGroupLevelTearCb(void* context) {
         std::string defaultValue =
             ResourceRegistry::getInstance()->getDefaultValue(controllerFilePath);
 
-        if(defaultValue.length() == 0) {
-            truncateFile(controllerFilePath);
-        } else {
-            TYPELOGV(NOTIFY_NODE_RESET, controllerFilePath.c_str(), defaultValue.c_str());
-            std::ofstream controllerFile(controllerFilePath);
-            if(!controllerFile.is_open()) {
-                TYPELOGV(ERRNO_LOG, "open", strerror(errno));
-                return;
-            }
-
-            controllerFile<<defaultValue<<std::endl;
-
-            if(controllerFile.fail()) {
-                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-            }
-            controllerFile.close();
+        TYPELOGV(NOTIFY_NODE_RESET, controllerFilePath.c_str(), defaultValue.c_str());
+        std::ofstream controllerFile(controllerFilePath);
+        if(!controllerFile.is_open()) {
+            TYPELOGV(ERRNO_LOG, "open", strerror(errno));
+            return;
         }
+
+        controllerFile<<defaultValue<<std::endl;
+
+        if(controllerFile.fail()) {
+            TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+        }
+        controllerFile.close();
     }
 }
 
@@ -285,8 +321,8 @@ void defaultGlobalLevelApplierCb(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
 
-    ResourceConfigInfo* resourceConfig =
-        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
+    ResConfInfo* resourceConfig =
+        ResourceRegistry::getInstance()->getResConf(resource->getResCode());
 
     if(resourceConfig != nullptr) {
         TYPELOGV(NOTIFY_NODE_WRITE, resourceConfig->mResourcePath.c_str(), resource->mResValue.value);
@@ -299,8 +335,8 @@ void defaultGlobalLevelTearCb(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
 
-    ResourceConfigInfo* resourceConfig =
-        ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
+    ResConfInfo* resourceConfig =
+        ResourceRegistry::getInstance()->getResConf(resource->getResCode());
 
     if(resourceConfig != nullptr) {
         std::string defaultValue =
@@ -347,7 +383,7 @@ static void moveProcessToCGroup(void* context) {
             ResourceRegistry::getInstance()->addDefaultValue(currentCGroupFilePath, currentCGroup);
         }
 
-        TYPELOGV(NOTIFY_NODE_WRITE, controllerFilePath.c_str(), std::to_string(pid));
+        TYPELOGV(NOTIFY_NODE_WRITE, controllerFilePath.c_str(), pid);
         std::ofstream controllerFile(controllerFilePath);
         if(!controllerFile.is_open()) {
             TYPELOGV(ERRNO_LOG, "open", strerror(errno));
@@ -386,8 +422,9 @@ static void setRunOnCores(void* context) {
             }
 
             std::string controllerFilePath = getCGroupTypeResourceNodePath(resource, cGroupName);
-            std::ofstream controllerFile(controllerFilePath);
 
+            TYPELOGV(NOTIFY_NODE_WRITE_S, controllerFilePath.c_str(), cpusString.c_str());
+            std::ofstream controllerFile(controllerFilePath);
             if(!controllerFile.is_open()) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
                 return;
@@ -430,6 +467,7 @@ static void setRunOnCoresExclusively(void* context) {
                 }
             }
 
+            TYPELOGV(NOTIFY_NODE_WRITE_S, cGroupControllerFilePath.c_str(), cpusString.c_str());
             std::ofstream controllerFile(cGroupControllerFilePath);
             if(!controllerFile.is_open()) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
@@ -509,6 +547,7 @@ static void removeProcessFromCGroup(void* context) {
             cGroupPath =  ResourceTunerSettings::mBaseCGroupPath + cGroupPath + "/cgroup.procs";
         }
 
+        LOGD("RESTUNE_COCO_TABLE", "Moving PID: " + std::to_string(pid) + " to: " + cGroupPath);
         std::ofstream controllerFile(cGroupPath, std::ios::app);
         if(!controllerFile.is_open()) {
             TYPELOGV(ERRNO_LOG, "open", strerror(errno));
@@ -534,8 +573,8 @@ static void removeThreadFromCGroup(void* context) {
     int32_t tid = (*resource->mResValue.values)[1];
 
     std::string parentCGroupProcsPath = ResourceTunerSettings::mBaseCGroupPath + "cgroup.threads";
-    std::ofstream controllerFile(parentCGroupProcsPath, std::ios::app);
 
+    std::ofstream controllerFile(parentCGroupProcsPath, std::ios::app);
     if(!controllerFile.is_open()) {
         TYPELOGV(ERRNO_LOG, "open", strerror(errno));
         return;
@@ -566,14 +605,15 @@ static void resetRunOnCoresExclusively(void* context) {
             const std::string cGroupCpuSetFilePath =
                 ResourceTunerSettings::mBaseCGroupPath + cGroupName + "/cpuset.cpus";
 
+            std::string defaultValue =
+                ResourceRegistry::getInstance()->getDefaultValue(cGroupCpuSetFilePath);
+
+            TYPELOGV(NOTIFY_NODE_RESET, cGroupCpuSetFilePath.c_str(), defaultValue.c_str());
             std::ofstream controllerFile(cGroupCpuSetFilePath);
             if(!controllerFile.is_open()) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
                 return;
             }
-
-            std::string defaultValue =
-                ResourceRegistry::getInstance()->getDefaultValue(cGroupCpuSetFilePath);
 
             controllerFile<<defaultValue<<std::endl;
 

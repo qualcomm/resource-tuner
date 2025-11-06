@@ -8,7 +8,7 @@ static Request* createResourceTuningRequest(Signal* signal) {
         SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(signal->getSignalCode());
         if(signalInfo == nullptr) return nullptr;
 
-        Request* request = new (GetBlock<Request>()) Request();
+        Request* request = MPLACED(Request);
 
         request->setRequestType(REQ_RESOURCE_TUNING);
         request->setHandle(signal->getHandle());
@@ -18,20 +18,47 @@ static Request* createResourceTuningRequest(Signal* signal) {
         request->setClientTID(signal->getClientTID());
 
         std::vector<Resource*>* signalLocks = signalInfo->mSignalResources;
-        request->setNumResources(signalLocks->size());
 
-        std::vector<Resource*>* resourceList =
-            new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
-        resourceList->resize(request->getResourcesCount());
-
+        int32_t listIndex = 0;
         for(int32_t i = 0; i < signalLocks->size(); i++) {
             if((*signalLocks)[i] == nullptr) {
                 continue;
             }
-            (*resourceList)[i] = new (GetBlock<Resource>()) Resource(*((*signalLocks)[i]));
+
+            // Copy
+            Resource* resource = MPLACEV(Resource, (*((*signalLocks)[i])));
+
+            // fill placeholders if any
+            int32_t valueCount = resource->getValuesCount();
+            if(valueCount == 1) {
+                if(resource->mResValue.value == -1) {
+                    if(signal->getListArgs() == nullptr) return nullptr;
+                    if(listIndex < signal->getNumArgs()) {
+                        resource->mResValue.value = signal->getListArgAt(listIndex);
+                        listIndex++;
+                    } else {
+                        return nullptr;
+                    }
+                }
+            } else {
+                for(int32_t i = 0; i < valueCount; i++) {
+                    if((*resource->mResValue.values)[i] == -1) {
+                        if(signal->getListArgs() == nullptr) return nullptr;
+                        if(listIndex >= 0 && listIndex < signal->getNumArgs()) {
+                            (*resource->mResValue.values)[i] = signal->getListArgAt(listIndex);
+                            listIndex++;
+                        } else {
+                            return nullptr;
+                        }
+                    }
+                }
+            }
+
+            CoreIterable* resIterable = MPLACED(CoreIterable);
+            resIterable->mData = resource;
+            request->addResource(resIterable);
         }
 
-        request->setResources(resourceList);
         return request;
 
     } catch(const std::bad_alloc& e) {
@@ -46,7 +73,7 @@ static Request* createResourceUntuneRequest(Signal* signal) {
     Request* request = nullptr;
 
     try {
-        request = new(GetBlock<Request>()) Request();
+        request = MPLACED(Request);
 
     } catch(const std::bad_alloc& e) {
         TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE_HANDLE, signal->getHandle(), e.what());
@@ -59,8 +86,6 @@ static Request* createResourceUntuneRequest(Signal* signal) {
     request->setProperties(signal->getProperties());
     request->setClientPID(signal->getClientPID());
     request->setClientTID(signal->getClientTID());
-    request->setNumResources(0);
-    request->setResources(nullptr);
 
     return request;
 }
@@ -95,6 +120,8 @@ void SignalQueue::orderedQueueConsumerHook() {
                 // Submit the Resource Provisioning request for processing
                 if(request != nullptr) {
                     submitResProvisionRequest(request, true);
+                } else {
+                    LOGE("RESTUNE_SIGNAL_QUEUE", "Malformd Signal Request");
                 }
                 break;
             }

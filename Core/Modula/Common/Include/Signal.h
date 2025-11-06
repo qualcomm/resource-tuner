@@ -4,9 +4,9 @@
 #ifndef SIGNAL_H
 #define SIGNAL_H
 
-#include <cstdint>
 #include <string>
 
+#include "ErrCodes.h"
 #include "SafeOps.h"
 #include "Logger.h"
 #include "Message.h"

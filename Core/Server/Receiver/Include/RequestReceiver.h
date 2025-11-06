@@ -4,12 +4,12 @@
 #ifndef REQUEST_RECEIVER_H
 #define REQUEST_RECEIVER_H
 
-#include <cstdint>
 #include <memory>
 #include <cstring>
 #include <fstream>
 #include <sstream>
 
+#include "ErrCodes.h"
 #include "Logger.h"
 #include "ResourceTunerSocketServer.h"
 #include "ResourceTunerSettings.h"

@@ -9,13 +9,13 @@ ResourceRegistry::ResourceRegistry() {
     this->mTotalResources = 0;
 }
 
-int8_t ResourceRegistry::isResourceConfigMalformed(ResourceConfigInfo* rConf) {
+int8_t ResourceRegistry::isResourceConfigMalformed(ResConfInfo* rConf) {
     if(rConf == nullptr) return true;
     if(rConf->mResourceResType == 0) return true;
     return false;
 }
 
-void ResourceRegistry::setLifeCycleCallbacks(ResourceConfigInfo* resourceConfigInfo) {
+void ResourceRegistry::setLifeCycleCallbacks(ResConfInfo* resourceConfigInfo) {
     switch(resourceConfigInfo->mApplyType) {
         case APPLY_CLUSTER:
             resourceConfigInfo->mResourceApplierCallback = defaultClusterLevelApplierCb;
@@ -39,17 +39,15 @@ void ResourceRegistry::setLifeCycleCallbacks(ResourceConfigInfo* resourceConfigI
 void ResourceRegistry::addDefaultValue(const std::string& filePath, const std::string& value) {
     this->mDefaultValueStore[filePath] = value;
 
-    if(value.length() != 0) {
-        std::fstream persistenceFile(ResourceTunerSettings::mPersistenceFile, std::ios::out | std::ios::app);
-        std::string resourceData = filePath;
-        resourceData.push_back(',');
-        resourceData.append(value);
-        resourceData.push_back('\n');
-        persistenceFile << resourceData;
-    }
+    std::fstream persistenceFile(ResourceTunerSettings::mPersistenceFile, std::ios::out | std::ios::app);
+    std::string resourceData = filePath;
+    resourceData.push_back(',');
+    resourceData.append(value);
+    resourceData.push_back('\n');
+    persistenceFile << resourceData;
 }
 
-void ResourceRegistry::fetchAndStoreDefaults(ResourceConfigInfo* resourceConfigInfo) {
+void ResourceRegistry::fetchAndStoreDefaults(ResConfInfo* resourceConfigInfo) {
     if(resourceConfigInfo == nullptr) return;
     switch(resourceConfigInfo->mApplyType) {
         case APPLY_CLUSTER: {
@@ -89,7 +87,7 @@ void ResourceRegistry::fetchAndStoreDefaults(ResourceConfigInfo* resourceConfigI
     }
 }
 
-void ResourceRegistry::registerResource(ResourceConfigInfo* resourceConfigInfo,
+void ResourceRegistry::registerResource(ResConfInfo* resourceConfigInfo,
                                         int8_t isBuSpecified) {
     // Invalid Resource, skip.
     if(this->isResourceConfigMalformed(resourceConfigInfo)) {
@@ -151,11 +149,11 @@ void ResourceRegistry::displayResources() {
     }
 }
 
-std::vector<ResourceConfigInfo*> ResourceRegistry::getRegisteredResources() {
+std::vector<ResConfInfo*> ResourceRegistry::getRegisteredResources() {
     return mResourceConfig;
 }
 
-ResourceConfigInfo* ResourceRegistry::getResourceById(uint32_t resourceId) {
+ResConfInfo* ResourceRegistry::getResConf(uint32_t resourceId) {
     if(this->mSystemIndependentLayerMappings.find(resourceId) == this->mSystemIndependentLayerMappings.end()) {
         TYPELOGV(RESOURCE_REGISTRY_RESOURCE_NOT_FOUND, resourceId);
         return nullptr;
@@ -223,7 +221,7 @@ ResourceRegistry::~ResourceRegistry() {
 }
 
 ResourceConfigInfoBuilder::ResourceConfigInfoBuilder() {
-    this->mResourceConfigInfo = new (std::nothrow) ResourceConfigInfo;
+    this->mResourceConfigInfo = new (std::nothrow) ResConfInfo;
     if(this->mResourceConfigInfo == nullptr) {
         return;
     }
@@ -239,6 +237,7 @@ ResourceConfigInfoBuilder::ResourceConfigInfoBuilder() {
     this->mResourceConfigInfo->mSupported = false;
     this->mResourceConfigInfo->mApplyType = ResourceApplyType::APPLY_GLOBAL;
     this->mResourceConfigInfo->mPolicy = Policy::LAZY_APPLY;
+    this->mResourceConfigInfo->mUnit = TranslationUnit::U_NA;
     this->mResourceConfigInfo->mResourcePath = "";
     this->mResourceConfigInfo->mResourceName = "";
 }
@@ -403,6 +402,8 @@ ErrCode ResourceConfigInfoBuilder::setPolicy(const std::string& policyString) {
         policy = LAZY_APPLY;
     } else if(policyString == "instant_apply") {
         policy = INSTANT_APPLY;
+    } else if(policyString == "pass_through") {
+        policy = PASS_THROUGH;
     } else {
         if(policyString.length() != 0) {
             return RC_INVALID_VALUE;
@@ -410,7 +411,40 @@ ErrCode ResourceConfigInfoBuilder::setPolicy(const std::string& policyString) {
     }
 
     this->mResourceConfigInfo->mPolicy = policy;
+    return RC_SUCCESS;
+}
 
+ErrCode ResourceConfigInfoBuilder::setTranslationUnit(const std::string& unitString) {
+    if(this->mResourceConfigInfo == nullptr) {
+        return RC_INVALID_VALUE;
+    }
+
+    enum TranslationUnit unit = U_NA;
+    if(unitString == "KB" || unitString == "kb") {
+        unit = U_KB;
+    } else if(unitString == "MB" || unitString == "mb") {
+        unit = U_MB;
+    } else if(unitString == "GB" || unitString == "gb") {
+        unit = U_GB;
+    } else if(unitString == "KHz" || unitString == "khz") {
+        unit = U_KHz;
+    } else if(unitString == "MHz" || unitString == "mhz") {
+        unit = U_MHz;
+    } else if(unitString == "GHz" || unitString == "ghz") {
+        unit = U_GHz;
+    } else if(unitString == "Hz" || unitString == "hz") {
+        unit = U_Hz;
+    } else if(unitString == "byte") {
+        unit = U_BYTE;
+    } else if(unitString == "NA" || unitString == "na") {
+        unit = U_NA;
+    } else {
+        if(unitString.length() != 0) {
+            return RC_INVALID_VALUE;
+        }
+    }
+
+    this->mResourceConfigInfo->mUnit = unit;
     return RC_SUCCESS;
 }
 
@@ -438,7 +472,7 @@ ErrCode ResourceConfigInfoBuilder::setApplyType(const std::string& applyTypeStri
     return RC_SUCCESS;
 }
 
-ResourceConfigInfo* ResourceConfigInfoBuilder::build() {
+ResConfInfo* ResourceConfigInfoBuilder::build() {
     return this->mResourceConfigInfo;
 }
 

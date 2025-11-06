@@ -8,6 +8,8 @@
 #ifndef ERROR_CODES_H
 #define ERROR_CODES_H
 
+#include <cstdint>
+
 /**
  * @enum ErrCode
  * @brief Custom Error Codes used by Resource Tuner APIs and Internal Functions.

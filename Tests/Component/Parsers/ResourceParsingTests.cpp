@@ -1,8 +1,8 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <cstdint>
 
+#include "ErrCodes.h"
 #include "TestUtils.h"
 #include "ConfigProcessor.h"
 #include "ResourceRegistry.h"
@@ -36,7 +36,7 @@ static void TestResourceParsingResourcesParsed() {
 }
 
 static void TestResourceParsingResourcesMerged1() {
-    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(0x80ff000b);
+    ResConfInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResConf(0x80ff000b);
 
     C_ASSERT(resourceConfigInfo != nullptr);
     C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
@@ -53,7 +53,7 @@ static void TestResourceParsingResourcesMerged1() {
 }
 
 static void TestResourceParsingResourcesMerged2() {
-    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(0x80ff1000);
+    ResConfInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResConf(0x80ff1000);
 
     C_ASSERT(resourceConfigInfo != nullptr);
     C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
@@ -70,7 +70,7 @@ static void TestResourceParsingResourcesMerged2() {
 }
 
 static void TestResourceParsingResourcesMerged3() {
-    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(0x80ff1001);
+    ResConfInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResConf(0x80ff1001);
 
     C_ASSERT(resourceConfigInfo != nullptr);
     C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
@@ -87,7 +87,7 @@ static void TestResourceParsingResourcesMerged3() {
 }
 
 static void TestResourceParsingResourcesMerged4() {
-    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(0x80ff000c);
+    ResConfInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResConf(0x80ff000c);
 
     C_ASSERT(resourceConfigInfo != nullptr);
     C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
@@ -104,7 +104,7 @@ static void TestResourceParsingResourcesMerged4() {
 }
 
 static void TestResourceParsingResourcesDefaultValuesCheck() {
-    ResourceConfigInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResourceById(0x00ff0009);
+    ResConfInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResConf(0x00ff0009);
 
     C_ASSERT(resourceConfigInfo != nullptr);
     C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);

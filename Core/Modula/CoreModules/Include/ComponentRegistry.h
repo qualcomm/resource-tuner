@@ -4,7 +4,6 @@
 #ifndef COMPONENT_REGISTRY_H
 #define COMPONENT_REGISTRY_H
 
-#include <cstdint>
 #include <unordered_map>
 
 #include "Utils.h"

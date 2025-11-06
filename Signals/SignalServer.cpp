@@ -110,7 +110,7 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
     // Perform Resource Level Checking, using the ResourceRegistry
     for(int32_t i = 0; i < signalInfo->mSignalResources->size(); i++) {
         Resource* resource = signalInfo->mSignalResources->at(i);
-        ResourceConfigInfo* resourceConfig = ResourceRegistry::getInstance()->getResourceById(resource->getResCode());
+        ResConfInfo* resourceConfig = ResourceRegistry::getInstance()->getResConf(resource->getResCode());
 
         // Basic sanity: Invalid ResCode
         if(resourceConfig == nullptr) {
@@ -141,6 +141,13 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
             TYPELOGV(VERIFIER_NOT_SUFFICIENT_PERMISSION, resource->getResCode());
             return false;
         }
+
+        // Check if logical to physical mapping is needed for the resource, if needed
+        // try to perform the translation.
+        if(RC_IS_NOTOK(translateToPhysicalIDs(resource))) {
+            // Translation needed but could not be performed, reject the request
+            return false;
+        }
     }
 
     if(signal->getDuration() == 0) {
@@ -151,41 +158,6 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
     }
 
     TYPELOGV(VERIFIER_REQUEST_VALIDATED, signal->getHandle());
-    return true;
-}
-
-// Fills in any optional fields in the Signal that are not specified in the Config file
-// with the values specified in the tuneSignal API's list argument.
-static int8_t fillDefaults(Signal* signal) {
-    uint32_t signalCode = signal->getSignalCode();
-    SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(signalCode);
-    if(signalInfo == nullptr) return false;
-    if(signalInfo->mSignalResources == nullptr) return true;
-
-    int32_t listIndex = 0;
-    for(Resource* resource : (*signalInfo->mSignalResources)) {
-        int32_t valueCount = resource->getValuesCount();
-        if(valueCount == 1) {
-            if(resource->mResValue.value == -1) {
-                if(signal->getListArgs() == nullptr) return false;
-                resource->mResValue.value = signal->getListArgAt(listIndex);
-                listIndex++;
-            }
-        } else {
-            for(int32_t i = 0; i < valueCount; i++) {
-                if((*resource->mResValue.values)[i] == -1) {
-                    if(signal->getListArgs() == nullptr) return false;
-                    if(listIndex >= 0 && listIndex < signal->getNumArgs()) {
-                        (*resource->mResValue.values)[i] = signal->getListArgAt(listIndex);
-                        listIndex++;
-                    } else {
-                        return false;
-                    }
-                }
-            }
-        }
-    }
-
     return true;
 }
 
@@ -229,12 +201,6 @@ static void processIncomingRequest(Signal* signal) {
     }
 
     if(signal->getRequestType() == REQ_SIGNAL_TUNING) {
-        // Fill any Placeholders in the Signal Config
-        if(!fillDefaults(signal)) {
-            Signal::cleanUpSignal(signal);
-            return;
-        }
-
         if(!VerifyIncomingRequest(signal)) {
             TYPELOGV(VERIFIER_STATUS_FAILURE, signal->getHandle());
             Signal::cleanUpSignal(signal);
@@ -261,7 +227,7 @@ ErrCode submitSignalRequest(void* msg) {
 
     if(RC_IS_OK(opStatus)) {
         try {
-            signal = new (GetBlock<Signal>()) Signal();
+            signal = MPLACED(Signal);
             opStatus = signal->deserialize(info->buffer);
             if(RC_IS_NOTOK(opStatus)) {
                 Signal::cleanUpSignal(signal);

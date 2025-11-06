@@ -1,6 +1,9 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 
+# Note: High and Low thresholds to config values should be specified in custom Resource Configs.
+# For attribute information, refer: https://qualcomm.github.io/resource-tuner/index.html#autotoc_md40
+
 ResourceConfigs:
   - ResType: "0x01"
     ResID: "0x0000"
@@ -45,31 +48,29 @@ ResourceConfigs:
     LowThreshold: 0
     Permissions: third_party
     Modes: ["display_on", "doze"]
-    Policy: higher_is_better
+    Policy: "higher_is_better"
     ApplyType: "global"
 
   - ResType: "0x04"
     ResID: "0x0000"
+    Unit: "Hz"
     Name: "RES_TUNER_SCALING_MIN_FREQ"
     Path: "/sys/devices/system/cpu/cpufreq/policy%d/scaling_min_freq"
     Supported: true
-    HighThreshold: 1939200
-    LowThreshold: 1267200
     Permissions: third_party
     Modes: ["display_on", "doze"]
-    Policy: lower_is_better
+    Policy: "lower_is_better"
     ApplyType: "cluster"
 
   - ResType: "0x04"
     ResID: "0x0001"
+    Unit: "Hz"
     Name: "RES_TUNER_SCALING_MAX_FREQ"
     Path: "/sys/devices/system/cpu/cpufreq/policy%d/scaling_max_freq"
     Supported: true
-    HighThreshold: 1939200
-    LowThreshold: 1267200
     Permissions: third_party
     Modes: ["display_on", "doze"]
-    Policy: higher_is_better
+    Policy: "higher_is_better"
     ApplyType: "cluster"
 
   - ResType: "0x09"
@@ -78,9 +79,9 @@ ResourceConfigs:
     Path: "/sys/fs/cgroup/%s/cgroup.procs"
     Supported: true
     Permissions: "system"
-    ApplyType: "cgroup"
     Modes: ["display_on"]
-    Policy: instant_apply
+    Policy: "pass_through"
+    ApplyType: "cgroup"
 
   - ResType: "0x09"
     ResID: "0x0001"
@@ -88,9 +89,9 @@ ResourceConfigs:
     Path: "/sys/fs/cgroup/%s/cgroup.threads"
     Supported: true
     Permissions: "system"
-    ApplyType: "cgroup"
     Modes: ["display_on"]
-    Policy: instant_apply
+    Policy: "pass_through"
+    ApplyType: "cgroup"
 
   - ResType: "0x09"
     ResID: "0x0002"
@@ -98,9 +99,9 @@ ResourceConfigs:
     Path: "/sys/fs/cgroup/%s/cpuset.cpus"
     Supported: true
     Permissions: "system"
-    ApplyType: "cgroup"
     Modes: ["display_on"]
-    Policy: instant_apply
+    Policy: "instant_apply"
+    ApplyType: "cgroup"
 
   - ResType: "0x09"
     ResID: "0x0003"
@@ -108,9 +109,9 @@ ResourceConfigs:
     Path: "/sys/fs/cgroup/%s/cpuset.cpus.partition"
     Supported: true
     Permissions: "system"
-    ApplyType: "cgroup"
     Modes: ["display_on"]
-    Policy: instant_apply
+    Policy: "instant_apply"
+    ApplyType: "cgroup"
 
   - ResType: "0x09"
     ResID: "0x0004"
@@ -118,9 +119,9 @@ ResourceConfigs:
     Path: "/sys/fs/cgroup/%s/cgroup.freeze"
     Supported: true
     Permissions: "system"
-    ApplyType: "cgroup"
     Modes: ["display_on"]
-    Policy: instant_apply
+    Policy: "instant_apply"
+    ApplyType: "cgroup"
 
   - ResType: "0x09"
     ResID: "0x0005"
@@ -128,9 +129,9 @@ ResourceConfigs:
     Path: "/sys/fs/cgroup/%s/cpu.max"
     Supported: true
     Permissions: "system"
-    ApplyType: "cgroup"
     Modes: ["display_on"]
-    Policy: higher_is_better
+    Policy: "higher_is_better"
+    ApplyType: "cgroup"
 
   - ResType: "0x09"
     ResID: "0x0006"
@@ -138,9 +139,9 @@ ResourceConfigs:
     Path: "/sys/fs/cgroup/%s/cpu.idle"
     Supported: true
     Permissions: "system"
-    ApplyType: "cgroup"
     Modes: ["display_on"]
-    Policy: instant_apply
+    Policy: "instant_apply"
+    ApplyType: "cgroup"
 
   - ResType: "0x09"
     ResID: "0x0007"
@@ -148,9 +149,9 @@ ResourceConfigs:
     Path: "/sys/fs/cgroup/%s/cpu.uclamp.min"
     Supported: true
     Permissions: "system"
-    ApplyType: "cgroup"
     Modes: ["display_on"]
-    Policy: lower_is_better
+    Policy: "lower_is_better"
+    ApplyType: "cgroup"
 
   - ResType: "0x09"
     ResID: "0x0008"
@@ -158,9 +159,9 @@ ResourceConfigs:
     Path: "/sys/fs/cgroup/%s/cpu.uclamp.max"
     Supported: true
     Permissions: "system"
-    ApplyType: "cgroup"
     Modes: ["display_on"]
-    Policy: higher_is_better
+    Policy: "higher_is_better"
+    ApplyType: "cgroup"
 
   - ResType: "0x09"
     ResID: "0x0009"
@@ -168,76 +169,91 @@ ResourceConfigs:
     Path: "/sys/fs/cgroup/%s/cpu.weight"
     Supported: true
     Permissions: "system"
-    ApplyType: "cgroup"
     Modes: ["display_on"]
-    Policy: instant_apply
+    Policy: "instant_apply"
+    ApplyType: "cgroup"
 
   - ResType: "0x09"
     ResID: "0x000a"
+    Unit: "KB"
     Name: "RES_TUNER_CGROUP_HIGH_MEMORY"
     Path: "/sys/fs/cgroup/%s/memory.high"
     Supported: true
     Permissions: "system"
-    ApplyType: "cgroup"
     Modes: ["display_on"]
-    Policy: higher_is_better
+    Policy: "higher_is_better"
+    ApplyType: "cgroup"
 
   - ResType: "0x09"
     ResID: "0x000b"
+    Unit: "KB"
     Name: "RES_TUNER_CGROUP_MAX_MEMORY"
     Path: "/sys/fs/cgroup/%s/memory.max"
     Supported: true
     Permissions: "system"
-    ApplyType: "cgroup"
     Modes: ["display_on"]
-    Policy: higher_is_better
+    Policy: "higher_is_better"
+    ApplyType: "cgroup"
 
   - ResType: "0x09"
     ResID: "0x000c"
+    Unit: "KB"
+    Name: "RES_TUNER_CGROUP_LOW_MEMORY"
+    Path: "/sys/fs/cgroup/%s/memory.low"
+    Supported: true
+    Permissions: "system"
+    Modes: ["display_on"]
+    Policy: "lower_is_better"
+    ApplyType: "cgroup"
+
+  - ResType: "0x09"
+    ResID: "0x000d"
+    Unit: "KB"
     Name: "RES_TUNER_CGROUP_MIN_MEMORY"
     Path: "/sys/fs/cgroup/%s/memory.min"
     Supported: true
     Permissions: "system"
-    ApplyType: "cgroup"
     Modes: ["display_on"]
-    Policy: lower_is_better
+    Policy: "lower_is_better"
+    ApplyType: "cgroup"
 
   - ResType: "0x09"
-    ResID: "0x000d"
+    ResID: "0x000e"
+    Unit: "KB"
     Name: "RES_TUNER_CGROUP_SWAP_MAX_MEMORY"
     Path: "/sys/fs/cgroup/%s/memory.swap.max"
     Supported: true
     Permissions: "system"
-    ApplyType: "cgroup"
     Modes: ["display_on"]
-    Policy: higher_is_better
-
-  - ResType: "0x09"
-    ResID: "0x000e"
-    Name: "RES_TUNER_CGROUP_IO_WEIGHT"
-    Path: "/sys/fs/cgroup/%s/io.weight"
-    Supported: true
-    Permissions: "system"
+    Policy: "higher_is_better"
     ApplyType: "cgroup"
-    Modes: ["display_on"]
-    Policy: instant_apply
 
   - ResType: "0x09"
     ResID: "0x000f"
     Name: "RES_TUNER_CGROUP_IO_WEIGHT"
-    Path: "/sys/fs/cgroup/%s/io.bfq.weight"
+    Path: "/sys/fs/cgroup/%s/io.weight"
     Supported: true
     Permissions: "system"
-    ApplyType: "cgroup"
     Modes: ["display_on"]
-    Policy: instant_apply
+    Policy: "instant_apply"
+    ApplyType: "cgroup"
 
   - ResType: "0x09"
     ResID: "0x0010"
+    Name: "RES_TUNER_CGROUP_IO_WEIGHT"
+    Path: "/sys/fs/cgroup/%s/io.bfq.weight"
+    Supported: true
+    Permissions: "system"
+    Modes: ["display_on"]
+    Policy: "instant_apply"
+    ApplyType: "cgroup"
+
+  - ResType: "0x09"
+    ResID: "0x0011"
     Name: "RES_TUNER_CGROUP_CPU_LATENCY"
     Path: "/sys/fs/cgroup/%s/cpu.weight.nice"
     Supported: true
     Permissions: "system"
-    ApplyType: "cgroup"
     Modes: ["display_on"]
-    Policy: lower_is_better
+    Policy: "lower_is_better"
+    ApplyType: "cgroup"

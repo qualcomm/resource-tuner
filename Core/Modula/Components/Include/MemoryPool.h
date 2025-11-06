@@ -169,6 +169,12 @@ inline void FreeBlock(void* block) {
     getPoolWrapper()->freeBlock<T>(block);
 }
 
+#define MPLACED(t) \
+    new (GetBlock<t>()) t()
+
+#define MPLACEV(t, args...) \
+    new (GetBlock<t>()) t(args)
+
 #endif
 
 /*! @} */

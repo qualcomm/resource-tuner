@@ -8,8 +8,6 @@
 #ifndef FRAMEWORK_INTERNAL_H
 #define FRAMEWORK_INTERNAL_H
 
-#include <cstdint>
-
 #include "ErrCodes.h"
 #include "Request.h"
 #include "RequestQueue.h"
@@ -76,5 +74,7 @@ int8_t submitPropSetRequest(const std::string& prop, const std::string& value);
  *            - 0: Otherwise
  */
 ErrCode submitPropRequest(void* request);
+
+ErrCode translateToPhysicalIDs(Resource* resource);
 
 #endif

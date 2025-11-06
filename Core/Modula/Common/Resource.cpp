@@ -16,8 +16,7 @@ Resource::Resource(const Resource& resource) {
     } else if(this->mNumValues > 1) {
         for(int32_t i = 0; i < this->mNumValues; i++) {
             if(this->mResValue.values == nullptr) {
-                this->mResValue.values = new (GetBlock<std::vector<int32_t>>())
-                                              std::vector<int32_t>;
+                this->mResValue.values = MPLACED(std::vector<int32_t>);
             }
             this->mResValue.values->push_back((*resource.mResValue.values)[i]);
         }

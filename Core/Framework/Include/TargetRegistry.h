@@ -155,6 +155,7 @@ public:
 
     CGroupConfigInfo* getCGroupConfig(int32_t cGroupID);
     void getCGroupNames(std::vector<std::string>& cGroupNames);
+    void getCGroupConfigs(std::vector<CGroupConfigInfo*>& cGroupConfigs);
     int32_t getCreatedCGroupsCount();
 
     MpamGroupConfigInfo* getMpamGroupConfig(int32_t mpamGroupID);

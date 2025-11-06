@@ -46,26 +46,23 @@ static void TestSingleRequestScenario() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RequestManager> requestMap = RequestManager::getInstance();
 
-    Resource* resource = (Resource*) GetBlock<Resource>();
-
+    Resource* resource = MPLACED(Resource);
     resource->setResCode(16);
     resource->setNumValues(1);
     resource->mResValue.value = 8;
 
-    std::vector<Resource*>* resources =
-        new (GetBlock<std::vector<Resource*>>())std::vector<Resource*>;
-    resources->push_back(resource);
+    CoreIterable* resIterable = MPLACED(CoreIterable);
+    resIterable->mData = resource;
 
     Request* request = new (GetBlock<Request>()) Request;
     request->setRequestType(REQ_RESOURCE_TUNING);
     request->setHandle(25);
     request->setDuration(-1);
     request->setPriority(REQ_PRIORITY_HIGH);
-    request->setNumResources(1);
     request->setClientPID(321);
     request->setClientTID(321);
-    request->setResources(resources);
     request->setBackgroundProcessing(false);
+    request->addResource(resIterable);
 
     if(!clientDataManager->clientExists(request->getClientPID(), request->getClientTID())) {
         clientDataManager->createNewClient(request->getClientPID(), request->getClientTID());
@@ -89,23 +86,19 @@ static void TestDuplicateRequestScenario1() {
     Resource* resource1 = generateResourceForTesting(1);
     Resource* resource2 = generateResourceForTesting(1);
 
-    std::vector<Resource*>* resources1 =
-        new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
-    resources1->push_back(resource1);
-
-    std::vector<Resource*>* resources2 =
-        new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
-    resources2->push_back(resource2);
+    CoreIterable* resIterable1 = MPLACED(CoreIterable);
+    CoreIterable* resIterable2 = MPLACED(CoreIterable);
+    resIterable1->mData = resource1;
+    resIterable2->mData = resource2;
 
     Request* firstRequest = new (GetBlock<Request>()) Request;
     firstRequest->setRequestType(REQ_RESOURCE_TUNING);
     firstRequest->setHandle(20);
     firstRequest->setDuration(-1);
     firstRequest->setPriority(REQ_PRIORITY_HIGH);
-    firstRequest->setNumResources(1);
+    firstRequest->addResource(resIterable1);
     firstRequest->setClientPID(321);
     firstRequest->setClientTID(321);
-    firstRequest->setResources(resources1);
     firstRequest->setBackgroundProcessing(false);
 
     Request* secondRequest = new (GetBlock<Request>()) Request;
@@ -113,10 +106,9 @@ static void TestDuplicateRequestScenario1() {
     secondRequest->setHandle(21);
     secondRequest->setDuration(-1);
     secondRequest->setPriority(REQ_PRIORITY_HIGH);
-    secondRequest->setNumResources(1);
+    secondRequest->addResource(resIterable2);
     secondRequest->setClientPID(321);
     secondRequest->setClientTID(321);
-    secondRequest->setResources(resources2);
     secondRequest->setBackgroundProcessing(false);
 
     if(!clientDataManager->clientExists(firstRequest->getClientPID(), firstRequest->getClientTID())) {
@@ -153,7 +145,6 @@ static void TestDuplicateRequestScenario2() {
 
     Resource* resource1 = generateResourceForTesting(1);
     Resource* resource2 = generateResourceForTesting(2);
-
     Resource* resource3 = generateResourceForTesting(1);
     Resource* resource4 = generateResourceForTesting(2);
 
@@ -172,10 +163,10 @@ static void TestDuplicateRequestScenario2() {
     firstRequest->setHandle(103);
     firstRequest->setDuration(-1);
     firstRequest->setPriority(REQ_PRIORITY_HIGH);
-    firstRequest->setNumResources(1);
+    // firstRequest->setNumResources(1);
     firstRequest->setClientPID(321);
     firstRequest->setClientTID(321);
-    firstRequest->setResources(resources1);
+    // firstRequest->setResources(resources1);
     firstRequest->setBackgroundProcessing(false);
 
     Request* secondRequest = new (GetBlock<Request>()) Request;
@@ -183,10 +174,10 @@ static void TestDuplicateRequestScenario2() {
     secondRequest->setHandle(108);
     secondRequest->setDuration(-1);
     secondRequest->setPriority(REQ_PRIORITY_HIGH);
-    secondRequest->setNumResources(1);
+    // secondRequest->setNumResources(1);
     secondRequest->setClientPID(321);
     secondRequest->setClientTID(321);
-    secondRequest->setResources(resources2);
+    // secondRequest->setResources(resources2);
     secondRequest->setBackgroundProcessing(false);
 
     if(!clientDataManager->clientExists(firstRequest->getClientPID(), firstRequest->getClientTID())) {
@@ -239,11 +230,11 @@ static void TestDuplicateRequestScenario3_1() {
         request->setRequestType(REQ_RESOURCE_TUNING);
         request->setHandle(112 + index);
         request->setDuration(-1);
-        request->setNumResources(1);
+        // request->setNumResources(1);
         request->setPriority(REQ_PRIORITY_HIGH);
         request->setClientPID(321);
         request->setClientTID(321);
-        request->setResources(resources);
+        // request->setResources(resources);
         request->setBackgroundProcessing(false);
 
         if(!clientDataManager->clientExists(request->getClientPID(), request->getClientTID())) {
@@ -311,10 +302,10 @@ static void TestDuplicateRequestScenario3_2() {
     firstRequest->setHandle(245);
     firstRequest->setDuration(-1);
     firstRequest->setPriority(REQ_PRIORITY_HIGH);
-    firstRequest->setNumResources(1);
+    // firstRequest->setNumResources(1);
     firstRequest->setClientPID(321);
     firstRequest->setClientTID(321);
-    firstRequest->setResources(resources1);
+    // firstRequest->setResources(resources1);
     firstRequest->setBackgroundProcessing(false);
 
     if(!clientDataManager->clientExists(firstRequest->getClientPID(), firstRequest->getClientTID())) {
@@ -339,10 +330,10 @@ static void TestDuplicateRequestScenario3_2() {
     secondRequest->setHandle(300);
     secondRequest->setDuration(-1);
     secondRequest->setPriority(REQ_PRIORITY_HIGH);
-    secondRequest->setNumResources(2);
+    // secondRequest->setNumResources(2);
     secondRequest->setClientPID(321);
     secondRequest->setClientTID(321);
-    secondRequest->setResources(resources2);
+    // secondRequest->setResources(resources2);
     secondRequest->setBackgroundProcessing(false);
 
     if(!clientDataManager->clientExists(secondRequest->getClientPID(), secondRequest->getClientTID())) {
@@ -420,11 +411,11 @@ static void TestDuplicateRequestScenario4() {
     firstRequest->setRequestType(REQ_RESOURCE_TUNING);
     firstRequest->setHandle(320);
     firstRequest->setDuration(-1);
-    firstRequest->setNumResources(2);
+    // firstRequest->setNumResources(2);
     firstRequest->setPriority(REQ_PRIORITY_HIGH);
     firstRequest->setClientPID(321);
     firstRequest->setClientTID(321);
-    firstRequest->setResources(resources1);
+    // firstRequest->setResources(resources1);
     firstRequest->setBackgroundProcessing(false);
 
     if(!clientDataManager->clientExists(firstRequest->getClientPID(), firstRequest->getClientTID())) {
@@ -448,11 +439,11 @@ static void TestDuplicateRequestScenario4() {
     secondRequest->setRequestType(REQ_RESOURCE_TUNING);
     secondRequest->setHandle(334);
     secondRequest->setDuration(-1);
-    secondRequest->setNumResources(2);
+    // secondRequest->setNumResources(2);
     secondRequest->setPriority(REQ_PRIORITY_HIGH);
     secondRequest->setClientPID(321);
     secondRequest->setClientTID(321);
-    secondRequest->setResources(resources2);
+    // secondRequest->setResources(resources2);
     secondRequest->setBackgroundProcessing(false);
 
     if(!clientDataManager->clientExists(secondRequest->getClientPID(), secondRequest->getClientTID())) {
@@ -549,30 +540,30 @@ static void TestMultipleClientsScenario5() {
     firstRequest->setHandle(133);
     firstRequest->setDuration(-1);
     firstRequest->setPriority(REQ_PRIORITY_HIGH);
-    firstRequest->setNumResources(1);
+    // firstRequest->setNumResources(1);
     firstRequest->setClientPID(321);
     firstRequest->setClientTID(321);
-    firstRequest->setResources(resources1);
+    // firstRequest->setResources(resources1);
     firstRequest->setBackgroundProcessing(false);
 
     secondRequest->setRequestType(REQ_RESOURCE_TUNING);
     secondRequest->setHandle(144);
     secondRequest->setDuration(-1);
     secondRequest->setPriority(REQ_PRIORITY_HIGH);
-    secondRequest->setNumResources(1);
+    // secondRequest->setNumResources(1);
     secondRequest->setClientPID(354);
     secondRequest->setClientTID(354);
-    secondRequest->setResources(resources2);
+    // secondRequest->setResources(resources2);
     secondRequest->setBackgroundProcessing(false);
 
     thirdRequest->setRequestType(REQ_RESOURCE_TUNING);
     thirdRequest->setHandle(155);
     thirdRequest->setDuration(-1);
     thirdRequest->setPriority(REQ_PRIORITY_HIGH);
-    thirdRequest->setNumResources(1);
+    // thirdRequest->setNumResources(1);
     thirdRequest->setClientPID(100);
     thirdRequest->setClientTID(127);
-    thirdRequest->setResources(resources3);
+    // thirdRequest->setResources(resources3);
     thirdRequest->setBackgroundProcessing(false);
 
     if(!clientDataManager->clientExists(firstRequest->getClientPID(), firstRequest->getClientTID())) {
@@ -641,13 +632,8 @@ static void TestRequestWithHandleExists1() {
         return;
     }
 
-    std::vector<Resource*>* resources;
-    try {
-        resources = new (GetBlock<std::vector<Resource*>>())std::vector<Resource*>;
-    } catch(const std::bad_alloc& e) {
-        return;
-    }
-    resources->push_back(resource);
+    CoreIterable* resIterable = MPLACED(CoreIterable);
+    resIterable->mData = resource;
 
     Request* request;
     try {
@@ -659,11 +645,10 @@ static void TestRequestWithHandleExists1() {
     request->setRequestType(REQ_RESOURCE_TUNING);
     request->setHandle(20);
     request->setDuration(-1);
-    request->setNumResources(1);
+    request->addResource(resIterable);
     request->setPriority(REQ_PRIORITY_HIGH);
     request->setClientTID(321);
     request->setClientTID(321);
-    request->setResources(resources);
     request->setBackgroundProcessing(false);
 
     if(!clientDataManager->clientExists(request->getClientPID(), request->getClientTID())) {
@@ -700,13 +685,8 @@ static void TestRequestWithHandleExists2() {
         return;
     }
 
-    std::vector<Resource*>* resources;
-    try {
-        resources = new (GetBlock<std::vector<Resource*>>())std::vector<Resource*>;
-    } catch(const std::bad_alloc& e) {
-        return;
-    }
-    resources->push_back(resource);
+    CoreIterable* resIterable = MPLACED(CoreIterable);
+    resIterable->mData = resource;
 
     Request* request;
     try {
@@ -718,11 +698,10 @@ static void TestRequestWithHandleExists2() {
     request->setRequestType(REQ_RESOURCE_TUNING);
     request->setHandle(20);
     request->setDuration(-1);
-    request->setNumResources(1);
+    request->addResource(resIterable);
     request->setPriority(REQ_PRIORITY_HIGH);
     request->setClientTID(321);
     request->setClientTID(321);
-    request->setResources(resources);
     request->setBackgroundProcessing(false);
 
     if(!clientDataManager->clientExists(request->getClientPID(), request->getClientTID())) {
@@ -767,15 +746,8 @@ static void TestRequestDeletion1() {
         return;
     }
 
-    std::vector<Resource*>* resources;
-
-    try {
-        resources = new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
-    } catch(const std::bad_alloc& e) {
-        return;
-    }
-
-    resources->push_back(resource);
+    CoreIterable* resIterable = MPLACED(CoreIterable);
+    resIterable->mData = resource;
 
     Request* request;
     try {
@@ -788,10 +760,9 @@ static void TestRequestDeletion1() {
     request->setHandle(25);
     request->setDuration(-1);
     request->setPriority(REQ_PRIORITY_HIGH);
-    request->setNumResources(1);
+    request->addResource(resIterable);
     request->setClientPID(testClientPID);
     request->setClientTID(testClientTID);
-    request->setResources(resources);
     request->setBackgroundProcessing(false);
 
     if(!clientDataManager->clientExists(request->getClientPID(), request->getClientTID())) {
@@ -862,20 +833,20 @@ static void TestRequestDeletion2() {
     request->setHandle(25);
     request->setDuration(-1);
     request->setPriority(REQ_PRIORITY_HIGH);
-    request->setNumResources(1);
+    // request->setNumResources(1);
     request->setClientPID(testClientPID);
     request->setClientTID(testClientTID);
-    request->setResources(resources1);
+    // request->setResources(resources1);
     request->setBackgroundProcessing(false);
 
     duplicateRequest->setRequestType(REQ_RESOURCE_TUNING);
     duplicateRequest->setHandle(25);
     duplicateRequest->setDuration(-1);
     duplicateRequest->setPriority(REQ_PRIORITY_HIGH);
-    duplicateRequest->setNumResources(1);
+    // duplicateRequest->setNumResources(1);
     duplicateRequest->setClientPID(testClientPID);
     duplicateRequest->setClientTID(testClientTID);
-    duplicateRequest->setResources(resources2);
+    // duplicateRequest->setResources(resources2);
     duplicateRequest->setBackgroundProcessing(false);
 
     if(!clientDataManager->clientExists(request->getClientPID(), request->getClientTID())) {
@@ -929,16 +900,8 @@ static void TestRequestWithNullResourcesAddition() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RequestManager> requestMap = RequestManager::getInstance();
 
-    std::vector<Resource*>* resources;
-
-    try {
-        resources = new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
-
-    } catch(const std::bad_alloc& e) {
-        return;
-    }
-
-    resources->push_back(nullptr);
+    CoreIterable* resIterable = MPLACED(CoreIterable);
+    resIterable->mData = nullptr;
 
     Request *request;
     try {
@@ -950,11 +913,10 @@ static void TestRequestWithNullResourcesAddition() {
     request->setRequestType(REQ_RESOURCE_TUNING);
     request->setHandle(25);
     request->setDuration(-1);
-    request->setNumResources(1);
+    request->addResource(resIterable);
     request->setPriority(REQ_PRIORITY_HIGH);
     request->setClientPID(321);
     request->setClientTID(321);
-    request->setResources(resources);
     request->setBackgroundProcessing(false);
 
     if(!clientDataManager->clientExists(request->getClientPID(), request->getClientTID())) {
@@ -995,15 +957,8 @@ static void TestGetRequestFromMap() {
     resource->setNumValues(1);
     resource->mResValue.value = 42;
 
-    std::vector<Resource*>* resources;
-
-    try {
-        resources = new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
-    } catch(const std::bad_alloc& e) {
-        return;
-    }
-
-    resources->push_back(resource);
+    CoreIterable* resIterable = MPLACED(CoreIterable);
+    resIterable->mData = resource;
 
     Request *request;
     try {
@@ -1015,11 +970,10 @@ static void TestGetRequestFromMap() {
     request->setRequestType(REQ_RESOURCE_TUNING);
     request->setHandle(325);
     request->setDuration(-1);
-    request->setNumResources(1);
+    request->addResource(resIterable);
     request->setPriority(REQ_PRIORITY_HIGH);
     request->setClientPID(testClientPID);
     request->setClientTID(testClientTID);
-    request->setResources(resources);
     request->setBackgroundProcessing(false);
 
     if(!clientDataManager->clientExists(request->getClientPID(), request->getClientTID())) {

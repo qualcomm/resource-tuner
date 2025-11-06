@@ -1,9 +1,9 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <cstdint>
 #include <cstring>
 
+#include "ErrCodes.h"
 #include "TestUtils.h"
 #include "SignalConfigProcessor.h"
 #include "SignalRegistry.h"

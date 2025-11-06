@@ -488,6 +488,13 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             Logger::log(LOG_INFO, "RESTUNE_COCO_TABLE", funcName, std::string(buffer));
             break;
 
+        case CommonMessageTypes::NOTIFY_NODE_WRITE_S:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Writing to Node: [%s], Value: [%s]", args);
+
+            Logger::log(LOG_INFO, "RESTUNE_COCO_TABLE", funcName, std::string(buffer));
+            break;
+
         case CommonMessageTypes::NOTIFY_NODE_RESET:
             vsnprintf(buffer, sizeof(buffer),
                       "Resetting Node: [%s], to Value: [%s]", args);
@@ -637,6 +644,21 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
                       "Call Failed, Error: %s", args);
 
             Logger::log(LOG_ERR, "RESTUNE_ORDERED_QUEUE", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::INV_ATTR_VAL:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Encountered Attribute with Invalid Value: Attr [%s], Value: [%s]", args);
+
+            Logger::log(LOG_ERR, "RESTUNE_CONFIG_PROCESSOR", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::INV_COCO_TBL_INDEX:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Encountered Invalid Coco Indexes for Resource: [%lu], \
+                       Primary Index: [%d], Secondary Index: [%d]", args);
+
+            Logger::log(LOG_ERR, "RESTUNE_COCO_TABLE", funcName, std::string(buffer));
             break;
 
         default:
