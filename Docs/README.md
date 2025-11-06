@@ -453,6 +453,7 @@ Each resource is defined with the following fields:
 | `Permissions`   | `string` (Optional)   | Type of client allowed to Provision this Resource (`system` or `third_party`). | `third_party` |
 | `Modes`         | `array` (Optional)    | Display modes applicable (`"display_on"`, `"display_off"`, `"doze"`). | 0 (i.e. not supported in any Mode) |
 | `Policy`        | `string`(Optional)   | Concurrency policy (`"higher_is_better"`, `"lower_is_better"`, `"instant_apply"`, `"lazy_apply"`). | `lazy_apply` |
+| `Unit`        | `string`(Optional)   | Translation Unit (`"MB"`, `"GB"`, `"KHz"`, `"Hz"` etc). | `NA (multiplier = 1)` |
 | `ApplyType` | `string` (Optional)  | Indicates if the resource can have different values, across different cores, clusters or cgroups. | `global` |
 
 <div style="page-break-after: always;"></div>

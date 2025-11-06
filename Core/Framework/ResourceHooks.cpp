@@ -299,23 +299,20 @@ void defaultCGroupLevelTearCb(void* context) {
         std::string defaultValue =
             ResourceRegistry::getInstance()->getDefaultValue(controllerFilePath);
 
-        if(defaultValue.length() == 0) {
-            truncateFile(controllerFilePath);
-        } else {
-            TYPELOGV(NOTIFY_NODE_RESET, controllerFilePath.c_str(), defaultValue.c_str());
-            std::ofstream controllerFile(controllerFilePath);
-            if(!controllerFile.is_open()) {
-                TYPELOGV(ERRNO_LOG, "open", strerror(errno));
-                return;
-            }
-
-            controllerFile<<defaultValue<<std::endl;
-
-            if(controllerFile.fail()) {
-                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-            }
-            controllerFile.close();
+        TYPELOGV(NOTIFY_NODE_RESET, controllerFilePath.c_str(), defaultValue.c_str());
+        std::ofstream controllerFile(controllerFilePath);
+        if(!controllerFile.is_open()) {
+            TYPELOGV(ERRNO_LOG, "open", strerror(errno));
+            return;
         }
+
+        controllerFile<<defaultValue<<std::endl;
+
+        if(controllerFile.fail()) {
+            TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+        }
+        controllerFile.close();
+
     }
 }
 

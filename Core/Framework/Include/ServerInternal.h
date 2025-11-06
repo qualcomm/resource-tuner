@@ -77,4 +77,6 @@ int8_t submitPropSetRequest(const std::string& prop, const std::string& value);
  */
 ErrCode submitPropRequest(void* request);
 
+ErrCode translateToPhysicalIDs(Resource* resource);
+
 #endif

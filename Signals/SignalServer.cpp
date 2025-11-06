@@ -3,32 +3,6 @@
 
 #include "SignalInternal.h"
 
-static int8_t performPhysicalMapping(int32_t& coreValue, int32_t& clusterValue) {
-    std::shared_ptr<TargetRegistry> targetRegistry = TargetRegistry::getInstance();
-    if(targetRegistry == nullptr) return false;
-
-    int32_t physicalClusterValue = targetRegistry->getPhysicalClusterId(clusterValue);
-    int32_t physicalCoreValue = 0;
-
-    // For resources with ApplyType == "core":
-    // A coreValue of 0, indicates apply the config value to all the cores part of the physical
-    // cluster corresponding to the specified logical cluster ID.
-    if(coreValue != 0) {
-        // if a non-zero coreValue is provided, translate it and apply the config value
-        // only to that physical core's resource node.
-        physicalCoreValue = targetRegistry->getPhysicalCoreId(clusterValue, coreValue);
-    }
-
-    if(physicalCoreValue != -1 && physicalClusterValue != -1) {
-        coreValue = physicalCoreValue;
-        clusterValue = physicalClusterValue;
-    } else {
-        return false;
-    }
-
-    return true;
-}
-
 static int8_t getRequestPriority(int8_t clientPermissions, int8_t reqSpecifiedPriority) {
     if(clientPermissions == PERMISSION_SYSTEM) {
         switch(reqSpecifiedPriority) {
@@ -168,50 +142,11 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
             return false;
         }
 
-        // If ApplyType for the Resource is set to Core or Cluster, then perform Logical to Physical Translation
-        if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CORE) {
-            // Check for invalid Core / cluster values, these are the logical values
-            int32_t coreValue = resource->getCoreValue();
-            int32_t clusterValue = resource->getClusterValue();
-
-            if(coreValue < 0) {
-                TYPELOGV(VERIFIER_INVALID_LOGICAL_CORE, coreValue);
-                return false;
-            }
-
-            if(clusterValue < 0) {
-                TYPELOGV(VERIFIER_INVALID_LOGICAL_CLUSTER, clusterValue);
-                return false;
-            }
-
-            // Perform logical to physical mapping here, as part of which verification can happen
-            // Replace mResInfo with the Physical values here:
-            if(!performPhysicalMapping(coreValue, clusterValue)) {
-                TYPELOGV(VERIFIER_LOGICAL_TO_PHYSICAL_MAPPING_FAILED, resource->getResCode());
-                return false;
-            }
-
-            resource->setCoreValue(coreValue);
-            resource->setClusterValue(clusterValue);
-
-        } else if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CLUSTER) {
-            // Check for invalid Core / cluster values, these are the logical values
-            int32_t clusterValue = resource->getClusterValue();
-
-            if(clusterValue < 0) {
-                TYPELOGV(VERIFIER_INVALID_LOGICAL_CLUSTER, clusterValue);
-                return false;
-            }
-
-            // Perform logical to physical mapping here, as part of which verification can happen
-            // Replace mResInfo with the Physical values here:
-            int32_t physicalClusterID = TargetRegistry::getInstance()->getPhysicalClusterId(clusterValue);
-            if(physicalClusterID == -1) {
-                TYPELOGV(VERIFIER_LOGICAL_TO_PHYSICAL_MAPPING_FAILED, resource->getResCode());
-                return false;
-            }
-
-            resource->setClusterValue(physicalClusterID);
+        // Check if logical to physical mapping is needed for the resource, if needed
+        // try to perform the translation.
+        if(RC_IS_NOTOK(translateToPhysicalIDs(resource))) {
+            // Translation needed but could not be performed, reject the request
+            return false;
         }
     }
 
