@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include <iostream>
-#include <cstdint>
 
+#include "ErrCodes.h"
 #include "TestUtils.h"
 #include "SafeOps.h"
 

@@ -39,14 +39,12 @@ void ResourceRegistry::setLifeCycleCallbacks(ResConfInfo* resourceConfigInfo) {
 void ResourceRegistry::addDefaultValue(const std::string& filePath, const std::string& value) {
     this->mDefaultValueStore[filePath] = value;
 
-    if(value.length() != 0) {
-        std::fstream persistenceFile(ResourceTunerSettings::mPersistenceFile, std::ios::out | std::ios::app);
-        std::string resourceData = filePath;
-        resourceData.push_back(',');
-        resourceData.append(value);
-        resourceData.push_back('\n');
-        persistenceFile << resourceData;
-    }
+    std::fstream persistenceFile(ResourceTunerSettings::mPersistenceFile, std::ios::out | std::ios::app);
+    std::string resourceData = filePath;
+    resourceData.push_back(',');
+    resourceData.append(value);
+    resourceData.push_back('\n');
+    persistenceFile << resourceData;
 }
 
 void ResourceRegistry::fetchAndStoreDefaults(ResConfInfo* resourceConfigInfo) {

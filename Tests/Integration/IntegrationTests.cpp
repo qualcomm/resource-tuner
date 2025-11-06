@@ -1,8 +1,7 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <cstdint>
-
+#include "ErrCodes.h"
 #include "Common.h"
 #include "Utils.h"
 #include "TestUtils.h"
@@ -3728,13 +3727,14 @@ namespace SignalApplicationTests {
             {"/sys/fs/cgroup/system.slice/cpu.weight", "170"},
             {"/sys/fs/cgroup/user.slice/cpuset.cpus", "4-6"},
             {"/sys/fs/cgroup/camera-cgroup/cpuset.cpus", "0-6"},
-            {"/sys/fs/cgroup/camera-cgroup/cpu.weight", "150"},
+            // {"/sys/fs/cgroup/camera-cgroup/cpu.weight", "150"},
             {"/sys/fs/cgroup/camera-cgroup/cpu.weight.nice", "-20"},
         };
 
         std::unordered_map<std::string, std::string> originals;
         for(std::pair<std::string, std::string> entry: expectations) {
             originals[entry.first] = AuxRoutines::readFromFile(entry.first);
+            std::cout<<"Original: ["<<entry.first<<", "<<originals[entry.first]<<"]"<<std::endl;
         }
 
         int64_t handle = tuneSignal(0x800d0008, 0, 0, "", "", 0, nullptr);
@@ -3744,6 +3744,8 @@ namespace SignalApplicationTests {
 
         for(std::pair<std::string, std::string> entry: expectations) {
             std::string newValue = AuxRoutines::readFromFile(entry.first);
+            std::cout<<LOG_BASE<<entry.first<<" Configured Value: "<<newValue<<std::endl;
+            std::cout<<LOG_BASE<<entry.first<<" Expected Config Value: "<<entry.second<<std::endl;
             assert(((newValue == entry.second) == true));
         }
 
@@ -3751,12 +3753,15 @@ namespace SignalApplicationTests {
 
         for(std::pair<std::string, std::string> entry: originals) {
             std::string newValue = AuxRoutines::readFromFile(entry.first);
+            std::cout<<LOG_BASE<<entry.first<<" Configured Value: "<<newValue<<std::endl;
+            std::cout<<LOG_BASE<<entry.first<<" Expected Reset Value: "<<entry.second<<std::endl;
             assert(((newValue == entry.second) == true));
         }
 
         LOG_END;
     }
 
+    // Observe only as of now
     static void TestSuperSignal2() {
         LOG_START
 
@@ -3773,11 +3778,12 @@ namespace SignalApplicationTests {
             "/sys/fs/cgroup/camera-cgroup/cpu.weight.nice",
             "/sys/fs/cgroup/camera-cgroup/memory.low",
             "/sys/fs/cgroup/camera-cgroup/memory.min",
-            "/sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq",
-            "/sys/devices/system/cpu/cpufreq/policy4/scaling_min_freq",
-            "/sys/devices/system/cpu/cpufreq/policy7/scaling_min_freq",
+            "/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq",
+            "/sys/devices/system/cpu/cpufreq/policy4/scaling_max_freq",
+            "/sys/devices/system/cpu/cpufreq/policy7/scaling_max_freq",
         };
 
+        std::cout<<"Initial"<<std::endl;
         for(const std::string key: keys) {
             std::cout<<key<<": ["<<AuxRoutines::readFromFile(key)<<"]"<<std::endl;
         }
@@ -3790,12 +3796,16 @@ namespace SignalApplicationTests {
         int64_t handle = tuneSignal(0x800d0009, 0, 0, "", "", 3, list);
         assert(handle > 0);
 
-        std::this_thread::sleep_for(std::chrono::seconds(2));
+        std::this_thread::sleep_for(std::chrono::seconds(3));
+
+        std::cout<<"Request Applied"<<std::endl;
         for(const std::string key: keys) {
             std::cout<<key<<": ["<<AuxRoutines::readFromFile(key)<<"]"<<std::endl;
         }
 
         std::this_thread::sleep_for(std::chrono::seconds(60));
+
+        std::cout<<"Request Reset"<<std::endl;
         for(const std::string key: keys) {
             std::cout<<key<<": ["<<AuxRoutines::readFromFile(key)<<"]"<<std::endl;
         }

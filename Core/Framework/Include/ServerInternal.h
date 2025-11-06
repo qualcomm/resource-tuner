@@ -8,8 +8,6 @@
 #ifndef FRAMEWORK_INTERNAL_H
 #define FRAMEWORK_INTERNAL_H
 
-#include <cstdint>
-
 #include "ErrCodes.h"
 #include "Request.h"
 #include "RequestQueue.h"

@@ -25,11 +25,11 @@
  * @{
  */
 
-#include <cstdint>
 #include <memory>
 #include <queue>
 #include <mutex>
 
+#include "ErrCodes.h"
 #include "Timer.h"
 #include "RequestQueue.h"
 #include "RequestManager.h"

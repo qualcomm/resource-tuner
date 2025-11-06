@@ -185,7 +185,7 @@ void CocoTable::removeAction(int32_t index, Resource* resource) {
 void CocoTable::fastPathReset(Resource* resource) {
     ResConfInfo* rConf = this->mResourceRegistry->getResConf(resource->getResCode());
     if(rConf->mResourceApplierCallback != nullptr) {
-        rConf->mResourceApplierCallback(resource);
+        rConf->mResourceTearCallback(resource);
     }
 }
 

@@ -11,7 +11,6 @@ static void Init() {
     MakeAlloc<std::unordered_set<int64_t>> (30);
     MakeAlloc<std::vector<int32_t>> (30);
     MakeAlloc<Resource> (120);
-    MakeAlloc<std::vector<Resource*>> (100);
     MakeAlloc<Request> (100);
 
     ResourceTunerSettings::metaConfigs.mDelta = 1000;
@@ -41,24 +40,13 @@ static void TestClientSpammingScenario() {
     try {
         // Generate 51 different requests from the same client
         for(int32_t i = 0; i < 51; i++) {
-            Resource* resource = (Resource*) GetBlock<Resource>();
-            resource->setResCode(16);
-            resource->setNumValues(1);
-            resource->mResValue.value = 8;
-
-            std::vector<Resource*>* resources =
-                new (GetBlock<std::vector<Resource*>>())std::vector<Resource*>;
-            resources->push_back(resource);
-
             Request* request = new (GetBlock<Request>()) Request;
             request->setRequestType(REQ_RESOURCE_TUNING);
             request->setHandle(300 + i);
             request->setDuration(-1);
             request->setPriority(REQ_PRIORITY_HIGH);
-            // request->setNumResources(1);
             request->setClientPID(clientPID);
             request->setClientTID(clientTID);
-            // request->setResources(resources);
 
             if(!clientDataManager->clientExists(request->getClientPID(), request->getClientTID())) {
                 clientDataManager->createNewClient(request->getClientPID(), request->getClientTID());
@@ -100,24 +88,13 @@ static void TestClientHealthInCaseOfGoodRequests() {
     try {
         // Generate 50 different requests from the same client
         for(int32_t i = 0; i < 50; i++) {
-            Resource* resource = (Resource*) GetBlock<Resource>();
-            resource->setResCode(16);
-            resource->setNumValues(1);
-            resource->mResValue.value = 8;
-
-            std::vector<Resource*>* resources =
-                new (GetBlock<std::vector<Resource*>>())std::vector<Resource*>;
-            resources->push_back(resource);
-
             Request* req = new (GetBlock<Request>()) Request;
             req->setRequestType(REQ_RESOURCE_TUNING);
             req->setHandle(300 + i);
             req->setDuration(-1);
-            // req->setNumResources(1);
             req->setPriority(REQ_PRIORITY_HIGH);
             req->setClientPID(clientPID);
             req->setClientTID(clientTID);
-            // req->setResources(resources);
 
             if(!clientDataManager->clientExists(req->getClientPID(), req->getClientTID())) {
                 clientDataManager->createNewClient(req->getClientPID(), req->getClientTID());
@@ -154,24 +131,13 @@ static void TestClientSpammingWithGoodRequests() {
     // Generate 63 different requests from the same client
     try {
         for(int32_t i = 0; i < 63; i++) {
-            Resource* resource = (Resource*) GetBlock<Resource>();
-            resource->setResCode(16);
-            resource->setNumValues(1);
-            resource->mResValue.value = 8;
-
-            std::vector<Resource*>* resources =
-                new (GetBlock<std::vector<Resource*>>())std::vector<Resource*>;
-            resources->push_back(resource);
-
             Request* req = new (GetBlock<Request>()) Request;
             req->setRequestType(REQ_RESOURCE_TUNING);
             req->setHandle(300 + i);
             req->setDuration(-1);
-            // req->setNumResources(1);
             req->setPriority(REQ_PRIORITY_HIGH);
             req->setClientPID(clientPID);
             req->setClientTID(clientTID);
-            // req->setResources(resources);
 
             if(!clientDataManager->clientExists(req->getClientPID(), req->getClientTID())) {
                 clientDataManager->createNewClient(req->getClientPID(), req->getClientTID());

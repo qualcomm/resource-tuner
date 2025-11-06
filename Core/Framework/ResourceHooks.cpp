@@ -255,6 +255,7 @@ void defaultCGroupLevelApplierCb(void* context) {
             std::string controllerFilePath = getCGroupTypeResourceNodePath(resource, cGroupName);
 
             TYPELOGV(NOTIFY_NODE_WRITE, controllerFilePath.c_str(), valueToBeWritten);
+            LOGD("RESTUNE_COCO_TABLE", "Actual value to be written = " + std::to_string(translatedValue));
             std::ofstream controllerFile(controllerFilePath);
             if(!controllerFile.is_open()) {
                 TYPELOGV(ERRNO_LOG, "open", strerror(errno));
@@ -312,7 +313,6 @@ void defaultCGroupLevelTearCb(void* context) {
             TYPELOGV(ERRNO_LOG, "write", strerror(errno));
         }
         controllerFile.close();
-
     }
 }
 
@@ -547,6 +547,7 @@ static void removeProcessFromCGroup(void* context) {
             cGroupPath =  ResourceTunerSettings::mBaseCGroupPath + cGroupPath + "/cgroup.procs";
         }
 
+        LOGD("RESTUNE_COCO_TABLE", "Moving PID: " + std::to_string(pid) + " to: " + cGroupPath);
         std::ofstream controllerFile(cGroupPath, std::ios::app);
         if(!controllerFile.is_open()) {
             TYPELOGV(ERRNO_LOG, "open", strerror(errno));

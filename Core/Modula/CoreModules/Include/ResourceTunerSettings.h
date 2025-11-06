@@ -4,11 +4,9 @@
 #ifndef RESOURCE_TUNER_SETTINGS_H
 #define RESOURCE_TUNER_SETTINGS_H
 
-#include <cstdint>
 #include <unordered_map>
-#include <shared_mutex>
-#include <atomic>
 
+#include "ErrCodes.h"
 #include "MemoryPool.h"
 #include "SafeOps.h"
 #include "Utils.h"

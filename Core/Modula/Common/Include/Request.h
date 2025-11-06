@@ -4,9 +4,9 @@
 #ifndef REQUEST_H
 #define REQUEST_H
 
-#include <cstdint>
 #include <vector>
 
+#include "ErrCodes.h"
 #include "Timer.h"
 #include "SafeOps.h"
 #include "Utils.h"
