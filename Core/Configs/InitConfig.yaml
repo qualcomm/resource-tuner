@@ -1,2 +1,27 @@
-# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
-# SPDX-License-Identifier: BSD-3-Clause-Clear
+CgroupsInfo:
+    - Name: "camera-cgroup"
+      Create: true
+      ID: 4
+    - Name: "audio-cgroup"
+      Create: true
+      ID: 5
+    - Name: "video-cgroup"
+      Create: true
+      IsThreaded: true
+      ID: 6
+    - Name: "init.scope"
+      Create: false
+      ID: 1
+    - Name: "system.slice"
+      Create: false
+      ID: 2
+    - Name: "user.slice"
+      Create: false
+      ID: 3
+    - Name: "memory.slice"
+      Create: true
+      ID: 7
+    - Name: "exp.slice"
+      Create: true
+      ID: 8
+

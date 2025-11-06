@@ -1,2 +1,26 @@
-# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
-# SPDX-License-Identifier: BSD-3-Clause-Clear
+SignalConfigs:
+  - SigId: "0x0002"
+    Category: "0x0d"
+    Name: CAM_PREVIEW
+    Enable: true
+    Permissions: ["system"]
+    Timeout: 50000
+    Resources:
+      - {ResCode: "0x00090000", ResInfo: "0x00000000", Values: [4,"%d"]}
+      - {ResCode: "0x00090000", ResInfo: "0x00000000", Values: [4,"%d"]}
+      - {ResCode: "0x00090000", ResInfo: "0x00000000", Values: [7,"%d"]}
+      - {ResCode: "0x00090009", ResInfo: "0x00000000", Values: [7, 150]}
+      - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [7, 0,1,2,3]}
+      - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [2, 0,1,2,3]}
+      - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [3, 4,5,6]}
+      - {ResCode: "0x00090009", ResInfo: "0x00000000", Values: [3, 90]}
+      - {ResCode: "0x0009000a", ResInfo: "0x00000000", Values: [3, 1073741824]}
+      - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [4, 0,1,2,3,4,5,6]}
+      - {ResCode: "0x00090009", ResInfo: "0x00000000", Values: [4, 150]}
+      - {ResCode: "0x00090010", ResInfo: "0x00000000", Values: [4, -20]}
+      - {ResCode: "0x00090011", ResInfo: "0x00000000", Values: [4, 519430400]}
+      - {ResCode: "0x0009000c", ResInfo: "0x00000000", Values: [4, 119430400]}
+      - {ResCode: "0x00040001", ResInfo: "0x00000000", Values: [1804800]}
+      - {ResCode: "0x00040001", ResInfo: "0x00000100", Values: [940800]}
+      - {ResCode: "0x00040001", ResInfo: "0x00000200", Values: [806400]}
+
