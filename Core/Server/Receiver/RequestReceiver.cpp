@@ -78,7 +78,7 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
             std::string result = propConfig.mResult;
 
             size_t maxSafeSize = result.size() + 1;
-            size_t bytesToWrite = std::min(propConfig.mBufferSize, maxSafeSize);
+            size_t bytesToWrite = std::min(static_cast<size_t>(propConfig.mBufferSize), maxSafeSize);
 
             if(write(clientSocket, (const void*)result.c_str(), bytesToWrite) == -1) {
                 TYPELOGV(ERRNO_LOG, "write", strerror(errno));

@@ -8,7 +8,7 @@ project("Resource Tuner")
 # Dependencies
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBYAML REQUIRED yaml-0.1)
-pkg_check_modules(SYSTEMD REQUIRED systemd)
+pkg_check_modules(SYSTEMD REQUIRED libsystemd)
 
 # Enable Debug. should be removed in production.
 # set(CMAKE_BUILD_TYPE Debug)
