@@ -4,7 +4,6 @@
 #ifndef PROPERTIES_REGISTRY_H
 #define PROPERTIES_REGISTRY_H
 
-#include <iostream>
 #include <unordered_map>
 #include <memory>
 #include <shared_mutex>

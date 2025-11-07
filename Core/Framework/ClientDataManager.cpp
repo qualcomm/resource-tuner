@@ -1,6 +1,6 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
-#include <iostream>
+
 #include "ClientDataManager.h"
 #include "ErrCodes.h"
 
@@ -49,7 +49,6 @@ int8_t ClientDataManager::clientExists(int32_t clientPID, int32_t clientTID) {
 }
 
 int8_t ClientDataManager::createNewClient(int32_t clientPID, int32_t clientTID) {
-    std::cout<<"createNewClient"<<std::endl;
     this->mGlobalTableMutex.lock();
     // First create an entry in the mClientTidRepo table
 
@@ -98,17 +97,12 @@ int8_t ClientDataManager::createNewClient(int32_t clientPID, int32_t clientTID) 
             ClientInfo* clientInfo = MPLACED(ClientInfo);
             clientInfo->mClientTIDs = new DLManager(0);
 
-            std::cout<<"Reached 98 cdm"<<std::endl;
             IntIterable* intIter = MPLACED(IntIterable);
             intIter->mData = clientTID;
             clientInfo->mClientTIDs->insert(intIter);
 
-            std::cout<<"Reached 103 cdm"<<std::endl;
-
             clientInfo->mClientType = isRootProcess(clientPID);
             this->mClientRepo[clientPID] = clientInfo;
-
-            std::cout<<"Reached 111 cdm"<<std::endl;
 
         } catch(const std::bad_alloc& e) {
             TYPELOGV(CLIENT_ALLOCATION_FAILURE, clientPID, clientTID, e.what());

@@ -57,16 +57,8 @@ static int8_t performPhysicalMapping(int32_t& coreValue, int32_t& clusterValue) 
 }
 
 ErrCode translateToPhysicalIDs(Resource* resource) {
-    std::cout<<"entered 60"<<std::endl;
     ResConfInfo* rConf = ResourceRegistry::getInstance()->getResConf(resource->getResCode());
-
-    std::cout<<"resource code is: "<<resource->getResCode()<<std::endl;
-    if(rConf == nullptr) {
-        std::cout<<"null attack"<<std::endl;
-    }
-    std::cout<<"aype is: "<<rConf->mApplyType<<std::endl;
     switch(rConf->mApplyType) {
-        std::cout<<"core rtpe"<<std::endl;
         case ResourceApplyType::APPLY_CORE: {
             int32_t coreValue = resource->getCoreValue();
             int32_t clusterValue = resource->getClusterValue();
@@ -94,7 +86,6 @@ ErrCode translateToPhysicalIDs(Resource* resource) {
         }
 
         case ResourceApplyType::APPLY_CLUSTER: {
-            std::cout<<"cluste rtpe"<<std::endl;
             int32_t clusterValue = resource->getClusterValue();
 
             if(clusterValue < 0) {
@@ -119,7 +110,6 @@ ErrCode translateToPhysicalIDs(Resource* resource) {
             return RC_SUCCESS;
     }
 
-    std::cout<<"left 114"<<std::endl;
     return RC_INVALID_VALUE;
 }
 
@@ -146,8 +136,6 @@ static int8_t VerifyIncomingRequest(Request* req) {
         TYPELOGV(VERIFIER_INVALID_DEVICE_MODE, req->getHandle());
         return false;
     }
-
-    std::cout<<"cdm-140"<<std::endl;
     int8_t clientPermissions =
         ClientDataManager::getInstance()->getClientLevelByClientID(req->getClientPID());
     // If the client permissions could not be determined, reject this request.
@@ -157,8 +145,6 @@ static int8_t VerifyIncomingRequest(Request* req) {
         return false;
     }
 
-    
-    std::cout<<"cdm-150"<<std::endl;
     // Check Request Priority
     int8_t reqSpecifiedPriority = req->getPriority();
     if(reqSpecifiedPriority > RequestPriority::REQ_PRIORITY_LOW ||
@@ -171,10 +157,10 @@ static int8_t VerifyIncomingRequest(Request* req) {
     if(allowedPriority == -1) return false;
     req->setPriority(allowedPriority);
 
-    std::cout<<"164"<<std::endl;
     DL_ITERATE(req->getResDlMgr()) {
-        std::cout<<"back to 176"<<std::endl;
-        if(iter == nullptr) return false;
+        if(iter == nullptr) {
+            return false;
+        }
 
         ResIterable* resIter = (ResIterable*) iter;
         if(resIter == nullptr || resIter->mData == nullptr) return false;
@@ -184,7 +170,6 @@ static int8_t VerifyIncomingRequest(Request* req) {
             return false;
         }
 
-        std::cout<<"187"<<std::endl;
         ResConfInfo* resourceConfig = ResourceRegistry::getInstance()->getResConf(resource->getResCode());
 
         // Basic sanity: Invalid ResCode
@@ -193,7 +178,6 @@ static int8_t VerifyIncomingRequest(Request* req) {
             return false;
         }
 
-        std::cout<<"184"<<std::endl;
         if(resource->getValuesCount() == 1) {
             // Verify value is in the range [LT, HT]
             int32_t configValue = resource->mResValue.value;
@@ -211,7 +195,6 @@ static int8_t VerifyIncomingRequest(Request* req) {
             // for such Resources, through the Extension Interface.
         }
 
-        std::cout<<"202"<<std::endl;
         // Verify tuning is supported for the resource in question
         if(!resourceConfig->mSupported) return false;
 
@@ -223,14 +206,12 @@ static int8_t VerifyIncomingRequest(Request* req) {
 
         // Check if logical to physical mapping is needed for the resource, if needed
         // try to perform the translation.
-        std::cout<<"210"<<std::endl;
         if(RC_IS_NOTOK(translateToPhysicalIDs(resource))) {
             // Translation needed but could not be performed, reject the request
             return false;
         }
     }
 
-    std::cout<<"220"<<std::endl;
     return true;
 }
 
@@ -312,8 +293,6 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
         }
     }
 
-    std::cout<<"reached 295"<<std::endl;
-
     if(!isValidated && !rateLimiter->isRateLimitHonored(request->getClientTID())) {
         TYPELOGV(RATE_LIMITER_RATE_LIMITED, request->getClientTID(), request->getHandle());
         Request::cleanUpRequest(request);
@@ -342,28 +321,20 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
         return;
     }
 
-    std::cout<<"reached 326"<<std::endl;
-
     if(VerifyIncomingRequest(request)) {
         TYPELOGV(VERIFIER_REQUEST_VALIDATED, request->getHandle());
 
-        std::cout<<"330"<<std::endl;
         if(addToRequestManager(request)) {
             // Add this request to the RequestQueue
-            
-        std::cout<<"334"<<std::endl;
             requestQueue->addAndWakeup(request);
         } else {
             Request::cleanUpRequest(request);
         }
 
     } else {
-        std::cout<<"reached 341"<<std::endl;
         TYPELOGV(VERIFIER_STATUS_FAILURE, request->getHandle());
         Request::cleanUpRequest(request);
     }
-
-    std::cout<<"reached 342"<<std::endl;
 }
 
 ErrCode submitResProvisionRequest(Request* request, int8_t isValidated) {

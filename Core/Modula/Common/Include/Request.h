@@ -14,8 +14,8 @@
 #include "Resource.h"
 #include "DLManager.h"
 
-#define REQUEST_DL_NR 1
-#define COCO_TABLE_DL_NR 2
+#define REQUEST_DL_NR 0
+#define COCO_TABLE_DL_NR 1
 
 /**
  * @brief Encapsulation type for a Resource Provisioning Request.

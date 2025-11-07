@@ -50,43 +50,49 @@ public:
 };
 
 // Creates N + 1 linkers
-#define CREATE_N_WAY_ITERABLE(N)                                                    \
-    template <typename T>                                                           \
-    class ExtIterable##N: public DLRootNode {                                       \
-    public:                                                                         \
-        T mData;                                                                    \
-        struct {                                                                    \
-            struct DLRootNode* next;                                                \
-            struct DLRootNode* prev;                                                \
-        } mExtraLinks[N];                                                           \
-        virtual DLRootNode* getNextPtr(int32_t linker) override {                   \
-            if(linker < 0 || linker >= N + 1) return nullptr;                       \
-            if(linker < 1) return this->mLinkages[linker].next;                     \
-            if(linker < N + 1) return this->mExtraLinks[linker - 1].next;           \
-            return nullptr;                                                         \
-        }                                                                           \
-        virtual DLRootNode* getPrevPtr(int32_t linker) override {                   \
-            if(linker < 0 || linker >= N + 1) return nullptr;                       \
-            if(linker < 1) return this->mLinkages[linker].prev;                     \
-            if(linker < N + 1) return this->mExtraLinks[linker - 1].prev;           \
-            return nullptr;                                                         \
-        }                                                                           \
-        virtual void setNextLinkage(int32_t linker, DLRootNode* node) override {    \
-            if(linker < 0 || linker >= N + 1) return;                               \
-            if(linker < 1) this->mLinkages[linker].next = node;                     \
-            if(linker < N + 1) this->mExtraLinks[linker - 1].next = node;           \
-        }                                                                           \
-        virtual void setPrevLinkage(int32_t linker, DLRootNode* node) override {    \
-            if(linker < 0 || linker >= N + 1) return;                               \
-            if(linker < 1) this->mLinkages[linker].prev = node;                     \
-            if(linker < N + 1) this->mExtraLinks[linker - 1].prev = node;           \
-        }                                                                           \
-        ExtIterable##N() {\
-            this->mLinkages[0].next = this->mLinkages[0].prev = nullptr;\
-            for(int32_t index = 0; index < N; index++) {\
+#define CREATE_N_WAY_ITERABLE(N)                                                        \
+    template <typename T>                                                               \
+    class ExtIterable##N: public DLRootNode {                                           \
+    public:                                                                             \
+        T mData;                                                                        \
+        struct {                                                                        \
+            struct DLRootNode* next;                                                    \
+            struct DLRootNode* prev;                                                    \
+        } mExtraLinks[N];                                                               \
+        virtual DLRootNode* getNextPtr(int32_t linker) override {                       \
+            if(linker < 0 || linker >= N + 1) return nullptr;                           \
+            if(linker < 1) return this->mLinkages[linker].next;                         \
+            if(linker < N + 1) return this->mExtraLinks[linker - 1].next;               \
+            return nullptr;                                                             \
+        }                                                                               \
+        virtual DLRootNode* getPrevPtr(int32_t linker) override {                       \
+            if(linker < 0 || linker >= N + 1) return nullptr;                           \
+            if(linker < 1) return this->mLinkages[linker].prev;                         \
+            if(linker < N + 1) return this->mExtraLinks[linker - 1].prev;               \
+            return nullptr;                                                             \
+        }                                                                               \
+        virtual void setNextLinkage(int32_t linker, DLRootNode* node) override {        \
+            if(linker < 0 || linker >= N + 1) return;                                   \
+            if(linker < 1) {                                                            \
+                this->mLinkages[linker].next = node;                                    \
+            } else if(linker < N + 1) {                                                 \
+                this->mExtraLinks[linker - 1].next = node;                              \
+            }                                                                           \
+        }                                                                               \
+        virtual void setPrevLinkage(int32_t linker, DLRootNode* node) override {        \
+            if(linker < 0 || linker >= N + 1) return;                                   \
+            if(linker < 1) {                                                            \
+                this->mLinkages[linker].prev = node;                                    \
+            } else if(linker < N + 1) {                                                 \
+                this->mExtraLinks[linker - 1].prev = node;                              \
+            }                                                                           \
+        }                                                                               \
+        ExtIterable##N() {                                                              \
+            this->mLinkages[0].next = this->mLinkages[0].prev = nullptr;                \
+            for(int32_t index = 0; index < N; index++) {                                \
                 this->mExtraLinks[index].next = this->mExtraLinks[index].prev = nullptr;\
-            }\
-        }\
+            }                                                                           \
+        }                                                                               \
     };
 
 CREATE_N_WAY_ITERABLE(1)
@@ -182,9 +188,9 @@ public:
 };
 
 #define DL_ITERATE(dlm) \
-    for(DLRootNode* iter = dlm->mHead; iter != nullptr; iter = iter->mLinkages[dlm->mLinkerInUse].next)
+    for(DLRootNode* iter = dlm->mHead; iter != nullptr; iter = iter->getNextPtr(dlm->mLinkerInUse))
 
 #define DL_BACK(dlm) \
-    for(DLRootNode* iter = dlm->mTail; iter != nullptr; iter = iter->mLinkages[dlm->mLinkerInUse].prev)
+    for(DLRootNode* iter = dlm->mTail; iter != nullptr; iter = iter->getPrevPtr(dlm->mLinkerInUse))
 
 #endif

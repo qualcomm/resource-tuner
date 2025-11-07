@@ -1,8 +1,8 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
-#include <iostream>
+
 #include "DLManager.h"
-#include <ostream>
+
 DLManager::DLManager(int32_t linkerInUse) {
     this->mLinkerInUse = linkerInUse;
     this->mHead = this->mTail = nullptr;
@@ -15,11 +15,9 @@ ErrCode DLManager::insertHelper(DLRootNode* node) {
         return RC_INVALID_VALUE;
     }
 
-    std::cout<<"reached 18"<<std::endl;
     DLRootNode* head = this->mHead;
     DLRootNode* tail = this->mTail;
 
-    std::cout<<"Linker number is: "<<this->mLinkerInUse<<std::endl;
     if(tail != nullptr) {
         this->mTail = node;
         node->setNextLinkage(this->mLinkerInUse, nullptr);
@@ -33,8 +31,6 @@ ErrCode DLManager::insertHelper(DLRootNode* node) {
         node->setPrevLinkage(this->mLinkerInUse, nullptr);
     }
 
-    
-    std::cout<<"reached 37"<<std::endl;
     this->mSize++;
     return RC_SUCCESS;
 }
