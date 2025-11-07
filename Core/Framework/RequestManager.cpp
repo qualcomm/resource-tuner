@@ -3,11 +3,11 @@
 
 #include "RequestManager.h"
 
-static int8_t resourceCmpPolicy(CoreIterable* src, CoreIterable* target) {
+static int8_t resourceCmpPolicy(DLRootNode* src, DLRootNode* target) {
     if(target == nullptr) return false;
     // This covers the case where the client fires the exact same request multiple times
-    Resource* res1 = (Resource*) src->mData;
-    Resource* res2 = (Resource*) target->mData;
+    Resource* res1 = (Resource*)((ResIterable*)src)->mData;
+    Resource* res2 = (Resource*) ((ResIterable*)target)->mData;
 
     if(res1->getResCode() != res2->getResCode()) return false;
     if(res1->getResInfo() != res2->getResInfo()) return false;
@@ -62,7 +62,11 @@ int8_t RequestManager::isSane(Request* request) {
 
     if(request->getResDlMgr() == nullptr) return false;
     DL_ITERATE(request->getResDlMgr()) {
-        if(iter == nullptr || iter->mData == nullptr) return false;
+        if(iter == nullptr) return false;
+        ResIterable* resIter = (ResIterable*) iter;
+        if(resIter == nullptr || resIter->mData == nullptr) {
+            return false;
+        }
     }
 
     return true;

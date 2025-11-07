@@ -20,7 +20,7 @@ DLManager* Request::getResDlMgr() {
     return this->mResourceList;
 }
 
-void Request::addResource(CoreIterable* resIterable) {
+void Request::addResource(ResIterable* resIterable) {
     this->mResourceList->insert(resIterable);
 }
 
@@ -35,14 +35,15 @@ void Request::unsetTimer() {
 
 void Request::clearResources() {
     DL_ITERATE(this->mResourceList) {
-        if(iter != nullptr && iter->mData != nullptr) {
+        ResIterable* resIter = (ResIterable*) iter;
+        if(resIter != nullptr && resIter->mData != nullptr) {
             // Delete Resource struct
-            FreeBlock<Resource>(iter->mData);
+            FreeBlock<Resource>(resIter->mData);
         }
 
-        if(iter != nullptr) {
-            // Delete CoreIterable itself
-            FreeBlock<CoreIterable>(iter);
+        if(resIter != nullptr) {
+            // Delete ResIterable itself
+            FreeBlock<ResIterable>(resIter);
         }
     }
     this->mResourceList->destroy();
@@ -86,11 +87,16 @@ ErrCode Request::serialize(char* buf) {
         ASSIGN_AND_INCR(ptr, this->getClientTID());
 
         DL_ITERATE(this->getResDlMgr()) {
-            if(iter == nullptr || iter->mData == nullptr) {
+            if(iter == nullptr) {
                 return RC_INVALID_VALUE;
             }
 
-            Resource* resource = (Resource*) iter->mData;
+            ResIterable* resIter = (ResIterable*) iter;
+            if(resIter == nullptr || resIter->mData == nullptr) {
+                return RC_INVALID_VALUE;
+            }
+
+            Resource* resource = (Resource*) resIter->mData;
             if(resource == nullptr) {
                 return RC_INVALID_VALUE;
             }
@@ -136,7 +142,7 @@ ErrCode Request::deserialize(char* buf) {
 
         if(this->mReqType == REQ_RESOURCE_TUNING) {
             for(int32_t i = 0; i < numResources; i++) {
-                CoreIterable* resIterable = MPLACED(CoreIterable);
+                ResIterable* resIterable = MPLACED(ResIterable);
                 Resource* resource = MPLACED(Resource);
 
                 resource->setResCode(DEREF_AND_INCR(ptr, int32_t));

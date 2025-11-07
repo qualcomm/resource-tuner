@@ -54,7 +54,7 @@ static Request* createResourceTuningRequest(Signal* signal) {
                 }
             }
 
-            CoreIterable* resIterable = MPLACED(CoreIterable);
+            ResIterable* resIterable = MPLACED(ResIterable);
             resIterable->mData = resource;
             request->addResource(resIterable);
         }

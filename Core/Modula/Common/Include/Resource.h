@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <vector>
 
+#include "DLManager.h"
 #include "MemoryPool.h"
 
 /**
@@ -67,5 +68,7 @@ public:
     void setOptionalInfo(int32_t optionalInfo);
     void setNumValues(int32_t numValues);
 };
+
+typedef ExtIterable1<Resource*> ResIterable;
 
 #endif

@@ -3,9 +3,9 @@
 
 #include "CocoTable.h"
 
-static int8_t comparHBetter(CoreIterable* newNode, CoreIterable* targetNode) {
-    Resource* first = (Resource*)newNode->mData;
-    Resource* second = (Resource*)targetNode->mData;
+static int8_t comparHBetter(DLRootNode* newNode, DLRootNode* targetNode) {
+    Resource* first = (Resource*)((ResIterable*)newNode)->mData;
+    Resource* second = (Resource*)((ResIterable*)targetNode)->mData;
 
     int32_t newValue;
     int32_t targetValue;
@@ -25,9 +25,9 @@ static int8_t comparHBetter(CoreIterable* newNode, CoreIterable* targetNode) {
     return newValue > targetValue;
 }
 
-static int8_t comparLBetter(CoreIterable* newNode, CoreIterable* targetNode) {
-    Resource* first = (Resource*)newNode->mData;
-    Resource* second = (Resource*)targetNode->mData;
+static int8_t comparLBetter(DLRootNode* newNode, DLRootNode* targetNode) {
+    Resource* first = (Resource*)((ResIterable*)newNode)->mData;
+    Resource* second = (Resource*)((ResIterable*)targetNode)->mData;
 
     int32_t newValue;
     int32_t targetValue;
@@ -139,8 +139,8 @@ CocoTable::CocoTable() {
     }
 }
 
-void CocoTable::applyAction(CoreIterable* currNode, int32_t index, int8_t priority) {
-    if(currNode == nullptr) return;
+void CocoTable::applyAction(ResIterable* currNode, int32_t index, int8_t priority) {
+    if(currNode == nullptr || currNode->mData == nullptr) return;
 
     Resource* resource = (Resource*) currNode->mData;
 
@@ -233,7 +233,7 @@ int32_t CocoTable::getCocoTableSecondaryIndex(Resource* resource, int8_t priorit
     return -1;
 }
 
-int8_t CocoTable::insertInCocoTable(CoreIterable* newNode, int8_t priority) {
+int8_t CocoTable::insertInCocoTable(ResIterable* newNode, int8_t priority) {
     if(newNode == nullptr) return false;
     Resource* resource = (Resource*) newNode->mData;
     ResConfInfo* rConf = this->mResourceRegistry->getResConf(resource->getResCode());
@@ -318,8 +318,10 @@ int8_t CocoTable::insertRequest(Request* req) {
     req->setTimer(requestTimer);
 
     DL_ITERATE(req->getResDlMgr()) {
-        // Expect CoreIterable* iter to be provided by the macro
-        this->insertInCocoTable(iter, req->getPriority());
+        // Expect ResIterable* iter to be provided by the macro
+        if(iter == nullptr) return false;
+        ResIterable* resIter = (ResIterable*) iter;
+        this->insertInCocoTable(resIter, req->getPriority());
     }
 
     // Start the timer for this request
@@ -368,8 +370,12 @@ int8_t CocoTable::removeRequest(Request* request) {
     TYPELOGV(NOTIFY_COCO_TABLE_REMOVAL_START, request->getHandle());
 
     DL_ITERATE(request->getResDlMgr()) {
-        if(iter == nullptr || iter->mData == nullptr) continue;
-        Resource* resource = (Resource*) iter->mData;
+        if(iter == nullptr) continue;
+
+        ResIterable* resIter = (ResIterable*) iter;
+        if(resIter == nullptr || resIter->mData == nullptr) continue;
+
+        Resource* resource = (Resource*) resIter->mData;
 
         ResConfInfo* resourceConfig = this->mResourceRegistry->getResConf(resource->getResCode());
         if(resourceConfig->mPolicy == Policy::PASS_THROUGH) {
@@ -412,8 +418,10 @@ int8_t CocoTable::removeRequest(Request* request) {
             for(int32_t prioLevel = 0; prioLevel < TOTAL_PRIORITIES; prioLevel++) {
                 if(this->mCocoTable[primaryIndex][prioLevel + reIndexIncrement]->mHead != nullptr) {
                     this->mCurrentlyAppliedPriority[primaryIndex] = prioLevel;
-                    this->applyAction(this->mCocoTable[primaryIndex][prioLevel + reIndexIncrement]->mHead,
-                                      primaryIndex, prioLevel);
+                    this->applyAction(
+                        static_cast<ResIterable*>(this->mCocoTable[primaryIndex][prioLevel + reIndexIncrement]->mHead),
+                        primaryIndex, prioLevel
+                    );
                     allListsEmpty = false;
                     break;
                 }
@@ -427,7 +435,7 @@ int8_t CocoTable::removeRequest(Request* request) {
             // Check if current node is at the head
             if(nodeIsHead) {
                 // If it is head, Apply the next node (i.e. the next Request)
-                this->applyAction(dlm->mHead, primaryIndex, priority);
+                this->applyAction(static_cast<ResIterable*>(dlm->mHead), primaryIndex, priority);
             }
             // If node is not head, it implies some other Request is already applied
             // for this Resource, hence no action is needed here.

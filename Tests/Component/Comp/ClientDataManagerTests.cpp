@@ -214,9 +214,9 @@ static void TestClientDataManagerClientThreadTracking1() {
         clientThreads[i].join();
     }
 
-    std::vector<int32_t>* threadIds = clientDataManager->getThreadsByClientId(testClientPID);
-    C_ASSERT(threadIds != nullptr);
-    C_ASSERT(threadIds->size() == 20);
+    std::vector<int32_t> threadIds;
+    clientDataManager->getThreadsByClientId(testClientPID, threadIds);
+    C_ASSERT(threadIds.size() == 20);
 
     clientDataManager->deleteClientPID(testClientPID);
 
@@ -236,9 +236,9 @@ static void TestClientDataManagerClientThreadTracking2() {
         C_ASSERT(clientDataManager->clientExists(testClientPID, i + 1) == true);
     }
 
-    std::vector<int32_t>* threadIds = clientDataManager->getThreadsByClientId(testClientPID);
-    C_ASSERT(threadIds != nullptr);
-    C_ASSERT(threadIds->size() == 20);
+    std::vector<int32_t> threadIds;
+    clientDataManager->getThreadsByClientId(testClientPID, threadIds);
+    C_ASSERT(threadIds.size() == 20);
 
     for(int32_t i = 0; i < 20; i++) {
         clientDataManager->insertRequestByClientId(i + 1, 5 * i + 7);

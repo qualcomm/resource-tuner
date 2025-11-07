@@ -51,7 +51,7 @@ static void TestSingleRequestScenario() {
     resource->setNumValues(1);
     resource->mResValue.value = 8;
 
-    CoreIterable* resIterable = MPLACED(CoreIterable);
+    ResIterable* resIterable = MPLACED(ResIterable);
     resIterable->mData = resource;
 
     Request* request = new (GetBlock<Request>()) Request;
@@ -86,8 +86,8 @@ static void TestDuplicateRequestScenario1() {
     Resource* resource1 = generateResourceForTesting(1);
     Resource* resource2 = generateResourceForTesting(1);
 
-    CoreIterable* resIterable1 = MPLACED(CoreIterable);
-    CoreIterable* resIterable2 = MPLACED(CoreIterable);
+    ResIterable* resIterable1 = MPLACED(ResIterable);
+    ResIterable* resIterable2 = MPLACED(ResIterable);
     resIterable1->mData = resource1;
     resIterable2->mData = resource2;
 
@@ -632,7 +632,7 @@ static void TestRequestWithHandleExists1() {
         return;
     }
 
-    CoreIterable* resIterable = MPLACED(CoreIterable);
+    ResIterable* resIterable = MPLACED(ResIterable);
     resIterable->mData = resource;
 
     Request* request;
@@ -685,7 +685,7 @@ static void TestRequestWithHandleExists2() {
         return;
     }
 
-    CoreIterable* resIterable = MPLACED(CoreIterable);
+    ResIterable* resIterable = MPLACED(ResIterable);
     resIterable->mData = resource;
 
     Request* request;
@@ -746,7 +746,7 @@ static void TestRequestDeletion1() {
         return;
     }
 
-    CoreIterable* resIterable = MPLACED(CoreIterable);
+    ResIterable* resIterable = MPLACED(ResIterable);
     resIterable->mData = resource;
 
     Request* request;
@@ -900,7 +900,7 @@ static void TestRequestWithNullResourcesAddition() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RequestManager> requestMap = RequestManager::getInstance();
 
-    CoreIterable* resIterable = MPLACED(CoreIterable);
+    ResIterable* resIterable = MPLACED(ResIterable);
     resIterable->mData = nullptr;
 
     Request *request;
@@ -957,7 +957,7 @@ static void TestGetRequestFromMap() {
     resource->setNumValues(1);
     resource->mResValue.value = 42;
 
-    CoreIterable* resIterable = MPLACED(CoreIterable);
+    ResIterable* resIterable = MPLACED(ResIterable);
     resIterable->mData = resource;
 
     Request *request;

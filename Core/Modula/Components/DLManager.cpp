@@ -1,8 +1,8 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
-
+#include <iostream>
 #include "DLManager.h"
-
+#include <ostream>
 DLManager::DLManager(int32_t linkerInUse) {
     this->mLinkerInUse = linkerInUse;
     this->mHead = this->mTail = nullptr;
@@ -10,27 +10,31 @@ DLManager::DLManager(int32_t linkerInUse) {
 }
 
 // Insert at end
-ErrCode DLManager::insert(CoreIterable* node) {
+ErrCode DLManager::insertHelper(DLRootNode* node) {
     if(node == nullptr) {
         return RC_INVALID_VALUE;
     }
 
-    CoreIterable* head = this->mHead;
-    CoreIterable* tail = this->mTail;
+    std::cout<<"reached 18"<<std::endl;
+    DLRootNode* head = this->mHead;
+    DLRootNode* tail = this->mTail;
 
+    std::cout<<"Linker number is: "<<this->mLinkerInUse<<std::endl;
     if(tail != nullptr) {
         this->mTail = node;
-        node->mLinkages[this->mLinkerInUse].next = nullptr;
-        node->mLinkages[this->mLinkerInUse].prev = tail;
-        tail->mLinkages[this->mLinkerInUse].next = node;
+        node->setNextLinkage(this->mLinkerInUse, nullptr);
+        node->setPrevLinkage(this->mLinkerInUse, tail);
+        tail->setNextLinkage(this->mLinkerInUse, node);
     } else {
         // Means set head and tail to newNode
         this->mHead = node;
         this->mTail = node;
-        node->mLinkages[this->mLinkerInUse].next = nullptr;
-        node->mLinkages[this->mLinkerInUse].prev = nullptr;
+        node->setNextLinkage(this->mLinkerInUse, nullptr);
+        node->setPrevLinkage(this->mLinkerInUse, nullptr);
     }
 
+    
+    std::cout<<"reached 37"<<std::endl;
     this->mSize++;
     return RC_SUCCESS;
 }
@@ -38,23 +42,23 @@ ErrCode DLManager::insert(CoreIterable* node) {
 // Insert with options, covers:
 // - insertion at head and insertion at n nodes from the head.
 // - insertion at tail and insertion at n nodes from the tail
-ErrCode DLManager::insert(CoreIterable* node, DLOptions option, int32_t n) {
+ErrCode DLManager::insertHelper(DLRootNode* node, DLOptions option, int32_t n) {
     if(node == nullptr) {
         return RC_INVALID_VALUE;
     }
 
     switch(option) {
         case DLOptions::INSERT_START: {
-            CoreIterable* head = this->mHead;
+            DLRootNode* head = this->mHead;
 
             if(head != nullptr) {
                 this->mHead = node;
-                node->mLinkages[this->mLinkerInUse].next = head;
-                node->mLinkages[this->mLinkerInUse].prev = nullptr;
-                head->mLinkages[this->mLinkerInUse].prev = node;
+                node->setNextLinkage(this->mLinkerInUse, head);
+                node->setPrevLinkage(this->mLinkerInUse, nullptr);
+                head->setPrevLinkage(this->mLinkerInUse, node);
             } else {
-                node->mLinkages[this->mLinkerInUse].prev = nullptr;
-                node->mLinkages[this->mLinkerInUse].next = nullptr;
+                node->setPrevLinkage(this->mLinkerInUse, nullptr);
+                node->setNextLinkage(this->mLinkerInUse, nullptr);
                 this->mHead = node;
                 this->mTail = node;
             }
@@ -74,14 +78,14 @@ ErrCode DLManager::insert(CoreIterable* node, DLOptions option, int32_t n) {
             if(n > this->getLen()) return RC_BAD_ARG;
 
             int32_t curPos = 1;
-            CoreIterable* curNode = this->mHead;
+            DLRootNode* curNode = this->mHead;
             while(curNode != nullptr) {
                 if(curPos == n) break;
-                curNode = curNode->mLinkages[this->mLinkerInUse].next;
+                curNode = curNode->getNextPtr(this->mLinkerInUse);
                 curPos++;
             }
 
-            CoreIterable* prevNode = curNode->mLinkages[this->mLinkerInUse].prev;
+            DLRootNode* prevNode = curNode->getPrevPtr(this->mLinkerInUse);
             // Insert b/w prevNode and curNode
             if(prevNode == nullptr) {
                 // Insert at head
@@ -89,10 +93,10 @@ ErrCode DLManager::insert(CoreIterable* node, DLOptions option, int32_t n) {
             }
 
             // Actual Manipulation
-            prevNode->mLinkages[this->mLinkerInUse].next = node;
-            node->mLinkages[this->mLinkerInUse].prev = prevNode;
-            curNode->mLinkages[this->mLinkerInUse].prev = node;
-            node->mLinkages[this->mLinkerInUse].next = curNode;
+            prevNode->setNextLinkage(this->mLinkerInUse, node);
+            node->setPrevLinkage(this->mLinkerInUse, prevNode);
+            curNode->setPrevLinkage(this->mLinkerInUse, node);
+            node->setNextLinkage(this->mLinkerInUse, curNode);
 
             this->mSize++;
             return RC_SUCCESS;
@@ -114,23 +118,23 @@ ErrCode DLManager::insert(CoreIterable* node, DLOptions option, int32_t n) {
 // Where n is the position in the DLL, where policyCB returns true (policyCB(newNode, nth_pos_node) == true).
 // Once inserted, break out of the loop
 // If empty list is encountered, initialize a new head and tail for it.
-ErrCode DLManager::insertWithPolicy(CoreIterable* node, DLPolicy policyCB) {
+ErrCode DLManager::insertWithPolicyHelper(DLRootNode* node, DLPolicy policyCB) {
     if(node == nullptr) {
         return RC_INVALID_VALUE;
     }
 
-    CoreIterable* currNode = this->mHead;
+    DLRootNode* currNode = this->mHead;
     int8_t inserted = false;
 
     while(currNode != nullptr) {
-        CoreIterable* currNext = currNode->mLinkages[this->mLinkerInUse].next;
+        DLRootNode* currNext = currNode->getNextPtr(this->mLinkerInUse);
 
         if(!inserted && policyCB(node, currNode)) {
-            node->mLinkages[this->mLinkerInUse].next = currNode;
-            node->mLinkages[this->mLinkerInUse].prev = currNode->mLinkages[this->mLinkerInUse].prev;
+            node->setNextLinkage(this->mLinkerInUse, currNode);
+            node->setPrevLinkage(this->mLinkerInUse, currNode->getPrevPtr(this->mLinkerInUse));
 
-            if(currNode->mLinkages[this->mLinkerInUse].prev == nullptr) {
-                currNode->mLinkages[this->mLinkerInUse].prev = node;
+            if(currNode->getPrevPtr(this->mLinkerInUse) == nullptr) {
+                currNode->setPrevLinkage(this->mLinkerInUse, node);
                 if(this->mHead == nullptr) {
                     this->mTail = nullptr;
                     this->mHead = nullptr;
@@ -139,8 +143,8 @@ ErrCode DLManager::insertWithPolicy(CoreIterable* node, DLPolicy policyCB) {
                 }
 
             } else {
-                currNode->mLinkages[this->mLinkerInUse].prev->mLinkages[this->mLinkerInUse].next = node;
-                currNode->mLinkages[this->mLinkerInUse].prev = node;
+                currNode->getPrevPtr(this->mLinkerInUse)->setNextLinkage(this->mLinkerInUse, node);
+                currNode->setPrevLinkage(this->mLinkerInUse, node);
             }
             inserted = true;
             break;
@@ -149,12 +153,12 @@ ErrCode DLManager::insertWithPolicy(CoreIterable* node, DLPolicy policyCB) {
     }
 
     if(!inserted) {
-        CoreIterable* tail = this->mTail;
-        node->mLinkages[this->mLinkerInUse].next = nullptr;
-        node->mLinkages[this->mLinkerInUse].prev = tail;
+        DLRootNode* tail = this->mTail;
+        node->setNextLinkage(this->mLinkerInUse, nullptr);
+        node->setPrevLinkage(this->mLinkerInUse, tail);
 
         if(tail != nullptr) {
-            tail->mLinkages[this->mLinkerInUse].next = node;
+            tail->setNextLinkage(this->mLinkerInUse, node);
         } else {
             this->mHead = node;
         }
@@ -166,41 +170,41 @@ ErrCode DLManager::insertWithPolicy(CoreIterable* node, DLPolicy policyCB) {
     return RC_SUCCESS;
 }
 
-ErrCode DLManager::insertAsc(CoreIterable* node) {
+ErrCode DLManager::insertAscHelper(DLRootNode* node) {
     if(this->mSavedPolicies.mAscPolicy == nullptr) {
         return RC_BAD_ARG;
     }
-    return this->insertWithPolicy(node, this->mSavedPolicies.mAscPolicy);
+    return this->insertWithPolicyHelper(node, this->mSavedPolicies.mAscPolicy);
 }
 
-ErrCode DLManager::insertDesc(CoreIterable* node) {
+ErrCode DLManager::insertDescHelper(DLRootNode* node) {
     if(this->mSavedPolicies.mDescPolicy == nullptr) {
         return RC_BAD_ARG;
     }
-    return this->insertWithPolicy(node, this->mSavedPolicies.mDescPolicy);
+    return this->insertWithPolicyHelper(node, this->mSavedPolicies.mDescPolicy);
 }
 
-int8_t DLManager::isNodeNth(int32_t n, CoreIterable* node) {
+int8_t DLManager::isNodeNthHelper(int32_t n, DLRootNode* node) {
     int32_t position = 0;
-    CoreIterable* currNode = this->mHead;
+    DLRootNode* currNode = this->mHead;
 
     while(currNode != nullptr) {
         if(position == n) {
             return (currNode == node);
         }
-        currNode = currNode->mLinkages[this->mLinkerInUse].next;
+        currNode = currNode->getNextPtr(this->mLinkerInUse);
         position++;
     }
 
     return false;
 }
 
-int8_t DLManager::matchAgainst(DLManager* target, DLPolicy cmpPolicy) {
+int8_t DLManager::matchAgainstHelper(DLManager* target, DLPolicy cmpPolicy) {
     if(target == nullptr) return false;
     if(this->getLen() != target->getLen()) return false;
 
-    CoreIterable* srcCur = this->mHead;
-    CoreIterable* targetCur = target->mHead;
+    DLRootNode* srcCur = this->mHead;
+    DLRootNode* targetCur = target->mHead;
 
     while(srcCur != nullptr && targetCur != nullptr) {
         if(cmpPolicy == nullptr) {
@@ -212,8 +216,8 @@ int8_t DLManager::matchAgainst(DLManager* target, DLPolicy cmpPolicy) {
             }
         }
 
-        srcCur = srcCur->mLinkages[this->mLinkerInUse].next;
-        targetCur = targetCur->mLinkages[target->mLinkerInUse].next;
+        srcCur = srcCur->getNextPtr(this->mLinkerInUse);
+        targetCur = targetCur->getNextPtr(target->mLinkerInUse);
     }
 
     if(srcCur == nullptr && targetCur == nullptr) return true;
@@ -221,31 +225,35 @@ int8_t DLManager::matchAgainst(DLManager* target, DLPolicy cmpPolicy) {
     return true;
 }
 
-int32_t DLManager::getLen() {
+int32_t DLManager::getLenHelper() {
     return this->mSize;
 }
 
-ErrCode DLManager::deleteNode(CoreIterable* node) {
+ErrCode DLManager::deleteNodeHelper(DLRootNode* node) {
     if(node == nullptr) {
         return RC_INVALID_VALUE;
     }
-    if(node->mLinkages[this->mLinkerInUse].prev) {
-        node->mLinkages[this->mLinkerInUse].prev->mLinkages[this->mLinkerInUse].next =
-            node->mLinkages[this->mLinkerInUse].next;
+    if(node->getPrevPtr(this->mLinkerInUse) != nullptr) {
+        node->getPrevPtr(this->mLinkerInUse)->setNextLinkage(
+            this->mLinkerInUse,
+            node->getNextPtr(this->mLinkerInUse)
+        );
     } else {
         // Node is at the head
-        this->mHead = node->mLinkages[this->mLinkerInUse].next;
+        this->mHead = node->getNextPtr(this->mLinkerInUse);
         if(this->mHead == nullptr) {
             this->mTail = nullptr;
         }
     }
 
-    if(node->mLinkages[this->mLinkerInUse].next) {
-        node->mLinkages[this->mLinkerInUse].next->mLinkages[this->mLinkerInUse].prev =
-            node->mLinkages[this->mLinkerInUse].prev;
+    if(node->getNextPtr(this->mLinkerInUse) != nullptr) {
+        node->getNextPtr(this->mLinkerInUse)->setPrevLinkage(
+            this->mLinkerInUse,
+            node->getPrevPtr(this->mLinkerInUse)
+        );
     } else {
         // Node is at the tail
-        this->mTail = node->mLinkages[this->mLinkerInUse].prev;
+        this->mTail = node->getPrevPtr(this->mLinkerInUse);
         if(this->mTail == nullptr) {
             this->mHead = nullptr;
         }
@@ -255,7 +263,7 @@ ErrCode DLManager::deleteNode(CoreIterable* node) {
     return RC_SUCCESS;
 }
 
-void DLManager::destroy() {
+void DLManager::destroyHelper() {
     this->mHead = this->mTail = nullptr;
     this->mSize = 0;
 }

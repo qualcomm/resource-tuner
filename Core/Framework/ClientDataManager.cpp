@@ -1,6 +1,6 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
-
+#include <iostream>
 #include "ClientDataManager.h"
 #include "ErrCodes.h"
 
@@ -49,6 +49,7 @@ int8_t ClientDataManager::clientExists(int32_t clientPID, int32_t clientTID) {
 }
 
 int8_t ClientDataManager::createNewClient(int32_t clientPID, int32_t clientTID) {
+    std::cout<<"createNewClient"<<std::endl;
     this->mGlobalTableMutex.lock();
     // First create an entry in the mClientTidRepo table
 
@@ -88,16 +89,26 @@ int8_t ClientDataManager::createNewClient(int32_t clientPID, int32_t clientTID) 
     this->mClientTidRepo[clientTID] = clientData;
     if(clientPIDExists) {
         // If it does, then add the client TID to the list of TIDs for that client PID
-        this->mClientRepo[clientPID]->mClientTIDs->push_back(clientTID);
+        IntIterable* intIter = MPLACED(IntIterable);
+        intIter->mData = clientTID;
+        this->mClientRepo[clientPID]->mClientTIDs->insert(intIter);
     } else {
         // If it doesn't, then create a new entry in the mClientRepo table
         try {
             ClientInfo* clientInfo = MPLACED(ClientInfo);
-            clientInfo->mClientTIDs = MPLACED(std::vector<int32_t>);
+            clientInfo->mClientTIDs = new DLManager(0);
 
-            clientInfo->mClientTIDs->push_back(clientTID);
+            std::cout<<"Reached 98 cdm"<<std::endl;
+            IntIterable* intIter = MPLACED(IntIterable);
+            intIter->mData = clientTID;
+            clientInfo->mClientTIDs->insert(intIter);
+
+            std::cout<<"Reached 103 cdm"<<std::endl;
+
             clientInfo->mClientType = isRootProcess(clientPID);
             this->mClientRepo[clientPID] = clientInfo;
+
+            std::cout<<"Reached 111 cdm"<<std::endl;
 
         } catch(const std::bad_alloc& e) {
             TYPELOGV(CLIENT_ALLOCATION_FAILURE, clientPID, clientTID, e.what());
@@ -169,18 +180,21 @@ int8_t ClientDataManager::getClientLevelByClientID(int32_t clientPID) {
     return clientLevel;
 }
 
-std::vector<int32_t>* ClientDataManager::getThreadsByClientId(int32_t clientPID) {
+void ClientDataManager::getThreadsByClientId(int32_t clientPID, std::vector<int32_t>& threadIDs) {
     this->mGlobalTableMutex.lock_shared();
 
     if(this->mClientRepo.find(clientPID) == this->mClientRepo.end()) {
         this->mGlobalTableMutex.unlock_shared();
-        return nullptr;
+        return;
     }
 
-    std::vector<int32_t>* threadIds = this->mClientRepo[clientPID]->mClientTIDs;
-    this->mGlobalTableMutex.unlock_shared();
+    DL_ITERATE(this->mClientRepo[clientPID]->mClientTIDs) {
+        if(iter == nullptr) continue;
+        IntIterable* intIter = (IntIterable*) iter;
+        threadIDs.push_back(intIter->mData);
+    }
 
-    return threadIds;
+    this->mGlobalTableMutex.unlock_shared();
 }
 
 double ClientDataManager::getHealthByClientID(int32_t clientTID) {
@@ -255,7 +269,14 @@ void ClientDataManager::deleteClientPID(int32_t clientPID) {
 
     ClientInfo* clientInfo = this->mClientRepo[clientPID];
 
-    FreeBlock<std::vector<int32_t>>(static_cast<void*>(clientInfo->mClientTIDs));
+    DL_ITERATE(clientInfo->mClientTIDs) {
+        IntIterable* intIter = (IntIterable*) iter;
+
+        if(intIter != nullptr) {
+            // Delete ResIterable itself
+            FreeBlock<IntIterable>(intIter);
+        }
+    }
     FreeBlock<ClientInfo>(static_cast<void*>(clientInfo));
 
     this->mClientRepo.erase(clientPID);

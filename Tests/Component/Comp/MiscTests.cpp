@@ -132,7 +132,7 @@ static void TestRequestSerializingAndDeserializing() {
         C_ASSERT(firstRequest->getProcessingModes() == 1);
         C_ASSERT(firstRequest->getPriority() == 1);
 
-        CoreIterable* iterable = MPLACED(CoreIterable);
+        ResIterable* iterable = MPLACED(ResIterable);
         Resource* res1 = MPLACED(Resource);
         res1->setResCode(65536);
         res1->setNumValues(1);

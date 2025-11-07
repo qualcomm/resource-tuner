@@ -33,7 +33,7 @@ public:
     Timer* getTimer();
     DLManager* getResDlMgr();
 
-    void addResource(CoreIterable* resIterable);
+    void addResource(ResIterable* resIterable);
     void setTimer(Timer* timer);
     void unsetTimer();
     void clearResources();
