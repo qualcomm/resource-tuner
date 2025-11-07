@@ -14,11 +14,15 @@ Resource::Resource(const Resource& resource) {
     if(this->mNumValues == 1) {
         this->mResValue.value = resource.mResValue.value;
     } else if(this->mNumValues > 1) {
-        for(int32_t i = 0; i < this->mNumValues; i++) {
-            if(this->mResValue.values == nullptr) {
-                this->mResValue.values = MPLACED(std::vector<int32_t>);
+        DL_ITERATE(this->mResValue.values) {
+            if(iter != nullptr) {
+                IntIterable* intIter = (IntIterable*) iter;
+                if(intIter != nullptr) {
+                    IntIterable* newIntIter = MPLACED(IntIterable);
+                    newIntIter->mData = intIter->mData;
+                    this->addValue(newIntIter);
+                }
             }
-            this->mResValue.values->push_back((*resource.mResValue.values)[i]);
         }
     }
 }
@@ -79,9 +83,12 @@ void Resource::setNumValues(int32_t numValues) {
     this->mNumValues = numValues;
 }
 
+void Resource::addValue(IntIterable* intIter) {
+    this->mResValue.values->insert(intIter);
+}
+
 Resource::~Resource() {
     if(this->mNumValues > 1 && this->mResValue.values != nullptr) {
-        FreeBlock<std::vector<int32_t>>(this->mResValue.values);
         this->mResValue.values = nullptr;
     }
 }

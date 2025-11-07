@@ -41,7 +41,7 @@ private:
 public:
     union {
         int32_t value; //!< Use this field for single Valued Resources
-        std::vector<int32_t>* values; //!< Use this field for Multi Valued Resources
+        DLManager* values;
     } mResValue; //!< The value to be Configured for this Resource Node.
 
     Resource() : mResCode(0), mResInfo(0), mOptionalInfo(0), mNumValues(0) {
@@ -67,6 +67,7 @@ public:
     void setResInfo(int32_t resInfo);
     void setOptionalInfo(int32_t optionalInfo);
     void setNumValues(int32_t numValues);
+    void addValue(IntIterable* intIter);
 };
 
 typedef ExtIterable1<Resource*> ResIterable;

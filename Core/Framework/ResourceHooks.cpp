@@ -230,8 +230,8 @@ void defaultCGroupLevelApplierCb(void* context) {
 
     ResConfInfo* rConf = ResourceRegistry::getInstance()->getResConf(resource->getResCode());
 
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
-    int32_t valueToBeWritten = (*resource->mResValue.values)[1];
+    int32_t cGroupIdentifier = ((IntIterable*)(resource->mResValue.values->getNth(0)))->mData;
+    int32_t valueToBeWritten = ((IntIterable*)(resource->mResValue.values->getNth(1)))->mData;
 
     OperationStatus status = OperationStatus::SUCCESS;
     int64_t translatedValue = Multiply(static_cast<int64_t>(valueToBeWritten),
@@ -284,7 +284,7 @@ void defaultCGroupLevelTearCb(void* context) {
     if(resourceConfigInfo == nullptr) return;
     if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
+    int32_t cGroupIdentifier = ((IntIterable*)(resource->mResValue.values->getNth(0)))->mData;
     CGroupConfigInfo* cGroupConfig =
         TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
@@ -356,7 +356,7 @@ static void moveProcessToCGroup(void* context) {
     if(resource->mResValue.values == nullptr) return;
     if(resource->getValuesCount() < 2) return;
 
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
+    int32_t cGroupIdentifier = ((IntIterable*)(resource->mResValue.values->getNth(0)))->mData;
     // Get the corresponding cGroupConfig, this is needed to identify the
     // correct CGroup Name.
     CGroupConfigInfo* cGroupConfig =
@@ -374,7 +374,7 @@ static void moveProcessToCGroup(void* context) {
 
     std::string controllerFilePath = getCGroupTypeResourceNodePath(resource, cGroupName);
     for(int32_t i = 1; i < resource->getValuesCount(); i++) {
-        int32_t pid = (*resource->mResValue.values)[i];
+        int32_t pid = ((IntIterable*)(resource->mResValue.values->getNth(i)))->mData;
         std::string currentCGroupFilePath = "/proc/" + std::to_string(pid) + "/cgroup";
         std::string currentCGroup = AuxRoutines::readFromFile(currentCGroupFilePath);
 
@@ -406,7 +406,7 @@ static void setRunOnCores(void* context) {
     if(resource->getValuesCount() < 2) return;
     if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
+    int32_t cGroupIdentifier = ((IntIterable*)(resource->mResValue.values->getNth(0)))->mData;
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
@@ -415,7 +415,8 @@ static void setRunOnCores(void* context) {
         if(cGroupName.length() > 0) {
             std::string cpusString = "";
             for(int32_t i = 1; i < resource->getValuesCount(); i++) {
-                cpusString += std::to_string((*resource->mResValue.values)[i]);
+                int32_t curVal = ((IntIterable*)(resource->mResValue.values->getNth(i)))->mData;
+                cpusString += std::to_string(curVal);
                 if(resource->getValuesCount() > 2 && i < resource->getValuesCount() - 1) {
                     cpusString.push_back(',');
                 }
@@ -449,7 +450,7 @@ static void setRunOnCoresExclusively(void* context) {
     if(resource->getValuesCount() < 2) return;
     if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
+    int32_t cGroupIdentifier = ((IntIterable*)(resource->mResValue.values->getNth(0)))->mData;
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
@@ -461,7 +462,8 @@ static void setRunOnCoresExclusively(void* context) {
 
             std::string cpusString = "";
             for(int32_t i = 1; i < resource->getValuesCount(); i++) {
-                cpusString += std::to_string((*resource->mResValue.values)[i]);
+                int32_t curVal = ((IntIterable*)(resource->mResValue.values->getNth(i)))->mData;
+                cpusString += std::to_string(curVal);
                 if(resource->getValuesCount() > 2 && i < resource->getValuesCount() - 1) {
                     cpusString.push_back(',');
                 }
@@ -500,9 +502,9 @@ static void limitCpuTime(void* context) {
     if(resource->getValuesCount() != 3) return;
     if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
-    int32_t maxUsageMicroseconds = (*resource->mResValue.values)[1];
-    int32_t periodMicroseconds = (*resource->mResValue.values)[2];
+    int32_t cGroupIdentifier = ((IntIterable*)(resource->mResValue.values->getNth(0)))->mData;
+    int32_t maxUsageMicroseconds = ((IntIterable*)(resource->mResValue.values->getNth(1)))->mData;
+    int32_t periodMicroseconds = ((IntIterable*)(resource->mResValue.values->getNth(2)))->mData;
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
@@ -537,7 +539,7 @@ static void removeProcessFromCGroup(void* context) {
     if(resource->getValuesCount() < 2) return;
 
     for(int32_t i = 1; i < resource->getValuesCount(); i++) {
-        int32_t pid = (*resource->mResValue.values)[i];
+        int32_t pid = ((IntIterable*)(resource->mResValue.values->getNth(i)))->mData;
 
         std::string cGroupPath =
             ResourceRegistry::getInstance()->getDefaultValue("/proc/" + std::to_string(pid) + "/cgroup");
@@ -570,7 +572,7 @@ static void removeThreadFromCGroup(void* context) {
     if(resource->getValuesCount() != 2) return;
     if(resource->mResValue.values == nullptr) return;
 
-    int32_t tid = (*resource->mResValue.values)[1];
+    int32_t tid = ((IntIterable*)(resource->mResValue.values->getNth(1)))->mData;
 
     std::string parentCGroupProcsPath = ResourceTunerSettings::mBaseCGroupPath + "cgroup.threads";
 
@@ -595,7 +597,7 @@ static void resetRunOnCoresExclusively(void* context) {
     if(resource->getValuesCount() < 2) return;
     if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
+    int32_t cGroupIdentifier = ((IntIterable*)(resource->mResValue.values->getNth(0)))->mData;
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {

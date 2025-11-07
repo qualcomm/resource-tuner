@@ -41,11 +41,13 @@ static Request* createResourceTuningRequest(Signal* signal) {
                     }
                 }
             } else {
-                for(int32_t i = 0; i < valueCount; i++) {
-                    if((*resource->mResValue.values)[i] == -1) {
+                DL_ITERATE(resource->mResValue.values) {
+                    IntIterable* intIter = (IntIterable*)(resource->mResValue.values->getNth(i));
+                    int32_t curVal = intIter->mData;
+                    if(curVal == -1) {
                         if(signal->getListArgs() == nullptr) return nullptr;
                         if(listIndex >= 0 && listIndex < signal->getNumArgs()) {
-                            (*resource->mResValue.values)[i] = signal->getListArgAt(listIndex);
+                            intIter->mData = signal->getListArgAt(listIndex);
                             listIndex++;
                         } else {
                             return nullptr;

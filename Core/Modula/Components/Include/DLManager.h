@@ -185,6 +185,8 @@ public:
     int32_t getLen() {
         return this->getLenHelper();
     }
+
+    DLRootNode* getNth(int32_t n);
 };
 
 #define DL_ITERATE(dlm) \

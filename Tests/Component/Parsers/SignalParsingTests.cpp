@@ -96,18 +96,18 @@ static void TestSignalParsingSignalsMerged2() {
     Resource* resource1 = signalInfo->mSignalResources->at(0);
     C_ASSERT(resource1->getResCode() == 0x000900aa);
     C_ASSERT(resource1->getValuesCount() == 3);
-    C_ASSERT((*resource1->mResValue.values)[0] == -1);
-    C_ASSERT((*resource1->mResValue.values)[1] == -1);
-    C_ASSERT((*resource1->mResValue.values)[2] == 68);
+    C_ASSERT(((IntIterable*)(resource1->mResValue.values->getNth(0)))->mData  == -1);
+    C_ASSERT(((IntIterable*)(resource1->mResValue.values->getNth(1)))->mData  == -1);
+    C_ASSERT(((IntIterable*)(resource1->mResValue.values->getNth(2)))->mData  == 68);
     C_ASSERT(resource1->getResInfo() == 0);
 
     Resource* resource2 = signalInfo->mSignalResources->at(1);
     C_ASSERT(resource2->getResCode() == 0x000900dc);
     C_ASSERT(resource2->getValuesCount() == 4);
-    C_ASSERT((*resource2->mResValue.values)[0] == -1);
-    C_ASSERT((*resource2->mResValue.values)[1] == -1);
-    C_ASSERT((*resource2->mResValue.values)[2] == 50);
-    C_ASSERT((*resource2->mResValue.values)[3] == 512);
+    C_ASSERT(((IntIterable*)(resource2->mResValue.values->getNth(0)))->mData == -1);
+    C_ASSERT(((IntIterable*)(resource2->mResValue.values->getNth(1)))->mData == -1);
+    C_ASSERT(((IntIterable*)(resource2->mResValue.values->getNth(2)))->mData == 50);
+    C_ASSERT(((IntIterable*)(resource2->mResValue.values->getNth(3)))->mData == 512);
     C_ASSERT(resource2->getResInfo() == 0);
 }
 
@@ -149,8 +149,8 @@ static void TestSignalParsingSignalsMerged3() {
     Resource* resource2 = signalInfo->mSignalResources->at(1);
     C_ASSERT(resource2->getResCode() == 0x800100d0);
     C_ASSERT(resource2->getValuesCount() == 2);
-    C_ASSERT((*resource2->mResValue.values)[0] == 679);
-    C_ASSERT((*resource2->mResValue.values)[1] == 812);
+    C_ASSERT(((IntIterable*)(resource2->mResValue.values->getNth(0)))->mData == 679);
+    C_ASSERT(((IntIterable*)(resource2->mResValue.values->getNth(1)))->mData == 812);
     C_ASSERT(resource2->getResInfo() == 0x00100112);
 }
 
@@ -189,16 +189,16 @@ static void TestSignalParsingSignalsMerged5() {
     Resource* resource1 = signalInfo->mSignalResources->at(0);
     C_ASSERT(resource1->getResCode() == 0x80d9aa00);
     C_ASSERT(resource1->getValuesCount() == 2);
-    C_ASSERT((*resource1->mResValue.values)[0] == 1);
-    C_ASSERT((*resource1->mResValue.values)[1] == 556);
+    C_ASSERT(((IntIterable*)(resource1->mResValue.values->getNth(0)))->mData == 1);
+    C_ASSERT(((IntIterable*)(resource1->mResValue.values->getNth(1)))->mData == 556);
     C_ASSERT(resource1->getResInfo() == 0);
 
     Resource* resource2 = signalInfo->mSignalResources->at(1);
     C_ASSERT(resource2->getResCode() == 0x80c6500f);
     C_ASSERT(resource2->getValuesCount() == 3);
-    C_ASSERT((*resource2->mResValue.values)[0] == 1);
-    C_ASSERT((*resource2->mResValue.values)[1] == 900);
-    C_ASSERT((*resource2->mResValue.values)[2] == 965);
+    C_ASSERT(((IntIterable*)(resource2->mResValue.values->getNth(0)))->mData == 1);
+    C_ASSERT(((IntIterable*)(resource2->mResValue.values->getNth(1)))->mData  == 900);
+    C_ASSERT(((IntIterable*)(resource2->mResValue.values->getNth(2)))->mData  == 965);
     C_ASSERT(resource2->getResInfo() == 0);
 }
 

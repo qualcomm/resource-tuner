@@ -195,6 +195,20 @@ int8_t DLManager::isNodeNthHelper(int32_t n, DLRootNode* node) {
     return false;
 }
 
+DLRootNode* DLManager::getNth(int32_t n) {
+    int32_t position = 0;
+    DLRootNode* currNode = this->mHead;
+
+    while(currNode != nullptr) {
+        if(position == n) {
+            return currNode;
+        }
+        currNode = currNode->getNextPtr(this->mLinkerInUse);
+        position++;
+    }
+    return nullptr;
+}
+
 int8_t DLManager::matchAgainstHelper(DLManager* target, DLPolicy cmpPolicy) {
     if(target == nullptr) return false;
     if(this->getLen() != target->getLen()) return false;

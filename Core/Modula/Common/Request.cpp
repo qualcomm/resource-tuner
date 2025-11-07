@@ -109,11 +109,18 @@ ErrCode Request::serialize(char* buf) {
             if(resource->getValuesCount() == 1) {
                 ASSIGN_AND_INCR(ptr, resource->mResValue.value);
             } else {
-                for(int32_t j = 0; j < resource->getValuesCount(); j++) {
-                    ASSIGN_AND_INCR(ptr, (*resource->mResValue.values)[j]);
+                DL_ITERATE(resource->mResValue.values) {
+                    if(iter == nullptr) return RC_INVALID_VALUE;
+                    IntIterable* intIter = (IntIterable*) iter;
+                    if(intIter != nullptr) return RC_INVALID_VALUE;
+
+                    IntIterable* newIntIter = MPLACED(IntIterable);
+                    newIntIter->mData = intIter->mData;
+                    resource->addValue(newIntIter);
                 }
             }
         }
+
     } catch(const std::invalid_argument& e) {
         return RC_REQUEST_PARSING_FAILED;
 
@@ -153,11 +160,15 @@ ErrCode Request::deserialize(char* buf) {
                 if(resource->getValuesCount() == 1) {
                     resource->mResValue.value = DEREF_AND_INCR(ptr, int32_t);
                 } else {
-                    for(int32_t j = 0; j < resource->getValuesCount(); j++) {
-                        if(resource->mResValue.values == nullptr) {
-                            resource->mResValue.values = MPLACED(std::vector<int32_t>);
+                    DL_ITERATE(resource->mResValue.values) {
+                        if(iter != nullptr) {
+                            IntIterable* intIter = (IntIterable*) iter;
+                            if(intIter != nullptr) {
+                                IntIterable* newIntIter = MPLACED(IntIterable);
+                                newIntIter->mData = intIter->mData;
+                                resource->addValue(newIntIter);
+                            }
                         }
-                        resource->mResValue.values->push_back(DEREF_AND_INCR(ptr, int32_t));
                     }
                 }
 

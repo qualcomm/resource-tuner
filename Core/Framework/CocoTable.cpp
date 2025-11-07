@@ -13,13 +13,13 @@ static int8_t comparHBetter(DLRootNode* newNode, DLRootNode* targetNode) {
     if(first->getValuesCount() == 1) {
         newValue = first->mResValue.value;
     } else {
-        newValue = (*first->mResValue.values)[1];
+        newValue = ((IntIterable*)first->mResValue.values->getNth(1))->mData;
     }
 
     if(second->getValuesCount() == 1) {
         targetValue = second->mResValue.value;
     } else {
-        targetValue = (*second->mResValue.values)[1];
+        targetValue = ((IntIterable*)second->mResValue.values->getNth(1))->mData;
     }
 
     return newValue > targetValue;
@@ -35,13 +35,13 @@ static int8_t comparLBetter(DLRootNode* newNode, DLRootNode* targetNode) {
     if(first->getValuesCount() == 1) {
         newValue = first->mResValue.value;
     } else {
-        newValue = (*first->mResValue.values)[1];
+        newValue = ((IntIterable*)first->mResValue.values->getNth(1))->mData;
     }
 
     if(second->getValuesCount() == 1) {
         targetValue = second->mResValue.value;
     } else {
-        targetValue = (*second->mResValue.values)[1];
+        targetValue = ((IntIterable*)second->mResValue.values->getNth(1))->mData;
     }
 
     return newValue < targetValue;
@@ -219,7 +219,7 @@ int32_t CocoTable::getCocoTableSecondaryIndex(Resource* resource, int8_t priorit
         if(resource->getValuesCount() == 1) {
             cGroupIdentifier = resource->mResValue.value;
         } else {
-            cGroupIdentifier = (*resource->mResValue.values)[0];
+            cGroupIdentifier = ((IntIterable*)resource->mResValue.values->getNth(0))->mData;
         }
 
         if(cGroupIdentifier == -1) return -1;

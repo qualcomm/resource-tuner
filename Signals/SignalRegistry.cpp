@@ -430,13 +430,15 @@ ErrCode ResourceBuilder::addValue(const std::string& valueString) {
         this->mResource->mResValue.value = value;
     } else {
         if(this->mResource->mResValue.values == nullptr) {
-            this->mResource->mResValue.values = new(std::nothrow) std::vector<int32_t>;
+            this->mResource->mResValue.values = new DLManager(0);
             if(this->mResource->mResValue.values == nullptr) {
                 return RC_INVALID_VALUE;
             }
         }
         try {
-            this->mResource->mResValue.values->push_back(value);
+            IntIterable* intIter = MPLACED(IntIterable);
+            intIter->mData = value;
+            this->mResource->mResValue.values->insert(intIter);
         } catch(const std::bad_alloc& e) {
             return RC_INVALID_VALUE;
         }

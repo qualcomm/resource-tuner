@@ -20,7 +20,11 @@ static int8_t resourceCmpPolicy(DLRootNode* src, DLRootNode* target) {
         }
     } else {
         for(int32_t i = 0; i < res1->getValuesCount(); i++) {
-            if(res1->mResValue.values[i] != res2->mResValue.values[i]) return false;
+            int32_t res1Val = ((IntIterable*)res1->mResValue.values->getNth(i))->mData;
+            int32_t res2Val = ((IntIterable*)res2->mResValue.values->getNth(i))->mData;
+            if(res1Val != res2Val) {
+                return false;
+            }
         }
     }
 
