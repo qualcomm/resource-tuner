@@ -14,7 +14,7 @@ Resource::Resource(const Resource& resource) {
     if(this->mNumValues == 1) {
         this->mResValue.value = resource.mResValue.value;
     } else if(this->mNumValues > 1) {
-        DL_ITERATE(this->mResValue.values) {
+        DL_ITERATE(resource.mResValue.values) {
             if(iter != nullptr) {
                 IntIterable* intIter = (IntIterable*) iter;
                 if(intIter != nullptr) {

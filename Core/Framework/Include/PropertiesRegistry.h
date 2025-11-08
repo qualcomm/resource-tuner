@@ -5,6 +5,8 @@
 #define PROPERTIES_REGISTRY_H
 
 #include <unordered_map>
+#include <string>
+#include <system_error>
 #include <memory>
 #include <shared_mutex>
 
