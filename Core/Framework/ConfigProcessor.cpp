@@ -141,7 +141,7 @@ ErrCode ConfigProcessor::parseResourceConfigYamlNode(const std::string& filePath
 
             case YAML_MAPPING_END_EVENT:
                 if(parsingResource) {
-                    if(RC_IS_NOTOK(rc)) {
+                    if(RC_IS_NOTOK(rc) || resourceConfigInfoBuilder->mTargetRefCount < 0) {
                         // Invalid Resource
                         resourceConfigInfoBuilder->setResType("0");
                     }

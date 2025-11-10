@@ -133,9 +133,6 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
             // Note: Extend this verification for multiple values
         }
 
-        // Verify tuning is supported for the resource in question
-        if(!resourceConfig->mSupported) return false;
-
         // Check for Client permissions
         if(resourceConfig->mPermissions == PERMISSION_SYSTEM && clientPermissions == PERMISSION_THIRD_PARTY) {
             TYPELOGV(VERIFIER_NOT_SUFFICIENT_PERMISSION, resource->getResCode());
