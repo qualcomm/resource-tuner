@@ -67,7 +67,7 @@ public:
     void setResInfo(int32_t resInfo);
     void setOptionalInfo(int32_t optionalInfo);
     void setNumValues(int32_t numValues);
-    void addValue(IntIterable* intIter);
+    ErrCode addValue(IntIterable* intIter);
 };
 
 typedef ExtIterable1<Resource*> ResIterable;
