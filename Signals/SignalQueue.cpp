@@ -42,7 +42,7 @@ static Request* createResourceTuningRequest(Signal* signal) {
                 }
             } else {
                 DL_ITERATE(resource->mResValue.values) {
-                    IntIterable* intIter = (IntIterable*)(resource->mResValue.values->getNth(i));
+                    IntIterable* intIter = (IntIterable*)iter;
                     int32_t curVal = intIter->mData;
                     if(curVal == -1) {
                         if(signal->getListArgs() == nullptr) return nullptr;
@@ -123,7 +123,7 @@ void SignalQueue::orderedQueueConsumerHook() {
                 if(request != nullptr) {
                     submitResProvisionRequest(request, true);
                 } else {
-                    LOGE("RESTUNE_SIGNAL_QUEUE", "Malformd Signal Request");
+                    LOGE("RESTUNE_SIGNAL_QUEUE", "Malformed Signal Request");
                 }
                 break;
             }

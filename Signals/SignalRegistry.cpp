@@ -429,16 +429,12 @@ ErrCode ResourceBuilder::addValue(const std::string& valueString) {
     if(this->mResource->getValuesCount() == 1) {
         this->mResource->mResValue.value = value;
     } else {
-        if(this->mResource->mResValue.values == nullptr) {
-            this->mResource->mResValue.values = new DLManager(0);
-            if(this->mResource->mResValue.values == nullptr) {
-                return RC_INVALID_VALUE;
-            }
-        }
         try {
             IntIterable* intIter = MPLACED(IntIterable);
             intIter->mData = value;
-            this->mResource->mResValue.values->insert(intIter);
+            if(RC_IS_NOTOK(this->mResource->addValue(intIter))) {
+                return RC_MEMORY_ALLOCATION_FAILURE;
+            }
         } catch(const std::bad_alloc& e) {
             return RC_INVALID_VALUE;
         }

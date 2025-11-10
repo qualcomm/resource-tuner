@@ -83,12 +83,27 @@ void Resource::setNumValues(int32_t numValues) {
     this->mNumValues = numValues;
 }
 
-void Resource::addValue(IntIterable* intIter) {
+ErrCode Resource::addValue(IntIterable* intIter) {
+    if(this->mResValue.values == nullptr) {
+        this->mResValue.values = new(std::nothrow) DLManager(0);
+    }
+
+    if(this->mResValue.values == nullptr) {
+        return RC_MEMORY_ALLOCATION_FAILURE;
+    }
     this->mResValue.values->insert(intIter);
+    return RC_SUCCESS;
 }
 
 Resource::~Resource() {
     if(this->mNumValues > 1 && this->mResValue.values != nullptr) {
-        this->mResValue.values = nullptr;
+        DL_ITERATE(this->mResValue.values) {
+            IntIterable* intIter = (IntIterable*) iter;
+            if(intIter != nullptr) {
+                // Delete ResIterable itself
+                FreeBlock<IntIterable>(intIter);
+            }
+        }
+        this->mResValue.values->destroy();
     }
 }

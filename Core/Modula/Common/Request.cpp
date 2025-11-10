@@ -161,12 +161,11 @@ ErrCode Request::deserialize(char* buf) {
                     resource->mResValue.value = DEREF_AND_INCR(ptr, int32_t);
                 } else {
                     for(int32_t j = 0; j < resource->getValuesCount(); j++) {
-                        if(resource->mResValue.values == nullptr) {
-                            resource->mResValue.values = new DLManager(0);
-                        }
                         IntIterable* intIter = MPLACED(IntIterable);
                         intIter->mData = DEREF_AND_INCR(ptr, int32_t);
-                        resource->addValue(intIter);
+                        if(RC_IS_NOTOK(resource->addValue(intIter))) {
+                            return RC_REQUEST_DESERIALIZATION_FAILURE;
+                        }
                     }
                 }
 
