@@ -485,16 +485,12 @@ ErrCode ResourceConfigInfoBuilder::addTargetEnabled(const std::string& target) {
         return RC_RESOURCE_NOT_SUPPORTED;
     }
 
-    std::string targetName(target);
-    std::transform(targetName.begin(), targetName.end(), targetName.begin(),
-        [](unsigned char ch) {return std::tolower(ch);});
-
     // first entry
     if(this->mTargetRefCount == 0) {
         this->mTargetRefCount = -1;
     }
 
-    if(targetName == ResourceTunerSettings::targetConfigs.targetName) {
+    if(target == ResourceTunerSettings::targetConfigs.targetName) {
         this->mTargetRefCount = 1;
     }
     return RC_SUCCESS;
@@ -509,16 +505,12 @@ ErrCode ResourceConfigInfoBuilder::addTargetDisabled(const std::string& target) 
         return RC_RESOURCE_NOT_SUPPORTED;
     }
 
-    std::string targetName(target);
-    std::transform(targetName.begin(), targetName.end(), targetName.begin(),
-        [](unsigned char ch) {return std::tolower(ch);});
-
     // first entry
     if(this->mTargetRefCount == 0) {
         this->mTargetRefCount = 1;
     }
 
-    if(targetName == ResourceTunerSettings::targetConfigs.targetName) {
+    if(target == ResourceTunerSettings::targetConfigs.targetName) {
         this->mTargetRefCount = -1;
     }
     return RC_SUCCESS;

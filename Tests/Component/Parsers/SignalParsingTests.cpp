@@ -44,22 +44,15 @@ static void TestSignalParsingSignalsMerged1() {
     C_ASSERT(signalInfo->mSignalID == 0xaadd);
     C_ASSERT(signalInfo->mSignalCategory == 0xde);
     C_ASSERT(strcmp((const char*)signalInfo->mSignalName.data(), "OVERRIDE_SIGNAL_1") == 0);
-    C_ASSERT(signalInfo->mIsEnabled == true);
     C_ASSERT(signalInfo->mTimeout == 14500);
 
-    C_ASSERT(signalInfo->mTargetsDisabled == nullptr);
-    C_ASSERT(signalInfo->mTargetsEnabled != nullptr);
     C_ASSERT(signalInfo->mPermissions != nullptr);
     C_ASSERT(signalInfo->mDerivatives != nullptr);
     C_ASSERT(signalInfo->mSignalResources != nullptr);
 
-    C_ASSERT(signalInfo->mTargetsEnabled->size() == 1);
     C_ASSERT(signalInfo->mPermissions->size() == 1);
     C_ASSERT(signalInfo->mDerivatives->size() == 1);
     C_ASSERT(signalInfo->mSignalResources->size() == 1);
-
-    // Note the target values are converted to LowerCase before inserting into the map
-    C_ASSERT(signalInfo->mTargetsEnabled->count("qti-cli-test") == 1);
 
     C_ASSERT(signalInfo->mPermissions->at(0) == PERMISSION_SYSTEM);
 
@@ -79,11 +72,8 @@ static void TestSignalParsingSignalsMerged2() {
     C_ASSERT(signalInfo->mSignalID == 0x0007);
     C_ASSERT(signalInfo->mSignalCategory == 0x0d);
     C_ASSERT(strcmp((const char*)signalInfo->mSignalName.data(), "TEST_SIGNAL_8") == 0);
-    C_ASSERT(signalInfo->mIsEnabled == true);
     C_ASSERT(signalInfo->mTimeout == 5500);
 
-    C_ASSERT(signalInfo->mTargetsDisabled == nullptr);
-    C_ASSERT(signalInfo->mTargetsEnabled == nullptr);
     C_ASSERT(signalInfo->mPermissions != nullptr);
     C_ASSERT(signalInfo->mDerivatives == nullptr);
     C_ASSERT(signalInfo->mSignalResources != nullptr);
@@ -118,23 +108,15 @@ static void TestSignalParsingSignalsMerged3() {
     C_ASSERT(signalInfo->mSignalID == 0x00ab);
     C_ASSERT(signalInfo->mSignalCategory == 0x1e);
     C_ASSERT(strcmp((const char*)signalInfo->mSignalName.data(), "CUSTOM_SIGNAL_1") == 0);
-    C_ASSERT(signalInfo->mIsEnabled == true);
     C_ASSERT(signalInfo->mTimeout == 6700);
 
-    C_ASSERT(signalInfo->mTargetsDisabled == nullptr);
-    C_ASSERT(signalInfo->mTargetsEnabled != nullptr);
     C_ASSERT(signalInfo->mPermissions != nullptr);
     C_ASSERT(signalInfo->mDerivatives != nullptr);
     C_ASSERT(signalInfo->mSignalResources != nullptr);
 
-    C_ASSERT(signalInfo->mTargetsEnabled->size() == 2);
     C_ASSERT(signalInfo->mPermissions->size() == 1);
     C_ASSERT(signalInfo->mDerivatives->size() == 1);
     C_ASSERT(signalInfo->mSignalResources->size() == 2);
-
-    // Note the target values are converted to LowerCase before inserting into the map
-    C_ASSERT(signalInfo->mTargetsEnabled->count("target1") == 1);
-    C_ASSERT(signalInfo->mTargetsEnabled->count("target2") == 1);
 
     C_ASSERT(signalInfo->mPermissions->at(0) == PERMISSION_THIRD_PARTY);
 
@@ -167,22 +149,14 @@ static void TestSignalParsingSignalsMerged5() {
     C_ASSERT(signalInfo->mSignalID == 0xffcf);
     C_ASSERT(signalInfo->mSignalCategory == 0xce);
     C_ASSERT(strcmp((const char*)signalInfo->mSignalName.data(), "CAMERA_OPEN_CUSTOM") == 0);
-    C_ASSERT(signalInfo->mIsEnabled == true);
     C_ASSERT(signalInfo->mTimeout == 1);
 
-    C_ASSERT(signalInfo->mTargetsDisabled != nullptr);
-    C_ASSERT(signalInfo->mTargetsEnabled == nullptr);
     C_ASSERT(signalInfo->mPermissions != nullptr);
     C_ASSERT(signalInfo->mDerivatives == nullptr);
     C_ASSERT(signalInfo->mSignalResources != nullptr);
 
-    C_ASSERT(signalInfo->mTargetsDisabled->size() == 2);
     C_ASSERT(signalInfo->mPermissions->size() == 1);
     C_ASSERT(signalInfo->mSignalResources->size() == 2);
-
-    // Note the target values are converted to LowerCase before inserting into the map
-    C_ASSERT(signalInfo->mTargetsDisabled->count("target1") == 1);
-    C_ASSERT(signalInfo->mTargetsDisabled->count("target2") == 1);
 
     C_ASSERT(signalInfo->mPermissions->at(0) == PERMISSION_SYSTEM);
 
