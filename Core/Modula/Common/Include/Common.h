@@ -125,4 +125,50 @@ enum Modes {
     (int32_t) ((resInfo ^ (EXTRACT_RESOURCE_MPAM_VALUE(resInfo) << 16)) | (newValue << 16));  \
 })                                                                                            \
 
+// Common ResCode and ResInfo codes
+enum ResCodesDef {
+    RES_SCALE_MIN_FREQ           = 0x00040000,
+    RES_SCALE_MAX_FREQ           = 0x00040001,
+    RES_SCHED_UTIL_CLAMP_MIN     = 0x00030000,
+    RES_SCHED_UTIL_CLAMP_MAX     = 0X00030001,
+    RES_CPU_DMA_LATENCY          = 0X00010000,
+    RES_PM_QOS_LATENCY           = 0X00010001,
+    RES_CGRP_MOVE_PID            = 0x00090000,
+    RES_CGRP_MOVE_TID            = 0x00090001,
+    RES_CGRP_RUN_CORES           = 0x00090002,
+    RES_CGRP_RUN_CORES_EXCL      = 0x00090003,
+    RES_CGRP_FREEZE              = 0x00090004,
+    RES_CGRP_LIMIT_CPU_TIME      = 0x00090005,
+    RES_CGRP_RUN_WHEN_CPU_IDLE   = 0x00090006,
+    RES_CGRP_UCLAMP_MIN          = 0x00090007,
+    RES_CGRP_UCLAMP_MAX          = 0x00090008,
+    RES_CGRP_REL_CPU_WEIGHT      = 0x00090009,
+    RES_CGRP_HIGH_MEM            = 0x0009000a,
+    RES_CGRP_MAX_MEM             = 0x0009000b,
+    RES_CGRP_LOW_MEM             = 0x0009000c,
+    RES_CGRP_MIN_MEM             = 0x0009000d,
+    RES_CGRP_SWAP_MAX_MEMORY     = 0x0009000e,
+    RES_CGRP_IO_WEIGHT           = 0x0009000f,
+    RES_CGRP_BFQ_IO_WEIGHT       = 0x00090010,
+    RES_CGRP_CPU_LATENCY         = 0x000900011,
+
+    CLUSTER_LITTLE_ALL_CORE      = 0x00000000,
+    CLUSTER_LITTLE_CORE_0        = 0x00000001,
+    CLUSTER_LITTLE_CORE_1        = 0x00000002,
+    CLUSTER_LITTLE_CORE_2        = 0x00000003,
+    CLUSTER_LITTLE_CORE_3        = 0x00000004,
+
+    CLUSTER_BIG_ALL_CORE         = 0x00000100,
+    CLUSTER_BIG_CORE_0           = 0x00000101,
+    CLUSTER_BIG_CORE_1           = 0x00000102,
+    CLUSTER_BIG_CORE_2           = 0x00000103,
+    CLUSTER_BIG_CORE_3           = 0x00000104,
+
+    CLUSTER_PLUS_ALL_CORE        = 0x00000200,
+    CLUSTER_PLUS_CORE_0          = 0x00000201,
+    CLUSTER_PLUS_CORE_1          = 0x00000202,
+    CLUSTER_PLUS_CORE_2          = 0x00000203,
+    CLUSTER_PLUS_CORE_3          = 0x00000204,
+};
+
 #endif
