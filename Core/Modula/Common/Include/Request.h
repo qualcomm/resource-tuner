@@ -38,7 +38,6 @@ public:
     void unsetTimer();
     void clearResources();
 
-    ErrCode serialize(char* buf);
     ErrCode deserialize(char* buf);
 
     void populateUntuneRequest(Request* request);

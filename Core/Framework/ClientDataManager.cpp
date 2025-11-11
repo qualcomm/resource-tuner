@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include "ClientDataManager.h"
-#include "ErrCodes.h"
 
 static int8_t isRootProcess(pid_t pid) {
     std::string statusFile = "/proc/" + std::to_string(pid) + "/status";
@@ -84,22 +83,27 @@ int8_t ClientDataManager::createNewClient(int32_t clientPID, int32_t clientTID) 
 
     // Check if a client PID entry exists
     int8_t clientPIDExists = (this->mClientRepo.find(clientPID) != this->mClientRepo.end());
-
     this->mClientTidRepo[clientTID] = clientData;
+
     if(clientPIDExists) {
         // If it does, then add the client TID to the list of TIDs for that client PID
-        IntIterable* intIter = MPLACED(IntIterable);
-        intIter->mData = clientTID;
-        this->mClientRepo[clientPID]->mClientTIDs->insert(intIter);
+        int32_t curTIDCount = this->mClientRepo[clientPID]->mCurClientThreads;
+        if(curTIDCount < MAX_CLIENT_TID_COUNT) {
+            this->mClientRepo[clientPID]->mClientTIDs[curTIDCount] = clientTID;
+            curTIDCount++;
+            this->mClientRepo[clientPID]->mCurClientThreads = curTIDCount;
+        } else {
+            return false;
+        }
     } else {
         // If it doesn't, then create a new entry in the mClientRepo table
         try {
             ClientInfo* clientInfo = MPLACED(ClientInfo);
-            clientInfo->mClientTIDs = new DLManager(0);
 
-            IntIterable* intIter = MPLACED(IntIterable);
-            intIter->mData = clientTID;
-            clientInfo->mClientTIDs->insert(intIter);
+            int32_t curTIDCount = this->mClientRepo[clientPID]->mCurClientThreads;
+            clientInfo->mClientTIDs[curTIDCount] = clientTID;
+            curTIDCount++;
+            clientInfo->mCurClientThreads = curTIDCount;
 
             clientInfo->mClientType = isRootProcess(clientPID);
             this->mClientRepo[clientPID] = clientInfo;
@@ -182,10 +186,8 @@ void ClientDataManager::getThreadsByClientId(int32_t clientPID, std::vector<int3
         return;
     }
 
-    DL_ITERATE(this->mClientRepo[clientPID]->mClientTIDs) {
-        if(iter == nullptr) continue;
-        IntIterable* intIter = (IntIterable*) iter;
-        threadIDs.push_back(intIter->mData);
+    for(int32_t i = 0; i < this->mClientRepo[clientPID]->mCurClientThreads; i++) {
+        threadIDs.push_back(this->mClientRepo[clientPID]->mClientTIDs[i]);
     }
 
     this->mGlobalTableMutex.unlock_shared();
@@ -262,15 +264,6 @@ void ClientDataManager::deleteClientPID(int32_t clientPID) {
     }
 
     ClientInfo* clientInfo = this->mClientRepo[clientPID];
-
-    DL_ITERATE(clientInfo->mClientTIDs) {
-        IntIterable* intIter = (IntIterable*) iter;
-
-        if(intIter != nullptr) {
-            // Delete ResIterable itself
-            FreeBlock<IntIterable>(intIter);
-        }
-    }
     FreeBlock<ClientInfo>(static_cast<void*>(clientInfo));
 
     this->mClientRepo.erase(clientPID);

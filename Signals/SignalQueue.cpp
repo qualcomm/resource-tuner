@@ -29,29 +29,14 @@ static Request* createResourceTuningRequest(Signal* signal) {
             Resource* resource = MPLACEV(Resource, (*((*signalLocks)[i])));
 
             // fill placeholders if any
-            int32_t valueCount = resource->getValuesCount();
-            if(valueCount == 1) {
-                if(resource->mResValue.value == -1) {
+            for(int32_t j = 0; j < resource->getValuesCount(); j++) {
+                if(resource->getValueAt(j) == -1) {
                     if(signal->getListArgs() == nullptr) return nullptr;
-                    if(listIndex < signal->getNumArgs()) {
-                        resource->mResValue.value = signal->getListArgAt(listIndex);
+                    if(listIndex >= 0 && listIndex < signal->getNumArgs()) {
+                        resource->setValueAt(j, signal->getListArgAt(listIndex));
                         listIndex++;
                     } else {
                         return nullptr;
-                    }
-                }
-            } else {
-                DL_ITERATE(resource->mResValue.values) {
-                    IntIterable* intIter = (IntIterable*)iter;
-                    int32_t curVal = intIter->mData;
-                    if(curVal == -1) {
-                        if(signal->getListArgs() == nullptr) return nullptr;
-                        if(listIndex >= 0 && listIndex < signal->getNumArgs()) {
-                            intIter->mData = signal->getListArgAt(listIndex);
-                            listIndex++;
-                        } else {
-                            return nullptr;
-                        }
                     }
                 }
             }

@@ -70,67 +70,6 @@ void Request::populateRetuneRequest(Request* retuneRequest, int64_t newDuration)
     retuneRequest->mDuration = newDuration;
 }
 
-ErrCode Request::serialize(char* buf) {
-    try {
-        int8_t* ptr8 = (int8_t*)buf;
-        ASSIGN_AND_INCR(ptr8, this->getRequestType());
-
-        int64_t* ptr64 = (int64_t*)ptr8;
-        ASSIGN_AND_INCR(ptr64, this->getHandle());
-
-        ASSIGN_AND_INCR(ptr64, this->getDuration());
-
-        int32_t* ptr = (int32_t*)ptr64;
-        ASSIGN_AND_INCR(ptr, this->getResourcesCount());
-        ASSIGN_AND_INCR(ptr, this->getProperties());
-        ASSIGN_AND_INCR(ptr, this->getClientPID());
-        ASSIGN_AND_INCR(ptr, this->getClientTID());
-
-        DL_ITERATE(this->getResDlMgr()) {
-            if(iter == nullptr) {
-                return RC_INVALID_VALUE;
-            }
-
-            ResIterable* resIter = (ResIterable*) iter;
-            if(resIter == nullptr || resIter->mData == nullptr) {
-                return RC_INVALID_VALUE;
-            }
-
-            Resource* resource = (Resource*) resIter->mData;
-            if(resource == nullptr) {
-                return RC_INVALID_VALUE;
-            }
-
-            ASSIGN_AND_INCR(ptr, resource->getResCode());
-            ASSIGN_AND_INCR(ptr, resource->getResInfo());
-            ASSIGN_AND_INCR(ptr, resource->getOptionalInfo());
-            ASSIGN_AND_INCR(ptr, resource->getValuesCount());
-
-            if(resource->getValuesCount() == 1) {
-                ASSIGN_AND_INCR(ptr, resource->mResValue.value);
-            } else {
-                DL_ITERATE(resource->mResValue.values) {
-                    if(iter == nullptr) return RC_INVALID_VALUE;
-                    IntIterable* intIter = (IntIterable*) iter;
-                    if(intIter != nullptr) return RC_INVALID_VALUE;
-
-                    IntIterable* newIntIter = MPLACED(IntIterable);
-                    newIntIter->mData = intIter->mData;
-                    resource->addValue(newIntIter);
-                }
-            }
-        }
-
-    } catch(const std::invalid_argument& e) {
-        return RC_REQUEST_PARSING_FAILED;
-
-    } catch(const std::exception& e) {
-        return RC_INVALID_VALUE;
-    }
-
-    return RC_SUCCESS;
-}
-
 ErrCode Request::deserialize(char* buf) {
     try {
         int32_t numResources = 0;
@@ -157,15 +96,9 @@ ErrCode Request::deserialize(char* buf) {
                 resource->setOptionalInfo(DEREF_AND_INCR(ptr, int32_t));
                 resource->setNumValues(DEREF_AND_INCR(ptr, int32_t));
 
-                if(resource->getValuesCount() == 1) {
-                    resource->mResValue.value = DEREF_AND_INCR(ptr, int32_t);
-                } else {
-                    for(int32_t j = 0; j < resource->getValuesCount(); j++) {
-                        IntIterable* intIter = MPLACED(IntIterable);
-                        intIter->mData = DEREF_AND_INCR(ptr, int32_t);
-                        if(RC_IS_NOTOK(resource->addValue(intIter))) {
-                            return RC_REQUEST_DESERIALIZATION_FAILURE;
-                        }
+                for(int32_t j = 0; j < resource->getValuesCount(); j++) {
+                    if(RC_IS_NOTOK(resource->setValueAt(j, DEREF_AND_INCR(ptr, int32_t)))) {
+                        return RC_REQUEST_DESERIALIZATION_FAILURE;
                     }
                 }
 

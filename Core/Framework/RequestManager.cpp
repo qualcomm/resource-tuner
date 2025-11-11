@@ -15,13 +15,13 @@ static int8_t resourceCmpPolicy(DLRootNode* src, DLRootNode* target) {
     if(res1->getValuesCount() != res2->getValuesCount()) return false;
 
     if(res1->getValuesCount() == 1) {
-        if(res1->mResValue.value != res2->mResValue.value) {
+        if(res1->getValueAt(0) != res2->getValueAt(0)) {
             return false;
         }
     } else {
         for(int32_t i = 0; i < res1->getValuesCount(); i++) {
-            int32_t res1Val = ((IntIterable*)res1->mResValue.values->getNth(i))->mData;
-            int32_t res2Val = ((IntIterable*)res2->mResValue.values->getNth(i))->mData;
+            int32_t res1Val = res1->getValueAt(i);
+            int32_t res2Val = res2->getValueAt(i);
             if(res1Val != res2Val) {
                 return false;
             }

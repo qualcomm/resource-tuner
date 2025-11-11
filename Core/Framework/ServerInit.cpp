@@ -29,7 +29,6 @@ static void preAllocateMemory() {
     MakeAlloc<std::vector<int32_t>> (maxBlockCount);
     MakeAlloc<MsgForwardInfo> (maxBlockCount);
     MakeAlloc<ResIterable> (maxBlockCount);
-    MakeAlloc<IntIterable> (maxBlockCount);
     MakeAlloc<char[REQ_BUFFER_SIZE]> (maxBlockCount);
 }
 

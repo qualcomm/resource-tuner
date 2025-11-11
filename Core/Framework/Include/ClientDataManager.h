@@ -15,15 +15,19 @@
 #include "fstream"
 #include "sstream"
 
+#include "ErrCodes.h"
 #include "DLManager.h"
 #include "ResourceTunerSettings.h"
 #include "MemoryPool.h"
 #include "Logger.h"
 #include "Utils.h"
 
+#define MAX_CLIENT_TID_COUNT 16
+
 typedef struct {
-    DLManager* mClientTIDs;
     uint8_t mClientType;
+    int32_t mCurClientThreads;
+    int32_t mClientTIDs[MAX_CLIENT_TID_COUNT];
 } ClientInfo;
 
 typedef struct {

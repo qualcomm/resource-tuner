@@ -180,7 +180,7 @@ static int8_t VerifyIncomingRequest(Request* req) {
 
         if(resource->getValuesCount() == 1) {
             // Verify value is in the range [LT, HT]
-            int32_t configValue = resource->mResValue.value;
+            int32_t configValue = resource->getValueAt(0);
             int32_t lowThreshold = resourceConfig->mLowThreshold;
             int32_t highThreshold = resourceConfig->mHighThreshold;
 

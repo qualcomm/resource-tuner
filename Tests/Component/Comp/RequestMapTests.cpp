@@ -23,7 +23,7 @@ Resource* generateResourceForTesting(int32_t seed) {
         resource = (Resource*) GetBlock<Resource>();
         resource->setResCode(16 + seed);
         resource->setNumValues(1);
-        resource->mResValue.value = 2 * seed;
+        resource->setValueAt(0, 2 * seed);
     } catch(const std::bad_alloc& e) {
         throw std::bad_alloc();
     }
@@ -35,7 +35,7 @@ Resource* generateResourceFromMemoryPoolForTesting(int32_t seed) {
     Resource* resource = new(GetBlock<Resource>()) Resource;
     resource->setResCode(16 + seed);
     resource->setNumValues(1);
-    resource->mResValue.value = 2 * seed;
+    resource->setValueAt(0, 2 * seed);
 
     return resource;
 }
@@ -49,7 +49,7 @@ static void TestSingleRequestScenario() {
     Resource* resource = MPLACED(Resource);
     resource->setResCode(16);
     resource->setNumValues(1);
-    resource->mResValue.value = 8;
+    resource->setValueAt(0, 8);
 
     ResIterable* resIterable = MPLACED(ResIterable);
     resIterable->mData = resource;
@@ -219,7 +219,7 @@ static void TestDuplicateRequestScenario3_1() {
         Resource* resource = generateResourceForTesting(0);
 
         // Slight modification
-        resource->mResValue.value = 8 + index;
+        resource->setValueAt(0, 8 + index);
 
         std::vector<Resource*>* resources =
             new (GetBlock<std::vector<Resource*>>())std::vector<Resource*>;
@@ -955,7 +955,7 @@ static void TestGetRequestFromMap() {
     resource->setResCode(15564);
     resource->setOptionalInfo(4445);
     resource->setNumValues(1);
-    resource->mResValue.value = 42;
+    resource->setValueAt(0, 42);
 
     ResIterable* resIterable = MPLACED(ResIterable);
     resIterable->mData = resource;

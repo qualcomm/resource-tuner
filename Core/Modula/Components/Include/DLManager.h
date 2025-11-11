@@ -97,9 +97,6 @@ public:
 
 CREATE_N_WAY_ITERABLE(1)
 
-// Ready to use DLL-Node types
-typedef Iterable<int32_t> IntIterable;
-
 // Comparison Policy Callback
 typedef int8_t (*DLPolicy)(DLRootNode* newNode, DLRootNode* targetNode);
 

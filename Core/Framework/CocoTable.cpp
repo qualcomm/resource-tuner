@@ -11,15 +11,15 @@ static int8_t comparHBetter(DLRootNode* newNode, DLRootNode* targetNode) {
     int32_t targetValue;
 
     if(first->getValuesCount() == 1) {
-        newValue = first->mResValue.value;
+        newValue = first->getValueAt(0);
     } else {
-        newValue = ((IntIterable*)first->mResValue.values->getNth(1))->mData;
+        newValue = first->getValueAt(1);
     }
 
     if(second->getValuesCount() == 1) {
-        targetValue = second->mResValue.value;
+        targetValue = second->getValueAt(0);
     } else {
-        targetValue = ((IntIterable*)second->mResValue.values->getNth(1))->mData;
+        targetValue = second->getValueAt(1);
     }
 
     return newValue > targetValue;
@@ -33,15 +33,15 @@ static int8_t comparLBetter(DLRootNode* newNode, DLRootNode* targetNode) {
     int32_t targetValue;
 
     if(first->getValuesCount() == 1) {
-        newValue = first->mResValue.value;
+        newValue = first->getValueAt(0);
     } else {
-        newValue = ((IntIterable*)first->mResValue.values->getNth(1))->mData;
+        newValue = first->getValueAt(1);
     }
 
     if(second->getValuesCount() == 1) {
-        targetValue = second->mResValue.value;
+        targetValue = second->getValueAt(0);
     } else {
-        targetValue = ((IntIterable*)second->mResValue.values->getNth(1))->mData;
+        targetValue = second->getValueAt(1);
     }
 
     return newValue < targetValue;
@@ -215,14 +215,9 @@ int32_t CocoTable::getCocoTableSecondaryIndex(Resource* resource, int8_t priorit
         return index * TOTAL_PRIORITIES + priority;
 
     } else if(resConfInfo->mApplyType == ResourceApplyType::APPLY_CGROUP) {
-        int32_t cGroupIdentifier = -1;
-        if(resource->getValuesCount() == 1) {
-            cGroupIdentifier = resource->mResValue.value;
-        } else {
-            cGroupIdentifier = ((IntIterable*)resource->mResValue.values->getNth(0))->mData;
-        }
-
+        int32_t cGroupIdentifier = resource->getValueAt(0);
         if(cGroupIdentifier == -1) return -1;
+
         int32_t index = this->mFlatCGroupMap[cGroupIdentifier];
         return index * TOTAL_PRIORITIES + priority;
 
