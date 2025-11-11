@@ -83,6 +83,9 @@ int8_t getProp(const char* prop, char* buffer, size_t bufferSize, const char* de
  * @brief Tune the signal with the given ID.
  * @details Use this API to issue Signal Provisioning Requests, for a certain duration of time.
  * @param signalCode A uniqued 32-bit (unsigned) identifier for the Signal
+ *                   - The last 16 bits (17-32) are used to specify the SigID
+ *                   - The next 8 bits (9-16) are used to specify the Signal Category
+ *                   - In addition for Custom Signals, the MSB must be set to 1 as well
  * @param duration Duration (in milliseconds) to provision the Resources for. A value of -1 denotes infinite duration.
  * @param properties A 32 bit signed Integer storing the Properties of the Request.
  *                   - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW).
@@ -107,6 +110,9 @@ int64_t tuneSignal(uint32_t signalCode, int64_t duration, int32_t properties,
  * @brief Relay the signal to all the features subscribed to the signal with the given ID.
  * @details Use this API to issue Signal Relay Requests.
  * @param signalCode A uniqued 32-bit (unsigned) identifier for the Signal
+ *                   - The last 16 bits (17-32) are used to specify the SigID
+ *                   - The next 8 bits (9-16) are used to specify the Signal Category
+ *                   - In addition for Custom Signals, the MSB must be set to 1 as well
  * @param duration Duration (in milliseconds)
  * @param properties A 32 bit signed Integer storing the Properties of the Request.
  *                   - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW).

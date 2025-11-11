@@ -27,7 +27,7 @@ typedef struct {
      * @brief A uniqued 32-bit (unsigned) identifier for the Resource.
      *        - The last 16 bits (17-32) are used to specify the ResId
      *        - The next 8 bits (9-16) are used to specify the ResType (type of the Resource)
-     *        - In addition for Custom Resources, then the MSB must be set to 1 as well
+     *        - In addition for Custom Resources, the MSB must be set to 1 as well
      */
     uint32_t mResCode;
     /**
