@@ -3,18 +3,10 @@
 
 #include "SignalRegistry.h"
 
+static const int32_t unsupportedResoure = -2;
+
 static void freeSignalConfig(SignalInfo* signalInfo) {
     if(signalInfo != nullptr) {
-        if(signalInfo->mTargetsEnabled != nullptr) {
-            delete signalInfo->mTargetsEnabled;
-            signalInfo->mTargetsEnabled = nullptr;
-        }
-
-        if(signalInfo->mTargetsDisabled != nullptr) {
-            delete signalInfo->mTargetsDisabled;
-            signalInfo->mTargetsDisabled = nullptr;
-        }
-
         if(signalInfo->mPermissions != nullptr) {
             delete signalInfo->mPermissions;
             signalInfo->mPermissions = nullptr;
@@ -133,6 +125,7 @@ SignalRegistry::~SignalRegistry() {
 }
 
 SignalInfoBuilder::SignalInfoBuilder() {
+    this->mTargetRefCount = 0;
     this->mSignalInfo = new(std::nothrow) SignalInfo;
     if(this->mSignalInfo == nullptr) {
         return;
@@ -141,11 +134,8 @@ SignalInfoBuilder::SignalInfoBuilder() {
     this->mSignalInfo->mSignalID = 0;
     this->mSignalInfo->mSignalCategory = 0;
     this->mSignalInfo->mSignalName = "";
-    this->mSignalInfo->mIsEnabled = false;
     this->mSignalInfo->mTimeout = 1;
 
-    this->mSignalInfo->mTargetsEnabled = nullptr;
-    this->mSignalInfo->mTargetsDisabled = nullptr;
     this->mSignalInfo->mDerivatives = nullptr;
     this->mSignalInfo->mPermissions = nullptr;
     this->mSignalInfo->mSignalResources = nullptr;
@@ -222,7 +212,9 @@ ErrCode SignalInfoBuilder::setIsEnabled(const std::string& isEnabledString) {
         return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
-    this->mSignalInfo->mIsEnabled = (isEnabledString == "true");
+    if(isEnabledString != "true") {
+        this->mTargetRefCount = unsupportedResoure;
+    }
     return RC_SUCCESS;
 }
 
@@ -264,19 +256,18 @@ ErrCode SignalInfoBuilder::addTargetEnabled(const std::string& target) {
         return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
-    std::string targetName(target);
-    if(this->mSignalInfo->mTargetsEnabled == nullptr) {
-        this->mSignalInfo->mTargetsEnabled = new(std::nothrow) std::unordered_set<std::string>;
+    if(this->mTargetRefCount == unsupportedResoure) {
+        return RC_RESOURCE_NOT_SUPPORTED;
     }
 
-    if(this->mSignalInfo->mTargetsEnabled != nullptr) {
-        std::transform(targetName.begin(), targetName.end(), targetName.begin(),
-            [](unsigned char ch) {return std::tolower(ch);});
-        this->mSignalInfo->mTargetsEnabled->insert(targetName);
-    } else {
-        return RC_MEMORY_ALLOCATION_FAILURE;
+    // first entry
+    if(this->mTargetRefCount == 0) {
+        this->mTargetRefCount = -1;
     }
 
+    if(target == ResourceTunerSettings::targetConfigs.targetName) {
+        this->mTargetRefCount = 1;
+    }
     return RC_SUCCESS;
 }
 
@@ -285,19 +276,18 @@ ErrCode SignalInfoBuilder::addTargetDisabled(const std::string& target) {
         return RC_MEMORY_ALLOCATION_FAILURE;
     }
 
-    std::string targetName(target);
-    if(this->mSignalInfo->mTargetsDisabled == nullptr) {
-        this->mSignalInfo->mTargetsDisabled = new(std::nothrow) std::unordered_set<std::string>;
+    if(this->mTargetRefCount == unsupportedResoure) {
+        return RC_RESOURCE_NOT_SUPPORTED;
     }
 
-    if(this->mSignalInfo->mTargetsDisabled != nullptr) {
-        std::transform(targetName.begin(), targetName.end(), targetName.begin(),
-            [](unsigned char ch) {return std::tolower(ch);});
-        this->mSignalInfo->mTargetsDisabled->insert(targetName);
-    } else {
-        return RC_MEMORY_ALLOCATION_FAILURE;
+    // first entry
+    if(this->mTargetRefCount == 0) {
+        this->mTargetRefCount = 1;
     }
 
+    if(target == ResourceTunerSettings::targetConfigs.targetName) {
+        this->mTargetRefCount = -1;
+    }
     return RC_SUCCESS;
 }
 

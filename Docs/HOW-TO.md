@@ -150,4 +150,67 @@ PropertyConfigs:
     Value: "false"
 ```
 
+# 5. How to create a Resource Opcode (ResCode) and Signal Opcode (SigCode)
+Suppose we would like to tune the following resource
+```yaml
+ResourceConfigs:
+  - ResType: "0xea"
+    ResID: "0x11fc"
+    Name: "A_DEMONSTRATION_RESOURCE"
+    Path: "/proc/some_path_to_some_resource/A"
+    Supported: true
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: "lower_is_better"
+    ApplyType: "global"
+```
+
+The ResCode is an unsigned 32 bit integer composed of two fields:
+- ResID (last 16 bits, 17 - 32)
+- ResType (next 8 bits, 9 - 16)
+- Additionally MSB should be set to '1' if customer or other modules or target chipset is providing it's own custom resource config files, indicating this is a custom resource else it shall be treated as a default resource. This bit doesn't influence resource processing, just to aid debugging and development.
+
+To construct one for the above Resource, we first note that this is a custom Resource (or downstream resource). Hence, the MSB must be set 1, additionally as the yaml config indicates:
+- The ResType is: "0xea" and
+- The ResId is "0x11fc"
+
+The ResCode would therefore be:
+0x80ea11fc in hex notation, or:
+10000000111010100001000111111100, in binary
+
+The binary notation clearly tells the first bit is set to 1.
+
+If the Resource above were a default (upstream) resource, the only difference in the ResCode would be the MSB being turned off, i.e.
+0x00ea11fc in hex notation or:
+00000000111010100001000111111100, in binary
+
+The above rules are similar for generating SigCode:
+The SigCode is an unsigned 32 bit integer composed of two fields:
+- The last 16 bits (17-32) are used to specify the SigID
+- The next 8 bits (9-16) are used to specify the Signal Category
+- In addition for Custom Signals, the MSB must be set to 1 as well
+
+Suppose we would like to tune the following signal
+```yaml
+SignalConfigs:
+  - SigId: "0x0008"
+    Category: "0x0d"
+    Name: DEMO_SIGNAL
+    Enable: true
+    Permissions: ["system"]
+    Timeout: 50000
+    Resources:
+      - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [2, 0,1,2,3,4]}
+      - {ResCode: "0x00090009", ResInfo: "0x00000000", Values: [2, 170]}
+      - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [3, 4,5,6]}
+      - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [4, 0,1,2,3,4,5,6]}
+      - {ResCode: "0x00090009", ResInfo: "0x00000000", Values: [4, 150]}
+      - {ResCode: "0x00090011", ResInfo: "0x00000000", Values: [4, -20]}
+
+```
+
+Treating it as a custom or downstream Signal config, the SigCode generated will be:
+0x800d0008 in hex notation, or
+10000000000011010000000000001000, in binary.
+
 ---

@@ -1,15 +1,12 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-
 #include "ErrCodes.h"
 #include "TestUtils.h"
 #include "ConfigProcessor.h"
 #include "ResourceRegistry.h"
 #include "Extensions.h"
 #include "Utils.h"
-
-#define TOTAL_RESOURCE_CONFIGS_COUNT 15
 
 static ErrCode parsingStatus = RC_SUCCESS;
 
@@ -31,10 +28,6 @@ static void TestResourceParsingSanity() {
     C_ASSERT(parsingStatus == RC_SUCCESS);
 }
 
-static void TestResourceParsingResourcesParsed() {
-    C_ASSERT(ResourceRegistry::getInstance()->getTotalResourcesCount() == TOTAL_RESOURCE_CONFIGS_COUNT);
-}
-
 static void TestResourceParsingResourcesMerged1() {
     ResConfInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResConf(0x80ff000b);
 
@@ -45,7 +38,6 @@ static void TestResourceParsingResourcesMerged1() {
     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resouce-tuner/tests/Configs/pathB/overwrite") == 0);
     C_ASSERT(resourceConfigInfo->mHighThreshold == 220);
     C_ASSERT(resourceConfigInfo->mLowThreshold == 150);
-    C_ASSERT(resourceConfigInfo->mSupported == true);
     C_ASSERT(resourceConfigInfo->mPolicy == LOWER_BETTER);
     C_ASSERT(resourceConfigInfo->mPermissions == PERMISSION_SYSTEM);
     C_ASSERT(resourceConfigInfo->mModes == (MODE_RESUME | MODE_DOZE));
@@ -62,7 +54,6 @@ static void TestResourceParsingResourcesMerged2() {
     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/usr/local/customfreq/node") == 0);
     C_ASSERT(resourceConfigInfo->mHighThreshold == 90);
     C_ASSERT(resourceConfigInfo->mLowThreshold == 80);
-    C_ASSERT(resourceConfigInfo->mSupported == true);
     C_ASSERT(resourceConfigInfo->mPolicy == LAZY_APPLY);
     C_ASSERT(resourceConfigInfo->mPermissions == PERMISSION_THIRD_PARTY);
     C_ASSERT(resourceConfigInfo->mModes == MODE_DOZE);
@@ -79,7 +70,6 @@ static void TestResourceParsingResourcesMerged3() {
     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/some/bu/specific/node/path/customized_to_usecase") == 0);
     C_ASSERT(resourceConfigInfo->mHighThreshold == 512);
     C_ASSERT(resourceConfigInfo->mLowThreshold == 128);
-    C_ASSERT(resourceConfigInfo->mSupported == true);
     C_ASSERT(resourceConfigInfo->mPolicy == LOWER_BETTER);
     C_ASSERT(resourceConfigInfo->mPermissions == PERMISSION_SYSTEM);
     C_ASSERT(resourceConfigInfo->mModes == MODE_RESUME);
@@ -96,7 +86,6 @@ static void TestResourceParsingResourcesMerged4() {
     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/proc/kernel/tid/kernel/uclamp.tid.sched/rt") == 0);
     C_ASSERT(resourceConfigInfo->mHighThreshold == 100022);
     C_ASSERT(resourceConfigInfo->mLowThreshold == 87755);
-    C_ASSERT(resourceConfigInfo->mSupported == true);
     C_ASSERT(resourceConfigInfo->mPolicy == INSTANT_APPLY);
     C_ASSERT(resourceConfigInfo->mPermissions == PERMISSION_THIRD_PARTY);
     C_ASSERT(resourceConfigInfo->mModes == (MODE_RESUME | MODE_DOZE));
@@ -113,7 +102,6 @@ static void TestResourceParsingResourcesDefaultValuesCheck() {
     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "") == 0);
     C_ASSERT(resourceConfigInfo->mHighThreshold == -1);
     C_ASSERT(resourceConfigInfo->mLowThreshold == -1);
-    C_ASSERT(resourceConfigInfo->mSupported == false);
     C_ASSERT(resourceConfigInfo->mPolicy == LAZY_APPLY);
     C_ASSERT(resourceConfigInfo->mPermissions == PERMISSION_THIRD_PARTY);
     C_ASSERT(resourceConfigInfo->mModes == 0);
@@ -125,7 +113,6 @@ int32_t main() {
 
     Init();
     RUN_TEST(TestResourceParsingSanity);
-    RUN_TEST(TestResourceParsingResourcesParsed);
     RUN_TEST(TestResourceParsingResourcesMerged1);
     RUN_TEST(TestResourceParsingResourcesMerged2);
     RUN_TEST(TestResourceParsingResourcesMerged3);

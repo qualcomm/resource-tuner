@@ -8,12 +8,12 @@
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
-#include <algorithm>
 
 #include "Utils.h"
 #include "Logger.h"
 #include "Resource.h"
 #include "MemoryPool.h"
+#include "ResourceTunerSettings.h"
 
 /**
  * @struct SignalInfo
@@ -38,28 +38,10 @@ typedef struct {
     std::string mSignalName;
 
     /**
-     * @brief Boolean flag which is set if Signal is available for Provisioning.
-     */
-    int8_t mIsEnabled;
-
-    /**
      * @brief Default Signal Timeout, to be used if Client specifies a duration
      *        of 0 in the tuneSignal API call.
      */
     int32_t mTimeout;
-
-    /**
-     * @brief Pointer to a vector, storing the list of targets for
-     *        which the signal is enabled.
-     */
-    std::unordered_set<std::string>* mTargetsEnabled;
-
-    /**
-     * @brief Pointer to a vector, storing the list of targets for which the
-     *        signal is not eligible for Provisioning.
-     */
-    std::unordered_set<std::string>* mTargetsDisabled;
-
     /**
      * @brief Pointer to a list of Permissions, i.e. only Clients with one of
      *        these permissions can provision the signal.
@@ -73,7 +55,6 @@ typedef struct {
      *        Values to be configured for the Resources.
      */
     std::vector<Resource*>* mSignalResources;
-
 } SignalInfo;
 
 /**
@@ -138,6 +119,8 @@ private:
     SignalInfo* mSignalInfo;
 
 public:
+    int32_t mTargetRefCount;
+
     SignalInfoBuilder();
     ~SignalInfoBuilder();
 
