@@ -49,3 +49,42 @@ ResourceConfigs:
     Modes: ["display_on", "doze"]
     Policy: "instant_apply"
     ApplyType: "global"
+
+  - ResType: "0xff"
+    ResID: "0x000d"
+    Name: "TEST_RESOURCE_11"
+    Path: "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource4.txt"
+    Supported: true
+    HighThreshold: 900
+    LowThreshold: 300
+    Permissions: "system"
+    Modes: ["display_on", "doze"]
+    Policy: "higher_is_better"
+    ApplyType: "global"
+    TargetsEnabled: ["SA7255P"] # Enabled only on Monaco
+
+  - ResType: "0xff"
+    ResID: "0x000e"
+    Name: "TEST_RESOURCE_12"
+    Path: "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource4.txt"
+    Supported: true
+    HighThreshold: 900
+    LowThreshold: 300
+    Permissions: "system"
+    Modes: ["display_on", "doze"]
+    Policy: "higher_is_better"
+    ApplyType: "global"
+    TargetsEnabled: ["SA8775P"] # Enabled only on Lemans
+
+  - ResType: "0xff"
+    ResID: "0x000f"
+    Name: "TEST_RESOURCE_13"
+    Path: "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource5.txt"
+    Supported: true
+    HighThreshold: 20
+    LowThreshold: 0
+    Permissions: "third_party"
+    Modes: ["display_on"]
+    Policy: "lazy_apply"
+    ApplyType: "global"
+    TargetsDisabled: ["SA7255P"] # Disabled on Monaco

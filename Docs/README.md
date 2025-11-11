@@ -223,6 +223,9 @@ int64_t tuneSignal(uint32_t signalCode,
 **Parameters:**
 
 - `signalCode` (`uint32_t`): A uniqued 32-bit (unsigned) identifier for the Signal
+                              - The last 16 bits (17-32) are used to specify the SigID
+                              - The next 8 bits (9-16) are used to specify the Signal Category
+                              - In addition for Custom Signals, the MSB must be set to 1 as well
 - `duration` (`int64_t`): Duration (in milliseconds) to tune the Signal for. A value of -1 denotes infinite duration.
 - `properties` (`int32_t`): Properties of the Request.
                             - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
@@ -282,6 +285,9 @@ int64_t relaySignal(uint32_t signalCode,
 **Parameters:**
 
 - `signalCode` (`uint32_t`): A uniqued 32-bit (unsigned) identifier for the Signal
+                              - The last 16 bits (17-32) are used to specify the SigID
+                              - The next 8 bits (9-16) are used to specify the Signal Category
+                              - In addition for Custom Signals, the MSB must be set to 1 as well
 - `duration` (`int64_t`): Duration (in milliseconds)
 - `properties` (`int32_t`): Properties of the Request.
 - `appName` (`const char*`): Name of the Application that is issuing the Request

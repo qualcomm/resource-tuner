@@ -1,15 +1,12 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-
 #include "ErrCodes.h"
 #include "TestUtils.h"
 #include "ConfigProcessor.h"
 #include "ResourceRegistry.h"
 #include "Extensions.h"
 #include "Utils.h"
-
-#define TOTAL_RESOURCE_CONFIGS_COUNT 15
 
 static ErrCode parsingStatus = RC_SUCCESS;
 
@@ -29,10 +26,6 @@ static void Init() {
 static void TestResourceParsingSanity() {
     C_ASSERT(ResourceRegistry::getInstance() != nullptr);
     C_ASSERT(parsingStatus == RC_SUCCESS);
-}
-
-static void TestResourceParsingResourcesParsed() {
-    C_ASSERT(ResourceRegistry::getInstance()->getTotalResourcesCount() == TOTAL_RESOURCE_CONFIGS_COUNT);
 }
 
 static void TestResourceParsingResourcesMerged1() {
@@ -120,7 +113,6 @@ int32_t main() {
 
     Init();
     RUN_TEST(TestResourceParsingSanity);
-    RUN_TEST(TestResourceParsingResourcesParsed);
     RUN_TEST(TestResourceParsingResourcesMerged1);
     RUN_TEST(TestResourceParsingResourcesMerged2);
     RUN_TEST(TestResourceParsingResourcesMerged3);

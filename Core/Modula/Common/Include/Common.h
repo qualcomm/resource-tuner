@@ -72,6 +72,7 @@ enum Modes {
     MODE_DOZE = 0x04 //!< Tuning allowed during doze (low-power idle) mode.
 };
 
+// Helper Macros to set Request and SysResource attributes.
 #define SET_REQUEST_PRIORITY(properties, priority)({                                          \
     int32_t retVal;                                                                           \
     if(properties < 0 || priority < 0 || priority >= NUMBER_OF_RQUEST_PRIORITIES) {           \
@@ -126,13 +127,20 @@ enum Modes {
 })                                                                                            \
 
 // Common ResCode and ResInfo codes
+// These enums can be used directly as part of tuneResources API, to uniquely
+// specify the resource to be tuned.
+// For target-specific resources use the custom ResourcesConfig.yaml file for
+// declaration. These values are only applicable for upstream resources.
 enum ResCodesDef {
+    // Resources
     RES_SCALE_MIN_FREQ           = 0x00040000,
     RES_SCALE_MAX_FREQ           = 0x00040001,
     RES_SCHED_UTIL_CLAMP_MIN     = 0x00030000,
     RES_SCHED_UTIL_CLAMP_MAX     = 0X00030001,
     RES_CPU_DMA_LATENCY          = 0X00010000,
     RES_PM_QOS_LATENCY           = 0X00010001,
+
+    // cgroup resources
     RES_CGRP_MOVE_PID            = 0x00090000,
     RES_CGRP_MOVE_TID            = 0x00090001,
     RES_CGRP_RUN_CORES           = 0x00090002,
@@ -150,22 +158,28 @@ enum ResCodesDef {
     RES_CGRP_SWAP_MAX_MEMORY     = 0x0009000e,
     RES_CGRP_IO_WEIGHT           = 0x0009000f,
     RES_CGRP_BFQ_IO_WEIGHT       = 0x00090010,
-    RES_CGRP_CPU_LATENCY         = 0x000900011,
+    RES_CGRP_CPU_LATENCY         = 0x00090011,
 
+    // ResInfo defintions for common use cases
+    // Cluster definitions (in the order of increasing capacity)
+
+    // Little Cluster
     CLUSTER_LITTLE_ALL_CORE      = 0x00000000,
-    CLUSTER_LITTLE_CORE_0        = 0x00000001,
+    CLUSTER_LITTLE_CORE_0        = 0x00000001, // First Core in little Cluster.
     CLUSTER_LITTLE_CORE_1        = 0x00000002,
     CLUSTER_LITTLE_CORE_2        = 0x00000003,
     CLUSTER_LITTLE_CORE_3        = 0x00000004,
 
+    // Big Cluster
     CLUSTER_BIG_ALL_CORE         = 0x00000100,
-    CLUSTER_BIG_CORE_0           = 0x00000101,
+    CLUSTER_BIG_CORE_0           = 0x00000101, // First Core in Big Cluster.
     CLUSTER_BIG_CORE_1           = 0x00000102,
     CLUSTER_BIG_CORE_2           = 0x00000103,
     CLUSTER_BIG_CORE_3           = 0x00000104,
 
+    // Plus / Prime Cluster
     CLUSTER_PLUS_ALL_CORE        = 0x00000200,
-    CLUSTER_PLUS_CORE_0          = 0x00000201,
+    CLUSTER_PLUS_CORE_0          = 0x00000201, // First Core in Prime / Plus Cluster.
     CLUSTER_PLUS_CORE_1          = 0x00000202,
     CLUSTER_PLUS_CORE_2          = 0x00000203,
     CLUSTER_PLUS_CORE_3          = 0x00000204,

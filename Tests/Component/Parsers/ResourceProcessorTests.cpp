@@ -1,15 +1,12 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-
 #include "ErrCodes.h"
 #include "TestUtils.h"
 #include "ConfigProcessor.h"
 #include "ResourceRegistry.h"
 #include "Extensions.h"
 #include "Utils.h"
-
-#define TOTAL_RESOURCE_CONFIGS_COUNT 13
 
 static ErrCode parsingStatus = RC_SUCCESS;
 
@@ -22,10 +19,6 @@ static void Init() {
 static void TestResourceConfigProcessorYAMLDataIntegrity1() {
     C_ASSERT(ResourceRegistry::getInstance() != nullptr);
     C_ASSERT(parsingStatus == RC_SUCCESS);
-}
-
-static void TestResourceConfigProcessorYAMLDataIntegrity2() {
-    C_ASSERT(ResourceRegistry::getInstance()->getTotalResourcesCount() == TOTAL_RESOURCE_CONFIGS_COUNT);
 }
 
 static void TestResourceConfigProcessorYAMLDataIntegrity3_1() {
@@ -81,7 +74,6 @@ int32_t main() {
 
     Init();
     RUN_TEST(TestResourceConfigProcessorYAMLDataIntegrity1);
-    RUN_TEST(TestResourceConfigProcessorYAMLDataIntegrity2);
     RUN_TEST(TestResourceConfigProcessorYAMLDataIntegrity3_1);
     RUN_TEST(TestResourceConfigProcessorYAMLDataIntegrity3_2);
     RUN_TEST(TestResourceConfigProcessorYAMLDataIntegrity3_3);
