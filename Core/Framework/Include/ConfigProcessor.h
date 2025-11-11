@@ -35,6 +35,8 @@
 #define RESOURCE_CONFIGS_ELEM_POLICY "Policy"
 #define RESOURCE_CONFIGS_ELEM_T_UNIT "Unit"
 #define RESOURCE_CONFIGS_ELEM_APPLY_TYPE "ApplyType"
+#define RESOURCE_CONFIGS_ELEM_TARGETS_ENABLED "TargetsEnabled"
+#define RESOURCE_CONFIGS_ELEM_TARGETS_DISABLED "TargetsDisabled"
 
 // Target Info Config
 #define TARGET_CONFIGS_ROOT "TargetConfig"

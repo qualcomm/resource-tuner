@@ -60,6 +60,8 @@ static int8_t isKey(const std::string& keyName) {
         RESOURCE_CONFIGS_ELEM_POLICY,
         RESOURCE_CONFIGS_ELEM_T_UNIT,
         RESOURCE_CONFIGS_ELEM_APPLY_TYPE,
+        RESOURCE_CONFIGS_ELEM_TARGETS_ENABLED,
+        RESOURCE_CONFIGS_ELEM_TARGETS_DISABLED,
         INIT_CONFIGS_ROOT,
         INIT_CONFIGS_ELEM_CGROUPS_LIST,
         INIT_CONFIGS_ELEM_CGROUP_NAME,
@@ -195,6 +197,8 @@ ErrCode ConfigProcessor::parseResourceConfigYamlNode(const std::string& filePath
                 ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_T_UNIT, setTranslationUnit);
                 ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_APPLY_TYPE, setApplyType);
                 ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_MODES, setModes);
+                ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_TARGETS_ENABLED, addTargetEnabled);
+                ADD_TO_RESOURCE_BUILDER(RESOURCE_CONFIGS_ELEM_TARGETS_DISABLED, addTargetDisabled);
 
                 break;
 

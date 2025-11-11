@@ -455,6 +455,8 @@ Each resource is defined with the following fields:
 | `Policy`        | `string`(Optional)   | Concurrency policy (`"higher_is_better"`, `"lower_is_better"`, `"instant_apply"`, `"lazy_apply"`). | `lazy_apply` |
 | `Unit`        | `string`(Optional)   | Translation Unit (`"MB"`, `"GB"`, `"KHz"`, `"Hz"` etc). | `NA (multiplier = 1)` |
 | `ApplyType` | `string` (Optional)  | Indicates if the resource can have different values, across different cores, clusters or cgroups. | `global` |
+| `TargetsEnabled`          | `array` (Optional)   | List of Targets on which this Resource should be available for tuning | `Empty List` |
+| `TargetsDisabled`          | `array` (Optional)   | List of Targets on which this Resource should not be available for tuning | `Empty List` |
 
 <div style="page-break-after: always;"></div>
 
