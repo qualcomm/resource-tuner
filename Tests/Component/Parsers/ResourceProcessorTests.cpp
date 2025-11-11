@@ -1,15 +1,12 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-
 #include "ErrCodes.h"
 #include "TestUtils.h"
 #include "ConfigProcessor.h"
 #include "ResourceRegistry.h"
 #include "Extensions.h"
 #include "Utils.h"
-
-#define TOTAL_RESOURCE_CONFIGS_COUNT 13
 
 static ErrCode parsingStatus = RC_SUCCESS;
 
@@ -24,10 +21,6 @@ static void TestResourceConfigProcessorYAMLDataIntegrity1() {
     C_ASSERT(parsingStatus == RC_SUCCESS);
 }
 
-static void TestResourceConfigProcessorYAMLDataIntegrity2() {
-    C_ASSERT(ResourceRegistry::getInstance()->getTotalResourcesCount() == TOTAL_RESOURCE_CONFIGS_COUNT);
-}
-
 static void TestResourceConfigProcessorYAMLDataIntegrity3_1() {
     ResConfInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResConf(0x80ff0000);
 
@@ -38,7 +31,6 @@ static void TestResourceConfigProcessorYAMLDataIntegrity3_1() {
     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min.txt") == 0);
     C_ASSERT(resourceConfigInfo->mHighThreshold == 1024);
     C_ASSERT(resourceConfigInfo->mLowThreshold == 0);
-    C_ASSERT(resourceConfigInfo->mSupported == true);
     C_ASSERT(resourceConfigInfo->mPolicy == HIGHER_BETTER);
     C_ASSERT(resourceConfigInfo->mPermissions == PERMISSION_THIRD_PARTY);
     C_ASSERT(resourceConfigInfo->mModes == (MODE_RESUME | MODE_DOZE));
@@ -55,7 +47,6 @@ static void TestResourceConfigProcessorYAMLDataIntegrity3_2() {
     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_max.txt") == 0);
     C_ASSERT(resourceConfigInfo->mHighThreshold == 1024);
     C_ASSERT(resourceConfigInfo->mLowThreshold == 512);
-    C_ASSERT(resourceConfigInfo->mSupported == true);
     C_ASSERT(resourceConfigInfo->mPolicy == HIGHER_BETTER);
     C_ASSERT(resourceConfigInfo->mPermissions == PERMISSION_THIRD_PARTY);
     C_ASSERT(resourceConfigInfo->mModes == (MODE_RESUME | MODE_DOZE));
@@ -72,7 +63,6 @@ static void TestResourceConfigProcessorYAMLDataIntegrity3_3() {
     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource2.txt") == 0);
     C_ASSERT(resourceConfigInfo->mHighThreshold == 6500);
     C_ASSERT(resourceConfigInfo->mLowThreshold == 50);
-    C_ASSERT(resourceConfigInfo->mSupported == true);
     C_ASSERT(resourceConfigInfo->mPolicy == HIGHER_BETTER);
     C_ASSERT(resourceConfigInfo->mPermissions == PERMISSION_THIRD_PARTY);
     C_ASSERT(resourceConfigInfo->mModes == MODE_RESUME);
@@ -84,7 +74,6 @@ int32_t main() {
 
     Init();
     RUN_TEST(TestResourceConfigProcessorYAMLDataIntegrity1);
-    RUN_TEST(TestResourceConfigProcessorYAMLDataIntegrity2);
     RUN_TEST(TestResourceConfigProcessorYAMLDataIntegrity3_1);
     RUN_TEST(TestResourceConfigProcessorYAMLDataIntegrity3_2);
     RUN_TEST(TestResourceConfigProcessorYAMLDataIntegrity3_3);

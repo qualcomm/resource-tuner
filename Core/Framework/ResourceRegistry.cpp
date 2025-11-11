@@ -3,6 +3,8 @@
 
 #include "ResourceRegistry.h"
 
+static const int32_t unsupportedResoure = -2;
+
 std::shared_ptr<ResourceRegistry> ResourceRegistry::resourceRegistryInstance = nullptr;
 
 ResourceRegistry::ResourceRegistry() {
@@ -110,7 +112,7 @@ void ResourceRegistry::registerResource(ResConfInfo* resourceConfigInfo,
         // Overwrite it.
 
         int32_t resourceTableIndex = getResourceTableIndex(resourceBitmap);
-        this->mResourceConfig[resourceTableIndex] = resourceConfigInfo;
+        this->mResourceConfigs[resourceTableIndex] = resourceConfigInfo;
 
         if(isBuSpecified) {
             this->mSystemIndependentLayerMappings.erase(resourceBitmap);
@@ -125,7 +127,7 @@ void ResourceRegistry::registerResource(ResConfInfo* resourceConfigInfo,
         }
 
         this->mSystemIndependentLayerMappings[resourceBitmap] = this->mTotalResources;
-        this->mResourceConfig.push_back(resourceConfigInfo);
+        this->mResourceConfigs.push_back(resourceConfigInfo);
 
         this->mTotalResources++;
     }
@@ -136,7 +138,7 @@ void ResourceRegistry::registerResource(ResConfInfo* resourceConfigInfo,
 
 void ResourceRegistry::displayResources() {
     for(int32_t i = 0; i < this->mTotalResources; i++) {
-        auto& res = mResourceConfig[i];
+        auto& res = mResourceConfigs[i];
 
         LOGI("RESTUNE_RESOURCE_PROCESSOR", "Resource Name: " + res->mResourceName);
         LOGI("RESTUNE_RESOURCE_PROCESSOR", "Resource Path: " + res->mResourcePath);
@@ -150,7 +152,7 @@ void ResourceRegistry::displayResources() {
 }
 
 std::vector<ResConfInfo*> ResourceRegistry::getRegisteredResources() {
-    return mResourceConfig;
+    return mResourceConfigs;
 }
 
 ResConfInfo* ResourceRegistry::getResConf(uint32_t resourceId) {
@@ -164,7 +166,7 @@ ResConfInfo* ResourceRegistry::getResConf(uint32_t resourceId) {
         TYPELOGV(RESOURCE_REGISTRY_RESOURCE_NOT_FOUND, resourceId);
         return nullptr;
     }
-    return this->mResourceConfig[resourceTableIndex];
+    return this->mResourceConfigs[resourceTableIndex];
 }
 
 int32_t ResourceRegistry::getResourceTableIndex(uint32_t resourceId) {
@@ -190,14 +192,14 @@ void ResourceRegistry::pluginModifications() {
     for(std::pair<uint32_t, ResourceLifecycleCallback> resource: applierCallbacks) {
         int32_t resourceTableIndex = this->getResourceTableIndex(resource.first);
         if(resourceTableIndex != -1) {
-            this->mResourceConfig[resourceTableIndex]->mResourceApplierCallback = resource.second;
+            this->mResourceConfigs[resourceTableIndex]->mResourceApplierCallback = resource.second;
         }
     }
 
     for(std::pair<uint32_t, ResourceLifecycleCallback> resource: tearCallbacks) {
         int32_t resourceTableIndex = this->getResourceTableIndex(resource.first);
         if(resourceTableIndex != -1) {
-            this->mResourceConfig[resourceTableIndex]->mResourceTearCallback = resource.second;
+            this->mResourceConfigs[resourceTableIndex]->mResourceTearCallback = resource.second;
         }
     }
 }
@@ -212,15 +214,16 @@ void ResourceRegistry::restoreResourcesToDefaultValues() {
 }
 
 ResourceRegistry::~ResourceRegistry() {
-    for(int32_t i = 0; i < this->mResourceConfig.size(); i++) {
-        if(this->mResourceConfig[i] != nullptr) {
-            delete this->mResourceConfig[i];
-            this->mResourceConfig[i] = nullptr;
+    for(int32_t i = 0; i < this->mResourceConfigs.size(); i++) {
+        if(this->mResourceConfigs[i] != nullptr) {
+            delete this->mResourceConfigs[i];
+            this->mResourceConfigs[i] = nullptr;
         }
     }
 }
 
 ResourceConfigInfoBuilder::ResourceConfigInfoBuilder() {
+    this->mTargetRefCount = 0;
     this->mResourceConfigInfo = new (std::nothrow) ResConfInfo;
     if(this->mResourceConfigInfo == nullptr) {
         return;
@@ -234,7 +237,6 @@ ResourceConfigInfoBuilder::ResourceConfigInfoBuilder() {
     this->mResourceConfigInfo->mModes = 0;
     this->mResourceConfigInfo->mHighThreshold = this->mResourceConfigInfo->mLowThreshold = -1;
     this->mResourceConfigInfo->mPermissions = PERMISSION_THIRD_PARTY;
-    this->mResourceConfigInfo->mSupported = false;
     this->mResourceConfigInfo->mApplyType = ResourceApplyType::APPLY_GLOBAL;
     this->mResourceConfigInfo->mPolicy = Policy::LAZY_APPLY;
     this->mResourceConfigInfo->mUnit = TranslationUnit::U_NA;
@@ -384,7 +386,9 @@ ErrCode ResourceConfigInfoBuilder::setSupported(const std::string& supportedStri
         return RC_INVALID_VALUE;
     }
 
-    this->mResourceConfigInfo->mSupported = (supportedString == "true");
+    if(supportedString != "true") {
+        this->mTargetRefCount = unsupportedResoure;
+    }
     return RC_SUCCESS;
 }
 
@@ -469,6 +473,46 @@ ErrCode ResourceConfigInfoBuilder::setApplyType(const std::string& applyTypeStri
     }
 
     this->mResourceConfigInfo->mApplyType = applyType;
+    return RC_SUCCESS;
+}
+
+ErrCode ResourceConfigInfoBuilder::addTargetEnabled(const std::string& target) {
+    if(this->mResourceConfigInfo == nullptr) {
+        return RC_MEMORY_ALLOCATION_FAILURE;
+    }
+
+    if(this->mTargetRefCount == unsupportedResoure) {
+        return RC_RESOURCE_NOT_SUPPORTED;
+    }
+
+    // first entry
+    if(this->mTargetRefCount == 0) {
+        this->mTargetRefCount = -1;
+    }
+
+    if(target == ResourceTunerSettings::targetConfigs.targetName) {
+        this->mTargetRefCount = 1;
+    }
+    return RC_SUCCESS;
+}
+
+ErrCode ResourceConfigInfoBuilder::addTargetDisabled(const std::string& target) {
+    if(this->mResourceConfigInfo == nullptr) {
+        return RC_MEMORY_ALLOCATION_FAILURE;
+    }
+
+    if(this->mTargetRefCount == unsupportedResoure) {
+        return RC_RESOURCE_NOT_SUPPORTED;
+    }
+
+    // first entry
+    if(this->mTargetRefCount == 0) {
+        this->mTargetRefCount = 1;
+    }
+
+    if(target == ResourceTunerSettings::targetConfigs.targetName) {
+        this->mTargetRefCount = -1;
+    }
     return RC_SUCCESS;
 }
 

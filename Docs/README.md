@@ -223,6 +223,9 @@ int64_t tuneSignal(uint32_t signalCode,
 **Parameters:**
 
 - `signalCode` (`uint32_t`): A uniqued 32-bit (unsigned) identifier for the Signal
+                              - The last 16 bits (17-32) are used to specify the SigID
+                              - The next 8 bits (9-16) are used to specify the Signal Category
+                              - In addition for Custom Signals, the MSB must be set to 1 as well
 - `duration` (`int64_t`): Duration (in milliseconds) to tune the Signal for. A value of -1 denotes infinite duration.
 - `properties` (`int32_t`): Properties of the Request.
                             - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
@@ -282,6 +285,9 @@ int64_t relaySignal(uint32_t signalCode,
 **Parameters:**
 
 - `signalCode` (`uint32_t`): A uniqued 32-bit (unsigned) identifier for the Signal
+                              - The last 16 bits (17-32) are used to specify the SigID
+                              - The next 8 bits (9-16) are used to specify the Signal Category
+                              - In addition for Custom Signals, the MSB must be set to 1 as well
 - `duration` (`int64_t`): Duration (in milliseconds)
 - `properties` (`int32_t`): Properties of the Request.
 - `appName` (`const char*`): Name of the Application that is issuing the Request
@@ -455,6 +461,8 @@ Each resource is defined with the following fields:
 | `Policy`        | `string`(Optional)   | Concurrency policy (`"higher_is_better"`, `"lower_is_better"`, `"instant_apply"`, `"lazy_apply"`). | `lazy_apply` |
 | `Unit`        | `string`(Optional)   | Translation Unit (`"MB"`, `"GB"`, `"KHz"`, `"Hz"` etc). | `NA (multiplier = 1)` |
 | `ApplyType` | `string` (Optional)  | Indicates if the resource can have different values, across different cores, clusters or cgroups. | `global` |
+| `TargetsEnabled`          | `array` (Optional)   | List of Targets on which this Resource should be available for tuning | `Empty List` |
+| `TargetsDisabled`          | `array` (Optional)   | List of Targets on which this Resource should not be available for tuning | `Empty List` |
 
 <div style="page-break-after: always;"></div>
 

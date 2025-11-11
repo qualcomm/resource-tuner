@@ -36,23 +36,15 @@ static void TestSignalConfigProcessorYAMLDataIntegrity3_1() {
     C_ASSERT(signalInfo->mSignalID == 0);
     C_ASSERT(signalInfo->mSignalCategory == 0x0d);
     C_ASSERT(strcmp((const char*)signalInfo->mSignalName.data(), "TEST_SIGNAL_1") == 0);
-    C_ASSERT(signalInfo->mIsEnabled == true);
     C_ASSERT(signalInfo->mTimeout == 4000);
 
-    C_ASSERT(signalInfo->mTargetsEnabled != nullptr);
-    C_ASSERT(signalInfo->mTargetsDisabled == nullptr);
     C_ASSERT(signalInfo->mPermissions != nullptr);
     C_ASSERT(signalInfo->mDerivatives != nullptr);
     C_ASSERT(signalInfo->mSignalResources != nullptr);
 
-    C_ASSERT(signalInfo->mTargetsEnabled->size() == 2);
     C_ASSERT(signalInfo->mPermissions->size() == 1);
     C_ASSERT(signalInfo->mDerivatives->size() == 1);
     C_ASSERT(signalInfo->mSignalResources->size() == 1);
-
-    // Note the target values are converted to LowerCase before inserting into the map
-    C_ASSERT(signalInfo->mTargetsEnabled->count("sun") == 1);
-    C_ASSERT(signalInfo->mTargetsEnabled->count("moon") == 1);
 
     C_ASSERT(signalInfo->mPermissions->at(0) == PERMISSION_THIRD_PARTY);
 
@@ -73,22 +65,15 @@ static void TestSignalConfigProcessorYAMLDataIntegrity3_2() {
     C_ASSERT(signalInfo->mSignalID == 1);
     C_ASSERT(signalInfo->mSignalCategory == 0x0d);
     C_ASSERT(strcmp((const char*)signalInfo->mSignalName.data(), "TEST_SIGNAL_2") == 0);
-    C_ASSERT(signalInfo->mIsEnabled == true);
     C_ASSERT(signalInfo->mTimeout == 5000);
 
-    C_ASSERT(signalInfo->mTargetsDisabled != nullptr);
-    C_ASSERT(signalInfo->mTargetsEnabled == nullptr);
     C_ASSERT(signalInfo->mPermissions != nullptr);
     C_ASSERT(signalInfo->mDerivatives != nullptr);
     C_ASSERT(signalInfo->mSignalResources != nullptr);
 
-    C_ASSERT(signalInfo->mTargetsDisabled->size() == 1);
     C_ASSERT(signalInfo->mPermissions->size() == 1);
     C_ASSERT(signalInfo->mDerivatives->size() == 1);
     C_ASSERT(signalInfo->mSignalResources->size() == 2);
-
-    // Note the target values are converted to LowerCase before inserting into the map
-    C_ASSERT(signalInfo->mTargetsDisabled->count("sun") == 1);
 
     C_ASSERT(signalInfo->mPermissions->at(0) == PERMISSION_SYSTEM);
 
@@ -115,27 +100,15 @@ static void TestSignalConfigProcessorYAMLDataIntegrity3_3() {
     C_ASSERT(signalInfo->mSignalID == 3);
     C_ASSERT(signalInfo->mSignalCategory == 0x0d);
     C_ASSERT(strcmp((const char*)signalInfo->mSignalName.data(), "TEST_SIGNAL_4") == 0);
-    C_ASSERT(signalInfo->mIsEnabled == false);
     C_ASSERT(signalInfo->mTimeout == 4000);
 
-    C_ASSERT(signalInfo->mTargetsEnabled != nullptr);
-    C_ASSERT(signalInfo->mTargetsDisabled == nullptr);
     C_ASSERT(signalInfo->mPermissions != nullptr);
     C_ASSERT(signalInfo->mDerivatives != nullptr);
     C_ASSERT(signalInfo->mSignalResources != nullptr);
 
-    C_ASSERT(signalInfo->mTargetsEnabled->size() == 2);
     C_ASSERT(signalInfo->mPermissions->size() == 1);
     C_ASSERT(signalInfo->mDerivatives->size() == 1);
     C_ASSERT(signalInfo->mSignalResources->size() == 4);
-
-    // Note the target values are converted to LowerCase before inserting into the map
-    // Verify that the Lower case translation Correctly Happens
-    C_ASSERT(signalInfo->mTargetsEnabled->count("sun") == 1);
-    C_ASSERT(signalInfo->mTargetsEnabled->count("qli") == 1);
-
-    C_ASSERT(signalInfo->mTargetsEnabled->count("SUN") == 0);
-    C_ASSERT(signalInfo->mTargetsEnabled->count("QLI") == 0);
 
     C_ASSERT(signalInfo->mPermissions->at(0) == PERMISSION_THIRD_PARTY);
 
@@ -176,11 +149,8 @@ static void TestSignalConfigProcessorYAMLDataIntegrity3_4() {
     C_ASSERT(signalInfo->mSignalID == 0x0007);
     C_ASSERT(signalInfo->mSignalCategory == 0x0d);
     C_ASSERT(strcmp((const char*)signalInfo->mSignalName.data(), "TEST_SIGNAL_8") == 0);
-    C_ASSERT(signalInfo->mIsEnabled == true);
     C_ASSERT(signalInfo->mTimeout == 5500);
 
-    C_ASSERT(signalInfo->mTargetsEnabled == nullptr);
-    C_ASSERT(signalInfo->mTargetsDisabled == nullptr);
     C_ASSERT(signalInfo->mPermissions != nullptr);
     C_ASSERT(signalInfo->mDerivatives == nullptr);
     C_ASSERT(signalInfo->mSignalResources != nullptr);

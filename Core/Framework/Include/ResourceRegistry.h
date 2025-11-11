@@ -68,10 +68,6 @@ typedef struct {
      */
     uint8_t mModes;
     /**
-     * @brief boolean flag which is set if node is available for Tuning.
-     */
-    int8_t mSupported;
-    /**
      * @brief Application Type Enum, indicating whether the specified value for the Resource
      *        by a Request, needs to be applied at a per-core, per-cluster or global value.
      */
@@ -106,7 +102,7 @@ private:
     static std::shared_ptr<ResourceRegistry> resourceRegistryInstance;
     int32_t mTotalResources;
 
-    std::vector<ResConfInfo*> mResourceConfig;
+    std::vector<ResConfInfo*> mResourceConfigs;
     std::unordered_map<uint32_t, int32_t> mSystemIndependentLayerMappings;
     std::unordered_map<std::string, std::string> mDefaultValueStore;
 
@@ -123,7 +119,7 @@ public:
      * @brief Used to register a Config specified (through YAML) Resource with Resource Tuner
      * @details The Resource Info is parsed from YAML files. If the ResourceConfig provided is
      *          Malformed, then it will be freed as part of this routine, else it will
-     *          be added to the "mResourceConfig" vector.
+     *          be added to the "mResourceConfigs" vector.
      */
     void registerResource(ResConfInfo* resourceConfigInfo, int8_t isBuSpecified=false);
 
@@ -162,6 +158,8 @@ private:
     ResConfInfo* mResourceConfigInfo;
 
 public:
+    int32_t mTargetRefCount;
+
     ResourceConfigInfoBuilder();
     ~ResourceConfigInfoBuilder();
 
@@ -177,6 +175,8 @@ public:
     ErrCode setPolicy(const std::string& policyString);
     ErrCode setTranslationUnit(const std::string& unitString);
     ErrCode setApplyType(const std::string& applyTypeString);
+    ErrCode addTargetEnabled(const std::string& target);
+    ErrCode addTargetDisabled(const std::string& target);
 
     ResConfInfo* build();
 };

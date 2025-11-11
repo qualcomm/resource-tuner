@@ -68,12 +68,6 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
     if(allowedPriority == -1) return false;
     signal->setPriority(allowedPriority);
 
-    // Check if the Signal is enabled for provisioning
-    if(!signalInfo->mIsEnabled) {
-        TYPELOGV(VERIFIER_UNSUPPORTED_SIGNAL_TUNING, signal->getSignalCode());
-        return false;
-    }
-
     int8_t permissionCheck = false;
     for(enum Permissions signalPermission: *signalInfo->mPermissions) {
         if(clientPermissions == signalPermission) {
@@ -86,20 +80,6 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
     if(!permissionCheck) {
         TYPELOGV(VERIFIER_NOT_SUFFICIENT_SIGNAL_ACQ_PERMISSION, signal->getSignalCode());
         return false;
-    }
-
-    // Target Compatability Checks
-    std::string targetName = ResourceTunerSettings::targetConfigs.targetName;
-    if(signalInfo->mTargetsEnabled != nullptr) {
-        if(signalInfo->mTargetsEnabled->find(targetName) == signalInfo->mTargetsEnabled->end()) {
-            TYPELOGV(VERIFIER_TARGET_CHECK_FAILED, signal->getSignalCode());
-            return false;
-        }
-    } else if(signalInfo->mTargetsDisabled != nullptr) {
-        if(signalInfo->mTargetsDisabled->find(targetName) != signalInfo->mTargetsDisabled->end()) {
-            TYPELOGV(VERIFIER_TARGET_CHECK_FAILED, signal->getSignalCode());
-            return false;
-        }
     }
 
     if(signal->getRequestType() == REQ_SIGNAL_RELAY) {
@@ -132,9 +112,6 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
         } else {
             // Note: Extend this verification for multiple values
         }
-
-        // Verify tuning is supported for the resource in question
-        if(!resourceConfig->mSupported) return false;
 
         // Check for Client permissions
         if(resourceConfig->mPermissions == PERMISSION_SYSTEM && clientPermissions == PERMISSION_THIRD_PARTY) {
