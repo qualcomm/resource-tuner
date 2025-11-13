@@ -5,6 +5,8 @@ set(CMAKE_STANDARD_REQUIRED True)
 
 project("Resource Tuner")
 
+include(GNUInstallDirs)
+
 # Dependencies
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBYAML REQUIRED yaml-0.1)
@@ -39,7 +41,7 @@ if(BUILD_CLI)
     ${CMAKE_SOURCE_DIR}/../Core/Client/ClientCLI.cpp
   )
   target_link_libraries(resource_tuner_cli ClientAPIs)
-  install(TARGETS resource_tuner_cli RUNTIME DESTINATION bin)
+  install(TARGETS resource_tuner_cli RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 
 set(SERVER_EXECUTABLE "")
@@ -68,23 +70,63 @@ target_link_libraries(resource_tuner PUBLIC ${SERVER_LIBS})
 target_include_directories(resource_tuner PRIVATE ${LIBYAML_INCLUDE_DIRS})
 
 # Install libs
-install(TARGETS resource_tuner RUNTIME DESTINATION bin)
+install(TARGETS resource_tuner RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(TARGETS Auxiliary SocketCommServer
                 ClientAPIs Server ExtAPIs
-                SysRequestReceiver LIBRARY DESTINATION lib)
+                SysRequestReceiver LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 if(BUILD_TESTS)
-  install(TARGETS TestSetupUtils DESTINATION lib)
+  install(TARGETS TestSetupUtils DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()
 
 if(BUILD_SIGNALS)
-  install(TARGETS SysSignals DESTINATION lib)
+  install(TARGETS SysSignals DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()
 
 # Install headers
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/../Core/Client/APIs/Include/ DESTINATION include/ResourceTuner)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/../Core/Extensions/Include/ DESTINATION include/ResourceTuner)
-install(FILES ${CMAKE_SOURCE_DIR}/../Core/Modula/Common/Include/Common.h DESTINATION include/ResourceTuner)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/../Core/Client/APIs/Include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ResourceTuner)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/../Core/Extensions/Include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ResourceTuner)
+install(FILES ${CMAKE_SOURCE_DIR}/../Core/Modula/Common/Include/Common.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ResourceTuner)
 
 # Install service file
-install(FILES ${CMAKE_SOURCE_DIR}/../Services/resource-tuner.service DESTINATION lib/systemd/system/)
+install(FILES ${CMAKE_SOURCE_DIR}/../Services/resource-tuner.service DESTINATION ${CMAKE_INSTALL_LIBDIR}/systemd/system/)
+
+# Install core config files
+install(
+  DIRECTORY ${CMAKE_SOURCE_DIR}/../Core/Configs/
+  DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/resource-tuner/common/
+  FILES_MATCHING
+  PATTERN "*.yaml"
+  PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
+
+# Install Signal config files
+install(
+  DIRECTORY ${CMAKE_SOURCE_DIR}/../Signals/Configs/
+  DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/resource-tuner/common/
+  FILES_MATCHING
+  PATTERN "*.yaml"
+  PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
+
+# Install Test Configs, if BUILD_TEST is enabled
+if(BUILD_TESTS)
+  install(
+    DIRECTORY ${CMAKE_SOURCE_DIR}/../Tests/Configs/
+    DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/resource-tuner/custom/
+    FILES_MATCHING
+    PATTERN "*.yaml"
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+  )
+endif()
+
+# Install Custom Resource Nodes, if BUILD_TEST is enabled
+if(BUILD_TESTS)
+  install(
+    DIRECTORY ${CMAKE_SOURCE_DIR}/../Tests/Configs/ResourceSysFsNodes/
+    DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/resource-tuner/tests/Configs/ResourceSysFsNodes/
+    FILES_MATCHING
+    PATTERN "*.txt"
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+  )
+endif()
