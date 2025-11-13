@@ -24,10 +24,12 @@
 
 #define MAX_CLIENT_TID_COUNT 16
 
-typedef struct {
+typedef struct _client_info {
     uint8_t mClientType;
     int32_t mCurClientThreads;
     int32_t mClientTIDs[MAX_CLIENT_TID_COUNT];
+
+    _client_info(): mCurClientThreads(0) {}
 } ClientInfo;
 
 typedef struct {

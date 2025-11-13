@@ -100,7 +100,7 @@ int8_t ClientDataManager::createNewClient(int32_t clientPID, int32_t clientTID) 
         try {
             ClientInfo* clientInfo = MPLACED(ClientInfo);
 
-            int32_t curTIDCount = this->mClientRepo[clientPID]->mCurClientThreads;
+            int32_t curTIDCount = clientInfo->mCurClientThreads;
             clientInfo->mClientTIDs[curTIDCount] = clientTID;
             curTIDCount++;
             clientInfo->mCurClientThreads = curTIDCount;

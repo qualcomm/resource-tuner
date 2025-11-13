@@ -39,8 +39,8 @@ private:
     int32_t mNumValues;
 
     union {
-        int32_t values[2]; //!< Use this field for single Valued Resources
-        int32_t* valueArr;
+        int32_t values[2]; //!< Use this field for storing upto 2 Values
+        int32_t* valueArr; //!< Dynamically Allocated Array, for >= 3 values.
     } mResValue; //!< The value to be Configured for this Resource Node.
 
 public:
