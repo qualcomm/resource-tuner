@@ -398,7 +398,7 @@ ErrCode ResourceBuilder::setNumValues(int32_t valuesCount) {
     return RC_SUCCESS;
 }
 
-ErrCode ResourceBuilder::addValue(const std::string& valueString) {
+ErrCode ResourceBuilder::addValue(int32_t index, const std::string& valueString) {
     if(this->mResource == nullptr) {
         return RC_MEMORY_ALLOCATION_FAILURE;
     }
@@ -416,22 +416,7 @@ ErrCode ResourceBuilder::addValue(const std::string& valueString) {
         }
     }
 
-    if(this->mResource->getValuesCount() == 1) {
-        this->mResource->mResValue.value = value;
-    } else {
-        if(this->mResource->mResValue.values == nullptr) {
-            this->mResource->mResValue.values = new(std::nothrow) std::vector<int32_t>;
-            if(this->mResource->mResValue.values == nullptr) {
-                return RC_INVALID_VALUE;
-            }
-        }
-        try {
-            this->mResource->mResValue.values->push_back(value);
-        } catch(const std::bad_alloc& e) {
-            return RC_INVALID_VALUE;
-        }
-    }
-
+    this->mResource->setValueAt(index, value);
     return RC_SUCCESS;
 }
 

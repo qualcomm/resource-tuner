@@ -71,7 +71,7 @@ void defaultClusterLevelApplierCb(void* context) {
     std::string resourceNodePath = getClusterTypeResourceNodePath(resource, clusterID);
 
     // 32-bit, unit-dependent value to be written
-    int32_t valueToBeWritten = resource->mResValue.value;
+    int32_t valueToBeWritten = resource->getValueAt(0);
 
     OperationStatus status = OperationStatus::SUCCESS;
     int64_t translatedValue = Multiply(static_cast<int64_t>(valueToBeWritten),
@@ -129,7 +129,7 @@ static void defaultCoreLevelApplierHelper(Resource* resource, int32_t coreID) {
     ResConfInfo* rConf = ResourceRegistry::getInstance()->getResConf(resource->getResCode());
 
     // 32-bit, unit-dependent value to be written
-    int32_t valueToBeWritten = resource->mResValue.value;
+    int32_t valueToBeWritten = resource->getValueAt(0);
 
     OperationStatus status = OperationStatus::SUCCESS;
     int64_t translatedValue = Multiply(static_cast<int64_t>(valueToBeWritten),
@@ -230,8 +230,8 @@ void defaultCGroupLevelApplierCb(void* context) {
 
     ResConfInfo* rConf = ResourceRegistry::getInstance()->getResConf(resource->getResCode());
 
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
-    int32_t valueToBeWritten = (*resource->mResValue.values)[1];
+    int32_t cGroupIdentifier = resource->getValueAt(0);
+    int32_t valueToBeWritten = resource->getValueAt(1);
 
     OperationStatus status = OperationStatus::SUCCESS;
     int64_t translatedValue = Multiply(static_cast<int64_t>(valueToBeWritten),
@@ -280,11 +280,9 @@ void defaultCGroupLevelTearCb(void* context) {
     Resource* resource = static_cast<Resource*>(context);
     ResConfInfo* resourceConfigInfo =
         ResourceRegistry::getInstance()->getResConf(resource->getResCode());
-
     if(resourceConfigInfo == nullptr) return;
-    if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
+    int32_t cGroupIdentifier = resource->getValueAt(0);
     CGroupConfigInfo* cGroupConfig =
         TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
@@ -325,8 +323,8 @@ void defaultGlobalLevelApplierCb(void* context) {
         ResourceRegistry::getInstance()->getResConf(resource->getResCode());
 
     if(resourceConfig != nullptr) {
-        TYPELOGV(NOTIFY_NODE_WRITE, resourceConfig->mResourcePath.c_str(), resource->mResValue.value);
-        AuxRoutines::writeToFile(resourceConfig->mResourcePath, std::to_string(resource->mResValue.value));
+        TYPELOGV(NOTIFY_NODE_WRITE, resourceConfig->mResourcePath.c_str(), resource->getValueAt(0));
+        AuxRoutines::writeToFile(resourceConfig->mResourcePath, std::to_string(resource->getValueAt(0)));
     }
 }
 
@@ -352,11 +350,9 @@ void defaultGlobalLevelTearCb(void* context) {
 static void moveProcessToCGroup(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
-
-    if(resource->mResValue.values == nullptr) return;
     if(resource->getValuesCount() < 2) return;
 
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
+    int32_t cGroupIdentifier = resource->getValueAt(0);
     // Get the corresponding cGroupConfig, this is needed to identify the
     // correct CGroup Name.
     CGroupConfigInfo* cGroupConfig =
@@ -374,7 +370,7 @@ static void moveProcessToCGroup(void* context) {
 
     std::string controllerFilePath = getCGroupTypeResourceNodePath(resource, cGroupName);
     for(int32_t i = 1; i < resource->getValuesCount(); i++) {
-        int32_t pid = (*resource->mResValue.values)[i];
+        int32_t pid = resource->getValueAt(0);
         std::string currentCGroupFilePath = "/proc/" + std::to_string(pid) + "/cgroup";
         std::string currentCGroup = AuxRoutines::readFromFile(currentCGroupFilePath);
 
@@ -402,11 +398,9 @@ static void moveProcessToCGroup(void* context) {
 static void setRunOnCores(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
-
     if(resource->getValuesCount() < 2) return;
-    if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
+    int32_t cGroupIdentifier = resource->getValueAt(0);
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
@@ -415,7 +409,8 @@ static void setRunOnCores(void* context) {
         if(cGroupName.length() > 0) {
             std::string cpusString = "";
             for(int32_t i = 1; i < resource->getValuesCount(); i++) {
-                cpusString += std::to_string((*resource->mResValue.values)[i]);
+                int32_t curVal = resource->getValueAt(i);
+                cpusString += std::to_string(curVal);
                 if(resource->getValuesCount() > 2 && i < resource->getValuesCount() - 1) {
                     cpusString.push_back(',');
                 }
@@ -445,11 +440,9 @@ static void setRunOnCores(void* context) {
 static void setRunOnCoresExclusively(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
-
     if(resource->getValuesCount() < 2) return;
-    if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
+    int32_t cGroupIdentifier = resource->getValueAt(0);
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
@@ -461,7 +454,8 @@ static void setRunOnCoresExclusively(void* context) {
 
             std::string cpusString = "";
             for(int32_t i = 1; i < resource->getValuesCount(); i++) {
-                cpusString += std::to_string((*resource->mResValue.values)[i]);
+                int32_t curVal = resource->getValueAt(i);
+                cpusString += std::to_string(curVal);
                 if(resource->getValuesCount() > 2 && i < resource->getValuesCount() - 1) {
                     cpusString.push_back(',');
                 }
@@ -496,13 +490,11 @@ static void setRunOnCoresExclusively(void* context) {
 static void limitCpuTime(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
-
     if(resource->getValuesCount() != 3) return;
-    if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
-    int32_t maxUsageMicroseconds = (*resource->mResValue.values)[1];
-    int32_t periodMicroseconds = (*resource->mResValue.values)[2];
+    int32_t cGroupIdentifier = resource->getValueAt(0);
+    int32_t maxUsageMicroseconds = resource->getValueAt(1);
+    int32_t periodMicroseconds = resource->getValueAt(2);
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {
@@ -532,12 +524,10 @@ static void limitCpuTime(void* context) {
 static void removeProcessFromCGroup(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
-
-    if(resource->mResValue.values == nullptr) return;
     if(resource->getValuesCount() < 2) return;
 
     for(int32_t i = 1; i < resource->getValuesCount(); i++) {
-        int32_t pid = (*resource->mResValue.values)[i];
+        int32_t pid = resource->getValueAt(i);
 
         std::string cGroupPath =
             ResourceRegistry::getInstance()->getDefaultValue("/proc/" + std::to_string(pid) + "/cgroup");
@@ -566,12 +556,9 @@ static void removeProcessFromCGroup(void* context) {
 static void removeThreadFromCGroup(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
-
     if(resource->getValuesCount() != 2) return;
-    if(resource->mResValue.values == nullptr) return;
 
-    int32_t tid = (*resource->mResValue.values)[1];
-
+    int32_t tid = resource->getValueAt(1);
     std::string parentCGroupProcsPath = ResourceTunerSettings::mBaseCGroupPath + "cgroup.threads";
 
     std::ofstream controllerFile(parentCGroupProcsPath, std::ios::app);
@@ -593,9 +580,8 @@ static void resetRunOnCoresExclusively(void* context) {
     Resource* resource = static_cast<Resource*>(context);
 
     if(resource->getValuesCount() < 2) return;
-    if(resource->mResValue.values == nullptr) return;
 
-    int32_t cGroupIdentifier = (*resource->mResValue.values)[0];
+    int32_t cGroupIdentifier = resource->getValueAt(0);
     CGroupConfigInfo* cGroupConfig = TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
     if(cGroupConfig != nullptr) {

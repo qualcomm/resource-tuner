@@ -150,7 +150,7 @@ PropertyConfigs:
     Value: "false"
 ```
 
-# 5. How to create a Resource Opcode (ResCode) and Signal Opcode (SigCode)
+# 6. How to create a Resource Opcode (ResCode) and Signal Opcode (SigCode)
 Suppose we would like to tune the following resource
 ```yaml
 ResourceConfigs:
@@ -209,7 +209,12 @@ SignalConfigs:
 
 ```
 
-Treating it as a custom or downstream Signal config, the SigCode generated will be:
+Treating it as a custom or downstream Signal config (i.e. MSB should be set to 1), the SigCode can be generated as follows:
+- The Category is: "0x0d" and
+- The SigID is "0x0008"
+
+Hence, the resulting SigCode for this signal is:
+
 0x800d0008 in hex notation, or
 10000000000011010000000000001000, in binary.
 

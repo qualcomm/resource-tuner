@@ -100,7 +100,7 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
 
         // Verify value is in the range [LT, HT]
         if(resource->getValuesCount() == 1) {
-            int32_t configValue = resource->mResValue.value;
+            int32_t configValue = resource->getValueAt(0);
             int32_t lowThreshold = resourceConfig->mLowThreshold;
             int32_t highThreshold = resourceConfig->mHighThreshold;
 

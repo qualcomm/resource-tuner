@@ -112,17 +112,17 @@ private:
     CocoTable();
 
     void timerExpired(Request* req);
-    void applyAction(CoreIterable* currNode, int32_t index, int8_t priority);
+    void applyAction(ResIterable* currNode, int32_t index, int8_t priority);
     void removeAction(int32_t index, Resource* resource);
 
     int32_t getCocoTablePrimaryIndex(uint32_t resCode);
     int32_t getCocoTableSecondaryIndex(Resource* resource, int8_t priority);
 
-    void deleteNode(CoreIterable* node,
+    void deleteNode(ResIterable* node,
                     int32_t primaryIndex,
                     int32_t secondaryIndex);
 
-    int8_t insertInCocoTable(CoreIterable* currNode, int8_t priority);
+    int8_t insertInCocoTable(ResIterable* currNode, int8_t priority);
 
     void fastPathApply(Resource* resource);
     void fastPathReset(Resource* resource);

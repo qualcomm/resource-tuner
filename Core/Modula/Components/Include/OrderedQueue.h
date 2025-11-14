@@ -4,7 +4,6 @@
 #ifndef ORDERED_QUEUE_H
 #define ORDERED_QUEUE_H
 
-#include <iostream>
 #include <queue>
 #include <vector>
 #include <mutex>

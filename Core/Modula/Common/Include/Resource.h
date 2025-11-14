@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <vector>
 
+#include "DLManager.h"
 #include "MemoryPool.h"
 
 /**
@@ -37,19 +38,19 @@ private:
      */
     int32_t mNumValues;
 
-public:
     union {
-        int32_t value; //!< Use this field for single Valued Resources
-        std::vector<int32_t>* values; //!< Use this field for Multi Valued Resources
+        int32_t values[2]; //!< Use this field for storing upto 2 Values
+        int32_t* valueArr; //!< Dynamically Allocated Array, for >= 3 values.
     } mResValue; //!< The value to be Configured for this Resource Node.
 
+public:
     Resource() : mResCode(0), mResInfo(0), mOptionalInfo(0), mNumValues(0) {
-        mResValue.values = nullptr;
+        mResValue.valueArr = nullptr;
     }
-    ~Resource();
-
     // Copy Constructor
     Resource(const Resource& resource);
+
+    ~Resource();
 
     int32_t getCoreValue() const;
     int32_t getClusterValue() const;
@@ -57,15 +58,17 @@ public:
     int32_t getOptionalInfo() const;
     uint32_t getResCode() const;
     int32_t getValuesCount() const;
+    int32_t getValueAt(int32_t index) const;
 
     void setCoreValue(int32_t core);
     void setClusterValue(int32_t cluster);
-    void setResourceID(uint16_t resID);
-    void setResourceType(uint8_t resType);
     void setResCode(uint32_t resCode);
     void setResInfo(int32_t resInfo);
     void setOptionalInfo(int32_t optionalInfo);
     void setNumValues(int32_t numValues);
+    ErrCode setValueAt(int32_t index, int32_t value);
 };
+
+typedef ExtIterable1<Resource*> ResIterable;
 
 #endif

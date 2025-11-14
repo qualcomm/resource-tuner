@@ -126,21 +126,21 @@ void TargetRegistry::generatePolicyBasedMapping(std::vector<std::string>& policy
     int8_t physicalClusterId = 0;
     for(const std::string& dirName : policyDirs) {
         std::string fullPath = std::string(POLICY_DIR_PATH) + dirName;
-        std::vector<int32_t>* cpuList = new std::vector<int32_t>;
+        std::vector<int32_t> cpuList;
 
-        if(RC_IS_OK(readRelatedCpus(fullPath, *cpuList))) {
+        if(RC_IS_OK(readRelatedCpus(fullPath, cpuList))) {
             int32_t clusterCapacity = 0;
             ClusterInfo* clusterInfo = new ClusterInfo;
             clusterInfo->mPhysicalID = physicalClusterId;
-            clusterInfo->mNumCpus = cpuList->size();
+            clusterInfo->mNumCpus = cpuList.size();
 
-            if(!cpuList->empty()) {
+            if(!cpuList.empty()) {
                 // If this cluster has a non-zero number of cores, then
                 // proceed with determining the Cluster Capcity
-                int32_t cpuID = (*cpuList)[0];
+                int32_t cpuID = cpuList[0];
                 clusterInfo->mStartCpu = cpuID;
-                for(int32_t i = 0; i < cpuList->size(); i++) {
-                    clusterInfo->mStartCpu = std::min(clusterInfo->mStartCpu, (*cpuList)[i]);
+                for(int32_t i = 0; i < cpuList.size(); i++) {
+                    clusterInfo->mStartCpu = std::min(clusterInfo->mStartCpu, cpuList[i]);
                 }
 
                 clusterCapacity = readCpuCapacity(cpuID);
@@ -149,7 +149,7 @@ void TargetRegistry::generatePolicyBasedMapping(std::vector<std::string>& policy
             clusterInfo->mCapacity = clusterCapacity;
             clusterConfigs.push_back({clusterCapacity, {clusterInfo->mPhysicalID, clusterInfo}});
             this->mPhysicalClusters[clusterInfo->mPhysicalID] = clusterInfo;
-            physicalClusterId += cpuList->size();
+            physicalClusterId += cpuList.size();
         }
     }
 

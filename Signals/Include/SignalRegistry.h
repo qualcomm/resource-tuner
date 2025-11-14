@@ -148,7 +148,7 @@ public:
     ErrCode setResCode(const std::string& resCodeString);
     ErrCode setResInfo(const std::string& resInfoString);
     ErrCode setNumValues(int32_t valuesCount);
-    ErrCode addValue(const std::string& value);
+    ErrCode addValue(int32_t index, const std::string& value);
 
     Resource* build();
 };

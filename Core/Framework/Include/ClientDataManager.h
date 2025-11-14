@@ -15,14 +15,21 @@
 #include "fstream"
 #include "sstream"
 
+#include "ErrCodes.h"
+#include "DLManager.h"
 #include "ResourceTunerSettings.h"
 #include "MemoryPool.h"
 #include "Logger.h"
 #include "Utils.h"
 
-typedef struct {
-    std::vector<int32_t>* mClientTIDs;
+#define MAX_CLIENT_TID_COUNT 16
+
+typedef struct _client_info {
     uint8_t mClientType;
+    int32_t mCurClientThreads;
+    int32_t mClientTIDs[MAX_CLIENT_TID_COUNT];
+
+    _client_info(): mCurClientThreads(0) {}
 } ClientInfo;
 
 typedef struct {
@@ -142,13 +149,7 @@ public:
      */
     int8_t getClientLevelByClientID(int32_t clientPID);
 
-    /**
-     * @brief Returns the list of threads corresponding to the thread with the given ID.
-     * @param clientPID Process ID of the client
-     * @return std::vector<int32_t>*:\n
-     *            - Pointer to a vector containing the threads ids.
-     */
-    std::vector<int32_t>* getThreadsByClientId(int32_t clientPID);
+    void getThreadsByClientId(int32_t clientPID, std::vector<int32_t>& threadIDs);
 
     /**
      * @brief This method is called by the PulseMonitor to fetch the list of all active clients.

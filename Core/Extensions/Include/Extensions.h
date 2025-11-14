@@ -8,7 +8,6 @@
 #ifndef RESOURCE_TUNER_EXTENSIONS_H
 #define RESOURCE_TUNER_EXTENSIONS_H
 
-#include <iostream>
 #include <vector>
 #include <unordered_map>
 

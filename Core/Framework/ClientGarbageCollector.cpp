@@ -14,11 +14,10 @@ ClientGarbageCollector::ClientGarbageCollector() {
 void ClientGarbageCollector::submitClientThreadsForCleanup(int32_t clientPid) {
     const std::lock_guard<std::mutex> lock(this->mGcQueueMutex);
 
-    std::vector<int32_t>* clientThreads =
-        ClientDataManager::getInstance()->getThreadsByClientId(clientPid);
-
-    for(int32_t threadId: *clientThreads) {
-        this->mGcQueue.push(threadId);
+    std::vector<int32_t> threadIDs;
+    ClientDataManager::getInstance()->getThreadsByClientId(clientPid, threadIDs);
+    for(int32_t threadID : threadIDs) {
+        this->mGcQueue.push(threadID);
     }
 }
 

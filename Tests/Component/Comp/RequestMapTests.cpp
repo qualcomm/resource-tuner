@@ -23,7 +23,7 @@ Resource* generateResourceForTesting(int32_t seed) {
         resource = (Resource*) GetBlock<Resource>();
         resource->setResCode(16 + seed);
         resource->setNumValues(1);
-        resource->mResValue.value = 2 * seed;
+        resource->setValueAt(0, 2 * seed);
     } catch(const std::bad_alloc& e) {
         throw std::bad_alloc();
     }
@@ -35,7 +35,7 @@ Resource* generateResourceFromMemoryPoolForTesting(int32_t seed) {
     Resource* resource = new(GetBlock<Resource>()) Resource;
     resource->setResCode(16 + seed);
     resource->setNumValues(1);
-    resource->mResValue.value = 2 * seed;
+    resource->setValueAt(0, 2 * seed);
 
     return resource;
 }
@@ -49,9 +49,9 @@ static void TestSingleRequestScenario() {
     Resource* resource = MPLACED(Resource);
     resource->setResCode(16);
     resource->setNumValues(1);
-    resource->mResValue.value = 8;
+    resource->setValueAt(0, 8);
 
-    CoreIterable* resIterable = MPLACED(CoreIterable);
+    ResIterable* resIterable = MPLACED(ResIterable);
     resIterable->mData = resource;
 
     Request* request = new (GetBlock<Request>()) Request;
@@ -86,8 +86,8 @@ static void TestDuplicateRequestScenario1() {
     Resource* resource1 = generateResourceForTesting(1);
     Resource* resource2 = generateResourceForTesting(1);
 
-    CoreIterable* resIterable1 = MPLACED(CoreIterable);
-    CoreIterable* resIterable2 = MPLACED(CoreIterable);
+    ResIterable* resIterable1 = MPLACED(ResIterable);
+    ResIterable* resIterable2 = MPLACED(ResIterable);
     resIterable1->mData = resource1;
     resIterable2->mData = resource2;
 
@@ -219,7 +219,7 @@ static void TestDuplicateRequestScenario3_1() {
         Resource* resource = generateResourceForTesting(0);
 
         // Slight modification
-        resource->mResValue.value = 8 + index;
+        resource->setValueAt(0, 8 + index);
 
         std::vector<Resource*>* resources =
             new (GetBlock<std::vector<Resource*>>())std::vector<Resource*>;
@@ -632,7 +632,7 @@ static void TestRequestWithHandleExists1() {
         return;
     }
 
-    CoreIterable* resIterable = MPLACED(CoreIterable);
+    ResIterable* resIterable = MPLACED(ResIterable);
     resIterable->mData = resource;
 
     Request* request;
@@ -685,7 +685,7 @@ static void TestRequestWithHandleExists2() {
         return;
     }
 
-    CoreIterable* resIterable = MPLACED(CoreIterable);
+    ResIterable* resIterable = MPLACED(ResIterable);
     resIterable->mData = resource;
 
     Request* request;
@@ -746,7 +746,7 @@ static void TestRequestDeletion1() {
         return;
     }
 
-    CoreIterable* resIterable = MPLACED(CoreIterable);
+    ResIterable* resIterable = MPLACED(ResIterable);
     resIterable->mData = resource;
 
     Request* request;
@@ -900,7 +900,7 @@ static void TestRequestWithNullResourcesAddition() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RequestManager> requestMap = RequestManager::getInstance();
 
-    CoreIterable* resIterable = MPLACED(CoreIterable);
+    ResIterable* resIterable = MPLACED(ResIterable);
     resIterable->mData = nullptr;
 
     Request *request;
@@ -955,9 +955,9 @@ static void TestGetRequestFromMap() {
     resource->setResCode(15564);
     resource->setOptionalInfo(4445);
     resource->setNumValues(1);
-    resource->mResValue.value = 42;
+    resource->setValueAt(0, 42);
 
-    CoreIterable* resIterable = MPLACED(CoreIterable);
+    ResIterable* resIterable = MPLACED(ResIterable);
     resIterable->mData = resource;
 
     Request *request;
