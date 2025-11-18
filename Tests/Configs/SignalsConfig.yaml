@@ -145,3 +145,19 @@ SignalConfigs:
       - {ResCode: "0x00040001", ResInfo: "0x00000000", Values: [1804800]} # logical cluster: 0
       - {ResCode: "0x00040001", ResInfo: "0x00000100", Values: [940800]}  # logical cluster: 1
       - {ResCode: "0x00040001", ResInfo: "0x00000200", Values: [806400]}  # logical cluster: 2
+
+  - SigId: "0x000a"
+    Category: "0x0d"
+    Name: GENERIC_MULTIRES_SIGNAL
+    Enable: true
+    Permissions: ["third_party", "system"]
+    Timeout: 10000
+    Resources:
+      - {ResCode: "0x80ff0000", ResInfo: "0x00000000", Values: [668]}
+      - {ResCode: "0x80ff0001", ResInfo: "0x00000000", Values: [897]}
+      - {ResCode: "0x80ff0004", ResInfo: "0x00000000", Values: [231]}
+      - {ResCode: "0x80ff0006", ResInfo: "0x00000000", Values: [4775]}
+      - {ResCode: "0x80ff000a", ResInfo: "0x00000000", Values: [1976]}  # logical cluster: 0
+      - {ResCode: "0x80ff000a", ResInfo: "0x00000100", Values: [1989]}  # logical cluster: 1
+      - {ResCode: "0x80ff000a", ResInfo: "0x00000200", Values: [2012]}  # logical cluster: 2
+      - {ResCode: "0x80ff000d", ResInfo: "0x00000000", Values: [5, 41128]}  # cgroup: audio

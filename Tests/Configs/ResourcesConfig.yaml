@@ -116,7 +116,7 @@ ResourceConfigs:
 
   - ResType: "0xff"
     ResID: "0x000a"
-    Name: "TEST_RESOURCE_10_CLUSTER"
+    Name: "TEST_RESOURCE_10_CLUSTER_imitate"
     Path: "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/cluster_type_resource_%d_cluster_id.txt"
     Supported: true
     HighThreshold: 2048
@@ -149,3 +149,15 @@ ResourceConfigs:
     Modes: ["display_on", "doze"]
     Policy: "lazy_apply"
     ApplyType: "cluster"
+
+  - ResType: "0xff"
+    ResID: "0x000d"
+    Name: "TEST_RESOURCE_11_CGROUP_imitate"
+    Path: "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource4.txt"
+    Supported: true
+    HighThreshold: 66788
+    LowThreshold: 25568
+    Permissions: "system"
+    Modes: ["display_on", "doze"]
+    Policy: "instant_apply"
+    ApplyType: "cgroup"
