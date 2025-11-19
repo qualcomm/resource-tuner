@@ -33,11 +33,6 @@ typedef struct {
     uint8_t mSignalCategory;
 
     /**
-     * @brief Signal Name, for ex: EARLY_WAKEUP
-     */
-    std::string mSignalName;
-
-    /**
      * @brief Default Signal Timeout, to be used if Client specifies a duration
      *        of 0 in the tuneSignal API call.
      */
@@ -126,7 +121,6 @@ public:
 
     ErrCode setSignalID(const std::string& signalOpIdString);
     ErrCode setSignalCategory(const std::string& categoryString);
-    ErrCode setName(const std::string& signalName);
     ErrCode setTimeout(const std::string& timeoutString);
     ErrCode setIsEnabled(const std::string& isEnabledString);
     ErrCode addTargetEnabled(const std::string& target);

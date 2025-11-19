@@ -34,7 +34,6 @@ static void TestResourceParsingResourcesMerged1() {
     C_ASSERT(resourceConfigInfo != nullptr);
     C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
     C_ASSERT(resourceConfigInfo->mResourceResID == 0x000b);
-    C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "OVERRIDE_RESOURCE_1") == 0);
     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resouce-tuner/tests/Configs/pathB/overwrite") == 0);
     C_ASSERT(resourceConfigInfo->mHighThreshold == 220);
     C_ASSERT(resourceConfigInfo->mLowThreshold == 150);
@@ -50,7 +49,6 @@ static void TestResourceParsingResourcesMerged2() {
     C_ASSERT(resourceConfigInfo != nullptr);
     C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
     C_ASSERT(resourceConfigInfo->mResourceResID == 0x1000);
-    C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "CUSTOM_SCALING_FREQ") == 0);
     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/usr/local/customfreq/node") == 0);
     C_ASSERT(resourceConfigInfo->mHighThreshold == 90);
     C_ASSERT(resourceConfigInfo->mLowThreshold == 80);
@@ -66,7 +64,6 @@ static void TestResourceParsingResourcesMerged3() {
     C_ASSERT(resourceConfigInfo != nullptr);
     C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
     C_ASSERT(resourceConfigInfo->mResourceResID == 0x1001);
-    C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "CUSTOM_RESOURCE_ADDED_BY_BU") == 0);
     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/some/bu/specific/node/path/customized_to_usecase") == 0);
     C_ASSERT(resourceConfigInfo->mHighThreshold == 512);
     C_ASSERT(resourceConfigInfo->mLowThreshold == 128);
@@ -82,7 +79,6 @@ static void TestResourceParsingResourcesMerged4() {
     C_ASSERT(resourceConfigInfo != nullptr);
     C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
     C_ASSERT(resourceConfigInfo->mResourceResID == 0x000c);
-    C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "OVERRIDE_RESOURCE_2") == 0);
     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/proc/kernel/tid/kernel/uclamp.tid.sched/rt") == 0);
     C_ASSERT(resourceConfigInfo->mHighThreshold == 100022);
     C_ASSERT(resourceConfigInfo->mLowThreshold == 87755);
@@ -98,7 +94,6 @@ static void TestResourceParsingResourcesDefaultValuesCheck() {
     C_ASSERT(resourceConfigInfo != nullptr);
     C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
     C_ASSERT(resourceConfigInfo->mResourceResID == 0x0009);
-    C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "DEFAULT_VALUES_TEST") == 0);
     C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "") == 0);
     C_ASSERT(resourceConfigInfo->mHighThreshold == -1);
     C_ASSERT(resourceConfigInfo->mLowThreshold == -1);
