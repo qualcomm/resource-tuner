@@ -155,6 +155,8 @@ void CocoTable::applyAction(ResIterable* currNode, int32_t index, int8_t priorit
                 resourceConfig->mResourceApplierCallback(resource);
             }
             this->mCurrentlyAppliedPriority[index] = priority;
+        } else {
+            TYPELOGV(NOTIFY_RESMODE_REJECT, resource->getResCode(), ResourceTunerSettings::targetConfigs.currMode);
         }
     }
 }

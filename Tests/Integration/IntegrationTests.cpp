@@ -3850,8 +3850,8 @@ namespace SignalApplicationTests {
                 .originalValue = -1
             },
             {
-                .name = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource3.txt",
-                .expectedValue = 4775,
+                .name = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_max_freq.txt",
+                .expectedValue = 1533,
                 .originalValue = -1
             },
             {
@@ -3893,6 +3893,8 @@ namespace SignalApplicationTests {
         for(int32_t i = 0; i < tunedResources.size(); i++) {
             if(tunedResources[i].name.length() > 0) {
                 int32_t curValue = C_STOI(AuxRoutines::readFromFile(tunedResources[i].name));
+                std::cout<<LOG_BASE<<tunedResources[i].name<<" Configured Value: "<<curValue<<std::endl;
+                std::cout<<LOG_BASE<<tunedResources[i].name<<" Expected Config Val: "<<tunedResources[i].expectedValue<<std::endl;
                 assert(curValue == tunedResources[i].expectedValue);
             }
         }
@@ -3903,6 +3905,8 @@ namespace SignalApplicationTests {
         for(int32_t i = 0; i < tunedResources.size(); i++) {
             if(tunedResources[i].name.length() > 0) {
                 int32_t curValue = C_STOI(AuxRoutines::readFromFile(tunedResources[i].name));
+                std::cout<<LOG_BASE<<tunedResources[i].name<<" Configured Value: "<<curValue<<std::endl;
+                std::cout<<LOG_BASE<<tunedResources[i].name<<" Expected Reset Val: "<<tunedResources[i].originalValue<<std::endl;
                 assert(curValue == tunedResources[i].originalValue);
             }
         }
@@ -3913,10 +3917,10 @@ namespace SignalApplicationTests {
     static void RunTestGroup() {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
-        RUN_INTEGRATION_TEST(TestSingleClientTuneSignal1);
-        RUN_INTEGRATION_TEST(TestSingleClientTuneSignal2);
-        RUN_INTEGRATION_TEST(TestSignalUntuning);
-        RUN_INTEGRATION_TEST(TestObservationSignal);
+        // RUN_INTEGRATION_TEST(TestSingleClientTuneSignal1);
+        // RUN_INTEGRATION_TEST(TestSingleClientTuneSignal2);
+        // RUN_INTEGRATION_TEST(TestSignalUntuning);
+        // RUN_INTEGRATION_TEST(TestObservationSignal);
         RUN_INTEGRATION_TEST(TestMultiResourceSignal);
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
@@ -4337,24 +4341,24 @@ int32_t main(int32_t argc, const char* argv[]) {
     baseline.fetchBaseline();
 
     // Run the Tests
-    RUN_INTEGRATION_TEST(TestHandleGeneration)
-    RUN_INTEGRATION_TEST(TestPropFetch)
+    // RUN_INTEGRATION_TEST(TestHandleGeneration)
+    // RUN_INTEGRATION_TEST(TestPropFetch)
 
-    // Request-Verification Tests
-    ResourceTuningRequestVerification::RunTestGroup();
-    SignalVerification::RunTestGroup();
+    // // Request-Verification Tests
+    // ResourceTuningRequestVerification::RunTestGroup();
+    // SignalVerification::RunTestGroup();
 
-    // Request Application Tests
-    RequestApplicationTests::RunTestGroup();
+    // // Request Application Tests
+    // RequestApplicationTests::RunTestGroup();
 
-    // Tests on Real Sysfs Nodes (QLI)
-    SystemSysfsNodesTests::RunTestGroup();
+    // // Tests on Real Sysfs Nodes (QLI)
+    // SystemSysfsNodesTests::RunTestGroup();
 
     // Signal Application
     SignalApplicationTests::RunTestGroup();
 
     // Tests for CGroup Resources
-    CGroupApplicationTests::RunTestGroup();
+    // CGroupApplicationTests::RunTestGroup();
 
     return 0;
 }

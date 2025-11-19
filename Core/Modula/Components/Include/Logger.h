@@ -106,6 +106,7 @@ enum CommonMessageTypes {
     GENERIC_CALL_FAILURE_LOG,
     INV_ATTR_VAL,
     INV_COCO_TBL_INDEX,
+    NOTIFY_RESMODE_REJECT,
 };
 
 /**
