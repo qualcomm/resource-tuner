@@ -42,9 +42,6 @@ jobs:
           pr_repo: ${{ github.event.pull_request.head.repo.full_name }}
           base_ref: ${{ github.ref_name }}
 
-      - name: Install dependencies
-        run: sudo apt update && sudo apt install -y libsystemd-dev
-
       - name: Build resource-tuner in the URM container
         run: |
           docker run --rm -v "$PWD":/workspace -w /workspace urm-image:ci bash -lc '
@@ -56,10 +53,10 @@ jobs:
             make install
             mkdir -p resource-tuner-bins/etc/resource-tuner/{common,custom,tests}
             mkdir -p resource-tuner-bins/etc/resource-tuner/tests/Configs/ResourceSysFsNodes
-            cp ../../Core/Configs/*.yaml resource-tuner-bins/etc/resource-tuner/common/
-            cp ../../Signals/Configs/*.yaml resource-tuner-bins/etc/resource-tuner/common/
-            cp ../../Tests/Configs/*.yaml resource-tuner-bins/etc/resource-tuner/custom/
-            cp ../../Tests/Configs/ResourceSysFsNodes/*.txt resource-tuner-bins/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/
+            cp ../Core/Configs/*.yaml resource-tuner-bins/etc/resource-tuner/common/
+            cp ../Signals/Configs/*.yaml resource-tuner-bins/etc/resource-tuner/common/
+            cp ../Tests/Configs/*.yaml resource-tuner-bins/etc/resource-tuner/custom/
+            cp ../Tests/Configs/ResourceSysFsNodes/*.txt resource-tuner-bins/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/
           '
       - name: Create a tar file of build
         run: |
