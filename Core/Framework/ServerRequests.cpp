@@ -136,7 +136,6 @@ static int8_t VerifyIncomingRequest(Request* req) {
         TYPELOGV(VERIFIER_INVALID_DEVICE_MODE, req->getHandle());
         return false;
     }
-
     int8_t clientPermissions =
         ClientDataManager::getInstance()->getClientLevelByClientID(req->getClientPID());
     // If the client permissions could not be determined, reject this request.
@@ -159,9 +158,14 @@ static int8_t VerifyIncomingRequest(Request* req) {
     req->setPriority(allowedPriority);
 
     DL_ITERATE(req->getResDlMgr()) {
-        if(iter == nullptr || iter->mData == nullptr) return false;
+        if(iter == nullptr) {
+            return false;
+        }
 
-        Resource* resource = (Resource*) iter->mData;
+        ResIterable* resIter = (ResIterable*) iter;
+        if(resIter == nullptr || resIter->mData == nullptr) return false;
+
+        Resource* resource = (Resource*) resIter->mData;
         if(resource == nullptr) {
             return false;
         }
@@ -176,7 +180,7 @@ static int8_t VerifyIncomingRequest(Request* req) {
 
         if(resource->getValuesCount() == 1) {
             // Verify value is in the range [LT, HT]
-            int32_t configValue = resource->mResValue.value;
+            int32_t configValue = resource->getValueAt(0);
             int32_t lowThreshold = resourceConfig->mLowThreshold;
             int32_t highThreshold = resourceConfig->mHighThreshold;
 

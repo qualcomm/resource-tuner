@@ -20,7 +20,7 @@ DLManager* Request::getResDlMgr() {
     return this->mResourceList;
 }
 
-void Request::addResource(CoreIterable* resIterable) {
+void Request::addResource(ResIterable* resIterable) {
     this->mResourceList->insert(resIterable);
 }
 
@@ -35,14 +35,15 @@ void Request::unsetTimer() {
 
 void Request::clearResources() {
     DL_ITERATE(this->mResourceList) {
-        if(iter != nullptr && iter->mData != nullptr) {
+        ResIterable* resIter = (ResIterable*) iter;
+        if(resIter != nullptr && resIter->mData != nullptr) {
             // Delete Resource struct
-            FreeBlock<Resource>(iter->mData);
+            FreeBlock<Resource>(resIter->mData);
         }
 
-        if(iter != nullptr) {
-            // Delete CoreIterable itself
-            FreeBlock<CoreIterable>(iter);
+        if(resIter != nullptr) {
+            // Delete ResIterable itself
+            FreeBlock<ResIterable>(resIter);
         }
     }
     this->mResourceList->destroy();
@@ -69,55 +70,6 @@ void Request::populateRetuneRequest(Request* retuneRequest, int64_t newDuration)
     retuneRequest->mDuration = newDuration;
 }
 
-ErrCode Request::serialize(char* buf) {
-    try {
-        int8_t* ptr8 = (int8_t*)buf;
-        ASSIGN_AND_INCR(ptr8, this->getRequestType());
-
-        int64_t* ptr64 = (int64_t*)ptr8;
-        ASSIGN_AND_INCR(ptr64, this->getHandle());
-
-        ASSIGN_AND_INCR(ptr64, this->getDuration());
-
-        int32_t* ptr = (int32_t*)ptr64;
-        ASSIGN_AND_INCR(ptr, this->getResourcesCount());
-        ASSIGN_AND_INCR(ptr, this->getProperties());
-        ASSIGN_AND_INCR(ptr, this->getClientPID());
-        ASSIGN_AND_INCR(ptr, this->getClientTID());
-
-        DL_ITERATE(this->getResDlMgr()) {
-            if(iter == nullptr || iter->mData == nullptr) {
-                return RC_INVALID_VALUE;
-            }
-
-            Resource* resource = (Resource*) iter->mData;
-            if(resource == nullptr) {
-                return RC_INVALID_VALUE;
-            }
-
-            ASSIGN_AND_INCR(ptr, resource->getResCode());
-            ASSIGN_AND_INCR(ptr, resource->getResInfo());
-            ASSIGN_AND_INCR(ptr, resource->getOptionalInfo());
-            ASSIGN_AND_INCR(ptr, resource->getValuesCount());
-
-            if(resource->getValuesCount() == 1) {
-                ASSIGN_AND_INCR(ptr, resource->mResValue.value);
-            } else {
-                for(int32_t j = 0; j < resource->getValuesCount(); j++) {
-                    ASSIGN_AND_INCR(ptr, (*resource->mResValue.values)[j]);
-                }
-            }
-        }
-    } catch(const std::invalid_argument& e) {
-        return RC_REQUEST_PARSING_FAILED;
-
-    } catch(const std::exception& e) {
-        return RC_INVALID_VALUE;
-    }
-
-    return RC_SUCCESS;
-}
-
 ErrCode Request::deserialize(char* buf) {
     try {
         int32_t numResources = 0;
@@ -136,7 +88,7 @@ ErrCode Request::deserialize(char* buf) {
 
         if(this->mReqType == REQ_RESOURCE_TUNING) {
             for(int32_t i = 0; i < numResources; i++) {
-                CoreIterable* resIterable = MPLACED(CoreIterable);
+                ResIterable* resIterable = MPLACED(ResIterable);
                 Resource* resource = MPLACED(Resource);
 
                 resource->setResCode(DEREF_AND_INCR(ptr, int32_t));
@@ -144,14 +96,9 @@ ErrCode Request::deserialize(char* buf) {
                 resource->setOptionalInfo(DEREF_AND_INCR(ptr, int32_t));
                 resource->setNumValues(DEREF_AND_INCR(ptr, int32_t));
 
-                if(resource->getValuesCount() == 1) {
-                    resource->mResValue.value = DEREF_AND_INCR(ptr, int32_t);
-                } else {
-                    for(int32_t j = 0; j < resource->getValuesCount(); j++) {
-                        if(resource->mResValue.values == nullptr) {
-                            resource->mResValue.values = MPLACED(std::vector<int32_t>);
-                        }
-                        resource->mResValue.values->push_back(DEREF_AND_INCR(ptr, int32_t));
+                for(int32_t j = 0; j < resource->getValuesCount(); j++) {
+                    if(RC_IS_NOTOK(resource->setValueAt(j, DEREF_AND_INCR(ptr, int32_t)))) {
+                        return RC_REQUEST_DESERIALIZATION_FAILURE;
                     }
                 }
 

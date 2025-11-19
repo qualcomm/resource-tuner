@@ -14,8 +14,8 @@
 #include "Resource.h"
 #include "DLManager.h"
 
-#define REQUEST_DL_NR 1
-#define COCO_TABLE_DL_NR 2
+#define REQUEST_DL_NR 0
+#define COCO_TABLE_DL_NR 1
 
 /**
  * @brief Encapsulation type for a Resource Provisioning Request.
@@ -33,12 +33,11 @@ public:
     Timer* getTimer();
     DLManager* getResDlMgr();
 
-    void addResource(CoreIterable* resIterable);
+    void addResource(ResIterable* resIterable);
     void setTimer(Timer* timer);
     void unsetTimer();
     void clearResources();
 
-    ErrCode serialize(char* buf);
     ErrCode deserialize(char* buf);
 
     void populateUntuneRequest(Request* request);

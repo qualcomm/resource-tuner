@@ -159,9 +159,9 @@ ErrCode SignalConfigProcessor::parseSignalConfigYamlNode(const std::string& file
                         rc = resourceBuilder->setNumValues(resValues.size());
                     }
 
-                    for(std::string resValue: resValues) {
+                    for(int32_t idx = 0; idx < resValues.size(); idx++) {
                         if(RC_IS_OK(rc)) {
-                            rc = resourceBuilder->addValue(resValue);
+                            rc = resourceBuilder->addValue(idx, resValues[idx]);
                         }
                     }
 

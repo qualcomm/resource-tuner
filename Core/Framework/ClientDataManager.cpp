@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include "ClientDataManager.h"
-#include "ErrCodes.h"
 
 static int8_t isRootProcess(pid_t pid) {
     std::string statusFile = "/proc/" + std::to_string(pid) + "/status";
@@ -84,18 +83,28 @@ int8_t ClientDataManager::createNewClient(int32_t clientPID, int32_t clientTID) 
 
     // Check if a client PID entry exists
     int8_t clientPIDExists = (this->mClientRepo.find(clientPID) != this->mClientRepo.end());
-
     this->mClientTidRepo[clientTID] = clientData;
+
     if(clientPIDExists) {
         // If it does, then add the client TID to the list of TIDs for that client PID
-        this->mClientRepo[clientPID]->mClientTIDs->push_back(clientTID);
+        int32_t curTIDCount = this->mClientRepo[clientPID]->mCurClientThreads;
+        if(curTIDCount < MAX_CLIENT_TID_COUNT) {
+            this->mClientRepo[clientPID]->mClientTIDs[curTIDCount] = clientTID;
+            curTIDCount++;
+            this->mClientRepo[clientPID]->mCurClientThreads = curTIDCount;
+        } else {
+            return false;
+        }
     } else {
         // If it doesn't, then create a new entry in the mClientRepo table
         try {
             ClientInfo* clientInfo = MPLACED(ClientInfo);
-            clientInfo->mClientTIDs = MPLACED(std::vector<int32_t>);
 
-            clientInfo->mClientTIDs->push_back(clientTID);
+            int32_t curTIDCount = clientInfo->mCurClientThreads;
+            clientInfo->mClientTIDs[curTIDCount] = clientTID;
+            curTIDCount++;
+            clientInfo->mCurClientThreads = curTIDCount;
+
             clientInfo->mClientType = isRootProcess(clientPID);
             this->mClientRepo[clientPID] = clientInfo;
 
@@ -169,18 +178,19 @@ int8_t ClientDataManager::getClientLevelByClientID(int32_t clientPID) {
     return clientLevel;
 }
 
-std::vector<int32_t>* ClientDataManager::getThreadsByClientId(int32_t clientPID) {
+void ClientDataManager::getThreadsByClientId(int32_t clientPID, std::vector<int32_t>& threadIDs) {
     this->mGlobalTableMutex.lock_shared();
 
     if(this->mClientRepo.find(clientPID) == this->mClientRepo.end()) {
         this->mGlobalTableMutex.unlock_shared();
-        return nullptr;
+        return;
     }
 
-    std::vector<int32_t>* threadIds = this->mClientRepo[clientPID]->mClientTIDs;
-    this->mGlobalTableMutex.unlock_shared();
+    for(int32_t i = 0; i < this->mClientRepo[clientPID]->mCurClientThreads; i++) {
+        threadIDs.push_back(this->mClientRepo[clientPID]->mClientTIDs[i]);
+    }
 
-    return threadIds;
+    this->mGlobalTableMutex.unlock_shared();
 }
 
 double ClientDataManager::getHealthByClientID(int32_t clientTID) {
@@ -254,8 +264,6 @@ void ClientDataManager::deleteClientPID(int32_t clientPID) {
     }
 
     ClientInfo* clientInfo = this->mClientRepo[clientPID];
-
-    FreeBlock<std::vector<int32_t>>(static_cast<void*>(clientInfo->mClientTIDs));
     FreeBlock<ClientInfo>(static_cast<void*>(clientInfo));
 
     this->mClientRepo.erase(clientPID);

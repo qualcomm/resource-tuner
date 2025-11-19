@@ -4,7 +4,6 @@
 #ifndef RESOURCE_REGISTRY_H
 #define RESOURCE_REGISTRY_H
 
-#include <iostream>
 #include <vector>
 #include <memory>
 #include <unordered_map>

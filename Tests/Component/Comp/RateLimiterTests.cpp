@@ -23,7 +23,7 @@ Resource* generateResourceForTesting(int32_t seed) {
     Resource* resource = (Resource*)malloc(sizeof(Resource));
     resource->setResCode(16 + seed);
     resource->setNumValues(1);
-    resource->mResValue.value = 2 * seed;
+    resource->setValueAt(0, 2 * seed);
 
     return resource;
 }

@@ -402,7 +402,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
 
         case CommonMessageTypes::VERIFIER_UNSUPPORTED_SIGNAL_TUNING:
             vsnprintf(buffer, sizeof(buffer),
-                      "Specified Signal [%u] is not enabled for provisioning", args);
+                      "Specified Signal [0x%08x] is not enabled for provisioning", args);
 
             Logger::log(LOG_ERR, "RESTUNE_REQUEST_VERIFIER", funcName, std::string(buffer));
             break;
@@ -410,14 +410,14 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
         case CommonMessageTypes::VERIFIER_VALUE_OUT_OF_BOUNDS:
             vsnprintf(buffer, sizeof(buffer),
                       "Config Value [%d] does not fall in the Allowed Range " \
-                      "for the Resource [%u], Dropping Request.", args);
+                      "for the Resource [0x%08x], Dropping Request.", args);
 
             Logger::log(LOG_ERR, "RESTUNE_REQUEST_VERIFIER", funcName, std::string(buffer));
             break;
 
         case CommonMessageTypes::VERIFIER_NOT_SUFFICIENT_PERMISSION:
             vsnprintf(buffer, sizeof(buffer),
-                      "Permission Check Failed for Resource [%u], "  \
+                      "Permission Check Failed for Resource [0x%08x], "  \
                       "Dropping Request", args);
 
             Logger::log(LOG_ERR, "RESTUNE_REQUEST_VERIFIER", funcName, std::string(buffer));
@@ -425,7 +425,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
 
         case CommonMessageTypes::VERIFIER_NOT_SUFFICIENT_SIGNAL_ACQ_PERMISSION:
             vsnprintf(buffer, sizeof(buffer),
-                      "Permission Check Failed for Signal [%u], "  \
+                      "Permission Check Failed for Signal [0x%08x], "  \
                       "Client does not have sufficient Permissions to provision Signal", args);
 
             Logger::log(LOG_ERR, "RESTUNE_REQUEST_VERIFIER", funcName, std::string(buffer));
@@ -433,7 +433,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
 
         case CommonMessageTypes::VERIFIER_TARGET_CHECK_FAILED:
              vsnprintf(buffer, sizeof(buffer),
-                       "Specified Signal [%u] is not enabled for provisioning on this Target", args);
+                       "Specified Signal [0x%08x] is not enabled for provisioning on this Target", args);
 
             Logger::log(LOG_ERR, "RESTUNE_REQUEST_VERIFIER", funcName, std::string(buffer));
             break;
@@ -448,7 +448,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
         case CommonMessageTypes::VERIFIER_LOGICAL_TO_PHYSICAL_MAPPING_FAILED:
             vsnprintf(buffer, sizeof(buffer),
                       "Logical to Physical Core / Cluster Mapping for the "  \
-                      "Resource [%u], Failed. Dropping Request", args);
+                      "Resource [0x%08x], Failed. Dropping Request", args);
 
             Logger::log(LOG_ERR, "RESTUNE_REQUEST_VERIFIER", funcName, std::string(buffer));
             break;
@@ -577,7 +577,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
 
         case CommonMessageTypes::SIGNAL_REGISTRY_SIGNAL_NOT_FOUND:
             vsnprintf(buffer, sizeof(buffer),
-                      "Signal ID [%u] not found in the registry", args);
+                      "Signal ID [0x%08x] not found in the registry", args);
 
             Logger::log(LOG_ERR, "RESTUNE_SIGNAL_REGISTRY", funcName, std::string(buffer));
             break;
@@ -591,7 +591,7 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
 
         case CommonMessageTypes::RESOURCE_REGISTRY_RESOURCE_NOT_FOUND:
             vsnprintf(buffer, sizeof(buffer),
-                      "Resource ID [%u] not found in the registry", args);
+                      "Resource ID [0x%08x] not found in the registry", args);
 
             Logger::log(LOG_ERR, "RESTUNE_RESOURCE_REGISTRY", funcName, std::string(buffer));
             break;
@@ -655,8 +655,16 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
 
         case CommonMessageTypes::INV_COCO_TBL_INDEX:
             vsnprintf(buffer, sizeof(buffer),
-                      "Encountered Invalid Coco Indexes for Resource: [%lu], \
-                       Primary Index: [%d], Secondary Index: [%d]", args);
+                      "Encountered Invalid Coco Indexes for Resource: [0x%08x], "\
+                      "Primary Index: [%d], Secondary Index: [%d]", args);
+
+            Logger::log(LOG_ERR, "RESTUNE_COCO_TABLE", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::NOTIFY_RESMODE_REJECT:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Configured Value for Resource: [0x%08x] cannot be applied in "\
+                      "current Display Mode: [%d], Skipping.", args);
 
             Logger::log(LOG_ERR, "RESTUNE_COCO_TABLE", funcName, std::string(buffer));
             break;

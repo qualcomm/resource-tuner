@@ -10,6 +10,12 @@
 
 static TestBaseline baseline;
 
+typedef struct {
+    std::string name;
+    int32_t expectedValue;
+    int32_t originalValue;
+} ResourceHolder;
+
 /*
  * These tests mirror the Client Perspective, i.e. how the client interacts with various
  * Resource Tuner APIs like tuneResources / untuneResources, tuneSignal etc.
@@ -3762,7 +3768,7 @@ namespace SignalApplicationTests {
     }
 
     // Observe only as of now
-    static void TestSuperSignal2() {
+    static void TestObservationSignal() {
         LOG_START
 
         std::vector<std::string> keys = {
@@ -3813,14 +3819,109 @@ namespace SignalApplicationTests {
         LOG_END;
     }
 
+    static std::string encodeCluster(const std::string& nodePath, int32_t physicalClusterID) {
+        char path[128];
+        snprintf(path, sizeof(path), nodePath.c_str(), physicalClusterID);
+        return std::string(path);
+    }
+
+    static void TestMultiResourceSignal() {
+        LOG_START
+
+        std::string clusResource = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/cluster_type_resource_%d_cluster_id.txt";
+        int32_t physicalClusterID0 = baseline.getExpectedPhysicalCluster(0);
+        int32_t physicalClusterID1 = baseline.getExpectedPhysicalCluster(1);
+        int32_t physicalClusterID2 = baseline.getExpectedPhysicalCluster(2);
+
+        std::vector<ResourceHolder> tunedResources = {
+            {
+                .name = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min.txt",
+                .expectedValue = 668,
+                .originalValue = -1,
+            },
+            {
+                .name = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_max.txt",
+                .expectedValue = 897,
+                .originalValue = -1,
+            },
+            {
+                .name = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource1.txt",
+                .expectedValue = 231,
+                .originalValue = -1
+            },
+            {
+                .name = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_max_freq.txt",
+                .expectedValue = 1533,
+                .originalValue = -1
+            },
+            {
+                .name = (physicalClusterID0 == -1) ? "" : encodeCluster(clusResource, physicalClusterID0),
+                .expectedValue = (physicalClusterID0 == -1) ? -1 : 1976,
+                .originalValue = -1
+            },
+            {
+                .name = (physicalClusterID1 == -1) ? "" : encodeCluster(clusResource, physicalClusterID1),
+                .expectedValue = (physicalClusterID1 == -1) ? -1 : 1989,
+                .originalValue = -1
+            },
+            {
+                .name = (physicalClusterID2 == -1) ? "" : encodeCluster(clusResource, physicalClusterID2),
+                .expectedValue = (physicalClusterID2 == -1) ? -1 : 2012,
+                .originalValue = -1
+            },
+            {
+                .name = "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource4.txt",
+                .expectedValue = 41128,
+                .originalValue = -1
+            },
+        };
+
+        // Record original values
+        for(int32_t i = 0; i < tunedResources.size(); i++) {
+            if(tunedResources[i].name.length() > 0) {
+                tunedResources[i].originalValue = C_STOI(AuxRoutines::readFromFile(tunedResources[i].name));
+            }
+        }
+
+        // Tune the Signal
+        int64_t handle = tuneSignal(0x800d000a, 0, 0, "", "", 0, nullptr);
+        assert(handle > 0);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        // Test Tuning
+        for(int32_t i = 0; i < tunedResources.size(); i++) {
+            if(tunedResources[i].name.length() > 0) {
+                int32_t curValue = C_STOI(AuxRoutines::readFromFile(tunedResources[i].name));
+                std::cout<<LOG_BASE<<tunedResources[i].name<<" Configured Value: "<<curValue<<std::endl;
+                std::cout<<LOG_BASE<<tunedResources[i].name<<" Expected Config Val: "<<tunedResources[i].expectedValue<<std::endl;
+                assert(curValue == tunedResources[i].expectedValue);
+            }
+        }
+
+        std::this_thread::sleep_for(std::chrono::seconds(10));
+
+        // Test Resetting
+        for(int32_t i = 0; i < tunedResources.size(); i++) {
+            if(tunedResources[i].name.length() > 0) {
+                int32_t curValue = C_STOI(AuxRoutines::readFromFile(tunedResources[i].name));
+                std::cout<<LOG_BASE<<tunedResources[i].name<<" Configured Value: "<<curValue<<std::endl;
+                std::cout<<LOG_BASE<<tunedResources[i].name<<" Expected Reset Val: "<<tunedResources[i].originalValue<<std::endl;
+                assert(curValue == tunedResources[i].originalValue);
+            }
+        }
+
+        LOG_END
+    }
+
     static void RunTestGroup() {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
         RUN_INTEGRATION_TEST(TestSingleClientTuneSignal1);
         RUN_INTEGRATION_TEST(TestSingleClientTuneSignal2);
         RUN_INTEGRATION_TEST(TestSignalUntuning);
-        RUN_INTEGRATION_TEST(TestSuperSignal2);
-        RUN_INTEGRATION_TEST(TestSuperSignal1);
+        RUN_INTEGRATION_TEST(TestObservationSignal);
+        RUN_INTEGRATION_TEST(TestMultiResourceSignal);
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
     }
