@@ -14,7 +14,7 @@ Contributors should develop on branches based off of `main` and pull requests sh
 2. [Fork](https://github.com/qualcomm/userspace-resource-moderator/fork) and clone the repository.
 
     ```bash
-    git clone https://github.com/<username>/userspace-resource-moderator.git
+    git clone https://github.com/<username>/resource-tuner.git
     ```
 
 3. Create a new branch based on `main`:

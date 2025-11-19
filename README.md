@@ -6,6 +6,7 @@ It leverages kernel interfaces like procfs, sysfs and cgroups to enforce runtime
 ## Branches
 
 **main**: Primary development branch. Contributors should develop submissions based on this branch, and submit pull requests to this branch.
+**gh-pages**: Hosts the Updated Doxygen Documentation generated on every commit to main.
 
 ## Requirements
 
@@ -15,6 +16,11 @@ This project depends on the following external libraries:
   * Yocto: Add the following to your recipe or image
     ```bash
     DEPENDS += "libyaml"
+    ```
+* Installing libsystemd:
+  * Yocto: Add the following to your recipe or image
+    ```bash
+    DEPENDS += "systemd"
     ```
 
 ## Build and install Instructions
@@ -38,10 +44,6 @@ sudo cmake --install .
 ```bash
 cmake --install . --prefix /tmp/ResourceTuner-install
 ```
-
-## Development
-
-How to develop new features/fixes for the software. Maybe different than "usage". Also provide details on how to contribute via a [CONTRIBUTING.md file](CONTRIBUTING.md).
 
 ## Getting in Contact
 
