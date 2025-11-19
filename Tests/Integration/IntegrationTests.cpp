@@ -3917,10 +3917,10 @@ namespace SignalApplicationTests {
     static void RunTestGroup() {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
-        // RUN_INTEGRATION_TEST(TestSingleClientTuneSignal1);
-        // RUN_INTEGRATION_TEST(TestSingleClientTuneSignal2);
-        // RUN_INTEGRATION_TEST(TestSignalUntuning);
-        // RUN_INTEGRATION_TEST(TestObservationSignal);
+        RUN_INTEGRATION_TEST(TestSingleClientTuneSignal1);
+        RUN_INTEGRATION_TEST(TestSingleClientTuneSignal2);
+        RUN_INTEGRATION_TEST(TestSignalUntuning);
+        RUN_INTEGRATION_TEST(TestObservationSignal);
         RUN_INTEGRATION_TEST(TestMultiResourceSignal);
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
@@ -4341,24 +4341,24 @@ int32_t main(int32_t argc, const char* argv[]) {
     baseline.fetchBaseline();
 
     // Run the Tests
-    // RUN_INTEGRATION_TEST(TestHandleGeneration)
-    // RUN_INTEGRATION_TEST(TestPropFetch)
+    RUN_INTEGRATION_TEST(TestHandleGeneration)
+    RUN_INTEGRATION_TEST(TestPropFetch)
 
-    // // Request-Verification Tests
-    // ResourceTuningRequestVerification::RunTestGroup();
-    // SignalVerification::RunTestGroup();
+    // Request-Verification Tests
+    ResourceTuningRequestVerification::RunTestGroup();
+    SignalVerification::RunTestGroup();
 
-    // // Request Application Tests
-    // RequestApplicationTests::RunTestGroup();
+    // Request Application Tests
+    RequestApplicationTests::RunTestGroup();
 
-    // // Tests on Real Sysfs Nodes (QLI)
-    // SystemSysfsNodesTests::RunTestGroup();
+    // Tests on Real Sysfs Nodes (QLI)
+    SystemSysfsNodesTests::RunTestGroup();
 
     // Signal Application
     SignalApplicationTests::RunTestGroup();
 
     // Tests for CGroup Resources
-    // CGroupApplicationTests::RunTestGroup();
+    CGroupApplicationTests::RunTestGroup();
 
     return 0;
 }
