@@ -169,7 +169,7 @@ static void TestClientSpammingWithGoodRequests() {
     }
 }
 
-int32_t main() {
+static void RunTests() {
     std::cout<<"Running Test Suite: [RateLimiterTests]\n"<<std::endl;
 
     Init();
@@ -178,5 +178,6 @@ int32_t main() {
     RUN_TEST(TestClientSpammingWithGoodRequests);
 
     std::cout<<"\nAll Tests from the suite: [RateLimiterTests], executed successfully"<<std::endl;
-    return 0;
 }
+
+REGISTER_TEST(RunTests);

@@ -142,7 +142,7 @@ static void TestRequestModeAddition() {
     C_ASSERT(request.getProcessingModes() == (MODE_RESUME | MODE_SUSPEND | MODE_DOZE));
 }
 
-int32_t main() {
+static void RunTests()  {
     std::cout<<"Running Test Suite: [MiscTests]\n"<<std::endl;
 
     RUN_TEST(TestResourceStructCoreClusterSettingAndExtraction);
@@ -159,5 +159,6 @@ int32_t main() {
     RUN_TEST(TestRequestModeAddition);
 
     std::cout<<"\nAll Tests from the suite: [MiscTests], executed successfully"<<std::endl;
-    return 0;
 }
+
+REGISTER_TEST(RunTests);

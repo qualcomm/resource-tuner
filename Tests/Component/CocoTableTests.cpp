@@ -21,10 +21,12 @@ static void TestCocoTableInsertRequest3() {
     delete request;
 }
 
-int32_t main() {
+static void RunTests()  {
     std::cout<<"Running Test Suite: [CocoTableTests]\n"<<std::endl;
 
     RUN_TEST(TestCocoTableInsertRequest1);
 
     std::cout<<"\nAll Tests from the suite: [CocoTableTests], executed successfully"<<std::endl;
 }
+
+REGISTER_TEST(RunTests);

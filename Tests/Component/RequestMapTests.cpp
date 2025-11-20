@@ -1009,7 +1009,7 @@ static void TestGetRequestFromMap() {
     Request::cleanUpRequest(request);
 }
 
-int32_t main() {
+static void RunTests() {
     std::cout<<"Running Test Suite: [RequestMapTests]\n"<<std::endl;
 
     Init();
@@ -1029,5 +1029,6 @@ int32_t main() {
     RUN_TEST(TestGetRequestFromMap);
 
     std::cout<<"\nAll Tests from the suite: [RequestMapTests], executed successfully"<<std::endl;
-    return 0;
 }
+
+REGISTER_TEST(RunTests);

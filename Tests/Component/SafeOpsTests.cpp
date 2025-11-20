@@ -199,7 +199,7 @@ static void TestValidationMacro2() {
     C_ASSERT(exceptionHit == false);
 }
 
-int32_t main() {
+static void RunTests() {
     std::cout<<"Running Test Suite: [SafeOpsTests]\n"<<std::endl;
 
     RUN_TEST(Overflow1);
@@ -228,3 +228,5 @@ int32_t main() {
 
     std::cout<<"\nAll Tests from the suite: [SafeOpsTests], executed successfully"<<std::endl;
 }
+
+REGISTER_TEST(RunTests);
