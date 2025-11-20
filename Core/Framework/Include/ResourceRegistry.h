@@ -36,10 +36,6 @@ enum ResourceApplyType {
  */
 typedef struct {
     /**
-     * @brief Name of the Resource (Placeholder).
-     */
-    std::string mResourceName;
-    /**
      * @brief Path to the Sysfs node, CGroup controller file or as applicable.
      */
     std::string mResourcePath;
@@ -163,7 +159,6 @@ public:
     ResourceConfigInfoBuilder();
     ~ResourceConfigInfoBuilder();
 
-    ErrCode setName(const std::string& resourceName);
     ErrCode setPath(const std::string& resourcePath);
     ErrCode setResType(const std::string& resTypeString);
     ErrCode setResID(const std::string& resIDString);

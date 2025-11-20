@@ -140,7 +140,6 @@ void ResourceRegistry::displayResources() {
     for(int32_t i = 0; i < this->mTotalResources; i++) {
         auto& res = mResourceConfigs[i];
 
-        LOGI("RESTUNE_RESOURCE_PROCESSOR", "Resource Name: " + res->mResourceName);
         LOGI("RESTUNE_RESOURCE_PROCESSOR", "Resource Path: " + res->mResourcePath);
         LOGI("RESTUNE_RESOURCE_PROCESSOR", "ResType: " + std::to_string(res->mResourceResType));
         LOGI("RESTUNE_RESOURCE_PROCESSOR", "ResID: " + std::to_string(res->mResourceResID));
@@ -241,16 +240,6 @@ ResourceConfigInfoBuilder::ResourceConfigInfoBuilder() {
     this->mResourceConfigInfo->mPolicy = Policy::LAZY_APPLY;
     this->mResourceConfigInfo->mUnit = TranslationUnit::U_NA;
     this->mResourceConfigInfo->mResourcePath = "";
-    this->mResourceConfigInfo->mResourceName = "";
-}
-
-ErrCode ResourceConfigInfoBuilder::setName(const std::string& name) {
-    if(this->mResourceConfigInfo == nullptr) {
-        return RC_INVALID_VALUE;
-    }
-
-    this->mResourceConfigInfo->mResourceName = name;
-    return RC_SUCCESS;
 }
 
 ErrCode ResourceConfigInfoBuilder::setPath(const std::string& path) {

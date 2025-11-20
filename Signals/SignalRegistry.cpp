@@ -102,7 +102,6 @@ void SignalRegistry::displaySignals() {
     for(int32_t i = 0; i < this->mTotalSignals; i++) {
         auto& signal = this->mSignalsConfigs[i];
 
-        LOGD("RESTUNE_SIGNAL_REGISTRY", "Signal Name: " + signal->mSignalName);
         LOGD("RESTUNE_SIGNAL_REGISTRY", "Signal OpID: " + std::to_string(signal->mSignalID));
         LOGD("RESTUNE_SIGNAL_REGISTRY", "Signal SignalCategory: " + std::to_string(signal->mSignalCategory));
 
@@ -133,7 +132,6 @@ SignalInfoBuilder::SignalInfoBuilder() {
 
     this->mSignalInfo->mSignalID = 0;
     this->mSignalInfo->mSignalCategory = 0;
-    this->mSignalInfo->mSignalName = "";
     this->mSignalInfo->mTimeout = 1;
 
     this->mSignalInfo->mDerivatives = nullptr;
@@ -179,15 +177,6 @@ ErrCode SignalInfoBuilder::setSignalCategory(const std::string& categoryString) 
         return RC_INVALID_VALUE;
     }
 
-    return RC_SUCCESS;
-}
-
-ErrCode SignalInfoBuilder::setName(const std::string& signalName) {
-    if(this->mSignalInfo == nullptr) {
-        return RC_MEMORY_ALLOCATION_FAILURE;
-    }
-
-    this->mSignalInfo->mSignalName = signalName;
     return RC_SUCCESS;
 }
 

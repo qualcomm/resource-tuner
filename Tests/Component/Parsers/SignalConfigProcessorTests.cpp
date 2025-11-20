@@ -35,7 +35,6 @@ static void TestSignalConfigProcessorYAMLDataIntegrity3_1() {
     C_ASSERT(signalInfo != nullptr);
     C_ASSERT(signalInfo->mSignalID == 0);
     C_ASSERT(signalInfo->mSignalCategory == 0x0d);
-    C_ASSERT(strcmp((const char*)signalInfo->mSignalName.data(), "TEST_SIGNAL_1") == 0);
     C_ASSERT(signalInfo->mTimeout == 4000);
 
     C_ASSERT(signalInfo->mPermissions != nullptr);
@@ -64,7 +63,6 @@ static void TestSignalConfigProcessorYAMLDataIntegrity3_2() {
     C_ASSERT(signalInfo != nullptr);
     C_ASSERT(signalInfo->mSignalID == 1);
     C_ASSERT(signalInfo->mSignalCategory == 0x0d);
-    C_ASSERT(strcmp((const char*)signalInfo->mSignalName.data(), "TEST_SIGNAL_2") == 0);
     C_ASSERT(signalInfo->mTimeout == 5000);
 
     C_ASSERT(signalInfo->mPermissions != nullptr);
@@ -99,7 +97,6 @@ static void TestSignalConfigProcessorYAMLDataIntegrity3_3() {
     C_ASSERT(signalInfo != nullptr);
     C_ASSERT(signalInfo->mSignalID == 3);
     C_ASSERT(signalInfo->mSignalCategory == 0x0d);
-    C_ASSERT(strcmp((const char*)signalInfo->mSignalName.data(), "TEST_SIGNAL_4") == 0);
     C_ASSERT(signalInfo->mTimeout == 4000);
 
     C_ASSERT(signalInfo->mPermissions != nullptr);
@@ -148,7 +145,6 @@ static void TestSignalConfigProcessorYAMLDataIntegrity3_4() {
     C_ASSERT(signalInfo != nullptr);
     C_ASSERT(signalInfo->mSignalID == 0x0007);
     C_ASSERT(signalInfo->mSignalCategory == 0x0d);
-    C_ASSERT(strcmp((const char*)signalInfo->mSignalName.data(), "TEST_SIGNAL_8") == 0);
     C_ASSERT(signalInfo->mTimeout == 5500);
 
     C_ASSERT(signalInfo->mPermissions != nullptr);
@@ -178,25 +174,6 @@ static void TestSignalConfigProcessorYAMLDataIntegrity3_4() {
     C_ASSERT(resource2->getResInfo() == 0);
 }
 
-static void TestSignalConfigProcessorYAMLDataIntegrity4() {
-    std::vector<SignalInfo*> signalConfigs = SignalRegistry::getInstance()->getSignalConfigs();
-    C_ASSERT(signalConfigs.size() == TOTAL_SIGNAL_CONFIGS_COUNT);
-
-    std::vector<std::string> signalNames;
-
-    for(int32_t i = 1; i <= TOTAL_SIGNAL_CONFIGS_COUNT; i++) {
-        char buf[32];
-        snprintf(buf, sizeof(buf), "TEST_SIGNAL_%d", i);
-        signalNames.push_back(std::string(buf));
-    }
-
-    C_ASSERT(signalNames.size() == signalConfigs.size());
-
-    for(int32_t i = 0; i < signalConfigs.size(); i++) {
-        C_ASSERT(signalConfigs[i]->mSignalName == signalNames[i]);
-    }
-}
-
 int32_t main() {
     std::cout<<"Running Test Suite: [SignalConfigProcessorTests]\n"<<std::endl;
 
@@ -207,7 +184,6 @@ int32_t main() {
     RUN_TEST(TestSignalConfigProcessorYAMLDataIntegrity3_2);
     RUN_TEST(TestSignalConfigProcessorYAMLDataIntegrity3_3);
     RUN_TEST(TestSignalConfigProcessorYAMLDataIntegrity3_4);
-    RUN_TEST(TestSignalConfigProcessorYAMLDataIntegrity4);
 
     std::cout<<"\nAll Tests from the suite: [SignalConfigProcessorTests], executed successfully"<<std::endl;
     return 0;

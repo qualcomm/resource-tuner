@@ -136,9 +136,9 @@ enum ResCodesDef {
     RES_SCALE_MIN_FREQ           = 0x00040000,
     RES_SCALE_MAX_FREQ           = 0x00040001,
     RES_SCHED_UTIL_CLAMP_MIN     = 0x00030000,
-    RES_SCHED_UTIL_CLAMP_MAX     = 0X00030001,
-    RES_CPU_DMA_LATENCY          = 0X00010000,
-    RES_PM_QOS_LATENCY           = 0X00010001,
+    RES_SCHED_UTIL_CLAMP_MAX     = 0x00030001,
+    RES_CPU_DMA_LATENCY          = 0x00010000,
+    RES_PM_QOS_LATENCY           = 0x00010001,
 
     // cgroup resources
     RES_CGRP_MOVE_PID            = 0x00090000,
