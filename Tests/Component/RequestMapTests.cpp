@@ -5,6 +5,7 @@
 #include "RequestManager.h"
 #include "RateLimiter.h"
 #include "MemoryPool.h"
+#include "TestAggregator.h"
 
 static void Init() {
     MakeAlloc<ClientInfo> (30);
@@ -17,7 +18,7 @@ static void Init() {
 }
 
 // Helper methods for Resource Generation
-Resource* generateResourceForTesting(int32_t seed) {
+static Resource* generateResourceForTesting(int32_t seed) {
     Resource* resource = nullptr;
     try {
         resource = (Resource*) GetBlock<Resource>();

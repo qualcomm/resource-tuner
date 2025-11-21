@@ -3,6 +3,7 @@
 
 #include "TestUtils.h"
 #include "CocoTable.h"
+#include "TestAggregator.h"
 
 static void TestCocoTableInsertRequest1() {
     C_ASSERT(CocoTable::getInstance()->insertRequest(nullptr) == false);

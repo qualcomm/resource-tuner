@@ -3,6 +3,7 @@
 
 #include "RequestQueue.h"
 #include "TestUtils.h"
+#include "TestAggregator.h"
 
 static void Init() {
     MakeAlloc<Message> (30);

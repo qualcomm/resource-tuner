@@ -8,6 +8,7 @@
 #include "TargetRegistry.h"
 #include "Extensions.h"
 #include "Utils.h"
+#include "TestAggregator.h"
 
 static TestBaseline baseline;
 

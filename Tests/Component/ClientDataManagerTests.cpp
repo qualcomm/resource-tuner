@@ -4,6 +4,7 @@
 #include "ErrCodes.h"
 #include "TestUtils.h"
 #include "AuxRoutines.h"
+#include "TestAggregator.h"
 #include "ClientDataManager.h"
 
 static void Init() {

@@ -4,6 +4,7 @@
 #include "TestUtils.h"
 #include "RequestManager.h"
 #include "RateLimiter.h"
+#include "TestAggregator.h"
 
 static void Init() {
     MakeAlloc<ClientInfo> (30);
@@ -19,7 +20,7 @@ static void Init() {
 }
 
 // Helper methods for Resource Generation
-Resource* generateResourceForTesting(int32_t seed) {
+static Resource* generateResourceForTesting(int32_t seed) {
     Resource* resource = (Resource*)malloc(sizeof(Resource));
     resource->setResCode(16 + seed);
     resource->setNumValues(1);

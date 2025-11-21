@@ -6,6 +6,7 @@
 #include "MemoryPool.h"
 #include "Request.h"
 #include "Signal.h"
+#include "TestAggregator.h"
 
 // Request Cleanup Tests
 static void TestResourceStructCoreClusterSettingAndExtraction() {

@@ -11,6 +11,7 @@
 #include "Utils.h"
 #include "ServerInternal.h"
 #include "PropertiesRegistry.h"
+#include "TestAggregator.h"
 
 namespace ResourceParsingTests {
     std::string __testGroupName = "ResourceParsingTests";

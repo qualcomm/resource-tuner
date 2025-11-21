@@ -34,7 +34,7 @@
  * |-------------------------------------|-------------|---------|-----------|---------------------|---------------|----------------|---------------|
  */
 
-void SetUp() {
+static void SetUp() {
     // Make sure all the tests have a sane starting point
 
     AuxRoutines::writeToFile("/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min.txt", "300");

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include <cstdint>
+#include <iostream>
 
 #include "TestAggregator.h"
 

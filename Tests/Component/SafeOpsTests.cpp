@@ -6,6 +6,7 @@
 #include "ErrCodes.h"
 #include "TestUtils.h"
 #include "SafeOps.h"
+#include "TestAggregator.h"
 
 // Test cases for Add function
 static void Overflow1() {

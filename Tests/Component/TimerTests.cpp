@@ -5,6 +5,7 @@
 
 #include "TestUtils.h"
 #include "Timer.h"
+#include "TestAggregator.h"
 
 static std::shared_ptr<ThreadPool> tpoolInstance = std::shared_ptr<ThreadPool> (new ThreadPool(4, 5));
 static std::atomic<int8_t> isFinished;

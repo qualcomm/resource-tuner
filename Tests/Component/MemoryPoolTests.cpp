@@ -3,6 +3,7 @@
 
 #include "TestUtils.h"
 #include "MemoryPool.h"
+#include "TestAggregator.h"
 
 // Test structure, used for allocation testing
 struct TestBuffer {

@@ -5,6 +5,7 @@
 
 #include "TestUtils.h"
 #include "ThreadPool.h"
+#include "TestAggregator.h"
 
 static std::mutex taskLock;
 static std::condition_variable taskCV;

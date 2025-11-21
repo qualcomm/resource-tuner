@@ -5,6 +5,7 @@
 #include "ResourceRegistry.h"
 #include "ConfigProcessor.h"
 #include "Extensions.h"
+#include "TestAggregator.h"
 
 RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/resource-tuner/custom/ResourcesConfig.yaml")
 RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/etc/resource-tuner/custom/PropertiesConfig.yaml")
