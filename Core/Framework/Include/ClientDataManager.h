@@ -22,12 +22,12 @@
 #include "Logger.h"
 #include "Utils.h"
 
-#define MAX_CLIENT_TID_COUNT 16
+#define PER_CLIENT_TID_CAP 32
 
 typedef struct _client_info {
     uint8_t mClientType;
     int32_t mCurClientThreads;
-    int32_t mClientTIDs[MAX_CLIENT_TID_COUNT];
+    int32_t mClientTIDs[PER_CLIENT_TID_CAP];
 
     _client_info(): mCurClientThreads(0) {}
 } ClientInfo;

@@ -5,6 +5,7 @@
 
 #include "TestUtils.h"
 #include "ThreadPool.h"
+#include "TestAggregator.h"
 
 static std::mutex taskLock;
 static std::condition_variable taskCV;
@@ -248,7 +249,7 @@ static void TestThreadPoolEnqueueStatusWithExpansion2() {
 	delete threadPool;
 }
 
-int32_t main() {
+static void RunTests() {
 	std::cout<<"Running Test Suite: [ThreadPoolTests]\n"<<std::endl;
 
     RUN_TEST(TestThreadPoolTaskPickup1);
@@ -263,5 +264,6 @@ int32_t main() {
     RUN_TEST(TestThreadPoolEnqueueStatusWithExpansion2);
 
 	std::cout<<"\nAll Tests from the suite: [ThreadPoolTests], executed successfully"<<std::endl;
-    return 0;
 }
+
+REGISTER_TEST(RunTests);

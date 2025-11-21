@@ -3,6 +3,7 @@
 
 #include "TestUtils.h"
 #include "MemoryPool.h"
+#include "TestAggregator.h"
 
 // Test structure, used for allocation testing
 struct TestBuffer {
@@ -240,7 +241,7 @@ static void TestMemoryPoolFreeingMemory3() {
     C_ASSERT(*destructorCalled == true);
 }
 
-int32_t main() {
+static void RunTests()  {
     std::cout<<"Running Test Suite: [MemoryPoolTests]\n"<<std::endl;
 
     RUN_TEST(TestMemoryPoolBasicAllocation1);
@@ -256,3 +257,5 @@ int32_t main() {
 
     std::cout<<"\nAll Tests from the suite: [MemoryPoolTests], executed successfully"<<std::endl;
 }
+
+REGISTER_TEST(RunTests);

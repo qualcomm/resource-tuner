@@ -4,12 +4,12 @@
 #include "TestUtils.h"
 #include "RequestManager.h"
 #include "RateLimiter.h"
+#include "TestAggregator.h"
 
 static void Init() {
     MakeAlloc<ClientInfo> (30);
     MakeAlloc<ClientTidData> (30);
     MakeAlloc<std::unordered_set<int64_t>> (30);
-    MakeAlloc<std::vector<int32_t>> (30);
     MakeAlloc<Resource> (120);
     MakeAlloc<Request> (100);
 
@@ -19,7 +19,7 @@ static void Init() {
 }
 
 // Helper methods for Resource Generation
-Resource* generateResourceForTesting(int32_t seed) {
+static Resource* generateResourceForTesting(int32_t seed) {
     Resource* resource = (Resource*)malloc(sizeof(Resource));
     resource->setResCode(16 + seed);
     resource->setNumValues(1);
@@ -169,7 +169,7 @@ static void TestClientSpammingWithGoodRequests() {
     }
 }
 
-int32_t main() {
+static void RunTests() {
     std::cout<<"Running Test Suite: [RateLimiterTests]\n"<<std::endl;
 
     Init();
@@ -178,5 +178,6 @@ int32_t main() {
     RUN_TEST(TestClientSpammingWithGoodRequests);
 
     std::cout<<"\nAll Tests from the suite: [RateLimiterTests], executed successfully"<<std::endl;
-    return 0;
 }
+
+REGISTER_TEST(RunTests);

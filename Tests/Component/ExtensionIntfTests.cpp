@@ -5,6 +5,7 @@
 #include "ResourceRegistry.h"
 #include "ConfigProcessor.h"
 #include "Extensions.h"
+#include "TestAggregator.h"
 
 RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/resource-tuner/custom/ResourcesConfig.yaml")
 RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/etc/resource-tuner/custom/PropertiesConfig.yaml")
@@ -85,7 +86,7 @@ static void TestExtensionIntfCustomResourceTear() {
     C_ASSERT(funcCalled == true);
 }
 
-int32_t main() {
+static void RunTests() {
     std::cout<<"Running Test Suite: [ExtensionIntfTests]\n"<<std::endl;
 
     Init();
@@ -100,3 +101,5 @@ int32_t main() {
 
     std::cout<<"\nAll Tests from the suite: [ExtensionIntfTests], executed successfully"<<std::endl;
 }
+
+REGISTER_TEST(RunTests);

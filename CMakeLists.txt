@@ -69,15 +69,13 @@ add_executable(resource_tuner ${SERVER_EXECUTABLE})
 target_link_libraries(resource_tuner PUBLIC ${SERVER_LIBS})
 target_include_directories(resource_tuner PRIVATE ${LIBYAML_INCLUDE_DIRS})
 
-# Install libs
+# Install bins
 install(TARGETS resource_tuner RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+# Install libs
 install(TARGETS Auxiliary SocketCommServer
                 ClientAPIs Server ExtAPIs
                 SysRequestReceiver LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-
-if(BUILD_TESTS)
-  install(TARGETS TestSetupUtils DESTINATION ${CMAKE_INSTALL_LIBDIR})
-endif()
 
 if(BUILD_SIGNALS)
   install(TARGETS SysSignals DESTINATION ${CMAKE_INSTALL_LIBDIR})
@@ -109,19 +107,16 @@ install(
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
 
-# Install Test Configs, if BUILD_TEST is enabled
 if(BUILD_TESTS)
+  # Install Test Configs
+  file(GLOB testConfigs "${CMAKE_SOURCE_DIR}/Tests/Configs/*.yaml")
   install(
-    DIRECTORY ${CMAKE_SOURCE_DIR}/Tests/Configs/
+    FILES ${testConfigs}
     DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/resource-tuner/custom/
-    FILES_MATCHING
-    PATTERN "*.yaml"
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
   )
-endif()
 
-# Install Custom Resource Nodes, if BUILD_TEST is enabled
-if(BUILD_TESTS)
+  # Install Custom Resource Nodes
   install(
     DIRECTORY ${CMAKE_SOURCE_DIR}/Tests/Configs/ResourceSysFsNodes/
     DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/resource-tuner/tests/Configs/ResourceSysFsNodes/

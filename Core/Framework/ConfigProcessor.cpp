@@ -99,6 +99,8 @@ static int8_t isKeyTypeList(const std::string& keyName) {
     if(keyName == INIT_CONFIGS_ELEM_CACHE_INFO_LIST) return true;
 
     if(keyName == RESOURCE_CONFIGS_ELEM_MODES) return true;
+    if(keyName == RESOURCE_CONFIGS_ELEM_TARGETS_ENABLED) return true;
+    if(keyName == RESOURCE_CONFIGS_ELEM_TARGETS_DISABLED) return true;
 
     return false;
 }
