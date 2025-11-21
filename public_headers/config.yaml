@@ -1,0 +1,10 @@
+project: https://github.com/qualcomm/resource-tuner
+
+branches:
+  master:
+    modes:
+      non-blocking:
+        headers:
+          - Core/Client/APIs/Include/ResourceTunerAPIs.h
+          - Core/Modula/Common/Include/Common.h
+          - Core/Extensions/Include/Extensions.h
