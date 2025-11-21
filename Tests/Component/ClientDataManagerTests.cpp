@@ -11,7 +11,6 @@ static void Init() {
     MakeAlloc<ClientInfo> (30);
     MakeAlloc<ClientTidData> (30);
     MakeAlloc<std::unordered_set<int64_t>> (30);
-    MakeAlloc<std::vector<int32_t>> (30);
 }
 
 static void TestClientDataManagerClientEntryCreation1() {

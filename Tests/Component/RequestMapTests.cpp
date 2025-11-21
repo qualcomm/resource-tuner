@@ -10,10 +10,9 @@
 static void Init() {
     MakeAlloc<ClientInfo> (30);
     MakeAlloc<ClientTidData> (30);
-    MakeAlloc<std::vector<int32_t>> (30);
     MakeAlloc<std::unordered_set<int64_t>> (30);
     MakeAlloc<Resource> (30);
-    MakeAlloc<std::vector<Resource*>> (30);
+    MakeAlloc<ResIterable> (30);
     MakeAlloc<Request> (30);
 }
 
@@ -149,36 +148,35 @@ static void TestDuplicateRequestScenario2() {
     Resource* resource3 = generateResourceForTesting(1);
     Resource* resource4 = generateResourceForTesting(2);
 
-    std::vector<Resource*>* resources1 =
-        new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
-    resources1->push_back(resource1);
-    resources1->push_back(resource2);
+    ResIterable* resIter1 = MPLACED(ResIterable);
+    ResIterable* resIter2 = MPLACED(ResIterable);
+    ResIterable* resIter3 = MPLACED(ResIterable);
+    ResIterable* resIter4 = MPLACED(ResIterable);
+    resIter1->mData = resource1;
+    resIter2->mData = resource2;
+    resIter3->mData = resource3;
+    resIter4->mData = resource4;
 
-    std::vector<Resource*>* resources2 =
-        new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
-    resources2->push_back(resource3);
-    resources2->push_back(resource4);
-
-    Request* firstRequest = new (GetBlock<Request>()) Request;
+    Request* firstRequest = MPLACED(Request);
     firstRequest->setRequestType(REQ_RESOURCE_TUNING);
     firstRequest->setHandle(103);
     firstRequest->setDuration(-1);
     firstRequest->setPriority(REQ_PRIORITY_HIGH);
-    // firstRequest->setNumResources(1);
     firstRequest->setClientPID(321);
     firstRequest->setClientTID(321);
-    // firstRequest->setResources(resources1);
+    firstRequest->addResource(resIter1);
+    firstRequest->addResource(resIter2);
     firstRequest->setBackgroundProcessing(false);
 
-    Request* secondRequest = new (GetBlock<Request>()) Request;
+    Request* secondRequest = MPLACED(Request);
     secondRequest->setRequestType(REQ_RESOURCE_TUNING);
     secondRequest->setHandle(108);
     secondRequest->setDuration(-1);
     secondRequest->setPriority(REQ_PRIORITY_HIGH);
-    // secondRequest->setNumResources(1);
     secondRequest->setClientPID(321);
     secondRequest->setClientTID(321);
-    // secondRequest->setResources(resources2);
+    secondRequest->addResource(resIter3);
+    secondRequest->addResource(resIter4);
     secondRequest->setBackgroundProcessing(false);
 
     if(!clientDataManager->clientExists(firstRequest->getClientPID(), firstRequest->getClientTID())) {
@@ -221,21 +219,17 @@ static void TestDuplicateRequestScenario3_1() {
 
         // Slight modification
         resource->setValueAt(0, 8 + index);
+        ResIterable* resIter = MPLACED(ResIterable);
+        resIter->mData = resource;
 
-        std::vector<Resource*>* resources =
-            new (GetBlock<std::vector<Resource*>>())std::vector<Resource*>;
-
-        resources->push_back(resource);
-
-        Request* request = new (GetBlock<Request>()) Request;
+        Request* request = MPLACED(Request);
         request->setRequestType(REQ_RESOURCE_TUNING);
         request->setHandle(112 + index);
         request->setDuration(-1);
-        // request->setNumResources(1);
         request->setPriority(REQ_PRIORITY_HIGH);
         request->setClientPID(321);
         request->setClientTID(321);
-        // request->setResources(resources);
+        request->addResource(resIter);
         request->setBackgroundProcessing(false);
 
         if(!clientDataManager->clientExists(request->getClientPID(), request->getClientTID())) {
@@ -273,40 +267,23 @@ static void TestDuplicateRequestScenario3_2() {
         return;
     }
 
-    std::vector<Resource*>* resources1;
-    try {
-        resources1 = new (GetBlock<std::vector<Resource*>>())std::vector<Resource*>;
-    } catch(const std::bad_alloc& e) {
-        return;
-    }
+    ResIterable* resIter1 = MPLACED(ResIterable);
+    resIter1->mData = resource1;
 
-    resources1->push_back(resource1);
+    ResIterable* resIter2 = MPLACED(ResIterable);
+    resIter2->mData = duplicateResource1;
 
-    std::vector<Resource*>* resources2;
-    try {
-        resources2 = new (GetBlock<std::vector<Resource*>>())std::vector<Resource*>;
-    } catch(const std::bad_alloc& e) {
-        return;
-    }
+    ResIterable* resIter3 = MPLACED(ResIterable);
+    resIter3->mData = resource2;
 
-    resources2->push_back(duplicateResource1);
-    resources2->push_back(resource2);
-
-    Request* firstRequest;
-    try {
-        firstRequest = new (GetBlock<Request>()) Request;
-    } catch(const std::bad_alloc& e) {
-        return;
-    }
-
+    Request* firstRequest = MPLACED(Request);
     firstRequest->setRequestType(REQ_RESOURCE_TUNING);
     firstRequest->setHandle(245);
     firstRequest->setDuration(-1);
     firstRequest->setPriority(REQ_PRIORITY_HIGH);
-    // firstRequest->setNumResources(1);
     firstRequest->setClientPID(321);
     firstRequest->setClientTID(321);
-    // firstRequest->setResources(resources1);
+    firstRequest->addResource(resIter1);
     firstRequest->setBackgroundProcessing(false);
 
     if(!clientDataManager->clientExists(firstRequest->getClientPID(), firstRequest->getClientTID())) {
@@ -331,10 +308,10 @@ static void TestDuplicateRequestScenario3_2() {
     secondRequest->setHandle(300);
     secondRequest->setDuration(-1);
     secondRequest->setPriority(REQ_PRIORITY_HIGH);
-    // secondRequest->setNumResources(2);
     secondRequest->setClientPID(321);
     secondRequest->setClientTID(321);
-    // secondRequest->setResources(resources2);
+    secondRequest->addResource(resIter2);
+    secondRequest->addResource(resIter3);
     secondRequest->setBackgroundProcessing(false);
 
     if(!clientDataManager->clientExists(secondRequest->getClientPID(), secondRequest->getClientTID())) {
@@ -799,55 +776,34 @@ static void TestRequestDeletion2() {
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RequestManager> requestMap = RequestManager::getInstance();
 
-    Resource* resource;
-    Resource* duplicateResource;
+    Resource* resource = generateResourceFromMemoryPoolForTesting(1);
+    Resource* duplicateResource = generateResourceFromMemoryPoolForTesting(1);
 
-    try {
-        resource = generateResourceFromMemoryPoolForTesting(1);
-        duplicateResource = generateResourceFromMemoryPoolForTesting(1);
-    } catch(const std::bad_alloc& e) {
-        return;
-    }
+    ResIterable* resIter1 = MPLACED(ResIterable);
+    resIter1->mData = resource;
 
-    std::vector<Resource*>* resources1;
-    std::vector<Resource*>* resources2;
+    ResIterable* resIter2 = MPLACED(ResIterable);
+    resIter2->mData = duplicateResource;
 
-    try {
-        resources1 = new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
-        resources2 = new (GetBlock<std::vector<Resource*>>()) std::vector<Resource*>;
-    } catch(const std::bad_alloc& e) {
-        return;
-    }
-
-    resources1->push_back(resource);
-    resources2->push_back(duplicateResource);
-
-    Request *request, *duplicateRequest;
-    try {
-        request = new(GetBlock<Request>()) Request();
-        duplicateRequest = new(GetBlock<Request>()) Request();
-    } catch(const std::bad_alloc& e) {
-        return;
-    }
+    Request* request = MPLACED(Request);
+    Request* duplicateRequest = MPLACED(Request);
 
     request->setRequestType(REQ_RESOURCE_TUNING);
     request->setHandle(25);
     request->setDuration(-1);
     request->setPriority(REQ_PRIORITY_HIGH);
-    // request->setNumResources(1);
     request->setClientPID(testClientPID);
     request->setClientTID(testClientTID);
-    // request->setResources(resources1);
+    request->addResource(resIter1);
     request->setBackgroundProcessing(false);
 
     duplicateRequest->setRequestType(REQ_RESOURCE_TUNING);
     duplicateRequest->setHandle(25);
     duplicateRequest->setDuration(-1);
     duplicateRequest->setPriority(REQ_PRIORITY_HIGH);
-    // duplicateRequest->setNumResources(1);
     duplicateRequest->setClientPID(testClientPID);
     duplicateRequest->setClientTID(testClientTID);
-    // duplicateRequest->setResources(resources2);
+    request->addResource(resIter2);
     duplicateRequest->setBackgroundProcessing(false);
 
     if(!clientDataManager->clientExists(request->getClientPID(), request->getClientTID())) {

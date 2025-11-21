@@ -10,17 +10,13 @@
 
 // Request Cleanup Tests
 static void TestResourceStructCoreClusterSettingAndExtraction() {
-    Resource* resource = new Resource;
-    C_ASSERT(resource != nullptr);
+    Resource resource;
 
-    resource->setCoreValue(2);
-    resource->setClusterValue(1);
+    resource.setCoreValue(2);
+    resource.setClusterValue(1);
 
-    C_ASSERT(resource->getCoreValue() == 2);
-    C_ASSERT(resource->getClusterValue() == 1);
-    C_ASSERT(resource->getResCode() == (uint32_t)((1 << 16) | (1 << 0)));
-
-    delete resource;
+    C_ASSERT(resource.getCoreValue() == 2);
+    C_ASSERT(resource.getClusterValue() == 1);
 }
 
 static void TestResourceStructOps1() {

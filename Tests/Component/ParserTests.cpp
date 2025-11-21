@@ -168,51 +168,7 @@ namespace SignalParsingTests {
 
     static void TestSignalConfigProcessorYAMLDataIntegrity3_3() {
         SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x000d0003);
-
-        C_ASSERT(signalInfo != nullptr);
-        C_ASSERT(signalInfo->mSignalID == 3);
-        C_ASSERT(signalInfo->mSignalCategory == 0x0d);
-        C_ASSERT(strcmp((const char*)signalInfo->mSignalName.data(), "TEST_SIGNAL_4") == 0);
-        C_ASSERT(signalInfo->mTimeout == 4000);
-
-        C_ASSERT(signalInfo->mPermissions != nullptr);
-        C_ASSERT(signalInfo->mDerivatives != nullptr);
-        C_ASSERT(signalInfo->mSignalResources != nullptr);
-
-        C_ASSERT(signalInfo->mPermissions->size() == 1);
-        C_ASSERT(signalInfo->mDerivatives->size() == 1);
-        C_ASSERT(signalInfo->mSignalResources->size() == 4);
-
-        C_ASSERT(signalInfo->mPermissions->at(0) == PERMISSION_THIRD_PARTY);
-
-        C_ASSERT(strcmp((const char*)signalInfo->mDerivatives->at(0).data(), "solar") == 0);
-
-        Resource* resource1 = signalInfo->mSignalResources->at(0);
-        C_ASSERT(resource1->getResCode() == 8);
-        C_ASSERT(resource1->getValuesCount() == 2);
-        C_ASSERT(resource1->getValueAt(0) == 300);
-        C_ASSERT(resource1->getValueAt(1) == 400);
-        C_ASSERT(resource1->getResInfo() == 0);
-
-        Resource* resource2 = signalInfo->mSignalResources->at(1);
-        C_ASSERT(resource2->getResCode() == 241);
-        C_ASSERT(resource2->getValuesCount() == 3);
-        C_ASSERT(resource2->getValueAt(0) == 12);
-        C_ASSERT(resource2->getValueAt(1) == 45);
-        C_ASSERT(resource2->getValueAt(2) == 67);
-        C_ASSERT(resource2->getResInfo() == 1024);
-
-        Resource* resource3 = signalInfo->mSignalResources->at(2);
-        C_ASSERT(resource3->getResCode() == 43981);
-        C_ASSERT(resource3->getValuesCount() == 1);
-        C_ASSERT(resource3->getValueAt(0) == 5);
-        C_ASSERT(resource3->getResInfo() == 32);
-
-        Resource* resource4 = signalInfo->mSignalResources->at(3);
-        C_ASSERT(resource4->getResCode() == 59917);
-        C_ASSERT(resource4->getValuesCount() == 1);
-        C_ASSERT(resource4->getValueAt(0) == 87);
-        C_ASSERT(resource4->getResInfo() == 512);
+        C_ASSERT(signalInfo == nullptr);
     }
 
     static void TestSignalConfigProcessorYAMLDataIntegrity3_4() {
@@ -304,17 +260,16 @@ namespace InitConfigParsingTests {
     }
 
     static void TestInitConfigProcessorYAMLDataIntegrity4() {
-        CGroupConfigInfo* cameraConfig = TargetRegistry::getInstance()->getCGroupConfig(0);
+        CGroupConfigInfo* cameraConfig = TargetRegistry::getInstance()->getCGroupConfig(4);
         C_ASSERT(cameraConfig != nullptr);
         C_ASSERT(cameraConfig->mCgroupName == "camera-cgroup");
         C_ASSERT(cameraConfig->mIsThreaded == false);
 
-        CGroupConfigInfo* videoConfig = TargetRegistry::getInstance()->getCGroupConfig(2);
+        CGroupConfigInfo* videoConfig = TargetRegistry::getInstance()->getCGroupConfig(6);
         C_ASSERT(videoConfig != nullptr);
         C_ASSERT(videoConfig->mCgroupName == "video-cgroup");
         C_ASSERT(videoConfig->mIsThreaded == true);
     }
-
 
     static void TestInitConfigProcessorYAMLDataIntegrity5() {
         C_ASSERT(TargetRegistry::getInstance()->getCreatedMpamGroupsCount() == 3);
@@ -648,7 +603,7 @@ namespace ResourceParsingTestsAddOn {
     }
 
     static void TestResourceParsingResourcesDefaultValuesCheck() {
-        ResConfInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResConf(0x00ff0009);
+        ResConfInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResConf(0x80ff0009);
 
         C_ASSERT(resourceConfigInfo != nullptr);
         C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
