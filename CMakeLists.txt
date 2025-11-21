@@ -41,7 +41,7 @@ if(BUILD_CLI)
     ${CMAKE_SOURCE_DIR}/Core/Client/ClientCLI.cpp
   )
   target_link_libraries(resource_tuner_cli ClientAPIs)
-  install(TARGETS resource_tuner_cli RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+  install(TARGETS resource_tuner_cli RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/resource-tuner/)
 endif()
 
 set(SERVER_EXECUTABLE "")
@@ -69,18 +69,16 @@ add_executable(resource_tuner ${SERVER_EXECUTABLE})
 target_link_libraries(resource_tuner PUBLIC ${SERVER_LIBS})
 target_include_directories(resource_tuner PRIVATE ${LIBYAML_INCLUDE_DIRS})
 
+# Install bins
+install(TARGETS resource_tuner RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/resource-tuner/)
+
 # Install libs
-install(TARGETS resource_tuner RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(TARGETS Auxiliary SocketCommServer
                 ClientAPIs Server ExtAPIs
-                SysRequestReceiver LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-
-if(BUILD_TESTS)
-  install(TARGETS TestSetupUtils DESTINATION ${CMAKE_INSTALL_LIBDIR})
-endif()
+                SysRequestReceiver LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/resource-tuner/)
 
 if(BUILD_SIGNALS)
-  install(TARGETS SysSignals DESTINATION ${CMAKE_INSTALL_LIBDIR})
+  install(TARGETS SysSignals DESTINATION ${CMAKE_INSTALL_LIBDIR}/resource-tuner/)
 endif()
 
 # Install headers
@@ -111,11 +109,9 @@ install(
 
 # Install Test Configs, if BUILD_TEST is enabled
 if(BUILD_TESTS)
-  install(
-    DIRECTORY ${CMAKE_SOURCE_DIR}/Tests/Configs/
+  file(GLOB testConfigs "${CMAKE_SOURCE_DIR}/Tests/Configs/*.yaml")
+  install(FILES ${testConfigs}
     DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/resource-tuner/custom/
-    FILES_MATCHING
-    PATTERN "*.yaml"
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
   )
 endif()
