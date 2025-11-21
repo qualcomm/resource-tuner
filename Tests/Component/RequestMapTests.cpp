@@ -803,7 +803,7 @@ static void TestRequestDeletion2() {
     duplicateRequest->setPriority(REQ_PRIORITY_HIGH);
     duplicateRequest->setClientPID(testClientPID);
     duplicateRequest->setClientTID(testClientTID);
-    request->addResource(resIter2);
+    duplicateRequest->addResource(resIter2);
     duplicateRequest->setBackgroundProcessing(false);
 
     if(!clientDataManager->clientExists(request->getClientPID(), request->getClientTID())) {
