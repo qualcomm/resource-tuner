@@ -15,6 +15,7 @@
 #define LOGD(tag, message) Logger::log(LOG_DEBUG, tag, __func__, message)
 #define LOGI(tag, message) Logger::log(LOG_INFO, tag, __func__, message)
 #define LOGE(tag, message) Logger::log(LOG_ERR, tag, __func__, message)
+#define LOGW(tag, message) Logger::log(LOG_WARNING, tag, __func__, message)
 #define TYPELOGV(type, args...) Logger::typeLog(type, __func__, args)
 #define TYPELOGD(type) Logger::typeLog(type, __func__)
 

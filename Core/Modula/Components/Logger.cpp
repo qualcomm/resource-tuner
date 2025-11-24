@@ -31,6 +31,8 @@ std::string Logger::levelToString(int32_t level) {
             return "INFO";
         case LOG_ERR:
             return "ERROR";
+        case LOG_WARNING:
+            return "WARN";
         default:
             break;
     }
@@ -41,6 +43,7 @@ int32_t Logger::decodeLogLevel(const std::string level) {
     if(level == "DEBUG") return LOG_DEBUG;
     if(level == "INFO") return LOG_INFO;
     if(level == "ERROR") return LOG_ERR;
+    if(level == "WARN") return LOG_WARNING;
 
     return LOG_DEBUG;
 }
