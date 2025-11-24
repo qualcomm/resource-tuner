@@ -524,8 +524,6 @@ PropertyConfigs:
     Value: "60"
   - Name: resource_tuner.maximum.resources.per.request
     Value: "64"
-  - Name: resource_tuner.listening.port
-    Value: "12000"
   - Name: resource_tuner.pulse.duration
     Value: "60000"
 ```

@@ -21,7 +21,9 @@
 
 enum RedirectOptions {
     LOG_TOFILE,
-    LOG_TOSYSLOG
+    LOG_TOSYSLOG,
+    LOG_TOFTRACE,
+    LOG_TOLOGCAT,
 };
 
 enum CommonMessageTypes {
@@ -150,8 +152,6 @@ public:
      */
     static void log(int32_t level, const std::string& tag, const std::string& funcName, const std::string& message);
     static void typeLog(CommonMessageTypes type, const std::string& funcName, ...);
-
-    static int32_t decodeLogLevel(const std::string level);
 };
 
 #endif

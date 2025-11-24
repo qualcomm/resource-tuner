@@ -12,3 +12,6 @@ InitConfigs:
     - Name: "user.slice"
       Create: false
       ID: 3
+    - Name: "irqs"
+      Create: true
+      ID: 4

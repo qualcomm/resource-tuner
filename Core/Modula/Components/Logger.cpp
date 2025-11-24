@@ -39,15 +39,6 @@ std::string Logger::levelToString(int32_t level) {
     return "";
 }
 
-int32_t Logger::decodeLogLevel(const std::string level) {
-    if(level == "DEBUG") return LOG_DEBUG;
-    if(level == "INFO") return LOG_INFO;
-    if(level == "ERROR") return LOG_ERR;
-    if(level == "WARN") return LOG_WARNING;
-
-    return LOG_DEBUG;
-}
-
 void Logger::log(int32_t level, const std::string& tag, const std::string& funcName, const std::string& message) {
     if(mLevelSpecificLogging) {
         if(level != mLowestLogLevel) return;
@@ -58,17 +49,34 @@ void Logger::log(int32_t level, const std::string& tag, const std::string& funcN
     std::string timestamp = getTimestamp();
     std::string levelStr = levelToString(level);
 
-    if(mRedirectOutputTo == RedirectOptions::LOG_TOSYSLOG) {
-        std::ostringstream logStream;
-        logStream << "[" << tag << "] [" << levelStr << "] " << funcName <<": "<< message << std::endl;
-        syslog(level, "%s", logStream.str().c_str());
-
-    } else if(mRedirectOutputTo == RedirectOptions::LOG_TOFILE) {
-        std::ofstream logFile("log.txt", std::ios::app);
-        if(logFile.is_open()) {
-            logFile << "[" << timestamp << "] [" << tag << "] [" << levelStr << "] " << funcName <<": "<< message << std::endl;
-            logFile.close();
+    switch(mRedirectOutputTo) {
+        case RedirectOptions::LOG_TOSYSLOG: {
+            std::ostringstream logStream;
+            logStream<<"["<<tag<<"] ["<<levelStr<<"] "<<funcName<<": "<<message<<std::endl;
+            syslog(level, "%s", logStream.str().c_str());
+            break;
         }
+
+        case RedirectOptions::LOG_TOFTRACE: {
+            std::ofstream logFile("/sys/kernel/debug/tracing/trace_marker", std::ios::app);
+            if(logFile.is_open()) {
+                logFile<<"["<<timestamp<<"] ["<<tag<<"] ["<<levelStr<<"] "<<funcName<<": "<<message<<std::endl;
+                logFile.close();
+            }
+            break;
+        }
+
+        case RedirectOptions::LOG_TOFILE: {
+            std::ofstream logFile("log.txt", std::ios::app);
+            if(logFile.is_open()) {
+                logFile<<"["<<timestamp<<"] ["<<tag<<"] ["<<levelStr<<"] "<<funcName<<": "<<message<<std::endl;
+                logFile.close();
+            }
+            break;
+        }
+
+        default:
+            break;
     }
 }
 
