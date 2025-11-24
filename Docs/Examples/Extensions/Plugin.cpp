@@ -29,7 +29,7 @@ void registerWithResourceTuner() {
 
 /*
  * Compilation Notes:
- * To build the above code, it needs to be linked with ExtAPIs lib exposed by Resource Tuner,
+ * To build the above code, it needs to be linked with RestuneExts lib exposed by Resource Tuner,
  * and built as a shared lib:
  * => Create the shared lib:
  *    "g++ -fPIC -shared -o libplugin.so Plugin.cpp -lExtAPIs"

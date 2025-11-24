@@ -250,13 +250,13 @@ int32_t main(int32_t argc, char* argv[]) {
 }
 
 // Compilation Notes:
-// The executable needs to be linked to the ClientAPIs lib, where these APIs
+// The executable needs to be linked to the RestuneClient lib, where these APIs
 // are defined. This can be done, as follows:
 // GCC: g++ CoreAPIsExamples.cpp -o ResourceTunerCoreAPIs -lClientAPIs
 // CMake: This can be done as part of the C/C++ project by linking to the Library
 // via the target_link_libraries command. For example, if the executalbe is called clientExec,
 // it can be linked as follows:
-// target_link_libraries(clientExec ClientAPIs)
+// target_link_libraries(clientExec RestuneClient)
 
 // More Examples?
 // Refer: IntegrationTests.cpp in the $(root)/Tests/Integration/ directory, which exhaustively

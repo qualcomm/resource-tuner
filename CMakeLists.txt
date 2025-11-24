@@ -40,7 +40,7 @@ if(BUILD_CLI)
     ${CMAKE_SOURCE_DIR}/Core/Client/APIs/ResourceTunerAPIs.cpp
     ${CMAKE_SOURCE_DIR}/Core/Client/ClientCLI.cpp
   )
-  target_link_libraries(resource_tuner_cli ClientAPIs)
+  target_link_libraries(resource_tuner_cli RestuneClient)
   install(TARGETS resource_tuner_cli RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 
@@ -49,10 +49,10 @@ list(APPEND SERVER_EXECUTABLE ${CMAKE_SOURCE_DIR}/ServerMain.cpp)
 
 set(SERVER_LIBS "")
 list(APPEND SERVER_LIBS
-  Server
-  Auxiliary
-  SysRequestReceiver
-  ExtAPIs
+  RestuneServer
+  RestuneAuxUtils
+  RestuneReceiver
+  RestuneExts
 )
 
 if(BUILD_STATE_DETECTOR)
@@ -62,7 +62,7 @@ endif()
 
 if(BUILD_SIGNALS)
   list(APPEND SERVER_EXECUTABLE ${CMAKE_SOURCE_DIR}/Signals/SignalInit.cpp)
-  list(APPEND SERVER_LIBS SysSignals)
+  list(APPEND SERVER_LIBS RestuneSignals)
 endif()
 
 add_executable(resource_tuner ${SERVER_EXECUTABLE})
@@ -73,12 +73,12 @@ target_include_directories(resource_tuner PRIVATE ${LIBYAML_INCLUDE_DIRS})
 install(TARGETS resource_tuner RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 # Install libs
-install(TARGETS Auxiliary SocketCommServer
-                ClientAPIs Server ExtAPIs
-                SysRequestReceiver LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(TARGETS RestuneAuxUtils RestuneSockEnd
+                RestuneClient RestuneServer RestuneExts
+                RestuneReceiver LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 if(BUILD_SIGNALS)
-  install(TARGETS SysSignals DESTINATION ${CMAKE_INSTALL_LIBDIR})
+  install(TARGETS RestuneSignals DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()
 
 # Install headers
