@@ -8,12 +8,12 @@ std::string AuxRoutines::readFromFile(const std::string& fileName) {
     std::string value = "";
 
     if(!fileStream.is_open()) {
-        LOGE("RESTUNE_AUX_ROUTINE", "Failed to open file: " + fileName + " Error: " + strerror(errno));
+        LOGW("RESTUNE_AUX_ROUTINE", "Failed to open file: " + fileName + " Error: " + strerror(errno));
         return "";
     }
 
     if(!getline(fileStream, value)) {
-        LOGE("RESTUNE_AUX_ROUTINE", "Failed to read from file: " + fileName + " Error: " + strerror(errno));
+        LOGW("RESTUNE_AUX_ROUTINE", "Failed to read from file: " + fileName + " Error: " + strerror(errno));
         return "";
     }
 
@@ -25,14 +25,14 @@ void AuxRoutines::writeToFile(const std::string& fileName, const std::string& va
     std::ofstream fileStream(fileName, std::ios::out | std::ios::trunc);
 
     if(!fileStream.is_open()) {
-        LOGD("RESTUNE_AUX_ROUTINE", "Failed to open file: " + fileName + " Error: " + strerror(errno));
+        LOGE("RESTUNE_AUX_ROUTINE", "Failed to open file: " + fileName + " Error: " + strerror(errno));
         return;
     }
 
     fileStream<<value;
 
     if(fileStream.fail()) {
-        LOGD("RESTUNE_AUX_ROUTINE", "Failed to write to file: "+ fileName + " Error: " + strerror(errno));
+        LOGE("RESTUNE_AUX_ROUTINE", "Failed to write to file: "+ fileName + " Error: " + strerror(errno));
     }
 
     fileStream.flush();

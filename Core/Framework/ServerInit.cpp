@@ -1,10 +1,6 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <csignal>
-#include <fcntl.h>
-#include <sys/utsname.h>
-
 #include "ServerInternal.h"
 #include "ConfigProcessor.h"
 #include "ComponentRegistry.h"
@@ -25,17 +21,49 @@ static void preAllocateMemory() {
     MakeAlloc<ClientInfo> (maxBlockCount);
     MakeAlloc<ClientTidData> (maxBlockCount);
     MakeAlloc<std::unordered_set<int64_t>> (maxBlockCount);
-    MakeAlloc<std::vector<Resource*>> (maxBlockCount);
-    MakeAlloc<std::vector<int32_t>> (maxBlockCount);
     MakeAlloc<MsgForwardInfo> (maxBlockCount);
     MakeAlloc<ResIterable> (maxBlockCount);
     MakeAlloc<char[REQ_BUFFER_SIZE]> (maxBlockCount);
+}
+
+static void initLogger() {
+    std::string resultBuffer;
+
+    int32_t logLevel = LOG_DEBUG;
+    submitPropGetRequest(LOGGER_LOGGING_LEVEL, resultBuffer, "DEBUG");
+    std::string level = std::string(resultBuffer);
+
+    if(level == "DEBUG") logLevel = LOG_DEBUG;
+    if(level == "INFO") logLevel = LOG_INFO;
+    if(level == "ERROR") logLevel = LOG_ERR;
+    if(level == "WARN") logLevel = LOG_WARNING;
+
+    int8_t levelSpecificLogging = false;
+    submitPropGetRequest(LOGGER_LOGGING_LEVEL_TYPE, resultBuffer, "false");
+    if(resultBuffer == "true") {
+        levelSpecificLogging = true;
+    }
+
+    RedirectOptions redirectOutputTo = RedirectOptions::LOG_TOSYSLOG;
+    submitPropGetRequest(LOGGER_LOGGING_OUTPUT_REDIRECT, resultBuffer, "1");
+    std::string target = std::string(resultBuffer);
+
+    if(target == "FILE") redirectOutputTo = RedirectOptions::LOG_TOFILE;
+    if(target == "SYSLOG") redirectOutputTo = RedirectOptions::LOG_TOSYSLOG;
+    if(target == "FTRACE") redirectOutputTo = RedirectOptions::LOG_TOFTRACE;
+    if(target == "LOGCAT") redirectOutputTo = RedirectOptions::LOG_TOLOGCAT;
+
+    // Configure
+    Logger::configure(logLevel, levelSpecificLogging, redirectOutputTo);
 }
 
 static ErrCode fetchMetaConfigs() {
     std::string resultBuffer;
 
     try {
+        // Hard Code this value, as it should not be end-client customisable
+        ResourceTunerSettings::metaConfigs.mListeningPort = 12000;
+
         // Fetch target Name
         ResourceTunerSettings::targetConfigs.targetName = AuxRoutines::getMachineName();
         TYPELOGV(NOTIFY_CURRENT_TARGET_NAME, ResourceTunerSettings::targetConfigs.targetName.c_str());
@@ -45,9 +73,6 @@ static ErrCode fetchMetaConfigs() {
 
         submitPropGetRequest(MAX_RESOURCES_PER_REQUEST, resultBuffer, "5");
         ResourceTunerSettings::metaConfigs.mMaxResourcesPerRequest = (uint32_t)std::stol(resultBuffer);
-
-        // Hard Code this value, as it should not be end-client customisable
-        ResourceTunerSettings::metaConfigs.mListeningPort = 12000;
 
         submitPropGetRequest(PULSE_MONITOR_DURATION, resultBuffer, "60000");
         ResourceTunerSettings::metaConfigs.mPulseDuration = (uint32_t)std::stol(resultBuffer);
@@ -67,22 +92,7 @@ static ErrCode fetchMetaConfigs() {
         submitPropGetRequest(RATE_LIMITER_REWARD_FACTOR, resultBuffer, "0.4");
         ResourceTunerSettings::metaConfigs.mRewardFactor = std::stod(resultBuffer);
 
-        submitPropGetRequest(LOGGER_LOGGING_LEVEL, resultBuffer, "DEBUG");
-        int32_t logLevel = Logger::decodeLogLevel(resultBuffer);
-
-        int8_t levelSpecificLogging = false;
-        submitPropGetRequest(LOGGER_LOGGING_LEVEL_TYPE, resultBuffer, "false");
-        if(resultBuffer == "true") {
-            levelSpecificLogging = true;
-        }
-
-        RedirectOptions redirectOutputTo = RedirectOptions::LOG_TOSYSLOG;
-        submitPropGetRequest(LOGGER_LOGGING_OUTPUT_REDIRECT, resultBuffer, "1");
-        if((int8_t)std::stoi(resultBuffer) == 0) {
-            redirectOutputTo = LOG_TOFILE;
-        }
-
-        Logger::configure(logLevel, levelSpecificLogging, redirectOutputTo);
+        initLogger();
 
     } catch(const std::invalid_argument& e) {
         TYPELOGV(META_CONFIG_PARSE_FAILURE, e.what());

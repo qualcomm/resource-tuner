@@ -151,6 +151,7 @@ public:
     ErrCode insert(DLRootNode* node, DLOptions option, int32_t n = 0) {
         return this->insertHelper(node, option, n);
     }
+
     ErrCode insertWithPolicy(DLRootNode* node, DLPolicy policy) {
         return this->insertWithPolicyHelper(node, policy);
     }
@@ -167,6 +168,7 @@ public:
     ErrCode deleteNode(DLRootNode* node) {
         return this->deleteNodeHelper(node);
     }
+
     void destroy() {
         this->destroyHelper();
     }
