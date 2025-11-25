@@ -11,8 +11,9 @@ if(BUILD_TESTS)
     install(TARGETS RestuneTestUtils DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
     add_library(RestunePlugin ${CMAKE_CURRENT_SOURCE_DIR}/../Utils/Setup.cpp)
+    set_target_properties(RestunePlugin PROPERTIES VERSION 1.0.0 SOVERSION 1)
     target_link_libraries(RestunePlugin RestuneExts)
-    install(TARGETS RestunePlugin DESTINATION ${CMAKE_INSTALL_LIBDIR}/restune)
+    install(TARGETS RestunePlugin DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
     add_executable(RestuneIntegrationTests ../Integration/IntegrationTests.cpp)
     target_link_libraries(RestuneIntegrationTests PUBLIC RestuneAuxUtils RestuneClient RestuneTestUtils ${LIBYAML_LIBRARIES})
