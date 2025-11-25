@@ -2,12 +2,18 @@ if(BUILD_TESTS)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(LIBYAML REQUIRED yaml-0.1)
 
-    file(GLOB SOURCES "../Utils/*.cpp")
-    add_library(RestuneTestUtils ${SOURCES})
+    add_library(RestuneTestUtils
+                ${CMAKE_CURRENT_SOURCE_DIR}/../Utils/Baseline.cpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/../Utils/TestAggregator.cpp)
     set_target_properties(RestuneTestUtils PROPERTIES VERSION 1.0.0 SOVERSION 1)
     target_link_libraries(RestuneTestUtils RestuneAuxUtils)
     target_include_directories(RestuneTestUtils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../Utils/Include)
     install(TARGETS RestuneTestUtils DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+    add_library(RestunePlugin ${CMAKE_CURRENT_SOURCE_DIR}/../Utils/Setup.cpp)
+    set_target_properties(RestunePlugin PROPERTIES VERSION 1.0.0 SOVERSION 1)
+    target_link_libraries(RestunePlugin RestuneExts)
+    install(TARGETS RestunePlugin DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
     add_executable(RestuneIntegrationTests ../Integration/IntegrationTests.cpp)
     target_link_libraries(RestuneIntegrationTests PUBLIC RestuneAuxUtils RestuneClient RestuneTestUtils ${LIBYAML_LIBRARIES})

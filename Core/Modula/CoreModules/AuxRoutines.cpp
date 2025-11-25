@@ -4,6 +4,8 @@
 #include "AuxRoutines.h"
 
 std::string AuxRoutines::readFromFile(const std::string& fileName) {
+    if(fileName.length() == 0) return "";
+
     std::ifstream fileStream(fileName, std::ios::in);
     std::string value = "";
 
@@ -22,8 +24,9 @@ std::string AuxRoutines::readFromFile(const std::string& fileName) {
 }
 
 void AuxRoutines::writeToFile(const std::string& fileName, const std::string& value) {
-    std::ofstream fileStream(fileName, std::ios::out | std::ios::trunc);
+    if(fileName.length() == 0) return;
 
+    std::ofstream fileStream(fileName, std::ios::out | std::ios::trunc);
     if(!fileStream.is_open()) {
         LOGE("RESTUNE_AUX_ROUTINE", "Failed to open file: " + fileName + " Error: " + strerror(errno));
         return;

@@ -56,7 +56,7 @@ jobs:
             cp ../Core/Configs/*.yaml resource-tuner-bins/etc/resource-tuner/common/
             cp ../Signals/Configs/*.yaml resource-tuner-bins/etc/resource-tuner/common/
             cp ../Tests/Configs/*.yaml resource-tuner-bins/etc/resource-tuner/custom/
-            cp ../Tests/Configs/ResourceSysFsNodes/*.txt resource-tuner-bins/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/
+            cp ../Tests/Configs/ResourceSysFsNodes/*.txt resource-tuner-bins/etc/resource-tuner/tests/nodes/
           '
       - name: Create a tar file of build
         run: |
