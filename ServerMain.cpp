@@ -93,15 +93,10 @@ static ErrCode loadExtensionsLib() {
     std::string libPath = ResourceTunerSettings::mExtensionsPluginLibPath;
 
     // Check if the library file exists
-    if(!AuxRoutines::fileExists(libPath)) {
-        TYPELOGD(NOTIFY_EXTENSIONS_LIB_NOT_PRESENT);
-        return RC_SUCCESS;  // Not an error if the library is not specified
-    }
-
     extensionsLibHandle = dlopen(libPath.c_str(), RTLD_NOW);
     if(extensionsLibHandle == nullptr) {
         TYPELOGV(NOTIFY_EXTENSIONS_LOAD_FAILED, dlerror());
-        return RC_MODULE_INIT_FAILURE;  // Error if the library exists but can't be loaded
+        return RC_SUCCESS;  // Return success regardless, since this is an extension.
     }
 
     TYPELOGD(NOTIFY_EXTENSIONS_LIB_LOADED_SUCCESS);

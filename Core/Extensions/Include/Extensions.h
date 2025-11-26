@@ -8,6 +8,8 @@
 #ifndef RESOURCE_TUNER_EXTENSIONS_H
 #define RESOURCE_TUNER_EXTENSIONS_H
 
+#include <cstdint>
+#include <string>
 #include <vector>
 #include <unordered_map>
 

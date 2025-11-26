@@ -19,7 +19,7 @@ namespace ResourceParsingTests {
     static ErrCode parsingStatus = RC_SUCCESS;
     static void Init() {
         ConfigProcessor configProcessor;
-        parsingStatus = configProcessor.parseResourceConfigs("/etc/resource-tuner/custom/ResourcesConfig.yaml", true);
+        parsingStatus = configProcessor.parseResourceConfigs("/etc/resource-tuner/tests/configs/ResourcesConfig.yaml", true);
     }
 
     static void TestResourceConfigProcessorYAMLDataIntegrity1() {
@@ -34,7 +34,7 @@ namespace ResourceParsingTests {
         C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
         C_ASSERT(resourceConfigInfo->mResourceResID == 0);
         C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "TEST_RESOURCE_1") == 0);
-        C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min.txt") == 0);
+        C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/nodes/sched_util_clamp_min.txt") == 0);
         C_ASSERT(resourceConfigInfo->mHighThreshold == 1024);
         C_ASSERT(resourceConfigInfo->mLowThreshold == 0);
         C_ASSERT(resourceConfigInfo->mPolicy == HIGHER_BETTER);
@@ -50,7 +50,7 @@ namespace ResourceParsingTests {
         C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
         C_ASSERT(resourceConfigInfo->mResourceResID == 1);
         C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "TEST_RESOURCE_2") == 0);
-        C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_max.txt") == 0);
+        C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/nodes/sched_util_clamp_max.txt") == 0);
         C_ASSERT(resourceConfigInfo->mHighThreshold == 1024);
         C_ASSERT(resourceConfigInfo->mLowThreshold == 512);
         C_ASSERT(resourceConfigInfo->mPolicy == HIGHER_BETTER);
@@ -66,7 +66,7 @@ namespace ResourceParsingTests {
         C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
         C_ASSERT(resourceConfigInfo->mResourceResID == 5);
         C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "TEST_RESOURCE_6") == 0);
-        C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource2.txt") == 0);
+        C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/nodes/target_test_resource2.txt") == 0);
         C_ASSERT(resourceConfigInfo->mHighThreshold == 6500);
         C_ASSERT(resourceConfigInfo->mLowThreshold == 50);
         C_ASSERT(resourceConfigInfo->mPolicy == HIGHER_BETTER);
@@ -94,7 +94,7 @@ namespace SignalParsingTests {
     static ErrCode parsingStatus = RC_SUCCESS;
     static void Init() {
         SignalConfigProcessor configProcessor;
-        parsingStatus = configProcessor.parseSignalConfigs("/etc/resource-tuner/custom/SignalsConfig.yaml");
+        parsingStatus = configProcessor.parseSignalConfigs("/etc/resource-tuner/tests/configs/SignalsConfig.yaml");
     }
 
     static void TestSignalConfigProcessorYAMLDataIntegrity1() {
@@ -227,7 +227,7 @@ namespace InitConfigParsingTests {
     static ErrCode parsingStatus = RC_SUCCESS;
     static void Init() {
         ConfigProcessor configProcessor;
-        parsingStatus = configProcessor.parseInitConfigs("/etc/resource-tuner/custom/InitConfig.yaml");
+        parsingStatus = configProcessor.parseInitConfigs("/etc/resource-tuner/tests/configs/InitConfig.yaml");
     }
 
     static void TestInitConfigProcessorYAMLDataIntegrity1() {
@@ -330,7 +330,7 @@ namespace PropertyParsingTests {
     static ErrCode parsingStatus = RC_SUCCESS;
     static void Init() {
         ConfigProcessor configProcessor;
-        parsingStatus = configProcessor.parsePropertiesConfigs("/etc/resource-tuner/custom/PropertiesConfig.yaml");
+        parsingStatus = configProcessor.parsePropertiesConfigs("/etc/resource-tuner/tests/configs/PropertiesConfig.yaml");
     }
 
     static void TestSysConfigProcessorYAMLDataIntegrity1() {
@@ -416,7 +416,7 @@ namespace TargetConfigProcessorTests {
     static void Init() {
         ResourceTunerSettings::targetConfigs.targetName = "TestDevice";
         ConfigProcessor configProcessor;
-        parsingStatus = configProcessor.parseTargetConfigs("/etc/resource-tuner/custom/TargetConfigDup.yaml");
+        parsingStatus = configProcessor.parseTargetConfigs("/etc/resource-tuner/tests/configs/TargetConfigDup.yaml");
     }
 
     static void TestTargetConfigProcessorYAMLDataIntegrity1() {
@@ -470,7 +470,7 @@ namespace ExtFeaturesParsingTests {
     static ErrCode parsingStatus = RC_SUCCESS;
     static void Init() {
         SignalConfigProcessor configProcessor;
-        parsingStatus = configProcessor.parseExtFeaturesConfigs("/etc/resource-tuner/custom/ExtFeaturesConfig.yaml");
+        parsingStatus = configProcessor.parseExtFeaturesConfigs("/etc/resource-tuner/tests/configs/ExtFeaturesConfig.yaml");
     }
 
     static void TestExtFeatConfigProcessorYAMLDataIntegrity1() {
@@ -526,7 +526,7 @@ namespace ResourceParsingTestsAddOn {
     static ErrCode parsingStatus = RC_SUCCESS;
     static void Init() {
         ConfigProcessor configProcessor;
-        std::string additionalResources = "/etc/resource-tuner/custom/ResourcesConfigAddOn.yaml";
+        std::string additionalResources = "/etc/resource-tuner/tests/configs/ResourcesConfigAddOn.yaml";
 
         if(RC_IS_OK(parsingStatus)) {
             parsingStatus = configProcessor.parseResourceConfigs(additionalResources, true);
@@ -640,8 +640,8 @@ namespace SignalParsingTestsAddOn {
     static void Init() {
         SignalConfigProcessor configProcessor;
 
-        std::string signalsClassA = "/etc/resource-tuner/custom/SignalsConfig.yaml";
-        std::string signalsClassB = "/etc/resource-tuner/custom/SignalsConfigAddOn.yaml";
+        std::string signalsClassA = "/etc/resource-tuner/tests/configs/SignalsConfig.yaml";
+        std::string signalsClassB = "/etc/resource-tuner/tests/configs/SignalsConfigAddOn.yaml";
 
         parsingStatus = configProcessor.parseSignalConfigs(signalsClassA);
         if(RC_IS_OK(parsingStatus)) {
