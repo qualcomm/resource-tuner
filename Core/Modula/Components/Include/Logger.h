@@ -15,12 +15,15 @@
 #define LOGD(tag, message) Logger::log(LOG_DEBUG, tag, __func__, message)
 #define LOGI(tag, message) Logger::log(LOG_INFO, tag, __func__, message)
 #define LOGE(tag, message) Logger::log(LOG_ERR, tag, __func__, message)
+#define LOGW(tag, message) Logger::log(LOG_WARNING, tag, __func__, message)
 #define TYPELOGV(type, args...) Logger::typeLog(type, __func__, args)
 #define TYPELOGD(type) Logger::typeLog(type, __func__)
 
 enum RedirectOptions {
     LOG_TOFILE,
-    LOG_TOSYSLOG
+    LOG_TOSYSLOG,
+    LOG_TOFTRACE,
+    LOG_TOLOGCAT,
 };
 
 enum CommonMessageTypes {
@@ -149,8 +152,6 @@ public:
      */
     static void log(int32_t level, const std::string& tag, const std::string& funcName, const std::string& message);
     static void typeLog(CommonMessageTypes type, const std::string& funcName, ...);
-
-    static int32_t decodeLogLevel(const std::string level);
 };
 
 #endif

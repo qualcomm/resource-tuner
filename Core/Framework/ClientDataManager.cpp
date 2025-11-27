@@ -88,11 +88,12 @@ int8_t ClientDataManager::createNewClient(int32_t clientPID, int32_t clientTID) 
     if(clientPIDExists) {
         // If it does, then add the client TID to the list of TIDs for that client PID
         int32_t curTIDCount = this->mClientRepo[clientPID]->mCurClientThreads;
-        if(curTIDCount < MAX_CLIENT_TID_COUNT) {
+        if(curTIDCount < PER_CLIENT_TID_CAP) {
             this->mClientRepo[clientPID]->mClientTIDs[curTIDCount] = clientTID;
             curTIDCount++;
             this->mClientRepo[clientPID]->mCurClientThreads = curTIDCount;
         } else {
+            this->mGlobalTableMutex.unlock();
             return false;
         }
     } else {

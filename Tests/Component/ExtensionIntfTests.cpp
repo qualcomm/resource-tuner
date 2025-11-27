@@ -5,12 +5,13 @@
 #include "ResourceRegistry.h"
 #include "ConfigProcessor.h"
 #include "Extensions.h"
+#include "TestAggregator.h"
 
-RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/resource-tuner/custom/ResourcesConfig.yaml")
-RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/etc/resource-tuner/custom/PropertiesConfig.yaml")
-RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/resource-tuner/custom/SignalsConfig.yaml")
-RESTUNE_REGISTER_CONFIG(TARGET_CONFIG, "/etc/resource-tuner/custom/TargetConfig.yaml")
-RESTUNE_REGISTER_CONFIG(INIT_CONFIG, "/etc/resource-tuner/custom/InitConfig.yaml")
+RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/resource-tuner/tests/configs/ResourcesConfig.yaml")
+RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/etc/resource-tuner/tests/configs/PropertiesConfig.yaml")
+RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/resource-tuner/tests/configs/SignalsConfig.yaml")
+RESTUNE_REGISTER_CONFIG(TARGET_CONFIG, "/etc/resource-tuner/tests/configs/TargetConfig.yaml")
+RESTUNE_REGISTER_CONFIG(INIT_CONFIG, "/etc/resource-tuner/tests/configs/InitConfig.yaml")
 
 static int8_t firstTest = true;
 static int8_t funcCalled = false;
@@ -40,23 +41,23 @@ static void Init() {
 }
 
 static void TestExtensionIntfModifiedResourceConfigPath() {
-    C_ASSERT(Extensions::getResourceConfigFilePath() == "/etc/resource-tuner/custom/ResourcesConfig.yaml");
+    C_ASSERT(Extensions::getResourceConfigFilePath() == "/etc/resource-tuner/tests/configs/ResourcesConfig.yaml");
 }
 
 static void TestExtensionIntfModifiedPropertiesConfigPath() {
-    C_ASSERT(Extensions::getPropertiesConfigFilePath() == "/etc/resource-tuner/custom/PropertiesConfig.yaml");
+    C_ASSERT(Extensions::getPropertiesConfigFilePath() == "/etc/resource-tuner/tests/configs/PropertiesConfig.yaml");
 }
 
 static void TestExtensionIntfModifiedSignalConfigPath() {
-    C_ASSERT(Extensions::getSignalsConfigFilePath() == "/etc/resource-tuner/custom/SignalsConfig.yaml");
+    C_ASSERT(Extensions::getSignalsConfigFilePath() == "/etc/resource-tuner/tests/configs/SignalsConfig.yaml");
 }
 
 static void TestExtensionIntfModifiedTargetConfigPath() {
-    C_ASSERT(Extensions::getTargetConfigFilePath() == "/etc/resource-tuner/custom/TargetConfig.yaml");
+    C_ASSERT(Extensions::getTargetConfigFilePath() == "/etc/resource-tuner/tests/configs/TargetConfig.yaml");
 }
 
 static void TestExtensionIntfModifiedInitConfigPath() {
-    C_ASSERT(Extensions::getInitConfigFilePath() == "/etc/resource-tuner/custom/InitConfig.yaml");
+    C_ASSERT(Extensions::getInitConfigFilePath() == "/etc/resource-tuner/tests/configs/InitConfig.yaml");
 }
 
 static void TestExtensionIntfCustomResourceApplier1() {
@@ -85,7 +86,7 @@ static void TestExtensionIntfCustomResourceTear() {
     C_ASSERT(funcCalled == true);
 }
 
-int32_t main() {
+static void RunTests() {
     std::cout<<"Running Test Suite: [ExtensionIntfTests]\n"<<std::endl;
 
     Init();
@@ -100,3 +101,5 @@ int32_t main() {
 
     std::cout<<"\nAll Tests from the suite: [ExtensionIntfTests], executed successfully"<<std::endl;
 }
+
+REGISTER_TEST(RunTests);

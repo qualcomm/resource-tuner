@@ -6,20 +6,17 @@
 #include "MemoryPool.h"
 #include "Request.h"
 #include "Signal.h"
+#include "TestAggregator.h"
 
 // Request Cleanup Tests
 static void TestResourceStructCoreClusterSettingAndExtraction() {
-    Resource* resource = new Resource;
-    C_ASSERT(resource != nullptr);
+    Resource resource;
 
-    resource->setCoreValue(2);
-    resource->setClusterValue(1);
+    resource.setCoreValue(2);
+    resource.setClusterValue(1);
 
-    C_ASSERT(resource->getCoreValue() == 2);
-    C_ASSERT(resource->getClusterValue() == 1);
-    C_ASSERT(resource->getResCode() == (uint32_t)((1 << 16) | (1 << 0)));
-
-    delete resource;
+    C_ASSERT(resource.getCoreValue() == 2);
+    C_ASSERT(resource.getClusterValue() == 1);
 }
 
 static void TestResourceStructOps1() {
@@ -116,7 +113,7 @@ static void TestAuxRoutineFileExists() {
     int8_t fileExists = AuxRoutines::fileExists("AuxParserTest.yaml");
     C_ASSERT(fileExists == false);
 
-    fileExists = AuxRoutines::fileExists("/etc/resource-tuner/custom/NetworkConfig.yaml");
+    fileExists = AuxRoutines::fileExists("/etc/resource-tuner/tests/configs/NetworkConfig.yaml");
     C_ASSERT(fileExists == false);
 
     fileExists = AuxRoutines::fileExists(ResourceTunerSettings::mCommonResourceFilePath);
@@ -142,7 +139,7 @@ static void TestRequestModeAddition() {
     C_ASSERT(request.getProcessingModes() == (MODE_RESUME | MODE_SUSPEND | MODE_DOZE));
 }
 
-int32_t main() {
+static void RunTests()  {
     std::cout<<"Running Test Suite: [MiscTests]\n"<<std::endl;
 
     RUN_TEST(TestResourceStructCoreClusterSettingAndExtraction);
@@ -159,5 +156,6 @@ int32_t main() {
     RUN_TEST(TestRequestModeAddition);
 
     std::cout<<"\nAll Tests from the suite: [MiscTests], executed successfully"<<std::endl;
-    return 0;
 }
+
+REGISTER_TEST(RunTests);

@@ -3,6 +3,7 @@
 
 #include "RequestQueue.h"
 #include "TestUtils.h"
+#include "TestAggregator.h"
 
 static void Init() {
     MakeAlloc<Message> (30);
@@ -516,7 +517,7 @@ static void TestRequestQueueInvalidPriority() {
     C_ASSERT(requestQueue->addAndWakeup(invalidRequest) == false);
 }
 
-int32_t main() {
+static void RunTests() {
     std::cout<<"Running Test Suite: [RequestQueueTests]\n"<<std::endl;
 
     Init();
@@ -531,5 +532,6 @@ int32_t main() {
     RUN_TEST(TestRequestQueueInvalidPriority);
 
     std::cout<<"\nAll Tests from the suite: [RequestQueueTests], executed successfully"<<std::endl;
-    return 0;
 }
+
+REGISTER_TEST(RunTests);

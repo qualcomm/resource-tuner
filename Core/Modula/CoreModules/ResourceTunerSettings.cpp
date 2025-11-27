@@ -33,8 +33,7 @@ const std::string ResourceTunerSettings::mCustomTargetFilePath =
 const std::string ResourceTunerSettings::mCustomExtFeaturesFilePath =
                                     "/etc/resource-tuner/custom/ExtFeaturesConfig.yaml";
 
-const std::string ResourceTunerSettings::mExtensionsPluginLibPath =
-                                    "/etc/resource-tuner/custom/libplugin.so";
+const std::string ResourceTunerSettings::mExtensionsPluginLibPath = "libRestunePlugin.so";
 
 const std::string ResourceTunerSettings::mDeviceNamePath =
                                     "/sys/devices/soc0/machine";

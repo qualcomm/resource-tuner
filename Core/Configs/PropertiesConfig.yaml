@@ -8,9 +8,6 @@ PropertyConfigs:
   - Name: resource_tuner.maximum.resources.per.request
     Value: "64"
 
-  - Name: resource_tuner.listening.port
-    Value: "12000"
-
   - Name: resource_tuner.pulse.duration
     Value: "60000"
 
@@ -30,12 +27,12 @@ PropertyConfigs:
     Value: "0.4"
 
   - Name: resource_tuner.logging.level
-    # Possible values: DEBUG, INFO, ERROR.
-    Value: "DEBUG"
+    # Possible values: DEBUG, INFO, WARN, ERROR.
+    Value: "DEBUG" # Anything and everything level DEBUG and above.
 
   - Name: resource_tuner.logging.level.exact
     Value: "false"
 
   - Name: resource_tuner.logging.redirect_to
-    # Possible values: 0 (file), 1 (syslog).
-    Value: "1"
+    # Possible values: FILE, SYSLOG, FTRACE, LOGCAT.
+    Value: "SYSLOG"

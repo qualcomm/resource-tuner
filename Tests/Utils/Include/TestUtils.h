@@ -34,18 +34,18 @@
  * |-------------------------------------|-------------|---------|-----------|---------------------|---------------|----------------|---------------|
  */
 
-void SetUp() {
+static void SetUp() {
     // Make sure all the tests have a sane starting point
 
-    AuxRoutines::writeToFile("/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_min.txt", "300");
-    AuxRoutines::writeToFile("/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/sched_util_clamp_max.txt", "684");
-    AuxRoutines::writeToFile("/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_min_freq.txt", "107");
-    AuxRoutines::writeToFile("/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/scaling_max_freq.txt", "114");
-    AuxRoutines::writeToFile("/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource1.txt", "240");
-    AuxRoutines::writeToFile("/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource2.txt", "333");
-    AuxRoutines::writeToFile("/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource3.txt", "4400");
-    AuxRoutines::writeToFile("/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource4.txt", "516");
-    AuxRoutines::writeToFile("/etc/resource-tuner/tests/Configs/ResourceSysFsNodes/target_test_resource5.txt", "17");
+    AuxRoutines::writeToFile("/etc/resource-tuner/tests/nodes/sched_util_clamp_min.txt", "300");
+    AuxRoutines::writeToFile("/etc/resource-tuner/tests/nodes/sched_util_clamp_max.txt", "684");
+    AuxRoutines::writeToFile("/etc/resource-tuner/tests/nodes/scaling_min_freq.txt", "107");
+    AuxRoutines::writeToFile("/etc/resource-tuner/tests/nodes/scaling_max_freq.txt", "114");
+    AuxRoutines::writeToFile("/etc/resource-tuner/tests/nodes/target_test_resource1.txt", "240");
+    AuxRoutines::writeToFile("/etc/resource-tuner/tests/nodes/target_test_resource2.txt", "333");
+    AuxRoutines::writeToFile("/etc/resource-tuner/tests/nodes/target_test_resource3.txt", "4400");
+    AuxRoutines::writeToFile("/etc/resource-tuner/tests/nodes/target_test_resource4.txt", "516");
+    AuxRoutines::writeToFile("/etc/resource-tuner/tests/nodes/target_test_resource5.txt", "17");
 
     std::this_thread::sleep_for(std::chrono::seconds(3));
 }
