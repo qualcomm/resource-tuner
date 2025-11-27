@@ -14,14 +14,14 @@ InitConfigs:
   - CgroupsInfo:
     - Name: "camera-cgroup"
       Create: true
-      ID: 4
+      ID: 801
     - Name: "audio-cgroup"
       Create: true
-      ID: 5
+      ID: 802
     - Name: "video-cgroup"
       Create: true
       IsThreaded: true
-      ID: 6
+      ID: 803
 
   - MPAMgroupsInfo:
     - Name: "camera-mpam-group"
