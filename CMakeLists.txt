@@ -52,7 +52,7 @@ list(APPEND SERVER_LIBS
   RestuneServer
   RestuneAuxUtils
   RestuneReceiver
-  RestuneExts
+  RestuneExtAPIs
 )
 
 if(BUILD_STATE_DETECTOR)
@@ -74,7 +74,7 @@ install(TARGETS resource_tuner RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 # Install libs
 install(TARGETS RestuneAuxUtils RestuneSockEnd
-                RestuneClient RestuneServer RestuneExts
+                RestuneClient RestuneServer RestuneExtAPIs
                 RestuneReceiver LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 if(BUILD_SIGNALS)

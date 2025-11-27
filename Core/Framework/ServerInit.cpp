@@ -61,9 +61,6 @@ static ErrCode fetchMetaConfigs() {
     std::string resultBuffer;
 
     try {
-        // Hard Code this value, as it should not be end-client customisable
-        ResourceTunerSettings::metaConfigs.mListeningPort = 12000;
-
         // Fetch target Name
         ResourceTunerSettings::targetConfigs.targetName = AuxRoutines::getMachineName();
         TYPELOGV(NOTIFY_CURRENT_TARGET_NAME, ResourceTunerSettings::targetConfigs.targetName.c_str());
