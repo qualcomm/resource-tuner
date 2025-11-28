@@ -36,7 +36,7 @@ target_include_directories(RestuneAuxUtils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..
 target_include_directories(RestuneAuxUtils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../Modula/Common/Include)
 target_include_directories(RestuneAuxUtils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../Modula/CoreModules/Include)
 
-# RestuneServer
+# SERVER / RECEIVER ENDPOINT
 file(GLOB SOURCES "../Server/Receiver/*.cpp")
 add_library(RestuneReceiver ${SOURCES})
 set_target_properties(RestuneReceiver PROPERTIES VERSION 1.0.0 SOVERSION 1)

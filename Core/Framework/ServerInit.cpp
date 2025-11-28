@@ -45,7 +45,7 @@ static void initLogger() {
     }
 
     RedirectOptions redirectOutputTo = RedirectOptions::LOG_TOSYSLOG;
-    submitPropGetRequest(LOGGER_LOGGING_OUTPUT_REDIRECT, resultBuffer, "1");
+    submitPropGetRequest(LOGGER_LOGGING_OUTPUT_REDIRECT, resultBuffer, "SYSLOG");
     std::string target = std::string(resultBuffer);
 
     if(target == "FILE") redirectOutputTo = RedirectOptions::LOG_TOFILE;
