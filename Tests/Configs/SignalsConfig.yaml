@@ -118,9 +118,9 @@ SignalConfigs:
       - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [2, 0,1,2,3,4]} # system.slice
       - {ResCode: "0x00090009", ResInfo: "0x00000000", Values: [2, 170]} # system.slice
       - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [3, 4,5,6]} # user.slice
-      - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [4, 0,1,2,3,4,5,6]} # camera-cgroup
-      - {ResCode: "0x00090009", ResInfo: "0x00000000", Values: [4, 150]} # camera-cgroup
-      - {ResCode: "0x00090011", ResInfo: "0x00000000", Values: [4, -20]} # camera-cgroup
+      - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [801, 0,1,2,3,4,5,6]} # camera-cgroup
+      - {ResCode: "0x00090009", ResInfo: "0x00000000", Values: [801, 150]} # camera-cgroup
+      - {ResCode: "0x00090011", ResInfo: "0x00000000", Values: [801, -20]} # camera-cgroup
 
   - SigId: "0x0009"
     Category: "0x0d"
@@ -129,19 +129,19 @@ SignalConfigs:
     Permissions: ["system"]
     Timeout: 50000
     Resources:
-      - {ResCode: "0x00090000", ResInfo: "0x00000000", Values: [4, "%d"]} # camera-cgroup
-      - {ResCode: "0x00090000", ResInfo: "0x00000000", Values: [4, "%d"]} # camera-cgroup
+      - {ResCode: "0x00090000", ResInfo: "0x00000000", Values: [801, "%d"]} # camera-cgroup
+      - {ResCode: "0x00090000", ResInfo: "0x00000000", Values: [801, "%d"]} # camera-cgroup
       - {ResCode: "0x00090000", ResInfo: "0x00000000", Values: [3, "%d"]} # user.slice
       - {ResCode: "0x00090009", ResInfo: "0x00000000", Values: [2, 250]} # system.slice
       - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [2, 0,1,2,3,4]} # system.slice
       - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [3, 0,1,2,3]} # user.slice
       - {ResCode: "0x00090009", ResInfo: "0x00000000", Values: [3, 170]} # user.slice
       - {ResCode: "0x0009000a", ResInfo: "0x00000000", Values: [3, 1073741824]} # user.slice
-      - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [4, 0,1,2,3,4,5,6]} # camera-cgroup
-      - {ResCode: "0x00090009", ResInfo: "0x00000000", Values: [4, 150]} # camera-cgroup
-      - {ResCode: "0x00090011", ResInfo: "0x00000000", Values: [4, -20]} # camera-cgroup
-      - {ResCode: "0x0009000c", ResInfo: "0x00000000", Values: [4, 519430400]} # camera-cgroup
-      - {ResCode: "0x0009000d", ResInfo: "0x00000000", Values: [4, 119430400]} # camera-cgroup
+      - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [801, 0,1,2,3,4,5,6]} # camera-cgroup
+      - {ResCode: "0x00090009", ResInfo: "0x00000000", Values: [801, 150]} # camera-cgroup
+      - {ResCode: "0x00090011", ResInfo: "0x00000000", Values: [801, -20]} # camera-cgroup
+      - {ResCode: "0x0009000c", ResInfo: "0x00000000", Values: [801, 519430400]} # camera-cgroup
+      - {ResCode: "0x0009000d", ResInfo: "0x00000000", Values: [801, 119430400]} # camera-cgroup
       - {ResCode: "0x00040001", ResInfo: "0x00000000", Values: [1804800]} # logical cluster: 0
       - {ResCode: "0x00040001", ResInfo: "0x00000100", Values: [940800]}  # logical cluster: 1
       - {ResCode: "0x00040001", ResInfo: "0x00000200", Values: [806400]}  # logical cluster: 2
@@ -160,4 +160,4 @@ SignalConfigs:
       - {ResCode: "0x80ff000a", ResInfo: "0x00000000", Values: [1976]}  # logical cluster: 0
       - {ResCode: "0x80ff000a", ResInfo: "0x00000100", Values: [1989]}  # logical cluster: 1
       - {ResCode: "0x80ff000a", ResInfo: "0x00000200", Values: [2012]}  # logical cluster: 2
-      - {ResCode: "0x80ff000d", ResInfo: "0x00000000", Values: [5, 41128]}  # cgroup: audio
+      - {ResCode: "0x80ff000d", ResInfo: "0x00000000", Values: [802, 41128]}  # cgroup: audio

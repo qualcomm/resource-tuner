@@ -146,15 +146,14 @@ void listenerThreadStartRoutine() {
     ResourceTunerSocketServer* connection;
     pthread_setname_np(pthread_self(), "listenerThread");
     try {
-        connection = new ResourceTunerSocketServer(ResourceTunerSettings::metaConfigs.mListeningPort,
-                                                   checkServerOnlineStatus,
-                                                   onMsgRecvCallback);
+        connection = new ResourceTunerSocketServer(checkServerOnlineStatus, onMsgRecvCallback);
     } catch(const std::bad_alloc& e) {
         LOGE("RESTUNE_REQUEST_RECEIVER",
              "Failed to allocate memory for Resource Tuner Socket Server-Endpoint, Resource Tuner \
               Server startup failed: " + std::string(e.what()));
 
         return;
+
     } catch(const std::exception& e) {
         LOGE("RESTUNE_REQUEST_RECEIVER",
              "Failed to start the Resource Tuner Listener, error: " + std::string(e.what()));

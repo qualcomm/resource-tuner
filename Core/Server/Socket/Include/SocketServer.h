@@ -5,7 +5,7 @@
 #define RESOURCE_TUNER_SOCKET_SERVER_H
 
 #include <sys/socket.h>
-#include <arpa/inet.h>
+#include <sys/un.h>
 #include <sys/epoll.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -22,20 +22,20 @@
 #include "ErrCodes.h"
 #include "Logger.h"
 
+#define RESTUNE_SOCKET_PATH "/run/restune_sock"
+
 static const uint32_t maxEvents = 128;
 
 class ResourceTunerSocketServer : public ServerEndpoint {
 private:
     int32_t sockFd;
-    uint32_t mListeningPort;
     ServerOnlineCheckCallback mServerOnlineCheckCb;
     ResourceTunerMessageReceivedCallback mResourceTunerMessageRecvCb;
 
 public:
     ResourceTunerSocketServer(
-                        uint32_t mListeningPort,
-                        ServerOnlineCheckCallback mServerOnlineCheckCb,
-                        ResourceTunerMessageReceivedCallback mResourceTunerMessageRecvCb);
+        ServerOnlineCheckCallback mServerOnlineCheckCb,
+        ResourceTunerMessageReceivedCallback mResourceTunerMessageRecvCb);
 
     ~ResourceTunerSocketServer();
 

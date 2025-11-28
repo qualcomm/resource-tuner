@@ -1,22 +1,20 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include "ResourceTunerSocketServer.h"
+#include "SocketServer.h"
 
 ResourceTunerSocketServer::ResourceTunerSocketServer(
-        uint32_t mListeningPort,
-        ServerOnlineCheckCallback mServerOnlineCheckCb,
-        ResourceTunerMessageReceivedCallback mResourceTunerMessageRecvCb) {
+    ServerOnlineCheckCallback mServerOnlineCheckCb,
+    ResourceTunerMessageReceivedCallback mResourceTunerMessageRecvCb) {
 
     this->sockFd = -1;
-    this->mListeningPort = mListeningPort;
     this->mServerOnlineCheckCb = mServerOnlineCheckCb;
     this->mResourceTunerMessageRecvCb = mResourceTunerMessageRecvCb;
 }
 
 // Called by server, this will put the server in listening mode
 int32_t ResourceTunerSocketServer::ListenForClientRequests() {
-    if((this->sockFd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    if((this->sockFd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
         TYPELOGV(ERRNO_LOG, "socket", strerror(errno));
         LOGE("RESTUNE_SOCKET_SERVER", "Failed to initialize Server Socket");
         return RC_SOCKET_CONN_NOT_INITIALIZED;
@@ -25,10 +23,10 @@ int32_t ResourceTunerSocketServer::ListenForClientRequests() {
     // Make the socket Non-Blocking
     fcntl(this->sockFd, F_SETFL, O_NONBLOCK);
 
-    struct sockaddr_in addr;
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(this->mListeningPort);
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    struct sockaddr_un addr;
+    memset(&addr, 0, sizeof(sockaddr_un));
+    addr.sun_family = AF_UNIX;
+    strncpy(addr.sun_path, RESTUNE_SOCKET_PATH, sizeof(addr.sun_path) - 1);
 
     int32_t epollFd = epoll_create1(0);
     epoll_event event{}, events[maxEvents];
@@ -62,9 +60,6 @@ int32_t ResourceTunerSocketServer::ListenForClientRequests() {
             if(events[i].data.fd == this->sockFd) {
                 // Process all the Requests in the backlog
                 while(true) {
-                    sockaddr_in clientAddr{};
-                    socklen_t clientLen = sizeof(clientAddr);
-
                     int32_t clientSocket = -1;
                     if((clientSocket = accept(this->sockFd, nullptr, nullptr)) < 0) {
                         if(errno != EAGAIN && errno != EWOULDBLOCK) {
