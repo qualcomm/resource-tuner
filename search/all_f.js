@@ -1,0 +1,25 @@
+var searchData=
+[
+  ['garbage_20collector_0',['Client Garbage Collector',['../group__CLIENT__GARBAGE__COLLECTOR.html',1,'']]],
+  ['general_20usage_20guide_1',['General Usage Guide',['../usage.html',1,'']]],
+  ['get_20the_20value_20of_20restype_20for_20a_20resource_2',['List Of Resource Types (Use this table to get the value of ResType for a Resource)',['../index.html#autotoc_md65',1,'']]],
+  ['getactiveclientlist_3',['getActiveClientList',['../classClientDataManager.html#a067bac50c408c0b6b30bf9e9d44bb312',1,'ClientDataManager']]],
+  ['getactivereqeustscount_4',['getActiveReqeustsCount',['../classRequestManager.html#a724595c898fa0a39c7f221f3a8e6c84a',1,'RequestManager']]],
+  ['getblock_5',['getBlock',['../classMemoryPool.html#a31c8892dfd514b5fdde0b2a13784be46',1,'MemoryPool']]],
+  ['getclientlevelbyclientid_6',['getClientLevelByClientID',['../classClientDataManager.html#ae20cece87281c3a602339a870888faf5',1,'ClientDataManager']]],
+  ['getextfeatureconfigbyid_7',['getExtFeatureConfigById',['../classExtFeaturesRegistry.html#ae814f0e3b9d5603df46ca2501b229e92',1,'ExtFeaturesRegistry']]],
+  ['gethealthbyclientid_8',['getHealthByClientID',['../classClientDataManager.html#a4ede41fda7af0d923e1912709b1abdfc',1,'ClientDataManager']]],
+  ['getlastrequesttimestampbyclientid_9',['getLastRequestTimestampByClientID',['../classClientDataManager.html#a97498791d8ca3f6102d8907f781f065a',1,'ClientDataManager']]],
+  ['getphysicalclusterid_10',['getPhysicalClusterId',['../classTargetRegistry.html#a4dfbcf7f4720413c45cf5ad098419cf1',1,'TargetRegistry']]],
+  ['getphysicalcoreid_11',['getPhysicalCoreId',['../classTargetRegistry.html#a15279b8a321addc757c780167cbb932c',1,'TargetRegistry']]],
+  ['getprop_12',['getprop',['../group__RESOURCE__TUNER__CLIENT__APIS.html#ga8a0aa72f2dbe111acad6301f5889dadf',1,'getProp():&#160;ResourceTunerAPIs.h'],['../index.html#autotoc_md19',1,'getProp']]],
+  ['getprop_20request_13',['4. Send a getProp Request',['../index.html#autotoc_md105',1,'']]],
+  ['getrequestfrommap_14',['getRequestFromMap',['../classRequestManager.html#a5dd579ede79dd692319ab10c271db690',1,'RequestManager']]],
+  ['getrequestsbyclientid_15',['getRequestsByClientID',['../classClientDataManager.html#a30fe8dd3e601dbfca25dbdc542e4c405',1,'ClientDataManager']]],
+  ['getresconf_16',['getResConf',['../classResourceRegistry.html#ab8ea62b25690cdd3bceff77a1153b017',1,'ResourceRegistry']]],
+  ['getsignalconfigbyid_17',['getSignalConfigById',['../classSignalRegistry.html#a71be7eef91182f402041f0b8da31ffad',1,'SignalRegistry']]],
+  ['getting_20started_18',['Getting Started',['../index.html#autotoc_md4',1,'']]],
+  ['group_20config_19',['Fields Description for Mpam Group Config',['../index.html#autotoc_md36',1,'']]],
+  ['groups_20map_20',['3. Mpam Groups Map',['../index.html#autotoc_md34',1,'']]],
+  ['guide_21',['guide',['../requests_formulation.html',1,'&quot;Tune&quot; Requests Formulation Guide'],['../extensions.html',1,'Extension Interface Guide'],['../ext_features.html',1,'Features Guide'],['../usage.html',1,'General Usage Guide']]]
+];
