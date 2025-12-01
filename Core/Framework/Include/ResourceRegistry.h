@@ -25,7 +25,8 @@ enum ResourceApplyType {
     APPLY_CORE, //!< Resource can have different configured values across different cores
     APPLY_CLUSTER, //!< Resource can have different configured values across different clusters
     APPLY_GLOBAL,  //!< Resource is global, i.e. the same configured value across the system.
-    APPLY_CGROUP  //!< Resource can have different configured values across different cgroups
+    APPLY_CGROUP,  //!< Resource can have different configured values across different cgroups
+    APPLY_IRQ
 };
 
 /**

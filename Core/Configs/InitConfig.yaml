@@ -12,6 +12,13 @@ InitConfigs:
     - Name: "user.slice"
       Create: false
       ID: 3
-    - Name: "irqs"
+    - Name: "camera-cgroup"
       Create: true
       ID: 4
+    - Name: "cam-server"
+      Create: true
+      ID: 5
+    - Name: "cam-kworkers"
+      Create: true
+      IsThreaded: true
+      ID: 6

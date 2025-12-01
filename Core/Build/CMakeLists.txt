@@ -21,7 +21,7 @@ add_library(RestuneServer ${SOURCES})
 set_target_properties(RestuneServer PROPERTIES VERSION 1.0.0 SOVERSION 1)
 target_include_directories(RestuneServer PRIVATE ${LIBYAML_INCLUDE_DIRS})
 target_include_directories(RestuneServer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../Framework/Include)
-target_link_libraries(RestuneServer PRIVATE RestuneAuxUtils RestuneSockEnd RestuneExtAPIs ${LIBYAML_LIBRARIES})
+target_link_libraries(RestuneServer PRIVATE RestuneAuxUtils RestuneSockEnd RestuneExtAPIs ${LIBYAML_LIBRARIES} ${SYSTEMD_LIBRARIES})
 
 # MODULA
 find_package(PkgConfig REQUIRED)

@@ -51,6 +51,16 @@ ResourceConfigs:
     Policy: "higher_is_better"
     ApplyType: "global"
 
+  - ResType: "0x03"
+    ResID: "0x0002"
+    Name: "/proc/sys/kernel/sched_energy_aware"
+    Path: "SCHED_ENERGY_AWARE"
+    Supported: true
+    Permissions: "system"
+    Modes: ["display_on"]
+    Policy: "pass_through"
+    ApplyType: "global"
+
   - ResType: "0x04"
     ResID: "0x0000"
     Unit: "Hz"
@@ -267,3 +277,43 @@ ResourceConfigs:
     Modes: ["display_on"]
     Policy: "lower_is_better"
     ApplyType: "cgroup"
+
+  - ResType: "0x0b"
+    ResID: "0x0000"
+    Name: "RES_TUNER_START_IRQBALANCE"
+    Path: ""
+    Supported: true
+    Permissions: "system"
+    Modes: ["display_on"]
+    Policy: "pass_through"
+    ApplyType: "global"
+
+  - ResType: "0x0b"
+    ResID: "0x0001"
+    Name: "RES_TUNER_STOP_IRQBALANCE"
+    Path: ""
+    Supported: true
+    Permissions: "system"
+    Modes: ["display_on"]
+    Policy: "pass_through"
+    ApplyType: "global"
+
+  - ResType: "0x0b"
+    ResID: "0x0002"
+    Name: "RES_TUNER_IRQ_AFFINE"
+    Path: "/proc/irq/%d/smp_affinity"
+    Supported: true
+    Permissions: "system"
+    Modes: ["display_on"]
+    Policy: "pass_through"
+    ApplyType: "custom"
+
+  - ResType: "0x0b"
+    ResID: "0x0003"
+    Name: "RES_TUNER_CAM_AFFINE"
+    Path: ""
+    Supported: true
+    Permissions: "system"
+    Modes: ["display_on"]
+    Policy: "pass_through"
+    ApplyType: "global"

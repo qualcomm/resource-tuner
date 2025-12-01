@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include <unistd.h>
+#include <systemd/sd-bus.h>
 
 #include "Utils.h"
 #include "Logger.h"
@@ -395,6 +396,47 @@ static void moveProcessToCGroup(void* context) {
     }
 }
 
+static void moveThreadToCGroup(void* context) {
+    if(context == nullptr) return;
+    Resource* resource = static_cast<Resource*>(context);
+    if(resource->getValuesCount() < 2) return;
+
+    int32_t cGroupIdentifier = resource->getValueAt(0);
+    // Get the corresponding cGroupConfig, this is needed to identify the
+    // correct CGroup Name.
+    CGroupConfigInfo* cGroupConfig =
+        TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
+
+    if(cGroupConfig == nullptr) {
+        TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
+        return;
+    }
+
+    const std::string cGroupName = cGroupConfig->mCgroupName;
+    if(cGroupName.length() == 0) {
+        return;
+    }
+
+    std::string controllerFilePath = getCGroupTypeResourceNodePath(resource, cGroupName);
+    for(int32_t i = 1; i < resource->getValuesCount(); i++) {
+        int32_t tid = resource->getValueAt(0);
+
+        TYPELOGV(NOTIFY_NODE_WRITE, controllerFilePath.c_str(), tid);
+        std::ofstream controllerFile(controllerFilePath);
+        if(!controllerFile.is_open()) {
+            TYPELOGV(ERRNO_LOG, "open", strerror(errno));
+            return;
+        }
+
+        controllerFile<<tid<<std::endl;
+
+        if(controllerFile.fail()) {
+            TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+        }
+        controllerFile.close();
+    }
+}
+
 static void setRunOnCores(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
@@ -631,11 +673,86 @@ static void resetRunOnCoresExclusively(void* context) {
     }
 }
 
+static void startIRQBalance(void* context) {
+    sd_bus *bus = nullptr;
+    sd_bus_error error = SD_BUS_ERROR_NULL;
+    sd_bus_message *reply = nullptr;
+    int32_t rc;
+
+    // Connect to the system bus
+    rc = sd_bus_open_system(&bus);
+    if(rc < 0) {
+        TYPELOGV(SYSTEM_BUS_CONN_FAILED, strerror(-rc));
+        return;
+    }
+
+    // Start irqbalance
+    rc = sd_bus_call_method(bus,
+                            "org.freedesktop.systemd1",
+                            "/org/freedesktop/systemd1",
+                            "org.freedesktop.systemd1.Manager",
+                            "StartUnit",
+                            &error,
+                            &reply,
+                            "ss",
+                            "irqbalanced.service",
+                            "replace");
+    if(rc < 0) {
+        LOGE("RESTUNE_COCO_TABLE", "Failed to start irqbalanced: " + std::string(error.message));
+    }
+
+    sd_bus_message_unref(reply);
+    sd_bus_error_free(&error);
+    sd_bus_unref(bus);
+}
+
+static void stopIRQBalance(void* context) {
+    sd_bus *bus = nullptr;
+    sd_bus_error error = SD_BUS_ERROR_NULL;
+    sd_bus_message *reply = nullptr;
+    int32_t rc;
+
+    // Connect to the system bus
+    rc = sd_bus_open_system(&bus);
+    if(rc < 0) {
+        TYPELOGV(SYSTEM_BUS_CONN_FAILED, strerror(-rc));
+        return;
+    }
+
+    // Start irqbalance
+    rc = sd_bus_call_method(bus,
+                            "org.freedesktop.systemd1",
+                            "/org/freedesktop/systemd1",
+                            "org.freedesktop.systemd1.Manager",
+                            "StopUnit",
+                            &error,
+                            &reply,
+                            "ss",
+                            "irqbalanced.service",
+                            "replace");
+    if(rc < 0) {
+        LOGE("RESTUNE_COCO_TABLE", "Failed to stop irqbalanced: " + std::string(error.message));
+    }
+
+    sd_bus_message_unref(reply);
+    sd_bus_error_free(&error);
+    sd_bus_unref(bus);
+}
+
+static void no_op(void* context) {
+    return;
+}
+
 // Register the specific Callbacks
 RESTUNE_REGISTER_APPLIER_CB(0x00090000, moveProcessToCGroup);
+RESTUNE_REGISTER_APPLIER_CB(0x00090001, moveThreadToCGroup);
 RESTUNE_REGISTER_APPLIER_CB(0x00090002, setRunOnCores);
 RESTUNE_REGISTER_APPLIER_CB(0x00090003, setRunOnCoresExclusively);
 RESTUNE_REGISTER_APPLIER_CB(0x00090005, limitCpuTime);
+RESTUNE_REGISTER_APPLIER_CB(0x000b0000, startIRQBalance);
+RESTUNE_REGISTER_APPLIER_CB(0x000b0001, stopIRQBalance);
 RESTUNE_REGISTER_TEAR_CB(0x00090000, removeProcessFromCGroup);
 RESTUNE_REGISTER_TEAR_CB(0x00090001, removeThreadFromCGroup);
 RESTUNE_REGISTER_TEAR_CB(0x00090003, resetRunOnCoresExclusively);
+RESTUNE_REGISTER_TEAR_CB(0x000b0000, no_op);
+RESTUNE_REGISTER_TEAR_CB(0x000b0001, no_op);
