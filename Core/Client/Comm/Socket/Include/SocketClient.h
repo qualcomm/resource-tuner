@@ -6,7 +6,7 @@
 
 #include <unistd.h>
 #include <sys/socket.h>
-#include <arpa/inet.h>
+#include <sys/un.h>
 #include <cstring>
 
 #include "Request.h"
@@ -16,15 +16,15 @@
 #include "ClientEndpoint.h"
 #include "ErrCodes.h"
 
-static const int32_t socketConnPort = 12000;
+#define RESTUNE_SOCKET_PATH "/run/restune_sock"
 
-class ResourceTunerSocketClient : public ClientEndpoint {
+class SocketClient : public ClientEndpoint {
 private:
     int32_t sockFd;
 
 public:
-    ResourceTunerSocketClient();
-    ~ResourceTunerSocketClient();
+    SocketClient();
+    ~SocketClient();
 
     virtual int32_t initiateConnection();
     virtual int32_t sendMsg(char* buf, size_t bufSize);

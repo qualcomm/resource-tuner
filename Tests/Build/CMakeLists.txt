@@ -12,7 +12,7 @@ if(BUILD_TESTS)
 
     add_library(RestunePlugin ${CMAKE_CURRENT_SOURCE_DIR}/../Utils/Setup.cpp)
     set_target_properties(RestunePlugin PROPERTIES VERSION 1.0.0 SOVERSION 1)
-    target_link_libraries(RestunePlugin RestuneExts)
+    target_link_libraries(RestunePlugin RestuneExtAPIs)
     install(TARGETS RestunePlugin DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
     add_executable(RestuneIntegrationTests ../Integration/IntegrationTests.cpp)
@@ -36,7 +36,7 @@ if(BUILD_TESTS)
         ${CMAKE_CURRENT_SOURCE_DIR}/../Component/CocoTableTests.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../Component/RequestMapTests.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../Component/Trigger.cpp)
-    target_link_libraries(RestuneComponentTests RestuneAuxUtils RestuneExts RestuneServer RestuneSignals RestuneTestUtils)
+    target_link_libraries(RestuneComponentTests RestuneAuxUtils RestuneExtAPIs RestuneServer RestuneSignals RestuneTestUtils)
     install(TARGETS RestuneComponentTests DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 endif()
