@@ -3,6 +3,10 @@
 
 #include "SocketServer.h"
 
+#ifndef UNIX_PATH_MAX
+#define UNIX_PATH_MAX sizeof(((struct sockaddr_un *)0)->sun_path)
+#endif
+
 ResourceTunerSocketServer::ResourceTunerSocketServer(
     ServerOnlineCheckCallback mServerOnlineCheckCb,
     ResourceTunerMessageReceivedCallback mResourceTunerMessageRecvCb) {
@@ -19,37 +23,61 @@ int32_t ResourceTunerSocketServer::ListenForClientRequests() {
         LOGE("RESTUNE_SOCKET_SERVER", "Failed to initialize Server Socket");
         return RC_SOCKET_CONN_NOT_INITIALIZED;
     }
-
     // Make the socket Non-Blocking
-    fcntl(this->sockFd, F_SETFL, O_NONBLOCK);
+    if (fcntl(this->sockFd, F_SETFL, O_NONBLOCK) < 0)
+    {
+        close(this->sockFd);
+        LOGE("RESTUNE_SOCKET_SERVER", std::string("Failed to make socket non-blocking: ") + strerror(errno));
+        return RC_SOCKET_CONN_NOT_INITIALIZED;
+    }
 
     struct sockaddr_un addr;
     memset(&addr, 0, sizeof(sockaddr_un));
     addr.sun_family = AF_UNIX;
-    strncpy(addr.sun_path, RESTUNE_SOCKET_PATH, sizeof(addr.sun_path) - 1);
-
-    int32_t epollFd = epoll_create1(0);
-    epoll_event event{}, events[maxEvents];
-    event.events = EPOLLIN;
-    event.data.fd = this->sockFd;
-    epoll_ctl(epollFd, EPOLL_CTL_ADD, this->sockFd, &event);
-
-    int32_t reuse = 1;
-    if(setsockopt(this->sockFd, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse)) < 0) {
-        TYPELOGV(ERRNO_LOG, "setsockopt", strerror(errno));
-        LOGE("RESTUNE_SOCKET_SERVER", "Failed to initialize Server Socket");
+    if (snprintf(addr.sun_path, UNIX_PATH_MAX, RESTUNE_SOCKET_PATH) >= UNIX_PATH_MAX) {
+        LOGE("RESTUNE_SOCKET_SERVER", "Socket path too long");
+        close(this->sockFd);
         return RC_SOCKET_CONN_NOT_INITIALIZED;
     }
 
+    // Remove old socket file
+    unlink(addr.sun_path);
+
     if(bind(this->sockFd, (const sockaddr*)&addr, sizeof(addr)) < 0) {
         TYPELOGV(ERRNO_LOG, "bind", strerror(errno));
-        LOGE("RESTUNE_SOCKET_SERVER", "Failed to initialize Server Socket");
+        close(this->sockFd);
+        return RC_SOCKET_CONN_NOT_INITIALIZED;
+    }
+
+    // Set permissions for server
+    mode_t perm = 0666;
+    if (chmod(RESTUNE_SOCKET_PATH, perm) < 0) {
+        TYPELOGV(ERRNO_LOG, "permission", strerror(errno));
+        close(this->sockFd);
         return RC_SOCKET_CONN_NOT_INITIALIZED;
     }
 
     if(listen(this->sockFd, maxEvents) < 0) {
         TYPELOGV(ERRNO_LOG, "listen", strerror(errno));
-        LOGE("RESTUNE_SOCKET_SERVER", "Failed to initialize Server Socket");
+        close(this->sockFd);
+        return RC_SOCKET_CONN_NOT_INITIALIZED;
+    }
+
+    int32_t epollFd = epoll_create1(0);
+    if (epollFd < 0) {
+        TYPELOGV(ERRNO_LOG, "epoll_create1", strerror(errno));
+        close(this->sockFd);
+        return RC_SOCKET_CONN_NOT_INITIALIZED;
+    }
+
+    epoll_event event{}, events[maxEvents];
+    event.events = EPOLLIN;
+    event.data.fd = this->sockFd;
+    if (epoll_ctl(epollFd, EPOLL_CTL_ADD, this->sockFd, &event) < 0)
+    {
+        TYPELOGV(ERRNO_LOG, "epoll_ctl", strerror(errno));
+        close(epollFd);
+        close(this->sockFd);
         return RC_SOCKET_CONN_NOT_INITIALIZED;
     }
 

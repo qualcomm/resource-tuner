@@ -3,6 +3,10 @@
 
 #include "SocketClient.h"
 
+#ifndef UNIX_PATH_MAX
+#define UNIX_PATH_MAX sizeof(((struct sockaddr_un *)0)->sun_path)
+#endif
+
 SocketClient::SocketClient() {
     this->sockFd = -1;
 }
@@ -14,12 +18,19 @@ int32_t SocketClient::initiateConnection() {
     }
 
     struct sockaddr_un addr;
-    memset(&addr, 0, sizeof(sockaddr_un));
+    memset(&addr, 0, sizeof(struct sockaddr_un));
     addr.sun_family = AF_UNIX;
-    strncpy(addr.sun_path, RESTUNE_SOCKET_PATH, sizeof(addr.sun_path) - 1);
+    if (snprintf(addr.sun_path, UNIX_PATH_MAX, RESTUNE_SOCKET_PATH) >= UNIX_PATH_MAX) {
+        LOGE("RESTUNE_SOCKET_CLIENT", "Socket path too long");
+        close(this->sockFd);
+        this->sockFd = -1;
+        return RC_SOCKET_CONN_NOT_INITIALIZED;
+    }
 
-    if(connect(this->sockFd, (const sockaddr*)&addr, sizeof(addr)) < 0) {
+    if(connect(this->sockFd, (const sockaddr*)&addr, sizeof(struct sockaddr_un)) < 0) {
         TYPELOGV(ERRNO_LOG, "connect", strerror(errno));
+        close(this->sockFd);
+        this->sockFd = -1;
         return RC_SOCKET_CONN_NOT_INITIALIZED;
     }
 
