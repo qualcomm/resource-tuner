@@ -55,6 +55,21 @@ static std::string getCGroupTypeResourceNodePath(Resource* resource, const std::
     return filePath;
 }
 
+static std::string getIRQTypeResourceNodePath(Resource* resource, int32_t irqID) {
+    ResConfInfo* resourceConfig =
+        ResourceRegistry::getInstance()->getResConf(resource->getResCode());
+
+    if(resourceConfig == nullptr) return "";
+    std::string filePath = resourceConfig->mResourcePath;
+
+    // Replace %s in above file path with the actual cgroup name
+    char pathBuffer[128];
+    std::snprintf(pathBuffer, sizeof(pathBuffer), filePath.c_str(), irqID);
+    filePath = std::string(pathBuffer);
+
+    return filePath;
+}
+
 static void truncateFile(const std::string& filePath) {
     std::ofstream ofStream(filePath, std::ofstream::out | std::ofstream::trunc);
     ofStream<<""<<std::endl;
@@ -742,6 +757,89 @@ static void stopIRQBalance(void* context) {
     sd_bus_unref(bus);
 }
 
+// specific irq affince
+static void setIRQAffine(void* context) {
+    if(context == nullptr) return;
+    Resource* resource = static_cast<Resource*>(context);
+    if(resource->getValuesCount() != 2) return;
+
+    ResConfInfo* rConf = ResourceRegistry::getInstance()->getResConf(resource->getResCode());
+
+    int32_t irqIdentifier = resource->getValueAt(0);
+    int32_t valueToBeWritten = resource->getValueAt(1);
+
+    OperationStatus status = OperationStatus::SUCCESS;
+    int64_t translatedValue = Multiply(static_cast<int64_t>(valueToBeWritten),
+                                       static_cast<int64_t>(rConf->mUnit),
+                                       status);
+
+    if(status != OperationStatus::SUCCESS) {
+        // Overflow detected, return to LONG_MAX (64-bit)
+        translatedValue = std::numeric_limits<int64_t>::max();
+    }
+
+    std::string controllerFilePath = getIRQTypeResourceNodePath(resource, irqIdentifier);
+
+    TYPELOGV(NOTIFY_NODE_WRITE, controllerFilePath.c_str(), valueToBeWritten);
+    LOGD("RESTUNE_COCO_TABLE", "Actual value to be written = " + std::to_string(translatedValue));
+    std::ofstream controllerFile(controllerFilePath);
+    if(!controllerFile.is_open()) {
+        TYPELOGV(ERRNO_LOG, "open", strerror(errno));
+        return;
+    }
+
+    controllerFile<<translatedValue<<std::endl;
+
+    if(controllerFile.fail()) {
+        TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+    }
+
+    controllerFile.close();
+}
+
+// cam irq affince
+static void setCamAffine(void* context) {
+    if(context == nullptr) return;
+    Resource* resource = static_cast<Resource*>(context);
+    if(resource->getValuesCount() != 2) return;
+
+    ResConfInfo* rConf = ResourceRegistry::getInstance()->getResConf(resource->getResCode());
+
+    int32_t valueToBeWritten = resource->getValueAt(0);
+
+    OperationStatus status = OperationStatus::SUCCESS;
+    int64_t translatedValue = Multiply(static_cast<int64_t>(valueToBeWritten),
+                                       static_cast<int64_t>(rConf->mUnit),
+                                       status);
+
+    if(status != OperationStatus::SUCCESS) {
+        // Overflow detected, return to LONG_MAX (64-bit)
+        translatedValue = std::numeric_limits<int64_t>::max();
+    }
+
+    std::vector<int32_t> irqs;
+    TargetRegistry::getInstance()->getIRQIds(irqs);
+
+    for(int32_t irqID: irqs) {
+        std::string controllerFilePath = "/proc/irq/" + std::to_string(irqID) + "/smp_affinity";
+        TYPELOGV(NOTIFY_NODE_WRITE, controllerFilePath.c_str(), valueToBeWritten);
+        LOGD("RESTUNE_COCO_TABLE", "Actual value to be written = " + std::to_string(translatedValue));
+        std::ofstream controllerFile(controllerFilePath);
+        if(!controllerFile.is_open()) {
+            TYPELOGV(ERRNO_LOG, "open", strerror(errno));
+            return;
+        }
+
+        controllerFile<<translatedValue<<std::endl;
+
+        if(controllerFile.fail()) {
+            TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+        }
+
+        controllerFile.close();
+    }
+}
+
 static void no_op(void* context) {
     return;
 }
@@ -751,6 +849,8 @@ RESTUNE_REGISTER_APPLIER_CB(0x00090000, moveProcessToCGroup);
 RESTUNE_REGISTER_APPLIER_CB(0x00090001, moveThreadToCGroup);
 RESTUNE_REGISTER_APPLIER_CB(0x00090002, setRunOnCores);
 RESTUNE_REGISTER_APPLIER_CB(0x00090003, setRunOnCoresExclusively);
+RESTUNE_REGISTER_APPLIER_CB(0x000b0002, setIRQAffine)
+RESTUNE_REGISTER_APPLIER_CB(0x000b0003, setCamAffine)
 RESTUNE_REGISTER_APPLIER_CB(0x00090005, limitCpuTime);
 RESTUNE_REGISTER_APPLIER_CB(0x000b0000, startIRQBalance);
 RESTUNE_REGISTER_APPLIER_CB(0x000b0001, stopIRQBalance);

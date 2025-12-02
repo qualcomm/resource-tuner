@@ -75,6 +75,13 @@ CocoTable::CocoTable() {
         this->mFlatCGroupMap[cGroupConfig->mCgroupID] = index;
     }
 
+    std::vector<int32_t> irqs;
+    TargetRegistry::getInstance()->getIRQIds(irqs);
+    for(int32_t irqID: irqs) {
+        int32_t index = this->mFlatIRQMap.size();
+        this->mFlatIRQMap[irqID] = index;
+    }
+
     /*
         Initialize the CocoTable, the table will contain a vector corresponding to each Resource from the ResourceTable
         For the Resource if there is no level of conflict (i.e. apply type is "global"), then a vector of size 4 will be
@@ -232,7 +239,11 @@ int32_t CocoTable::getCocoTableSecondaryIndex(Resource* resource, int8_t priorit
         return priority;
 
     } else if(resConfInfo->mApplyType == ResourceApplyType::APPLY_IRQ) {
-        
+        int32_t irqIdentifier = resource->getValueAt(0);
+        if(irqIdentifier == -1) return -1;
+
+        int32_t index = this->mFlatIRQMap[irqIdentifier];
+        return index * TOTAL_PRIORITIES + priority;
     }
 
     return -1;

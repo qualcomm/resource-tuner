@@ -7,46 +7,6 @@ static const int32_t unsupportedResoure = -2;
 
 std::shared_ptr<ResourceRegistry> ResourceRegistry::resourceRegistryInstance = nullptr;
 
-static int32_t initIRQList(std::vector<int32_t>& irqList) {
-    // Record all irq id's
-    const std::string filePath = "/proc/interrupts";
-    std::ifstream file(filePath);
-    if(!file) {
-        LOGE("RESTUNE_RESOURCE_REGISTRY", "Failed to open: " + filePath);
-        return 0;
-    }
-
-    std::vector<std::string> keywords = {"csid", "ife", "camnoc"};
-
-    std::string line;
-    while (std::getline(file, line)) {
-        // Check if line contains any keyword
-        int8_t match = false;
-        for(const auto &key : keywords) {
-            if(line.find(key) != std::string::npos) {
-                match = true;
-                break;
-            }
-        }
-        if(!match) {
-            continue;
-        }
-
-        // Extract interrupt number (before the colon)
-        std::istringstream iss(line);
-        std::string token;
-        if(std::getline(iss, token, ':')) {
-            try {
-                int32_t irq = std::stoi(token);
-                irqList.push_back(irq);
-            } catch (const std::exception& e) {}
-        }
-    }
-
-    file.close();
-    return irqList.size();
-}
-
 ResourceRegistry::ResourceRegistry() {
     this->mTotalResources = 0;
 }
@@ -131,7 +91,7 @@ void ResourceRegistry::fetchAndStoreDefaults(ResConfInfo* resourceConfigInfo) {
         }
         case APPLY_IRQ: {
             std::vector<int32_t> irqs;
-            int32_t count = initIRQList(irqs);
+            TargetRegistry::getInstance()->getIRQIds(irqs);
             for(int32_t irq: irqs) {
                 char filePath[128];
                 snprintf(filePath, sizeof(filePath), resourceConfigInfo->mResourcePath.c_str(), irq);

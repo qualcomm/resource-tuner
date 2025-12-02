@@ -86,9 +86,11 @@ private:
     std::unordered_map<int32_t, CGroupConfigInfo*> mCGroupMapping;
     std::unordered_map<int32_t, MpamGroupConfigInfo*> mMpamGroupMapping;
     std::unordered_map<std::string, CacheInfo*> mCacheInfoMapping;
+    std::vector<int32_t> mIrqList;
 
     TargetRegistry();
 
+    int32_t initIRQList();
     void generatePolicyBasedMapping(std::vector<std::string>& policyDirs);
     void getClusterIdBasedMapping();
 
@@ -108,6 +110,8 @@ public:
     void addCacheInfoMapping(CacheInfo* cacheInfo);
 
     void getClusterIDs(std::vector<int32_t>& clusterIDs);
+
+    void getIRQIds(std::vector<int32_t>& irqIDs);
 
     /**
      * @brief Called by the Verifier to get the physical core ID corresponding to the Logical Core ID value.
@@ -161,6 +165,8 @@ public:
     MpamGroupConfigInfo* getMpamGroupConfig(int32_t mpamGroupID);
     void getMpamGroupNames(std::vector<std::string>& cGroupNames);
     int32_t getCreatedMpamGroupsCount();
+
+    int32_t getTrackedIRQCount();
 
     void displayTargetInfo();
 

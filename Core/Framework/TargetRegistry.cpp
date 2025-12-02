@@ -2,6 +2,46 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 #include "TargetRegistry.h"
 
+int32_t TargetRegistry::initIRQList() {
+    // Record all irq id's
+    const std::string filePath = "/proc/interrupts";
+    std::ifstream file(filePath);
+    if(!file) {
+        LOGE("RESTUNE_RESOURCE_REGISTRY", "Failed to open: " + filePath);
+        return 0;
+    }
+
+    std::vector<std::string> keywords = {"csid", "ife", "camnoc"};
+
+    std::string line;
+    while (std::getline(file, line)) {
+        // Check if line contains any keyword
+        int8_t match = false;
+        for(const auto &key : keywords) {
+            if(line.find(key) != std::string::npos) {
+                match = true;
+                break;
+            }
+        }
+        if(!match) {
+            continue;
+        }
+
+        // Extract interrupt number (before the colon)
+        std::istringstream iss(line);
+        std::string token;
+        if(std::getline(iss, token, ':')) {
+            try {
+                int32_t irq = std::stoi(token);
+                this->mIrqList.push_back(irq);
+            } catch (const std::exception& e) {}
+        }
+    }
+
+    file.close();
+    return this->mIrqList.size();
+}
+
 // Create all the CGroups specified via InitConfig.yaml during the init phase.
 static ErrCode createCGroup(CGroupConfigInfo* cGroupConfig) {
     if(cGroupConfig == nullptr) return RC_BAD_ARG;
@@ -285,6 +325,9 @@ void TargetRegistry::addClusterSpreadInfo(const std::string& physicalIDString, c
 void TargetRegistry::readTargetInfo() {
     // Get the Online Core Count
     ResourceTunerSettings::targetConfigs.mTotalCoreCount = getOnlineCpuCount();
+
+    // Store irq related info
+    initIRQList();
 
     // Check if cpufreq/policy directories are available,
     // If yes, we'll use them to generate the mapping info.
@@ -649,4 +692,14 @@ ErrCode CacheInfoBuilder::setPriorityAware(const std::string& isPriorityAwareStr
 
 CacheInfo* CacheInfoBuilder::build() {
     return this->mCacheInfo;
+}
+
+int32_t TargetRegistry::getTrackedIRQCount() {
+    return this->mIrqList.size();
+}
+
+void TargetRegistry::getIRQIds(std::vector<int32_t>& irqIDs) {
+    for(int32_t irqID: this->mIrqList) {
+        irqIDs.push_back(irqID);
+    }
 }
