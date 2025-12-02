@@ -30,19 +30,7 @@ public:
     }
 };
 
-class ClientLogger {
-public:
-    ClientLogger() {
-        openlog("restune-client", LOG_PID | LOG_CONS, LOG_USER);
-    }
-
-    ~ClientLogger() {
-        closelog();
-    }
-};
-
 static std::shared_ptr<ClientEndpoint> conn(new SocketClient());
-static ClientLogger clientLogger;
 static std::mutex apiLock;
 
 // - Construct a Request object and populate it with the API specified Params
