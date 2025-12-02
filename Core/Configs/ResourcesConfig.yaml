@@ -51,6 +51,16 @@ ResourceConfigs:
     Policy: "higher_is_better"
     ApplyType: "global"
 
+  - ResType: "0x03"
+    ResID: "0x0002"
+    Name: "/proc/sys/kernel/sched_energy_aware"
+    Path: "SCHED_ENERGY_AWARE"
+    Supported: true
+    Permissions: third_party
+    Modes: ["display_on"]
+    Policy: "pass_through"
+    ApplyType: "global"
+
   - ResType: "0x04"
     ResID: "0x0000"
     Unit: "Hz"
