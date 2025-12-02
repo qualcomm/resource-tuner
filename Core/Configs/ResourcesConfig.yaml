@@ -306,7 +306,7 @@ ResourceConfigs:
     Permissions: "system"
     Modes: ["display_on"]
     Policy: "pass_through"
-    ApplyType: "custom"
+    ApplyType: "irq"
 
   - ResType: "0x0b"
     ResID: "0x0003"
@@ -316,4 +316,4 @@ ResourceConfigs:
     Permissions: "system"
     Modes: ["display_on"]
     Policy: "pass_through"
-    ApplyType: "global"
+    ApplyType: "irq"

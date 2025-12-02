@@ -137,6 +137,7 @@ void ResourceRegistry::fetchAndStoreDefaults(ResConfInfo* resourceConfigInfo) {
                 snprintf(filePath, sizeof(filePath), resourceConfigInfo->mResourcePath.c_str(), irq);
                 this->addDefaultValue(std::string(filePath), AuxRoutines::readFromFile(filePath));
             }
+            break;
         }
     }
 }
@@ -518,6 +519,8 @@ ErrCode ResourceConfigInfoBuilder::setApplyType(const std::string& applyTypeStri
         applyType = APPLY_CLUSTER;
     } else if(applyTypeString == "cgroup") {
         applyType = APPLY_CGROUP;
+    } else if(applyTypeString == "irq") {
+        applyType = APPLY_IRQ;
     } else {
         if(applyTypeString.length() != 0) {
             return RC_INVALID_VALUE;
