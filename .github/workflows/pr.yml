@@ -52,7 +52,7 @@ jobs:
             cmake --build .
             make install
             mkdir -p resource-tuner-bins/etc/resource-tuner/{common,custom,tests}
-            mkdir -p resource-tuner-bins/etc/resource-tuner/tests/{configs, nodes}
+            mkdir -p resource-tuner-bins/etc/resource-tuner/tests/{configs,nodes}
             cp ../Core/Configs/*.yaml resource-tuner-bins/etc/resource-tuner/common/
             cp ../Signals/Configs/*.yaml resource-tuner-bins/etc/resource-tuner/common/
             cp ../Tests/Configs/*.yaml resource-tuner-bins/etc/resource-tuner/tests/configs/
