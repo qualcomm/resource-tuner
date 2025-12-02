@@ -598,23 +598,26 @@ static void removeProcessFromCGroup(void* context) {
 static void removeThreadFromCGroup(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
-    if(resource->getValuesCount() != 2) return;
+    if(resource->getValuesCount() < 2) return;
 
-    int32_t tid = resource->getValueAt(1);
-    std::string parentCGroupProcsPath = ResourceTunerSettings::mBaseCGroupPath + "cgroup.threads";
+    for(int32_t i = 1; i < resource->getValuesCount(); i++) {
+        int32_t tid = resource->getValueAt(i);
+        std::string cGroupPath = ResourceTunerSettings::mBaseCGroupPath + cGroupPath + "/cgroup.threads";
 
-    std::ofstream controllerFile(parentCGroupProcsPath, std::ios::app);
-    if(!controllerFile.is_open()) {
-        TYPELOGV(ERRNO_LOG, "open", strerror(errno));
-        return;
+        LOGD("RESTUNE_COCO_TABLE", "Moving TID: " + std::to_string(tid) + " to: " + cGroupPath);
+        std::ofstream controllerFile(cGroupPath, std::ios::app);
+        if(!controllerFile.is_open()) {
+            TYPELOGV(ERRNO_LOG, "open", strerror(errno));
+            return;
+        }
+
+        controllerFile<<tid<<std::endl;
+
+        if(controllerFile.fail()) {
+            TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+        }
+        controllerFile.close();
     }
-
-    controllerFile<<tid<<std::endl;
-
-    if(controllerFile.fail()) {
-        TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-    }
-    controllerFile.close();
 }
 
 static void resetRunOnCoresExclusively(void* context) {
