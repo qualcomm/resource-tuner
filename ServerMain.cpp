@@ -55,36 +55,13 @@ static ErrCode parseServerStartupCLIOpts(int32_t argCount, char *argStrings[]) {
     return RC_SUCCESS;
 }
 
-static ErrCode createResourceTunerDaemon(int32_t& childProcessID) {
-    // Create a Child Process to Monitor the Parent (Server) Process
-    // This is done to ensure that all the Resource sysfs Nodes are in a consistent state
-    // If the Server Crashes or Terminates Abnormally.
-    childProcessID = AuxRoutines::createProcess();
-    if(childProcessID < 0) {
-        TYPELOGV(ERRNO_LOG, "fork", strerror(errno));
-        return RC_MODULE_INIT_FAILURE;
-
-    } else if(childProcessID == 0) {
-        while(true) {
-            // Every Second, Check the Parent-PID for the Child Process
-            // If at any point this value becomes 1, which means that the Parent
-            // has terminated and the Child Process has been adopted by the init
-            // Process, which has a PID of 1.
-            // In such a scenario, the Child Process should proceed with restoring
-            // all the Sysfs Nodes to a Sane State.
-            std::this_thread::sleep_for(std::chrono::seconds(1));
-            if(getppid() == 1) {
-                AuxRoutines::writeSysFsDefaults();
-                break;
-            }
-        }
-
-        // Delete the Sysfs Persistent File
-        AuxRoutines::deleteFile(ResourceTunerSettings::mPersistenceFile);
-        exit(EXIT_SUCCESS);
+static void restoreToSafeState() {
+    if(AuxRoutines::fileExists(ResourceTunerSettings::mPersistenceFile)) {
+        AuxRoutines::writeSysFsDefaults();
     }
 
-    return RC_SUCCESS;
+    // Delete the Node Persistence File
+    AuxRoutines::deleteFile(ResourceTunerSettings::mPersistenceFile);
 }
 
 // Load the Extensions Plugin lib if it is available
@@ -133,9 +110,7 @@ int32_t main(int32_t argc, char *argv[]) {
     // Initialize syslog
     openlog(RESTUNE_IDENTIFIER, LOG_PID | LOG_CONS, LOG_USER);
 
-    // PID of the Child Daemon
     ErrCode opStatus = RC_SUCCESS;
-    int32_t childProcessID = -1;
 
     std::signal(SIGINT, handleSIGINT);
     std::signal(SIGTERM, handleSIGTERM);
@@ -149,18 +124,15 @@ int32_t main(int32_t argc, char *argv[]) {
 
     TYPELOGV(NOTIFY_RESOURCE_TUNER_INIT_START, getpid());
 
+    // Server might have been restarted by systemd
+    // Ensure that Resource Nodes are reset to sane state
+    restoreToSafeState();
+
     // Start Resource Tuner Server Initialization
     // As part of Server Initialization the Configs (Resource / Signals etc.) will be parsed
     // If any of mandatory Configs cannot be parsed then initialization will fail.
     // Mandatory Configs include: Properties Configs, Resource Configs and Signal Configs (if Signal
     // module is plugged in)
-    if(RC_IS_OK(opStatus)) {
-        opStatus = createResourceTunerDaemon(childProcessID);
-        if(RC_IS_NOTOK(opStatus)) {
-            TYPELOGD(RESOURCE_TUNER_DAEMON_CREATION_FAILURE);
-        }
-    }
-
     if(RC_IS_OK(opStatus)) {
         // Check if Extensions Plugin lib is available
         opStatus = loadExtensionsLib();
@@ -300,12 +272,6 @@ int32_t main(int32_t argc, char *argv[]) {
 
     if(Timer::mTimerThreadPool != nullptr) {
         delete Timer::mTimerThreadPool;
-    }
-
-    if(childProcessID != -1) {
-        kill(childProcessID, SIGKILL);
-        // Wait for the Child Process to terminate
-        waitpid(childProcessID, nullptr, 0);
     }
 
     // Delete the Sysfs Persistent File
