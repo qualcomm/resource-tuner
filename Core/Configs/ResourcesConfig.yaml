@@ -56,7 +56,7 @@ ResourceConfigs:
     Name: "/proc/sys/kernel/sched_energy_aware"
     Path: "SCHED_ENERGY_AWARE"
     Supported: true
-    Permissions: "system"
+    Permissions: third_party
     Modes: ["display_on"]
     Policy: "pass_through"
     ApplyType: "global"
