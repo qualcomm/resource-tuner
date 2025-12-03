@@ -763,6 +763,8 @@ static void setIRQAffine(void* context) {
     Resource* resource = static_cast<Resource*>(context);
     if(resource->getValuesCount() != 2) return;
 
+    stopIRQBalance(nullptr);
+
     ResConfInfo* rConf = ResourceRegistry::getInstance()->getResConf(resource->getResCode());
 
     int32_t irqIdentifier = resource->getValueAt(0);
@@ -803,6 +805,8 @@ static void setCamAffine(void* context) {
     Resource* resource = static_cast<Resource*>(context);
     if(resource->getValuesCount() != 2) return;
 
+    stopIRQBalance(nullptr);
+
     ResConfInfo* rConf = ResourceRegistry::getInstance()->getResConf(resource->getResCode());
 
     int32_t valueToBeWritten = resource->getValueAt(0);
@@ -840,6 +844,67 @@ static void setCamAffine(void* context) {
     }
 }
 
+static void resetIRQAffine(void* context) {
+    if(context == nullptr) return;
+    Resource* resource = static_cast<Resource*>(context);
+    if(resource->getValuesCount() != 2) return;
+
+    ResConfInfo* rConf = ResourceRegistry::getInstance()->getResConf(resource->getResCode());
+
+    int32_t irqIdentifier = resource->getValueAt(0);
+    std::string controllerFilePath = getIRQTypeResourceNodePath(resource, irqIdentifier);
+    std::string defaultValue = ResourceRegistry::getInstance()->getDefaultValue(controllerFilePath);
+
+    TYPELOGV(NOTIFY_NODE_RESET, controllerFilePath.c_str(), defaultValue.c_str());
+    std::ofstream controllerFile(controllerFilePath);
+    if(!controllerFile.is_open()) {
+        TYPELOGV(ERRNO_LOG, "open", strerror(errno));
+        return;
+    }
+
+    controllerFile<<defaultValue<<std::endl;
+
+    if(controllerFile.fail()) {
+        TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+    }
+
+    controllerFile.close();
+
+    startIRQBalance(nullptr);
+}
+
+static void resetCamAffine(void* context) {
+    if(context == nullptr) return;
+    Resource* resource = static_cast<Resource*>(context);
+    if(resource->getValuesCount() != 2) return;
+
+    ResConfInfo* rConf = ResourceRegistry::getInstance()->getResConf(resource->getResCode());
+
+    std::vector<int32_t> irqs;
+    TargetRegistry::getInstance()->getIRQIds(irqs);
+
+    for(int32_t irqID: irqs) {
+        std::string controllerFilePath = "/proc/irq/" + std::to_string(irqID) + "/smp_affinity";
+        std::string defaultValue = ResourceRegistry::getInstance()->getDefaultValue(controllerFilePath);
+        TYPELOGV(NOTIFY_NODE_RESET, controllerFilePath.c_str(), defaultValue.c_str());
+        std::ofstream controllerFile(controllerFilePath);
+        if(!controllerFile.is_open()) {
+            TYPELOGV(ERRNO_LOG, "open", strerror(errno));
+            return;
+        }
+
+        controllerFile<<defaultValue<<std::endl;
+
+        if(controllerFile.fail()) {
+            TYPELOGV(ERRNO_LOG, "write", strerror(errno));
+        }
+
+        controllerFile.close();
+    }
+
+    startIRQBalance(nullptr);
+}
+
 static void no_op(void* context) {
     return;
 }
@@ -859,3 +924,5 @@ RESTUNE_REGISTER_TEAR_CB(0x00090001, removeThreadFromCGroup);
 RESTUNE_REGISTER_TEAR_CB(0x00090003, resetRunOnCoresExclusively);
 RESTUNE_REGISTER_TEAR_CB(0x000b0000, no_op);
 RESTUNE_REGISTER_TEAR_CB(0x000b0001, no_op);
+RESTUNE_REGISTER_TEAR_CB(0x000b0002, resetIRQAffine)
+RESTUNE_REGISTER_TEAR_CB(0x000b0003, resetCamAffine)
