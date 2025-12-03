@@ -803,7 +803,6 @@ static void setIRQAffine(void* context) {
 static void setCamAffine(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
-    if(resource->getValuesCount() != 2) return;
 
     stopIRQBalance(nullptr);
 
@@ -869,14 +868,12 @@ static void resetIRQAffine(void* context) {
     }
 
     controllerFile.close();
-
     startIRQBalance(nullptr);
 }
 
 static void resetCamAffine(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);
-    if(resource->getValuesCount() != 2) return;
 
     ResConfInfo* rConf = ResourceRegistry::getInstance()->getResConf(resource->getResCode());
 
@@ -914,14 +911,17 @@ RESTUNE_REGISTER_APPLIER_CB(0x00090000, moveProcessToCGroup);
 RESTUNE_REGISTER_APPLIER_CB(0x00090001, moveThreadToCGroup);
 RESTUNE_REGISTER_APPLIER_CB(0x00090002, setRunOnCores);
 RESTUNE_REGISTER_APPLIER_CB(0x00090003, setRunOnCoresExclusively);
-RESTUNE_REGISTER_APPLIER_CB(0x000b0002, setIRQAffine)
-RESTUNE_REGISTER_APPLIER_CB(0x000b0003, setCamAffine)
 RESTUNE_REGISTER_APPLIER_CB(0x00090005, limitCpuTime);
+
 RESTUNE_REGISTER_APPLIER_CB(0x000b0000, startIRQBalance);
 RESTUNE_REGISTER_APPLIER_CB(0x000b0001, stopIRQBalance);
+RESTUNE_REGISTER_APPLIER_CB(0x000b0002, setIRQAffine)
+RESTUNE_REGISTER_APPLIER_CB(0x000b0003, setCamAffine)
+
 RESTUNE_REGISTER_TEAR_CB(0x00090000, removeProcessFromCGroup);
 RESTUNE_REGISTER_TEAR_CB(0x00090001, removeThreadFromCGroup);
 RESTUNE_REGISTER_TEAR_CB(0x00090003, resetRunOnCoresExclusively);
+
 RESTUNE_REGISTER_TEAR_CB(0x000b0000, no_op);
 RESTUNE_REGISTER_TEAR_CB(0x000b0001, no_op);
 RESTUNE_REGISTER_TEAR_CB(0x000b0002, resetIRQAffine)

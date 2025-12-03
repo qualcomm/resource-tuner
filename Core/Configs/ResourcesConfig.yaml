@@ -316,4 +316,4 @@ ResourceConfigs:
     Permissions: "system"
     Modes: ["display_on"]
     Policy: "pass_through"
-    ApplyType: "irq"
+    ApplyType: "global"
