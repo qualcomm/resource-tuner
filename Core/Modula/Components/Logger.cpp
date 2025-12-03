@@ -216,12 +216,6 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
 
             break;
 
-        case CommonMessageTypes::RESOURCE_TUNER_DAEMON_CREATION_FAILURE:
-            Logger::log(LOG_ERR, "RESTUNE_SERVER_INIT", funcName,
-                        "Failed to create Resource Tuner Daemon, " \
-                        "Aborting Initialization.");
-            break;
-
         case CommonMessageTypes::PULSE_MONITOR_INIT_FAILED:
             Logger::log(LOG_ERR, "RESTUNE_SERVER_INIT", funcName,
                         "Pulse Monitor Could not be started, " \
