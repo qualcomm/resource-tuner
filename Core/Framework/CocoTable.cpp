@@ -75,6 +75,13 @@ CocoTable::CocoTable() {
         this->mFlatCGroupMap[cGroupConfig->mCgroupID] = index;
     }
 
+    std::vector<int32_t> irqs;
+    TargetRegistry::getInstance()->getIRQIds(irqs);
+    for(int32_t irqID: irqs) {
+        int32_t index = this->mFlatIRQMap.size();
+        this->mFlatIRQMap[irqID] = index;
+    }
+
     /*
         Initialize the CocoTable, the table will contain a vector corresponding to each Resource from the ResourceTable
         For the Resource if there is no level of conflict (i.e. apply type is "global"), then a vector of size 4 will be
@@ -127,8 +134,12 @@ CocoTable::CocoTable() {
             int32_t totalCGroupCount = TargetRegistry::getInstance()->getCreatedCGroupsCount();
             vectorSize = TOTAL_PRIORITIES * totalCGroupCount;
 
-        } else if(resourceConfig->mApplyType == ResourceApplyType::APPLY_GLOBAL){
+        } else if(resourceConfig->mApplyType == ResourceApplyType::APPLY_GLOBAL) {
             vectorSize = TOTAL_PRIORITIES;
+
+        } else if(resourceConfig->mApplyType == ResourceApplyType::APPLY_IRQ) {
+            int32_t totalIRQCount = TargetRegistry::getInstance()->getTrackedIRQCount();
+            vectorSize = TOTAL_PRIORITIES * totalIRQCount;
         }
 
         std::vector<DLManager*> innerVec(vectorSize, nullptr);
@@ -213,6 +224,7 @@ int32_t CocoTable::getCocoTableSecondaryIndex(Resource* resource, int8_t priorit
     } else if(resConfInfo->mApplyType == ResourceApplyType::APPLY_CLUSTER) {
         int32_t physicalCluster = resource->getClusterValue();
         if(physicalCluster == -1) return -1;
+
         int32_t index = this->mFlatClusterMap[physicalCluster];
         return index * TOTAL_PRIORITIES + priority;
 
@@ -225,6 +237,13 @@ int32_t CocoTable::getCocoTableSecondaryIndex(Resource* resource, int8_t priorit
 
     } else if(resConfInfo->mApplyType == ResourceApplyType::APPLY_GLOBAL) {
         return priority;
+
+    } else if(resConfInfo->mApplyType == ResourceApplyType::APPLY_IRQ) {
+        int32_t irqIdentifier = resource->getValueAt(0);
+        if(irqIdentifier == -1) return -1;
+
+        int32_t index = this->mFlatIRQMap[irqIdentifier];
+        return index * TOTAL_PRIORITIES + priority;
     }
 
     return -1;

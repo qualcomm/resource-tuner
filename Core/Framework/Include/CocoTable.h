@@ -95,6 +95,7 @@ private:
     std::vector<ResConfInfo*> mResourceTable;
     std::unordered_map<int32_t, int32_t> mFlatClusterMap;
     std::unordered_map<int32_t, int32_t> mFlatCGroupMap;
+    std::unordered_map<int32_t, int32_t> mFlatIRQMap;
 
     std::shared_ptr<ResourceRegistry> mResourceRegistry;
 
