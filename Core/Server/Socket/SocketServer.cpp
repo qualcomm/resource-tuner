@@ -24,8 +24,7 @@ int32_t ResourceTunerSocketServer::ListenForClientRequests() {
         return RC_SOCKET_CONN_NOT_INITIALIZED;
     }
     // Make the socket Non-Blocking
-    if (fcntl(this->sockFd, F_SETFL, O_NONBLOCK) < 0)
-    {
+    if (fcntl(this->sockFd, F_SETFL, O_NONBLOCK) < 0) {
         close(this->sockFd);
         LOGE("RESTUNE_SOCKET_SERVER", std::string("Failed to make socket non-blocking: ") + strerror(errno));
         return RC_SOCKET_CONN_NOT_INITIALIZED;
@@ -34,7 +33,7 @@ int32_t ResourceTunerSocketServer::ListenForClientRequests() {
     struct sockaddr_un addr;
     memset(&addr, 0, sizeof(sockaddr_un));
     addr.sun_family = AF_UNIX;
-    if (snprintf(addr.sun_path, UNIX_PATH_MAX, RESTUNE_SOCKET_PATH) >= UNIX_PATH_MAX) {
+    if(snprintf(addr.sun_path, UNIX_PATH_MAX, RESTUNE_SOCKET_PATH) >= UNIX_PATH_MAX) {
         LOGE("RESTUNE_SOCKET_SERVER", "Socket path too long");
         close(this->sockFd);
         return RC_SOCKET_CONN_NOT_INITIALIZED;
@@ -51,7 +50,7 @@ int32_t ResourceTunerSocketServer::ListenForClientRequests() {
 
     // Set permissions for server
     mode_t perm = 0666;
-    if (chmod(RESTUNE_SOCKET_PATH, perm) < 0) {
+    if(chmod(RESTUNE_SOCKET_PATH, perm) < 0) {
         TYPELOGV(ERRNO_LOG, "permission", strerror(errno));
         close(this->sockFd);
         return RC_SOCKET_CONN_NOT_INITIALIZED;
@@ -64,7 +63,7 @@ int32_t ResourceTunerSocketServer::ListenForClientRequests() {
     }
 
     int32_t epollFd = epoll_create1(0);
-    if (epollFd < 0) {
+    if(epollFd < 0) {
         TYPELOGV(ERRNO_LOG, "epoll_create1", strerror(errno));
         close(this->sockFd);
         return RC_SOCKET_CONN_NOT_INITIALIZED;
@@ -73,8 +72,7 @@ int32_t ResourceTunerSocketServer::ListenForClientRequests() {
     epoll_event event{}, events[maxEvents];
     event.events = EPOLLIN;
     event.data.fd = this->sockFd;
-    if (epoll_ctl(epollFd, EPOLL_CTL_ADD, this->sockFd, &event) < 0)
-    {
+    if(epoll_ctl(epollFd, EPOLL_CTL_ADD, this->sockFd, &event) < 0) {
         TYPELOGV(ERRNO_LOG, "epoll_ctl", strerror(errno));
         close(epollFd);
         close(this->sockFd);

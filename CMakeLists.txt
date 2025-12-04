@@ -10,7 +10,6 @@ include(GNUInstallDirs)
 # Dependencies
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBYAML REQUIRED yaml-0.1)
-pkg_check_modules(SYSTEMD REQUIRED libsystemd)
 
 # Enable Debug. should be removed in production.
 # set(CMAKE_BUILD_TYPE Debug)
@@ -56,8 +55,9 @@ list(APPEND SERVER_LIBS
 )
 
 if(BUILD_STATE_DETECTOR)
+  pkg_check_modules(SYSTEMD REQUIRED libsystemd)
   list(APPEND SERVER_EXECUTABLE ${CMAKE_SOURCE_DIR}/StateDetector.cpp)
-  list(APPEND SERVER_LIBS systemd)
+  list(APPEND SERVER_LIBS ${SYSTEMD_LIBRARIES})
 endif()
 
 if(BUILD_SIGNALS)
