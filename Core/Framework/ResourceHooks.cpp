@@ -370,7 +370,7 @@ static void moveProcessToCGroup(void* context) {
 
     std::string controllerFilePath = getCGroupTypeResourceNodePath(resource, cGroupName);
     for(int32_t i = 1; i < resource->getValuesCount(); i++) {
-        int32_t pid = resource->getValueAt(0);
+        int32_t pid = resource->getValueAt(i);
         std::string currentCGroupFilePath = "/proc/" + std::to_string(pid) + "/cgroup";
         std::string currentCGroup = AuxRoutines::readFromFile(currentCGroupFilePath);
 
@@ -418,7 +418,7 @@ static void moveThreadToCGroup(void* context) {
 
     std::string controllerFilePath = getCGroupTypeResourceNodePath(resource, cGroupName);
     for(int32_t i = 1; i < resource->getValuesCount(); i++) {
-        int32_t tid = resource->getValueAt(0);
+        int32_t tid = resource->getValueAt(i);
 
         TYPELOGV(NOTIFY_NODE_WRITE, controllerFilePath.c_str(), tid);
         std::ofstream controllerFile(controllerFilePath);

@@ -58,10 +58,10 @@ static ErrCode parseServerStartupCLIOpts(int32_t argCount, char *argStrings[]) {
 static void restoreToSafeState() {
     if(AuxRoutines::fileExists(ResourceTunerSettings::mPersistenceFile)) {
         AuxRoutines::writeSysFsDefaults();
-    }
 
-    // Delete the Node Persistence File
-    AuxRoutines::deleteFile(ResourceTunerSettings::mPersistenceFile);
+        // Delete the Node Persistence File
+        AuxRoutines::deleteFile(ResourceTunerSettings::mPersistenceFile);
+    }
 }
 
 // Load the Extensions Plugin lib if it is available
@@ -210,28 +210,9 @@ int32_t main(int32_t argc, char *argv[]) {
     }
 
     if(RC_IS_OK(opStatus)) {
-        // Make Stdin Non-Blocking
-        int32_t flags = fcntl(STDIN_FILENO, F_GETFL, 0);
-        if(flags == -1) {
-            TYPELOGV(ERRNO_LOG, "fcntl", strerror(errno));
-        } else {
-            fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
-        }
-
         // Listen for Terminal prompts
         while(!terminateServer) {
             std::this_thread::sleep_for(std::chrono::seconds(2));
-
-            if(flags != -1) {
-                char exitStatus[16];
-                exitStatus[sizeof(exitStatus) - 1] = '\0';
-                ssize_t bytesRead = read(STDIN_FILENO, exitStatus, sizeof(exitStatus) - 1);
-                if(bytesRead > 0) {
-                    if(strncmp(exitStatus, "stop", 4) == 0) {
-                        terminateServer = true;
-                    }
-                }
-            }
         }
     }
 
