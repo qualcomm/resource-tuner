@@ -27,18 +27,18 @@
 
 static const uint32_t maxEvents = 128;
 
-class ResourceTunerSocketServer : public ServerEndpoint {
+class SocketServer : public ServerEndpoint {
 private:
     int32_t sockFd;
     ServerOnlineCheckCallback mServerOnlineCheckCb;
     ResourceTunerMessageReceivedCallback mResourceTunerMessageRecvCb;
 
 public:
-    ResourceTunerSocketServer(
+    SocketServer(
         ServerOnlineCheckCallback mServerOnlineCheckCb,
         ResourceTunerMessageReceivedCallback mResourceTunerMessageRecvCb);
 
-    ~ResourceTunerSocketServer();
+    ~SocketServer();
 
     virtual int32_t ListenForClientRequests();
     virtual int32_t closeConnection();

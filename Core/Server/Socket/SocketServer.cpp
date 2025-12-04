@@ -7,7 +7,7 @@
 #define UNIX_PATH_MAX sizeof(((struct sockaddr_un *)0)->sun_path)
 #endif
 
-ResourceTunerSocketServer::ResourceTunerSocketServer(
+SocketServer::SocketServer(
     ServerOnlineCheckCallback mServerOnlineCheckCb,
     ResourceTunerMessageReceivedCallback mResourceTunerMessageRecvCb) {
 
@@ -17,15 +17,17 @@ ResourceTunerSocketServer::ResourceTunerSocketServer(
 }
 
 // Called by server, this will put the server in listening mode
-int32_t ResourceTunerSocketServer::ListenForClientRequests() {
+int32_t SocketServer::ListenForClientRequests() {
     if((this->sockFd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
         TYPELOGV(ERRNO_LOG, "socket", strerror(errno));
         LOGE("RESTUNE_SOCKET_SERVER", "Failed to initialize Server Socket");
         return RC_SOCKET_CONN_NOT_INITIALIZED;
     }
+
     // Make the socket Non-Blocking
     if (fcntl(this->sockFd, F_SETFL, O_NONBLOCK) < 0) {
         close(this->sockFd);
+        this->sockFd = -1;
         LOGE("RESTUNE_SOCKET_SERVER", std::string("Failed to make socket non-blocking: ") + strerror(errno));
         return RC_SOCKET_CONN_NOT_INITIALIZED;
     }
@@ -36,6 +38,7 @@ int32_t ResourceTunerSocketServer::ListenForClientRequests() {
     if(snprintf(addr.sun_path, UNIX_PATH_MAX, RESTUNE_SOCKET_PATH) >= UNIX_PATH_MAX) {
         LOGE("RESTUNE_SOCKET_SERVER", "Socket path too long");
         close(this->sockFd);
+        this->sockFd = -1;
         return RC_SOCKET_CONN_NOT_INITIALIZED;
     }
 
@@ -45,6 +48,7 @@ int32_t ResourceTunerSocketServer::ListenForClientRequests() {
     if(bind(this->sockFd, (const sockaddr*)&addr, sizeof(addr)) < 0) {
         TYPELOGV(ERRNO_LOG, "bind", strerror(errno));
         close(this->sockFd);
+        this->sockFd = -1;
         return RC_SOCKET_CONN_NOT_INITIALIZED;
     }
 
@@ -53,12 +57,14 @@ int32_t ResourceTunerSocketServer::ListenForClientRequests() {
     if(chmod(RESTUNE_SOCKET_PATH, perm) < 0) {
         TYPELOGV(ERRNO_LOG, "permission", strerror(errno));
         close(this->sockFd);
+        this->sockFd = -1;
         return RC_SOCKET_CONN_NOT_INITIALIZED;
     }
 
     if(listen(this->sockFd, maxEvents) < 0) {
         TYPELOGV(ERRNO_LOG, "listen", strerror(errno));
         close(this->sockFd);
+        this->sockFd = -1;
         return RC_SOCKET_CONN_NOT_INITIALIZED;
     }
 
@@ -66,6 +72,7 @@ int32_t ResourceTunerSocketServer::ListenForClientRequests() {
     if(epollFd < 0) {
         TYPELOGV(ERRNO_LOG, "epoll_create1", strerror(errno));
         close(this->sockFd);
+        this->sockFd = -1;
         return RC_SOCKET_CONN_NOT_INITIALIZED;
     }
 
@@ -76,6 +83,7 @@ int32_t ResourceTunerSocketServer::ListenForClientRequests() {
         TYPELOGV(ERRNO_LOG, "epoll_ctl", strerror(errno));
         close(epollFd);
         close(this->sockFd);
+        this->sockFd = -1;
         return RC_SOCKET_CONN_NOT_INITIALIZED;
     }
 
@@ -140,16 +148,17 @@ int32_t ResourceTunerSocketServer::ListenForClientRequests() {
     return RC_SUCCESS;
 }
 
-int32_t ResourceTunerSocketServer::closeConnection() {
+int32_t SocketServer::closeConnection() {
     if(this->sockFd != -1) {
-        return close(this->sockFd);
+        close(this->sockFd);
+        this->sockFd = -1;
     }
     return RC_SOCKET_FD_CLOSE_FAILURE;
 }
 
-ResourceTunerSocketServer::~ResourceTunerSocketServer() {
+SocketServer::~SocketServer() {
     if(this->sockFd != -1) {
         close(this->sockFd);
+        this->sockFd = -1;
     }
-    this->sockFd = -1;
 }
