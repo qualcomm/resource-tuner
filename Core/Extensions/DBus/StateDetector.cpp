@@ -2,9 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include <thread>
-#include <systemd/sd-bus.h>
-#include <systemd/sd-event.h>
 
+#include "RestuneDBusInternal.h"
 #include "Logger.h"
 #include "ComponentRegistry.h"
 #include "ResourceTunerSettings.h"
@@ -15,7 +14,6 @@
 #define DBUS_SIGNAL_INTERFACE "org.freedesktop.login1.Manager"
 #define DBUS_SIGNAL_NAME "PrepareForSleep"
 
-static sd_bus* bus = nullptr;
 static sd_bus_slot* slot = nullptr;
 static sd_event* event = nullptr;
 
@@ -31,13 +29,8 @@ static void cleanup() {
         sd_bus_slot_unref(slot);
     }
 
-    if(bus != nullptr) {
-        sd_bus_unref(bus);
-    }
-
     event = nullptr;
     slot = nullptr;
-    bus = nullptr;
 }
 
 static int32_t onSdBusMessageReceived(sd_bus_message* message,
@@ -92,13 +85,6 @@ static int32_t eventLoopTerminator(sd_event_source *s,
 }
 
 static void initHelper() {
-    // Connect to the system bus
-    if(sd_bus_default_system(&bus) < 0) {
-        LOGE("RESTUNE_DISPLAY_AWARE_OPS", "Failed to establish connection with system bus");
-        cleanup();
-        return;
-    }
-
     // Create the Event Loop object
     if(sd_event_default(&event) < 0) {
         LOGE("RESTUNE_DISPLAY_AWARE_OPS", "Failed to create event-loop");
@@ -107,7 +93,7 @@ static void initHelper() {
     }
 
     // Subscribe to D-Bus signal (PrepareForSleep)
-    if(sd_bus_match_signal(bus,
+    if(sd_bus_match_signal(RestuneDBusInternal::getInstance()->getBus(),
                            &slot,
                            nullptr,
                            DBUS_SIGNAL_SENDER_PATH,
@@ -121,7 +107,7 @@ static void initHelper() {
     }
 
     // Listen for D-Bus events
-    if(sd_bus_attach_event(bus, event, 0) < 0) {
+    if(sd_bus_attach_event(RestuneDBusInternal::getInstance()->getBus(), event, 0) < 0) {
         LOGE("RESTUNE_DISPLAY_AWARE_OPS", "Failed to start event-loop");
         cleanup();
         return;

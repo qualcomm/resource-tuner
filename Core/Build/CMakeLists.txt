@@ -14,8 +14,6 @@ target_link_libraries(RestuneExtAPIs RestuneAuxUtils)
 target_include_directories(RestuneExtAPIs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../Extensions/Include)
 
 # FRAMEWORK
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBYAML REQUIRED yaml-0.1)
 file(GLOB SOURCES "../Framework/*.cpp")
 add_library(RestuneServer ${SOURCES})
 set_target_properties(RestuneServer PROPERTIES VERSION 1.0.0 SOVERSION 1)
@@ -24,8 +22,6 @@ target_include_directories(RestuneServer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../F
 target_link_libraries(RestuneServer PRIVATE RestuneAuxUtils RestuneSockEnd RestuneExtAPIs ${LIBYAML_LIBRARIES})
 
 # MODULA
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBYAML REQUIRED yaml-0.1)
 file(GLOB SOURCES "../Modula/Components/*.cpp" "../Modula/Common/*.cpp" "../Modula/CoreModules/*.cpp")
 add_library(RestuneAuxUtils ${SOURCES})
 set_target_properties(RestuneAuxUtils PROPERTIES VERSION 1.0.0 SOVERSION 1)
