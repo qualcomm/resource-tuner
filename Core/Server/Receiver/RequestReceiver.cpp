@@ -143,10 +143,9 @@ void onMsgRecvCallback(int32_t clientSocket, MsgForwardInfo* msgForwardInfo) {
 }
 
 void listenerThreadStartRoutine() {
-    ResourceTunerSocketServer* connection;
-    pthread_setname_np(pthread_self(), "listenerThread");
+    SocketServer* connection;
     try {
-        connection = new ResourceTunerSocketServer(checkServerOnlineStatus, onMsgRecvCallback);
+        connection = new SocketServer(checkServerOnlineStatus, onMsgRecvCallback);
     } catch(const std::bad_alloc& e) {
         LOGE("RESTUNE_REQUEST_RECEIVER",
              "Failed to allocate memory for Resource Tuner Socket Server-Endpoint, Resource Tuner \
