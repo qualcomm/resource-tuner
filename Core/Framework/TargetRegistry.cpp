@@ -113,6 +113,105 @@ static int32_t readCpuCapacity(int32_t cpuID) {
     return capacity;
 }
 
+static std::string trimStr(const std::string &s) {
+    size_t start = s.find_first_not_of(" \t");
+    size_t end = s.find_last_not_of(" \t\r");
+    return (start == std::string::npos) ? "" : s.substr(start, end - start + 1);
+}
+
+void TargetRegistry::performPostInitActions() {
+    const std::string journaldConfFile = "/etc/systemd/journald.conf";
+
+    const std::unordered_map<std::string, std::string> configOptions = {
+        {"RuntimeMaxUse", "20M"},
+        {"RuntimeMaxFileSize", "128K"},
+        {"MaxLevelStore", "notice"},
+        {"MaxLevelSyslog", "notice"},
+        {"MaxLevelKMsg", "notice"},
+        {"MaxLevelConsole", "notice"},
+        {"ForwardToSyslog", "no"}
+    };
+
+    std::ifstream confInStream(journaldConfFile);
+    if(!confInStream) {
+        return;
+    }
+
+    std::ostringstream oldContent;
+    std::ostringstream newContent;
+    std::string line;
+    int8_t journalSectionFound = false;
+
+    std::unordered_map<std::string, int8_t> keyUpdated;
+    for(auto &entry : configOptions) {
+        keyUpdated[entry.first] = false;
+    }
+
+    while(std::getline(confInStream, line)) {
+        std::string trimmedLine = trimStr(line);
+        int8_t replaced = false;
+
+        if(trimmedLine == "[Journal]") {
+            journalSectionFound = true;
+        }
+
+        for(auto &entry : configOptions) {
+            if(trimmedLine.find(entry.first + "=") == 0 || trimmedLine.find("#" + entry.first + "=") == 0) {
+                newContent << entry.first << "=" << entry.second << "\n";
+                keyUpdated[entry.first] = true;
+                replaced = true;
+                break;
+            }
+        }
+        if(!replaced) {
+            newContent << line << "\n";
+        }
+        oldContent << line << "\n";
+    }
+    confInStream.close();
+
+    if(!journalSectionFound) {
+        newContent << "\n[Journal]\n";
+    }
+
+    for(auto &entry : configOptions) {
+        if(!keyUpdated[entry.first]) {
+            newContent << entry.first << "=" << entry.second << "\n";
+        }
+    }
+
+    std::ofstream confOutStream(journaldConfFile);
+    confOutStream << newContent.str();
+    confOutStream.close();
+
+    // Modify governor to schedutil
+    DIR* dir = opendir(POLICY_DIR_PATH);
+    if(dir == nullptr) {
+        return;
+    }
+
+    std::vector<std::string> policyDirs;
+
+    struct dirent* entry;
+    while((entry = readdir(dir)) != nullptr) {
+        if(strncmp(entry->d_name, "policy", 6) == 0) {
+            policyDirs.push_back(entry->d_name);
+        }
+    }
+    closedir(dir);
+
+    for(const std::string& dirPath : policyDirs) {
+        std::string govPath = dirPath + "/scaling_governor";
+        std::ofstream outStream(govPath);
+        if(!outStream) {
+            continue;
+        }
+        outStream << "schedutil";
+    }
+
+    // minfreq
+}
+
 void TargetRegistry::generatePolicyBasedMapping(std::vector<std::string>& policyDirs) {
     // Sort the directories, to ensure processing always starts with policy0
     std::sort(policyDirs.begin(), policyDirs.end());
@@ -286,6 +385,9 @@ void TargetRegistry::readTargetInfo() {
     // Get the Online Core Count
     ResourceTunerSettings::targetConfigs.mTotalCoreCount = getOnlineCpuCount();
 
+    // Perform post-init tasks
+    performPostInitActions();
+
     // Check if cpufreq/policy directories are available,
     // If yes, we'll use them to generate the mapping info.
 
@@ -404,6 +506,10 @@ void TargetRegistry::displayTargetInfo() {
         LOGI("RESTUNE_SERVER_INIT", "Starting CPU in this cluster: " + std::to_string(cluster.second->mStartCpu));
         LOGI("RESTUNE_SERVER_INIT", "Cluster Capacity: " + std::to_string(cluster.second->mCapacity));
     }
+}
+
+void TargetRegistry::addPostInitOpt(const std::string& optionName, const std::string& value) {
+    this->mPostInitOptions[optionName].push_back(value);
 }
 
 TargetRegistry::~TargetRegistry() {

@@ -15,3 +15,11 @@ InitConfigs:
     - Name: "irqs"
       Create: true
       ID: 4
+
+  - PostInitOptions:
+    - OptName: "system.logging"
+      OptValues: ["minimal"]
+    - OptName: "cpufreq.default_governor"
+      OptValues: ["schedutil"]
+    - OptName: "cpu.minfreq"
+      OptValues: ["0", "1203MHz"]

@@ -72,6 +72,11 @@
 #define INIT_CONFIGS_ELEM_CACHE_INFO_BLK_CNT "NumCacheBlocks"
 #define INIT_CONFIGS_ELEM_CACHE_INFO_PRIO_AWARE "PriorityAware"
 
+// Post Init Options
+#define INIT_CONFIGS_ELEM_POST_OPT_LIST "PostInitOptions"
+#define INIT_CONFIGS_ELEM_POST_OPT_NAME "OptName"
+#define INIT_CONFIGS_ELEM_POST_OPT_VALUES_LIST "OptValues"
+
 // Properties
 #define PROPERTY_CONFIGS_ROOT "PropertyConfigs"
 #define PROPERTY_CONFIGS_ELEM_NAME "Name"
