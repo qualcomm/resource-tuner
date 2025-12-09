@@ -86,9 +86,6 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/Core/Client/APIs/Include/ DESTINATION ${CM
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/Core/Extensions/Include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ResourceTuner)
 install(FILES ${CMAKE_SOURCE_DIR}/Core/Modula/Common/Include/Common.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ResourceTuner)
 
-# Install service file
-install(FILES ${CMAKE_SOURCE_DIR}/Services/resource-tuner.service DESTINATION ${CMAKE_INSTALL_LIBDIR}/systemd/system/)
-
 # Install core config files
 install(
   DIRECTORY ${CMAKE_SOURCE_DIR}/Core/Configs/
@@ -98,14 +95,16 @@ install(
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
 
-# Install Signal config files
-install(
-  DIRECTORY ${CMAKE_SOURCE_DIR}/Signals/Configs/
-  DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/resource-tuner/common/
-  FILES_MATCHING
-  PATTERN "*.yaml"
-  PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-)
+if(BUILD_SIGNALS)
+  # Install Signal config files
+  install(
+    DIRECTORY ${CMAKE_SOURCE_DIR}/Signals/Configs/
+    DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/resource-tuner/common/
+    FILES_MATCHING
+    PATTERN "*.yaml"
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+  )
+endif()
 
 if(BUILD_TESTS)
   # Install Test Configs
