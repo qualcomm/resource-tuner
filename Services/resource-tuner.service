@@ -8,7 +8,7 @@ User=root
 Group=root
 Restart=always
 RemainAfterExit=yes
-ExecStart=/usr/bin/resource_tuner --start
+ExecStart=/usr/bin/resource_tuner
 TimeoutStopSec=1
 
 [Install]
