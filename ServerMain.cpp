@@ -25,36 +25,6 @@ static void handleSIGTERM(int32_t sig) {
     terminateServer = true;
 }
 
-static ErrCode parseServerStartupCLIOpts(int32_t argCount, char *argStrings[]) {
-    if(argCount != 2) {
-        std::cout<<"Usage: "<<argStrings[0]<<" --[start|help]"<<std::endl;
-        return RC_MODULE_INIT_FAILURE;
-    }
-
-    const char* shortPrompts = "sth";
-    const struct option longPrompts[] = {
-        {"start", no_argument, nullptr, 's'},
-        {"help", no_argument, nullptr, 'h'},
-        {nullptr, no_argument, nullptr, 0}
-    };
-
-    int32_t c;
-    while((c = getopt_long(argCount, argStrings, shortPrompts, longPrompts, nullptr)) != -1) {
-        switch(c) {
-            case 's':
-                break;
-            case 'h':
-                std::cout<<"Help Options"<<std::endl;
-                std::cout<<"--start : Start the Resource Tuner Server"<<std::endl;
-                return RC_MODULE_INIT_FAILURE;
-            default:
-                std::cout<<"Invalid CLI Option specified"<<std::endl;
-                return RC_MODULE_INIT_FAILURE;
-        }
-    }
-    return RC_SUCCESS;
-}
-
 static void restoreToSafeState() {
     if(AuxRoutines::fileExists(ResourceTunerSettings::mPersistenceFile)) {
         AuxRoutines::writeSysFsDefaults();
@@ -114,13 +84,6 @@ int32_t main(int32_t argc, char *argv[]) {
 
     std::signal(SIGINT, handleSIGINT);
     std::signal(SIGTERM, handleSIGTERM);
-
-    if(RC_IS_OK(opStatus)) {
-        opStatus = parseServerStartupCLIOpts(argc, argv);
-        if(RC_IS_NOTOK(opStatus)) {
-            return 0;
-        }
-    }
 
     TYPELOGV(NOTIFY_RESOURCE_TUNER_INIT_START, getpid());
 
