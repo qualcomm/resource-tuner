@@ -95,14 +95,16 @@ install(
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
 
-# Install Signal config files
-install(
-  DIRECTORY ${CMAKE_SOURCE_DIR}/Signals/Configs/
-  DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/resource-tuner/common/
-  FILES_MATCHING
-  PATTERN "*.yaml"
-  PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-)
+if(BUILD_SIGNALS)
+  # Install Signal config files
+  install(
+    DIRECTORY ${CMAKE_SOURCE_DIR}/Signals/Configs/
+    DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/resource-tuner/common/
+    FILES_MATCHING
+    PATTERN "*.yaml"
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+  )
+endif()
 
 if(BUILD_TESTS)
   # Install Test Configs
