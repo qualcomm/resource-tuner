@@ -400,6 +400,7 @@ int32_t main(int32_t argc, char* argv[]) {
             }
 
             sendTuneSignal(sigCode);
+            std::this_thread::sleep_for(std::chrono::seconds(3));
             break;
 
         default:

@@ -679,12 +679,52 @@ static void no_op(void* context) {
     return;
 }
 
+static void setPmQos(void* context) {
+    if(context == nullptr) return;
+    Resource* resource = static_cast<Resource*>(context);
+
+    if(resource->getValuesCount() < 1) return;
+
+    int32_t value = resource->getValueAt(0);
+    int32_t clusterID = resource->getClusterValue();
+
+    ClusterInfo* cinfo = TargetRegistry::getInstance()->getClusterInfo(clusterID);
+    if(cinfo == nullptr) {
+        return;
+    }
+
+    for(int32_t i = cinfo->mStartCpu; i < cinfo->mStartCpu + cinfo->mNumCpus; i++) {
+        defaultCoreLevelApplierHelper(resource, i);
+    }
+}
+
+static void resetPmQos(void* context) {
+    if(context == nullptr) return;
+    Resource* resource = static_cast<Resource*>(context);
+
+    if(resource->getValuesCount() < 1) return;
+
+    int32_t value = resource->getValueAt(0);
+    int32_t clusterID = resource->getClusterValue();
+
+    ClusterInfo* cinfo = TargetRegistry::getInstance()->getClusterInfo(clusterID);
+    if(cinfo == nullptr) {
+        return;
+    }
+
+    for(int32_t i = cinfo->mStartCpu; i < cinfo->mStartCpu + cinfo->mNumCpus; i++) {
+        defaultCoreLevelTearHelper(resource, i);
+    }
+}
+
 // Register the specific Callbacks
+RESTUNE_REGISTER_APPLIER_CB(0x00010001, setPmQos);
 RESTUNE_REGISTER_APPLIER_CB(0x00090000, moveProcessToCGroup);
 RESTUNE_REGISTER_APPLIER_CB(0x00090001, moveThreadToCGroup);
 RESTUNE_REGISTER_APPLIER_CB(0x00090002, setRunOnCores);
 RESTUNE_REGISTER_APPLIER_CB(0x00090003, setRunOnCoresExclusively);
 RESTUNE_REGISTER_APPLIER_CB(0x00090005, limitCpuTime);
+RESTUNE_REGISTER_TEAR_CB(0x00010001, resetPmQos);
 RESTUNE_REGISTER_TEAR_CB(0x00090000, removeProcessFromCGroup);
 RESTUNE_REGISTER_TEAR_CB(0x00090001, removeThreadFromCGroup);
 RESTUNE_REGISTER_TEAR_CB(0x00090003, resetRunOnCoresExclusively);

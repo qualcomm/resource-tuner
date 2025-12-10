@@ -25,6 +25,17 @@ ResourceConfigs:
     Permissions: "third_party"
     Modes: ["display_on", "doze"]
     Policy: "lower_is_better"
+    ApplyType: "cluster"
+
+  - ResType: "0x01"
+    ResID: "0x0002"
+    Name: "RES_TUNER_PM_QOS_LATENCY"
+    Path: "/sys/devices/system/cpu/cpu%d/power/pm_qos_resume_latency_us"
+    Supported: true
+    LowThreshold: 0
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: "lower_is_better"
     ApplyType: "core"
 
   - ResType: "0x03"
