@@ -120,8 +120,33 @@ static std::string trimStr(const std::string &s) {
 }
 
 void TargetRegistry::performPostInitActions() {
-    const std::string journaldConfFile = "/etc/systemd/journald.conf";
+    // Modify governor to schedutil
+    DIR* dir = opendir(POLICY_DIR_PATH);
+    if(dir == nullptr) {
+        return;
+    }
 
+    std::vector<std::string> policyDirs;
+
+    struct dirent* entry;
+    while((entry = readdir(dir)) != nullptr) {
+        if(strncmp(entry->d_name, "policy", 6) == 0) {
+            std::string fullPath = std::string(POLICY_DIR_PATH) + entry->d_name;
+            policyDirs.push_back(fullPath);
+        }
+    }
+    closedir(dir);
+
+    for(const std::string& dirPath : policyDirs) {
+        std::string govPath = dirPath + "/scaling_governor";
+        std::ofstream outStream(govPath);
+        if(!outStream) {
+            continue;
+        }
+        outStream << this->mPostInitOptions["cpufreq.default_governor"][0].c_str();
+    }
+
+    const std::string journaldConfFile = "/etc/systemd/journald.conf";
     const std::unordered_map<std::string, std::string> configOptions = {
         {"RuntimeMaxUse", "20M"},
         {"RuntimeMaxFileSize", "128K"},
@@ -184,32 +209,61 @@ void TargetRegistry::performPostInitActions() {
     confOutStream << newContent.str();
     confOutStream.close();
 
-    // Modify governor to schedutil
-    DIR* dir = opendir(POLICY_DIR_PATH);
-    if(dir == nullptr) {
+    // Set printk kernel logging to minimal
+    const std::string printkPath = "/proc/sys/kernel/printk";
+    const std::string newLevels = "3 4 1 3";
+
+    std::ofstream printkFile(printkPath);
+    if(printkFile.is_open()) {
+        printkFile << newLevels;
+        printkFile.close();
+    }
+
+    // Restart journald
+    sd_bus *bus = nullptr;
+    sd_bus_error error = SD_BUS_ERROR_NULL;
+    sd_bus_message *reply = nullptr;
+    int32_t rc;
+
+    // Connect to the system bus
+    rc = sd_bus_open_system(&bus);
+    if(rc < 0) {
+        TYPELOGV(SYSTEM_BUS_CONN_FAILED, strerror(-rc));
         return;
     }
 
-    std::vector<std::string> policyDirs;
-
-    struct dirent* entry;
-    while((entry = readdir(dir)) != nullptr) {
-        if(strncmp(entry->d_name, "policy", 6) == 0) {
-            policyDirs.push_back(entry->d_name);
-        }
+    // Start irqbalance
+    rc = sd_bus_call_method(bus,
+                            "org.freedesktop.systemd1",
+                            "/org/freedesktop/systemd1",
+                            "org.freedesktop.systemd1.Manager",
+                            "RestartUnit",
+                            &error,
+                            &reply,
+                            "ss",
+                            "systemd-journald.service",
+                            "replace");
+    if(rc < 0) {
+        LOGE("RESTUNE_COCO_TABLE", "Failed to start irqbalanced: " + std::string(error.message));
     }
-    closedir(dir);
 
-    for(const std::string& dirPath : policyDirs) {
-        std::string govPath = dirPath + "/scaling_governor";
-        std::ofstream outStream(govPath);
-        if(!outStream) {
-            continue;
-        }
-        outStream << "schedutil";
-    }
+    sd_bus_message_unref(reply);
+    sd_bus_error_free(&error);
+    sd_bus_unref(bus);
 
     // minfreq
+    try {
+        char pathBuffer[128];
+        std::string filePath = "/sys/devices/system/cpu/cpufreq/policy%d/scaling_min_freq";
+        int32_t clusterID = std::stoi(this->mPostInitOptions["cpu.minfreq"][0]);
+        std::snprintf(pathBuffer, sizeof(pathBuffer), filePath.c_str(), clusterID);
+        filePath = std::string(pathBuffer);
+
+        std::ofstream minFreqOut(filePath);
+        int64_t freqVal = (int64_t)std::stoi(this->mPostInitOptions["cpu.minfreq"][1]) * 1000000;
+        minFreqOut << freqVal;
+        minFreqOut.close();
+    } catch(const std::exception& e) {}
 }
 
 void TargetRegistry::generatePolicyBasedMapping(std::vector<std::string>& policyDirs) {
@@ -222,7 +276,7 @@ void TargetRegistry::generatePolicyBasedMapping(std::vector<std::string>& policy
     // Next, get the list of cpus corresponding to each cluster
     std::vector<std::pair<int32_t, std::pair<int32_t, ClusterInfo*>>> clusterConfigs;
 
-    int8_t physicalClusterId = 0;
+    int32_t physicalClusterId = 0;
     for(const std::string& dirName : policyDirs) {
         std::string fullPath = std::string(POLICY_DIR_PATH) + dirName;
         std::vector<int32_t> cpuList;

@@ -22,4 +22,4 @@ InitConfigs:
     - OptName: "cpufreq.default_governor"
       OptValues: ["schedutil"]
     - OptName: "cpu.minfreq"
-      OptValues: ["0", "1203MHz"]
+      OptValues: ["0", "1203"]

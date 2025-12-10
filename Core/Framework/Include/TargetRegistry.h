@@ -20,6 +20,8 @@
 #include <sys/stat.h>
 #include <regex>
 #include <memory>
+#include <systemd/sd-bus.h>
+#include <systemd/sd-event.h>
 
 #include "ResourceTunerSettings.h"
 #include "AuxRoutines.h"
