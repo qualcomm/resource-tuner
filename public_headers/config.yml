@@ -1,7 +1,7 @@
 project: https://github.com/qualcomm/resource-tuner
 
 branches:
-  main:
+  likith:
     modes:
       non-blocking:
         headers:
