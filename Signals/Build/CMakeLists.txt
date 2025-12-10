@@ -1,7 +1,5 @@
 file(GLOB SOURCES "../*.cpp")
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBYAML REQUIRED yaml-0.1)
 add_library(RestuneSignals ${SOURCES})
 set_target_properties(RestuneSignals PROPERTIES VERSION 1.0.0 SOVERSION 1)
 target_include_directories(RestuneSignals PRIVATE ${CMAKE_SOURCE_DIR}/Extensions/Include)
