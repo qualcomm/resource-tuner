@@ -1,9 +1,9 @@
 name: Run ARMOR via action
 on:
   push:
-    branches: [ main ]
+    branches: [ main, likith ]
   pull_request_target:
-    branches: [ main ]
+    branches: [ main, likith ]
   workflow_dispatch:
     inputs:
       branch-name:
@@ -51,7 +51,7 @@ jobs:
           echo "repo=${{ github.repository }}" >> "$GITHUB_OUTPUT"
 
       - name: Run ARMOR Tool
-        uses: qualcomm/armor@main
+        uses: qualcomm-linux-stg/armor@main
         with:
           event-name: ${{ steps.ev.outputs.event_name }}
           head-sha:   ${{ steps.ev.outputs.head_sha }}
