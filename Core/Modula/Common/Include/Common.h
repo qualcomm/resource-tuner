@@ -37,7 +37,6 @@ typedef struct {
      */
     int32_t mResInfo;
     int al;
-    int32_t mResInfo1;
     /**
      * @brief Number of values to be configured for the Resource,
      *        both single-valued and multi-valued Resources are supported.
@@ -47,6 +46,7 @@ typedef struct {
     union {
         int32_t value; //!< Use this field for single Valued Resources
         int32_t* values; //!< Use this field for Multi Valued Resources
+        int a;
     } mResValue; //!< The value to be Configured for this Resource Node.
 } SysResource;
 
