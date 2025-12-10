@@ -18,6 +18,9 @@ int8_t ResourceRegistry::isResourceConfigMalformed(ResConfInfo* rConf) {
 }
 
 void ResourceRegistry::setLifeCycleCallbacks(ResConfInfo* resourceConfigInfo) {
+    resourceConfigInfo->mResourceApplierCallback = nullptr;
+    resourceConfigInfo->mResourceTearCallback = nullptr;
+
     switch(resourceConfigInfo->mApplyType) {
         case APPLY_CLUSTER:
             resourceConfigInfo->mResourceApplierCallback = defaultClusterLevelApplierCb;
@@ -84,6 +87,16 @@ void ResourceRegistry::fetchAndStoreDefaults(ResConfInfo* resourceConfigInfo) {
         case APPLY_GLOBAL: {
             this->addDefaultValue(resourceConfigInfo->mResourcePath,
                                   AuxRoutines::readFromFile(resourceConfigInfo->mResourcePath));
+            break;
+        }
+        case APPLY_IRQ: {
+            std::vector<int32_t> irqs;
+            TargetRegistry::getInstance()->getIRQIds(irqs);
+            for(int32_t irq: irqs) {
+                char filePath[128];
+                snprintf(filePath, sizeof(filePath), resourceConfigInfo->mResourcePath.c_str(), irq);
+                this->addDefaultValue(std::string(filePath), AuxRoutines::readFromFile(filePath));
+            }
             break;
         }
     }
@@ -466,6 +479,8 @@ ErrCode ResourceConfigInfoBuilder::setApplyType(const std::string& applyTypeStri
         applyType = APPLY_CLUSTER;
     } else if(applyTypeString == "cgroup") {
         applyType = APPLY_CGROUP;
+    } else if(applyTypeString == "irq") {
+        applyType = APPLY_IRQ;
     } else {
         if(applyTypeString.length() != 0) {
             return RC_INVALID_VALUE;

@@ -109,6 +109,7 @@ enum CommonMessageTypes {
     INV_ATTR_VAL,
     INV_COCO_TBL_INDEX,
     NOTIFY_RESMODE_REJECT,
+    SYSTEM_BUS_CONN_FAILED,
 };
 
 /**
