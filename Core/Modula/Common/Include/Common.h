@@ -36,6 +36,7 @@ typedef struct {
      *        - The next 8 bits (17-24) hold the Logical Cluster Value
      */
     int32_t mResInfo;
+    int al;
     int32_t mOptionalInfo; //!< Field to hold optional information for Request Processing
     /**
      * @brief Number of values to be configured for the Resource,
@@ -46,6 +47,7 @@ typedef struct {
     union {
         int32_t value; //!< Use this field for single Valued Resources
         int32_t* values; //!< Use this field for Multi Valued Resources
+        int32_t val;
     } mResValue; //!< The value to be Configured for this Resource Node.
 } SysResource;
 
