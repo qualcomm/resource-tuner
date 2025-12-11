@@ -79,6 +79,9 @@ static int8_t isKey(const std::string& keyName) {
         INIT_CONFIGS_ELEM_CACHE_INFO_TYPE,
         INIT_CONFIGS_ELEM_CACHE_INFO_BLK_CNT,
         INIT_CONFIGS_ELEM_CACHE_INFO_PRIO_AWARE,
+        INIT_CONFIGS_ELEM_POST_OPT_LIST,
+        INIT_CONFIGS_ELEM_POST_OPT_NAME,
+        INIT_CONFIGS_ELEM_POST_OPT_VALUES_LIST,
     };
 
     for(const std::string& key: keys) {
@@ -97,6 +100,8 @@ static int8_t isKeyTypeList(const std::string& keyName) {
     if(keyName == INIT_CONFIGS_ELEM_CGROUPS_LIST) return true;
     if(keyName == INIT_CONFIGS_ELEM_MPAM_GROUPS_LIST) return true;
     if(keyName == INIT_CONFIGS_ELEM_CACHE_INFO_LIST) return true;
+    if(keyName == INIT_CONFIGS_ELEM_POST_OPT_LIST) return true;
+    if(keyName == INIT_CONFIGS_ELEM_POST_OPT_VALUES_LIST) return true;
 
     if(keyName == RESOURCE_CONFIGS_ELEM_MODES) return true;
     if(keyName == RESOURCE_CONFIGS_ELEM_TARGETS_ENABLED) return true;
@@ -403,6 +408,9 @@ ErrCode ConfigProcessor::parseInitConfigYamlNode(const std::string& filePath) {
     std::string topKey;
     std::stack<std::string> keyTracker;
 
+    std::string currPostInitOpt = "";
+    std::vector<std::string> optsValues;
+
     CGroupConfigInfoBuilder* cGroupConfigBuilder = nullptr;
     MpamGroupConfigInfoBuilder* mpamGroupConfigBuilder = nullptr;
     CacheInfoBuilder* cacheInfoBuilder = nullptr;
@@ -422,7 +430,17 @@ ErrCode ConfigProcessor::parseInitConfigYamlNode(const std::string& filePath) {
                     return RC_YAML_INVALID_SYNTAX;
                 }
 
+                topKey = keyTracker.top();
                 keyTracker.pop();
+
+                if(topKey == INIT_CONFIGS_ELEM_POST_OPT_VALUES_LIST) {
+                    for(std::string& value: optsValues) {
+                        TargetRegistry::getInstance()->addPostInitOpt(currPostInitOpt, value);
+                    }
+
+                    optsValues.clear();
+                }
+
                 break;
 
             case YAML_MAPPING_START_EVENT:
@@ -529,6 +547,12 @@ ErrCode ConfigProcessor::parseInitConfigYamlNode(const std::string& filePath) {
                 ADD_TO_CACHE_INFO_BUILDER(INIT_CONFIGS_ELEM_CACHE_INFO_TYPE, setType);
                 ADD_TO_CACHE_INFO_BUILDER(INIT_CONFIGS_ELEM_CACHE_INFO_BLK_CNT, setNumBlocks);
                 ADD_TO_CACHE_INFO_BUILDER(INIT_CONFIGS_ELEM_CACHE_INFO_PRIO_AWARE, setPriorityAware);
+
+                if(topKey == INIT_CONFIGS_ELEM_POST_OPT_NAME) {
+                    currPostInitOpt = value;
+                } else if(topKey == INIT_CONFIGS_ELEM_POST_OPT_VALUES_LIST) {
+                    optsValues.push_back(value);
+                }
 
                 break;
 

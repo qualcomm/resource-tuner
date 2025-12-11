@@ -20,6 +20,8 @@
 #include <sys/stat.h>
 #include <regex>
 #include <memory>
+#include <systemd/sd-bus.h>
+#include <systemd/sd-event.h>
 
 #include "ResourceTunerSettings.h"
 #include "AuxRoutines.h"
@@ -86,6 +88,7 @@ private:
     std::unordered_map<int32_t, CGroupConfigInfo*> mCGroupMapping;
     std::unordered_map<int32_t, MpamGroupConfigInfo*> mMpamGroupMapping;
     std::unordered_map<std::string, CacheInfo*> mCacheInfoMapping;
+    std::unordered_map<std::string, std::vector<std::string>> mPostInitOptions;
 
     TargetRegistry();
 
@@ -163,6 +166,10 @@ public:
     int32_t getCreatedMpamGroupsCount();
 
     void displayTargetInfo();
+
+    void addPostInitOpt(const std::string& optionName, const std::string& value);
+
+    void performPostInitActions();
 
     static std::shared_ptr<TargetRegistry> getInstance() {
         if(targetRegistryInstance == nullptr) {

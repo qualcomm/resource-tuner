@@ -113,6 +113,159 @@ static int32_t readCpuCapacity(int32_t cpuID) {
     return capacity;
 }
 
+static std::string trimStr(const std::string &s) {
+    size_t start = s.find_first_not_of(" \t");
+    size_t end = s.find_last_not_of(" \t\r");
+    return (start == std::string::npos) ? "" : s.substr(start, end - start + 1);
+}
+
+void TargetRegistry::performPostInitActions() {
+    // Modify governor to schedutil
+    DIR* dir = opendir(POLICY_DIR_PATH);
+    if(dir == nullptr) {
+        return;
+    }
+
+    std::vector<std::string> policyDirs;
+
+    struct dirent* entry;
+    while((entry = readdir(dir)) != nullptr) {
+        if(strncmp(entry->d_name, "policy", 6) == 0) {
+            std::string fullPath = std::string(POLICY_DIR_PATH) + entry->d_name;
+            policyDirs.push_back(fullPath);
+        }
+    }
+    closedir(dir);
+
+    for(const std::string& dirPath : policyDirs) {
+        std::string govPath = dirPath + "/scaling_governor";
+        std::ofstream outStream(govPath);
+        if(!outStream) {
+            continue;
+        }
+        outStream << this->mPostInitOptions["cpufreq.default_governor"][0].c_str();
+    }
+
+    const std::string journaldConfFile = "/etc/systemd/journald.conf";
+    const std::unordered_map<std::string, std::string> configOptions = {
+        {"RuntimeMaxUse", "20M"},
+        {"RuntimeMaxFileSize", "128K"},
+        {"MaxLevelStore", "notice"},
+        {"MaxLevelSyslog", "notice"},
+        {"MaxLevelKMsg", "notice"},
+        {"MaxLevelConsole", "notice"},
+        {"ForwardToSyslog", "no"}
+    };
+
+    std::ifstream confInStream(journaldConfFile);
+    if(!confInStream) {
+        return;
+    }
+
+    std::ostringstream oldContent;
+    std::ostringstream newContent;
+    std::string line;
+    int8_t journalSectionFound = false;
+
+    std::unordered_map<std::string, int8_t> keyUpdated;
+    for(auto &entry : configOptions) {
+        keyUpdated[entry.first] = false;
+    }
+
+    while(std::getline(confInStream, line)) {
+        std::string trimmedLine = trimStr(line);
+        int8_t replaced = false;
+
+        if(trimmedLine == "[Journal]") {
+            journalSectionFound = true;
+        }
+
+        for(auto &entry : configOptions) {
+            if(trimmedLine.find(entry.first + "=") == 0 || trimmedLine.find("#" + entry.first + "=") == 0) {
+                newContent << entry.first << "=" << entry.second << "\n";
+                keyUpdated[entry.first] = true;
+                replaced = true;
+                break;
+            }
+        }
+        if(!replaced) {
+            newContent << line << "\n";
+        }
+        oldContent << line << "\n";
+    }
+    confInStream.close();
+
+    if(!journalSectionFound) {
+        newContent << "\n[Journal]\n";
+    }
+
+    for(auto &entry : configOptions) {
+        if(!keyUpdated[entry.first]) {
+            newContent << entry.first << "=" << entry.second << "\n";
+        }
+    }
+
+    std::ofstream confOutStream(journaldConfFile);
+    confOutStream << newContent.str();
+    confOutStream.close();
+
+    // Set printk kernel logging to minimal
+    const std::string printkPath = "/proc/sys/kernel/printk";
+    const std::string newLevels = "3 4 1 3";
+
+    std::ofstream printkFile(printkPath);
+    if(printkFile.is_open()) {
+        printkFile << newLevels;
+        printkFile.close();
+    }
+
+    // Restart journald
+    sd_bus *bus = nullptr;
+    sd_bus_error error = SD_BUS_ERROR_NULL;
+    sd_bus_message *reply = nullptr;
+    int32_t rc;
+
+    // Connect to the system bus
+    rc = sd_bus_open_system(&bus);
+    if(rc < 0) {
+        TYPELOGV(SYSTEM_BUS_CONN_FAILED, strerror(-rc));
+        return;
+    }
+
+    // Start irqbalance
+    rc = sd_bus_call_method(bus,
+                            "org.freedesktop.systemd1",
+                            "/org/freedesktop/systemd1",
+                            "org.freedesktop.systemd1.Manager",
+                            "RestartUnit",
+                            &error,
+                            &reply,
+                            "ss",
+                            "systemd-journald.service",
+                            "replace");
+    if(rc < 0) {
+        LOGE("RESTUNE_COCO_TABLE", "Failed to start irqbalanced: " + std::string(error.message));
+    }
+
+    sd_bus_message_unref(reply);
+    sd_bus_error_free(&error);
+    sd_bus_unref(bus);
+
+    // minfreq
+    try {
+        char pathBuffer[128];
+        std::string filePath = "/sys/devices/system/cpu/cpufreq/policy%d/scaling_min_freq";
+        int32_t clusterID = std::stoi(this->mPostInitOptions["cpu.minfreq"][0]);
+        std::snprintf(pathBuffer, sizeof(pathBuffer), filePath.c_str(), clusterID);
+        filePath = std::string(pathBuffer);
+
+        std::ofstream minFreqOut(filePath);
+        int64_t freqVal = (int64_t)std::stoi(this->mPostInitOptions["cpu.minfreq"][1]) * 1000000;
+        minFreqOut << freqVal;
+        minFreqOut.close();
+    } catch(const std::exception& e) {}
+}
+
 void TargetRegistry::generatePolicyBasedMapping(std::vector<std::string>& policyDirs) {
     // Sort the directories, to ensure processing always starts with policy0
     std::sort(policyDirs.begin(), policyDirs.end());
@@ -123,7 +276,7 @@ void TargetRegistry::generatePolicyBasedMapping(std::vector<std::string>& policy
     // Next, get the list of cpus corresponding to each cluster
     std::vector<std::pair<int32_t, std::pair<int32_t, ClusterInfo*>>> clusterConfigs;
 
-    int8_t physicalClusterId = 0;
+    int32_t physicalClusterId = 0;
     for(const std::string& dirName : policyDirs) {
         std::string fullPath = std::string(POLICY_DIR_PATH) + dirName;
         std::vector<int32_t> cpuList;
@@ -286,6 +439,9 @@ void TargetRegistry::readTargetInfo() {
     // Get the Online Core Count
     ResourceTunerSettings::targetConfigs.mTotalCoreCount = getOnlineCpuCount();
 
+    // Perform post-init tasks
+    performPostInitActions();
+
     // Check if cpufreq/policy directories are available,
     // If yes, we'll use them to generate the mapping info.
 
@@ -404,6 +560,10 @@ void TargetRegistry::displayTargetInfo() {
         LOGI("RESTUNE_SERVER_INIT", "Starting CPU in this cluster: " + std::to_string(cluster.second->mStartCpu));
         LOGI("RESTUNE_SERVER_INIT", "Cluster Capacity: " + std::to_string(cluster.second->mCapacity));
     }
+}
+
+void TargetRegistry::addPostInitOpt(const std::string& optionName, const std::string& value) {
+    this->mPostInitOptions[optionName].push_back(value);
 }
 
 TargetRegistry::~TargetRegistry() {
