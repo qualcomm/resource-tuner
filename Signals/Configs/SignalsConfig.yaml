@@ -1,17 +1,2 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause-Clear
-
-SignalConfigs:
-  - SigId: "0x0000"
-    Category: "0xec"
-    Name: CUSTOM_QOS_SIGNAL
-    Enable: true
-    Permissions: ["system"]
-    Timeout: 4000
-    Resources:
-    - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [9, 0,1,2,3,4,5,6,7]}
-    - {ResCode: "0x00090011", ResInfo: "0x00000000", Values: [9, -20]}
-    - {ResCode: "0x0009000d", ResInfo: "0x00000000", Values: [9, 519430400]}
-    - {ResCode: "0x0009000c", ResInfo: "0x00000000", Values: [9, 119430400]}
-    - {ResCode: "0x00010001", ResInfo: "0x00000000", Values: [2]}
-    - {ResCode: "0x00010001", ResInfo: "0x00000100", Values: [2]}
