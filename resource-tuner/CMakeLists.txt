@@ -1,3 +1,7 @@
+# Dependencies
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBYAML REQUIRED yaml-0.1)
+
 # Optional Modules
 option(BUILD_SIGNALS "Signals" OFF)
 option(BUILD_TESTS "Testing" OFF)
