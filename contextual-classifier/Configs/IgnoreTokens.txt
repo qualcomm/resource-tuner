@@ -1,0 +1,9 @@
+attr: s0
+cgroup: 0
+cmdline: !, ., usr, lib
+comm:
+environ: usr, bin, local, sbin, is, and, it, this
+exe: usr, bin, lib
+logs: successfully, finished, is, are, a, on, of, it, this, these
+fds: dev, null, pts, socket, deleted, anon_inode, home, share
+map_files: usr, bin, lib, sbin, var, cache, deleted
