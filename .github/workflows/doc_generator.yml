@@ -17,7 +17,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y doxygen
 
       - name: Generate Doxygen Documentation
-        run: doxygen Docs/Doxyfile
+        run: doxygen docs/Doxyfile
 
       - name: Deploy to gh-pages branch
         run: |

@@ -69,7 +69,7 @@ option(BUILD_CLI "CLI" OFF)
 ├── Signals                      # Optional Module, exposes Signal Tuning / Relay APIs
 │   └── Configs                  # Signal Configs, Ext Feature Configs
 ├── Tests                        # Unit and System Wide Tests
-└── Docs                         # Documentation
+└── docs                         # Documentation
 ```
 
 ---

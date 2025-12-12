@@ -864,7 +864,7 @@ WARN_LOGFILE           =
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = Docs/README.md Docs/HOW-TO.md Docs/EXTENSIONS.md Docs/FEATURES.md Docs/REQUESTS.md Core/Modula/Common/Include/ Core/Modula/Components/Include/ Core/Modula/CoreModules/Include/ Core/Client/APIs/Include Core/Client/Comm/Socket/Include Core/Extensions/Include Core/Framework/Include Core/Server/Receiver/Include Core/Server/Socket/Include Signals/Include Docs/Examples/
+INPUT                  = docs/README.md docs/HOW-TO.md docs/EXTENSIONS.md docs/FEATURES.md docs/REQUESTS.md Core/Modula/Common/Include/ Core/Modula/Components/Include/ Core/Modula/CoreModules/Include/ Core/Client/APIs/Include Core/Client/Comm/Socket/Include Core/Extensions/Include Core/Framework/Include Core/Server/Receiver/Include Core/Server/Socket/Include Signals/Include docs/Examples/
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
@@ -984,7 +984,7 @@ EXCLUDE_SYMBOLS        =
 # that contain example code fragments that are included (see the \include
 # command).
 
-EXAMPLE_PATH           = Docs/Examples/
+EXAMPLE_PATH           = docs/Examples/
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp and
@@ -1004,7 +1004,7 @@ EXAMPLE_RECURSIVE      = NO
 # that contain images that are to be included in the documentation (see the
 # \image command).
 
-IMAGE_PATH             = Docs/images
+IMAGE_PATH             = docs/images
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should
 # invoke to filter for each input file. Doxygen will invoke the filter program
