@@ -31,5 +31,3 @@ jobs:
           git add .
           git commit -m "Deploy Doxygen documentation"
           git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" HEAD:gh-pages
-
-
