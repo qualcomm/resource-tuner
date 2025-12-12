@@ -69,23 +69,12 @@ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/Core/Modula/Common/Include/Common.h DE
 
 # Install core config files
 install(
-  DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Core/Configs/
+  DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../configs/
   DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/resource-tuner/common/
   FILES_MATCHING
   PATTERN "*.yaml"
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
-
-if(BUILD_SIGNALS)
-  # Install Signal config files
-  install(
-    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Signals/Configs/
-    DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/resource-tuner/common/
-    FILES_MATCHING
-    PATTERN "*.yaml"
-    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-  )
-endif()
 
 if(BUILD_TESTS)
   # Install Test Configs
