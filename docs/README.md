@@ -47,9 +47,7 @@ Resource-tuner offers flexibility to select modules through the build system at 
 
 Alter options in corresponding build file like below (ex. cmake options)
 ```cmake
-option(BUILD_SIGNALS "Signals" OFF)
 option(BUILD_TESTS "Testing" OFF)
-option(BUILD_CLI "CLI" OFF)
 ```
 
 ---

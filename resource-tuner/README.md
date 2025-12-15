@@ -24,7 +24,7 @@ mkdir -p build && cd build
 ```
 * Configure the project
 ```bash
-cmake .. [-DBUILD_SIGNALS=ON] [-DBUILD_CLI=ON]
+cmake ..
 ```
 * Build the project
 ```bash

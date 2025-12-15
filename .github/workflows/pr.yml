@@ -48,7 +48,7 @@ jobs:
             set -euo pipefail
             mkdir build
             cd build
-            cmake .. -DBUILD_SIGNALS=ON -DBUILD_CLI=ON -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=./resource-tuner-bins/usr/
+            cmake .. -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=./resource-tuner-bins/usr/
             cmake --build .
             make install
             mkdir -p resource-tuner-bins/etc/resource-tuner/{common,custom,tests}
