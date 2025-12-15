@@ -368,7 +368,7 @@ ErrCode submitResProvisionRequest(void* msg) {
 
     if(RC_IS_OK(opStatus)) {
         if(request->getRequestType() == REQ_RESOURCE_TUNING) {
-            request->setHandle(info->handle);
+            request->setHandle(info->mHandle);
         }
         processIncomingRequest(request);
     }

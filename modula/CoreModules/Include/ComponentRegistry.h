@@ -8,23 +8,16 @@
 
 #include "Utils.h"
 
-enum ModuleIdentifier {
-    MOD_CORE,
-    MOD_SIGNAL,
-    MOD_STATE_OPTIMIZER,
+enum ModuleID : int8_t {
+    MOD_RESTUNE,
+    MOD_CLASSIFIER,
 };
 
-enum EventIdentifier {
-    MOD_CORE_INIT,
-    MOD_CORE_TEAR,
-    MOD_CORE_ON_MSG_RECV,
-    MOD_SIGNAL_INIT,
-    MOD_SIGNAL_TEAR,
-    MOD_SIGNAL_ON_MSG_RECV,
-    PROP_ON_MSG_RECV,
-    MOD_STATE_OPTIMIZER_INIT,
-    MOD_STATE_OPTIMIZER_TEAR,
-};
+typedef struct {
+    EventCallback mInit;
+    EventCallback mTear;
+    EventCallback mOnEvent;
+} ModuleInfo;
 
 /**
  * @brief ComponentRegistry
@@ -33,20 +26,16 @@ enum EventIdentifier {
  */
 class ComponentRegistry {
 private:
-    static std::unordered_map<EventIdentifier, EventCallback> mEventCallbacks;
-    static std::unordered_map<ModuleIdentifier, int8_t> mModuleRegistry;
+    static std::unordered_map<ModuleID, ModuleInfo> mModuleRegistry;
 
 public:
-    ComponentRegistry(EventIdentifier EventIdentifier,
-                      EventCallback messageHandlerCallback);
-
-    ComponentRegistry(ModuleIdentifier EventIdentifier,
+    ComponentRegistry(ModuleID moduleID,
                       EventCallback registrationCallback,
                       EventCallback terardownCallback,
                       EventCallback messageHandlerCallback);
 
-    static int8_t isModuleEnabled(ModuleIdentifier moduleIdentifier);
-    static EventCallback getEventCallback(EventIdentifier EventIdentifier);
+    static int8_t isModuleEnabled(ModuleID moduleID);
+    static ModuleInfo getModuleInfo(ModuleID moduleID);
 };
 
 #define CONCAT(a, b) a ## b

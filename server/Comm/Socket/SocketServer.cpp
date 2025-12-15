@@ -115,7 +115,7 @@ int32_t SocketServer::ListenForClientRequests() {
                             reqBuf = new (GetBlock<char[REQ_BUFFER_SIZE]>()) char[REQ_BUFFER_SIZE];
 
                             info->buffer = reqBuf;
-                            info->bufferSize = REQ_BUFFER_SIZE;
+                            // info->mBufferSize = REQ_BUFFER_SIZE;
 
                         } catch(const std::bad_alloc& e) {
                             FreeBlock<MsgForwardInfo>(info);

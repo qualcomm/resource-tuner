@@ -218,7 +218,7 @@ ErrCode submitSignalRequest(void* msg) {
 
     if(RC_IS_OK(opStatus)) {
         if(signal->getRequestType() == REQ_SIGNAL_TUNING) {
-            signal->setHandle(info->handle);
+            signal->setHandle(info->mHandle);
         }
 
         processIncomingRequest(signal);

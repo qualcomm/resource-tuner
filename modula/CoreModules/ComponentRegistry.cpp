@@ -3,68 +3,32 @@
 
 #include "ComponentRegistry.h"
 
-std::unordered_map<EventIdentifier, EventCallback> ComponentRegistry::mEventCallbacks{};
-std::unordered_map<ModuleIdentifier, int8_t> ComponentRegistry::mModuleRegistry{};
-
-ComponentRegistry::ComponentRegistry(EventIdentifier eventIdentifier, EventCallback onMsgRecv) {
-    if(onMsgRecv == nullptr) {
-        return;
-    }
-
-    mEventCallbacks[eventIdentifier] = onMsgRecv;
-}
+std::unordered_map<ModuleID, ModuleInfo> ComponentRegistry::mModuleRegistry{};
 
 ComponentRegistry::ComponentRegistry(
-                               ModuleIdentifier moduleIdentifier,
+                               ModuleID moduleId,
                                EventCallback init,
-                               EventCallback teardown,
-                               EventCallback onMsgRecv) {
-    switch(moduleIdentifier) {
-        case ModuleIdentifier::MOD_CORE: {
-            if(init == nullptr || teardown == nullptr || onMsgRecv == nullptr) {
-                return;
-            }
-            mEventCallbacks[MOD_CORE_INIT] = init;
-            mEventCallbacks[MOD_CORE_TEAR] = teardown;
-            mEventCallbacks[MOD_CORE_ON_MSG_RECV] = onMsgRecv;
-            break;
-        }
-        case ModuleIdentifier::MOD_SIGNAL: {
-            if(init == nullptr || teardown == nullptr || onMsgRecv == nullptr) {
-                return;
-            }
-            mEventCallbacks[MOD_SIGNAL_INIT] = init;
-            mEventCallbacks[MOD_SIGNAL_TEAR] = teardown;
-            mEventCallbacks[MOD_SIGNAL_ON_MSG_RECV] = onMsgRecv;
-            break;
-        }
-        case ModuleIdentifier::MOD_STATE_OPTIMIZER: {
-            if(init == nullptr || teardown == nullptr) {
-                return;
-            }
-            mEventCallbacks[MOD_STATE_OPTIMIZER_INIT] = init;
-            mEventCallbacks[MOD_STATE_OPTIMIZER_TEAR] = teardown;
-            break;
-        }
-        default:
-            return;
-    }
-
-    mModuleRegistry[moduleIdentifier] = true;
+                               EventCallback tear,
+                               EventCallback onEvent) {
+    mModuleRegistry[moduleId] = {
+        .mInit = init,
+        .mTear = tear,
+        .mOnEvent = onEvent,
+    };
 }
 
-int8_t ComponentRegistry::isModuleEnabled(ModuleIdentifier moduleIdentifier) {
-    if(mModuleRegistry.find(moduleIdentifier) == mModuleRegistry.end()) {
+int8_t ComponentRegistry::isModuleEnabled(ModuleID moduleId) {
+    if(mModuleRegistry.find(moduleId) == mModuleRegistry.end()) {
         return false;
     }
 
-    return mModuleRegistry[moduleIdentifier];
+    return true;
 }
 
-EventCallback ComponentRegistry::getEventCallback(EventIdentifier eventIdentifier) {
-    if(mEventCallbacks.find(eventIdentifier) == mEventCallbacks.end()) {
-        return nullptr;
+ModuleInfo ComponentRegistry::getModuleInfo(ModuleID moduleId) {
+    if(mModuleRegistry.find(moduleId) == mModuleRegistry.end()) {
+        return {};
     }
 
-    return mEventCallbacks[eventIdentifier];
+    return mModuleRegistry[moduleId];
 }

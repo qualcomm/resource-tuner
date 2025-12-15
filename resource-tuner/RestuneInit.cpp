@@ -1,11 +1,56 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include "ServerInternal.h"
-#include "ConfigProcessor.h"
-#include "ComponentRegistry.h"
+#include <dlfcn.h>
+#include <cstdint>
+#include <string>
+#include <thread>
+#include <thread>
+#include <memory>
 
-static std::thread serverThread;
+#include "ErrCodes.h"
+#include "Extensions.h"
+#include "AuxRoutines.h"
+#include "ConfigProcessor.h"
+#include "ServerInternal.h"
+#include "SignalInternal.h"
+#include "ResourceRegistry.h"
+#include "ComponentRegistry.h"
+#include "PulseMonitor.h"
+#include "RequestReceiver.h"
+#include "ClientGarbageCollector.h"
+#include "ResourceTunerSettings.h"
+#include "SignalRegistry.h"
+#include "SignalQueue.h"
+#include "SignalConfigProcessor.h"
+
+static void* extensionsLibHandle = nullptr;
+static std::thread restuneHandlerThread;
+
+static void restoreToSafeState() {
+    if(AuxRoutines::fileExists(ResourceTunerSettings::mPersistenceFile)) {
+        AuxRoutines::writeSysFsDefaults();
+
+        // Delete the Node Persistence File
+        AuxRoutines::deleteFile(ResourceTunerSettings::mPersistenceFile);
+    }
+}
+
+// Load the Extensions Plugin lib if it is available
+// If the lib is not present, we simply return Success. Since this lib is optional
+static ErrCode loadExtensionsLib() {
+    std::string libPath = ResourceTunerSettings::mExtensionsPluginLibPath;
+
+    // Check if the library file exists
+    extensionsLibHandle = dlopen(libPath.c_str(), RTLD_NOW);
+    if(extensionsLibHandle == nullptr) {
+        TYPELOGV(NOTIFY_EXTENSIONS_LOAD_FAILED, dlerror());
+        return RC_SUCCESS;  // Return success regardless, since this is an extension.
+    }
+
+    TYPELOGD(NOTIFY_EXTENSIONS_LIB_LOADED_SUCCESS);
+    return RC_SUCCESS;
+}
 
 static void preAllocateMemory() {
     // Preallocate Memory for certain frequently used types.
@@ -24,6 +69,9 @@ static void preAllocateMemory() {
     MakeAlloc<MsgForwardInfo> (maxBlockCount);
     MakeAlloc<ResIterable> (maxBlockCount);
     MakeAlloc<char[REQ_BUFFER_SIZE]> (maxBlockCount);
+    MakeAlloc<Signal> (concurrentRequestsUB);
+    MakeAlloc<std::vector<Resource*>> (concurrentRequestsUB * resourcesPerRequestUB);
+    MakeAlloc<std::vector<uint32_t>> (concurrentRequestsUB * resourcesPerRequestUB);
 }
 
 static void initLogger() {
@@ -239,7 +287,76 @@ static ErrCode fetchInitInfo() {
     return opStatus;
 }
 
-static void* serverThreadStart() {
+static ErrCode fetchSignals() {
+    ErrCode opStatus = RC_SUCCESS;
+
+    // Parse Common Signal Configs
+    std::string filePath = ResourceTunerSettings::mCommonSignalFilePath;
+    opStatus = parseUtil(filePath, COMMON_SIGNAL, ConfigType::SIGNALS_CONFIG);
+    if(RC_IS_NOTOK(opStatus)) {
+        return opStatus;
+    }
+
+    // Parse Custom Signal Configs provided via Extension Interface (if any)
+    filePath = Extensions::getSignalsConfigFilePath();
+    if(filePath.length() > 0) {
+        TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, "Signal", filePath.c_str());
+        return parseUtil(filePath, CUSTOM_SIGNAL, ConfigType::SIGNALS_CONFIG, true);
+    }
+
+    // Parse Custom Signal Configs provided in /etc/resource-tuner/custom (if any)
+    filePath = ResourceTunerSettings::mCustomSignalFilePath;
+    if(AuxRoutines::fileExists(filePath)) {
+        return parseUtil(filePath, CUSTOM_SIGNAL, ConfigType::SIGNALS_CONFIG, true);
+    }
+
+    return opStatus;
+}
+
+// Since this is a Custom (Optional) Config, hence if the expected Config file is
+// not found, we simply return Success.
+static ErrCode fetchExtFeatureConfigs() {
+    ErrCode opStatus = RC_SUCCESS;
+
+    // Check if a Custom Target Config is provided, if so process it.
+    std::string filePath = Extensions::getExtFeaturesConfigFilePath();
+
+    if(filePath.length() > 0) {
+        // Custom Target Config file has been provided by BU
+        TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, CUSTOM_EXT_FEATURE, filePath.c_str());
+        return parseUtil(filePath, CUSTOM_EXT_FEATURE, ConfigType::EXT_FEATURES_CONFIG, true);
+    }
+
+    filePath = ResourceTunerSettings::mCustomExtFeaturesFilePath;
+    if(AuxRoutines::fileExists(filePath)) {
+        return parseUtil(filePath, CUSTOM_EXT_FEATURE, ConfigType::EXT_FEATURES_CONFIG, true);
+    }
+
+    return opStatus;
+}
+
+// Initialize Request and Timer ThreadPools
+static ErrCode preAllocateWorkers() {
+    int32_t desiredThreadCapacity = ResourceTunerSettings::desiredThreadCount;
+    int32_t maxScalingCapacity = ResourceTunerSettings::maxScalingCapacity;
+
+    try {
+        RequestReceiver::mRequestsThreadPool = new ThreadPool(desiredThreadCapacity,
+                                                              maxScalingCapacity);
+
+        // Allocate 2 extra threads for Pulse Monitor and Garbage Collector
+        Timer::mTimerThreadPool = new ThreadPool(desiredThreadCapacity + 2,
+                                                 maxScalingCapacity);
+
+    } catch(const std::bad_alloc& e) {
+        TYPELOGV(THREAD_POOL_CREATION_FAILURE, e.what());
+        return RC_MODULE_INIT_FAILURE;
+    }
+
+    return RC_SUCCESS;
+}
+
+static void* restuneThreadStart() {
     std::shared_ptr<RequestQueue> requestQueue = RequestQueue::getInstance();
 
     // Initialize CocoTable
@@ -251,24 +368,44 @@ static void* serverThreadStart() {
     return nullptr;
 }
 
-static ErrCode init(void* arg=nullptr) {
-    ErrCode opStatus = RC_SUCCESS;
+static ErrCode init(void* arg) {
+    // Server might have been restarted by systemd
+    // Ensure that Resource Nodes are reset to sane state
+    restoreToSafeState();
+
+    if(RC_IS_NOTOK(fetchProperties())) {
+        TYPELOGD(PROPERTY_RETRIEVAL_FAILED);
+        return RC_MODULE_INIT_FAILURE;
+    }
+
+    // Start Resource Tuner Server Initialization
+    // As part of Server Initialization the Configs (Resource / Signals etc.) will be parsed
+    // If any of mandatory Configs cannot be parsed then initialization will fail.
+    // Mandatory Configs include: Properties Configs, Resource Configs and Signal Configs (if Signal
+    // module is plugged in)
+
+    // Check if Extensions Plugin lib is available
+    if(RC_IS_NOTOK(loadExtensionsLib())) {
+        return RC_MODULE_INIT_FAILURE;
+    }
 
     // Pre-Allocate Memory for Commonly used Types via Memory Pool
     preAllocateMemory();
 
+    if(RC_IS_NOTOK(preAllocateWorkers())) {
+        return RC_MODULE_INIT_FAILURE;
+    }
+
     // Target Configs
-    opStatus = fetchTargetInfo();
-    if(RC_IS_NOTOK(opStatus)) {
-        return opStatus;
+    if(RC_IS_NOTOK(fetchTargetInfo())) {
+        return RC_MODULE_INIT_FAILURE;
     }
     TargetRegistry::getInstance()->displayTargetInfo();
 
     // Fetch and Parse:
     // - Init Configs
-    opStatus = fetchInitInfo();
-    if(RC_IS_NOTOK(opStatus)) {
-        return opStatus;
+    if(RC_IS_NOTOK(fetchInitInfo())) {
+        return RC_MODULE_INIT_FAILURE;
     }
 
     // Fetch and Parse Resource Configs
@@ -277,38 +414,106 @@ static ErrCode init(void* arg=nullptr) {
     // - Target Specific Resource Configs
     // - Custom Resource Configs (if present)
     // Note by this point, we will know the Target Info, i.e. number of Core, Clusters etc.
-    opStatus = fetchResources();
-    if(RC_IS_NOTOK(opStatus)) {
-        return opStatus;
+    if(RC_IS_NOTOK(fetchResources())) {
+        return RC_MODULE_INIT_FAILURE;
+    }
+
+    // Fetch and Parse Signal Configs
+    // Signal Configs which will be considered:
+    // - Common Signal Configs
+    // - Target Specific Signal Configs
+    // - Custom Signal Configs (if present)
+    if(RC_IS_NOTOK(fetchSignals())) {
+        return RC_MODULE_INIT_FAILURE;
+    }
+
+    if(RC_IS_NOTOK(fetchExtFeatureConfigs())) {
+        return RC_MODULE_INIT_FAILURE;
     }
 
     // By this point, all the Extension Appliers / Resources would have been registered.
     ResourceRegistry::getInstance()->pluginModifications();
 
+    // Initialize external features
+    ExtFeaturesRegistry::getInstance()->initializeFeatures();
+
     // Create the Processor thread:
     try {
-        serverThread = std::thread(serverThreadStart);
+        restuneHandlerThread = std::thread(restuneThreadStart);
     } catch(const std::system_error& e) {
-        TYPELOGV(SYSTEM_THREAD_CREATION_FAILURE, "Server", e.what());
-        opStatus = RC_MODULE_INIT_FAILURE;
+        TYPELOGV(SYSTEM_THREAD_CREATION_FAILURE, "resource-tuner", e.what());
+        return RC_MODULE_INIT_FAILURE;
     }
 
     // Wait for the thread to initialize
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
 
-    return opStatus;
-}
-
-static ErrCode terminate(void* arg=nullptr) {
-    // Check if the thread is joinable, to prevent undefined behaviour
-    if(serverThread.joinable()) {
-        RequestQueue::getInstance()->forcefulAwake();
-        serverThread.join();
-    } else {
-        TYPELOGV(SYSTEM_THREAD_NOT_JOINABLE, "Server");
+     // Start the Pulse Monitor and Garbage Collector Daemon Threads
+    if(RC_IS_NOTOK(startPulseMonitorDaemon())) {
+        TYPELOGD(PULSE_MONITOR_INIT_FAILED);
+        return RC_MODULE_INIT_FAILURE;
     }
+
+    if(RC_IS_NOTOK(startClientGarbageCollectorDaemon())) {
+        TYPELOGD(GARBAGE_COLLECTOR_INIT_FAILED);
+        return RC_MODULE_INIT_FAILURE;
+    }
+
     return RC_SUCCESS;
 }
 
-RESTUNE_REGISTER_MODULE(MOD_CORE, init, terminate, submitResProvisionRequest);
-RESTUNE_REGISTER_EVENT_CALLBACK(PROP_ON_MSG_RECV, submitPropRequest);
+static ErrCode tear(void* arg) {
+    // Check if the thread is joinable, to prevent undefined behaviour
+    if(restuneHandlerThread.joinable()) {
+        RequestQueue::getInstance()->forcefulAwake();
+        restuneHandlerThread.join();
+    } else {
+        TYPELOGV(SYSTEM_THREAD_NOT_JOINABLE, "resource-tuner");
+    }
+    return RC_SUCCESS;
+
+    // Restore all the Resources to Original Values
+    ResourceRegistry::getInstance()->restoreResourcesToDefaultValues();
+
+    stopPulseMonitorDaemon();
+    stopClientGarbageCollectorDaemon();
+
+    if(RequestReceiver::mRequestsThreadPool != nullptr) {
+        delete RequestReceiver::mRequestsThreadPool;
+    }
+
+    if(Timer::mTimerThreadPool != nullptr) {
+        delete Timer::mTimerThreadPool;
+    }
+
+    // Delete the Sysfs Persistent File
+    AuxRoutines::deleteFile(ResourceTunerSettings::mPersistenceFile);
+
+    if(extensionsLibHandle != nullptr) {
+        dlclose(extensionsLibHandle);
+    }
+}
+
+ErrCode onEvent(void* msg) {
+    if(msg == nullptr) return RC_BAD_ARG;
+
+    ErrCode opStatus = RC_SUCCESS;
+    MsgForwardInfo* info = (MsgForwardInfo*) msg;
+    switch(info->mRequestType) {
+        case REQ_RESOURCE_TUNING:
+        case REQ_RESOURCE_RETUNING:
+        case REQ_RESOURCE_UNTUNING: {
+            return submitResProvisionRequest(info);
+        }
+
+        case REQ_SIGNAL_TUNING:
+        case REQ_SIGNAL_UNTUNING:
+        case REQ_SIGNAL_RELAY: {
+            return submitSignalRequest(info);
+        }
+    }
+
+    return RC_SUCCESS;
+}
+
+RESTUNE_REGISTER_MODULE(MOD_RESTUNE, init, tear, onEvent);

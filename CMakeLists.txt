@@ -30,8 +30,8 @@ endif()
 
 # Create and install the urm executable
 set(SERVER_EXECUTABLE "")
-list(APPEND SERVER_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/resource-tuner/ServerMain.cpp
-                              ${CMAKE_CURRENT_SOURCE_DIR}/resource-tuner/Signals/SignalInit.cpp)
+list(APPEND SERVER_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/urm.cpp
+                              ${CMAKE_CURRENT_SOURCE_DIR}/resource-tuner/RestuneInit.cpp)
 
 set(SERVER_LIBS "")
 list(APPEND SERVER_LIBS

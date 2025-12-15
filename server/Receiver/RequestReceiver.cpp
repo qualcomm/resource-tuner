@@ -9,127 +9,43 @@ ThreadPool* RequestReceiver::mRequestsThreadPool = nullptr;
 RequestReceiver::RequestReceiver() {}
 
 void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgForwardInfo) {
-    int8_t requestType = *(int8_t*) msgForwardInfo->buffer;
+    int8_t moduleID = *(int8_t*) msgForwardInfo->buffer;
+    int8_t requestType = *(int8_t*) ((unsigned char*) msgForwardInfo->buffer + sizeof(int8_t));
 
-    switch(requestType) {
-        // Resource Provisioning Requests
-        case REQ_RESOURCE_TUNING: {
-            if(!ComponentRegistry::isModuleEnabled(MOD_CORE)) {
-                TYPELOGV(NOTIFY_MODULE_NOT_ENABLED, "Core");
-                return;
-            }
-            msgForwardInfo->handle = AuxRoutines::generateUniqueHandle();
-            if(msgForwardInfo->handle < 0) {
-                // Handle Generation Failure
-                LOGE("RESTUNE_REQUEST_RECEIVER",
-                     "Failed to Generate Request handle");
-                return;
-            }
-            LOGD("RESTUNE_REQUEST_RECEIVER",
-                 "Incoming Request, handle generated = " + std::to_string(msgForwardInfo->handle));
+    if(!ComponentRegistry::isModuleEnabled(static_cast<ModuleID>(moduleID))) {
+        return;
+    }
+
+    msgForwardInfo->mHandle = AuxRoutines::generateUniqueHandle();
+    if(msgForwardInfo->mHandle < 0) {
+        // Handle Generation Failure
+        LOGE("RESTUNE_REQUEST_RECEIVER", "Failed to Generate Request handle");
+        return;
+    }
+
+    ModuleInfo modInfo = ComponentRegistry::getModuleInfo(static_cast<ModuleID>(moduleID));
+    if(modInfo.mOnEvent == nullptr) {
+        // Module not enabled
+        return;
+    }
+
+    // Enqueue the Request to the Thread Pool for async processing.
+    if(this->mRequestsThreadPool != nullptr) {
+        if(!this->mRequestsThreadPool->
+            enqueueTask(modInfo.mOnEvent, msgForwardInfo)) {
+            LOGE("RESTUNE_REQUEST_RECEIVER",
+                    "Failed to enqueue the Request to the Thread Pool");
         }
-        case REQ_RESOURCE_RETUNING:
-        case REQ_RESOURCE_UNTUNING: {
-            if(!ComponentRegistry::isModuleEnabled(MOD_CORE)) {
-                TYPELOGV(NOTIFY_MODULE_NOT_ENABLED, "Core");
-                return;
-            }
-            // Enqueue the Request to the Thread Pool for async processing.
-            if(this->mRequestsThreadPool != nullptr) {
-                if(!this->mRequestsThreadPool->
-                    enqueueTask(ComponentRegistry::getEventCallback(MOD_CORE_ON_MSG_RECV), msgForwardInfo)) {
-                    LOGE("RESTUNE_REQUEST_RECEIVER",
-                         "Failed to enqueue the Request to the Thread Pool");
-                }
-            } else {
-                LOGE("RESTUNE_REQUEST_RECEIVER",
-                     "Thread pool not initialized, Dropping the Request");
-            }
+    } else {
+        LOGE("RESTUNE_REQUEST_RECEIVER",
+                "Thread pool not initialized, Dropping the Request");
+    }
 
-            // Only in Case of Tune Requests, Write back the handle to the client.
-            if(requestType == REQ_RESOURCE_TUNING) {
-                if(write(clientSocket, (const void*)&msgForwardInfo->handle, sizeof(int64_t)) == -1) {
-                    TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-                }
-            }
-            break;
+    // Only in Case of Tune Requests, Write back the handle to the client.
+    if(requestType == REQ_RESOURCE_TUNING || requestType == REQ_SIGNAL_TUNING) {
+        if(write(clientSocket, (const void*)&msgForwardInfo->mHandle, sizeof(int64_t)) == -1) {
+            TYPELOGV(ERRNO_LOG, "write", strerror(errno));
         }
-        // Prop Get Requests
-        case REQ_PROP_GET: {
-            // Decode Prop Fetch Request
-            PropConfig propConfig;
-            memset(&propConfig, 0, sizeof(propConfig));
-
-            int8_t* ptr8 = (int8_t*)msgForwardInfo->buffer;
-            (void) DEREF_AND_INCR(ptr8, int8_t);
-
-            char* charIterator = (char*)ptr8;
-            propConfig.mPropName = charIterator;
-
-            while(*charIterator != '\0') {
-                charIterator++;
-            }
-            charIterator++;
-
-            uint64_t* ptr64 = (uint64_t*)charIterator;
-            propConfig.mBufferSize = DEREF_AND_INCR(ptr64, uint64_t);
-
-            ComponentRegistry::getEventCallback(PROP_ON_MSG_RECV)(&propConfig);
-            std::string result = propConfig.mResult;
-
-            size_t maxSafeSize = result.size() + 1;
-            size_t bytesToWrite = std::min(static_cast<size_t>(propConfig.mBufferSize), maxSafeSize);
-
-            if(write(clientSocket, (const void*)result.c_str(), bytesToWrite) == -1) {
-                TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-            }
-            break;
-        }
-        // Signal Requests
-        case REQ_SIGNAL_TUNING: {
-            if(!ComponentRegistry::isModuleEnabled(MOD_SIGNAL)) {
-                TYPELOGV(NOTIFY_MODULE_NOT_ENABLED, "Signals");
-                return;
-            }
-            msgForwardInfo->handle = AuxRoutines::generateUniqueHandle();
-            if(msgForwardInfo->handle < 0) {
-                // Handle Generation Failure
-                LOGE("RESTUNE_REQUEST_RECEIVER",
-                     "Failed to Generate Request handle");
-                return;
-            }
-            LOGD("RESTUNE_REQUEST_RECEIVER",
-                 "Incoming Request, handle generated = " + std::to_string(msgForwardInfo->handle));
-        }
-        case REQ_SIGNAL_UNTUNING:
-        case REQ_SIGNAL_RELAY: {
-            if(!ComponentRegistry::isModuleEnabled(MOD_SIGNAL)) {
-                TYPELOGV(NOTIFY_MODULE_NOT_ENABLED, "Signals");
-                return;
-            }
-            // Enqueue the Request to the Thread Pool for async processing.
-            if(this->mRequestsThreadPool != nullptr) {
-                if(!this->mRequestsThreadPool->
-                    enqueueTask(ComponentRegistry::getEventCallback(MOD_SIGNAL_ON_MSG_RECV), msgForwardInfo)) {
-                    LOGE("RESTUNE_REQUEST_RECEIVER",
-                         "Failed to enqueue the Request to the Thread Pool");
-                }
-            } else {
-                LOGE("RESTUNE_REQUEST_RECEIVER",
-                     "Thread pool not initialized, Dropping the Request");
-            }
-
-            // Only in Case of Tune Signals, Write back the handle to the client.
-            if(requestType == REQ_SIGNAL_TUNING) {
-                if(write(clientSocket, (const void*)&msgForwardInfo->handle, sizeof(int64_t)) == -1) {
-                    TYPELOGV(ERRNO_LOG, "write", strerror(errno));
-                }
-            }
-            break;
-        }
-        default:
-            LOGE("RESTUNE_SOCKET_SERVER", "Invalid Request Type");
-            break;
     }
 }
 

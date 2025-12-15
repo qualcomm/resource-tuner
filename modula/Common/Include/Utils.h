@@ -78,9 +78,11 @@ enum TranslationUnit {
 };
 
 typedef struct {
-    char* buffer;
+    int8_t mModuleID;
+    int8_t mRequestType;
     uint64_t bufferSize;
-    int64_t handle;
+    int64_t mHandle;
+    char* buffer;
 } MsgForwardInfo;
 
 typedef struct {
