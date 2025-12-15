@@ -56,7 +56,7 @@ if(BUILD_TESTS)
 
     target_link_libraries(RestuneComponentTests PUBLIC UrmAuxUtils
                                                        RestuneExtAPIs
-                                                       RestuneServer
+                                                       RestuneCore
                                                        RestuneSignals
                                                        RestuneTestUtils)
 
