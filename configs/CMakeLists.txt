@@ -1,6 +1,6 @@
 # Install URM Config files
 install(
-  DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/configs/
+  DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
   DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/resource-tuner/common/
   FILES_MATCHING
   PATTERN "*.yaml"
