@@ -62,7 +62,7 @@ ErrCode TestBaseline::parseTestConfigYamlNode(const std::string& filePath) {
     // Check if there exists a Target Config for this particular target in the Common Configs.
     // Skip this check if the BU has provided their own Target Configs
     std::string currTargetName =
-        AuxRoutines::readFromFile(ResourceTunerSettings::mDeviceNamePath);
+        AuxRoutines::readFromFile(UrmSettings::mDeviceNamePath);
 
     int8_t parsingDone = false;
     int8_t docMarker = false;

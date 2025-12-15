@@ -12,7 +12,7 @@
 #include "ErrCodes.h"
 #include "Logger.h"
 #include "SocketServer.h"
-#include "ResourceTunerSettings.h"
+#include "UrmSettings.h"
 #include "AuxRoutines.h"
 #include "ComponentRegistry.h"
 

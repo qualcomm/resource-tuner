@@ -37,7 +37,7 @@ typedef struct {
     int8_t currMode;
 } TargetConfigs;
 
-class ResourceTunerSettings {
+class UrmSettings {
 private:
     static int32_t serverOnlineStatus;
 

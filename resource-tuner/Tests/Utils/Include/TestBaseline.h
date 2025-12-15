@@ -8,7 +8,7 @@
 #include <stack>
 
 #include "YamlParser.h"
-#include "ResourceTunerSettings.h"
+#include "UrmSettings.h"
 
 #define TEST_ROOT "TestConfigs"
 #define TARGET_NAME_LIST "TargetName"

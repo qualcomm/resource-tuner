@@ -27,7 +27,11 @@ int8_t ComponentRegistry::isModuleEnabled(ModuleID moduleId) {
 
 ModuleInfo ComponentRegistry::getModuleInfo(ModuleID moduleId) {
     if(mModuleRegistry.find(moduleId) == mModuleRegistry.end()) {
-        return {};
+        return {
+            .mInit = nullptr,
+            .mTear = nullptr,
+            .mOnEvent = nullptr,
+        };
     }
 
     return mModuleRegistry[moduleId];

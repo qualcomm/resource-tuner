@@ -491,7 +491,7 @@ static void setRunOnCoresExclusively(void* context) {
 
         if(cGroupName.length() > 0) {
             const std::string cGroupControllerFilePath =
-                ResourceTunerSettings::mBaseCGroupPath + cGroupName + "/cpuset.cpus";
+                UrmSettings::mBaseCGroupPath + cGroupName + "/cpuset.cpus";
 
             std::string cpusString = "";
             for(int32_t i = 1; i < resource->getValuesCount(); i++) {
@@ -512,7 +512,7 @@ static void setRunOnCoresExclusively(void* context) {
             controllerFile.close();
 
             const std::string cGroupCpusetPartitionFilePath =
-                ResourceTunerSettings::mBaseCGroupPath + cGroupName + "/cpuset.cpus.partition";
+                UrmSettings::mBaseCGroupPath + cGroupName + "/cpuset.cpus.partition";
 
             std::ofstream partitionFile(cGroupCpusetPartitionFilePath);
             if(!partitionFile.is_open()) {
@@ -573,9 +573,9 @@ static void removeProcessFromCGroup(void* context) {
         std::string cGroupPath =
             ResourceRegistry::getInstance()->getDefaultValue("/proc/" + std::to_string(pid) + "/cgroup");
         if(cGroupPath.length() == 0) {
-            cGroupPath = ResourceTunerSettings::mBaseCGroupPath + "cgroup.procs";
+            cGroupPath = UrmSettings::mBaseCGroupPath + "cgroup.procs";
         } else {
-            cGroupPath =  ResourceTunerSettings::mBaseCGroupPath + cGroupPath + "/cgroup.procs";
+            cGroupPath =  UrmSettings::mBaseCGroupPath + cGroupPath + "/cgroup.procs";
         }
 
         LOGD("RESTUNE_COCO_TABLE", "Moving PID: " + std::to_string(pid) + " to: " + cGroupPath);
@@ -601,7 +601,7 @@ static void removeThreadFromCGroup(void* context) {
 
     for(int32_t i = 1; i < resource->getValuesCount(); i++) {
         int32_t tid = resource->getValueAt(i);
-        std::string cGroupPath = ResourceTunerSettings::mBaseCGroupPath + cGroupPath + "/cgroup.threads";
+        std::string cGroupPath = UrmSettings::mBaseCGroupPath + cGroupPath + "/cgroup.threads";
 
         LOGD("RESTUNE_COCO_TABLE", "Moving TID: " + std::to_string(tid) + " to: " + cGroupPath);
         std::ofstream controllerFile(cGroupPath, std::ios::app);
@@ -633,7 +633,7 @@ static void resetRunOnCoresExclusively(void* context) {
 
         if(cGroupName.length() > 0) {
             const std::string cGroupCpuSetFilePath =
-                ResourceTunerSettings::mBaseCGroupPath + cGroupName + "/cpuset.cpus";
+                UrmSettings::mBaseCGroupPath + cGroupName + "/cpuset.cpus";
 
             std::string defaultValue =
                 ResourceRegistry::getInstance()->getDefaultValue(cGroupCpuSetFilePath);
@@ -653,7 +653,7 @@ static void resetRunOnCoresExclusively(void* context) {
             controllerFile.close();
 
             const std::string cGroupCpusetPartitionFilePath =
-                ResourceTunerSettings::mBaseCGroupPath + cGroupName + "/cpuset.cpus.partition";
+                UrmSettings::mBaseCGroupPath + cGroupName + "/cpuset.cpus.partition";
 
             std::ofstream partitionFile(cGroupCpusetPartitionFilePath);
             if(!partitionFile.is_open()) {

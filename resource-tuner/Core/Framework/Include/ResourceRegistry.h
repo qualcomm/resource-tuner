@@ -12,7 +12,7 @@
 #include "Utils.h"
 #include "TargetRegistry.h"
 #include "Resource.h"
-#include "ResourceTunerSettings.h"
+#include "UrmSettings.h"
 #include "AuxRoutines.h"
 #include "Extensions.h"
 #include "Logger.h"

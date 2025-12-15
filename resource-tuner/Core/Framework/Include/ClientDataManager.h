@@ -17,7 +17,7 @@
 
 #include "ErrCodes.h"
 #include "DLManager.h"
-#include "ResourceTunerSettings.h"
+#include "UrmSettings.h"
 #include "MemoryPool.h"
 #include "Logger.h"
 #include "Utils.h"

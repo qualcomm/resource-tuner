@@ -116,10 +116,10 @@ static void TestAuxRoutineFileExists() {
     fileExists = AuxRoutines::fileExists("/etc/resource-tuner/tests/configs/NetworkConfig.yaml");
     C_ASSERT(fileExists == false);
 
-    fileExists = AuxRoutines::fileExists(ResourceTunerSettings::mCommonResourceFilePath);
+    fileExists = AuxRoutines::fileExists(UrmSettings::mCommonResourceFilePath);
     C_ASSERT(fileExists == true);
 
-    fileExists = AuxRoutines::fileExists(ResourceTunerSettings::mCommonPropertiesFilePath);
+    fileExists = AuxRoutines::fileExists(UrmSettings::mCommonPropertiesFilePath);
     C_ASSERT(fileExists == true);
 
     fileExists = AuxRoutines::fileExists("");

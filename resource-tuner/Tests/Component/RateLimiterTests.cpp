@@ -13,9 +13,9 @@ static void Init() {
     MakeAlloc<Resource> (120);
     MakeAlloc<Request> (100);
 
-    ResourceTunerSettings::metaConfigs.mDelta = 1000;
-    ResourceTunerSettings::metaConfigs.mPenaltyFactor = 2.0;
-    ResourceTunerSettings::metaConfigs.mRewardFactor = 0.4;
+    UrmSettings::metaConfigs.mDelta = 1000;
+    UrmSettings::metaConfigs.mPenaltyFactor = 2.0;
+    UrmSettings::metaConfigs.mRewardFactor = 0.4;
 }
 
 // Helper methods for Resource Generation

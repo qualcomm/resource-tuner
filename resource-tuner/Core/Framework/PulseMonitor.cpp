@@ -29,7 +29,7 @@ std::shared_ptr<PulseMonitor> PulseMonitor::mPulseMonitorInstance = nullptr;
 
 PulseMonitor::PulseMonitor() {
     this->mTimer = nullptr;
-    this->mPulseDuration = ResourceTunerSettings::metaConfigs.mPulseDuration;
+    this->mPulseDuration = UrmSettings::metaConfigs.mPulseDuration;
 }
 
 // Check for optimizations

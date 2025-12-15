@@ -41,7 +41,7 @@ void ResourceRegistry::setLifeCycleCallbacks(ResConfInfo* resourceConfigInfo) {
 void ResourceRegistry::addDefaultValue(const std::string& filePath, const std::string& value) {
     this->mDefaultValueStore[filePath] = value;
 
-    std::fstream persistenceFile(ResourceTunerSettings::mPersistenceFile, std::ios::out | std::ios::app);
+    std::fstream persistenceFile(UrmSettings::mPersistenceFile, std::ios::out | std::ios::app);
     std::string resourceData = filePath;
     resourceData.push_back(',');
     resourceData.append(value);
@@ -73,7 +73,7 @@ void ResourceRegistry::fetchAndStoreDefaults(ResConfInfo* resourceConfigInfo) {
             break;
         }
         case APPLY_CORE: {
-            int32_t count = ResourceTunerSettings::targetConfigs.mTotalCoreCount;
+            int32_t count = UrmSettings::targetConfigs.mTotalCoreCount;
             for(int32_t coreID = 0; coreID < count; coreID++) {
                 char filePath[128];
                 snprintf(filePath, sizeof(filePath), resourceConfigInfo->mResourcePath.c_str(), (int32_t)coreID);
@@ -490,7 +490,7 @@ ErrCode ResourceConfigInfoBuilder::addTargetEnabled(const std::string& target) {
         this->mTargetRefCount = -1;
     }
 
-    if(target == ResourceTunerSettings::targetConfigs.targetName) {
+    if(target == UrmSettings::targetConfigs.targetName) {
         this->mTargetRefCount = 1;
     }
     return RC_SUCCESS;
@@ -510,7 +510,7 @@ ErrCode ResourceConfigInfoBuilder::addTargetDisabled(const std::string& target) 
         this->mTargetRefCount = 1;
     }
 
-    if(target == ResourceTunerSettings::targetConfigs.targetName) {
+    if(target == UrmSettings::targetConfigs.targetName) {
         this->mTargetRefCount = -1;
     }
     return RC_SUCCESS;

@@ -7,9 +7,9 @@ std::shared_ptr<RateLimiter> RateLimiter::mRateLimiterInstance = nullptr;
 std::mutex RateLimiter::instanceProtectionLock{};
 
 RateLimiter::RateLimiter() {
-    this->mDelta = ResourceTunerSettings::metaConfigs.mDelta;
-    this->mPenaltyFactor = ResourceTunerSettings::metaConfigs.mPenaltyFactor;
-    this->mRewardFactor = ResourceTunerSettings::metaConfigs.mRewardFactor;
+    this->mDelta = UrmSettings::metaConfigs.mDelta;
+    this->mPenaltyFactor = UrmSettings::metaConfigs.mPenaltyFactor;
+    this->mRewardFactor = UrmSettings::metaConfigs.mRewardFactor;
 }
 
 int8_t RateLimiter::shouldBeProcessed(int32_t clientTID) {
@@ -57,7 +57,7 @@ int8_t RateLimiter::isRateLimitHonored(int32_t clientTID) {
 int8_t RateLimiter::isGlobalRateLimitHonored() {
     int64_t currActiveReqCount = RequestManager::getInstance()->getActiveReqeustsCount();
     // Cover this check as part of Rate Limiter
-    if(currActiveReqCount >= ResourceTunerSettings::metaConfigs.mMaxConcurrentRequests) {
+    if(currActiveReqCount >= UrmSettings::metaConfigs.mMaxConcurrentRequests) {
         return false;
     }
     return true;

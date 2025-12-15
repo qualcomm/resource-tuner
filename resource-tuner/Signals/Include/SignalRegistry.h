@@ -13,7 +13,7 @@
 #include "Logger.h"
 #include "Resource.h"
 #include "MemoryPool.h"
-#include "ResourceTunerSettings.h"
+#include "UrmSettings.h"
 
 /**
  * @struct SignalInfo

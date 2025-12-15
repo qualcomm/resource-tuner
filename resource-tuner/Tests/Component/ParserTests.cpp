@@ -414,7 +414,7 @@ namespace TargetConfigProcessorTests {
 
     static ErrCode parsingStatus = RC_SUCCESS;
     static void Init() {
-        ResourceTunerSettings::targetConfigs.targetName = "TestDevice";
+        UrmSettings::targetConfigs.targetName = "TestDevice";
         ConfigProcessor configProcessor;
         parsingStatus = configProcessor.parseTargetConfigs("/etc/resource-tuner/tests/configs/TargetConfigDup.yaml");
     }
@@ -425,8 +425,8 @@ namespace TargetConfigProcessorTests {
     }
 
     static void TestTargetConfigProcessorYAMLDataIntegrity2() {
-        std::cout<<"Determined Cluster Count = "<<ResourceTunerSettings::targetConfigs.mTotalClusterCount<<std::endl;
-        C_ASSERT(ResourceTunerSettings::targetConfigs.mTotalClusterCount == 4);
+        std::cout<<"Determined Cluster Count = "<<UrmSettings::targetConfigs.mTotalClusterCount<<std::endl;
+        C_ASSERT(UrmSettings::targetConfigs.mTotalClusterCount == 4);
     }
 
     static void TestTargetConfigProcessorYAMLDataIntegrity3() {

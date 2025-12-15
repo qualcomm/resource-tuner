@@ -8,7 +8,7 @@ std::shared_ptr<ClientGarbageCollector> ClientGarbageCollector::mClientGarbageCo
 ClientGarbageCollector::ClientGarbageCollector() {
     this->mTimer = nullptr;
     this->mGarbageCollectionDuration =
-        ResourceTunerSettings::metaConfigs.mClientGarbageCollectorDuration;
+        UrmSettings::metaConfigs.mClientGarbageCollectorDuration;
 }
 
 void ClientGarbageCollector::submitClientThreadsForCleanup(int32_t clientPid) {
@@ -24,7 +24,7 @@ void ClientGarbageCollector::submitClientThreadsForCleanup(int32_t clientPid) {
 void ClientGarbageCollector::performCleanup() {
     const std::lock_guard<std::mutex> lock(this->mGcQueueMutex);
 
-    uint32_t batchSize = ResourceTunerSettings::metaConfigs.mCleanupBatchSize;
+    uint32_t batchSize = UrmSettings::metaConfigs.mCleanupBatchSize;
     for(uint32_t count = 0; count < std::min((uint32_t)this->mGcQueue.size(), batchSize); count++) {
         int32_t clientTID = this->mGcQueue.front();
         this->mGcQueue.pop();

@@ -19,7 +19,7 @@
 #include "PulseMonitor.h"
 #include "RequestReceiver.h"
 #include "ClientGarbageCollector.h"
-#include "ResourceTunerSettings.h"
+#include "UrmSettings.h"
 #include "SignalRegistry.h"
 #include "SignalQueue.h"
 #include "SignalConfigProcessor.h"
@@ -28,18 +28,18 @@ static void* extensionsLibHandle = nullptr;
 static std::thread restuneHandlerThread;
 
 static void restoreToSafeState() {
-    if(AuxRoutines::fileExists(ResourceTunerSettings::mPersistenceFile)) {
+    if(AuxRoutines::fileExists(UrmSettings::mPersistenceFile)) {
         AuxRoutines::writeSysFsDefaults();
 
         // Delete the Node Persistence File
-        AuxRoutines::deleteFile(ResourceTunerSettings::mPersistenceFile);
+        AuxRoutines::deleteFile(UrmSettings::mPersistenceFile);
     }
 }
 
 // Load the Extensions Plugin lib if it is available
 // If the lib is not present, we simply return Success. Since this lib is optional
 static ErrCode loadExtensionsLib() {
-    std::string libPath = ResourceTunerSettings::mExtensionsPluginLibPath;
+    std::string libPath = UrmSettings::mExtensionsPluginLibPath;
 
     // Check if the library file exists
     extensionsLibHandle = dlopen(libPath.c_str(), RTLD_NOW);
@@ -54,8 +54,8 @@ static ErrCode loadExtensionsLib() {
 
 static void preAllocateMemory() {
     // Preallocate Memory for certain frequently used types.
-    int32_t concurrentRequestsUB = ResourceTunerSettings::metaConfigs.mMaxConcurrentRequests;
-    int32_t resourcesPerRequestUB = ResourceTunerSettings::metaConfigs.mMaxResourcesPerRequest;
+    int32_t concurrentRequestsUB = UrmSettings::metaConfigs.mMaxConcurrentRequests;
+    int32_t resourcesPerRequestUB = UrmSettings::metaConfigs.mMaxResourcesPerRequest;
 
     int32_t maxBlockCount = concurrentRequestsUB * resourcesPerRequestUB;
 
@@ -110,32 +110,32 @@ static ErrCode fetchMetaConfigs() {
 
     try {
         // Fetch target Name
-        ResourceTunerSettings::targetConfigs.targetName = AuxRoutines::getMachineName();
-        TYPELOGV(NOTIFY_CURRENT_TARGET_NAME, ResourceTunerSettings::targetConfigs.targetName.c_str());
+        UrmSettings::targetConfigs.targetName = AuxRoutines::getMachineName();
+        TYPELOGV(NOTIFY_CURRENT_TARGET_NAME, UrmSettings::targetConfigs.targetName.c_str());
 
         submitPropGetRequest(MAX_CONCURRENT_REQUESTS, resultBuffer, "120");
-        ResourceTunerSettings::metaConfigs.mMaxConcurrentRequests = (uint32_t)std::stol(resultBuffer);
+        UrmSettings::metaConfigs.mMaxConcurrentRequests = (uint32_t)std::stol(resultBuffer);
 
         submitPropGetRequest(MAX_RESOURCES_PER_REQUEST, resultBuffer, "5");
-        ResourceTunerSettings::metaConfigs.mMaxResourcesPerRequest = (uint32_t)std::stol(resultBuffer);
+        UrmSettings::metaConfigs.mMaxResourcesPerRequest = (uint32_t)std::stol(resultBuffer);
 
         submitPropGetRequest(PULSE_MONITOR_DURATION, resultBuffer, "60000");
-        ResourceTunerSettings::metaConfigs.mPulseDuration = (uint32_t)std::stol(resultBuffer);
+        UrmSettings::metaConfigs.mPulseDuration = (uint32_t)std::stol(resultBuffer);
 
         submitPropGetRequest(GARBAGE_COLLECTOR_DURATION, resultBuffer, "83000");
-        ResourceTunerSettings::metaConfigs.mClientGarbageCollectorDuration = (uint32_t)std::stol(resultBuffer);
+        UrmSettings::metaConfigs.mClientGarbageCollectorDuration = (uint32_t)std::stol(resultBuffer);
 
         submitPropGetRequest(GARBAGE_COLLECTOR_BATCH_SIZE, resultBuffer, "5");
-        ResourceTunerSettings::metaConfigs.mCleanupBatchSize = (uint32_t)std::stol(resultBuffer);
+        UrmSettings::metaConfigs.mCleanupBatchSize = (uint32_t)std::stol(resultBuffer);
 
         submitPropGetRequest(RATE_LIMITER_DELTA, resultBuffer, "5");
-        ResourceTunerSettings::metaConfigs.mDelta = (uint32_t)std::stol(resultBuffer);
+        UrmSettings::metaConfigs.mDelta = (uint32_t)std::stol(resultBuffer);
 
         submitPropGetRequest(RATE_LIMITER_PENALTY_FACTOR, resultBuffer, "2.0");
-        ResourceTunerSettings::metaConfigs.mPenaltyFactor = std::stod(resultBuffer);
+        UrmSettings::metaConfigs.mPenaltyFactor = std::stod(resultBuffer);
 
         submitPropGetRequest(RATE_LIMITER_REWARD_FACTOR, resultBuffer, "0.4");
-        ResourceTunerSettings::metaConfigs.mRewardFactor = std::stod(resultBuffer);
+        UrmSettings::metaConfigs.mRewardFactor = std::stod(resultBuffer);
 
         initLogger();
 
@@ -176,7 +176,7 @@ ErrCode fetchProperties() {
     ErrCode opStatus = RC_SUCCESS;
 
     // Parse Common Properties Configs
-    std::string filePath = ResourceTunerSettings::mCommonPropertiesFilePath;
+    std::string filePath = UrmSettings::mCommonPropertiesFilePath;
     opStatus = parseUtil(filePath, COMMON_PROPERTIES, ConfigType::PROPERTIES_CONFIG);
     if(RC_IS_NOTOK(opStatus)) {
         // Common Properties Parsing Failed
@@ -199,7 +199,7 @@ ErrCode fetchProperties() {
     }
 
     // Parse Custom Properties Configs provided in /etc/resource-tuner/custom (if any)
-    filePath = ResourceTunerSettings::mCustomPropertiesFilePath;
+    filePath = UrmSettings::mCustomPropertiesFilePath;
     if(AuxRoutines::fileExists(filePath)) {
         opStatus = parseUtil(filePath, CUSTOM_PROPERTIES, ConfigType::PROPERTIES_CONFIG);
     }
@@ -215,7 +215,7 @@ static ErrCode fetchResources() {
     ErrCode opStatus = RC_SUCCESS;
 
     // Parse Common Resource Configs
-    std::string filePath = ResourceTunerSettings::mCommonResourceFilePath;
+    std::string filePath = UrmSettings::mCommonResourceFilePath;
     opStatus = parseUtil(filePath, COMMON_RESOURCE, ConfigType::RESOURCE_CONFIG);
     if(RC_IS_NOTOK(opStatus)) {
         return opStatus;
@@ -229,7 +229,7 @@ static ErrCode fetchResources() {
     }
 
     // Parse Custom Resource Configs provided in /etc/resource-tuner/custom (if any)
-    filePath = ResourceTunerSettings::mCustomResourceFilePath;
+    filePath = UrmSettings::mCustomResourceFilePath;
     if(AuxRoutines::fileExists(filePath)) {
         return parseUtil(filePath, CUSTOM_RESOURCE, ConfigType::RESOURCE_CONFIG, true);
     }
@@ -254,7 +254,7 @@ static ErrCode fetchTargetInfo() {
         return parseUtil(filePath, CUSTOM_TARGET, ConfigType::TARGET_CONFIG, true);
     }
 
-    filePath = ResourceTunerSettings::mCustomTargetFilePath;
+    filePath = UrmSettings::mCustomTargetFilePath;
     if(AuxRoutines::fileExists(filePath)) {
         return parseUtil(filePath, CUSTOM_TARGET, ConfigType::TARGET_CONFIG, true);
     }
@@ -264,7 +264,7 @@ static ErrCode fetchTargetInfo() {
 
 static ErrCode fetchInitInfo() {
     ErrCode opStatus = RC_SUCCESS;
-    std::string filePath = ResourceTunerSettings::mCommonInitConfigFilePath;
+    std::string filePath = UrmSettings::mCommonInitConfigFilePath;
 
     opStatus = parseUtil(filePath, COMMON_INIT, ConfigType::INIT_CONFIG);
     if(RC_IS_NOTOK(opStatus)) {
@@ -279,7 +279,7 @@ static ErrCode fetchInitInfo() {
     }
 
     // Parse Custom Init Configs provided in /etc/resource-tuner/custom (if any)
-    filePath = ResourceTunerSettings::mCustomInitConfigFilePath;
+    filePath = UrmSettings::mCustomInitConfigFilePath;
     if(AuxRoutines::fileExists(filePath)) {
         return parseUtil(filePath, CUSTOM_INIT, ConfigType::INIT_CONFIG);
     }
@@ -291,7 +291,7 @@ static ErrCode fetchSignals() {
     ErrCode opStatus = RC_SUCCESS;
 
     // Parse Common Signal Configs
-    std::string filePath = ResourceTunerSettings::mCommonSignalFilePath;
+    std::string filePath = UrmSettings::mCommonSignalFilePath;
     opStatus = parseUtil(filePath, COMMON_SIGNAL, ConfigType::SIGNALS_CONFIG);
     if(RC_IS_NOTOK(opStatus)) {
         return opStatus;
@@ -305,7 +305,7 @@ static ErrCode fetchSignals() {
     }
 
     // Parse Custom Signal Configs provided in /etc/resource-tuner/custom (if any)
-    filePath = ResourceTunerSettings::mCustomSignalFilePath;
+    filePath = UrmSettings::mCustomSignalFilePath;
     if(AuxRoutines::fileExists(filePath)) {
         return parseUtil(filePath, CUSTOM_SIGNAL, ConfigType::SIGNALS_CONFIG, true);
     }
@@ -327,7 +327,7 @@ static ErrCode fetchExtFeatureConfigs() {
         return parseUtil(filePath, CUSTOM_EXT_FEATURE, ConfigType::EXT_FEATURES_CONFIG, true);
     }
 
-    filePath = ResourceTunerSettings::mCustomExtFeaturesFilePath;
+    filePath = UrmSettings::mCustomExtFeaturesFilePath;
     if(AuxRoutines::fileExists(filePath)) {
         return parseUtil(filePath, CUSTOM_EXT_FEATURE, ConfigType::EXT_FEATURES_CONFIG, true);
     }
@@ -337,8 +337,8 @@ static ErrCode fetchExtFeatureConfigs() {
 
 // Initialize Request and Timer ThreadPools
 static ErrCode preAllocateWorkers() {
-    int32_t desiredThreadCapacity = ResourceTunerSettings::desiredThreadCount;
-    int32_t maxScalingCapacity = ResourceTunerSettings::maxScalingCapacity;
+    int32_t desiredThreadCapacity = UrmSettings::desiredThreadCount;
+    int32_t maxScalingCapacity = UrmSettings::maxScalingCapacity;
 
     try {
         RequestReceiver::mRequestsThreadPool = new ThreadPool(desiredThreadCapacity,
@@ -361,7 +361,7 @@ static void* restuneThreadStart() {
 
     // Initialize CocoTable
     CocoTable::getInstance();
-    while(ResourceTunerSettings::isServerOnline()) {
+    while(UrmSettings::isServerOnline()) {
         requestQueue->wait();
     }
 
@@ -487,7 +487,7 @@ static ErrCode tear(void* arg) {
     }
 
     // Delete the Sysfs Persistent File
-    AuxRoutines::deleteFile(ResourceTunerSettings::mPersistenceFile);
+    AuxRoutines::deleteFile(UrmSettings::mPersistenceFile);
 
     if(extensionsLibHandle != nullptr) {
         dlclose(extensionsLibHandle);

@@ -35,7 +35,7 @@
 #include "CocoTable.h"
 #include "ClientDataManager.h"
 #include "ClientGarbageCollector.h"
-#include "ResourceTunerSettings.h"
+#include "UrmSettings.h"
 #include "Logger.h"
 
 /**

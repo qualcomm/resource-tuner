@@ -46,10 +46,10 @@ void AuxRoutines::writeSysFsDefaults() {
     // Write Defaults
     std::ifstream file;
 
-    file.open(ResourceTunerSettings::mPersistenceFile);
+    file.open(UrmSettings::mPersistenceFile);
     if(!file.is_open()) {
         LOGE("RESTUNE_SERVER_INIT",
-             "Failed to open sysfs original values file: " + ResourceTunerSettings::mPersistenceFile);
+             "Failed to open sysfs original values file: " + UrmSettings::mPersistenceFile);
         return;
     }
 
@@ -92,7 +92,7 @@ int32_t AuxRoutines::createProcess() {
 }
 
 std::string AuxRoutines::getMachineName() {
-    return AuxRoutines::readFromFile(ResourceTunerSettings::mDeviceNamePath);
+    return AuxRoutines::readFromFile(UrmSettings::mDeviceNamePath);
 }
 
 void dumpRequest(Request* clientReq) {

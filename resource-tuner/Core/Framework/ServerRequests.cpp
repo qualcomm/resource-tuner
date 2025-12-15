@@ -131,7 +131,7 @@ static int8_t VerifyIncomingRequest(Request* req) {
 
     // If the Device is in Display Off or Doze Mode, then no new Requests
     // shall be accepted.
-    if(ResourceTunerSettings::targetConfigs.currMode != MODE_RESUME) {
+    if(UrmSettings::targetConfigs.currMode != MODE_RESUME) {
         // Request cannot be accepted in the current device mode
         TYPELOGV(VERIFIER_INVALID_DEVICE_MODE, req->getHandle());
         return false;

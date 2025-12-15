@@ -49,8 +49,8 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgFo
     }
 }
 
-int8_t checkServerOnlineStatus() {
-    return ResourceTunerSettings::isServerOnline();
+static int8_t checkServerOnlineStatus() {
+    return UrmSettings::isServerOnline();
 }
 
 void onMsgRecvCallback(int32_t clientSocket, MsgForwardInfo* msgForwardInfo) {

@@ -19,7 +19,7 @@
 #include "Signal.h"
 #include "SafeOps.h"
 #include "ServerEndpoint.h"
-#include "ResourceTunerSettings.h"
+#include "UrmSettings.h"
 #include "ErrCodes.h"
 #include "Logger.h"
 

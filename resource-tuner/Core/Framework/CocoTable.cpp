@@ -116,11 +116,11 @@ CocoTable::CocoTable() {
     for(ResConfInfo* resourceConfig: this->mResourceRegistry->getRegisteredResources()) {
         size_t vectorSize = TOTAL_PRIORITIES;
         if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CORE) {
-            int32_t totalCoreCount = ResourceTunerSettings::targetConfigs.mTotalCoreCount;
+            int32_t totalCoreCount = UrmSettings::targetConfigs.mTotalCoreCount;
             vectorSize = TOTAL_PRIORITIES * totalCoreCount;
 
         } else if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CLUSTER) {
-            int32_t totalClusterCount = ResourceTunerSettings::targetConfigs.mTotalClusterCount;
+            int32_t totalClusterCount = UrmSettings::targetConfigs.mTotalClusterCount;
             vectorSize = TOTAL_PRIORITIES * totalClusterCount;
 
         } else if(resourceConfig->mApplyType == ResourceApplyType::APPLY_CGROUP) {
@@ -147,7 +147,7 @@ void CocoTable::applyAction(ResIterable* currNode, int32_t index, int8_t priorit
     if(this->mCurrentlyAppliedPriority[index] >= priority ||
        this->mCurrentlyAppliedPriority[index] == -1) {
         ResConfInfo* resourceConfig = this->mResourceRegistry->getResConf(resource->getResCode());
-        if(resourceConfig->mModes & ResourceTunerSettings::targetConfigs.currMode) {
+        if(resourceConfig->mModes & UrmSettings::targetConfigs.currMode) {
             // Check if a custom Applier (Callback) has been provided for this Resource, if yes, then call it
             // Note for resources with multiple values, the BU will need to provide a custom applier, which provides
             // the aggregation / selection logic.
@@ -156,14 +156,14 @@ void CocoTable::applyAction(ResIterable* currNode, int32_t index, int8_t priorit
             }
             this->mCurrentlyAppliedPriority[index] = priority;
         } else {
-            TYPELOGV(NOTIFY_RESMODE_REJECT, resource->getResCode(), ResourceTunerSettings::targetConfigs.currMode);
+            TYPELOGV(NOTIFY_RESMODE_REJECT, resource->getResCode(), UrmSettings::targetConfigs.currMode);
         }
     }
 }
 
 void CocoTable::fastPathApply(Resource* resource) {
     ResConfInfo* rConf = this->mResourceRegistry->getResConf(resource->getResCode());
-    if(rConf->mModes & ResourceTunerSettings::targetConfigs.currMode) {
+    if(rConf->mModes & UrmSettings::targetConfigs.currMode) {
         // Check if a custom Applier (Callback) has been provided for this Resource, if yes, then call it
         // Note for resources with multiple values, the BU will need to provide a custom applier, which provides
         // the aggregation / selection logic.

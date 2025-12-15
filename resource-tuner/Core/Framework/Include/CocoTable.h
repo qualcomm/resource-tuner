@@ -17,7 +17,7 @@
 #include "TargetRegistry.h"
 #include "Request.h"
 #include "RequestQueue.h"
-#include "ResourceTunerSettings.h"
+#include "UrmSettings.h"
 #include "MemoryPool.h"
 #include "Logger.h"
 #include "Utils.h"

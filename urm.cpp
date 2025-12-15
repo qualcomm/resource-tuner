@@ -45,7 +45,7 @@ static ErrCode cleanupModule(ModuleID moduleId) {
 
 static void serverCleanup() {
     LOGE("RESTUNE_SERVER_INIT", "Server Stopped, Cleanup Initiated");
-    ResourceTunerSettings::setServerOnlineStatus(false);
+    UrmSettings::setServerOnlineStatus(false);
 }
 
 int32_t main(int32_t argc, char *argv[]) {
@@ -88,8 +88,8 @@ int32_t main(int32_t argc, char *argv[]) {
 
     // Ready for requests
     if(RC_IS_OK(opStatus)) {
-        ResourceTunerSettings::setServerOnlineStatus(true);
-        ResourceTunerSettings::targetConfigs.currMode = MODE_RESUME;
+        UrmSettings::setServerOnlineStatus(true);
+        UrmSettings::targetConfigs.currMode = MODE_RESUME;
     }
 
     if(RC_IS_OK(opStatus)) {

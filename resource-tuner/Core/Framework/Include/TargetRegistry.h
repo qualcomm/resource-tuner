@@ -21,7 +21,7 @@
 #include <regex>
 #include <memory>
 
-#include "ResourceTunerSettings.h"
+#include "UrmSettings.h"
 #include "AuxRoutines.h"
 #include "ErrCodes.h"
 #include "Logger.h"

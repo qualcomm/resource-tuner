@@ -7,7 +7,7 @@
 
 #include "Logger.h"
 #include "ComponentRegistry.h"
-#include "ResourceTunerSettings.h"
+#include "UrmSettings.h"
 #include "ServerInternal.h"
 
 #define DBUS_SIGNAL_SENDER "org.freedesktop.login1"
@@ -55,10 +55,10 @@ static int32_t onSdBusMessageReceived(sd_bus_message* message,
     if(sleepStatus) {
         // System is suspending
         LOGI("RESTUNE_MODE_DETECTION", "System is suspending");
-        if(ResourceTunerSettings::targetConfigs.currMode & MODE_RESUME) {
+        if(UrmSettings::targetConfigs.currMode & MODE_RESUME) {
             // Toggle to Display Off
-            ResourceTunerSettings::targetConfigs.currMode &= ~MODE_RESUME;
-            ResourceTunerSettings::targetConfigs.currMode |= MODE_SUSPEND;
+            UrmSettings::targetConfigs.currMode &= ~MODE_RESUME;
+            UrmSettings::targetConfigs.currMode |= MODE_SUSPEND;
 
             // First drain out the CocoTable, and move Requests to the Pending List
             // (the ones which cannot be processed in Background)
@@ -67,10 +67,10 @@ static int32_t onSdBusMessageReceived(sd_bus_message* message,
     } else {
         // System has resumed
         LOGI("RESTUNE_MODE_DETECTION", "System is resuming");
-        if(ResourceTunerSettings::targetConfigs.currMode & MODE_SUSPEND) {
+        if(UrmSettings::targetConfigs.currMode & MODE_SUSPEND) {
             // Toggle to Display On
-            ResourceTunerSettings::targetConfigs.currMode &= ~MODE_SUSPEND;
-            ResourceTunerSettings::targetConfigs.currMode |= MODE_RESUME;
+            UrmSettings::targetConfigs.currMode &= ~MODE_SUSPEND;
+            UrmSettings::targetConfigs.currMode |= MODE_RESUME;
 
             // Add all the Requests from the Pending List into the Active List
             std::vector<Request*> pendingRequests = requestManager->getPendingList();

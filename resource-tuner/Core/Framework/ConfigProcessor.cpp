@@ -365,7 +365,7 @@ ErrCode ConfigProcessor::parseTargetConfigYamlNode(const std::string& filePath) 
                 }
 
                 if(topKey == TARGET_NAME_LIST) {
-                    if(value == "*" || value == ResourceTunerSettings::targetConfigs.targetName) {
+                    if(value == "*" || value == UrmSettings::targetConfigs.targetName) {
                         if(!deviceParsingDone) {
                             isConfigForCurrentTarget = true;
                             deviceParsingDone = true;

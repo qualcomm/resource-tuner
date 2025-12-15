@@ -265,7 +265,7 @@ ErrCode SignalInfoBuilder::addTargetEnabled(const std::string& target) {
         this->mTargetRefCount = -1;
     }
 
-    if(target == ResourceTunerSettings::targetConfigs.targetName) {
+    if(target == UrmSettings::targetConfigs.targetName) {
         this->mTargetRefCount = 1;
     }
     return RC_SUCCESS;
@@ -285,7 +285,7 @@ ErrCode SignalInfoBuilder::addTargetDisabled(const std::string& target) {
         this->mTargetRefCount = 1;
     }
 
-    if(target == ResourceTunerSettings::targetConfigs.targetName) {
+    if(target == UrmSettings::targetConfigs.targetName) {
         this->mTargetRefCount = -1;
     }
     return RC_SUCCESS;
