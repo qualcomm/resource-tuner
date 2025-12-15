@@ -4,5 +4,5 @@
 	dh $@
 
 override_dh_auto_configure:
-	dh_auto_configure -- -DBUILD_SIGNALS=ON -DBUILD_CLI=ON
+	dh_auto_configure --
 

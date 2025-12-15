@@ -1,126 +1,55 @@
 cmake_minimum_required(VERSION 3.6)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17 LANGUAGES CXX)
 set(CMAKE_STANDARD_REQUIRED True)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+add_compile_options(-Wall -Wextra)
 
-project("Resource Tuner")
+project("URM")
 
 include(GNUInstallDirs)
 
-# Dependencies
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBYAML REQUIRED yaml-0.1)
-
-# Enable Debug. should be removed in production.
-# set(CMAKE_BUILD_TYPE Debug)
-
-# Always build shared libs
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 
-# Optional Modules
-option(BUILD_SIGNALS "Signals" OFF)
-option(BUILD_TESTS "Testing" OFF)
-option(BUILD_CLI "CLI" OFF)
+# Custom Build Options
+option(BUILD_CLASSIFIER "Classifier" OFF)
 option(BUILD_STATE_DETECTOR "Display Detector" OFF)
 
-# Mandatory Builds
-add_subdirectory(${CMAKE_SOURCE_DIR}/Core/Build ${CMAKE_BINARY_DIR}/CoreBuild)
+add_subdirectory(${CMAKE_SOURCE_DIR}/configs)
+add_subdirectory(${CMAKE_SOURCE_DIR}/modula)
+add_subdirectory(${CMAKE_SOURCE_DIR}/client)
+add_subdirectory(${CMAKE_SOURCE_DIR}/server)
 
-if(BUILD_SIGNALS)
-  add_subdirectory(${CMAKE_SOURCE_DIR}/Signals/Build ${CMAKE_BINARY_DIR}/SignalsBuild)
+# resource-tuner is a mandatory build
+add_subdirectory(${CMAKE_SOURCE_DIR}/resource-tuner)
+
+# build classifier conditionally
+if(BUILD_CLASSIFIER)
+  add_subdirectory(${CMAKE_SOURCE_DIR}/contextual-classifier)
 endif()
 
-if(BUILD_TESTS)
-  add_subdirectory(${CMAKE_SOURCE_DIR}/Tests/Build ${CMAKE_BINARY_DIR}/TestBuild)
-endif()
-
-if(BUILD_CLI)
-  add_executable(resource_tuner_cli
-    ${CMAKE_SOURCE_DIR}/Core/Client/APIs/ResourceTunerAPIs.cpp
-    ${CMAKE_SOURCE_DIR}/Core/Client/ClientCLI.cpp
-  )
-  target_link_libraries(resource_tuner_cli RestuneClient)
-  install(TARGETS resource_tuner_cli RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-endif()
-
+# Create and install the urm executable
 set(SERVER_EXECUTABLE "")
-list(APPEND SERVER_EXECUTABLE ${CMAKE_SOURCE_DIR}/ServerMain.cpp)
+list(APPEND SERVER_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/resource-tuner/ServerMain.cpp
+                              ${CMAKE_CURRENT_SOURCE_DIR}/resource-tuner/Signals/SignalInit.cpp)
 
 set(SERVER_LIBS "")
 list(APPEND SERVER_LIBS
-  RestuneServer
-  RestuneAuxUtils
-  RestuneReceiver
+  UrmAuxUtils
+  UrmReceiver
+  RestuneCore
   RestuneExtAPIs
+  RestuneSignals
 )
 
 if(BUILD_STATE_DETECTOR)
   pkg_check_modules(SYSTEMD REQUIRED libsystemd)
-  list(APPEND SERVER_EXECUTABLE ${CMAKE_SOURCE_DIR}/StateDetector.cpp)
+  list(APPEND SERVER_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/resource-tuner/StateDetector.cpp)
   list(APPEND SERVER_LIBS ${SYSTEMD_LIBRARIES})
 endif()
 
-if(BUILD_SIGNALS)
-  list(APPEND SERVER_EXECUTABLE ${CMAKE_SOURCE_DIR}/Signals/SignalInit.cpp)
-  list(APPEND SERVER_LIBS RestuneSignals)
-endif()
+add_executable(urm_exec ${SERVER_EXECUTABLE} ${CMAKE_SOURCE_DIR})
+target_link_libraries(urm_exec PUBLIC ${SERVER_LIBS})
 
-add_executable(resource_tuner ${SERVER_EXECUTABLE})
-target_link_libraries(resource_tuner PUBLIC ${SERVER_LIBS})
-target_include_directories(resource_tuner PRIVATE ${LIBYAML_INCLUDE_DIRS})
-
-# Install bins
-install(TARGETS resource_tuner RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-
-# Install libs
-install(TARGETS RestuneAuxUtils RestuneSockEnd
-                RestuneClient RestuneServer RestuneExtAPIs
-                RestuneReceiver LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-
-if(BUILD_SIGNALS)
-  install(TARGETS RestuneSignals DESTINATION ${CMAKE_INSTALL_LIBDIR})
-endif()
-
-# Install headers
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/Core/Client/APIs/Include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ResourceTuner)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/Core/Extensions/Include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ResourceTuner)
-install(FILES ${CMAKE_SOURCE_DIR}/Core/Modula/Common/Include/Common.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ResourceTuner)
-
-# Install core config files
-install(
-  DIRECTORY ${CMAKE_SOURCE_DIR}/Core/Configs/
-  DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/resource-tuner/common/
-  FILES_MATCHING
-  PATTERN "*.yaml"
-  PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-)
-
-if(BUILD_SIGNALS)
-  # Install Signal config files
-  install(
-    DIRECTORY ${CMAKE_SOURCE_DIR}/Signals/Configs/
-    DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/resource-tuner/common/
-    FILES_MATCHING
-    PATTERN "*.yaml"
-    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-  )
-endif()
-
-if(BUILD_TESTS)
-  # Install Test Configs
-  file(GLOB testConfigs "${CMAKE_SOURCE_DIR}/Tests/Configs/*.yaml")
-  install(
-    FILES ${testConfigs}
-    DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/resource-tuner/tests/configs/
-    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-  )
-
-  # Install Custom Resource Nodes
-  install(
-    DIRECTORY ${CMAKE_SOURCE_DIR}/Tests/Configs/ResourceSysFsNodes/
-    DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/resource-tuner/tests/nodes/
-    FILES_MATCHING
-    PATTERN "*.txt"
-    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-  )
-endif()
+# Install bin
+install(TARGETS urm_exec RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

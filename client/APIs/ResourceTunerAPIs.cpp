@@ -6,8 +6,6 @@
 
 #include "ResourceTunerAPIs.h"
 #include "Utils.h"
-#include "Request.h"
-#include "Signal.h"
 #include "SocketClient.h"
 
 #define REQ_SEND_ERR(e) "Failed to send Request to Server, Error: " + std::string(e)

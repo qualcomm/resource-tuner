@@ -47,9 +47,7 @@ Resource-tuner offers flexibility to select modules through the build system at 
 
 Alter options in corresponding build file like below (ex. cmake options)
 ```cmake
-option(BUILD_SIGNALS "Signals" OFF)
 option(BUILD_TESTS "Testing" OFF)
-option(BUILD_CLI "CLI" OFF)
 ```
 
 ---
@@ -69,7 +67,7 @@ option(BUILD_CLI "CLI" OFF)
 ├── Signals                      # Optional Module, exposes Signal Tuning / Relay APIs
 │   └── Configs                  # Signal Configs, Ext Feature Configs
 ├── Tests                        # Unit and System Wide Tests
-└── Docs                         # Documentation
+└── docs                         # Documentation
 ```
 
 ---
