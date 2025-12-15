@@ -22,8 +22,8 @@ list(APPEND SERVER_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/ServerMain.cpp
 set(SERVER_LIBS "")
 list(APPEND SERVER_LIBS
   UrmAuxUtils
+  UrmReceiver
   RestuneServer
-  RestuneReceiver
   RestuneExtAPIs
   RestuneSignals
 )

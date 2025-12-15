@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.6)
 
-include(GNUInstallDirs)
-
 set(CMAKE_CXX_STANDARD 17 LANGUAGES CXX)
 set(CMAKE_STANDARD_REQUIRED True)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 add_compile_options(-Wall -Wextra)
 
 project("URM")
+
+include(GNUInstallDirs)
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 
@@ -61,6 +61,16 @@ target_include_directories(urmClientCmd PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/modul
 target_include_directories(urmClientCmd PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/modula/CoreModules/Include)
 target_include_directories(urmClientCmd PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/client/Comm/Socket/Include)
 install(TARGETS urmClientCmd RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+# URM Server Endpoint
+file(GLOB SOURCES "server/Receiver/*.cpp"
+                  "server/Comm/Socket/*.cpp")
+add_library(UrmReceiver ${SOURCES})
+set_target_properties(UrmReceiver PROPERTIES VERSION 1.0.0 SOVERSION 1)
+target_link_libraries(UrmReceiver PRIVATE UrmAuxUtils)
+target_include_directories(UrmReceiver PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/server/Comm/Socket/Include)
+target_include_directories(UrmReceiver PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/server/Receiver/Include)
+install(TARGETS UrmReceiver LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 # resource-tuner is a mandatory build
 add_subdirectory(${CMAKE_SOURCE_DIR}/resource-tuner)

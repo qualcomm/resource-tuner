@@ -30,7 +30,10 @@ if(BUILD_TESTS)
     install(TARGETS RestunePlugin DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
     add_executable(RestuneIntegrationTests Integration/IntegrationTests.cpp)
-    target_link_libraries(RestuneIntegrationTests PUBLIC UrmAuxUtils RestuneClient RestuneTestUtils ${LIBYAML_LIBRARIES})
+    target_link_libraries(RestuneIntegrationTests PUBLIC UrmAuxUtils
+                                                         UrmClient
+                                                         RestuneTestUtils
+                                                         ${LIBYAML_LIBRARIES})
     target_include_directories(RestuneIntegrationTests PRIVATE ${LIBYAML_INCLUDE_DIRS})
     install(TARGETS RestuneIntegrationTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
@@ -51,11 +54,11 @@ if(BUILD_TESTS)
         ${CMAKE_CURRENT_SOURCE_DIR}/Component/RequestMapTests.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Component/Trigger.cpp)
 
-    target_link_libraries(RestuneComponentTests UrmAuxUtils
-                                                RestuneExtAPIs
-                                                RestuneServer
-                                                RestuneSignals
-                                                RestuneTestUtils)
+    target_link_libraries(RestuneComponentTests PUBLIC UrmAuxUtils
+                                                       RestuneExtAPIs
+                                                       RestuneServer
+                                                       RestuneSignals
+                                                       RestuneTestUtils)
 
     install(TARGETS RestuneComponentTests DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
