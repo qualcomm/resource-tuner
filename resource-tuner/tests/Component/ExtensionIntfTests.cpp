@@ -3,7 +3,7 @@
 
 #include "TestUtils.h"
 #include "ResourceRegistry.h"
-#include "ConfigProcessor.h"
+#include "RestuneParser.h"
 #include "Extensions.h"
 #include "TestAggregator.h"
 
@@ -34,7 +34,7 @@ RESTUNE_REGISTER_TEAR_CB(0x80ff0001, customTear1)
 RESTUNE_REGISTER_APPLIER_CB(0x80ff0002, customApplier2)
 
 static void Init() {
-    ConfigProcessor configProcessor;
+    RestuneParser configProcessor;
 
     configProcessor.parseResourceConfigs(Extensions::getResourceConfigFilePath(), true);
     ResourceRegistry::getInstance()->pluginModifications();

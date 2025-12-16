@@ -3,11 +3,10 @@
 
 #include "ErrCodes.h"
 #include "TestUtils.h"
-#include "ConfigProcessor.h"
+#include "RestuneParser.h"
 #include "ResourceRegistry.h"
 #include "SignalRegistry.h"
 #include "Extensions.h"
-#include "SignalConfigProcessor.h"
 #include "Utils.h"
 #include "RestuneInternal.h"
 #include "PropertiesRegistry.h"
@@ -18,16 +17,16 @@ namespace ResourceParsingTests {
 
     static ErrCode parsingStatus = RC_SUCCESS;
     static void Init() {
-        ConfigProcessor configProcessor;
+        RestuneParser configProcessor;
         parsingStatus = configProcessor.parseResourceConfigs("/etc/resource-tuner/tests/configs/ResourcesConfig.yaml", true);
     }
 
-    static void TestResourceConfigProcessorYAMLDataIntegrity1() {
+    static void TestResourceRestuneParserYAMLDataIntegrity1() {
         C_ASSERT(ResourceRegistry::getInstance() != nullptr);
         C_ASSERT(parsingStatus == RC_SUCCESS);
     }
 
-    static void TestResourceConfigProcessorYAMLDataIntegrity3_1() {
+    static void TestResourceRestuneParserYAMLDataIntegrity3_1() {
         ResConfInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResConf(0x80ff0000);
 
         C_ASSERT(resourceConfigInfo != nullptr);
@@ -43,7 +42,7 @@ namespace ResourceParsingTests {
         C_ASSERT(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_GLOBAL);
     }
 
-    static void TestResourceConfigProcessorYAMLDataIntegrity3_2() {
+    static void TestResourceRestuneParserYAMLDataIntegrity3_2() {
         ResConfInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResConf(0x80ff0001);
 
         C_ASSERT(resourceConfigInfo != nullptr);
@@ -59,7 +58,7 @@ namespace ResourceParsingTests {
         C_ASSERT(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_GLOBAL);
     }
 
-    static void TestResourceConfigProcessorYAMLDataIntegrity3_3() {
+    static void TestResourceRestuneParserYAMLDataIntegrity3_3() {
         ResConfInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResConf(0x80ff0005);
 
         C_ASSERT(resourceConfigInfo != nullptr);
@@ -79,10 +78,10 @@ namespace ResourceParsingTests {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
         Init();
-        RUN_TEST(TestResourceConfigProcessorYAMLDataIntegrity1);
-        RUN_TEST(TestResourceConfigProcessorYAMLDataIntegrity3_1);
-        RUN_TEST(TestResourceConfigProcessorYAMLDataIntegrity3_2);
-        RUN_TEST(TestResourceConfigProcessorYAMLDataIntegrity3_3);
+        RUN_TEST(TestResourceRestuneParserYAMLDataIntegrity1);
+        RUN_TEST(TestResourceRestuneParserYAMLDataIntegrity3_1);
+        RUN_TEST(TestResourceRestuneParserYAMLDataIntegrity3_2);
+        RUN_TEST(TestResourceRestuneParserYAMLDataIntegrity3_3);
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
     }
@@ -93,16 +92,16 @@ namespace SignalParsingTests {
 
     static ErrCode parsingStatus = RC_SUCCESS;
     static void Init() {
-        SignalConfigProcessor configProcessor;
+        RestuneParser configProcessor;
         parsingStatus = configProcessor.parseSignalConfigs("/etc/resource-tuner/tests/configs/SignalsConfig.yaml");
     }
 
-    static void TestSignalConfigProcessorYAMLDataIntegrity1() {
+    static void TestRestuneParserYAMLDataIntegrity1() {
         C_ASSERT(SignalRegistry::getInstance() != nullptr);
         C_ASSERT(parsingStatus == RC_SUCCESS);
     }
 
-    static void TestSignalConfigProcessorYAMLDataIntegrity3_1() {
+    static void TestRestuneParserYAMLDataIntegrity3_1() {
         SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x000d0000);
 
         C_ASSERT(signalInfo != nullptr);
@@ -131,7 +130,7 @@ namespace SignalParsingTests {
         C_ASSERT(resource1->getResInfo() == 0);
     }
 
-    static void TestSignalConfigProcessorYAMLDataIntegrity3_2() {
+    static void TestRestuneParserYAMLDataIntegrity3_2() {
         SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x000d0001);
 
         C_ASSERT(signalInfo != nullptr);
@@ -166,12 +165,12 @@ namespace SignalParsingTests {
         C_ASSERT(resource2->getResInfo() == 256);
     }
 
-    static void TestSignalConfigProcessorYAMLDataIntegrity3_3() {
+    static void TestRestuneParserYAMLDataIntegrity3_3() {
         SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x000d0003);
         C_ASSERT(signalInfo == nullptr);
     }
 
-    static void TestSignalConfigProcessorYAMLDataIntegrity3_4() {
+    static void TestRestuneParserYAMLDataIntegrity3_4() {
         SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x000d0007);
 
         C_ASSERT(signalInfo != nullptr);
@@ -211,11 +210,11 @@ namespace SignalParsingTests {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
         Init();
-        RUN_TEST(TestSignalConfigProcessorYAMLDataIntegrity1);
-        RUN_TEST(TestSignalConfigProcessorYAMLDataIntegrity3_1);
-        RUN_TEST(TestSignalConfigProcessorYAMLDataIntegrity3_2);
-        RUN_TEST(TestSignalConfigProcessorYAMLDataIntegrity3_3);
-        RUN_TEST(TestSignalConfigProcessorYAMLDataIntegrity3_4);
+        RUN_TEST(TestRestuneParserYAMLDataIntegrity1);
+        RUN_TEST(TestRestuneParserYAMLDataIntegrity3_1);
+        RUN_TEST(TestRestuneParserYAMLDataIntegrity3_2);
+        RUN_TEST(TestRestuneParserYAMLDataIntegrity3_3);
+        RUN_TEST(TestRestuneParserYAMLDataIntegrity3_4);
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
     }
@@ -226,23 +225,23 @@ namespace InitConfigParsingTests {
 
     static ErrCode parsingStatus = RC_SUCCESS;
     static void Init() {
-        ConfigProcessor configProcessor;
+        RestuneParser configProcessor;
         parsingStatus = configProcessor.parseInitConfigs("/etc/resource-tuner/tests/configs/InitConfig.yaml");
     }
 
-    static void TestInitConfigProcessorYAMLDataIntegrity1() {
+    static void TestInitRestuneParserYAMLDataIntegrity1() {
         C_ASSERT(TargetRegistry::getInstance() != nullptr);\
         C_ASSERT(parsingStatus == RC_SUCCESS);
     }
 
-    static void TestInitConfigProcessorYAMLDataIntegrity2() {
+    static void TestInitRestuneParserYAMLDataIntegrity2() {
         std::cout<<"Count of Cgroups created: "<<TargetRegistry::getInstance()->getCreatedCGroupsCount()<<std::endl;
         C_ASSERT(TargetRegistry::getInstance()->getCreatedCGroupsCount() == 3);
     }
 
     // Note don't rely on order here, since internally CGroup mapping data is stored
     // as an unordered_map.
-    static void TestInitConfigProcessorYAMLDataIntegrity3() {
+    static void TestInitRestuneParserYAMLDataIntegrity3() {
         std::vector<std::string> cGroupNames;
         TargetRegistry::getInstance()->getCGroupNames(cGroupNames);
         std::vector<std::string> expectedNames = {"camera-cgroup", "audio-cgroup", "video-cgroup"};
@@ -259,7 +258,7 @@ namespace InitConfigParsingTests {
         }
     }
 
-    static void TestInitConfigProcessorYAMLDataIntegrity4() {
+    static void TestInitRestuneParserYAMLDataIntegrity4() {
         CGroupConfigInfo* cameraConfig = TargetRegistry::getInstance()->getCGroupConfig(4);
         C_ASSERT(cameraConfig != nullptr);
         C_ASSERT(cameraConfig->mCgroupName == "camera-cgroup");
@@ -271,13 +270,13 @@ namespace InitConfigParsingTests {
         C_ASSERT(videoConfig->mIsThreaded == true);
     }
 
-    static void TestInitConfigProcessorYAMLDataIntegrity5() {
+    static void TestInitRestuneParserYAMLDataIntegrity5() {
         C_ASSERT(TargetRegistry::getInstance()->getCreatedMpamGroupsCount() == 3);
     }
 
     // Note don't rely on order here, since internally CGroup mapping data is stored
     // as an unordered_map.
-    static void TestInitConfigProcessorYAMLDataIntegrity6() {
+    static void TestInitRestuneParserYAMLDataIntegrity6() {
         std::vector<std::string> mpamGroupNames;
         TargetRegistry::getInstance()->getMpamGroupNames(mpamGroupNames);
         std::vector<std::string> expectedNames = {"camera-mpam-group", "audio-mpam-group", "video-mpam-group"};
@@ -294,7 +293,7 @@ namespace InitConfigParsingTests {
         }
     }
 
-    static void TestInitConfigProcessorYAMLDataIntegrity7() {
+    static void TestInitRestuneParserYAMLDataIntegrity7() {
         MpamGroupConfigInfo* cameraConfig = TargetRegistry::getInstance()->getMpamGroupConfig(0);
         C_ASSERT(cameraConfig != nullptr);
         C_ASSERT(cameraConfig->mMpamGroupName == "camera-mpam-group");
@@ -312,13 +311,13 @@ namespace InitConfigParsingTests {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
         Init();
-        RUN_TEST(TestInitConfigProcessorYAMLDataIntegrity1);
-        RUN_TEST(TestInitConfigProcessorYAMLDataIntegrity2);
-        RUN_TEST(TestInitConfigProcessorYAMLDataIntegrity3);
-        RUN_TEST(TestInitConfigProcessorYAMLDataIntegrity4);
-        RUN_TEST(TestInitConfigProcessorYAMLDataIntegrity5);
-        RUN_TEST(TestInitConfigProcessorYAMLDataIntegrity6);
-        RUN_TEST(TestInitConfigProcessorYAMLDataIntegrity7);
+        RUN_TEST(TestInitRestuneParserYAMLDataIntegrity1);
+        RUN_TEST(TestInitRestuneParserYAMLDataIntegrity2);
+        RUN_TEST(TestInitRestuneParserYAMLDataIntegrity3);
+        RUN_TEST(TestInitRestuneParserYAMLDataIntegrity4);
+        RUN_TEST(TestInitRestuneParserYAMLDataIntegrity5);
+        RUN_TEST(TestInitRestuneParserYAMLDataIntegrity6);
+        RUN_TEST(TestInitRestuneParserYAMLDataIntegrity7);
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
     }
@@ -329,11 +328,11 @@ namespace PropertyParsingTests {
 
     static ErrCode parsingStatus = RC_SUCCESS;
     static void Init() {
-        ConfigProcessor configProcessor;
+        RestuneParser configProcessor;
         parsingStatus = configProcessor.parsePropertiesConfigs("/etc/resource-tuner/tests/configs/PropertiesConfig.yaml");
     }
 
-    static void TestSysConfigProcessorYAMLDataIntegrity1() {
+    static void TestSysRestuneParserYAMLDataIntegrity1() {
         C_ASSERT(PropertiesRegistry::getInstance() != nullptr);
         C_ASSERT(parsingStatus == RC_SUCCESS);
     }
@@ -399,7 +398,7 @@ namespace PropertyParsingTests {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
         Init();
-        RUN_TEST(TestSysConfigProcessorYAMLDataIntegrity1);
+        RUN_TEST(TestSysRestuneParserYAMLDataIntegrity1);
         RUN_TEST(TestSysConfigGetPropSimpleRetrieval1);
         RUN_TEST(TestSysConfigGetPropSimpleRetrieval2);
         RUN_TEST(TestSysConfigGetPropSimpleRetrievalInvalidProperty);
@@ -409,34 +408,34 @@ namespace PropertyParsingTests {
     }
 }
 
-namespace TargetConfigProcessorTests {
-    std::string __testGroupName = "TargetConfigProcessorTests";
+namespace TargetRestuneParserTests {
+    std::string __testGroupName = "TargetRestuneParserTests";
 
     static ErrCode parsingStatus = RC_SUCCESS;
     static void Init() {
         UrmSettings::targetConfigs.targetName = "TestDevice";
-        ConfigProcessor configProcessor;
+        RestuneParser configProcessor;
         parsingStatus = configProcessor.parseTargetConfigs("/etc/resource-tuner/tests/configs/TargetConfigDup.yaml");
     }
 
-    static void TestTargetConfigProcessorYAMLDataIntegrity1() {
+    static void TestTargetRestuneParserYAMLDataIntegrity1() {
         C_ASSERT(TargetRegistry::getInstance() != nullptr);
         C_ASSERT(parsingStatus == RC_SUCCESS);
     }
 
-    static void TestTargetConfigProcessorYAMLDataIntegrity2() {
+    static void TestTargetRestuneParserYAMLDataIntegrity2() {
         std::cout<<"Determined Cluster Count = "<<UrmSettings::targetConfigs.mTotalClusterCount<<std::endl;
         C_ASSERT(UrmSettings::targetConfigs.mTotalClusterCount == 4);
     }
 
-    static void TestTargetConfigProcessorYAMLDataIntegrity3() {
+    static void TestTargetRestuneParserYAMLDataIntegrity3() {
         C_ASSERT(TargetRegistry::getInstance()->getPhysicalClusterId(0) == 4);
         C_ASSERT(TargetRegistry::getInstance()->getPhysicalClusterId(1) == 0);
         C_ASSERT(TargetRegistry::getInstance()->getPhysicalClusterId(2) == 9);
         C_ASSERT(TargetRegistry::getInstance()->getPhysicalClusterId(3) == 7);
     }
 
-    static void TestTargetConfigProcessorYAMLDataIntegrity4() {
+    static void TestTargetRestuneParserYAMLDataIntegrity4() {
         // Distribution of physical clusters
         // 1:0 => 0, 1, 2, 3
         // 0:4 => 4, 5, 6
@@ -455,10 +454,10 @@ namespace TargetConfigProcessorTests {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
         Init();
-        RUN_TEST(TestTargetConfigProcessorYAMLDataIntegrity1);
-        RUN_TEST(TestTargetConfigProcessorYAMLDataIntegrity2);
-        RUN_TEST(TestTargetConfigProcessorYAMLDataIntegrity3);
-        RUN_TEST(TestTargetConfigProcessorYAMLDataIntegrity4);
+        RUN_TEST(TestTargetRestuneParserYAMLDataIntegrity1);
+        RUN_TEST(TestTargetRestuneParserYAMLDataIntegrity2);
+        RUN_TEST(TestTargetRestuneParserYAMLDataIntegrity3);
+        RUN_TEST(TestTargetRestuneParserYAMLDataIntegrity4);
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
     }
@@ -469,16 +468,16 @@ namespace ExtFeaturesParsingTests {
 
     static ErrCode parsingStatus = RC_SUCCESS;
     static void Init() {
-        SignalConfigProcessor configProcessor;
+        RestuneParser configProcessor;
         parsingStatus = configProcessor.parseExtFeaturesConfigs("/etc/resource-tuner/tests/configs/ExtFeaturesConfig.yaml");
     }
 
-    static void TestExtFeatConfigProcessorYAMLDataIntegrity1() {
+    static void TestExtFeatRestuneParserYAMLDataIntegrity1() {
         C_ASSERT(ExtFeaturesRegistry::getInstance() != nullptr);
         C_ASSERT(parsingStatus == RC_SUCCESS);
     }
 
-    static void TestExtFeatConfigProcessorYAMLDataIntegrity3() {
+    static void TestExtFeatRestuneParserYAMLDataIntegrity3() {
         ExtFeatureInfo* feature =
             ExtFeaturesRegistry::getInstance()->getExtFeatureConfigById(0x00000001);
 
@@ -493,7 +492,7 @@ namespace ExtFeaturesParsingTests {
         C_ASSERT((*feature->mSignalsSubscribedTo)[1] == 0x000a00ff);
     }
 
-    static void TestExtFeatConfigProcessorYAMLDataIntegrity4() {
+    static void TestExtFeatRestuneParserYAMLDataIntegrity4() {
         ExtFeatureInfo* feature =
             ExtFeaturesRegistry::getInstance()->getExtFeatureConfigById(0x00000002);
 
@@ -512,9 +511,9 @@ namespace ExtFeaturesParsingTests {
         std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
 
         Init();
-        RUN_TEST(TestExtFeatConfigProcessorYAMLDataIntegrity1);
-        RUN_TEST(TestExtFeatConfigProcessorYAMLDataIntegrity3);
-        RUN_TEST(TestExtFeatConfigProcessorYAMLDataIntegrity4);
+        RUN_TEST(TestExtFeatRestuneParserYAMLDataIntegrity1);
+        RUN_TEST(TestExtFeatRestuneParserYAMLDataIntegrity3);
+        RUN_TEST(TestExtFeatRestuneParserYAMLDataIntegrity4);
 
         std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
     }
@@ -525,7 +524,7 @@ namespace ResourceParsingTestsAddOn {
 
     static ErrCode parsingStatus = RC_SUCCESS;
     static void Init() {
-        ConfigProcessor configProcessor;
+        RestuneParser configProcessor;
         std::string additionalResources = "/etc/resource-tuner/tests/configs/ResourcesConfigAddOn.yaml";
 
         if(RC_IS_OK(parsingStatus)) {
@@ -638,7 +637,7 @@ namespace SignalParsingTestsAddOn {
 
     static ErrCode parsingStatus = RC_SUCCESS;
     static void Init() {
-        SignalConfigProcessor configProcessor;
+        RestuneParser configProcessor;
 
         std::string signalsClassA = "/etc/resource-tuner/tests/configs/SignalsConfig.yaml";
         std::string signalsClassB = "/etc/resource-tuner/tests/configs/SignalsConfigAddOn.yaml";
@@ -818,7 +817,7 @@ static void RunTests() {
     InitConfigParsingTests::RunTestGroup();
     PropertyParsingTests::RunTestGroup();
     ExtFeaturesParsingTests::RunTestGroup();
-    TargetConfigProcessorTests::RunTestGroup();
+    TargetRestuneParserTests::RunTestGroup();
 }
 
 REGISTER_TEST(RunTests);
