@@ -97,6 +97,7 @@ ErrCode Signal::serialize(char* buf) {
 ErrCode Signal::deserialize(char* buf) {
     try {
         int8_t* ptr8 = (int8_t*)buf;
+        DEREF_AND_INCR(ptr8, int8_t);
         this->mReqType = DEREF_AND_INCR(ptr8, int8_t);
 
         int32_t* ptr = (int32_t*)ptr8;

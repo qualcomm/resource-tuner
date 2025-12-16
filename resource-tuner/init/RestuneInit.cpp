@@ -170,7 +170,7 @@ static ErrCode parseUtil(const std::string& filePath,
     return opStatus;
 }
 
-ErrCode fetchProperties() {
+static ErrCode fetchProperties() {
     ErrCode opStatus = RC_SUCCESS;
 
     // Parse Common Properties Configs
@@ -371,11 +371,6 @@ static ErrCode init(void* arg) {
     // Ensure that Resource Nodes are reset to sane state
     restoreToSafeState();
 
-    if(RC_IS_NOTOK(fetchProperties())) {
-        TYPELOGD(PROPERTY_RETRIEVAL_FAILED);
-        return RC_MODULE_INIT_FAILURE;
-    }
-
     // Start Resource Tuner Server Initialization
     // As part of Server Initialization the Configs (Resource / Signals etc.) will be parsed
     // If any of mandatory Configs cannot be parsed then initialization will fail.
@@ -384,6 +379,11 @@ static ErrCode init(void* arg) {
 
     // Check if Extensions Plugin lib is available
     if(RC_IS_NOTOK(loadExtensionsLib())) {
+        return RC_MODULE_INIT_FAILURE;
+    }
+
+    if(RC_IS_NOTOK(fetchProperties())) {
+        TYPELOGD(PROPERTY_RETRIEVAL_FAILED);
         return RC_MODULE_INIT_FAILURE;
     }
 
@@ -466,6 +466,9 @@ static ErrCode init(void* arg) {
         TYPELOGV(SYSTEM_THREAD_CREATION_FAILURE, "resource-tuner-listener", e.what());
         return RC_MODULE_INIT_FAILURE;
     }
+
+    // Wait for the thread to initialize
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
 
     return RC_SUCCESS;
 }

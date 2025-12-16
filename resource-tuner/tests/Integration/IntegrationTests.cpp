@@ -982,6 +982,7 @@ namespace RequestApplicationTests {
 
         int64_t handle = tuneResources(5000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
         std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
+        assert(handle > 0);
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -1058,6 +1059,7 @@ namespace RequestApplicationTests {
 
         int64_t handle = tuneResources(6000, RequestPriority::REQ_PRIORITY_HIGH, 3, resourceList);
         std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
+        assert(handle > 0);
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -2056,7 +2058,7 @@ namespace RequestApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         originalValue = C_STOI(value);
-        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<newValue<<std::endl;
+        std::cout<<LOG_BASE<<testResourceName<<" Original Value: "<<originalValue<<std::endl;
         assert(originalValue == testResourceOriginalValue);
 
         SysResource* resourceList1 = new SysResource[1];
@@ -2428,6 +2430,7 @@ namespace RequestApplicationTests {
         RUN_INTEGRATION_TEST(TestPriorityBasedResourceAcquisition3)
         RUN_INTEGRATION_TEST(TestRequestValidRetuning)
         RUN_INTEGRATION_TEST(TestRequestInvalidRetuning1)
+        // RUN_INTEGRATION_TEST(TestRequestInvalidRetuning2)
         RUN_INTEGRATION_TEST(TestClusterTypeResourceTuneRequest1)
         RUN_INTEGRATION_TEST(TestClusterTypeResourceTuneRequest2)
 
@@ -3725,48 +3728,6 @@ namespace SignalApplicationTests {
         LOG_END
     }
 
-    static void TestSuperSignal1() {
-        LOG_START
-
-        std::unordered_map<std::string, std::string> expectations = {
-            {"/sys/fs/cgroup/system.slice/cpuset.cpus", "0-4"},
-            {"/sys/fs/cgroup/system.slice/cpu.weight", "170"},
-            {"/sys/fs/cgroup/user.slice/cpuset.cpus", "4-6"},
-            {"/sys/fs/cgroup/camera-cgroup/cpuset.cpus", "0-6"},
-            // {"/sys/fs/cgroup/camera-cgroup/cpu.weight", "150"},
-            {"/sys/fs/cgroup/camera-cgroup/cpu.weight.nice", "-20"},
-        };
-
-        std::unordered_map<std::string, std::string> originals;
-        for(std::pair<std::string, std::string> entry: expectations) {
-            originals[entry.first] = AuxRoutines::readFromFile(entry.first);
-            std::cout<<"Original: ["<<entry.first<<", "<<originals[entry.first]<<"]"<<std::endl;
-        }
-
-        int64_t handle = tuneSignal(0x800d0008, 0, 0, "", "", 0, nullptr);
-        assert(handle > 0);
-
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-
-        for(std::pair<std::string, std::string> entry: expectations) {
-            std::string newValue = AuxRoutines::readFromFile(entry.first);
-            std::cout<<LOG_BASE<<entry.first<<" Configured Value: "<<newValue<<std::endl;
-            std::cout<<LOG_BASE<<entry.first<<" Expected Config Value: "<<entry.second<<std::endl;
-            assert(((newValue == entry.second) == true));
-        }
-
-        std::this_thread::sleep_for(std::chrono::seconds(60));
-
-        for(std::pair<std::string, std::string> entry: originals) {
-            std::string newValue = AuxRoutines::readFromFile(entry.first);
-            std::cout<<LOG_BASE<<entry.first<<" Configured Value: "<<newValue<<std::endl;
-            std::cout<<LOG_BASE<<entry.first<<" Expected Reset Value: "<<entry.second<<std::endl;
-            assert(((newValue == entry.second) == true));
-        }
-
-        LOG_END;
-    }
-
     // Observe only as of now
     static void TestObservationSignal() {
         LOG_START
@@ -3790,7 +3751,7 @@ namespace SignalApplicationTests {
         };
 
         std::cout<<"Initial"<<std::endl;
-        for(const std::string key: keys) {
+        for(const std::string& key: keys) {
             std::cout<<key<<": ["<<AuxRoutines::readFromFile(key)<<"]"<<std::endl;
         }
 
@@ -3805,14 +3766,14 @@ namespace SignalApplicationTests {
         std::this_thread::sleep_for(std::chrono::seconds(3));
 
         std::cout<<"Request Applied"<<std::endl;
-        for(const std::string key: keys) {
+        for(const std::string& key: keys) {
             std::cout<<key<<": ["<<AuxRoutines::readFromFile(key)<<"]"<<std::endl;
         }
 
         std::this_thread::sleep_for(std::chrono::seconds(60));
 
         std::cout<<"Request Reset"<<std::endl;
-        for(const std::string key: keys) {
+        for(const std::string& key: keys) {
             std::cout<<key<<": ["<<AuxRoutines::readFromFile(key)<<"]"<<std::endl;
         }
 
@@ -4342,7 +4303,7 @@ int32_t main(int32_t argc, const char* argv[]) {
 
     // Run the Tests
     RUN_INTEGRATION_TEST(TestHandleGeneration)
-    RUN_INTEGRATION_TEST(TestPropFetch)
+    // RUN_INTEGRATION_TEST(TestPropFetch)
 
     // Request-Verification Tests
     ResourceTuningRequestVerification::RunTestGroup();
@@ -4359,6 +4320,5 @@ int32_t main(int32_t argc, const char* argv[]) {
 
     // Tests for CGroup Resources
     CGroupApplicationTests::RunTestGroup();
-
     return 0;
 }

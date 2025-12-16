@@ -21,15 +21,6 @@
 #include "TargetRegistry.h"
 
 /**
- * @brief Initializes the Properties store.
- * @details This function will read and Parse the Property Config YAML file.
- * @return int8_t:\n
- *            - RC_SUCCESS: If the Properties were successfully parsed.
- *            - Non-Zero Status Code indicating an Error: Otherwise
- */
-ErrCode fetchProperties();
-
-/**
  * @brief Submit a Resource Provisioning Request from a Client for processing.
  * @details Note: This API acts an interface for other Resource Tuner components like Signals
  *          to submit a Resource Provisioning Request to the Resource Tuner Server, and

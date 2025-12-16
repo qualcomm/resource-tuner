@@ -43,8 +43,6 @@ public:
     }
 };
 
-void OnResourceTunerMessageReceiverCallback(int32_t callbackID, char* message, uint64_t bufferSize);
-
 void listenerThreadStartRoutine();
 
 #endif
