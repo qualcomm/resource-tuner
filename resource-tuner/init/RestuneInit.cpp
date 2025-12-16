@@ -11,7 +11,6 @@
 #include "ErrCodes.h"
 #include "Extensions.h"
 #include "AuxRoutines.h"
-#include "ConfigProcessor.h"
 #include "RestuneInternal.h"
 #include "SignalInternal.h"
 #include "ResourceRegistry.h"
@@ -21,7 +20,7 @@
 #include "ClientGarbageCollector.h"
 #include "UrmSettings.h"
 #include "SignalRegistry.h"
-#include "SignalConfigProcessor.h"
+#include "RestuneParser.h"
 
 static void* extensionsLibHandle = nullptr;
 static std::thread restuneHandlerThread;
@@ -158,7 +157,7 @@ static ErrCode parseUtil(const std::string& filePath,
 
     if(filePath.length() == 0) return RC_FILE_NOT_FOUND;
     ErrCode opStatus = RC_SUCCESS;
-    ConfigProcessor configProcessor;
+    RestuneParser configProcessor;
 
     TYPELOGV(NOTIFY_PARSING_START, desc.c_str());
     opStatus = configProcessor.parse(configType, filePath, isCustom);

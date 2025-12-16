@@ -157,4 +157,4 @@ static ErrCode tear(void* arg) {
     return RC_SUCCESS;
 }
 
-RESTUNE_REGISTER_MODULE(MOD_STATE_OPTIMIZER, init, tear, nullptr);
+RESTUNE_REGISTER_MODULE(MOD_STATE_OPTIMIZER, init, tear);
