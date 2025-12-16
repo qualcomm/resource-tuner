@@ -13,7 +13,7 @@
 #include <vector>
 
 #include "Utils.h"
-#include "ResourceTunerAPIs.h"
+#include "UrmAPIs.h"
 
 int8_t parseResources(const std::string& input,
                       std::vector<std::pair<uint32_t, std::pair<int32_t, std::vector<int32_t>>>>& resourceVec) {

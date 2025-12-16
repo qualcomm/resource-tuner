@@ -8,42 +8,49 @@ ThreadPool* RequestReceiver::mRequestsThreadPool = nullptr;
 
 RequestReceiver::RequestReceiver() {}
 
-void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* msgForwardInfo) {
-    int8_t moduleID = *(int8_t*) msgForwardInfo->buffer;
-    int8_t requestType = *(int8_t*) ((unsigned char*) msgForwardInfo->buffer + sizeof(int8_t));
+void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* info) {
+    int8_t moduleID = *(int8_t*) info->mBuffer;
+    int8_t requestType = *(int8_t*) ((unsigned char*) info->mBuffer + sizeof(int8_t));
 
-    if(!ComponentRegistry::isModuleEnabled(static_cast<ModuleID>(moduleID))) {
-        return;
-    }
+    info->mModuleID = moduleID;
+    info->mRequestType = requestType;
 
-    msgForwardInfo->mHandle = AuxRoutines::generateUniqueHandle();
-    if(msgForwardInfo->mHandle < 0) {
+    info->mHandle = AuxRoutines::generateUniqueHandle();
+    if(info->mHandle < 0) {
         // Handle Generation Failure
         LOGE("RESTUNE_REQUEST_RECEIVER", "Failed to Generate Request handle");
         return;
     }
 
-    ModuleInfo modInfo = ComponentRegistry::getModuleInfo(static_cast<ModuleID>(moduleID));
-    if(modInfo.mOnEvent == nullptr) {
-        // Module not enabled
+    if(this->mRequestsThreadPool != nullptr) {
+        LOGE("URM_SERVER_ENDPOINT", "Thread pool not initialized, Dropping the Request");
         return;
     }
 
     // Enqueue the Request to the Thread Pool for async processing.
-    if(this->mRequestsThreadPool != nullptr) {
-        if(!this->mRequestsThreadPool->
-            enqueueTask(modInfo.mOnEvent, msgForwardInfo)) {
-            LOGE("RESTUNE_REQUEST_RECEIVER",
-                    "Failed to enqueue the Request to the Thread Pool");
+    switch(info->mRequestType) {
+        case REQ_RESOURCE_TUNING:
+        case REQ_RESOURCE_RETUNING:
+        case REQ_RESOURCE_UNTUNING: {
+            if(!this->mRequestsThreadPool->enqueueTask(submitResProvisionReqMsg, info)) {
+                LOGE("URM_SERVER_ENDPOINT", "Failed to enqueue the Request to the Thread Pool");
+            }
+            break;
         }
-    } else {
-        LOGE("RESTUNE_REQUEST_RECEIVER",
-                "Thread pool not initialized, Dropping the Request");
+
+        case REQ_SIGNAL_TUNING:
+        case REQ_SIGNAL_UNTUNING:
+        case REQ_SIGNAL_RELAY: {
+            if(!this->mRequestsThreadPool->enqueueTask(submitSignalRequest, info)) {
+                LOGE("URM_SERVER_ENDPOINT", "Failed to enqueue the Request to the Thread Pool");
+            }
+            break;
+        }
     }
 
     // Only in Case of Tune Requests, Write back the handle to the client.
     if(requestType == REQ_RESOURCE_TUNING || requestType == REQ_SIGNAL_TUNING) {
-        if(write(clientSocket, (const void*)&msgForwardInfo->mHandle, sizeof(int64_t)) == -1) {
+        if(write(clientSocket, (const void*)&info->mHandle, sizeof(int64_t)) == -1) {
             TYPELOGV(ERRNO_LOG, "write", strerror(errno));
         }
     }
@@ -59,29 +66,21 @@ void onMsgRecvCallback(int32_t clientSocket, MsgForwardInfo* msgForwardInfo) {
 }
 
 void listenerThreadStartRoutine() {
-    SocketServer* connection;
+    SocketServer* connection = nullptr;
+
     try {
         connection = new SocketServer(checkServerOnlineStatus, onMsgRecvCallback);
-    } catch(const std::bad_alloc& e) {
-        LOGE("RESTUNE_REQUEST_RECEIVER",
-             "Failed to allocate memory for Resource Tuner Socket Server-Endpoint, Resource Tuner \
-              Server startup failed: " + std::string(e.what()));
-
-        return;
-
     } catch(const std::exception& e) {
-        LOGE("RESTUNE_REQUEST_RECEIVER",
+        LOGE("URM_SERVER_ENDPOINT",
              "Failed to start the Resource Tuner Listener, error: " + std::string(e.what()));
-
         return;
     }
 
     if(RC_IS_NOTOK(connection->ListenForClientRequests())) {
-        LOGE("RESTUNE_REQUEST_RECEIVER", "Server Socket Endpoint crashed");
+        LOGE("URM_SERVER_ENDPOINT", "Server Socket Endpoint crashed");
     }
 
     if(connection != nullptr) {
         delete(connection);
     }
-    return;
 }

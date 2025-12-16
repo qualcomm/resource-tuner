@@ -1,8 +1,8 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#ifndef REQUEST_RECEIVER_H
-#define REQUEST_RECEIVER_H
+#ifndef RESTUNE_REQUEST_RECEIVER_H
+#define RESTUNE_REQUEST_RECEIVER_H
 
 #include <memory>
 #include <cstring>
@@ -11,7 +11,9 @@
 
 #include "ErrCodes.h"
 #include "Logger.h"
-#include "SocketServer.h"
+#include "RestuneInternal.h"
+#include "SignalInternal.h"
+#include "RestuneListener.h"
 #include "UrmSettings.h"
 #include "AuxRoutines.h"
 #include "ComponentRegistry.h"

@@ -9,14 +9,14 @@ target_include_directories(UrmClient PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/Comm/So
 install(TARGETS UrmClient LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 # URM CLI Client
-add_executable(urmClientCmd
-  ${CMAKE_CURRENT_SOURCE_DIR}/APIs/ResourceTunerAPIs.cpp
+add_executable(urmCli
+  ${CMAKE_CURRENT_SOURCE_DIR}/APIs/UrmAPIs.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/ClientCLI.cpp
 )
-target_link_libraries(urmClientCmd PRIVATE UrmAuxUtils)
-target_link_libraries(urmClientCmd PRIVATE UrmClient)
-target_include_directories(urmClientCmd PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/APIs/Include)
-target_include_directories(urmClientCmd PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/client/Comm/Socket/Include)
-install(TARGETS urmClientCmd RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+target_link_libraries(urmCli PRIVATE UrmAuxUtils)
+target_link_libraries(urmCli PRIVATE UrmClient)
+target_include_directories(urmCli PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/APIs/Include)
+target_include_directories(urmCli PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/client/Comm/Socket/Include)
+install(TARGETS urmCli RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/APIs/Include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ResourceTuner)

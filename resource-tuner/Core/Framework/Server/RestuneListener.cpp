@@ -1,7 +1,7 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include "SocketServer.h"
+#include "RestuneListener.h"
 
 #ifndef UNIX_PATH_MAX
 #define UNIX_PATH_MAX sizeof(((struct sockaddr_un *)0)->sun_path)
@@ -9,11 +9,11 @@
 
 SocketServer::SocketServer(
     ServerOnlineCheckCallback mServerOnlineCheckCb,
-    ResourceTunerMessageReceivedCallback mResourceTunerMessageRecvCb) {
+    MessageReceivedCallback mMessageRecvCb) {
 
     this->sockFd = -1;
     this->mServerOnlineCheckCb = mServerOnlineCheckCb;
-    this->mResourceTunerMessageRecvCb = mResourceTunerMessageRecvCb;
+    this->mMessageRecvCb = mMessageRecvCb;
 }
 
 // Called by server, this will put the server in listening mode
@@ -114,8 +114,8 @@ int32_t SocketServer::ListenForClientRequests() {
                             info = new (GetBlock<MsgForwardInfo>()) MsgForwardInfo;
                             reqBuf = new (GetBlock<char[REQ_BUFFER_SIZE]>()) char[REQ_BUFFER_SIZE];
 
-                            info->buffer = reqBuf;
-                            // info->mBufferSize = REQ_BUFFER_SIZE;
+                            info->mBuffer = reqBuf;
+                            info->mBufferSize = REQ_BUFFER_SIZE;
 
                         } catch(const std::bad_alloc& e) {
                             FreeBlock<MsgForwardInfo>(info);
@@ -127,7 +127,7 @@ int32_t SocketServer::ListenForClientRequests() {
                         }
 
                         int32_t bytesRead = 0;
-                        if((bytesRead = recv(clientSocket, info->buffer, info->bufferSize, 0)) < 0) {
+                        if((bytesRead = recv(clientSocket, info->mBuffer, info->mBufferSize, 0)) < 0) {
                             if(errno != EAGAIN && errno != EWOULDBLOCK) {
                                 TYPELOGV(ERRNO_LOG, "recv", strerror(errno));
                                 LOGE("RESTUNE_SOCKET_SERVER", "Server Socket-Endpoint crashed");
@@ -136,7 +136,7 @@ int32_t SocketServer::ListenForClientRequests() {
                         }
 
                         if(bytesRead > 0) {
-                            this->mResourceTunerMessageRecvCb(clientSocket, info);
+                            this->mMessageRecvCb(clientSocket, info);
                         }
                         close(clientSocket);
                     }

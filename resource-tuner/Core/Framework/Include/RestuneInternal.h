@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 /*!
- * \file ServerInternal.h
+ * \file RestuneInternal.h
  */
 
 #ifndef FRAMEWORK_INTERNAL_H
@@ -17,7 +17,7 @@
 #include "RequestManager.h"
 #include "ResourceRegistry.h"
 #include "PropertiesRegistry.h"
-#include "ServerInternal.h"
+#include "RestuneInternal.h"
 #include "TargetRegistry.h"
 
 /**
@@ -36,9 +36,9 @@ ErrCode fetchProperties();
  *          subsequently provision the desired Resources.
  * @param request A buffer holding the Request.
  */
-ErrCode submitResProvisionRequest(void* request);
+void submitResProvisionReqMsg(void* request);
 
-ErrCode submitResProvisionRequest(Request* request, int8_t isVerified);
+void submitResProvisionRequest(Request* request, int8_t isVerified);
 
 /**
  * @brief Gets a property from the Config Store.

@@ -7,8 +7,7 @@
 #include "Utils.h"
 #include "Common.h"
 #include "Logger.h"
-#include "Timer.h"
-#include "RequestReceiver.h"
+#include "UrmSettings.h"
 #include "ComponentRegistry.h"
 
 static int8_t terminateServer = false;
@@ -50,7 +49,8 @@ static void serverCleanup() {
 
 int32_t main(int32_t argc, char *argv[]) {
     // Initialize syslog
-    openlog(RESTUNE_IDENTIFIER, LOG_PID | LOG_CONS, LOG_USER);
+    openlog(RESTUNE_IDENTIFIER, LOG_PID | LOG_CONS | LOG_NDELAY, LOG_DAEMON);
+    setlogmask(LOG_UPTO(LOG_DEBUG));
 
     ErrCode opStatus = RC_SUCCESS;
 
@@ -70,19 +70,6 @@ int32_t main(int32_t argc, char *argv[]) {
         opStatus = initModuleIfPresent(ModuleID::MOD_CLASSIFIER);
         if(RC_IS_NOTOK(opStatus)) {
             TYPELOGV(MODULE_INIT_FAILED, "classifier");
-        }
-    }
-
-    // Create a Listener Thread
-    std::thread resourceTunerListener;
-    if(RC_IS_OK(opStatus)) {
-        try {
-            resourceTunerListener = std::thread(listenerThreadStartRoutine);
-            TYPELOGD(LISTENER_THREAD_CREATION_SUCCESS);
-
-        } catch(const std::system_error& e) {
-            TYPELOGV(SYSTEM_THREAD_CREATION_FAILURE, "Listener", e.what());
-            opStatus = RC_MODULE_INIT_FAILURE;
         }
     }
 
@@ -108,12 +95,6 @@ int32_t main(int32_t argc, char *argv[]) {
 
     cleanupModule(ModuleID::MOD_RESTUNE);
     cleanupModule(ModuleID::MOD_CLASSIFIER);
-
-    if(resourceTunerListener.joinable()) {
-        resourceTunerListener.join();
-    } else {
-        TYPELOGV(SYSTEM_THREAD_NOT_JOINABLE, "Listener");
-    }
 
     closelog();
     return 0;

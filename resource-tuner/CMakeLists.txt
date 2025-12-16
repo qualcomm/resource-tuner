@@ -7,7 +7,6 @@ option(BUILD_TESTS "Testing" OFF)
 
 # Mandatory Builds
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/Core)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/Signals)
 
 if(BUILD_TESTS)
   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/Tests)

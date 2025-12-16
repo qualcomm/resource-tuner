@@ -4,7 +4,7 @@
 #include <memory>
 #include <mutex>
 
-#include "ResourceTunerAPIs.h"
+#include "UrmAPIs.h"
 #include "Utils.h"
 #include "SocketClient.h"
 
@@ -50,6 +50,7 @@ int64_t tuneResources(int64_t duration, int32_t properties, int32_t numRes, SysR
 
         char buf[1024];
         int8_t* ptr8 = (int8_t*)buf;
+        ASSIGN_AND_INCR(ptr8, MOD_RESTUNE);
         ASSIGN_AND_INCR(ptr8, REQ_RESOURCE_TUNING);
 
         int64_t* ptr64 = (int64_t*)ptr8;
@@ -127,6 +128,7 @@ int8_t retuneResources(int64_t handle, int64_t duration) {
 
         char buf[1024];
         int8_t* ptr8 = (int8_t*)buf;
+        ASSIGN_AND_INCR(ptr8, MOD_RESTUNE);
         ASSIGN_AND_INCR(ptr8, REQ_RESOURCE_RETUNING);
 
         int64_t* ptr64 = (int64_t*)ptr8;
@@ -175,6 +177,7 @@ int8_t untuneResources(int64_t handle) {
 
         char buf[1024];
         int8_t* ptr8 = (int8_t*)buf;
+        ASSIGN_AND_INCR(ptr8, MOD_RESTUNE);
         ASSIGN_AND_INCR(ptr8, REQ_RESOURCE_UNTUNING);
 
         int64_t* ptr64 = (int64_t*)ptr8;
@@ -219,6 +222,7 @@ int8_t getProp(const char* prop, char* buffer, size_t bufferSize, const char* de
 
         char buf[1024];
         int8_t* ptr8 = (int8_t*)buf;
+        ASSIGN_AND_INCR(ptr8, MOD_RESTUNE);
         ASSIGN_AND_INCR(ptr8, REQ_PROP_GET);
 
         const char* charIterator = prop;
@@ -289,6 +293,7 @@ int64_t tuneSignal(uint32_t signalCode, int64_t duration, int32_t properties,
 
         char buf[1024];
         int8_t* ptr8 = (int8_t*)buf;
+        ASSIGN_AND_INCR(ptr8, MOD_RESTUNE);
         ASSIGN_AND_INCR(ptr8, REQ_SIGNAL_TUNING);
 
         int32_t* ptr = (int32_t*)ptr8;
@@ -376,6 +381,7 @@ int8_t untuneSignal(int64_t handle) {
 
         char buf[1024];
         int8_t* ptr8 = (int8_t*)buf;
+        ASSIGN_AND_INCR(ptr8, MOD_RESTUNE);
         ASSIGN_AND_INCR(ptr8, REQ_SIGNAL_UNTUNING);
 
         int32_t* ptr = (int32_t*)ptr8;
@@ -450,6 +456,7 @@ int8_t relaySignal(uint32_t signalCode, int64_t duration, int32_t properties,
 
         char buf[1024];
         int8_t* ptr8 = (int8_t*)buf;
+        ASSIGN_AND_INCR(ptr8, MOD_RESTUNE);
         ASSIGN_AND_INCR(ptr8, REQ_SIGNAL_RELAY);
 
         int32_t* ptr = (int32_t*)ptr8;

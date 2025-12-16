@@ -18,7 +18,6 @@ option(BUILD_STATE_DETECTOR "Display Detector" OFF)
 add_subdirectory(${CMAKE_SOURCE_DIR}/configs)
 add_subdirectory(${CMAKE_SOURCE_DIR}/modula)
 add_subdirectory(${CMAKE_SOURCE_DIR}/client)
-add_subdirectory(${CMAKE_SOURCE_DIR}/server)
 
 # resource-tuner is a mandatory build
 add_subdirectory(${CMAKE_SOURCE_DIR}/resource-tuner)
@@ -46,6 +45,11 @@ if(BUILD_STATE_DETECTOR)
   pkg_check_modules(SYSTEMD REQUIRED libsystemd)
   list(APPEND SERVER_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/resource-tuner/StateDetector.cpp)
   list(APPEND SERVER_LIBS ${SYSTEMD_LIBRARIES})
+endif()
+
+if(BUILD_CLASSIFIER)
+  # list(APPEND SERVER_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/contextual-classifier/classifier.cpp)
+  # list(APPEND SERVER_LIBS classifierLib)
 endif()
 
 add_executable(urm_exec ${SERVER_EXECUTABLE} ${CMAKE_SOURCE_DIR})

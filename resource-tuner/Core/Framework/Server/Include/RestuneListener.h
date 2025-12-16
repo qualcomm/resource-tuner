@@ -1,8 +1,8 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#ifndef RESOURCE_TUNER_SOCKET_SERVER_H
-#define RESOURCE_TUNER_SOCKET_SERVER_H
+#ifndef RESTUNE_SOCKET_SERVER_H
+#define RESTUNE_SOCKET_SERVER_H
 
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -31,12 +31,12 @@ class SocketServer : public ServerEndpoint {
 private:
     int32_t sockFd;
     ServerOnlineCheckCallback mServerOnlineCheckCb;
-    ResourceTunerMessageReceivedCallback mResourceTunerMessageRecvCb;
+    MessageReceivedCallback mMessageRecvCb;
 
 public:
     SocketServer(
         ServerOnlineCheckCallback mServerOnlineCheckCb,
-        ResourceTunerMessageReceivedCallback mResourceTunerMessageRecvCb);
+        MessageReceivedCallback mMessageRecvCb);
 
     ~SocketServer();
 

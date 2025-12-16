@@ -8,15 +8,9 @@
 
 #include "Utils.h"
 
-enum ModuleID : int8_t {
-    MOD_RESTUNE,
-    MOD_CLASSIFIER,
-};
-
 typedef struct {
     EventCallback mInit;
     EventCallback mTear;
-    EventCallback mOnEvent;
 } ModuleInfo;
 
 /**
@@ -31,8 +25,7 @@ private:
 public:
     ComponentRegistry(ModuleID moduleID,
                       EventCallback registrationCallback,
-                      EventCallback terardownCallback,
-                      EventCallback messageHandlerCallback);
+                      EventCallback terardownCallback);
 
     static int8_t isModuleEnabled(ModuleID moduleID);
     static ModuleInfo getModuleInfo(ModuleID moduleID);
@@ -40,10 +33,7 @@ public:
 
 #define CONCAT(a, b) a ## b
 
-#define RESTUNE_REGISTER_MODULE(identifier, registration, teardown, handler) \
-        static ComponentRegistry CONCAT(_module, identifier)(identifier, registration, teardown, handler);
-
-#define RESTUNE_REGISTER_EVENT_CALLBACK(identifier, handler) \
-        static ComponentRegistry CONCAT(_eventCB, identifier)(identifier, handler);
+#define RESTUNE_REGISTER_MODULE(identifier, registration, teardown) \
+        static ComponentRegistry CONCAT(_module, identifier)(identifier, registration, teardown);
 
 #endif

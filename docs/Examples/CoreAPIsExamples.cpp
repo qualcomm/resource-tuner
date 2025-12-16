@@ -12,7 +12,7 @@
  */
 #include <iostream>
 
-#include <ResourceTuner/ResourceTunerAPIs.h>
+#include <ResourceTuner/UrmAPIs.h>
 
 #define UCLAMP_MIN_RES 0x00030000
 #define UCLAMP_BOOST_VAL 750

@@ -14,8 +14,7 @@
 #include "ClientDataManager.h"
 #include "RateLimiter.h"
 #include "ResourceRegistry.h"
-#include "SignalQueue.h"
-#include "ServerInternal.h"
+#include "RestuneInternal.h"
 
 /**
  * @brief Internal API for submitting Signal Requests for Processing if the Signals

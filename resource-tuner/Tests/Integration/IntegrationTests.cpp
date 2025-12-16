@@ -6,7 +6,7 @@
 #include "Utils.h"
 #include "TestUtils.h"
 #include "TestBaseline.h"
-#include "ResourceTunerAPIs.h"
+#include "UrmAPIs.h"
 
 static TestBaseline baseline;
 

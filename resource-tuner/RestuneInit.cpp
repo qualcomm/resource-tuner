@@ -12,7 +12,7 @@
 #include "Extensions.h"
 #include "AuxRoutines.h"
 #include "ConfigProcessor.h"
-#include "ServerInternal.h"
+#include "RestuneInternal.h"
 #include "SignalInternal.h"
 #include "ResourceRegistry.h"
 #include "ComponentRegistry.h"
@@ -21,11 +21,11 @@
 #include "ClientGarbageCollector.h"
 #include "UrmSettings.h"
 #include "SignalRegistry.h"
-#include "SignalQueue.h"
 #include "SignalConfigProcessor.h"
 
 static void* extensionsLibHandle = nullptr;
 static std::thread restuneHandlerThread;
+static std::thread resourceTunerListener;
 
 static void restoreToSafeState() {
     if(AuxRoutines::fileExists(UrmSettings::mPersistenceFile)) {
@@ -459,10 +459,26 @@ static ErrCode init(void* arg) {
         return RC_MODULE_INIT_FAILURE;
     }
 
+    // Create the listener thread
+    try {
+        resourceTunerListener = std::thread(listenerThreadStartRoutine);
+        TYPELOGD(LISTENER_THREAD_CREATION_SUCCESS);
+
+    } catch(const std::system_error& e) {
+        TYPELOGV(SYSTEM_THREAD_CREATION_FAILURE, "resource-tuner-listener", e.what());
+        return RC_MODULE_INIT_FAILURE;
+    }
+
     return RC_SUCCESS;
 }
 
 static ErrCode tear(void* arg) {
+    if(resourceTunerListener.joinable()) {
+        resourceTunerListener.join();
+    } else {
+        TYPELOGV(SYSTEM_THREAD_NOT_JOINABLE, "resource-tuner-listener");
+    }
+
     // Check if the thread is joinable, to prevent undefined behaviour
     if(restuneHandlerThread.joinable()) {
         RequestQueue::getInstance()->forcefulAwake();
@@ -470,7 +486,6 @@ static ErrCode tear(void* arg) {
     } else {
         TYPELOGV(SYSTEM_THREAD_NOT_JOINABLE, "resource-tuner");
     }
-    return RC_SUCCESS;
 
     // Restore all the Resources to Original Values
     ResourceRegistry::getInstance()->restoreResourcesToDefaultValues();
@@ -492,28 +507,8 @@ static ErrCode tear(void* arg) {
     if(extensionsLibHandle != nullptr) {
         dlclose(extensionsLibHandle);
     }
-}
-
-ErrCode onEvent(void* msg) {
-    if(msg == nullptr) return RC_BAD_ARG;
-
-    ErrCode opStatus = RC_SUCCESS;
-    MsgForwardInfo* info = (MsgForwardInfo*) msg;
-    switch(info->mRequestType) {
-        case REQ_RESOURCE_TUNING:
-        case REQ_RESOURCE_RETUNING:
-        case REQ_RESOURCE_UNTUNING: {
-            return submitResProvisionRequest(info);
-        }
-
-        case REQ_SIGNAL_TUNING:
-        case REQ_SIGNAL_UNTUNING:
-        case REQ_SIGNAL_RELAY: {
-            return submitSignalRequest(info);
-        }
-    }
 
     return RC_SUCCESS;
 }
 
-RESTUNE_REGISTER_MODULE(MOD_RESTUNE, init, tear, onEvent);
+RESTUNE_REGISTER_MODULE(MOD_RESTUNE, init, tear);

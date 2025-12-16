@@ -9,7 +9,7 @@
 #include "Extensions.h"
 #include "SignalConfigProcessor.h"
 #include "Utils.h"
-#include "ServerInternal.h"
+#include "RestuneInternal.h"
 #include "PropertiesRegistry.h"
 #include "TestAggregator.h"
 

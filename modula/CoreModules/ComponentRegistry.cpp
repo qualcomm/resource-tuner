@@ -8,12 +8,10 @@ std::unordered_map<ModuleID, ModuleInfo> ComponentRegistry::mModuleRegistry{};
 ComponentRegistry::ComponentRegistry(
                                ModuleID moduleId,
                                EventCallback init,
-                               EventCallback tear,
-                               EventCallback onEvent) {
+                               EventCallback tear) {
     mModuleRegistry[moduleId] = {
         .mInit = init,
         .mTear = tear,
-        .mOnEvent = onEvent,
     };
 }
 
@@ -30,7 +28,6 @@ ModuleInfo ComponentRegistry::getModuleInfo(ModuleID moduleId) {
         return {
             .mInit = nullptr,
             .mTear = nullptr,
-            .mOnEvent = nullptr,
         };
     }
 

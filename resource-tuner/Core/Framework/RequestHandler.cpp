@@ -1,7 +1,7 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include "ServerInternal.h"
+#include "RestuneInternal.h"
 
 static int8_t getRequestPriority(int8_t clientPermissions, int8_t reqSpecifiedPriority) {
     if(clientPermissions == PERMISSION_SYSTEM) {
@@ -334,51 +334,37 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
     }
 }
 
-ErrCode submitResProvisionRequest(Request* request, int8_t isValidated) {
+void submitResProvisionRequest(Request* request, int8_t isValidated) {
     processIncomingRequest(request, isValidated);
-    return RC_SUCCESS;
 }
 
-ErrCode submitResProvisionRequest(void* msg) {
-    if(msg == nullptr) return RC_BAD_ARG;
+void submitResProvisionReqMsg(void* msg) {
+    if(msg == nullptr) return;
 
-    ErrCode opStatus = RC_SUCCESS;
     MsgForwardInfo* info = (MsgForwardInfo*) msg;
     Request* request = nullptr;
 
-    if(RC_IS_OK(opStatus)) {
-        if(info == nullptr) {
-            opStatus = RC_BAD_ARG;
-        }
-    }
+    if(info == nullptr) return;
 
-    if(RC_IS_OK(opStatus)) {
-        try {
-            request = MPLACED(Request);
-            opStatus = request->deserialize(info->buffer);
-            if(RC_IS_NOTOK(opStatus)) {
-                Request::cleanUpRequest(request);
+    try {
+        request = MPLACED(Request);
+        if(RC_IS_NOTOK(request->deserialize(info->mBuffer))) {
+            Request::cleanUpRequest(request);
+        } else {
+            if(request->getRequestType() == REQ_RESOURCE_TUNING) {
+                request->setHandle(info->mHandle);
             }
-
-        } catch(const std::bad_alloc& e) {
-            TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE, e.what());
-            opStatus = RC_MEMORY_ALLOCATION_FAILURE;
+            processIncomingRequest(request);
         }
-    }
 
-    if(RC_IS_OK(opStatus)) {
-        if(request->getRequestType() == REQ_RESOURCE_TUNING) {
-            request->setHandle(info->mHandle);
-        }
-        processIncomingRequest(request);
+    } catch(const std::bad_alloc& e) {
+        TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE, e.what());
     }
 
     if(info != nullptr) {
-        FreeBlock<char[REQ_BUFFER_SIZE]>(info->buffer);
+        FreeBlock<char[REQ_BUFFER_SIZE]>(info->mBuffer);
         FreeBlock<MsgForwardInfo>(info);
     }
-
-    return RC_SUCCESS;
 }
 
 int8_t submitPropGetRequest(const std::string& prop,

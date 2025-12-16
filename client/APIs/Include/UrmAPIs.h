@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 /*!
- * \file ResourceTunerAPIs.h
+ * \file UrmAPIs.h
  */
 
 /*!

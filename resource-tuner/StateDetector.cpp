@@ -8,7 +8,7 @@
 #include "Logger.h"
 #include "ComponentRegistry.h"
 #include "UrmSettings.h"
-#include "ServerInternal.h"
+#include "RestuneInternal.h"
 
 #define DBUS_SIGNAL_SENDER "org.freedesktop.login1"
 #define DBUS_SIGNAL_SENDER_PATH "/org/freedesktop/login1"
