@@ -22,7 +22,7 @@ void RequestReceiver::forwardMessage(int32_t clientSocket, MsgForwardInfo* info)
         return;
     }
 
-    if(this->mRequestsThreadPool != nullptr) {
+    if(this->mRequestsThreadPool == nullptr) {
         LOGE("URM_SERVER_ENDPOINT", "Thread pool not initialized, Dropping the Request");
         return;
     }

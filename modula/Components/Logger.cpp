@@ -1,6 +1,6 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
-#include <iostream>
+
 #include "Logger.h"
 
 int32_t Logger::mLowestLogLevel = LOG_DEBUG;
@@ -40,22 +40,17 @@ std::string Logger::levelToString(int32_t level) {
 }
 
 void Logger::log(int32_t level, const std::string& tag, const std::string& funcName, const std::string& message) {
-    std::cout<<"logging request for: "<<message<<std::endl;
-    std::cout<<"level req: "<<level<<" lowest log level: "<<mLowestLogLevel<<std::endl;
     if(mLevelSpecificLogging) {
         if(level != mLowestLogLevel) return;
     } else {
         if(level > mLowestLogLevel) return;
     }
 
-    std::cout<<"reached 51"<<std::endl;
-
     std::string timestamp = getTimestamp();
     std::string levelStr = levelToString(level);
 
     switch(mRedirectOutputTo) {
         case RedirectOptions::LOG_TOSYSLOG: {
-            std::cout<<"reached 58"<<std::endl;
             std::ostringstream logStream;
             logStream<<"["<<tag<<"] ["<<levelStr<<"] "<<funcName<<": "<<message<<std::endl;
             syslog(level, "%s", logStream.str().c_str());

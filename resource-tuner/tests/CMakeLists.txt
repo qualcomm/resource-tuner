@@ -57,7 +57,6 @@ if(BUILD_TESTS)
     target_link_libraries(RestuneComponentTests PUBLIC UrmAuxUtils
                                                        RestuneExtAPIs
                                                        RestuneCore
-                                                       RestuneSignals
                                                        RestuneTestUtils)
 
     install(TARGETS RestuneComponentTests DESTINATION ${CMAKE_INSTALL_BINDIR})

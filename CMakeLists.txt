@@ -35,10 +35,8 @@ list(APPEND SERVER_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/urm.cpp
 set(SERVER_LIBS "")
 list(APPEND SERVER_LIBS
   UrmAuxUtils
-  UrmReceiver
   RestuneCore
   RestuneExtAPIs
-  RestuneSignals
 )
 
 if(BUILD_STATE_DETECTOR)

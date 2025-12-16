@@ -59,6 +59,12 @@ int32_t main(int32_t argc, char *argv[]) {
 
     TYPELOGV(NOTIFY_RESOURCE_TUNER_INIT_START, getpid());
 
+    // Ready for requests
+    if(RC_IS_OK(opStatus)) {
+        UrmSettings::setServerOnlineStatus(true);
+        UrmSettings::targetConfigs.currMode = MODE_RESUME;
+    }
+
     if(RC_IS_OK(opStatus)) {
         opStatus = initModuleIfPresent(ModuleID::MOD_RESTUNE);
         if(RC_IS_NOTOK(opStatus)) {
@@ -71,12 +77,6 @@ int32_t main(int32_t argc, char *argv[]) {
         if(RC_IS_NOTOK(opStatus)) {
             TYPELOGV(MODULE_INIT_FAILED, "classifier");
         }
-    }
-
-    // Ready for requests
-    if(RC_IS_OK(opStatus)) {
-        UrmSettings::setServerOnlineStatus(true);
-        UrmSettings::targetConfigs.currMode = MODE_RESUME;
     }
 
     if(RC_IS_OK(opStatus)) {

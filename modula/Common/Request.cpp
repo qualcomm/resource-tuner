@@ -74,6 +74,7 @@ ErrCode Request::deserialize(char* buf) {
     try {
         int32_t numResources = 0;
         int8_t* ptr8 = (int8_t*)buf;
+        DEREF_AND_INCR(ptr8, int8_t);
         this->mReqType = DEREF_AND_INCR(ptr8, int8_t);
 
         int64_t* ptr64 = (int64_t*)ptr8;
