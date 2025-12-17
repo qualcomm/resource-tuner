@@ -52,12 +52,6 @@ if(BUILD_CLASSIFIER)
   list(APPEND SERVER_LIBS parser ml_inference_lib fasttext dl)
 endif()
 
-if(BUILD_STATE_DETECTOR)
-  pkg_check_modules(SYSTEMD REQUIRED libsystemd)
-  list(APPEND SERVER_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/resource-tuner/extensions/StateDetector.cpp)
-  list(APPEND SERVER_LIBS ${SYSTEMD_LIBRARIES})
-endif()
-
 add_executable(urm_exec ${SERVER_EXECUTABLE} ${CMAKE_SOURCE_DIR})
 target_link_libraries(urm_exec PUBLIC ${SERVER_LIBS})
 
