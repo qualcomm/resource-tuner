@@ -396,7 +396,7 @@ static ErrCode init(void* arg=nullptr) {
     global_nl_sock = nl_connect();
     if (global_nl_sock == -1) {
         syslog(LOG_CRIT, "Failed to connect to netlink socket.");
-        return RC_FAILED;
+        return RC_SOCKET_OP_FAILURE;
     }
     syslog(LOG_INFO, "Netlink socket connected successfully.");
 
@@ -404,7 +404,7 @@ static ErrCode init(void* arg=nullptr) {
         syslog(LOG_CRIT, "Failed to set proc event listener.");
         close(global_nl_sock);
         global_nl_sock = -1;
-        return RC_FAILED;
+        return RC_SOCKET_OP_FAILURE;
     }
     syslog(LOG_INFO, "Now listening for process events.");
     
@@ -453,5 +453,5 @@ static ErrCode terminate(void* arg=nullptr) {
 }
 
 
-//RESTUNE_REGISTER_MODULE(MOD_CLASSIFIER, init, terminate, NULL);
+RESTUNE_REGISTER_MODULE(MOD_CLASSIFIER, init, terminate);
 //RESTUNE_REGISTER_MODULE(1, init, terminate, NULL);

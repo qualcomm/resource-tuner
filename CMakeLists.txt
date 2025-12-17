@@ -54,7 +54,7 @@ endif()
 
 if(BUILD_STATE_DETECTOR)
   pkg_check_modules(SYSTEMD REQUIRED libsystemd)
-  list(APPEND SERVER_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/resource-tuner/StateDetector.cpp)
+  list(APPEND SERVER_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/resource-tuner/extensions/StateDetector.cpp)
   list(APPEND SERVER_LIBS ${SYSTEMD_LIBRARIES})
 endif()
 
