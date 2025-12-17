@@ -205,7 +205,6 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
                       "Starting Resource Tuner Server, PID = [%d]", args);
 
             Logger::log(LOG_INFO, "RESTUNE_SERVER_INIT", funcName, std::string(buffer));
-
             break;
 
         case CommonMessageTypes::NOTIFY_CURRENT_TARGET_NAME:

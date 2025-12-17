@@ -8,23 +8,10 @@
 
 #include "Utils.h"
 
-enum ModuleIdentifier {
-    MOD_CORE,
-    MOD_SIGNAL,
-    MOD_STATE_OPTIMIZER,
-};
-
-enum EventIdentifier {
-    MOD_CORE_INIT,
-    MOD_CORE_TEAR,
-    MOD_CORE_ON_MSG_RECV,
-    MOD_SIGNAL_INIT,
-    MOD_SIGNAL_TEAR,
-    MOD_SIGNAL_ON_MSG_RECV,
-    PROP_ON_MSG_RECV,
-    MOD_STATE_OPTIMIZER_INIT,
-    MOD_STATE_OPTIMIZER_TEAR,
-};
+typedef struct {
+    EventCallback mInit;
+    EventCallback mTear;
+} ModuleInfo;
 
 /**
  * @brief ComponentRegistry
@@ -33,28 +20,20 @@ enum EventIdentifier {
  */
 class ComponentRegistry {
 private:
-    static std::unordered_map<EventIdentifier, EventCallback> mEventCallbacks;
-    static std::unordered_map<ModuleIdentifier, int8_t> mModuleRegistry;
+    static std::unordered_map<ModuleID, ModuleInfo> mModuleRegistry;
 
 public:
-    ComponentRegistry(EventIdentifier EventIdentifier,
-                      EventCallback messageHandlerCallback);
-
-    ComponentRegistry(ModuleIdentifier EventIdentifier,
+    ComponentRegistry(ModuleID moduleID,
                       EventCallback registrationCallback,
-                      EventCallback terardownCallback,
-                      EventCallback messageHandlerCallback);
+                      EventCallback terardownCallback);
 
-    static int8_t isModuleEnabled(ModuleIdentifier moduleIdentifier);
-    static EventCallback getEventCallback(EventIdentifier EventIdentifier);
+    static int8_t isModuleEnabled(ModuleID moduleID);
+    static ModuleInfo getModuleInfo(ModuleID moduleID);
 };
 
 #define CONCAT(a, b) a ## b
 
-#define RESTUNE_REGISTER_MODULE(identifier, registration, teardown, handler) \
-        static ComponentRegistry CONCAT(_module, identifier)(identifier, registration, teardown, handler);
-
-#define RESTUNE_REGISTER_EVENT_CALLBACK(identifier, handler) \
-        static ComponentRegistry CONCAT(_eventCB, identifier)(identifier, handler);
+#define RESTUNE_REGISTER_MODULE(identifier, registration, teardown) \
+        static ComponentRegistry CONCAT(_module, identifier)(identifier, registration, teardown);
 
 #endif

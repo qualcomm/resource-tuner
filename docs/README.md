@@ -736,7 +736,7 @@ refer "link to examples dir"
 This example demonstrates the use of tuneResources API for resource provisioning.
 ```cpp
 #include <iostream>
-#include <ResourceTuner/ResourceTunerAPIs.h>
+#include <ResourceTuner/UrmAPIs.h>
 
 void sendRequest() {
     // Define resources

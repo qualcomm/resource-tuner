@@ -15,7 +15,6 @@ ErrCode DLManager::insertHelper(DLRootNode* node) {
         return RC_INVALID_VALUE;
     }
 
-    DLRootNode* head = this->mHead;
     DLRootNode* tail = this->mTail;
 
     if(tail != nullptr) {

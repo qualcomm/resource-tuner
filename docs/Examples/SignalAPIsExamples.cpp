@@ -13,7 +13,7 @@
 
 #include <iostream>
 
-#include <ResourceTuner/ResourceTunerAPIs.h>
+#include <ResourceTuner/UrmAPIs.h>
 
 /*
 Signal:

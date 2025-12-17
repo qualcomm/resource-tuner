@@ -13,6 +13,15 @@
 #include "ErrCodes.h"
 
 /**
+ * @enum ModuleType
+ * @brief Enumeration for different modules supported by URM
+ */
+enum ModuleID : int8_t {
+    MOD_RESTUNE,
+    MOD_CLASSIFIER,
+};
+
+/**
  * @enum RequestType
  * @brief Enumeration for different types of Resource-Tuner Requests.
  */
@@ -78,9 +87,11 @@ enum TranslationUnit {
 };
 
 typedef struct {
-    char* buffer;
-    uint64_t bufferSize;
-    int64_t handle;
+    int8_t mModuleID;
+    int8_t mRequestType;
+    uint64_t mBufferSize;
+    int64_t mHandle;
+    char* mBuffer;
 } MsgForwardInfo;
 
 typedef struct {
@@ -92,7 +103,7 @@ typedef struct {
 // Global Typedefs: Declare Function Pointers as types
 typedef ErrCode (*EventCallback)(void*);
 typedef int8_t (*ServerOnlineCheckCallback)();
-typedef void (*ResourceTunerMessageReceivedCallback)(int32_t, MsgForwardInfo*);
+typedef void (*MessageReceivedCallback)(int32_t, MsgForwardInfo*);
 
 #define HIGH_TRANSFER_PRIORITY -1
 #define SERVER_CLEANUP_TRIGGER_PRIORITY -2
