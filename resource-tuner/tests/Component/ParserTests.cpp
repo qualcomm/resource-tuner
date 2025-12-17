@@ -230,8 +230,8 @@ namespace InitConfigParsingTests {
     }
 
     static void TestInitRestuneParserYAMLDataIntegrity1() {
-        C_ASSERT(TargetRegistry::getInstance() != nullptr);\
-        C_ASSERT(parsingStatus == RC_SUCCESS);
+        C_ASSERT((TargetRegistry::getInstance() != nullptr));
+        C_ASSERT((parsingStatus == RC_SUCCESS));
     }
 
     static void TestInitRestuneParserYAMLDataIntegrity2() {
@@ -259,12 +259,12 @@ namespace InitConfigParsingTests {
     }
 
     static void TestInitRestuneParserYAMLDataIntegrity4() {
-        CGroupConfigInfo* cameraConfig = TargetRegistry::getInstance()->getCGroupConfig(4);
+        CGroupConfigInfo* cameraConfig = TargetRegistry::getInstance()->getCGroupConfig(801);
         C_ASSERT(cameraConfig != nullptr);
         C_ASSERT(cameraConfig->mCgroupName == "camera-cgroup");
         C_ASSERT(cameraConfig->mIsThreaded == false);
 
-        CGroupConfigInfo* videoConfig = TargetRegistry::getInstance()->getCGroupConfig(6);
+        CGroupConfigInfo* videoConfig = TargetRegistry::getInstance()->getCGroupConfig(803);
         C_ASSERT(videoConfig != nullptr);
         C_ASSERT(videoConfig->mCgroupName == "video-cgroup");
         C_ASSERT(videoConfig->mIsThreaded == true);
@@ -496,13 +496,13 @@ namespace ExtFeaturesParsingTests {
         ExtFeatureInfo* feature =
             ExtFeaturesRegistry::getInstance()->getExtFeatureConfigById(0x00000002);
 
-        C_ASSERT(feature != nullptr);
-        C_ASSERT(feature->mFeatureId == 0x00000002);
-        C_ASSERT(feature->mFeatureName == "FEAT-2");
-        C_ASSERT(feature->mFeatureLib == "/usr/lib/libpropagate.so");
+        C_ASSERT((feature != nullptr));
+        C_ASSERT((feature->mFeatureId == 0x00000002));
+        C_ASSERT((feature->mFeatureName == "FEAT-2"));
+        C_ASSERT((feature->mFeatureLib == "/usr/lib/libpropagate.so"));
 
-        C_ASSERT(feature->mSignalsSubscribedTo != nullptr);
-        C_ASSERT(feature->mSignalsSubscribedTo->size() == 2);
+        C_ASSERT((feature->mSignalsSubscribedTo != nullptr));
+        C_ASSERT((feature->mSignalsSubscribedTo->size() == 2));
         C_ASSERT((*feature->mSignalsSubscribedTo)[0] == 0x80a105ea);
         C_ASSERT((*feature->mSignalsSubscribedTo)[1] == 0x800ccca5);
     }
@@ -540,33 +540,33 @@ namespace ResourceParsingTestsAddOn {
     static void TestResourceParsingResourcesMerged1() {
         ResConfInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResConf(0x80ff000b);
 
-        C_ASSERT(resourceConfigInfo != nullptr);
-        C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
-        C_ASSERT(resourceConfigInfo->mResourceResID == 0x000b);
-        C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "OVERRIDE_RESOURCE_1") == 0);
-        C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resouce-tuner/tests/Configs/pathB/overwrite") == 0);
-        C_ASSERT(resourceConfigInfo->mHighThreshold == 220);
-        C_ASSERT(resourceConfigInfo->mLowThreshold == 150);
-        C_ASSERT(resourceConfigInfo->mPolicy == LOWER_BETTER);
-        C_ASSERT(resourceConfigInfo->mPermissions == PERMISSION_SYSTEM);
-        C_ASSERT(resourceConfigInfo->mModes == (MODE_RESUME | MODE_DOZE));
-        C_ASSERT(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_CORE);
+        C_ASSERT((resourceConfigInfo != nullptr));
+        C_ASSERT((resourceConfigInfo->mResourceResType == 0xff));
+        C_ASSERT((resourceConfigInfo->mResourceResID == 0x000b));
+        C_ASSERT((strcmp((const char*)resourceConfigInfo->mResourceName.data(), "OVERRIDE_RESOURCE_1") == 0));
+        C_ASSERT((strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resouce-tuner/tests/Configs/pathB/overwrite") == 0));
+        C_ASSERT((resourceConfigInfo->mHighThreshold == 220));
+        C_ASSERT((resourceConfigInfo->mLowThreshold == 150));
+        C_ASSERT((resourceConfigInfo->mPolicy == LOWER_BETTER));
+        C_ASSERT((resourceConfigInfo->mPermissions == PERMISSION_SYSTEM));
+        C_ASSERT((resourceConfigInfo->mModes == (MODE_RESUME | MODE_DOZE)));
+        C_ASSERT((resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_CORE));
     }
 
     static void TestResourceParsingResourcesMerged2() {
         ResConfInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResConf(0x80ff1000);
 
-        C_ASSERT(resourceConfigInfo != nullptr);
-        C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
-        C_ASSERT(resourceConfigInfo->mResourceResID == 0x1000);
-        C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "CUSTOM_SCALING_FREQ") == 0);
-        C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/usr/local/customfreq/node") == 0);
-        C_ASSERT(resourceConfigInfo->mHighThreshold == 90);
-        C_ASSERT(resourceConfigInfo->mLowThreshold == 80);
-        C_ASSERT(resourceConfigInfo->mPolicy == LAZY_APPLY);
-        C_ASSERT(resourceConfigInfo->mPermissions == PERMISSION_THIRD_PARTY);
-        C_ASSERT(resourceConfigInfo->mModes == MODE_DOZE);
-        C_ASSERT(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_CORE);
+        C_ASSERT((resourceConfigInfo != nullptr));
+        C_ASSERT((resourceConfigInfo->mResourceResType == 0xff));
+        C_ASSERT((resourceConfigInfo->mResourceResID == 0x1000));
+        C_ASSERT((strcmp((const char*)resourceConfigInfo->mResourceName.data(), "CUSTOM_SCALING_FREQ") == 0));
+        C_ASSERT((strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/usr/local/customfreq/node") == 0));
+        C_ASSERT((resourceConfigInfo->mHighThreshold == 90));
+        C_ASSERT((resourceConfigInfo->mLowThreshold == 80));
+        C_ASSERT((resourceConfigInfo->mPolicy == LAZY_APPLY));
+        C_ASSERT((resourceConfigInfo->mPermissions == PERMISSION_THIRD_PARTY));
+        C_ASSERT((resourceConfigInfo->mModes == MODE_DOZE));
+        C_ASSERT((resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_CORE));
     }
 
     static void TestResourceParsingResourcesMerged3() {
@@ -588,33 +588,33 @@ namespace ResourceParsingTestsAddOn {
     static void TestResourceParsingResourcesMerged4() {
         ResConfInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResConf(0x80ff000c);
 
-        C_ASSERT(resourceConfigInfo != nullptr);
-        C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
-        C_ASSERT(resourceConfigInfo->mResourceResID == 0x000c);
-        C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "OVERRIDE_RESOURCE_2") == 0);
-        C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/proc/kernel/tid/kernel/uclamp.tid.sched/rt") == 0);
-        C_ASSERT(resourceConfigInfo->mHighThreshold == 100022);
-        C_ASSERT(resourceConfigInfo->mLowThreshold == 87755);
-        C_ASSERT(resourceConfigInfo->mPolicy == INSTANT_APPLY);
-        C_ASSERT(resourceConfigInfo->mPermissions == PERMISSION_THIRD_PARTY);
-        C_ASSERT(resourceConfigInfo->mModes == (MODE_RESUME | MODE_DOZE));
-        C_ASSERT(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_GLOBAL);
+        C_ASSERT((resourceConfigInfo != nullptr));
+        C_ASSERT((resourceConfigInfo->mResourceResType == 0xff));
+        C_ASSERT((resourceConfigInfo->mResourceResID == 0x000c));
+        C_ASSERT((strcmp((const char*)resourceConfigInfo->mResourceName.data(), "OVERRIDE_RESOURCE_2") == 0));
+        C_ASSERT((strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/proc/kernel/tid/kernel/uclamp.tid.sched/rt") == 0));
+        C_ASSERT((resourceConfigInfo->mHighThreshold == 100022));
+        C_ASSERT((resourceConfigInfo->mLowThreshold == 87755));
+        C_ASSERT((resourceConfigInfo->mPolicy == INSTANT_APPLY));
+        C_ASSERT((resourceConfigInfo->mPermissions == PERMISSION_THIRD_PARTY));
+        C_ASSERT((resourceConfigInfo->mModes == (MODE_RESUME | MODE_DOZE)));
+        C_ASSERT((resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_GLOBAL));
     }
 
     static void TestResourceParsingResourcesDefaultValuesCheck() {
         ResConfInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResConf(0x80ff0009);
 
-        C_ASSERT(resourceConfigInfo != nullptr);
-        C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
-        C_ASSERT(resourceConfigInfo->mResourceResID == 0x0009);
-        C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "DEFAULT_VALUES_TEST") == 0);
-        C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "") == 0);
-        C_ASSERT(resourceConfigInfo->mHighThreshold == -1);
-        C_ASSERT(resourceConfigInfo->mLowThreshold == -1);
-        C_ASSERT(resourceConfigInfo->mPolicy == LAZY_APPLY);
-        C_ASSERT(resourceConfigInfo->mPermissions == PERMISSION_THIRD_PARTY);
-        C_ASSERT(resourceConfigInfo->mModes == 0);
-        C_ASSERT(resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_GLOBAL);
+        C_ASSERT((resourceConfigInfo != nullptr));
+        C_ASSERT((resourceConfigInfo->mResourceResType == 0xff));
+        C_ASSERT((resourceConfigInfo->mResourceResID == 0x0009));
+        C_ASSERT((strcmp((const char*)resourceConfigInfo->mResourceName.data(), "DEFAULT_VALUES_TEST") == 0));
+        C_ASSERT((strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "") == 0));
+        C_ASSERT((resourceConfigInfo->mHighThreshold == -1));
+        C_ASSERT((resourceConfigInfo->mLowThreshold == -1));
+        C_ASSERT((resourceConfigInfo->mPolicy == LAZY_APPLY));
+        C_ASSERT((resourceConfigInfo->mPermissions == PERMISSION_THIRD_PARTY));
+        C_ASSERT((resourceConfigInfo->mModes == 0));
+        C_ASSERT((resourceConfigInfo->mApplyType == ResourceApplyType::APPLY_GLOBAL));
     }
 
     static void RunTestGroup() {
@@ -656,29 +656,29 @@ namespace SignalParsingTestsAddOn {
     static void TestSignalParsingSignalsMerged1() {
         SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x80deaadd);
 
-        C_ASSERT(signalInfo != nullptr);
-        C_ASSERT(signalInfo->mSignalID == 0xaadd);
-        C_ASSERT(signalInfo->mSignalCategory == 0xde);
-        C_ASSERT(strcmp((const char*)signalInfo->mSignalName.data(), "OVERRIDE_SIGNAL_1") == 0);
-        C_ASSERT(signalInfo->mTimeout == 14500);
+        C_ASSERT((signalInfo != nullptr));
+        C_ASSERT((signalInfo->mSignalID == 0xaadd));
+        C_ASSERT((signalInfo->mSignalCategory == 0xde));
+        C_ASSERT((strcmp((const char*)signalInfo->mSignalName.data(), "OVERRIDE_SIGNAL_1") == 0));
+        C_ASSERT((signalInfo->mTimeout == 14500));
 
-        C_ASSERT(signalInfo->mPermissions != nullptr);
-        C_ASSERT(signalInfo->mDerivatives != nullptr);
-        C_ASSERT(signalInfo->mSignalResources != nullptr);
+        C_ASSERT((signalInfo->mPermissions != nullptr));
+        C_ASSERT((signalInfo->mDerivatives != nullptr));
+        C_ASSERT((signalInfo->mSignalResources != nullptr));
 
-        C_ASSERT(signalInfo->mPermissions->size() == 1);
-        C_ASSERT(signalInfo->mDerivatives->size() == 1);
-        C_ASSERT(signalInfo->mSignalResources->size() == 1);
+        C_ASSERT((signalInfo->mPermissions->size() == 1));
+        C_ASSERT((signalInfo->mDerivatives->size() == 1));
+        C_ASSERT((signalInfo->mSignalResources->size() == 1));
 
         C_ASSERT(signalInfo->mPermissions->at(0) == PERMISSION_SYSTEM);
 
         C_ASSERT(strcmp((const char*)signalInfo->mDerivatives->at(0).data(), "test-derivative") == 0);
 
         Resource* resource1 = signalInfo->mSignalResources->at(0);
-        C_ASSERT(resource1->getResCode() == 0x80dbaaa0);
-        C_ASSERT(resource1->getValuesCount() == 1);
-        C_ASSERT(resource1->getValueAt(0) == 887);
-        C_ASSERT(resource1->getResInfo() == 0x000776aa);
+        C_ASSERT((resource1->getResCode() == 0x80dbaaa0));
+        C_ASSERT((resource1->getValuesCount() == 1));
+        C_ASSERT((resource1->getValueAt(0) == 887));
+        C_ASSERT((resource1->getResInfo() == 0x000776aa));
     }
 
     static void TestSignalParsingSignalsMerged2() {
@@ -745,51 +745,51 @@ namespace SignalParsingTestsAddOn {
         C_ASSERT(resource1->getResInfo() == 0x0a00f000);
 
         Resource* resource2 = signalInfo->mSignalResources->at(1);
-        C_ASSERT(resource2->getResCode() == 0x800100d0);
-        C_ASSERT(resource2->getValuesCount() == 2);
-        C_ASSERT(resource2->getValueAt(0) == 679);
-        C_ASSERT(resource2->getValueAt(1) == 812);
-        C_ASSERT(resource2->getResInfo() == 0x00100112);
+        C_ASSERT((resource2->getResCode() == 0x800100d0));
+        C_ASSERT((resource2->getValuesCount() == 2));
+        C_ASSERT((resource2->getValueAt(0) == 679));
+        C_ASSERT((resource2->getValueAt(1) == 812));
+        C_ASSERT((resource2->getResInfo() == 0x00100112));
     }
 
     static void TestSignalParsingSignalsMerged4() {
         SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x00080000);
 
-        C_ASSERT(signalInfo == nullptr);
+        C_ASSERT((signalInfo == nullptr));
     }
 
     static void TestSignalParsingSignalsMerged5() {
         SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x80ceffcf);
 
-        C_ASSERT(signalInfo != nullptr);
-        C_ASSERT(signalInfo->mSignalID == 0xffcf);
-        C_ASSERT(signalInfo->mSignalCategory == 0xce);
-        C_ASSERT(strcmp((const char*)signalInfo->mSignalName.data(), "CAMERA_OPEN_CUSTOM") == 0);
-        C_ASSERT(signalInfo->mTimeout == 1);
+        C_ASSERT((signalInfo != nullptr));
+        C_ASSERT((signalInfo->mSignalID == 0xffcf));
+        C_ASSERT((signalInfo->mSignalCategory == 0xce));
+        C_ASSERT((strcmp((const char*)signalInfo->mSignalName.data(), "CAMERA_OPEN_CUSTOM") == 0));
+        C_ASSERT((signalInfo->mTimeout == 1));
 
-        C_ASSERT(signalInfo->mPermissions != nullptr);
-        C_ASSERT(signalInfo->mDerivatives == nullptr);
-        C_ASSERT(signalInfo->mSignalResources != nullptr);
+        C_ASSERT((signalInfo->mPermissions != nullptr));
+        C_ASSERT((signalInfo->mDerivatives == nullptr));
+        C_ASSERT((signalInfo->mSignalResources != nullptr));
 
-        C_ASSERT(signalInfo->mPermissions->size() == 1);
-        C_ASSERT(signalInfo->mSignalResources->size() == 2);
+        C_ASSERT((signalInfo->mPermissions->size() == 1));
+        C_ASSERT((signalInfo->mSignalResources->size() == 2));
 
-        C_ASSERT(signalInfo->mPermissions->at(0) == PERMISSION_SYSTEM);
+        C_ASSERT((signalInfo->mPermissions->at(0) == PERMISSION_SYSTEM));
 
         Resource* resource1 = signalInfo->mSignalResources->at(0);
-        C_ASSERT(resource1->getResCode() == 0x80d9aa00);
-        C_ASSERT(resource1->getValuesCount() == 2);
-        C_ASSERT(resource1->getValueAt(0) == 1);
-        C_ASSERT(resource1->getValueAt(1) == 556);
-        C_ASSERT(resource1->getResInfo() == 0);
+        C_ASSERT((resource1->getResCode() == 0x80d9aa00));
+        C_ASSERT((resource1->getValuesCount() == 2));
+        C_ASSERT((resource1->getValueAt(0) == 1));
+        C_ASSERT((resource1->getValueAt(1) == 556));
+        C_ASSERT((resource1->getResInfo() == 0));
 
         Resource* resource2 = signalInfo->mSignalResources->at(1);
-        C_ASSERT(resource2->getResCode() == 0x80c6500f);
-        C_ASSERT(resource2->getValuesCount() == 3);
-        C_ASSERT(resource2->getValueAt(0) == 1);
-        C_ASSERT(resource2->getValueAt(1)  == 900);
-        C_ASSERT(resource2->getValueAt(2)  == 965);
-        C_ASSERT(resource2->getResInfo() == 0);
+        C_ASSERT((resource2->getResCode() == 0x80c6500f));
+        C_ASSERT((resource2->getValuesCount() == 3));
+        C_ASSERT((resource2->getValueAt(0) == 1));
+        C_ASSERT((resource2->getValueAt(1)  == 900));
+        C_ASSERT((resource2->getValueAt(2)  == 965));
+        C_ASSERT((resource2->getResInfo() == 0));
     }
 
     static void RunTestGroup() {
