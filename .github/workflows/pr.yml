@@ -54,8 +54,8 @@ jobs:
             mkdir -p resource-tuner-bins/etc/resource-tuner/{common,custom,tests}
             mkdir -p resource-tuner-bins/etc/resource-tuner/tests/{configs,nodes}
             cp ../configs/*.yaml resource-tuner-bins/etc/resource-tuner/common/
-            cp ../resource-tuner/Tests/Configs/*.yaml resource-tuner-bins/etc/resource-tuner/tests/configs/
-            cp ../resource-tuner/Tests/Configs/ResourceSysFsNodes/*.txt resource-tuner-bins/etc/resource-tuner/tests/nodes/
+            cp ../resource-tuner/tests/Configs/*.yaml resource-tuner-bins/etc/resource-tuner/tests/configs/
+            cp ../resource-tuner/tests/Configs/ResourceSysFsNodes/*.txt resource-tuner-bins/etc/resource-tuner/tests/nodes/
           '
       - name: Create a tar file of build
         run: |

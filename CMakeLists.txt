@@ -8,12 +8,11 @@ add_compile_options(-Wall -Wextra)
 project("URM")
 
 include(GNUInstallDirs)
+find_package(PkgConfig REQUIRED)
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
-
 # Custom Build Options
 option(BUILD_CLASSIFIER "Classifier" OFF)
-option(BUILD_STATE_DETECTOR "Display Detector" OFF)
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/configs)
 add_subdirectory(${CMAKE_SOURCE_DIR}/modula)
@@ -38,12 +37,6 @@ list(APPEND SERVER_LIBS
   RestuneCore
   RestuneExtAPIs
 )
-
-if(BUILD_STATE_DETECTOR)
-  pkg_check_modules(SYSTEMD REQUIRED libsystemd)
-  list(APPEND SERVER_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/resource-tuner/StateDetector.cpp)
-  list(APPEND SERVER_LIBS ${SYSTEMD_LIBRARIES})
-endif()
 
 if(BUILD_CLASSIFIER)
   # list(APPEND SERVER_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/contextual-classifier/classifier.cpp)
