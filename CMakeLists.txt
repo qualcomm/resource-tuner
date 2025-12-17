@@ -23,7 +23,17 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/resource-tuner)
 
 # build classifier conditionally
 if(BUILD_CLASSIFIER)
+#  pkg_check_modules(FASTTEXT REQUIRED fasttext)
+    find_package(fasttext CONFIG)
+    if(fastText_FOUND)
+        message(STATUS "Found fastText: ${fastText_INCLUDE_DIRS}")
+        include_directories(${fastText_INCLUDE_DIRS})
+    else()
+        message(WARNING "fastText not found. Please install it or set fastText_DIR.")
+    endif()
+
   add_subdirectory(${CMAKE_SOURCE_DIR}/contextual-classifier)
+  list(APPEND SERVER_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/contextual-classifier/classifier.cpp)
 endif()
 
 # Create and install the urm executable
@@ -39,8 +49,7 @@ list(APPEND SERVER_LIBS
 )
 
 if(BUILD_CLASSIFIER)
-  # list(APPEND SERVER_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/contextual-classifier/classifier.cpp)
-  # list(APPEND SERVER_LIBS classifierLib)
+  list(APPEND SERVER_LIBS parser ml_inference_lib fasttext dl)
 endif()
 
 add_executable(urm_exec ${SERVER_EXECUTABLE} ${CMAKE_SOURCE_DIR})
