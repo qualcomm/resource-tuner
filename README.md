@@ -7,6 +7,7 @@ Official repo of URM project. Includes:
 ## Branches
 
 **main**: Primary development branch. Contributors should develop submissions based on this branch, and submit pull requests to this branch.
+
 **gh-pages**: Used for hosting and deploying doxygen generated source documentation
 
 ## Requirements
