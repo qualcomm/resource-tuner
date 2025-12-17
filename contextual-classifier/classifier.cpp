@@ -1,3 +1,6 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
@@ -375,7 +378,6 @@ static ErrCode init(void* arg=nullptr) {
     (void)arg; // unused
     ErrCode opStatus = RC_SUCCESS;
     
-    openlog("classifier_mod", LOG_PID | LOG_CONS | LOG_NDELAY, LOG_DAEMON); // Initialize syslog
     syslog(LOG_INFO, "Classifier module init.");
 
     initialize();
@@ -452,6 +454,4 @@ static ErrCode terminate(void* arg=nullptr) {
     return RC_SUCCESS;
 }
 
-
 RESTUNE_REGISTER_MODULE(MOD_CLASSIFIER, init, terminate);
-//RESTUNE_REGISTER_MODULE(1, init, terminate, NULL);

@@ -23,8 +23,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # Define the parser library
 set(PARSER_LIB_SOURCES
-    src/process_scanner.cpp
-    src/proc_tokenizer.cpp
+    process_scanner.cpp
+    proc_tokenizer.cpp
 )
 
 add_library(parser SHARED ${PARSER_LIB_SOURCES})
@@ -41,7 +41,7 @@ target_include_directories(parser
 
 # Define the ML inference library
 add_library(ml_inference_lib STATIC
-    src/ml_inference.cpp
+    ml_inference.cpp
 )
 
 target_link_libraries(ml_inference_lib

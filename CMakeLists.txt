@@ -21,6 +21,11 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/client)
 # resource-tuner is a mandatory build
 add_subdirectory(${CMAKE_SOURCE_DIR}/resource-tuner)
 
+# Create and install the urm executable
+set(SERVER_EXECUTABLE "")
+list(APPEND SERVER_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/urm.cpp
+                              ${CMAKE_CURRENT_SOURCE_DIR}/resource-tuner/init/RestuneInit.cpp)
+
 # build classifier conditionally
 if(BUILD_CLASSIFIER)
 #  pkg_check_modules(FASTTEXT REQUIRED fasttext)
@@ -35,11 +40,6 @@ if(BUILD_CLASSIFIER)
   add_subdirectory(${CMAKE_SOURCE_DIR}/contextual-classifier)
   list(APPEND SERVER_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/contextual-classifier/classifier.cpp)
 endif()
-
-# Create and install the urm executable
-set(SERVER_EXECUTABLE "")
-list(APPEND SERVER_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/urm.cpp
-                              ${CMAKE_CURRENT_SOURCE_DIR}/resource-tuner/init/RestuneInit.cpp)
 
 set(SERVER_LIBS "")
 list(APPEND SERVER_LIBS
