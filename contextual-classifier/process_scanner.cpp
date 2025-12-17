@@ -6,8 +6,22 @@
 #include <parser.h>
 #include <fstream>
 #include <sys/stat.h>
+#include <chrono>
+#include <cstdarg>
+#include "Logger.h"
 
 #define PRUNED_DIR "/var/cache/pruned"
+#define SCANNER_TAG "ProcScanner"
+
+static std::string format_string(const char* fmt, ...) {
+    char buffer[1024];
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buffer, sizeof(buffer), fmt, args);
+    va_end(args);
+    return std::string(buffer);
+}
+#define UNFILTERED_DIR "/var/cache/unfiltered"
 #define UNFILTERED_DIR "/var/cache/unfiltered"
 
 void removeDoubleQuotes(std::vector<std::string>& vec) {
@@ -104,7 +118,7 @@ std::string join_vector(const std::vector<std::string>& vec) {
 
 int collect_and_store_data(pid_t pid, const std::unordered_map<std::string, std::unordered_set<std::string>>& ignoreMap, std::map<std::string, std::string>& output_data, bool dump_csv) {
     if(!isValidPidViaProc(pid)) {
-        syslog(LOG_ERR, "PID %d does not exist in /proc.", pid);
+        LOGE(SCANNER_TAG, format_string("PID %d does not exist in /proc.", pid));
         return 1;
     }
 
@@ -122,202 +136,105 @@ int collect_and_store_data(pid_t pid, const std::unordered_map<std::string, std:
     */
     std::string delimiters = ".:";
     std::vector<std::string> context = parse_proc_attr_current(pid, delimiters);
-    if(!context.empty()) {
-        syslog(LOG_DEBUG, "attr_current:");
-        for(const auto& c: context) {
-            syslog(LOG_DEBUG, "%s", c.c_str());
-        }
-    }
+
     std::vector<std::string> lowercontext = toLowercaseVector(context);
     auto filtered_context = filterStrings(lowercontext, ignoreMap.count("attr") ? ignoreMap.at("attr") : std::unordered_set<std::string>());
-    if(!filtered_context.empty()) {
-        syslog(LOG_DEBUG, "filtered attr_current:");
-        for(const auto& c: filtered_context) {
-            syslog(LOG_DEBUG, "%s", c.c_str());
-        }
-    }
-
+    
     /* Parse cgroup */
     /*
         hierarchy-ID:controller-list:cgroup-path
     */
     delimiters = ":\"/";
     std::vector<std::string> cgroup = parse_proc_cgroup(pid, delimiters);
-    if(!cgroup.empty()) {
-        syslog(LOG_DEBUG, "cgroup:");
-        for(const auto& c: cgroup) {
-            syslog(LOG_DEBUG, "%s", c.c_str());
-        }
-    }
     std::vector<std::string> lowercgroup = toLowercaseVector(cgroup);
     auto filtered_cg = filterStrings(lowercgroup, ignoreMap.count("cgroup") ? ignoreMap.at("cgroup") : std::unordered_set<std::string>());
-    if(!filtered_cg.empty()) {
-        syslog(LOG_DEBUG, "filtered cg:");
-        for(const auto& c: filtered_cg) {
-            syslog(LOG_DEBUG, "%s", c.c_str());
-        }
-    }
 
     normalize_numbers_inplace(filtered_cg);
-    if(!filtered_cg.empty()) {
-        syslog(LOG_DEBUG, "filtered cg:");
-        for(const auto& c: filtered_cg) {
-            syslog(LOG_DEBUG, "%s", c.c_str());
-        }
-    }
-    
+        
     /* Parse cmdline */
+    auto t1 = std::chrono::high_resolution_clock::now();
     /*
         ENV variable = value
         --config-a=vaule
-
     */
     delimiters = ".=/!";
     std::vector<std::string> cmdline = parse_proc_cmdline(pid, delimiters);
-    if(!cmdline.empty()) {
-        syslog(LOG_DEBUG, "cmdline:");
-        for(const auto& c: cmdline) {
-            syslog(LOG_DEBUG, "%s", c.c_str());
-        }
-    }
+    auto t2 = std::chrono::high_resolution_clock::now();
+    LOGD(SCANNER_TAG, format_string("cmdline took %f ms", std::chrono::duration<double, std::milli>(t2 - t1).count()));
+
     std::vector<std::string> lowercmdline = toLowercaseVector(cmdline);
     //TODO: filter single digit numbers.
     auto filtered_cmd = filterStrings(lowercmdline, ignoreMap.count("cmdline") ? ignoreMap.at("cmdline") : std::unordered_set<std::string>());
-    if(!filtered_cmd.empty()) {
-        syslog(LOG_DEBUG, "filtered cmdline:");
-        for(const auto& c: filtered_cmd) {
-            syslog(LOG_DEBUG, "%s", c.c_str());
-        }
-    }
+
     removeDoubleDash(filtered_cmd);
-    if(!filtered_cmd.empty()) {
-        syslog(LOG_DEBUG, "filtered cmdline:");
-        for(const auto& c: filtered_cmd) {
-            syslog(LOG_DEBUG, "%s", c.c_str());
-        }
-    }
 
     /* Parse comm */
     delimiters = ".";
     std::vector<std::string> comm = parse_proc_comm(pid, delimiters);
-    if(!comm.empty()) {
-        syslog(LOG_DEBUG, "comm:");
-        for(const auto& c: comm) {
-            syslog(LOG_DEBUG, "%s", c.c_str());
-        }
-    }
     std::vector<std::string> lowercomm = toLowercaseVector(comm);
     auto filtered_comm = filterStrings(lowercomm, ignoreMap.count("comm") ? ignoreMap.at("comm") : std::unordered_set<std::string>());
-    if(!filtered_comm.empty()) {
-        syslog(LOG_DEBUG, "filtered comm:");
-        for(const auto& c: filtered_comm) {
-            syslog(LOG_DEBUG, "%s", c.c_str());
-        }
-    }
     normalize_numbers_inplace(filtered_comm);
 
     /* parse map_files */
+    t1 = std::chrono::high_resolution_clock::now();
     delimiters = "/()_:.";
     std::vector<std::string> maps = parse_proc_map_files(pid, delimiters);
-    if(!maps.empty()) {
-        syslog(LOG_DEBUG, "map_files:");
-        for(const auto& c: maps) {
-		    syslog(LOG_DEBUG, "%s", c.c_str());
-        }
-    }
+    t2 = std::chrono::high_resolution_clock::now();
+    LOGD(SCANNER_TAG, format_string("maps took %f ms", std::chrono::duration<double, std::milli>(t2 - t1).count()));
+
     std::vector<std::string> lowermaps = toLowercaseVector(maps);
     auto filtered_maps = filterStrings(lowermaps, ignoreMap.count("map_files") ? ignoreMap.at("map_files") : std::unordered_set<std::string>());
-    if(!filtered_maps.empty()) {
-        syslog(LOG_DEBUG, "filtered map_files:");
-        for(const auto& c: filtered_maps) {
-			syslog(LOG_DEBUG, "%s", c.c_str());
-        }
-    }
     normalize_numbers_inplace(filtered_maps);
 
     /* parse fd */
+    t1 = std::chrono::high_resolution_clock::now();
     delimiters = ":[]/()=";
     std::vector<std::string> fds = parse_proc_fd(pid, delimiters);
-    if(!fds.empty()) {
-        syslog(LOG_DEBUG, "fds:");
-        for(const auto& c: fds) {
-		    syslog(LOG_DEBUG, "%s", c.c_str());
-        }
-    }
+    t2 = std::chrono::high_resolution_clock::now();
+    LOGD(SCANNER_TAG, format_string("fds took %f ms", std::chrono::duration<double, std::milli>(t2 - t1).count()));
+
     std::vector<std::string> lowerfds = toLowercaseVector(fds);
     auto filtered_fds = filterStrings(lowerfds, ignoreMap.count("fds") ? ignoreMap.at("fds") : std::unordered_set<std::string>());
-    if(!filtered_fds.empty()) {
-        syslog(LOG_DEBUG, "filtered fds:");
-        for(const auto& c: filtered_fds) {
-            syslog(LOG_DEBUG, "%s", c.c_str());
-        }
-    }
 
     // parse environ with delimiters
+    t1 = std::chrono::high_resolution_clock::now();
     delimiters = "=@;!-._/:, ";
     std::vector<std::string> environ = parse_proc_environ(pid, delimiters);
-    if (!environ.empty()) {
-        syslog(LOG_DEBUG, "environ:");
-        for (const auto& c : environ) {
-            syslog(LOG_DEBUG, "%s", c.c_str());
-        }
-    }
+    t2 = std::chrono::high_resolution_clock::now();
+    LOGD(SCANNER_TAG, format_string("environ took %f ms", std::chrono::duration<double, std::milli>(t2 - t1).count()));
+
     std::vector<std::string> lowerenviron = toLowercaseVector(environ);
     auto filtered_environ = filterStrings(lowerenviron, ignoreMap.count("environ") ? ignoreMap.at("environ") : std::unordered_set<std::string>());
-    if (!filtered_environ.empty()) {
-        syslog(LOG_DEBUG, "filtered environ:");
-        for (const auto& c : filtered_environ) {
-            syslog(LOG_DEBUG, "%s", c.c_str());
-        }
-    }
     normalize_numbers_inplace(filtered_environ);
-    if(!filtered_environ.empty()) {
-        syslog(LOG_DEBUG, "filtered environ:");
-        for(const auto& c: filtered_environ) {
-            syslog(LOG_DEBUG, "%s", c.c_str());
-        }
-    }
-
+    
     delimiters = "/.";
     std::vector<std::string> exe = parse_proc_exe(pid, delimiters);
-    if(!exe.empty()) {
-        syslog(LOG_DEBUG, "exe");
-        for(const auto& c: exe) {
-            syslog(LOG_DEBUG, "%s", c.c_str());
-        } 
-    }
+
     std::vector<std::string> lowerexe = toLowercaseVector(exe);
     auto filtered_exe = filterStrings(lowerexe, ignoreMap.count("exe") ? ignoreMap.at("exe") : std::unordered_set<std::string>());
-    if(!filtered_exe.empty()) {
-        syslog(LOG_DEBUG, "filtered exe:");
-        for(const auto& c: filtered_exe) {
-            syslog(LOG_DEBUG, "%s", c.c_str());
-        }
-    }
     normalize_numbers_inplace(filtered_exe);
 
     delimiters = "=!'&/.,:- ";
     /* Read log using journalctl */
+    t1 = std::chrono::high_resolution_clock::now();
     auto journalctl_logs = readJournalForPid(pid, LOG_LINES);
     if (journalctl_logs.empty()) {
-       syslog(LOG_DEBUG, "No logs found for PID %d", pid);
+       LOGD(SCANNER_TAG, format_string("No logs found for PID %d", pid));
     }
+    t2 = std::chrono::high_resolution_clock::now();
+    LOGD(SCANNER_TAG, format_string("journalctl took %f ms", std::chrono::duration<double, std::milli>(t2 - t1).count()));
 
     // Ignore first 3 columns in journalctl logs
     auto extracted_Logs = extractProcessNameAndMessage(journalctl_logs);
-    syslog(LOG_DEBUG, "Filtered log entries for PID %d:", pid);
 
     std::vector<std::string> logs;
 
     for (const auto& entry : extracted_Logs) {
-         syslog(LOG_DEBUG, "%s", entry.c_str());
 
          // Tokenize the filtered log entry
           auto tokens = parse_proc_log(entry, delimiters);
 
-          syslog(LOG_DEBUG, "logs");
           for (const auto& c : tokens) {
-               syslog(LOG_DEBUG, "%s", c.c_str());
                logs.push_back(c); // Accumulate tokens into logs
            }
     }
@@ -325,14 +242,8 @@ int collect_and_store_data(pid_t pid, const std::unordered_map<std::string, std:
     std::vector<std::string> lowerlogs = toLowercaseVector(logs);
 
     // Now logs contains tokens from all entries
-    auto filtered_logs = filterStrings(lowerlogs, ignoreMap.count("logs") ? ignoreMap.at("logs") : std::unordered_set<std::string>());
-    if (!filtered_logs.empty()) {
-        syslog(LOG_DEBUG, "filtered logs:");
-        for (const auto& c : filtered_logs) {
-            syslog(LOG_DEBUG, "%s", c.c_str());
-         }
-   }    
-
+   auto filtered_logs = filterStrings(lowerlogs, ignoreMap.count("logs") ? ignoreMap.at("logs") : std::unordered_set<std::string>());
+    
    removeDoubleQuotes(filtered_logs);
 
    // Populate output_data with filtered strings

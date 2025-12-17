@@ -19,7 +19,10 @@ add_compile_options(-Wall -Wextra)
 #endif()
 
 # Include directories for the entire project
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Include)
+include_directories(${CMAKE_SOURCE_DIR}/modula/Components/Include)
+include_directories(${CMAKE_SOURCE_DIR}/modula/Common/Include)
+include_directories(${CMAKE_SOURCE_DIR}/modula/CoreModules/Include)
 
 # Define the parser library
 set(PARSER_LIB_SOURCES
@@ -36,7 +39,7 @@ set_target_properties(parser PROPERTIES
 
 target_include_directories(parser
     PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/Include
 )
 
 # Define the ML inference library
@@ -51,7 +54,7 @@ target_link_libraries(ml_inference_lib
 
 target_include_directories(ml_inference_lib
     PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/Include
 )
 
 # Installation rules
