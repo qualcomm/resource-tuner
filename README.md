@@ -33,9 +33,15 @@ This project depends on the following external libraries:
 ```bash
 mkdir -p build && cd build
 ```
-* Configure the project
+* Configure the project:
+Default Build
 ```bash
-cmake .. [-DBUILD_CLASSIFIER=ON]
+cmake .. -DCMAKE_INSTALL_PREFIX=/
+```
+
+With classifier support enabled:
+```bash
+cmake .. -DCMAKE_INSTALL_PREFIX=/ -DBUILD_CLASSIFIER=ON
 ```
 * Build the project
 ```bash
@@ -47,7 +53,7 @@ sudo cmake --install .
 ```
 * Start the URM Server
 ```bash
-/usr/bin/urm_exec
+/usr/bin/urm
 ```
 
 * Install to a custom temporary directory [Optional]

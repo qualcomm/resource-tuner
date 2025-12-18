@@ -52,8 +52,8 @@ if(BUILD_CLASSIFIER)
   list(APPEND SERVER_LIBS parser ml_inference_lib fasttext dl)
 endif()
 
-add_executable(urm_exec ${SERVER_EXECUTABLE} ${CMAKE_SOURCE_DIR})
-target_link_libraries(urm_exec PUBLIC ${SERVER_LIBS})
+add_executable(urm ${SERVER_EXECUTABLE} ${CMAKE_SOURCE_DIR})
+target_link_libraries(urm PUBLIC ${SERVER_LIBS})
 
 # Install bin
-install(TARGETS urm_exec RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS urm RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
