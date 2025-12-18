@@ -6,8 +6,10 @@
 
 #ifdef __cplusplus
 #include <cstdint>
+#include <cstring>
 #else
 #include <stdint.h>
+#include <string.h>
 #endif
 
 // Use these options to configure a well defined value
@@ -131,58 +133,77 @@ enum Modes {
 // specify the resource to be tuned.
 // For target-specific resources use the custom ResourcesConfig.yaml file for
 // declaration. These values are only applicable for upstream resources.
+#define RES_CODE_LIST                     \
+/* Resources */                           \
+X(RES_SCALE_MIN_FREQ,         0x00040000) \
+X(RES_SCALE_MAX_FREQ,         0x00040001) \
+X(RES_SCHED_UTIL_CLAMP_MIN,   0x00030000) \
+X(RES_SCHED_UTIL_CLAMP_MAX,   0x00030001) \
+X(RES_CPU_DMA_LATENCY,        0x00010000) \
+X(RES_PM_QOS_LATENCY,         0x00010001) \
+/* cgroup resources */                    \
+X(RES_CGRP_MOVE_PID,          0x00090000) \
+X(RES_CGRP_MOVE_TID,          0x00090001) \
+X(RES_CGRP_RUN_CORES,         0x00090002) \
+X(RES_CGRP_RUN_CORES_EXCL,    0x00090003) \
+X(RES_CGRP_FREEZE,            0x00090004) \
+X(RES_CGRP_LIMIT_CPU_TIME,    0x00090005) \
+X(RES_CGRP_RUN_WHEN_CPU_IDLE, 0x00090006) \
+X(RES_CGRP_UCLAMP_MIN,        0x00090007) \
+X(RES_CGRP_UCLAMP_MAX,        0x00090008) \
+X(RES_CGRP_REL_CPU_WEIGHT,    0x00090009) \
+X(RES_CGRP_HIGH_MEM,          0x0009000a) \
+X(RES_CGRP_MAX_MEM,           0x0009000b) \
+X(RES_CGRP_LOW_MEM,           0x0009000c) \
+X(RES_CGRP_MIN_MEM,           0x0009000d) \
+X(RES_CGRP_SWAP_MAX_MEMORY,   0x0009000e) \
+X(RES_CGRP_IO_WEIGHT,         0x0009000f) \
+X(RES_CGRP_BFQ_IO_WEIGHT,     0x00090010) \
+X(RES_CGRP_CPU_LATENCY,       0x00090011) \
+/* Cluster and Core Configurations */     \
+X(CLUSTER_LITTLE_ALL_CORES,   0x00000000) \
+X(CLUSTER_LITTLE_CORE_0,      0x00000001) \
+X(CLUSTER_LITTLE_CORE_1,      0x00000002) \
+X(CLUSTER_LITTLE_CORE_2,      0x00000003) \
+X(CLUSTER_LITTLE_CORE_3,      0x00000004) \
+X(CLUSTER_BIG_ALL_CORES,      0x00000100) \
+X(CLUSTER_BIG_CORE_0,         0x00000101) \
+X(CLUSTER_BIG_CORE_1,         0x00000102) \
+X(CLUSTER_BIG_CORE_2,         0x00000103) \
+X(CLUSTER_BIG_CORE_3,         0x00000104) \
+X(CLUSTER_PLUS_ALL_CORES,     0x00000200) \
+X(CLUSTER_PLUS_CORE_0,        0x00000201) \
+X(CLUSTER_PLUS_CORE_1,        0x00000202) \
+X(CLUSTER_PLUS_CORE_2,        0x00000203) \
+X(CLUSTER_PLUS_CORE_3,        0x00000204) \
+
 enum ResCodesDef {
-    // Resources
-    RES_SCALE_MIN_FREQ           = 0x00040000,
-    RES_SCALE_MAX_FREQ           = 0x00040001,
-    RES_SCHED_UTIL_CLAMP_MIN     = 0x00030000,
-    RES_SCHED_UTIL_CLAMP_MAX     = 0X00030001,
-    RES_CPU_DMA_LATENCY          = 0X00010000,
-    RES_PM_QOS_LATENCY           = 0X00010001,
-
-    // cgroup resources
-    RES_CGRP_MOVE_PID            = 0x00090000,
-    RES_CGRP_MOVE_TID            = 0x00090001,
-    RES_CGRP_RUN_CORES           = 0x00090002,
-    RES_CGRP_RUN_CORES_EXCL      = 0x00090003,
-    RES_CGRP_FREEZE              = 0x00090004,
-    RES_CGRP_LIMIT_CPU_TIME      = 0x00090005,
-    RES_CGRP_RUN_WHEN_CPU_IDLE   = 0x00090006,
-    RES_CGRP_UCLAMP_MIN          = 0x00090007,
-    RES_CGRP_UCLAMP_MAX          = 0x00090008,
-    RES_CGRP_REL_CPU_WEIGHT      = 0x00090009,
-    RES_CGRP_HIGH_MEM            = 0x0009000a,
-    RES_CGRP_MAX_MEM             = 0x0009000b,
-    RES_CGRP_LOW_MEM             = 0x0009000c,
-    RES_CGRP_MIN_MEM             = 0x0009000d,
-    RES_CGRP_SWAP_MAX_MEMORY     = 0x0009000e,
-    RES_CGRP_IO_WEIGHT           = 0x0009000f,
-    RES_CGRP_BFQ_IO_WEIGHT       = 0x00090010,
-    RES_CGRP_CPU_LATENCY         = 0x00090011,
-
-    // ResInfo defintions for common use cases
-    // Cluster definitions (in the order of increasing capacity)
-
-    // Little Cluster
-    CLUSTER_LITTLE_ALL_CORE      = 0x00000000,
-    CLUSTER_LITTLE_CORE_0        = 0x00000001, // First Core in little Cluster.
-    CLUSTER_LITTLE_CORE_1        = 0x00000002,
-    CLUSTER_LITTLE_CORE_2        = 0x00000003,
-    CLUSTER_LITTLE_CORE_3        = 0x00000004,
-
-    // Big Cluster
-    CLUSTER_BIG_ALL_CORE         = 0x00000100,
-    CLUSTER_BIG_CORE_0           = 0x00000101, // First Core in Big Cluster.
-    CLUSTER_BIG_CORE_1           = 0x00000102,
-    CLUSTER_BIG_CORE_2           = 0x00000103,
-    CLUSTER_BIG_CORE_3           = 0x00000104,
-
-    // Plus / Prime Cluster
-    CLUSTER_PLUS_ALL_CORE        = 0x00000200,
-    CLUSTER_PLUS_CORE_0          = 0x00000201, // First Core in Prime / Plus Cluster.
-    CLUSTER_PLUS_CORE_1          = 0x00000202,
-    CLUSTER_PLUS_CORE_2          = 0x00000203,
-    CLUSTER_PLUS_CORE_3          = 0x00000204,
+#define X(name, value) name = value,
+    RES_CODE_LIST
+#undef X
 };
+
+typedef struct {
+    const char* name;
+    uint32_t code;
+} ResPair;
+
+static ResPair resCodeMapping[] = {
+#define X(name, value) {#name, (uint32_t)value,},
+    RES_CODE_LIST
+#undef X
+};
+
+static uint32_t getResCodeFromString(const char* strCode, int8_t* found) {
+    int32_t size = sizeof(resCodeMapping) / sizeof(resCodeMapping[0]);
+    for(int32_t i = 0; i < size; i++) {
+        if(strcmp(resCodeMapping[i].name, strCode) == 0) {
+            *found = true;
+            return resCodeMapping[i].code;
+        }
+    }
+
+    return 0;
+}
 
 #endif

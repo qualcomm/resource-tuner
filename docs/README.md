@@ -83,7 +83,7 @@ option(BUILD_CLI "CLI" OFF)
 <div style="page-break-after: always;"></div>
 
 # Userspace Resource Manager Key Points
-Userspace resource manager (uRM) contains 
+Userspace resource manager (uRM) contains
 - Userspace resource manager (uRM) exposes a variery of APIs for resource tuning and use-case/scenario tuning
 - These APIs can be used by apps, features and other modules
 - Using these APIs, client can tune any system resource parameters like cpu, dcvs, min / max frequencies etc.
@@ -97,11 +97,11 @@ Userspace resource manager (uRM) contains
 - Extension interface provides a way to customize resource-tuner behaviour, by specifying custom resources, custom signals and features.
 - Resource-tuner uses YAML based config files, for fetching information relating to resources/signals and properties.
 ## Contextual Classifier
-- Contextual Classifier identifies usecase type based on offline trained model 
+- Contextual Classifier identifies usecase type based on offline trained model
 - Sends signals to Resource Tuner on app opening or launching with app pid and use-case type
 - Extracts use-case's further details based on app pid
 - Moves focused active app's threads to "Focused" cgroup
-- Move previously focused app threads to its origional group 
+- Move previously focused app threads to its origional group
 - This is an optional module which can be enabled at compile time
 ---
 <div style="page-break-after: always;"></div>
@@ -417,10 +417,10 @@ Resource-tuner utilises YAML files for configuration. This includes the resource
 Initialisation configs are mentioned in InitConfig.yaml file. This config enables resource-tuner to setup the required settings at the time of initialisation before any request processing happens.
 
 ### Common Initialization Configs
-Common or upstream initialization configs are defined in /etc/resource-tuner/common/InitConfig.yaml
+Common initialization configs are defined in /etc/urm/common/InitConfig.yaml
 
 ### Overriding Initialization Configs
-Targets can override initialization configs (in addition to common init configs, i.e. overrides specific configs) by simply pushing its own InitConfig.yaml into /etc/resource-tuner/custom/InitConfig.yaml
+Targets can override initialization configs (in addition to common init configs, i.e. overrides specific configs) by simply pushing its own InitConfig.yaml into /etc/urm/custom/InitConfig.yaml
 
 ### Overiding with Custom Extension File
 RESTUNE_REGISTER_CONFIG(INIT_CONFIG, "/bin/InitConfigCustom.yaml");
@@ -541,10 +541,10 @@ InitConfigs:
 Tunable resources are specified via ResourcesConfig.yaml file.
 
 ### Common Resource Configs
-Common resource configs are defined in /etc/resource-tuner/common/ResourcesConfig.yaml.
+Common resource configs are defined in /etc/urm/common/ResourcesConfig.yaml.
 
 ### Overriding Resource Configs
-Targets can override resource cofigs (can fully override or selective resources) by simply pushing its own ResourcesConfig.yaml into /etc/resource-tuner/custom/ResourcesConfig.yaml
+Targets can override resource cofigs (can fully override or selective resources) by simply pushing its own ResourcesConfig.yaml into /etc/urm/custom/ResourcesConfig.yaml
 
 ### Overiding with Custom Extension File
 RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/bin/targetResourceConfigCustom.yaml");
@@ -606,10 +606,10 @@ ResourceConfigs:
 PropertiesConfig.yaml file stores various properties which are used by resource-tuner modules internally. For example, to allocate sufficient amount of memory for different types, or to determine the Pulse Monitor duration. Client can also use this as a property store to store their properties which gives it flexibility to control properties depending on the target.
 
 ### Common Properties Configs
-Common resource configs are defined in /etc/resource-tuner/common/PropertiesConfig.yaml.
+Common resource configs are defined in /etc/urm/common/PropertiesConfig.yaml.
 
 ### Overriding Properties Configs
-Targets can override Properties cofigs (can fully override or selective resources) by simply pushing its own PropertiesConfig.yaml into /etc/resource-tuner/custom/PropertiesConfig.yaml
+Targets can override Properties cofigs (can fully override or selective resources) by simply pushing its own PropertiesConfig.yaml into /etc/urm/custom/PropertiesConfig.yaml
 
 ### Overiding with Custom Properties File
 RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/bin/targetPropertiesConfigCustom.yaml"); if Client have no specific extensions like custom resources or features only want to change the config then the above method (using the same file name and pushing it to custom folder) is the best method to go for.
@@ -1091,7 +1091,7 @@ Resource-tuner provides a minimal CLI to interact with the server. This is provi
 
 ### 1. Send a Tune Request
 ```bash
-./resource_tuner_cli --tune --duration <> --priority <> --num <> --res <>
+/usr/bin/urmCli --tune --duration <> --priority <> --num <> --res <>
 ```
 Where:
 - `duration`: Duration in milliseconds for the tune request
@@ -1102,36 +1102,36 @@ Where:
 Example:
 ```bash
 # Single Resource in a Request
-./resource_tuner_cli --tune --duration 5000 --priority 0 --num 1 --res "65536:700"
+/usr/bin/urmCli --tune --duration 5000 --priority 0 --num 1 --res "65536:700"
 
 # Multiple Resources in single Request
-./resource_tuner_cli --tune --duration 4400 --priority 1 --num 2 --res "0x80030000:700,0x80040001:155667"
+/usr/bin/urmCli --tune --duration 4400 --priority 1 --num 2 --res "0x80030000:700,0x80040001:155667"
 
 # Multi-Valued Resource
-./resource_tuner_cli --tune --duration 9500 --priority 0 --num 1 --res "0x00090002:0,0,1,3,5"
+/usr/bin/urmCli --tune --duration 9500 --priority 0 --num 1 --res "0x00090002:0,0,1,3,5"
 
 # Specifying ResInfo (useful for Core and Cluster type Resources)
-./resource_tuner_cli --tune --duration 5000 --priority 0 --num 1 --res "0x00040000#0x00000100:1620438"
+/usr/bin/urmCli --tune --duration 5000 --priority 0 --num 1 --res "0x00040000#0x00000100:1620438"
 
 # Everything at once
-./resource_tuner_cli --tune --duration 6500 --priority 0 --num 2 --res "0x00030000:800;0x00040011#0x00000101:50000,100000"
+/usr/bin/urmCli --tune --duration 6500 --priority 0 --num 2 --res "0x00030000:800;0x00040011#0x00000101:50000,100000"
 ```
 
 ### 2. Send an Untune Request
 ```bash
-./resource_tuner_cli --untune --handle <>
+/usr/bin/urmCli --untune --handle <>
 ```
 Where:
 - `handle`: Handle of the previously issued tune request, which needs to be untuned
 
 Example:
 ```bash
-./resource_tuner_cli --untune --handle 50
+/usr/bin/urmCli --untune --handle 50
 ```
 
 ### 3. Send a Retune Request
 ```bash
-./resource_tuner_cli --retune --handle <> --duration <>
+/usr/bin/urmCli --retune --handle <> --duration <>
 ```
 Where:
 - `handle`: Handle of the previously issued tune request, which needs to be retuned
@@ -1139,20 +1139,33 @@ Where:
 
 Example:
 ```bash
-./resource_tuner_cli --retune --handle 7 --duration 8000
+/usr/bin/urmCli --retune --handle 7 --duration 8000
 ```
 
 ### 4. Send a getProp Request
 
 ```bash
-./resource_tuner_cli --getProp --key <>
+/usr/bin/urmCli --getProp --key <>
 ```
 Where:
 - `key`: The Prop name of which the corresponding value needs to be fetched
 
 Example:
 ```bash
-./resource_tuner_cli --getProp --key "resource_tuner.logging.level"
+/usr/bin/urmCli --getProp --key "urm.logging.level"
+```
+
+### 5. Send a tuneSignal Request
+
+```bash
+/usr/bin/urmCli --signal --scode <>
+```
+Where:
+- `key`: The Prop name of which the corresponding value needs to be fetched
+
+Example:
+```bash
+/usr/bin/urmCli --signal --scode "0x00fe0ab1"
 ```
 
 <div style="page-break-after: always;"></div>

@@ -3,14 +3,14 @@ if(BUILD_TESTS)
     file(GLOB testConfigs "${CMAKE_CURRENT_SOURCE_DIR}/Configs/*.yaml")
     install(
         FILES ${testConfigs}
-        DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/resource-tuner/tests/configs/
+        DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/urm/tests/configs/
         PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
     )
 
     # Install Custom Resource Nodes
     install(
         DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Configs/ResourceSysFsNodes/
-        DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/resource-tuner/tests/nodes/
+        DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/urm/tests/nodes/
         FILES_MATCHING
         PATTERN "*.txt"
         PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ

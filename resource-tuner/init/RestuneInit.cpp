@@ -196,7 +196,7 @@ static ErrCode fetchProperties() {
         return opStatus;
     }
 
-    // Parse Custom Properties Configs provided in /etc/resource-tuner/custom (if any)
+    // Parse Custom Properties Configs provided in /etc/urm/custom (if any)
     filePath = UrmSettings::mCustomPropertiesFilePath;
     if(AuxRoutines::fileExists(filePath)) {
         opStatus = parseUtil(filePath, CUSTOM_PROPERTIES, ConfigType::PROPERTIES_CONFIG);
@@ -226,7 +226,7 @@ static ErrCode fetchResources() {
         return parseUtil(filePath, CUSTOM_RESOURCE, ConfigType::RESOURCE_CONFIG, true);
     }
 
-    // Parse Custom Resource Configs provided in /etc/resource-tuner/custom (if any)
+    // Parse Custom Resource Configs provided in /etc/urm/custom (if any)
     filePath = UrmSettings::mCustomResourceFilePath;
     if(AuxRoutines::fileExists(filePath)) {
         return parseUtil(filePath, CUSTOM_RESOURCE, ConfigType::RESOURCE_CONFIG, true);
@@ -276,7 +276,7 @@ static ErrCode fetchInitInfo() {
         return parseUtil(filePath, CUSTOM_INIT, ConfigType::INIT_CONFIG);
     }
 
-    // Parse Custom Init Configs provided in /etc/resource-tuner/custom (if any)
+    // Parse Custom Init Configs provided in /etc/urm/custom (if any)
     filePath = UrmSettings::mCustomInitConfigFilePath;
     if(AuxRoutines::fileExists(filePath)) {
         return parseUtil(filePath, CUSTOM_INIT, ConfigType::INIT_CONFIG);
@@ -302,7 +302,7 @@ static ErrCode fetchSignals() {
         return parseUtil(filePath, CUSTOM_SIGNAL, ConfigType::SIGNALS_CONFIG, true);
     }
 
-    // Parse Custom Signal Configs provided in /etc/resource-tuner/custom (if any)
+    // Parse Custom Signal Configs provided in /etc/urm/custom (if any)
     filePath = UrmSettings::mCustomSignalFilePath;
     if(AuxRoutines::fileExists(filePath)) {
         return parseUtil(filePath, CUSTOM_SIGNAL, ConfigType::SIGNALS_CONFIG, true);

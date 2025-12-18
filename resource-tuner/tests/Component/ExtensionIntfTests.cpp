@@ -7,11 +7,11 @@
 #include "Extensions.h"
 #include "TestAggregator.h"
 
-RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/resource-tuner/tests/configs/ResourcesConfig.yaml")
-RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/etc/resource-tuner/tests/configs/PropertiesConfig.yaml")
-RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/resource-tuner/tests/configs/SignalsConfig.yaml")
-RESTUNE_REGISTER_CONFIG(TARGET_CONFIG, "/etc/resource-tuner/tests/configs/TargetConfig.yaml")
-RESTUNE_REGISTER_CONFIG(INIT_CONFIG, "/etc/resource-tuner/tests/configs/InitConfig.yaml")
+RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/urm/tests/configs/ResourcesConfig.yaml")
+RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/etc/urm/tests/configs/PropertiesConfig.yaml")
+RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/urm/tests/configs/SignalsConfig.yaml")
+RESTUNE_REGISTER_CONFIG(TARGET_CONFIG, "/etc/urm/tests/configs/TargetConfig.yaml")
+RESTUNE_REGISTER_CONFIG(INIT_CONFIG, "/etc/urm/tests/configs/InitConfig.yaml")
 
 static int8_t firstTest = true;
 static int8_t funcCalled = false;
@@ -41,23 +41,23 @@ static void Init() {
 }
 
 static void TestExtensionIntfModifiedResourceConfigPath() {
-    C_ASSERT(Extensions::getResourceConfigFilePath() == "/etc/resource-tuner/tests/configs/ResourcesConfig.yaml");
+    C_ASSERT(Extensions::getResourceConfigFilePath() == "/etc/urm/tests/configs/ResourcesConfig.yaml");
 }
 
 static void TestExtensionIntfModifiedPropertiesConfigPath() {
-    C_ASSERT(Extensions::getPropertiesConfigFilePath() == "/etc/resource-tuner/tests/configs/PropertiesConfig.yaml");
+    C_ASSERT(Extensions::getPropertiesConfigFilePath() == "/etc/urm/tests/configs/PropertiesConfig.yaml");
 }
 
 static void TestExtensionIntfModifiedSignalConfigPath() {
-    C_ASSERT(Extensions::getSignalsConfigFilePath() == "/etc/resource-tuner/tests/configs/SignalsConfig.yaml");
+    C_ASSERT(Extensions::getSignalsConfigFilePath() == "/etc/urm/tests/configs/SignalsConfig.yaml");
 }
 
 static void TestExtensionIntfModifiedTargetConfigPath() {
-    C_ASSERT(Extensions::getTargetConfigFilePath() == "/etc/resource-tuner/tests/configs/TargetConfig.yaml");
+    C_ASSERT(Extensions::getTargetConfigFilePath() == "/etc/urm/tests/configs/TargetConfig.yaml");
 }
 
 static void TestExtensionIntfModifiedInitConfigPath() {
-    C_ASSERT(Extensions::getInitConfigFilePath() == "/etc/resource-tuner/tests/configs/InitConfig.yaml");
+    C_ASSERT(Extensions::getInitConfigFilePath() == "/etc/urm/tests/configs/InitConfig.yaml");
 }
 
 static void TestExtensionIntfCustomResourceApplier1() {

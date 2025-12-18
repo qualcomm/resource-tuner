@@ -18,7 +18,7 @@ namespace ResourceParsingTests {
     static ErrCode parsingStatus = RC_SUCCESS;
     static void Init() {
         RestuneParser configProcessor;
-        parsingStatus = configProcessor.parseResourceConfigs("/etc/resource-tuner/tests/configs/ResourcesConfig.yaml", true);
+        parsingStatus = configProcessor.parseResourceConfigs("/etc/urm/tests/configs/ResourcesConfig.yaml", true);
     }
 
     static void TestResourceRestuneParserYAMLDataIntegrity1() {
@@ -33,7 +33,7 @@ namespace ResourceParsingTests {
         C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
         C_ASSERT(resourceConfigInfo->mResourceResID == 0);
         C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "TEST_RESOURCE_1") == 0);
-        C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/nodes/sched_util_clamp_min.txt") == 0);
+        C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/urm/tests/nodes/sched_util_clamp_min.txt") == 0);
         C_ASSERT(resourceConfigInfo->mHighThreshold == 1024);
         C_ASSERT(resourceConfigInfo->mLowThreshold == 0);
         C_ASSERT(resourceConfigInfo->mPolicy == HIGHER_BETTER);
@@ -49,7 +49,7 @@ namespace ResourceParsingTests {
         C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
         C_ASSERT(resourceConfigInfo->mResourceResID == 1);
         C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "TEST_RESOURCE_2") == 0);
-        C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/nodes/sched_util_clamp_max.txt") == 0);
+        C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/urm/tests/nodes/sched_util_clamp_max.txt") == 0);
         C_ASSERT(resourceConfigInfo->mHighThreshold == 1024);
         C_ASSERT(resourceConfigInfo->mLowThreshold == 512);
         C_ASSERT(resourceConfigInfo->mPolicy == HIGHER_BETTER);
@@ -65,7 +65,7 @@ namespace ResourceParsingTests {
         C_ASSERT(resourceConfigInfo->mResourceResType == 0xff);
         C_ASSERT(resourceConfigInfo->mResourceResID == 5);
         C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourceName.data(), "TEST_RESOURCE_6") == 0);
-        C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/resource-tuner/tests/nodes/target_test_resource2.txt") == 0);
+        C_ASSERT(strcmp((const char*)resourceConfigInfo->mResourcePath.data(), "/etc/urm/tests/nodes/target_test_resource2.txt") == 0);
         C_ASSERT(resourceConfigInfo->mHighThreshold == 6500);
         C_ASSERT(resourceConfigInfo->mLowThreshold == 50);
         C_ASSERT(resourceConfigInfo->mPolicy == HIGHER_BETTER);
@@ -93,7 +93,7 @@ namespace SignalParsingTests {
     static ErrCode parsingStatus = RC_SUCCESS;
     static void Init() {
         RestuneParser configProcessor;
-        parsingStatus = configProcessor.parseSignalConfigs("/etc/resource-tuner/tests/configs/SignalsConfig.yaml");
+        parsingStatus = configProcessor.parseSignalConfigs("/etc/urm/tests/configs/SignalsConfig.yaml");
     }
 
     static void TestRestuneParserYAMLDataIntegrity1() {
@@ -226,7 +226,7 @@ namespace InitConfigParsingTests {
     static ErrCode parsingStatus = RC_SUCCESS;
     static void Init() {
         RestuneParser configProcessor;
-        parsingStatus = configProcessor.parseInitConfigs("/etc/resource-tuner/tests/configs/InitConfig.yaml");
+        parsingStatus = configProcessor.parseInitConfigs("/etc/urm/tests/configs/InitConfig.yaml");
     }
 
     static void TestInitRestuneParserYAMLDataIntegrity1() {
@@ -329,7 +329,7 @@ namespace PropertyParsingTests {
     static ErrCode parsingStatus = RC_SUCCESS;
     static void Init() {
         RestuneParser configProcessor;
-        parsingStatus = configProcessor.parsePropertiesConfigs("/etc/resource-tuner/tests/configs/PropertiesConfig.yaml");
+        parsingStatus = configProcessor.parsePropertiesConfigs("/etc/urm/tests/configs/PropertiesConfig.yaml");
     }
 
     static void TestSysRestuneParserYAMLDataIntegrity1() {
@@ -415,7 +415,7 @@ namespace TargetRestuneParserTests {
     static void Init() {
         UrmSettings::targetConfigs.targetName = "TestDevice";
         RestuneParser configProcessor;
-        parsingStatus = configProcessor.parseTargetConfigs("/etc/resource-tuner/tests/configs/TargetConfigDup.yaml");
+        parsingStatus = configProcessor.parseTargetConfigs("/etc/urm/tests/configs/TargetConfigDup.yaml");
     }
 
     static void TestTargetRestuneParserYAMLDataIntegrity1() {
@@ -469,7 +469,7 @@ namespace ExtFeaturesParsingTests {
     static ErrCode parsingStatus = RC_SUCCESS;
     static void Init() {
         RestuneParser configProcessor;
-        parsingStatus = configProcessor.parseExtFeaturesConfigs("/etc/resource-tuner/tests/configs/ExtFeaturesConfig.yaml");
+        parsingStatus = configProcessor.parseExtFeaturesConfigs("/etc/urm/tests/configs/ExtFeaturesConfig.yaml");
     }
 
     static void TestExtFeatRestuneParserYAMLDataIntegrity1() {
@@ -525,7 +525,7 @@ namespace ResourceParsingTestsAddOn {
     static ErrCode parsingStatus = RC_SUCCESS;
     static void Init() {
         RestuneParser configProcessor;
-        std::string additionalResources = "/etc/resource-tuner/tests/configs/ResourcesConfigAddOn.yaml";
+        std::string additionalResources = "/etc/urm/tests/configs/ResourcesConfigAddOn.yaml";
 
         if(RC_IS_OK(parsingStatus)) {
             parsingStatus = configProcessor.parseResourceConfigs(additionalResources, true);
@@ -639,8 +639,8 @@ namespace SignalParsingTestsAddOn {
     static void Init() {
         RestuneParser configProcessor;
 
-        std::string signalsClassA = "/etc/resource-tuner/tests/configs/SignalsConfig.yaml";
-        std::string signalsClassB = "/etc/resource-tuner/tests/configs/SignalsConfigAddOn.yaml";
+        std::string signalsClassA = "/etc/urm/tests/configs/SignalsConfig.yaml";
+        std::string signalsClassB = "/etc/urm/tests/configs/SignalsConfigAddOn.yaml";
 
         parsingStatus = configProcessor.parseSignalConfigs(signalsClassA);
         if(RC_IS_OK(parsingStatus)) {

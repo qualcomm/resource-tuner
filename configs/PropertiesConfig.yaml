@@ -26,13 +26,14 @@ PropertyConfigs:
   - Name: resource_tuner.reward.factor
     Value: "0.4"
 
-  - Name: resource_tuner.logging.level
+  - Name: urm.logging.level
     # Possible values: DEBUG, INFO, WARN, ERROR.
     Value: "DEBUG" # Anything and everything level DEBUG and above.
 
-  - Name: resource_tuner.logging.level.exact
+    # Only log messages of the exact severity as specified in "urm.logging.level"
+  - Name: urm.logging.level.exact
     Value: "false"
 
-  - Name: resource_tuner.logging.redirect_to
+  - Name: urm.logging.redirect_to
     # Possible values: FILE, SYSLOG, FTRACE, LOGCAT.
     Value: "SYSLOG"

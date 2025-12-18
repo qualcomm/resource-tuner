@@ -21,7 +21,7 @@ void customTearCB(void* context) {
 }
 
 __attribute__((constructor))
-void registerWithResourceTuner() {
+void registerWithUrm() {
     // Associate the callback (handler) to the desired Resource (ResCode).
     RESTUNE_REGISTER_APPLIER_CB(0x00030000, customApplyCB);
     RESTUNE_REGISTER_TEAR_CB(0x00040a22, customTearCB);
@@ -34,8 +34,8 @@ void registerWithResourceTuner() {
  * => Create the shared lib:
  *    "g++ -fPIC -shared -o libplugin.so Plugin.cpp -lExtAPIs"
  *    This creates a shared lib, libplugin.so
- * => Copy this lib to "/etc/resource-tuner/Custom", the location where Resource Tuner expects
+ * => Copy this lib to "/etc/urm/custom", the location where Resource Tuner expects
  *    the custom Extensions lib to be placed.
  * => Make sure the lib file has appropriate permissions:
- *    "sudo chmod o+r /etc/resource-tuner/Custom/libplugin.so"
+ *    "sudo chmod o+r /etc/urm/custom/libplugin.so"
  */

@@ -10,6 +10,7 @@
 #include <unordered_set>
 
 #include "Utils.h"
+#include "Common.h"
 #include "Logger.h"
 #include "Resource.h"
 #include "MemoryPool.h"

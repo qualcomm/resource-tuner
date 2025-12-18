@@ -34,3 +34,23 @@ SignalConfigs:
     Timeout: 14500
     Resources:
       - {ResCode: "0x80dbaaa0", ResInfo: "0x000776aa", Values: [887]}
+
+  - SigId: "0xaaaa"
+    Category: "0x99"
+    Name: "CUSTOM_SIGNAL_2"
+    Enable: true
+    Permissions: ["third_party"]
+    Timeout: 8000
+    Resources:
+    - {ResCode: "RES_SCHED_UTIL_CLAMP_MIN", Values: [665]}
+    - {ResCode: "RES_CGRP_CPU_LATENCY", Values: [900, -15]}
+
+  - SigId: "0xaaab"
+    Category: "0x99"
+    Name: "CUSTOM_SIGNAL_3"
+    Enable: true
+    Permissions: ["third_party"]
+    Timeout: 8000
+    Resources:
+    - {ResCode: "RES_SCALE_MAX_FREQ", ResInfo: "CLUSTER_BIG_ALL_CORES", Values: [2300]} # big cluster
+    - {ResCode: "RES_PM_QOS_LATENCY", ResInfo: "CLUSTER_LITTLE_CORE_1", Values: [900, 3]} # second core of little cluster

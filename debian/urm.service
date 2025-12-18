@@ -1,0 +1,10 @@
+[Unit]
+Description=URM Service
+
+[Service]
+Restart=on-failure
+ExecStart=/usr/bin/urm_exec
+TimeoutStopSec=2
+
+[Install]
+WantedBy=multi-user.target

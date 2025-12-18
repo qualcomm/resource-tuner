@@ -2,8 +2,7 @@
 set -e
 
 if [ "$1" = "configure" ]; then
-    systemctl enable resource-tuner.service || true
+    systemctl enable urm.service || true
 fi
 
 exit 0
-
