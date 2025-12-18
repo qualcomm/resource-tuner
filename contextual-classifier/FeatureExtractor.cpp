@@ -31,7 +31,7 @@ static std::string format_string(const char* fmt, ...) {
     return std::string(buffer);
 }
 
-bool FeatureExtractor::isValidPidViaProc(pid_t pid) {
+bool FeatureExtractor::IsValidPidViaProc(pid_t pid) {
     std::string procPath = "/proc/" + std::to_string(pid);
     struct stat info;
     return (stat(procPath.c_str(), &info) == 0 && S_ISDIR(info.st_mode));
@@ -47,26 +47,26 @@ std::string join_vector(const std::vector<std::string>& vec) {
     return res;
 }
 
-int FeatureExtractor::collect_and_store_data(pid_t pid, const std::unordered_map<std::string, std::unordered_set<std::string>>& ignoreMap, std::map<std::string, std::string>& output_data, bool dump_csv) {
-    if(!isValidPidViaProc(pid)) {
+int FeatureExtractor::CollectAndStoreData(pid_t pid, const std::unordered_map<std::string, std::unordered_set<std::string>>& ignoreMap, std::map<std::string, std::string>& output_data, bool dump_csv) {
+    if(!IsValidPidViaProc(pid)) {
         LOGE(SCANNER_TAG, format_string("PID %d does not exist in /proc.", pid));
         return 1;
     }
 
     std::string delimiters = ".:";
-    std::vector<std::string> context = parse_proc_attr_current(pid, delimiters);
+    std::vector<std::string> context = ParseAttrCurrent(pid, delimiters);
     std::vector<std::string> lowerContext = FeaturePruner::toLowercaseVector(context);
     auto filtered_context = FeaturePruner::filterStrings(lowerContext, ignoreMap.count("attr") ? ignoreMap.at("attr") : std::unordered_set<std::string>());
 
     delimiters = ":\"/";
-    std::vector<std::string> cgroup = parse_proc_cgroup(pid, delimiters);
+    std::vector<std::string> cgroup = ParseCgroup(pid, delimiters);
     std::vector<std::string> lowercgroup = FeaturePruner::toLowercaseVector(cgroup);
     auto filtered_cg = FeaturePruner::filterStrings(lowercgroup, ignoreMap.count("cgroup") ? ignoreMap.at("cgroup") : std::unordered_set<std::string>());
     FeaturePruner::normalize_numbers_inplace(filtered_cg);
 
     auto t1 = std::chrono::high_resolution_clock::now();
     delimiters = ".=/!";
-    std::vector<std::string> cmdline = parse_proc_cmdline(pid, delimiters);
+    std::vector<std::string> cmdline = ParseCmdline(pid, delimiters);
     auto t2 = std::chrono::high_resolution_clock::now();
     LOGD(SCANNER_TAG, format_string("cmdline took %f ms", std::chrono::duration<double, std::milli>(t2 - t1).count()));
 
@@ -75,14 +75,14 @@ int FeatureExtractor::collect_and_store_data(pid_t pid, const std::unordered_map
     FeaturePruner::removeDoubleDash(filtered_cmd);
 
     delimiters = ".";
-    std::vector<std::string> comm = parse_proc_comm(pid, delimiters);
+    std::vector<std::string> comm = ParseComm(pid, delimiters);
     std::vector<std::string> lowercomm = FeaturePruner::toLowercaseVector(comm);
     auto filtered_comm = FeaturePruner::filterStrings(lowercomm, ignoreMap.count("comm") ? ignoreMap.at("comm") : std::unordered_set<std::string>());
     FeaturePruner::normalize_numbers_inplace(filtered_comm);
 
     t1 = std::chrono::high_resolution_clock::now();
     delimiters = "/()_:.";
-    std::vector<std::string> maps = parse_proc_map_files(pid, delimiters);
+    std::vector<std::string> maps = ParseMapFiles(pid, delimiters);
     t2 = std::chrono::high_resolution_clock::now();
     LOGD(SCANNER_TAG, format_string("maps took %f ms", std::chrono::duration<double, std::milli>(t2 - t1).count()));
 
@@ -92,7 +92,7 @@ int FeatureExtractor::collect_and_store_data(pid_t pid, const std::unordered_map
 
     t1 = std::chrono::high_resolution_clock::now();
     delimiters = ":[]/()=";
-    std::vector<std::string> fds = parse_proc_fd(pid, delimiters);
+    std::vector<std::string> fds = ParseFd(pid, delimiters);
     t2 = std::chrono::high_resolution_clock::now();
     LOGD(SCANNER_TAG, format_string("fds took %f ms", std::chrono::duration<double, std::milli>(t2 - t1).count()));
 
@@ -101,7 +101,7 @@ int FeatureExtractor::collect_and_store_data(pid_t pid, const std::unordered_map
 
     t1 = std::chrono::high_resolution_clock::now();
     delimiters = "=@;!-._/:, ";
-    std::vector<std::string> environ = parse_proc_environ(pid, delimiters);
+    std::vector<std::string> environ = ParseEnviron(pid, delimiters);
     t2 = std::chrono::high_resolution_clock::now();
     LOGD(SCANNER_TAG, format_string("environ took %f ms", std::chrono::duration<double, std::milli>(t2 - t1).count()));
 
@@ -110,24 +110,24 @@ int FeatureExtractor::collect_and_store_data(pid_t pid, const std::unordered_map
     FeaturePruner::normalize_numbers_inplace(filtered_environ);
 
     delimiters = "/.";
-    std::vector<std::string> exe = parse_proc_exe(pid, delimiters);
+    std::vector<std::string> exe = ParseExe(pid, delimiters);
     std::vector<std::string> lowerexe = FeaturePruner::toLowercaseVector(exe);
     auto filtered_exe = FeaturePruner::filterStrings(lowerexe, ignoreMap.count("exe") ? ignoreMap.at("exe") : std::unordered_set<std::string>());
     FeaturePruner::normalize_numbers_inplace(filtered_exe);
 
     delimiters = "=!'&/.,:- ";
     t1 = std::chrono::high_resolution_clock::now();
-    auto journalctl_logs = readJournalForPid(pid, LOG_LINES);
+    auto journalctl_logs = ReadJournalForPid(pid, LOG_LINES);
     if (journalctl_logs.empty()) {
        LOGD(SCANNER_TAG, format_string("No logs found for PID %d", pid));
     }
     t2 = std::chrono::high_resolution_clock::now();
     LOGD(SCANNER_TAG, format_string("journalctl took %f ms", std::chrono::duration<double, std::milli>(t2 - t1).count()));
 
-    auto extracted_Logs = extractProcessNameAndMessage(journalctl_logs);
+    auto extracted_Logs = ExtractProcessNameAndMessage(journalctl_logs);
     std::vector<std::string> logs;
     for (const auto& entry : extracted_Logs) {
-          auto tokens = parse_proc_log(entry, delimiters);
+          auto tokens = ParseLog(entry, delimiters);
           for (const auto& c : tokens) {
                logs.push_back(c);
            }
@@ -250,7 +250,7 @@ int FeatureExtractor::collect_and_store_data(pid_t pid, const std::unordered_map
     return 0;
 }
 
-std::vector<std::string> FeatureExtractor::parse_proc_attr_current(const uint32_t pid, const std::string& delimiters) {
+std::vector<std::string> FeatureExtractor::ParseAttrCurrent(const uint32_t pid, const std::string& delimiters) {
     std::vector<std::string> context_parts;
     std::string path = "/proc/" + std::to_string(pid) + "/attr/current";
     std::ifstream infile(path);
@@ -266,7 +266,7 @@ std::vector<std::string> FeatureExtractor::parse_proc_attr_current(const uint32_
     return context_parts;
 }
 
-std::vector<std::string> FeatureExtractor::parse_proc_cgroup(pid_t pid, const std::string& delimiters) {
+std::vector<std::string> FeatureExtractor::ParseCgroup(pid_t pid, const std::string& delimiters) {
     std::vector<std::string> tokens;
     std::string path = "/proc/" + std::to_string(pid) + "/cgroup";
     std::ifstream infile(path);
@@ -282,7 +282,7 @@ std::vector<std::string> FeatureExtractor::parse_proc_cgroup(pid_t pid, const st
     return tokens;
 }
 
-std::vector<std::string> FeatureExtractor::parse_proc_cmdline(pid_t pid, const std::string& delimiters) {
+std::vector<std::string> FeatureExtractor::ParseCmdline(pid_t pid, const std::string& delimiters) {
     std::vector<std::string> tokens;
     std::string path = "/proc/" + std::to_string(pid) + "/cmdline";
     std::ifstream infile(path, std::ios::binary);
@@ -315,7 +315,7 @@ std::vector<std::string> FeatureExtractor::parse_proc_cmdline(pid_t pid, const s
     return tokens;
 }
 
-std::vector<std::string> FeatureExtractor::parse_proc_comm(pid_t pid, const std::string& delimiters) {
+std::vector<std::string> FeatureExtractor::ParseComm(pid_t pid, const std::string& delimiters) {
     std::vector<std::string> tokens;
     std::string path = "/proc/" + std::to_string(pid) + "/comm";
     std::ifstream infile(path);
@@ -334,7 +334,7 @@ std::vector<std::string> FeatureExtractor::parse_proc_comm(pid_t pid, const std:
     return tokens;
 }
 
-std::vector<std::string> FeatureExtractor::parse_proc_map_files(pid_t pid, const std::string& delimiters) {
+std::vector<std::string> FeatureExtractor::ParseMapFiles(pid_t pid, const std::string& delimiters) {
     std::vector<std::string> results;
     std::string dir_path = "/proc/" + std::to_string(pid) + "/map_files";
     DIR* dir = opendir(dir_path.c_str());
@@ -365,7 +365,7 @@ std::vector<std::string> FeatureExtractor::parse_proc_map_files(pid_t pid, const
     return results;
 }
 
-std::vector<std::string> FeatureExtractor::parse_proc_fd(pid_t pid, const std::string& delimiters) {
+std::vector<std::string> FeatureExtractor::ParseFd(pid_t pid, const std::string& delimiters) {
     std::vector<std::string> results;
     std::string dir_path = "/proc/" + std::to_string(pid) + "/fd";
     DIR* dir = opendir(dir_path.c_str());
@@ -399,7 +399,7 @@ std::vector<std::string> FeatureExtractor::parse_proc_fd(pid_t pid, const std::s
     return results;
 }
 
-std::vector<std::string> FeatureExtractor::parse_proc_environ(pid_t pid, const std::string& delimiters) {
+std::vector<std::string> FeatureExtractor::ParseEnviron(pid_t pid, const std::string& delimiters) {
     std::vector<std::string> out;
     std::string path = "/proc/" + std::to_string(pid) + "/environ";
     std::ifstream in(path, std::ios::binary);
@@ -428,7 +428,7 @@ std::vector<std::string> FeatureExtractor::parse_proc_environ(pid_t pid, const s
     return out;
 }
 
-std::vector<std::string> FeatureExtractor::parse_proc_exe(pid_t pid, const std::string& delimiters) {
+std::vector<std::string> FeatureExtractor::ParseExe(pid_t pid, const std::string& delimiters) {
     std::vector<std::string> out;
     std::string path = "/proc/" + std::to_string(pid) + "/exe";
     char buf[PATH_MAX];
@@ -447,7 +447,7 @@ std::vector<std::string> FeatureExtractor::parse_proc_exe(pid_t pid, const std::
     return out;
 }
 
-std::vector<std::string> FeatureExtractor::readJournalForPid(pid_t pid, uint32_t numLines) {
+std::vector<std::string> FeatureExtractor::ReadJournalForPid(pid_t pid, uint32_t numLines) {
     std::vector<std::string> lines;
     std::string comm;
     std::ifstream commFile("/proc/" + std::to_string(pid) + "/comm");
@@ -475,7 +475,7 @@ std::vector<std::string> FeatureExtractor::readJournalForPid(pid_t pid, uint32_t
     return lines;
 }
 
-std::vector<std::string> FeatureExtractor::parse_proc_log(const std::string& input, const std::string& delimiters) {
+std::vector<std::string> FeatureExtractor::ParseLog(const std::string& input, const std::string& delimiters) {
     std::vector<std::string> tokens;
     std::string token;
     std::unordered_set<char> delimSet(delimiters.begin(), delimiters.end());
@@ -504,7 +504,7 @@ std::vector<std::string> FeatureExtractor::parse_proc_log(const std::string& inp
     return tokens;
 }
 
-std::vector<std::string> FeatureExtractor::extractProcessNameAndMessage(const std::vector<std::string>& journalLines) {
+std::vector<std::string> FeatureExtractor::ExtractProcessNameAndMessage(const std::vector<std::string>& journalLines) {
     std::vector<std::string> filtered;
     std::regex pattern(R"(.*? (\S+)\[(\d+)\]: (.*))");
     for (const auto& line : journalLines) {

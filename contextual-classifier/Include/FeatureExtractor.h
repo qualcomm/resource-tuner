@@ -14,21 +14,23 @@
 
 class FeatureExtractor {
 public:
-    static int collect_and_store_data(pid_t pid, const std::unordered_map<std::string, std::unordered_set<std::string>>& ignoreMap, std::map<std::string, std::string>& output_data, bool dump_csv);
+    static int CollectAndStoreData(pid_t pid,
+        const std::unordered_map<std::string, std::unordered_set<std::string>>& ignoreMap,
+        std::map<std::string, std::string>& output_data, bool dump_csv);
 
 private:
-    static std::vector<std::string> parse_proc_attr_current(const uint32_t pid, const std::string& delimiters);
-    static std::vector<std::string> parse_proc_cgroup(pid_t pid, const std::string& delimiters);
-    static std::vector<std::string> parse_proc_cmdline(pid_t pid, const std::string& delimiters);
-    static std::vector<std::string> parse_proc_comm(pid_t pid, const std::string& delimiters);
-    static std::vector<std::string> parse_proc_map_files(pid_t pid, const std::string& delimiters);
-    static std::vector<std::string> parse_proc_fd(pid_t pid, const std::string& delimiters);
-    static std::vector<std::string> parse_proc_environ(pid_t pid, const std::string& delimiters);
-    static std::vector<std::string> parse_proc_exe(pid_t pid, const std::string& delimiters);
-    static std::vector<std::string> readJournalForPid(pid_t pid, uint32_t numLines);
-    static std::vector<std::string> parse_proc_log(const std::string& input, const std::string& delimiters);
-    static std::vector<std::string> extractProcessNameAndMessage(const std::vector<std::string>& journalLines);
-    static bool isValidPidViaProc(pid_t pid);
+    static std::vector<std::string> ParseAttrCurrent(const uint32_t pid, const std::string& delimiters);
+    static std::vector<std::string> ParseCgroup(pid_t pid, const std::string& delimiters);
+    static std::vector<std::string> ParseCmdline(pid_t pid, const std::string& delimiters);
+    static std::vector<std::string> ParseComm(pid_t pid, const std::string& delimiters);
+    static std::vector<std::string> ParseMapFiles(pid_t pid, const std::string& delimiters);
+    static std::vector<std::string> ParseFd(pid_t pid, const std::string& delimiters);
+    static std::vector<std::string> ParseEnviron(pid_t pid, const std::string& delimiters);
+    static std::vector<std::string> ParseExe(pid_t pid, const std::string& delimiters);
+    static std::vector<std::string> ReadJournalForPid(pid_t pid, uint32_t numLines);
+    static std::vector<std::string> ParseLog(const std::string& input, const std::string& delimiters);
+    static std::vector<std::string> ExtractProcessNameAndMessage(const std::vector<std::string>& journalLines);
+    static bool IsValidPidViaProc(pid_t pid);
 };
 
 #endif // FEATURE_EXTRACTOR_H

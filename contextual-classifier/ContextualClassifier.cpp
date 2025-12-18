@@ -188,7 +188,7 @@ void ContextualClassifier::ClassifyProcess(int process_pid, int process_tgid, st
     std::map<std::string, std::string> raw_data;
 
     auto start_collect = std::chrono::high_resolution_clock::now();
-    FeatureExtractor::collect_and_store_data(process_pid, mTokenIgnoreMap, raw_data, mDebugMode);
+    FeatureExtractor::CollectAndStoreData(process_pid, mTokenIgnoreMap, raw_data, mDebugMode);
     auto end_collect = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> elapsed_collect = end_collect - start_collect;
     LOGD(CLASSIFIER_TAG, format_string("Data collection for PID:%d took %f ms", process_pid, elapsed_collect.count()));
