@@ -24,6 +24,9 @@
 #include <syslog.h>
 #include <iostream>
 #include <sstream>
+#include <chrono>
+#include <pthread.h>
+#include <cstdarg>
 
 #include <fstream>
 #include <string>
@@ -41,6 +44,18 @@
 
 #include "ComponentRegistry.h"
 #include "Utils.h"
+#include "Logger.h"
+
+#define CLASSIFIER_TAG "Classifier"
+
+static std::string format_string(const char* fmt, ...) {
+    char buffer[1024];
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buffer, sizeof(buffer), fmt, args);
+    va_end(args);
+    return std::string(buffer);
+}
 
 // Define a local version of cn_msg without the flexible array member 'data[]'
 // to allow embedding it in other structures.
@@ -78,7 +93,7 @@ bool g_debug_mode = false;
 void load_ignored_processes() {
     std::ifstream file(IGNORE_PROC_PATH);
     if (!file.is_open()) {
-        syslog(LOG_WARNING, "Could not open ignore process file: %s", IGNORE_PROC_PATH.c_str());
+        LOGW(CLASSIFIER_TAG, format_string("Could not open ignore process file: %s", IGNORE_PROC_PATH.c_str()));
         return;
     }
     std::string line;
@@ -96,7 +111,7 @@ void load_ignored_processes() {
             }
         }
     }
-    syslog(LOG_INFO, "Loaded %zu ignored processes.", ignored_processes.size());
+    LOGI(CLASSIFIER_TAG, format_string("Loaded %zu ignored processes.", ignored_processes.size()));
 }
 
 // Singleton for MLInference
@@ -114,7 +129,7 @@ bool is_digits(const std::string& str) {
 bool is_process_alive(int pid) {
     std::string proc_path = "/proc/" + std::to_string(pid);
     if (access(proc_path.c_str(), F_OK) == -1) {
-        syslog(LOG_DEBUG, "Process %d has exited.", pid);
+        LOGD(CLASSIFIER_TAG, format_string("Process %d has exited.", pid));
         return false;
     }
     return true;
@@ -136,7 +151,7 @@ static int nl_connect()
 
     nl_sock = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_CONNECTOR);
     if (nl_sock == -1) {
-        syslog(LOG_ERR, "socket: %m");
+        LOGE(CLASSIFIER_TAG, format_string("socket: %s", strerror(errno)));
         return -1;
     }
 
@@ -146,7 +161,7 @@ static int nl_connect()
 
     rc = bind(nl_sock, (struct sockaddr *)&sa_nl, sizeof(sa_nl));
     if (rc == -1) {
-        syslog(LOG_ERR, "bind: %m");
+        LOGE(CLASSIFIER_TAG, format_string("bind: %s", strerror(errno)));
         close(nl_sock);
         return -1;
     }
@@ -181,7 +196,7 @@ static int set_proc_ev_listen(int nl_sock, bool enable)
 
     rc = send(nl_sock, &nlcn_msg, sizeof(nlcn_msg), 0);
     if (rc == -1) {
-        syslog(LOG_ERR, "netlink send: %m");
+        LOGE(CLASSIFIER_TAG, format_string("netlink send: %s", strerror(errno)));
         return -1;
     }
 
@@ -224,20 +239,24 @@ static void classify_process(int process_pid, int process_tgid,
         // Trim whitespace just in case
         proc_name.erase(proc_name.find_last_not_of(" \n\r\t") + 1);
         if (ignored_processes.count(proc_name)) {
-            syslog(LOG_DEBUG, "Skipping inference for ignored process: %s (PID: %d)", proc_name.c_str(), process_pid);
+            LOGD(CLASSIFIER_TAG, format_string("Skipping inference for ignored process: %s (PID: %d)", proc_name.c_str(), process_pid));
             return;
         }
     }
 
-    syslog(LOG_DEBUG, "Starting classification for PID:%d", process_pid);
+    LOGD(CLASSIFIER_TAG, format_string("Starting classification for PID:%d", process_pid));
 
     std::map<std::string, std::string> raw_data;
-    
+
     // Collect data using collect_and_store_data.
     // This performs collection, filtering, and optional CSV dumping in one go.
+    auto start_collect = std::chrono::high_resolution_clock::now();
     collect_and_store_data(process_pid, g_token_ignore_map, raw_data, g_debug_mode);
+    auto end_collect = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> elapsed_collect = end_collect - start_collect;
+    LOGD(CLASSIFIER_TAG, format_string("Data collection for PID:%d took %f ms", process_pid, elapsed_collect.count()));
 
-    syslog(LOG_DEBUG, "Text features collected for PID:%d", process_pid);
+    LOGD(CLASSIFIER_TAG, format_string("Text features collected for PID:%d", process_pid));
 
     if (!is_process_alive(process_pid)) return;
 
@@ -253,16 +272,23 @@ static void classify_process(int process_pid, int process_tgid,
     if (has_sufficient_features) {
         if (!is_process_alive(process_pid)) return;
 
-        syslog(LOG_DEBUG, "Invoking ML inference for PID:%d", process_pid);
+        LOGD(CLASSIFIER_TAG, format_string("Invoking ML inference for PID:%d", process_pid));
+
+        auto start_inference = std::chrono::high_resolution_clock::now();
         std::string predicted_label = ml_inference_obj.predict(process_pid, raw_data);
-        // syslog(LOG_INFO, "PID:%d Classified as: %s", process_pid, predicted_label.c_str()); // Already logged in MLInference
+        auto end_inference = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> elapsed_inference = end_inference - start_inference;
+        LOGD(CLASSIFIER_TAG, format_string("Inference for PID:%d took %f ms", process_pid, elapsed_inference.count()));
+
+        // LOGI(CLASSIFIER_TAG, format_string("PID:%d Classified as: %s", process_pid, predicted_label.c_str())); // Already logged in MLInference
         // TODO: Apply resource tuning based on predicted_label
     } else {
-        syslog(LOG_DEBUG, "Skipping ML inference for PID:%d due to insufficient features.", process_pid);
+        LOGD(CLASSIFIER_TAG, format_string("Skipping ML inference for PID:%d due to insufficient features.", process_pid));
     }
 }
 
 void worker_thread() {
+    pthread_setname_np(pthread_self(), "ClassWorker");
     while (true) {
         int pid_to_classify;
         {
@@ -304,36 +330,36 @@ static int handle_proc_ev(int nl_sock, MLInference& ml_inference_obj)
             if (errno == EINTR) continue;
             // When socket is closed, we expect error
             if (need_exit) return 0;
-            syslog(LOG_ERR, "netlink recv: %m");
+            LOGE(CLASSIFIER_TAG, format_string("netlink recv: %s", strerror(errno)));
             return -1;
         }
         switch (nlcn_msg.proc_ev.what) {
             case PROC_EVENT_NONE:
-                // syslog(LOG_DEBUG, "set mcast listen ok");
+                // LOGD(CLASSIFIER_TAG, "set mcast listen ok");
                 break;
             case PROC_EVENT_FORK:
-                syslog(LOG_DEBUG, "fork: parent tid=%d pid=%d -> child tid=%d pid=%d",
+                LOGD(CLASSIFIER_TAG, format_string("fork: parent tid=%d pid=%d -> child tid=%d pid=%d",
                        nlcn_msg.proc_ev.event_data.fork.parent_pid,
                        nlcn_msg.proc_ev.event_data.fork.parent_tgid,
                        nlcn_msg.proc_ev.event_data.fork.child_pid,
-                       nlcn_msg.proc_ev.event_data.fork.child_tgid);
+                       nlcn_msg.proc_ev.event_data.fork.child_tgid));
                 break;
             case PROC_EVENT_EXEC:
-                syslog(LOG_DEBUG, "Received PROC_EVENT_EXEC for tid=%d pid=%d",
+                LOGD(CLASSIFIER_TAG, format_string("Received PROC_EVENT_EXEC for tid=%d pid=%d",
                        nlcn_msg.proc_ev.event_data.exec.process_pid,
-                       nlcn_msg.proc_ev.event_data.exec.process_tgid);
+                       nlcn_msg.proc_ev.event_data.exec.process_tgid));
 
                 // Early filtering of ignored processes
                 {
                     int pid = nlcn_msg.proc_ev.event_data.exec.process_pid;
                     std::vector<std::string> comm_vec = parse_proc_comm(pid, "");
                     if (comm_vec.empty()) {
-                        syslog(LOG_DEBUG, "Process %d exited before initial check. Skipping.", pid);
+                        LOGD(CLASSIFIER_TAG, format_string("Process %d exited before initial check. Skipping.", pid));
                     } else {
                         std::string proc_name = comm_vec[0];
                         proc_name.erase(proc_name.find_last_not_of(" \n\r\t") + 1);
                         if (ignored_processes.count(proc_name)) {
-                            syslog(LOG_DEBUG, "Ignoring process: %s (PID: %d)", proc_name.c_str(), pid);
+                            LOGD(CLASSIFIER_TAG, format_string("Ignoring process: %s (PID: %d)", proc_name.c_str(), pid));
                         } else {
                             std::lock_guard<std::mutex> lock(queue_mutex);
                             classification_queue.push(pid);
@@ -343,30 +369,30 @@ static int handle_proc_ev(int nl_sock, MLInference& ml_inference_obj)
                 }
                 break;
             case PROC_EVENT_UID:
-                syslog(LOG_DEBUG, "uid change: tid=%d pid=%d from %d to %d",
+                LOGD(CLASSIFIER_TAG, format_string("uid change: tid=%d pid=%d from %d to %d",
                        nlcn_msg.proc_ev.event_data.id.process_pid,
                        nlcn_msg.proc_ev.event_data.id.process_tgid,
                        nlcn_msg.proc_ev.event_data.id.r.ruid,
-                       nlcn_msg.proc_ev.event_data.id.e.euid);
+                       nlcn_msg.proc_ev.event_data.id.e.euid));
                 break;
             case PROC_EVENT_GID:
-                syslog(LOG_DEBUG, "gid change: tid=%d pid=%d from %d to %d",
+                LOGD(CLASSIFIER_TAG, format_string("gid change: tid=%d pid=%d from %d to %d",
                        nlcn_msg.proc_ev.event_data.id.process_pid,
                        nlcn_msg.proc_ev.event_data.id.process_tgid,
                        nlcn_msg.proc_ev.event_data.id.r.rgid,
-                       nlcn_msg.proc_ev.event_data.id.e.egid);
+                       nlcn_msg.proc_ev.event_data.id.e.egid));
                 break;
             case PROC_EVENT_EXIT:
-                syslog(LOG_DEBUG, "exit: tid=%d pid=%d exit_code=%d",
+                LOGD(CLASSIFIER_TAG, format_string("exit: tid=%d pid=%d exit_code=%d",
                        nlcn_msg.proc_ev.event_data.exit.process_pid,
                        nlcn_msg.proc_ev.event_data.exit.process_tgid,
-                       nlcn_msg.proc_ev.event_data.exit.exit_code);
+                       nlcn_msg.proc_ev.event_data.exit.exit_code));
                 remove_actions(nlcn_msg.proc_ev.event_data.exec.process_pid,
                                nlcn_msg.proc_ev.event_data.exec.process_tgid,
                                pid_perf_handle);
                 break;
             default:
-                syslog(LOG_WARNING, "unhandled proc event");
+                LOGW(CLASSIFIER_TAG, "unhandled proc event");
                 break;
         }
     }
@@ -378,14 +404,14 @@ static ErrCode init(void* arg=nullptr) {
     (void)arg; // unused
     ErrCode opStatus = RC_SUCCESS;
     
-    syslog(LOG_INFO, "Classifier module init.");
+    LOGI(CLASSIFIER_TAG, "Classifier module init.");
 
     initialize();
     load_ignored_processes();
     
     // Load ignore tokens for filtering
     g_token_ignore_map = loadIgnoreMap(IGNORE_TOKENS_PATH);
-    syslog(LOG_INFO, "Loaded ignore tokens configuration.");
+    LOGI(CLASSIFIER_TAG, "Loaded ignore tokens configuration.");
     
     for (int i = 0; i < NUM_THREADS; ++i) {
         thread_pool.emplace_back(worker_thread);
@@ -393,25 +419,26 @@ static ErrCode init(void* arg=nullptr) {
     
     // Get the MLInference singleton instance
     get_ml_inference_instance();
-    syslog(LOG_INFO, "MLInference object initialized.");
+    LOGI(CLASSIFIER_TAG, "MLInference object initialized.");
 
     global_nl_sock = nl_connect();
     if (global_nl_sock == -1) {
-        syslog(LOG_CRIT, "Failed to connect to netlink socket.");
+        LOGE(CLASSIFIER_TAG, "Failed to connect to netlink socket.");
         return RC_SOCKET_OP_FAILURE;
     }
-    syslog(LOG_INFO, "Netlink socket connected successfully.");
+    LOGI(CLASSIFIER_TAG, "Netlink socket connected successfully.");
 
     if (set_proc_ev_listen(global_nl_sock, true) == -1) {
-        syslog(LOG_CRIT, "Failed to set proc event listener.");
+        LOGE(CLASSIFIER_TAG, "Failed to set proc event listener.");
         close(global_nl_sock);
         global_nl_sock = -1;
         return RC_SOCKET_OP_FAILURE;
     }
-    syslog(LOG_INFO, "Now listening for process events.");
+    LOGI(CLASSIFIER_TAG, "Now listening for process events.");
     
     // Start netlink handling thread
     netlink_thread = std::thread([](){
+        pthread_setname_np(pthread_self(), "ClassNetlink");
         handle_proc_ev(global_nl_sock, get_ml_inference_instance());
     });
 
@@ -421,7 +448,7 @@ static ErrCode init(void* arg=nullptr) {
 
 static ErrCode terminate(void* arg=nullptr) {
     (void)arg; // unused
-    syslog(LOG_INFO, "Classifier module terminate.");
+    LOGI(CLASSIFIER_TAG, "Classifier module terminate.");
     
     // Attempt to disable events (might fail if socket closed)
     if (global_nl_sock != -1) {
@@ -450,7 +477,7 @@ static ErrCode terminate(void* arg=nullptr) {
     }
     thread_pool.clear();
     
-    closelog();
+    // closelog();
     return RC_SUCCESS;
 }
 
