@@ -353,17 +353,16 @@ ErrCode ResourceBuilder::setResCode(const std::string& resCodeString) {
     uint32_t resCode = 0;
     try {
         resCode = (uint32_t)stol(resCodeString, nullptr, 0);
-        this->mResource->setResCode(resCode);
 
-    } catch(const std::invalid_argument& e) {
-        TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
-        return RC_INVALID_VALUE;
-
-    } catch(const std::out_of_range& e) {
-        TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
-        return RC_INVALID_VALUE;
+    } catch(const std::exception& e) {
+        resCode = getResCodeFromString(resCodeString.c_str());
+        if(resCode == 0) {
+            TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
+            return RC_INVALID_VALUE;
+        }
     }
 
+    this->mResource->setResCode(resCode);
     return RC_SUCCESS;
 }
 
