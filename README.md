@@ -45,7 +45,12 @@ cmake  --build .
 ```bash
 sudo cmake --install .
 ```
-* Install to a custom temporary directory
+* Start the URM Server
+```bash
+/usr/bin/urm_exec
+```
+
+* Install to a custom temporary directory [Optional]
 ```bash
 cmake --install . --prefix /tmp/urm-install
 ```
