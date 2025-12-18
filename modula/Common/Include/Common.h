@@ -160,18 +160,18 @@ X(RES_CGRP_SWAP_MAX_MEMORY,   0x0009000e) \
 X(RES_CGRP_IO_WEIGHT,         0x0009000f) \
 X(RES_CGRP_BFQ_IO_WEIGHT,     0x00090010) \
 X(RES_CGRP_CPU_LATENCY,       0x00090011) \
-/* Clusters */                            \
-X(CLUSTER_LITTLE_ALL_CORE,    0x00000000) \
+/* Cluster and Core Configurations */     \
+X(CLUSTER_LITTLE_ALL_CORES,   0x00000000) \
 X(CLUSTER_LITTLE_CORE_0,      0x00000001) \
 X(CLUSTER_LITTLE_CORE_1,      0x00000002) \
 X(CLUSTER_LITTLE_CORE_2,      0x00000003) \
 X(CLUSTER_LITTLE_CORE_3,      0x00000004) \
-X(CLUSTER_BIG_ALL_CORE,       0x00000100) \
+X(CLUSTER_BIG_ALL_CORES,      0x00000100) \
 X(CLUSTER_BIG_CORE_0,         0x00000101) \
 X(CLUSTER_BIG_CORE_1,         0x00000102) \
 X(CLUSTER_BIG_CORE_2,         0x00000103) \
 X(CLUSTER_BIG_CORE_3,         0x00000104) \
-X(CLUSTER_PLUS_ALL_CORE,      0x00000200) \
+X(CLUSTER_PLUS_ALL_CORES,     0x00000200) \
 X(CLUSTER_PLUS_CORE_0,        0x00000201) \
 X(CLUSTER_PLUS_CORE_1,        0x00000202) \
 X(CLUSTER_PLUS_CORE_2,        0x00000203) \
@@ -194,10 +194,11 @@ static ResPair resCodeMapping[] = {
 #undef X
 };
 
-static uint32_t getResCodeFromString(const char* strCode) {
+static uint32_t getResCodeFromString(const char* strCode, int8_t* found) {
     int32_t size = sizeof(resCodeMapping) / sizeof(resCodeMapping[0]);
     for(int32_t i = 0; i < size; i++) {
         if(strcmp(resCodeMapping[i].name, strCode) == 0) {
+            *found = true;
             return resCodeMapping[i].code;
         }
     }

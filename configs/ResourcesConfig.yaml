@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 
 # Note: High and Low thresholds to config values should be specified in custom Resource Configs.
-# For attribute information, refer: https://qualcomm.github.io/resource-tuner/index.html#autotoc_md40
+# For attribute information, refer: https://qualcomm.github.io/userspace-resource-manager/index.html#autotoc_md40
 
 ResourceConfigs:
   - ResType: "0x01"

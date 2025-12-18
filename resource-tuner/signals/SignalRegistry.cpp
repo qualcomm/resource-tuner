@@ -355,8 +355,9 @@ ErrCode ResourceBuilder::setResCode(const std::string& resCodeString) {
         resCode = (uint32_t)stol(resCodeString, nullptr, 0);
 
     } catch(const std::exception& e) {
-        resCode = getResCodeFromString(resCodeString.c_str());
-        if(resCode == 0) {
+        int8_t found = false;
+        resCode = getResCodeFromString(resCodeString.c_str(), &found);
+        if(!found) {
             TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
             return RC_INVALID_VALUE;
         }
@@ -374,17 +375,17 @@ ErrCode ResourceBuilder::setResInfo(const std::string& resInfoString) {
     int32_t resourceResInfo = 0;
     try {
         resourceResInfo = (int32_t)stoi(resInfoString, nullptr, 0);
-        this->mResource->setResInfo(resourceResInfo);
 
-    } catch(const std::invalid_argument& e) {
-        TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
-        return RC_INVALID_VALUE;
-
-    } catch(const std::out_of_range& e) {
-        TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
-        return RC_INVALID_VALUE;
+    } catch(const std::exception& e) {
+        int8_t found = false;
+        resourceResInfo = getResCodeFromString(resInfoString.c_str(), &found);
+        if(!found) {
+            TYPELOGV(SIGNAL_REGISTRY_PARSING_FAILURE, e.what());
+            return RC_INVALID_VALUE;
+        }
     }
 
+    this->mResource->setResInfo(resourceResInfo);
     return RC_SUCCESS;
 }
 

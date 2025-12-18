@@ -24,6 +24,8 @@ This project depends on the following external libraries:
     ```bash
     apt-get install -y libyaml-dev
     apt-get install -y libsystemd-dev
+    apt install fasttext
+    apt install libfasttext-dev
     ```
 
 ## Build and install Instructions
@@ -50,7 +52,7 @@ cmake --install . --prefix /tmp/ResourceTuner-install
 
 ## Documentation
 
-Refer: https://qualcomm.github.io/resource-tuner/
+Refer: https://qualcomm.github.io/userspace-resource-manager/
 
 ## Development
 
