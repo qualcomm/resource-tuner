@@ -5,6 +5,6 @@ branches:
     modes:
       non-blocking:
         headers:
-          - resource-tuner/Core/Client/APIs/Include/UrmAPIs.h
-          - resource-tuner/Core/Modula/Common/Include/Common.h
-          - resource-tuner/Core/Extensions/Include/Extensions.h
+          - client/APIs/Include/UrmAPIs.h
+          - modula/Common/Include/Common.h
+          - resource-tuner/extensions/Include/Extensions.h

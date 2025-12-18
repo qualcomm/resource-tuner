@@ -90,7 +90,6 @@ int32_t main(int32_t argc, char *argv[]) {
     // - This includes Closing the Server Communication Endpoints
     // - Resetting all the Sysfs nodes to their original values
     // - Terminating the different listener and Processor threads created to handle Requests.
-    // - Killing the child process created to monitor the parent (Server)
     serverCleanup();
 
     cleanupModule(ModuleID::MOD_RESTUNE);

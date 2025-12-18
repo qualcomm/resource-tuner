@@ -1,4 +1,4 @@
-# Resource Tuner: A System Resource Provisioning Framework
+# Userspace Resource Manager
 
 ## Table of Contents
 
@@ -57,17 +57,15 @@ option(BUILD_TESTS "Testing" OFF)
 ## Project Structure
 
 ```text
-/
-├── Core
-│   ├── Framework                # Core Resource Provisioning Request Flow Logic
-│   ├── Modula                   # Common Utilities and Components used across Resource Tuner Modules
-│   ├── Client                   # Exposes the Client Facing APIs, and Defines the Client Communication Endpoint
-│   ├── Configs                  # Resources Config, Properties Config, Init Config
-│   └── Server                   # Defines the Server Communication Endpoint and other Common Server-Side Utils
-├── Signals                      # Optional Module, exposes Signal Tuning / Relay APIs
-│   └── Configs                  # Signal Configs, Ext Feature Configs
-├── Tests                        # Unit and System Wide Tests
-└── docs                         # Documentation
+├── client # Exposes the Client Facing APIs, and Defines the Client Communication Endpoint
+├── configs # URM level configs like: Properties Config, Init Config
+├── contextual-classifier # Classifier module
+├── debian # Debian Build
+├── docs # Doxygen based documentation
+├── modula # Common Utilities and Components used across URM
+├── public_headers
+└── resource-tuner # Resource Tuner module
+
 ```
 
 ---
@@ -983,7 +981,7 @@ Resource-tuner provides a minimal CLI to interact with the server. This is provi
 
 ### 1. Send a Tune Request
 ```bash
-./resource_tuner_cli --tune --duration <> --priority <> --num <> --res <>
+/usr/bin/urmCli --tune --duration <> --priority <> --num <> --res <>
 ```
 Where:
 - `duration`: Duration in milliseconds for the tune request
@@ -994,36 +992,36 @@ Where:
 Example:
 ```bash
 # Single Resource in a Request
-./resource_tuner_cli --tune --duration 5000 --priority 0 --num 1 --res "65536:700"
+/usr/bin/urmCli --tune --duration 5000 --priority 0 --num 1 --res "65536:700"
 
 # Multiple Resources in single Request
-./resource_tuner_cli --tune --duration 4400 --priority 1 --num 2 --res "0x80030000:700,0x80040001:155667"
+/usr/bin/urmCli --tune --duration 4400 --priority 1 --num 2 --res "0x80030000:700,0x80040001:155667"
 
 # Multi-Valued Resource
-./resource_tuner_cli --tune --duration 9500 --priority 0 --num 1 --res "0x00090002:0,0,1,3,5"
+/usr/bin/urmCli --tune --duration 9500 --priority 0 --num 1 --res "0x00090002:0,0,1,3,5"
 
 # Specifying ResInfo (useful for Core and Cluster type Resources)
-./resource_tuner_cli --tune --duration 5000 --priority 0 --num 1 --res "0x00040000#0x00000100:1620438"
+/usr/bin/urmCli --tune --duration 5000 --priority 0 --num 1 --res "0x00040000#0x00000100:1620438"
 
 # Everything at once
-./resource_tuner_cli --tune --duration 6500 --priority 0 --num 2 --res "0x00030000:800;0x00040011#0x00000101:50000,100000"
+/usr/bin/urmCli --tune --duration 6500 --priority 0 --num 2 --res "0x00030000:800;0x00040011#0x00000101:50000,100000"
 ```
 
 ### 2. Send an Untune Request
 ```bash
-./resource_tuner_cli --untune --handle <>
+/usr/bin/urmCli --untune --handle <>
 ```
 Where:
 - `handle`: Handle of the previously issued tune request, which needs to be untuned
 
 Example:
 ```bash
-./resource_tuner_cli --untune --handle 50
+/usr/bin/urmCli --untune --handle 50
 ```
 
 ### 3. Send a Retune Request
 ```bash
-./resource_tuner_cli --retune --handle <> --duration <>
+/usr/bin/urmCli --retune --handle <> --duration <>
 ```
 Where:
 - `handle`: Handle of the previously issued tune request, which needs to be retuned
@@ -1031,20 +1029,33 @@ Where:
 
 Example:
 ```bash
-./resource_tuner_cli --retune --handle 7 --duration 8000
+/usr/bin/urmCli --retune --handle 7 --duration 8000
 ```
 
 ### 4. Send a getProp Request
 
 ```bash
-./resource_tuner_cli --getProp --key <>
+/usr/bin/urmCli --getProp --key <>
 ```
 Where:
 - `key`: The Prop name of which the corresponding value needs to be fetched
 
 Example:
 ```bash
-./resource_tuner_cli --getProp --key "resource_tuner.logging.level"
+/usr/bin/urmCli --getProp --key "urm.logging.level"
+```
+
+### 5. Send a tuneSignal Request
+
+```bash
+/usr/bin/urmCli --signal --scode <>
+```
+Where:
+- `key`: The Prop name of which the corresponding value needs to be fetched
+
+Example:
+```bash
+/usr/bin/urmCli --signal --scode "0x00fe0ab1"
 ```
 
 <div style="page-break-after: always;"></div>

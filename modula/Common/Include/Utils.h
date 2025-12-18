@@ -129,8 +129,8 @@ typedef void (*MessageReceivedCallback)(int32_t, MsgForwardInfo*);
 #define RATE_LIMITER_DELTA "resource_tuner.rate_limiter.delta"
 #define RATE_LIMITER_PENALTY_FACTOR "resource_tuner.penalty.factor"
 #define RATE_LIMITER_REWARD_FACTOR "resource_tuner.reward.factor"
-#define LOGGER_LOGGING_LEVEL "resource_tuner.logging.level"
-#define LOGGER_LOGGING_LEVEL_TYPE "resource_tuner.logging.level.exact"
-#define LOGGER_LOGGING_OUTPUT_REDIRECT "resource_tuner.logging.redirect_to"
+#define LOGGER_LOGGING_LEVEL "urm.logging.level"
+#define LOGGER_LOGGING_LEVEL_TYPE "urm.logging.level.exact"
+#define LOGGER_LOGGING_OUTPUT_REDIRECT "urm.logging.redirect_to"
 
 #endif

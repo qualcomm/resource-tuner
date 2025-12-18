@@ -143,10 +143,10 @@ PropertyConfigs:
   - Name: resource_tuner.reward.factor
     Value: "0.4"
 
-  - Name: resource_tuner.logging.level
+  - Name: urm.logging.level
     Value: "0"
 
-  - Name: resource_tuner.logging.level.exact
+  - Name: urm.logging.level.exact
     Value: "false"
 ```
 
