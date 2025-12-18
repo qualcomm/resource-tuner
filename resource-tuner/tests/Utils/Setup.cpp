@@ -5,9 +5,9 @@
 
 __attribute__((constructor))
 void registerWithResourceTuner() {
-    RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/resource-tuner/tests/configs/ResourcesConfig.yaml")
-    RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/etc/resource-tuner/tests/configs/PropertiesConfig.yaml")
-    RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/resource-tuner/tests/configs/SignalsConfig.yaml")
-    RESTUNE_REGISTER_CONFIG(TARGET_CONFIG, "/etc/resource-tuner/tests/configs/TargetConfig.yaml")
-    RESTUNE_REGISTER_CONFIG(INIT_CONFIG, "/etc/resource-tuner/tests/configs/InitConfig.yaml")
+    RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/urm/tests/configs/ResourcesConfig.yaml")
+    RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/etc/urm/tests/configs/PropertiesConfig.yaml")
+    RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/urm/tests/configs/SignalsConfig.yaml")
+    RESTUNE_REGISTER_CONFIG(TARGET_CONFIG, "/etc/urm/tests/configs/TargetConfig.yaml")
+    RESTUNE_REGISTER_CONFIG(INIT_CONFIG, "/etc/urm/tests/configs/InitConfig.yaml")
 }

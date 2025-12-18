@@ -34,8 +34,8 @@ void registerWithUrm() {
  * => Create the shared lib:
  *    "g++ -fPIC -shared -o libplugin.so Plugin.cpp -lExtAPIs"
  *    This creates a shared lib, libplugin.so
- * => Copy this lib to "/etc/resource-tuner/Custom", the location where Resource Tuner expects
+ * => Copy this lib to "/etc/urm/custom", the location where Resource Tuner expects
  *    the custom Extensions lib to be placed.
  * => Make sure the lib file has appropriate permissions:
- *    "sudo chmod o+r /etc/resource-tuner/Custom/libplugin.so"
+ *    "sudo chmod o+r /etc/urm/custom/libplugin.so"
  */

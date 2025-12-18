@@ -2,12 +2,12 @@
 
 # 1. How to add a custom resource
 Resource tuner is configured with a default set of [Resources](../Core/Configs/ResourcesConfig.yaml),
-called the Common Resources. These resources are available at at /etc/resource-tuner/common/ResourcesConfig.yaml.
+called the Common Resources. These resources are available at at /etc/urm/common/ResourcesConfig.yaml.
 On top of it, resource-tuner allows the addition of Custom Resources.
 To add Custom Resources, developers can follow one of the following two strategies.
-1. Add the Custom ResourcesConfig.yaml at /etc/resource-tuner/custom. Note the file name must exactly match "ResourcesConfig.yaml". As part of initialization, resource-tuner will check if this file is present, if it is, it will be parsed alongside the Common Resources.
+1. Add the Custom ResourcesConfig.yaml at /etc/urm/custom. Note the file name must exactly match "ResourcesConfig.yaml". As part of initialization, resource-tuner will check if this file is present, if it is, it will be parsed alongside the Common Resources.
 
-2. The custom Resources file can also be placed in a different location other than /etc/resource-tuner/custom. This can be done through Resource Tuner's Extension Interface. For example if the file is present at /opt/custom/ResourcesConfig.yaml, then the RESTUNE_REGISTER_CONFIG macro can be used as follows:
+2. The custom Resources file can also be placed in a different location other than /etc/urm/custom. This can be done through Resource Tuner's Extension Interface. For example if the file is present at /opt/custom/ResourcesConfig.yaml, then the RESTUNE_REGISTER_CONFIG macro can be used as follows:
 
 ```cpp
 RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/opt/custom/ResourcesConfig.yaml")
@@ -68,7 +68,7 @@ Refer: Plugin.cpp in Examples Tab for usage guidance
 
 # 3. How to add init configs
 Resource tuner supports Cgroups as well, InitConfig.yaml file is used to specify the Cgroups which need to created during resource-tuner initialization.
-Developer can supply additional init configs via /etc/resource-tuner/custom/InitConfig.yaml
+Developer can supply additional init configs via /etc/urm/custom/InitConfig.yaml
 ## Sample Cgroup config
 ```yaml
 InitConfigs:
@@ -87,7 +87,7 @@ CPU architecture refers to
 
 Resource Tuner detects the CPU architecture based on cpu_capacity.
 Developer can override this by providing the CPU architecture details via TargetConfig.yaml file.
-This file is expected at the location: /etc/resource-tuner/custom/TargetConfig.yaml
+This file is expected at the location: /etc/urm/custom/TargetConfig.yaml
 
 ## Sample Device Config file
 ```yaml
@@ -119,11 +119,11 @@ TargetConfig:
 Resource Tuner provides a set of Common Properties that are applicable to all devices. Users can specify their own custom Properties on top of the common ones.
 Custom Properties can be specified in a yaml file (similar to Common Properties).
 
-Common Properties are defined by resource-tuner in the /etc/resource-tuner/common/PropertiesConfig.yaml file, to add your own custom properties one of the following 2 strategies can be followed:
+Common Properties are defined by resource-tuner in the /etc/urm/common/PropertiesConfig.yaml file, to add your own custom properties one of the following 2 strategies can be followed:
 
-1. Add the Custom PropertiesConfig.yaml at /etc/resource-tuner/custom. Note the file name must exactly match "PropertiesConfig.yaml". As part of initialization, resource-tuner will check if this file is present, if it is, it will be parsed alongside the Common Properties.
+1. Add the Custom PropertiesConfig.yaml at /etc/urm/custom. Note the file name must exactly match "PropertiesConfig.yaml". As part of initialization, resource-tuner will check if this file is present, if it is, it will be parsed alongside the Common Properties.
 
-2. The custom Properties file can also be placed in a different location other than /etc/resource-tuner/custom/. This can be done through Resource Tuner's Extension Interface. For example if the file is present at /opt/custom/PropertiesConfig.yaml, then the RESTUNE_REGISTER_CONFIG macro can be used as follows:
+2. The custom Properties file can also be placed in a different location other than /etc/urm/custom/. This can be done through Resource Tuner's Extension Interface. For example if the file is present at /opt/custom/PropertiesConfig.yaml, then the RESTUNE_REGISTER_CONFIG macro can be used as follows:
 
 ```cpp
 RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/opt/custom/PropertiesConfig.yaml")

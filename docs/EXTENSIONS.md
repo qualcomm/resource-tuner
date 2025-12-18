@@ -3,7 +3,7 @@
 Refer Plugin.cpp in Examples section, for basic code-guidance.
 
 # 1. Making Use of Extensions Interface
-Resource Tuner's Extension Interface exposes macros that can be used to customize callbacks and Configs. To make use of this capability client's need to create a shared library, called libPlugin.so and place it at /etc/resource-tuner/custom.
+Resource Tuner's Extension Interface exposes macros that can be used to customize callbacks and Configs. To make use of this capability client's need to create a shared library, called libPlugin.so and place it at /etc/urm/custom.
 This library should contain all the customization logic. This strategy allows the Clients to keep their code wherever they want. The only constraints are in terms of library naming, and library location.
 
 Refer Plugin.cpp for instructions on building the lib.
@@ -76,7 +76,7 @@ RESTUNE_REGISTER_APPLIER_CB(0x00090005, limitCpuTime);
 ```
 
 # 3. Custom Configs
-Resource Tuner allows users to provide their own Config files for different entities like: Resources, Signals, Properties etc. In order for these custom config files to be read and parsed they can either be placed in /etc/resource-tuner or if the user wants even more flexibility in terms of location, they can specify the location of the Config file, using the Extensions Interface's RESTUNE_REGISTER_CONFIG macro.
+Resource Tuner allows users to provide their own Config files for different entities like: Resources, Signals, Properties etc. In order for these custom config files to be read and parsed they can either be placed in /etc/urm/custom/ or if the user wants even more flexibility in terms of location, they can specify the location of the Config file, using the Extensions Interface's RESTUNE_REGISTER_CONFIG macro.
 
 For example:
 

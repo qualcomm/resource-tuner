@@ -307,10 +307,10 @@ Resource-tuner utilises YAML files for configuration. This includes the resource
 Initialisation configs are mentioned in InitConfig.yaml file. This config enables resource-tuner to setup the required settings at the time of initialisation before any request processing happens.
 
 ### Common Initialization Configs
-Common initialization configs are defined in /etc/resource-tuner/common/InitConfig.yaml
+Common initialization configs are defined in /etc/urm/common/InitConfig.yaml
 
 ### Overriding Initialization Configs
-Targets can override initialization configs (in addition to common init configs, i.e. overrides specific configs) by simply pushing its own InitConfig.yaml into /etc/resource-tuner/custom/InitConfig.yaml
+Targets can override initialization configs (in addition to common init configs, i.e. overrides specific configs) by simply pushing its own InitConfig.yaml into /etc/urm/custom/InitConfig.yaml
 
 ### Overiding with Custom Extension File
 RESTUNE_REGISTER_CONFIG(INIT_CONFIG, "/bin/InitConfigCustom.yaml");
@@ -431,10 +431,10 @@ InitConfigs:
 Tunable resources are specified via ResourcesConfig.yaml file.
 
 ### Common Resource Configs
-Common resource configs are defined in /etc/resource-tuner/common/ResourcesConfig.yaml.
+Common resource configs are defined in /etc/urm/common/ResourcesConfig.yaml.
 
 ### Overriding Resource Configs
-Targets can override resource cofigs (can fully override or selective resources) by simply pushing its own ResourcesConfig.yaml into /etc/resource-tuner/custom/ResourcesConfig.yaml
+Targets can override resource cofigs (can fully override or selective resources) by simply pushing its own ResourcesConfig.yaml into /etc/urm/custom/ResourcesConfig.yaml
 
 ### Overiding with Custom Extension File
 RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/bin/targetResourceConfigCustom.yaml");
@@ -496,10 +496,10 @@ ResourceConfigs:
 PropertiesConfig.yaml file stores various properties which are used by resource-tuner modules internally. For example, to allocate sufficient amount of memory for different types, or to determine the Pulse Monitor duration. Client can also use this as a property store to store their properties which gives it flexibility to control properties depending on the target.
 
 ### Common Properties Configs
-Common resource configs are defined in /etc/resource-tuner/common/PropertiesConfig.yaml.
+Common resource configs are defined in /etc/urm/common/PropertiesConfig.yaml.
 
 ### Overriding Properties Configs
-Targets can override Properties cofigs (can fully override or selective resources) by simply pushing its own PropertiesConfig.yaml into /etc/resource-tuner/custom/PropertiesConfig.yaml
+Targets can override Properties cofigs (can fully override or selective resources) by simply pushing its own PropertiesConfig.yaml into /etc/urm/custom/PropertiesConfig.yaml
 
 ### Overiding with Custom Properties File
 RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/bin/targetPropertiesConfigCustom.yaml"); if Client have no specific extensions like custom resources or features only want to change the config then the above method (using the same file name and pushing it to custom folder) is the best method to go for.
