@@ -21,7 +21,7 @@ void customTearCB(void* context) {
 }
 
 __attribute__((constructor))
-void registerWithResourceTuner() {
+void registerWithUrm() {
     // Associate the callback (handler) to the desired Resource (ResCode).
     RESTUNE_REGISTER_APPLIER_CB(0x00030000, customApplyCB);
     RESTUNE_REGISTER_TEAR_CB(0x00040a22, customTearCB);

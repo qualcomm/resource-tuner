@@ -12,7 +12,7 @@ set_target_properties(RestuneExtAPIs PROPERTIES VERSION 1.0.0 SOVERSION 1)
 target_link_libraries(RestuneExtAPIs PRIVATE UrmAuxUtils)
 target_include_directories(RestuneExtAPIs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extensions/Include)
 install(TARGETS RestuneExtAPIs LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/extensions/Include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ResourceTuner)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/extensions/Include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Urm)
 
 # Restune Core Lib
 file(GLOB SOURCES "core/*.cpp"

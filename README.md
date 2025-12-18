@@ -47,7 +47,7 @@ sudo cmake --install .
 ```
 * Install to a custom temporary directory
 ```bash
-cmake --install . --prefix /tmp/ResourceTuner-install
+cmake --install . --prefix /tmp/urm-install
 ```
 
 ## Documentation

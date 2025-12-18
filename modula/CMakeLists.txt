@@ -11,4 +11,4 @@ target_include_directories(UrmAuxUtils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Common
 target_include_directories(UrmAuxUtils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/CoreModules/Include)
 install(TARGETS UrmAuxUtils LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/Common/Include/Common.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ResourceTuner)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/Common/Include/Common.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Urm)
