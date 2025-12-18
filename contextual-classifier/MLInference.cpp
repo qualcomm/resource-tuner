@@ -1,7 +1,7 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include "ml_inference.h"
+#include "MLInference.h"
 #include <iostream>
 #include <sstream>
 #include <fstream> // Add this include for std::ifstream
@@ -36,10 +36,6 @@ MLInference::~MLInference() {
 std::string MLInference::normalize_text(const std::string& text) {
     std::string s = text;
     std::transform(s.begin(), s.end(), s.begin(), ::tolower);
-    // Add other normalization steps as needed (e.g., replace newlines, remove special chars)
-    // For now, mirroring _norm_text from Python:
-    // s = s.replace('\n', ' ').replace('\t', ' ')
-    // s = re.sub(r'[^A-Za-z0-9_:\-]+', ' ', s)
     return s;
 }
 
@@ -78,7 +74,6 @@ std::string MLInference::predict(int pid, const std::map<std::string, std::strin
     std::vector<int> words, labels;
     ft_model_.getDictionary()->getLine(iss, words, labels);
 
-    // k=1 to get the top prediction
     ft_model_.predict(1, words, predictions, 0.0);
     
     if (predictions.empty()) {
@@ -87,7 +82,6 @@ std::string MLInference::predict(int pid, const std::map<std::string, std::strin
     }
     
     // fastText returns pairs of (probability, label_id)
-    // Note: If probability is negative, it's likely a log-probability. Convert it.
     fasttext::real probability = predictions[0].first;
     if (probability < 0) {
         probability = std::exp(probability);
