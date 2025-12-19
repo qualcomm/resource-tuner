@@ -38,7 +38,8 @@ if(BUILD_CLASSIFIER)
     endif()
 
   add_subdirectory(${CMAKE_SOURCE_DIR}/contextual-classifier)
-  list(APPEND SERVER_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/contextual-classifier/classifier.cpp)
+  list(APPEND SERVER_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/contextual-classifier/ContextualClassifier.cpp
+                              ${CMAKE_CURRENT_SOURCE_DIR}/contextual-classifier/NetLinkComm.cpp)
 endif()
 
 set(SERVER_LIBS "")
