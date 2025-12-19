@@ -3,14 +3,14 @@
 
 #include "NetLinkComm.h"
 #include "Logger.h"
-#include <unistd.h>
 #include <cerrno>
-#include <cstring>
 #include <cstdarg>
+#include <cstring>
+#include <unistd.h>
 
 #define CLASSIFIER_TAG "NetLinkComm"
 
-static std::string format_string(const char* fmt, ...) {
+static std::string format_string(const char *fmt, ...) {
     char buffer[1024];
     va_list args;
     va_start(args, fmt);
@@ -21,9 +21,7 @@ static std::string format_string(const char* fmt, ...) {
 
 NetLinkComm::NetLinkComm() : nl_sock(-1) {}
 
-NetLinkComm::~NetLinkComm() {
-    close_socket();
-}
+NetLinkComm::~NetLinkComm() { close_socket(); }
 
 void NetLinkComm::close_socket() {
     if (nl_sock != -1) {
@@ -32,9 +30,7 @@ void NetLinkComm::close_socket() {
     }
 }
 
-int NetLinkComm::get_socket() const {
-    return nl_sock;
-}
+int NetLinkComm::get_socket() const { return nl_sock; }
 
 int NetLinkComm::connect() {
     int rc;
@@ -62,9 +58,9 @@ int NetLinkComm::connect() {
 
 int NetLinkComm::set_listen(bool enable) {
     int rc;
-    struct __attribute__ ((aligned(NLMSG_ALIGNTO))) {
+    struct __attribute__((aligned(NLMSG_ALIGNTO))) {
         struct nlmsghdr nl_hdr;
-        struct __attribute__ ((__packed__)) {
+        struct __attribute__((__packed__)) {
             struct cn_msg_hdr cn_msg;
             enum proc_cn_mcast_op cn_mcast;
         };
@@ -83,7 +79,8 @@ int NetLinkComm::set_listen(bool enable) {
 
     rc = send(nl_sock, &nlcn_msg, sizeof(nlcn_msg), 0);
     if (rc == -1) {
-        LOGE(CLASSIFIER_TAG, format_string("netlink send: %s", strerror(errno)));
+        LOGE(CLASSIFIER_TAG,
+             format_string("netlink send: %s", strerror(errno)));
         return -1;
     }
 

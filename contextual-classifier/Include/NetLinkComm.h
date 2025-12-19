@@ -1,10 +1,10 @@
 #ifndef NETLINK_COMM_H
 #define NETLINK_COMM_H
 
-#include <sys/socket.h>
-#include <linux/netlink.h>
-#include <linux/connector.h>
 #include <linux/cn_proc.h>
+#include <linux/connector.h>
+#include <linux/netlink.h>
+#include <sys/socket.h>
 #include <unistd.h>
 
 // Define a local version of cn_msg without the flexible array member 'data[]'
@@ -18,7 +18,7 @@ struct cn_msg_hdr {
 };
 
 class NetLinkComm {
-public:
+  public:
     NetLinkComm();
     ~NetLinkComm();
     int connect();
@@ -26,7 +26,7 @@ public:
     int get_socket() const;
     void close_socket();
 
-private:
+  private:
     int nl_sock;
 };
 
