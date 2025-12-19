@@ -12,7 +12,6 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <string>
-#include <set>
 #include "NetLinkComm.h"
 #include "MLInference.h"
 #include "ComponentRegistry.h" 
@@ -34,9 +33,9 @@ private:
     NetLinkComm mNetLinkComm;
     MLInference mMLInference;
 
-    // Queue + pending set for PID lifecycle management
-    std::queue<int> mClassificationQueue;
-    std::set<int> mPendingPids;
+    // FIFO queue + pending set for PID lifecycle management
+    std::queue<int> mClassificationQueue;            // FIFO of PIDs
+    std::unordered_set<int> mPendingPids;            // PIDs still pending/alive
     std::mutex mQueueMutex;
     std::condition_variable mQueueCond;
     std::thread mWorkerThread;

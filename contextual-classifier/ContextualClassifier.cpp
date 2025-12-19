@@ -107,6 +107,11 @@ ErrCode ContextualClassifier::Terminate() {
     {
         std::unique_lock<std::mutex> lock(mQueueMutex);
         mNeedExit = true;
+        // Clear any pending PIDs so the worker doesn't see stale entries
+        mPendingPids.clear();
+        while (!mClassificationQueue.empty()) {
+            mClassificationQueue.pop();
+        }
     }
     mQueueCond.notify_all();
     
@@ -124,24 +129,31 @@ ErrCode ContextualClassifier::Terminate() {
 }
 
 void ContextualClassifier::WorkerThread() {
-    pthread_setname_np(pthread_self(), "ClassWorker");
+    pthread_setname_np(pthread_self(), "Classifier");
     while (true) {
         int pid_to_classify = -1;
         {
             std::unique_lock<std::mutex> lock(mQueueMutex);
             mQueueCond.wait(lock, [this]{
-                return !mPendingPids.empty() || mNeedExit;
+                return !mClassificationQueue.empty() || mNeedExit;
             });
 
-            if (mNeedExit && mPendingPids.empty()) {
+            if (mNeedExit && mClassificationQueue.empty()) {
                 return;
             }
 
-            // Take one PID from the pending set
-            auto it = mPendingPids.begin();
-            if (it != mPendingPids.end()) {
-                pid_to_classify = *it;
-                mPendingPids.erase(it);
+            // Pop until we find a PID that is still pending/alive
+            while (!mClassificationQueue.empty()) {
+                int pid = mClassificationQueue.front();
+                mClassificationQueue.pop();
+
+                auto it = mPendingPids.find(pid);
+                if (it != mPendingPids.end()) {
+                    pid_to_classify = pid;
+                    mPendingPids.erase(it);
+                    break;
+                }
+                // else: PID is no longer pending (EXIT already received), skip it
             }
         }
 
@@ -228,7 +240,7 @@ void ContextualClassifier::RemoveActions(int process_pid, int process_tgid, std:
 }
 
 int ContextualClassifier::HandleProcEv() {
-    pthread_setname_np(pthread_self(), "ClassNetlink");
+    pthread_setname_np(pthread_self(), "Netlink");
     int rc;
     struct __attribute__ ((aligned(NLMSG_ALIGNTO))) {
         struct nlmsghdr nl_hdr;
@@ -284,8 +296,9 @@ int ContextualClassifier::HandleProcEv() {
                             LOGD(CLASSIFIER_TAG, format_string("Ignoring process: %s (PID: %d)", proc_name.c_str(), pid));
                         } else {
                             std::lock_guard<std::mutex> lock(mQueueMutex);
-                            // Mark PID as pending and let worker pick it up
+                            // Mark PID as pending and enqueue in FIFO order
                             mPendingPids.insert(pid);
+                            mClassificationQueue.push(pid);
                             mQueueCond.notify_one();
                         }
                     } else {
