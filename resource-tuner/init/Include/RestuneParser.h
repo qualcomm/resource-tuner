@@ -21,6 +21,7 @@
 #include "Utils.h"
 #include "AuxRoutines.h"
 #include "SignalRegistry.h"
+#include "AppConfigs.h"
 #include "ExtFeaturesRegistry.h"
 
 // Resource Config
@@ -298,6 +299,7 @@ private:
     ErrCode parseTargetConfigYamlNode(const std::string& filePath);
     ErrCode parseSignalConfigYamlNode(const std::string& filePath, int8_t isBuSpecified);
     ErrCode parseExtFeatureConfigYamlNode(const std::string& filePath);
+    ErrCode parsePerAppConfigYamlNode(const std::string& filePath);
 
 public:
     ErrCode parseResourceConfigs(const std::string& filePath, int8_t isBuSpecified=false);
@@ -306,6 +308,7 @@ public:
     ErrCode parseTargetConfigs(const std::string& filePath);
     ErrCode parseSignalConfigs(const std::string& filePath, int8_t isBuSpecified=false);
     ErrCode parseExtFeaturesConfigs(const std::string& filePath);
+    ErrCode parsePerAppConfigs(const std::string& filePath);
     ErrCode parse(ConfigType configType, const std::string& filePath, int8_t isBuSpecified=false);
 };
 

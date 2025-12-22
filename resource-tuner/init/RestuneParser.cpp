@@ -847,6 +847,128 @@ ErrCode RestuneParser::parseExtFeatureConfigYamlNode(const std::string& filePath
     return rc;
 }
 
+ErrCode RestuneParser::parsePerAppConfigYamlNode(const std::string& filePath) {
+    SETUP_LIBYAML_PARSING(filePath);
+
+    ErrCode rc = RC_SUCCESS;
+
+    int8_t parsingDone = false;
+    int8_t docMarker = false;
+    int8_t parsingThreads = false;
+    int8_t parsingResources = false;
+    int8_t parsingValues = false;
+    int8_t parsingConfigurations = false;
+
+    int32_t configurationsCount = 0;
+    int32_t threadsCount = 0;
+
+    std::string value;
+    std::string topKey;
+    std::stack<std::string> keyTracker;
+    std::stack<std::string> itemArray;
+
+    AppConfigBuilder* appConfigBuider = nullptr;
+
+    while(!parsingDone) {
+        if(!yaml_parser_parse(&parser, &event)) {
+            return RC_YAML_PARSING_ERROR;
+        }
+
+        switch(event.type) {
+            case YAML_STREAM_END_EVENT:
+                parsingDone = true;
+                break;
+
+            case YAML_MAPPING_START_EVENT:
+                if(!docMarker) {
+                    docMarker = true;
+                }
+
+                break;
+
+            case YAML_MAPPING_END_EVENT:
+                break;
+
+            case YAML_SEQUENCE_START_EVENT:
+                if(topKey == "Threads") {
+                    parsingThreads = true;
+                } else if(topKey == "Configurations") {
+                    parsingConfigurations = true;
+                }
+
+                break;
+
+            case YAML_SEQUENCE_END_EVENT:
+                if(keyTracker.empty()) {
+                    return RC_YAML_INVALID_SYNTAX;
+                }
+
+                if(parsingThreads) {
+                    // Add threads to builder
+                    appConfigBuider->setNumThreads(threadsCount);
+                    while(threadsCount) {
+                        std::string cGroupID = itemArray.top();
+                        itemArray.pop();
+                        std::string threadName = itemArray.top();
+                        itemArray.pop();
+
+                        appConfigBuider->addThreadMapping(threadName, cGroupID);
+                        threadsCount -= 2;
+                    }
+
+                    threadsCount = 0;
+                    parsingThreads = !parsingThreads;
+
+                } else if(parsingConfigurations) {
+                    appConfigBuider->setNumSigCodes(configurationsCount);
+                    std::vector<std::string> configCodes(configurationsCount);
+                    for(int32_t i = configurationsCount - 1; i >= 0; i--) {
+                        configCodes[i] = itemArray.top();
+                        itemArray.pop();
+                    }
+
+                    for(int32_t i = 0; i < configurationsCount; i++) {
+                        appConfigBuider->addSigCode(configCodes[i]);
+                    }
+
+                    configurationsCount = 0;
+                    parsingConfigurations = !parsingConfigurations;
+                }
+
+                break;
+
+            case YAML_SCALAR_EVENT:
+                if(event.data.scalar.value != nullptr) {
+                    value = reinterpret_cast<char*>(event.data.scalar.value);
+                }
+
+                if(parsingConfigurations) {
+                    configurationsCount++;
+                } else if(parsingThreads) {
+                    threadsCount++;
+                }
+
+                topKey = value;
+                if(!isKey(topKey)) {
+                    if(topKey == "App") {
+                        appConfigBuider->setAppName(value);
+                    } else {
+                        itemArray.push(value);
+                    }
+                }
+                break;
+
+            default:
+                break;
+        }
+
+        yaml_event_delete(&event);
+    }
+
+    TEARDOWN_LIBYAML_PARSING
+    return rc;
+}
+
 ErrCode RestuneParser::parseResourceConfigs(const std::string& filePath, int8_t isBuSpecified) {
     return parseResourceConfigYamlNode(filePath, isBuSpecified);
 }
@@ -897,6 +1019,10 @@ ErrCode RestuneParser::parse(ConfigType configType, const std::string& filePath,
         }
         case ConfigType::EXT_FEATURES_CONFIG: {
             rc = this->parseExtFeaturesConfigs(filePath);
+            break;
+        }
+        case ConfigType::APP_CONFIG: {
+            rc = this->parsePerAppConfigYamlNode(filePath);
             break;
         }
         default: {

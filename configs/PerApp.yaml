@@ -1,0 +1,10 @@
+PerAppConfigs:
+  - App: "gst-launch-"
+    Threads:
+       - {"cam-server": "FOCUSED"}
+       - {"gst-launch-": "FOCUSED"}
+
+  - App: "chrome"
+    Threads:
+       - {"chrome": "FOCUSED"}
+    Configurations: ["0x80034aab"]
