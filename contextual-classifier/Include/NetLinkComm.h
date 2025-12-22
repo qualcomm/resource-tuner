@@ -17,14 +17,26 @@ struct cn_msg_hdr {
     __u16 flags;
 };
 
+// Forward declaration; ProcEvent is defined in ContextualClassifier.h
+struct ProcEvent;
+
 class NetLinkComm {
   public:
     NetLinkComm();
     ~NetLinkComm();
+
     int connect();
     int set_listen(bool enable);
     int get_socket() const;
     void close_socket();
+
+    // Receive a single proc connector event and fill ProcEvent.
+    // Returns:
+    //   CC_APP_OPEN  on EXEC
+    //   CC_APP_CLOSE on EXIT
+    //   0            on non-actionable events
+    //   -1           on error
+    int RecvEvent(ProcEvent &ev);
 
   private:
     int nl_sock;
