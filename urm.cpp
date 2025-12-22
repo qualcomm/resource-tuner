@@ -49,7 +49,7 @@ static void serverCleanup() {
 
 int32_t main(int32_t argc, char *argv[]) {
     // Initialize syslog
-    openlog(RESTUNE_IDENTIFIER, LOG_PID | LOG_CONS | LOG_NDELAY, LOG_DAEMON);
+    openlog(URM_IDENTIFIER, LOG_PID | LOG_CONS | LOG_NDELAY, LOG_DAEMON);
     setlogmask(LOG_UPTO(LOG_DEBUG));
 
     ErrCode opStatus = RC_SUCCESS;

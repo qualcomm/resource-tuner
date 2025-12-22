@@ -409,7 +409,6 @@ static ErrCode init(void* arg) {
     // Fetch and Parse Resource Configs
     // Resource Parsing which will be considered:
     // - Common Resource Configs
-    // - Target Specific Resource Configs
     // - Custom Resource Configs (if present)
     // Note by this point, we will know the Target Info, i.e. number of Core, Clusters etc.
     if(RC_IS_NOTOK(fetchResources())) {
@@ -419,7 +418,6 @@ static ErrCode init(void* arg) {
     // Fetch and Parse Signal Configs
     // Signal Configs which will be considered:
     // - Common Signal Configs
-    // - Target Specific Signal Configs
     // - Custom Signal Configs (if present)
     if(RC_IS_NOTOK(fetchSignals())) {
         return RC_MODULE_INIT_FAILURE;
@@ -474,6 +472,7 @@ static ErrCode init(void* arg) {
 }
 
 static ErrCode tear(void* arg) {
+    // Check if the thread is joinable, to prevent undefined behaviour
     if(resourceTunerListener.joinable()) {
         resourceTunerListener.join();
     } else {

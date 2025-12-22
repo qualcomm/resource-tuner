@@ -103,7 +103,9 @@ Userspace resource manager (uRM) contains
 - Moves focused active app's threads to "Focused" cgroup
 - Move previously focused app threads to its origional group
 - This is an optional module which can be enabled at compile time
+
 ---
+
 <div style="page-break-after: always;"></div>
 
 # System Independent Layer

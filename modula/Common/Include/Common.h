@@ -137,8 +137,10 @@ enum Modes {
 /* Resources */                           \
 X(RES_SCALE_MIN_FREQ,         0x00040000) \
 X(RES_SCALE_MAX_FREQ,         0x00040001) \
+X(RES_RATE_LIMIT_US,          0x00040002) \
 X(RES_SCHED_UTIL_CLAMP_MIN,   0x00030000) \
 X(RES_SCHED_UTIL_CLAMP_MAX,   0x00030001) \
+X(RES_SCHED_ENERGY_AWARE,     0x00030002) \
 X(RES_CPU_DMA_LATENCY,        0x00010000) \
 X(RES_PM_QOS_LATENCY,         0x00010001) \
 /* cgroup resources */                    \

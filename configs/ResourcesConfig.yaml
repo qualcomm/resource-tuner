@@ -7,7 +7,7 @@
 ResourceConfigs:
   - ResType: "0x01"
     ResID: "0x0000"
-    Name: "RES_TUNER_CPU_DMA_LATENCY"
+    Name: "RES_CPU_DMA_LATENCY"
     Path: "/dev/cpu_dma_latency"
     Supported: true
     LowThreshold: 0
@@ -18,7 +18,7 @@ ResourceConfigs:
 
   - ResType: "0x01"
     ResID: "0x0001"
-    Name: "RES_TUNER_PM_QOS_LATENCY"
+    Name: "RES_PM_QOS_LATENCY"
     Path: "/sys/devices/system/cpu/cpu%d/power/pm_qos_resume_latency_us"
     Supported: true
     LowThreshold: 0
@@ -29,7 +29,7 @@ ResourceConfigs:
 
   - ResType: "0x01"
     ResID: "0x0002"
-    Name: "RES_TUNER_PM_QOS_LATENCY"
+    Name: "RES_PM_QOS_LATENCY"
     Path: "/sys/devices/system/cpu/cpu%d/power/pm_qos_resume_latency_us"
     Supported: true
     LowThreshold: 0
@@ -40,7 +40,7 @@ ResourceConfigs:
 
   - ResType: "0x03"
     ResID: "0x0000"
-    Name: "RES_TUNER_SCHED_UTIL_CLAMP_MIN"
+    Name: "RES_SCHED_UTIL_CLAMP_MIN"
     Path: "/proc/sys/kernel/sched_util_clamp_min"
     Supported: true
     HighThreshold: 1024
@@ -52,7 +52,7 @@ ResourceConfigs:
 
   - ResType: "0x03"
     ResID: "0x0001"
-    Name: "RES_TUNER_SCHED_UTIL_CLAMP_MAX"
+    Name: "RES_SCHED_UTIL_CLAMP_MAX"
     Path: "/proc/sys/kernel/sched_util_clamp_max"
     Supported: true
     HighThreshold: 1024
@@ -65,7 +65,7 @@ ResourceConfigs:
   - ResType: "0x03"
     ResID: "0x0002"
     Name: "/proc/sys/kernel/sched_energy_aware"
-    Path: "SCHED_ENERGY_AWARE"
+    Path: "RES_SCHED_ENERGY_AWARE"
     Supported: true
     Permissions: third_party
     Modes: ["display_on"]
@@ -75,7 +75,7 @@ ResourceConfigs:
   - ResType: "0x04"
     ResID: "0x0000"
     Unit: "Hz"
-    Name: "RES_TUNER_SCALING_MIN_FREQ"
+    Name: "RES_SCALE_MIN_FREQ"
     Path: "/sys/devices/system/cpu/cpufreq/policy%d/scaling_min_freq"
     Supported: true
     Permissions: third_party
@@ -86,7 +86,7 @@ ResourceConfigs:
   - ResType: "0x04"
     ResID: "0x0001"
     Unit: "Hz"
-    Name: "RES_TUNER_SCALING_MAX_FREQ"
+    Name: "RES_SCALE_MAX_FREQ"
     Path: "/sys/devices/system/cpu/cpufreq/policy%d/scaling_max_freq"
     Supported: true
     Permissions: third_party
@@ -96,7 +96,7 @@ ResourceConfigs:
 
   - ResType: "0x04"
     ResID: "0x0002"
-    Name: "RES_TUNER_RATE_LIMIT_US"
+    Name: "RES_RATE_LIMIT_US"
     Path: "/sys/devices/system/cpu/cpufreq/policy%d/schedutil/rate_limit_us"
     Supported: true
     Permissions: third_party
@@ -106,7 +106,7 @@ ResourceConfigs:
 
   - ResType: "0x09"
     ResID: "0x0000"
-    Name: "RES_TUNER_CGROUP_MOVE_PID"
+    Name: "RES_CGRP_MOVE_PID"
     Path: "/sys/fs/cgroup/%s/cgroup.procs"
     Supported: true
     Permissions: "system"
@@ -116,7 +116,7 @@ ResourceConfigs:
 
   - ResType: "0x09"
     ResID: "0x0001"
-    Name: "RES_TUNER_CGROUP_MOVE_TID"
+    Name: "RES_CGRP_MOVE_TID"
     Path: "/sys/fs/cgroup/%s/cgroup.threads"
     Supported: true
     Permissions: "system"
@@ -126,7 +126,7 @@ ResourceConfigs:
 
   - ResType: "0x09"
     ResID: "0x0002"
-    Name: "RES_TUNER_CGROUP_RUN_ON_CORES"
+    Name: "RES_CGRP_RUN_CORES"
     Path: "/sys/fs/cgroup/%s/cpuset.cpus"
     Supported: true
     Permissions: "system"
@@ -136,7 +136,7 @@ ResourceConfigs:
 
   - ResType: "0x09"
     ResID: "0x0003"
-    Name: "RES_TUNER_CGROUP_RUN_ON_CORES_EXCLUSIVELY"
+    Name: "RES_CGRP_RUN_CORES_EXCL"
     Path: "/sys/fs/cgroup/%s/cpuset.cpus.partition"
     Supported: true
     Permissions: "system"
@@ -146,7 +146,7 @@ ResourceConfigs:
 
   - ResType: "0x09"
     ResID: "0x0004"
-    Name: "RES_TUNER_CGROUP_FREEZE"
+    Name: "RES_CGRP_FREEZE"
     Path: "/sys/fs/cgroup/%s/cgroup.freeze"
     Supported: true
     Permissions: "system"
@@ -156,7 +156,7 @@ ResourceConfigs:
 
   - ResType: "0x09"
     ResID: "0x0005"
-    Name: "RES_TUNER_CGROUP_LIMIT_CPU_TIME"
+    Name: "RES_CGRP_LIMIT_CPU_TIME"
     Path: "/sys/fs/cgroup/%s/cpu.max"
     Supported: true
     Permissions: "system"
@@ -166,7 +166,7 @@ ResourceConfigs:
 
   - ResType: "0x09"
     ResID: "0x0006"
-    Name: "RES_TUNER_CGROUP_RUN_WHEN_CPU_IDLE"
+    Name: "RES_CGRP_RUN_WHEN_CPU_IDLE"
     Path: "/sys/fs/cgroup/%s/cpu.idle"
     Supported: true
     Permissions: "system"
@@ -176,7 +176,7 @@ ResourceConfigs:
 
   - ResType: "0x09"
     ResID: "0x0007"
-    Name: "RES_TUNER_CGROUP_UCLAMP_MIN"
+    Name: "RES_CGRP_UCLAMP_MIN"
     Path: "/sys/fs/cgroup/%s/cpu.uclamp.min"
     Supported: true
     Permissions: "system"
@@ -186,7 +186,7 @@ ResourceConfigs:
 
   - ResType: "0x09"
     ResID: "0x0008"
-    Name: "RES_TUNER_CGROUP_UCLAMP_MAX"
+    Name: "RES_CGRP_UCLAMP_MAX"
     Path: "/sys/fs/cgroup/%s/cpu.uclamp.max"
     Supported: true
     Permissions: "system"
@@ -196,7 +196,7 @@ ResourceConfigs:
 
   - ResType: "0x09"
     ResID: "0x0009"
-    Name: "RES_TUNER_CGROUP_RELATIVE_CPU_WEIGHT"
+    Name: "RES_CGRP_REL_CPU_WEIGHT"
     Path: "/sys/fs/cgroup/%s/cpu.weight"
     Supported: true
     Permissions: "system"
@@ -207,7 +207,7 @@ ResourceConfigs:
   - ResType: "0x09"
     ResID: "0x000a"
     Unit: "KB"
-    Name: "RES_TUNER_CGROUP_HIGH_MEMORY"
+    Name: "RES_CGRP_HIGH_MEM"
     Path: "/sys/fs/cgroup/%s/memory.high"
     Supported: true
     Permissions: "system"
@@ -218,7 +218,7 @@ ResourceConfigs:
   - ResType: "0x09"
     ResID: "0x000b"
     Unit: "KB"
-    Name: "RES_TUNER_CGROUP_MAX_MEMORY"
+    Name: "RES_CGRP_MAX_MEM"
     Path: "/sys/fs/cgroup/%s/memory.max"
     Supported: true
     Permissions: "system"
@@ -229,7 +229,7 @@ ResourceConfigs:
   - ResType: "0x09"
     ResID: "0x000c"
     Unit: "KB"
-    Name: "RES_TUNER_CGROUP_LOW_MEMORY"
+    Name: "RES_CGRP_LOW_MEM"
     Path: "/sys/fs/cgroup/%s/memory.low"
     Supported: true
     Permissions: "system"
@@ -240,7 +240,7 @@ ResourceConfigs:
   - ResType: "0x09"
     ResID: "0x000d"
     Unit: "KB"
-    Name: "RES_TUNER_CGROUP_MIN_MEMORY"
+    Name: "RES_CGRP_MIN_MEM"
     Path: "/sys/fs/cgroup/%s/memory.min"
     Supported: true
     Permissions: "system"
@@ -251,7 +251,7 @@ ResourceConfigs:
   - ResType: "0x09"
     ResID: "0x000e"
     Unit: "KB"
-    Name: "RES_TUNER_CGROUP_SWAP_MAX_MEMORY"
+    Name: "RES_CGRP_SWAP_MAX_MEMORY"
     Path: "/sys/fs/cgroup/%s/memory.swap.max"
     Supported: true
     Permissions: "system"
@@ -261,7 +261,7 @@ ResourceConfigs:
 
   - ResType: "0x09"
     ResID: "0x000f"
-    Name: "RES_TUNER_CGROUP_IO_WEIGHT"
+    Name: "RES_CGRP_IO_WEIGHT"
     Path: "/sys/fs/cgroup/%s/io.weight"
     Supported: true
     Permissions: "system"
@@ -271,7 +271,7 @@ ResourceConfigs:
 
   - ResType: "0x09"
     ResID: "0x0010"
-    Name: "RES_TUNER_CGROUP_IO_WEIGHT"
+    Name: "RES_CGRP_BFQ_IO_WEIGHT"
     Path: "/sys/fs/cgroup/%s/io.bfq.weight"
     Supported: true
     Permissions: "system"
@@ -281,7 +281,7 @@ ResourceConfigs:
 
   - ResType: "0x09"
     ResID: "0x0011"
-    Name: "RES_TUNER_CGROUP_CPU_LATENCY"
+    Name: "RES_CGRP_CPU_LATENCY"
     Path: "/sys/fs/cgroup/%s/cpu.weight.nice"
     Supported: true
     Permissions: "system"

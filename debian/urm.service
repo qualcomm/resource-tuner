@@ -3,7 +3,7 @@ Description=URM Service
 
 [Service]
 Restart=on-failure
-ExecStart=/usr/bin/urm_exec
+ExecStart=/usr/bin/urm
 TimeoutStopSec=2
 
 [Install]
