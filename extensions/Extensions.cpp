@@ -7,6 +7,7 @@
 std::vector<std::string> Extensions::mModifiedConfigFiles (TOTAL_CONFIGS_COUNT, "");
 std::unordered_map<uint32_t, ResourceLifecycleCallback> Extensions::mResourceApplierCallbacks {};
 std::unordered_map<uint32_t, ResourceLifecycleCallback> Extensions::mResourceTearCallbacks {};
+std::unordered_map<std::string, PostProcessingCallback> Extensions::mPostProcessCallbacks {};
 
 Extensions::Extensions(uint32_t resCode, int8_t callbackType, ResourceLifecycleCallback callback) {
     if(callbackType == 0) {
@@ -19,6 +20,10 @@ Extensions::Extensions(uint32_t resCode, int8_t callbackType, ResourceLifecycleC
 Extensions::Extensions(ConfigType configType, std::string yamlFile) {
     if(configType < 0 || configType >= mModifiedConfigFiles.size()) return;
     mModifiedConfigFiles[configType] = yamlFile;
+}
+
+Extensions::Extensions(const std::string& identifier, PostProcessingCallback callback) {
+    mPostProcessCallbacks[identifier] = callback;
 }
 
 std::vector<std::pair<uint32_t, ResourceLifecycleCallback>> Extensions::getResourceApplierCallbacks() {
@@ -59,4 +64,8 @@ std::string Extensions::getTargetConfigFilePath() {
 
 std::string Extensions::getInitConfigFilePath() {
     return mModifiedConfigFiles[ConfigType::INIT_CONFIG];
+}
+
+PostProcessingCallback Extensions::getPostProcessingCallback(const std::string& identifier) {
+    return mPostProcessCallbacks[identifier];
 }

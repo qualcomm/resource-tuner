@@ -5,8 +5,8 @@
  * \file  Extensions.h
  */
 
-#ifndef RESOURCE_TUNER_EXTENSIONS_H
-#define RESOURCE_TUNER_EXTENSIONS_H
+#ifndef URM_EXTENSIONS_H
+#define URM_EXTENSIONS_H
 
 #include <cstdint>
 #include <string>
@@ -14,6 +14,7 @@
 #include <unordered_map>
 
 typedef void (*ResourceLifecycleCallback)(void*);
+typedef void (*PostProcessingCallback)(void*);
 
 /**
  * @enum ConfigType
@@ -42,10 +43,12 @@ private:
     static std::vector<std::string> mModifiedConfigFiles;
     static std::unordered_map<uint32_t, ResourceLifecycleCallback> mResourceApplierCallbacks;
     static std::unordered_map<uint32_t, ResourceLifecycleCallback> mResourceTearCallbacks;
+    static std::unordered_map<std::string, PostProcessingCallback> mPostProcessCallbacks;
 
 public:
     Extensions(uint32_t resCode, int8_t callbackType, ResourceLifecycleCallback callback);
     Extensions(ConfigType configType, std::string yamlFile);
+    Extensions(const std::string& identifier, PostProcessingCallback callback);
 
     static std::vector<std::pair<uint32_t, ResourceLifecycleCallback>> getResourceApplierCallbacks();
     static std::vector<std::pair<uint32_t, ResourceLifecycleCallback>> getResourceTearCallbacks();
@@ -56,6 +59,8 @@ public:
     static std::string getExtFeaturesConfigFilePath();
     static std::string getTargetConfigFilePath();
     static std::string getInitConfigFilePath();
+
+    static PostProcessingCallback getPostProcessingCallback(const std::string& identifier);
 };
 
 #define CONCAT(a, b) a ## b
@@ -93,5 +98,16 @@ public:
  */
 #define RESTUNE_REGISTER_CONFIG(configType, yamlFile) \
         static Extensions CONCAT(_regConfig, configType)(configType, yamlFile);
+
+/**
+ * \def CLASSIFIER_REGISTER_POST_PROCESS_CB(identifier, callback)
+ * \brief Register post processing callbacks for different workloads and per-process.
+ * \param identifier The key (string) identifier for the process or workload
+ * \param callback The post processing Callback to be registered
+ *
+ * \note This macro must be used in the Global Scope.
+ */
+#define CLASSIFIER_REGISTER_POST_PROCESS_CB(identifier, callback) \
+        static Extensions CONCAT(_postProcess_, identifier)(identifier, callback);
 
 #endif

@@ -29,7 +29,7 @@ void registerWithUrm() {
 
 /*
  * Compilation Notes:
- * To build the above code, it needs to be linked with RestuneExtAPIs lib exposed by Resource Tuner,
+ * To build the above code, it needs to be linked with UrmExtAPIs lib exposed by Resource Tuner,
  * and built as a shared lib:
  * => Create the shared lib:
  *    "g++ -fPIC -shared -o libplugin.so Plugin.cpp -lExtAPIs"
