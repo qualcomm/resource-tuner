@@ -16,7 +16,7 @@
 
 MLInference::MLInference(const std::string &ft_model_path) {
     text_cols_ = {"attr", "cgroup",  "cmdline", "comm", "maps",
-                  "fds",  "environ", "exe", "logs"};
+                  "fds",  "environ", "exe",     "logs"};
 
     syslog(LOG_DEBUG, "Loading fastText model from: %s", ft_model_path.c_str());
     try {

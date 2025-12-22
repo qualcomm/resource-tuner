@@ -16,29 +16,22 @@
 #include <unordered_set>
 #include <vector>
 
-enum {
-    CC_IGNORE    = 0x00,
-    CC_APP_OPEN  = 0x01,
-    CC_APP_CLOSE = 0x02
-};
+enum { CC_IGNORE = 0x00, CC_APP_OPEN = 0x01, CC_APP_CLOSE = 0x02 };
 
 enum {
-    CC_BROWSER_APP_OPEN     = 0x00,
-    CC_GAME_APP_OPEN        = 0x01,
-    CC_MULTIMEDIA_APP_OPEN  = 0x02
+    CC_BROWSER_APP_OPEN = 0x00,
+    CC_GAME_APP_OPEN = 0x01,
+    CC_MULTIMEDIA_APP_OPEN = 0x02
 };
 
-enum {
-    DEFAULT_CONFIG,
-    PER_APP_CONFIG
-};
+enum { DEFAULT_CONFIG, PER_APP_CONFIG };
 
 typedef enum CC_TYPE {
-    CC_APP          = 0x01,
-    CC_BROWSER      = 0x02,
-    CC_GAME         = 0x03,
-    CC_MULTIMEDIA   = 0x04,
-    CC_UNKNOWN       = 0x05
+    CC_APP = 0x01,
+    CC_BROWSER = 0x02,
+    CC_GAME = 0x03,
+    CC_MULTIMEDIA = 0x04,
+    CC_UNKNOWN = 0x05
 } CC_TYPE;
 
 struct ProcEvent {
@@ -46,7 +39,6 @@ struct ProcEvent {
     int tgid;
     int type; // CC_APP_OPEN / CC_APP_CLOSE / CC_IGNORE
 };
-
 
 class ContextualClassifier {
   public:
@@ -58,9 +50,7 @@ class ContextualClassifier {
   private:
     void ClassifierMain();
     int HandleProcEv();
-    int ClassifyProcess(int pid,
-                        int tgid,
-                        const std::string &comm,
+    int ClassifyProcess(int pid, int tgid, const std::string &comm,
                         uint32_t &ctxDetails);
     void LoadIgnoredProcesses();
     void ApplyActions(std::string comm, int32_t sigId, int32_t sigType);
@@ -79,14 +69,14 @@ class ContextualClassifier {
     volatile bool mNeedExit = false;
 
     std::unordered_set<std::string> mIgnoredProcesses;
-    std::unordered_map<std::string, std::unordered_set<std::string>> mTokenIgnoreMap;
+    std::unordered_map<std::string, std::unordered_set<std::string>>
+        mTokenIgnoreMap;
     bool mDebugMode = false;
 
     std::unordered_set<int> mIgnoredPids;
     std::unordered_map<int, uint64_t> mResTunerHandles;
 
-    void GetSignalDetailsForWorkload(int32_t contextType,
-                                     uint32_t &sigId,
+    void GetSignalDetailsForWorkload(int32_t contextType, uint32_t &sigId,
                                      uint32_t &sigSubtype);
 };
 

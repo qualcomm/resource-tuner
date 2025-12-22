@@ -1,51 +1,64 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include "Utils.h"
 #include "Extensions.h"
+#include "Utils.h"
 
-std::vector<std::string> Extensions::mModifiedConfigFiles (TOTAL_CONFIGS_COUNT, "");
-std::unordered_map<uint32_t, ResourceLifecycleCallback> Extensions::mResourceApplierCallbacks {};
-std::unordered_map<uint32_t, ResourceLifecycleCallback> Extensions::mResourceTearCallbacks {};
-std::unordered_map<std::string, WorkloadPostprocessCallback> Extensions::mWorkloadPostprocessCallbacks;
+std::vector<std::string> Extensions::mModifiedConfigFiles(TOTAL_CONFIGS_COUNT,
+                                                          "");
+std::unordered_map<uint32_t, ResourceLifecycleCallback>
+    Extensions::mResourceApplierCallbacks{};
+std::unordered_map<uint32_t, ResourceLifecycleCallback>
+    Extensions::mResourceTearCallbacks{};
+std::unordered_map<std::string, WorkloadPostprocessCallback>
+    Extensions::mWorkloadPostprocessCallbacks;
 
-Extensions::Extensions(uint32_t resCode, int8_t callbackType, ResourceLifecycleCallback callback) {
-    if(callbackType == 0) {
+Extensions::Extensions(uint32_t resCode, int8_t callbackType,
+                       ResourceLifecycleCallback callback) {
+    if (callbackType == 0) {
         mResourceApplierCallbacks[resCode] = callback;
-    } else if(callbackType == 1) {
+    } else if (callbackType == 1) {
         mResourceTearCallbacks[resCode] = callback;
     }
 }
 
 Extensions::Extensions(ConfigType configType, std::string yamlFile) {
-    if(configType < 0 || configType >= mModifiedConfigFiles.size()) return;
+    if (configType < 0 || configType >= mModifiedConfigFiles.size())
+        return;
     mModifiedConfigFiles[configType] = yamlFile;
 }
 
-Extensions::Extensions(std::string &comm, WorkloadPostprocessCallback callback) {
-	mWorkloadPostprocessCallbacks[comm] = callback;
+Extensions::Extensions(std::string &comm,
+                       WorkloadPostprocessCallback callback) {
+    mWorkloadPostprocessCallbacks[comm] = callback;
 }
 
-std::vector<std::pair<uint32_t, ResourceLifecycleCallback>> Extensions::getResourceApplierCallbacks() {
-    std::vector<std::pair<uint32_t, ResourceLifecycleCallback>> modifiedResources;
-    for(std::pair<uint32_t, ResourceLifecycleCallback> resource: mResourceApplierCallbacks) {
+std::vector<std::pair<uint32_t, ResourceLifecycleCallback>>
+Extensions::getResourceApplierCallbacks() {
+    std::vector<std::pair<uint32_t, ResourceLifecycleCallback>>
+        modifiedResources;
+    for (std::pair<uint32_t, ResourceLifecycleCallback> resource :
+         mResourceApplierCallbacks) {
         modifiedResources.push_back(resource);
     }
     return modifiedResources;
 }
 
-std::vector<std::pair<uint32_t, ResourceLifecycleCallback>> Extensions::getResourceTearCallbacks() {
-    std::vector<std::pair<uint32_t, ResourceLifecycleCallback>> modifiedResources;
-    for(std::pair<uint32_t, ResourceLifecycleCallback> resource: mResourceTearCallbacks) {
+std::vector<std::pair<uint32_t, ResourceLifecycleCallback>>
+Extensions::getResourceTearCallbacks() {
+    std::vector<std::pair<uint32_t, ResourceLifecycleCallback>>
+        modifiedResources;
+    for (std::pair<uint32_t, ResourceLifecycleCallback> resource :
+         mResourceTearCallbacks) {
         modifiedResources.push_back(resource);
     }
     return modifiedResources;
 }
 
-std::unordered_map<std::string, WorkloadPostprocessCallback>& Extensions::getWorkloadPostprocessCallbacks() {
+std::unordered_map<std::string, WorkloadPostprocessCallback> &
+Extensions::getWorkloadPostprocessCallbacks() {
     return mWorkloadPostprocessCallbacks;
 }
-
 
 std::string Extensions::getResourceConfigFilePath() {
     return mModifiedConfigFiles[ConfigType::RESOURCE_CONFIG];

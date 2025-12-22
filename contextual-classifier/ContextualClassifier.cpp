@@ -71,8 +71,7 @@ void ContextualClassifier::LoadIgnoredProcesses() {
 int FetchComm(int pid, std::string &comm) {
     std::string proc_path = "/proc/" + std::to_string(pid);
     if (access(proc_path.c_str(), F_OK) == -1) {
-        LOGD(CLASSIFIER_TAG,
-             format_string("Process %d has exited.", pid));
+        LOGD(CLASSIFIER_TAG, format_string("Process %d has exited.", pid));
         return -1;
     }
 
@@ -116,9 +115,8 @@ bool ContextualClassifier::isIgnoredProcess(int evType, int pid) {
             proc_name = proc_name.substr(first, (last - first + 1));
         }
         if (mIgnoredProcesses.count(proc_name) != 0U) {
-            LOGD(CLASSIFIER_TAG,
-                 format_string("Ignoring process: %s (PID: %d)",
-                               proc_name.c_str(), pid));
+            LOGD(CLASSIFIER_TAG, format_string("Ignoring process: %s (PID: %d)",
+                                               proc_name.c_str(), pid));
             mIgnoredPids.insert(pid);
             ignore = true;
         }
@@ -131,19 +129,21 @@ bool ContextualClassifier::isIgnoredProcess(int evType, int pid) {
     return ignore;
 }
 
-void ContextualClassifier::GetSignalDetailsForWorkload(int32_t contextType, uint32_t &sigId, uint32_t &sigSubtype) {
-	switch(contextType) {
-		case CC_MULTIMEDIA:
-		    sigId = CC_MULTIMEDIA_APP_OPEN;
-			break;
-		case CC_GAME:
-		    sigId = CC_GAME_APP_OPEN;
-			break;
-		case CC_BROWSER:
-			sigId = CC_BROWSER_APP_OPEN;
-			break;
-	}
-	return;
+void ContextualClassifier::GetSignalDetailsForWorkload(int32_t contextType,
+                                                       uint32_t &sigId,
+                                                       uint32_t &sigSubtype) {
+    switch (contextType) {
+    case CC_MULTIMEDIA:
+        sigId = CC_MULTIMEDIA_APP_OPEN;
+        break;
+    case CC_GAME:
+        sigId = CC_GAME_APP_OPEN;
+        break;
+    case CC_BROWSER:
+        sigId = CC_BROWSER_APP_OPEN;
+        break;
+    }
+    return;
 }
 
 ErrCode ContextualClassifier::Init() {
@@ -153,7 +153,7 @@ ErrCode ContextualClassifier::Init() {
 
     std::vector<std::string> labels = {"attr", "cgroup",  "cmdline",
                                        "comm", "environ", "exe",
-                                       "logs", "fds", "map_files"};
+                                       "logs", "fds",     "map_files"};
     mTokenIgnoreMap = FeaturePruner::loadIgnoreMap(IGNORE_TOKENS_PATH, labels);
     LOGI(CLASSIFIER_TAG, "Loaded ignore tokens configuration.");
 
@@ -213,9 +213,8 @@ void ContextualClassifier::ClassifierMain() {
         ProcEvent ev{};
         {
             std::unique_lock<std::mutex> lock(mQueueMutex);
-            mQueueCond.wait(lock, [this] {
-                return !mPendingEv.empty() || mNeedExit;
-            });
+            mQueueCond.wait(
+                lock, [this] { return !mPendingEv.empty() || mNeedExit; });
 
             if (mNeedExit) {
                 return;
@@ -236,14 +235,16 @@ void ContextualClassifier::ClassifierMain() {
                     continue;
                 }
 
-                int contextType = ClassifyProcess(ev.pid, ev.tgid, comm, ctxDetails);
+                int contextType =
+                    ClassifyProcess(ev.pid, ev.tgid, comm, ctxDetails);
 
                 GetSignalDetailsForWorkload(contextType, sigId, sigSubtype);
 
                 // Example per-app post processing hooks (stubbed)
                 // std::vector<int> threadList;
                 // GetThreadListFromPerAppConfig(comm, threadList);
-                // bool sendPerAppSig = IsResourcesListPresentInPerAppConfig(comm);
+                // bool sendPerAppSig =
+                // IsResourcesListPresentInPerAppConfig(comm);
                 // MoveFocusedAppThreads(ev.pid, threadList);
 
                 // if (sendPerAppSig) {
@@ -265,8 +266,7 @@ void ContextualClassifier::ClassifierMain() {
     }
 }
 
-int ContextualClassifier::ClassifyProcess(int process_pid,
-                                          int process_tgid,
+int ContextualClassifier::ClassifyProcess(int process_pid, int process_tgid,
                                           const std::string &comm,
                                           uint32_t &ctxDetails) {
     (void)process_tgid;
@@ -274,8 +274,9 @@ int ContextualClassifier::ClassifyProcess(int process_pid,
 
     if (mIgnoredProcesses.count(comm) != 0U) {
         LOGD(CLASSIFIER_TAG,
-             format_string("Skipping inference for ignored process: %s (PID: %d)",
-                           comm.c_str(), process_pid));
+             format_string(
+                 "Skipping inference for ignored process: %s (PID: %d)",
+                 comm.c_str(), process_pid));
         return 0;
     }
 
@@ -287,10 +288,8 @@ int ContextualClassifier::ClassifyProcess(int process_pid,
     const std::string proc_path = "/proc/" + std::to_string(process_pid);
 
     auto start_collect = std::chrono::high_resolution_clock::now();
-    int collect_rc = FeatureExtractor::CollectAndStoreData(process_pid,
-                                                           mTokenIgnoreMap,
-                                                           raw_data,
-                                                           mDebugMode);
+    int collect_rc = FeatureExtractor::CollectAndStoreData(
+        process_pid, mTokenIgnoreMap, raw_data, mDebugMode);
     auto end_collect = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> elapsed_collect =
         end_collect - start_collect;
@@ -336,8 +335,8 @@ int ContextualClassifier::ClassifyProcess(int process_pid,
         std::chrono::duration<double, std::milli> elapsed_inference =
             end_inference - start_inference;
         LOGD(CLASSIFIER_TAG,
-             format_string("Inference for PID:%d took %f ms",
-                           process_pid, elapsed_inference.count()));
+             format_string("Inference for PID:%d took %f ms", process_pid,
+                           elapsed_inference.count()));
 
         // Map stripped label -> CC_APP enum.
         // MLInference::predict() returns after stripping "__label__".
@@ -347,7 +346,7 @@ int ContextualClassifier::ClassifyProcess(int process_pid,
             contextType = CC_BROWSER;
         } else if (predicted_label == "game") {
             contextType = CC_GAME;
-        } else if (predicted_label == "media"){
+        } else if (predicted_label == "media") {
             contextType = CC_MULTIMEDIA;
         } else {
             contextType = CC_UNKNOWN;
@@ -367,16 +366,17 @@ int ContextualClassifier::ClassifyProcess(int process_pid,
     return static_cast<int>(contextType);
 }
 
-void ContextualClassifier::ApplyActions(std::string comm, int32_t sigId, int32_t sigType) {
-        //tuneSignal and update the handles
-        //mResTunerHandles
-        return;
+void ContextualClassifier::ApplyActions(std::string comm, int32_t sigId,
+                                        int32_t sigType) {
+    // tuneSignal and update the handles
+    // mResTunerHandles
+    return;
 }
 
 void ContextualClassifier::RemoveActions(int process_pid, int process_tgid) {
     (void)process_tgid;
-    //untuneSignal and erase handles
-    //mResTunerHandles
+    // untuneSignal and erase handles
+    // mResTunerHandles
     return;
 }
 
@@ -404,8 +404,8 @@ int ContextualClassifier::HandleProcEv() {
         switch (rc) {
         case CC_APP_OPEN:
             LOGD(CLASSIFIER_TAG,
-                 format_string("Received CC_APP_OPEN for tid=%d pid=%d",
-                               ev.pid, ev.tgid));
+                 format_string("Received CC_APP_OPEN for tid=%d pid=%d", ev.pid,
+                               ev.tgid));
             if (isIgnoredProcess(ev.type, ev.pid)) {
                 break;
             }
@@ -417,7 +417,8 @@ int ContextualClassifier::HandleProcEv() {
             break;
         case CC_APP_CLOSE:
             LOGD(CLASSIFIER_TAG,
-                 format_string("Received CC_APP_CLOSE pid=%d tgid=%d", ev.pid, ev.tgid));
+                 format_string("Received CC_APP_CLOSE pid=%d tgid=%d", ev.pid,
+                               ev.tgid));
             if (isIgnoredProcess(ev.type, ev.pid)) {
                 break;
             }
