@@ -1,8 +1,8 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#ifndef RESOURCE_TUNER_SETTINGS_H
-#define RESOURCE_TUNER_SETTINGS_H
+#ifndef URM_SETTINGS_H
+#define URM_SETTINGS_H
 
 #include <unordered_map>
 
@@ -11,7 +11,7 @@
 #include "SafeOps.h"
 #include "Utils.h"
 
-#define RESTUNE_IDENTIFIER "resource-tuner"
+#define URM_IDENTIFIER "urm"
 #define REQ_BUFFER_SIZE 1024
 
 // Operational Tunable Parameters for Resource Tuner

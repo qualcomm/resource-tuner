@@ -17,8 +17,7 @@
 #include "RestuneInternal.h"
 
 /**
- * @brief Internal API for submitting Signal Requests for Processing if the Signals
- *        module is enabled.
+ * @brief Internal API for submitting Signal Requests for Processing
  * @details Resource Tuner Modules can directly use this API to submit Requests rather than
  *          using the Client Interface.
  */
