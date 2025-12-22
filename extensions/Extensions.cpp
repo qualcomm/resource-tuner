@@ -66,6 +66,10 @@ std::string Extensions::getInitConfigFilePath() {
     return mModifiedConfigFiles[ConfigType::INIT_CONFIG];
 }
 
+std::string Extensions::getAppConfigFilePath() {
+    return mModifiedConfigFiles[ConfigType::APP_CONFIG];
+}
+
 PostProcessingCallback Extensions::getPostProcessingCallback(const std::string& identifier) {
     return mPostProcessCallbacks[identifier];
 }

@@ -58,6 +58,8 @@ public:
     static const std::string mCustomTargetFilePath;
     static const std::string mCustomExtFeaturesFilePath;
 
+    static const std::string mCustomAppConfigFilePath;
+
     // Support both versions: Common and Custom
     static const std::string mCommonInitConfigFilePath;
     static const std::string mCustomInitConfigFilePath;

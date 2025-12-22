@@ -29,7 +29,7 @@ enum ConfigType {
     EXT_FEATURES_CONFIG,
     TARGET_CONFIG,
     INIT_CONFIG,
-    APP_CONFIG
+    APP_CONFIG,
     TOTAL_CONFIGS_COUNT,
 };
 
@@ -60,6 +60,7 @@ public:
     static std::string getExtFeaturesConfigFilePath();
     static std::string getTargetConfigFilePath();
     static std::string getInitConfigFilePath();
+    static std::string getAppConfigFilePath();
 
     static PostProcessingCallback getPostProcessingCallback(const std::string& identifier);
 };
