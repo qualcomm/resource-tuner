@@ -21,6 +21,7 @@
 #include "Utils.h"
 #include "AuxRoutines.h"
 #include "SignalRegistry.h"
+#include "AppConfigs.h"
 #include "ExtFeaturesRegistry.h"
 
 // Resource Config
@@ -103,6 +104,12 @@
 #define EXT_FEATURE_CONFIGS_ELEM_NAME "Name"
 #define EXT_FEATURE_CONFIGS_ELEM_DESCRIPTION "Description"
 #define EXT_FEATURE_CONFIGS_ELEM_SUBSCRIBER_LIST "Signals"
+
+// App Configs
+#define APP_CONFIGS_ROOT "PerAppConfigs"
+#define APP_CONFIGS_APP_NAME "App"
+#define APP_CONFIGS_THREAD_LIST "Threads"
+#define APP_CONFIGS_CONFIGURATION_LIST "Configurations"
 
 /**
  * The Resource Config file (ResourcesConfig.yaml) must follow a specific structure.
@@ -298,6 +305,7 @@ private:
     ErrCode parseTargetConfigYamlNode(const std::string& filePath);
     ErrCode parseSignalConfigYamlNode(const std::string& filePath, int8_t isBuSpecified);
     ErrCode parseExtFeatureConfigYamlNode(const std::string& filePath);
+    ErrCode parsePerAppConfigYamlNode(const std::string& filePath);
 
 public:
     ErrCode parseResourceConfigs(const std::string& filePath, int8_t isBuSpecified=false);
@@ -306,6 +314,7 @@ public:
     ErrCode parseTargetConfigs(const std::string& filePath);
     ErrCode parseSignalConfigs(const std::string& filePath, int8_t isBuSpecified=false);
     ErrCode parseExtFeaturesConfigs(const std::string& filePath);
+    ErrCode parsePerAppConfigs(const std::string& filePath);
     ErrCode parse(ConfigType configType, const std::string& filePath, int8_t isBuSpecified=false);
 };
 

@@ -123,7 +123,11 @@ static int8_t isKey(const std::string& keyName) {
         EXT_FEATURE_CONFIGS_ELEM_LIB,
         EXT_FEATURE_CONFIGS_ELEM_NAME,
         EXT_FEATURE_CONFIGS_ELEM_DESCRIPTION,
-        EXT_FEATURE_CONFIGS_ELEM_SUBSCRIBER_LIST
+        EXT_FEATURE_CONFIGS_ELEM_SUBSCRIBER_LIST,
+        APP_CONFIGS_ROOT,
+        APP_CONFIGS_APP_NAME,
+        APP_CONFIGS_THREAD_LIST,
+        APP_CONFIGS_CONFIGURATION_LIST,
     };
 
     for(const std::string& key: keys) {
@@ -847,6 +851,171 @@ ErrCode RestuneParser::parseExtFeatureConfigYamlNode(const std::string& filePath
     return rc;
 }
 
+ErrCode RestuneParser::parsePerAppConfigYamlNode(const std::string& filePath) {
+    SETUP_LIBYAML_PARSING(filePath);
+
+    ErrCode rc = RC_SUCCESS;
+
+    int8_t parsingDone = false;
+    int8_t docMarker = false;
+    int8_t inThreadList = false;
+    int8_t inConfigList = false;
+
+    int32_t configurationsCount = 0;
+    int32_t threadsCount = 0;
+
+    std::string value;
+    std::string topKey;
+    std::vector<std::string> itemArray;
+    std::stack<std::string> keyTracker;
+
+    AppConfigBuilder* appConfigBuider = nullptr;
+
+    while(!parsingDone) {
+        if(!yaml_parser_parse(&parser, &event)) {
+            return RC_YAML_PARSING_ERROR;
+        }
+
+        switch(event.type) {
+            case YAML_STREAM_END_EVENT:
+                parsingDone = true;
+                break;
+
+            case YAML_MAPPING_START_EVENT:
+                if(!docMarker) {
+                    docMarker = true;
+                } else {
+                    topKey = keyTracker.top();
+                    if(topKey == APP_CONFIGS_ROOT && appConfigBuider == nullptr) {
+                        appConfigBuider = new AppConfigBuilder;
+                    }
+                }
+
+                break;
+
+            case YAML_MAPPING_END_EVENT:
+                if(keyTracker.empty()) {
+                    break;
+                }
+
+                topKey = keyTracker.top();
+                if(topKey == APP_CONFIGS_ROOT) {
+                    // Add to registry
+                    AppConfigs::getInstance()->registerAppConfig(appConfigBuider->build());
+                    appConfigBuider = nullptr;
+                }
+                break;
+
+            case YAML_SEQUENCE_START_EVENT:
+                if(keyTracker.empty()) {
+                    return RC_YAML_INVALID_SYNTAX;
+                }
+
+                topKey = keyTracker.top();
+
+                if(topKey == APP_CONFIGS_THREAD_LIST) {
+                    inThreadList = true;
+                } else if(topKey == APP_CONFIGS_CONFIGURATION_LIST) {
+                    inConfigList = true;
+                }
+
+                break;
+
+            case YAML_SEQUENCE_END_EVENT:
+                if(keyTracker.empty()) {
+                    return RC_YAML_INVALID_SYNTAX;
+                }
+
+                if(inThreadList) {
+                    // Add threads to builder
+                    if(RC_IS_OK(rc)) {
+                        rc = appConfigBuider->setNumThreads(itemArray.size() / 2);
+                        if(RC_IS_NOTOK(rc)) {
+                            return RC_YAML_INVALID_SYNTAX;
+                        }
+                    }
+
+                    int32_t listIndex = 0;
+                    for(int32_t i = 0; i < itemArray.size(); i += 2) {
+                        if(RC_IS_OK(rc)) {
+                            rc = appConfigBuider->addThreadMapping(listIndex, itemArray[i], itemArray[i + 1]);
+                            listIndex++;
+                            if(RC_IS_NOTOK(rc)) {
+                                return RC_YAML_INVALID_SYNTAX;
+                            }
+                        }
+                    }
+
+                    itemArray.clear();
+                    inThreadList = !inThreadList;
+
+                } else if(inConfigList) {
+                    if(RC_IS_OK(rc)) {
+                        rc = appConfigBuider->setNumSigCodes(itemArray.size());
+                        if(RC_IS_NOTOK(rc)) {
+                            return RC_YAML_INVALID_SYNTAX;
+                        }
+                    }
+                    for(int32_t i = 0; i < itemArray.size(); i++) {
+                        if(RC_IS_OK(rc)) {
+                            rc = appConfigBuider->addSigCode(i, itemArray[i]);
+                            if(RC_IS_NOTOK(rc)) {
+                                return RC_YAML_INVALID_SYNTAX;
+                            }
+                        }
+                    }
+
+                    itemArray.clear();
+                    inConfigList = !inConfigList;
+                }
+
+                keyTracker.pop();
+                break;
+
+            case YAML_SCALAR_EVENT:
+                if(event.data.scalar.value != nullptr) {
+                    value = reinterpret_cast<char*>(event.data.scalar.value);
+                }
+
+                if(isKey(value)) {
+                    keyTracker.push(value);
+                    break;
+                }
+
+                if(keyTracker.empty()) {
+                    return RC_YAML_INVALID_SYNTAX;
+                }
+
+                topKey =  keyTracker.top();
+                if(!inConfigList && !inThreadList) {
+                    // Not in any list, pop out the key
+                    keyTracker.pop();
+                }
+
+                if(topKey == APP_CONFIGS_APP_NAME) {
+                    if(RC_IS_OK(rc)) {
+                        rc = appConfigBuider->setAppName(value);
+                        if(RC_IS_NOTOK(rc)) {
+                            return RC_YAML_INVALID_SYNTAX;
+                        }
+                    }
+                } else if(topKey == APP_CONFIGS_THREAD_LIST || topKey == APP_CONFIGS_CONFIGURATION_LIST) {
+                    itemArray.push_back(value);
+                }
+
+                break;
+
+            default:
+                break;
+        }
+
+        yaml_event_delete(&event);
+    }
+
+    TEARDOWN_LIBYAML_PARSING
+    return rc;
+}
+
 ErrCode RestuneParser::parseResourceConfigs(const std::string& filePath, int8_t isBuSpecified) {
     return parseResourceConfigYamlNode(filePath, isBuSpecified);
 }
@@ -869,6 +1038,10 @@ ErrCode RestuneParser::parseSignalConfigs(const std::string& filePath, int8_t is
 
 ErrCode RestuneParser::parseExtFeaturesConfigs(const std::string& filePath) {
     return parseExtFeatureConfigYamlNode(filePath);
+}
+
+ErrCode RestuneParser::parsePerAppConfigs(const std::string& filePath) {
+    return parsePerAppConfigYamlNode(filePath);
 }
 
 ErrCode RestuneParser::parse(ConfigType configType, const std::string& filePath, int8_t isBuSpecified) {
@@ -897,6 +1070,10 @@ ErrCode RestuneParser::parse(ConfigType configType, const std::string& filePath,
         }
         case ConfigType::EXT_FEATURES_CONFIG: {
             rc = this->parseExtFeaturesConfigs(filePath);
+            break;
+        }
+        case ConfigType::APP_CONFIG: {
+            rc = this->parsePerAppConfigYamlNode(filePath);
             break;
         }
         default: {

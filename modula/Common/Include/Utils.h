@@ -119,6 +119,7 @@ typedef void (*MessageReceivedCallback)(int32_t, MsgForwardInfo*);
 #define COMMON_SIGNAL "Common-Signal"
 #define CUSTOM_SIGNAL "Custom-Signal"
 #define CUSTOM_EXT_FEATURE "Ext-Features"
+#define CUSTOM_APP_CONF "App-Config"
 
 // System Properties
 #define MAX_CONCURRENT_REQUESTS "resource_tuner.maximum.concurrent.requests"

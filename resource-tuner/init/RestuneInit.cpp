@@ -316,11 +316,11 @@ static ErrCode fetchSignals() {
 static ErrCode fetchExtFeatureConfigs() {
     ErrCode opStatus = RC_SUCCESS;
 
-    // Check if a Custom Target Config is provided, if so process it.
+    // Check if a Ext-Features Config is provided, if so process it.
     std::string filePath = Extensions::getExtFeaturesConfigFilePath();
 
     if(filePath.length() > 0) {
-        // Custom Target Config file has been provided by BU
+        // Custom Ext-Features Config file has been provided by BU
         TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, CUSTOM_EXT_FEATURE, filePath.c_str());
         return parseUtil(filePath, CUSTOM_EXT_FEATURE, ConfigType::EXT_FEATURES_CONFIG, true);
     }
@@ -328,6 +328,26 @@ static ErrCode fetchExtFeatureConfigs() {
     filePath = UrmSettings::mCustomExtFeaturesFilePath;
     if(AuxRoutines::fileExists(filePath)) {
         return parseUtil(filePath, CUSTOM_EXT_FEATURE, ConfigType::EXT_FEATURES_CONFIG, true);
+    }
+
+    return opStatus;
+}
+
+static ErrCode fetchPerAppConfigs() {
+    ErrCode opStatus = RC_SUCCESS;
+
+    // Check if a Custom App Config is provided, if so process it.
+    std::string filePath = Extensions::getAppConfigFilePath();
+
+    if(filePath.length() > 0) {
+        // Custom App Config file has been provided by BU
+        TYPELOGV(NOTIFY_CUSTOM_CONFIG_FILE, CUSTOM_APP_CONF, filePath.c_str());
+        return parseUtil(filePath, CUSTOM_APP_CONF, ConfigType::APP_CONFIG, true);
+    }
+
+    filePath = UrmSettings::mCustomAppConfigFilePath;
+    if(AuxRoutines::fileExists(filePath)) {
+        return parseUtil(filePath, CUSTOM_APP_CONF, ConfigType::APP_CONFIG, true);
     }
 
     return opStatus;
@@ -420,6 +440,10 @@ static ErrCode init(void* arg) {
     // - Common Signal Configs
     // - Custom Signal Configs (if present)
     if(RC_IS_NOTOK(fetchSignals())) {
+        return RC_MODULE_INIT_FAILURE;
+    }
+
+    if(RC_IS_NOTOK(fetchPerAppConfigs())) {
         return RC_MODULE_INIT_FAILURE;
     }
 

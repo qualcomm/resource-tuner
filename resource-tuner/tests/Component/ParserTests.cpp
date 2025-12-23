@@ -807,6 +807,62 @@ namespace SignalParsingTestsAddOn {
     }
 }
 
+namespace AppConfigParserTests {
+    std::string __testGroupName = "AppConfigParserTests";
+
+    static ErrCode parsingStatus = RC_SUCCESS;
+    static void Init() {
+        RestuneParser configProcessor;
+        std::string perAppConfPath = "/etc/urm/tests/configs/PerApp.yaml";
+
+        if(RC_IS_OK(parsingStatus)) {
+            parsingStatus = configProcessor.parsePerAppConfigs(perAppConfPath);
+        }
+    }
+
+    static void TestAppConfigParsingSanity() {
+        C_ASSERT(AppConfigs::getInstance() != nullptr);
+        C_ASSERT(parsingStatus == RC_SUCCESS);
+    }
+
+    static void TestAppConfigParsingIntegrity1() {
+        AppConfig* appConfigInfo = AppConfigs::getInstance()->getAppConfig("gst-launch-");
+
+        C_ASSERT((appConfigInfo->mAppName == "gst-launch-"));
+        C_ASSERT((appConfigInfo->mNumThreads == 2));
+
+        C_ASSERT((appConfigInfo->mThreadNameList != nullptr));
+        C_ASSERT((appConfigInfo->mCGroupIds != nullptr));
+
+        C_ASSERT((appConfigInfo->mNumSignals == 0));
+        C_ASSERT((appConfigInfo->mSignalCodes == nullptr));
+    }
+
+    static void TestAppConfigParsingIntegrity2() {
+        AppConfig* appConfigInfo = AppConfigs::getInstance()->getAppConfig("chrome");
+
+        C_ASSERT((appConfigInfo->mAppName == "chrome"));
+        C_ASSERT((appConfigInfo->mNumThreads == 1));
+
+        C_ASSERT((appConfigInfo->mThreadNameList != nullptr));
+        C_ASSERT((appConfigInfo->mCGroupIds != nullptr));
+
+        C_ASSERT((appConfigInfo->mNumSignals == 1));
+        C_ASSERT((appConfigInfo->mSignalCodes != nullptr));
+    }
+
+    static void RunTestGroup() {
+        std::cout<<"\nRunning tests from the Group: "<<__testGroupName<<std::endl;
+
+        Init();
+        RUN_TEST(TestAppConfigParsingSanity)
+        RUN_TEST(TestAppConfigParsingIntegrity1)
+        RUN_TEST(TestAppConfigParsingIntegrity2)
+
+        std::cout<<"\n\nAll tests from the Group: "<<__testGroupName<<", Ran Successfully"<<std::endl;
+    }
+}
+
 static void RunTests() {
     ResourceParsingTests::RunTestGroup();
     ResourceParsingTestsAddOn::RunTestGroup();
@@ -818,6 +874,7 @@ static void RunTests() {
     PropertyParsingTests::RunTestGroup();
     ExtFeaturesParsingTests::RunTestGroup();
     TargetRestuneParserTests::RunTestGroup();
+    AppConfigParserTests::RunTestGroup();
 }
 
 REGISTER_TEST(RunTests);

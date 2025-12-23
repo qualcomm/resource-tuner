@@ -17,6 +17,7 @@ option(BUILD_CLASSIFIER "Classifier" OFF)
 add_subdirectory(${CMAKE_SOURCE_DIR}/configs)
 add_subdirectory(${CMAKE_SOURCE_DIR}/modula)
 add_subdirectory(${CMAKE_SOURCE_DIR}/client)
+add_subdirectory(${CMAKE_SOURCE_DIR}/extensions)
 
 # resource-tuner is a mandatory build
 add_subdirectory(${CMAKE_SOURCE_DIR}/resource-tuner)
@@ -46,7 +47,7 @@ set(SERVER_LIBS "")
 list(APPEND SERVER_LIBS
   UrmAuxUtils
   RestuneCore
-  RestuneExtAPIs
+  UrmExtAPIs
 )
 
 if(BUILD_CLASSIFIER)
