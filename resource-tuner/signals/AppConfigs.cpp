@@ -3,6 +3,8 @@
 
 #include "AppConfigs.h"
 
+std::shared_ptr<AppConfigs> AppConfigs::appConfigRegistryInstance = nullptr;
+
 void AppConfigs::registerAppConfig(AppConfig* appConfig) {
     this->mAppConfig[appConfig->mAppName] = appConfig;
 }
@@ -21,6 +23,7 @@ ErrCode AppConfigBuilder::setAppName(const std::string& name) {
     }
 
     this->mAppConfig->mAppName = name;
+    return RC_SUCCESS;
 }
 
 ErrCode AppConfigBuilder::setNumThreads(int32_t threadCnt) {

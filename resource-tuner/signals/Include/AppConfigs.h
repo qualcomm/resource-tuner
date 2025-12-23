@@ -6,8 +6,10 @@
 
 #include <cstdint>
 #include <string>
+#include <memory>
 #include <unordered_map>
 
+#include "Logger.h"
 #include "ErrCodes.h"
 
 typedef struct {
@@ -21,11 +23,25 @@ typedef struct {
 
 class AppConfigs {
 private:
+    static std::shared_ptr<AppConfigs> appConfigRegistryInstance;
     std::unordered_map<std::string, AppConfig*> mAppConfig;
 
 public:
     void registerAppConfig(AppConfig* appConfig);
     AppConfig* getAppConfig(const std::string& appName);
+
+    static std::shared_ptr<AppConfigs> getInstance() {
+        if(appConfigRegistryInstance == nullptr) {
+            try {
+                appConfigRegistryInstance = std::shared_ptr<AppConfigs>(new AppConfigs());
+            } catch(const std::bad_alloc& e) {
+                LOGE("RESTUNE_SIGNAL_REGISTRY",
+                     "Failed to allocate memory for AppConfigs instance: " + std::string(e.what()));
+                return nullptr;
+            }
+        }
+        return appConfigRegistryInstance;
+    }
 };
 
 class AppConfigBuilder {

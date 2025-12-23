@@ -1,11 +1,18 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
+#include "Utils.h"
+#include "Common.h"
+#include "Request.h"
+#include "Logger.h"
+#include "AuxRoutines.h"
 #include "ContextualClassifier.h"
 #include "FeatureExtractor.h"
+#include "PostProcess.h"
 #include "FeaturePruner.h"
-#include "Logger.h"
-#include "Utils.h"
+#include "RestuneInternal.h"
+#include "AppConfigs.h"
+
 #include <algorithm>
 #include <chrono>
 #include <cstdarg>
@@ -22,6 +29,9 @@
 #define CLASSIFIER_TAG "ContextualClassifier"
 #define CLASSIFIER_CONF_DIR "/etc/classifier/"
 
+static pid_t ourPID = 0;
+static pid_t ourTID = 0;
+
 const std::string FT_MODEL_PATH =
     CLASSIFIER_CONF_DIR "fasttext_model_supervised.bin";
 const std::string IGNORE_PROC_PATH =
@@ -35,6 +45,82 @@ static std::string format_string(const char *fmt, ...) {
     vsnprintf(buffer, sizeof(buffer), fmt, args);
     va_end(args);
     return std::string(buffer);
+}
+
+// Helper to check if a string contains only digits
+static bool is_digits(const std::string& str) {
+    return std::all_of(str.begin(), str.end(), ::isdigit);
+}
+
+// Function to get the first matching PID for a given process name
+static pid_t getProcessPID_COMM(const std::string& process_name) {
+    DIR* proc_dir = opendir("/proc");
+    if (!proc_dir) {
+        std::cerr << "Failed to open /proc directory." << std::endl;
+        return -1;
+    }
+
+    struct dirent* entry;
+    while ((entry = readdir(proc_dir)) != nullptr) {
+        if (entry->d_type == DT_DIR && is_digits(entry->d_name)) {
+            std::string pid_str = entry->d_name;
+            std::string comm_path = "/proc/" + pid_str + "/comm";
+            std::ifstream comm_file(comm_path);
+            std::string comm;
+            if (comm_file) {
+                std::getline(comm_file, comm);
+                if (comm.find(process_name) != std::string::npos) {
+                    closedir(proc_dir);
+                    return static_cast<pid_t>(std::stoi(pid_str));
+                }
+            }
+        }
+    }
+
+    closedir(proc_dir);
+    return -1; // Not found
+}
+
+static void moveAppThreadsToCGroup(AppConfig* appConfig) {
+    try {
+        int32_t numThreads = appConfig->mNumThreads;
+        // Go over the list of proc names (comm) and get their pids
+
+        Request* request = MPLACED(Request);
+        request->setRequestType(REQ_RESOURCE_TUNING);
+        request->setHandle(AuxRoutines::generateUniqueHandle());
+        request->setDuration(-1);
+        request->setProperties(RequestPriority::REQ_PRIORITY_HIGH);
+        request->setClientPID(ourPID);
+        request->setClientTID(ourTID);
+
+        for(int32_t i = 0; i < numThreads; i++) {
+            std::string targetComm = appConfig->mThreadNameList[i];
+            pid_t targetPID = getProcessPID_COMM(targetComm);
+            if(targetPID != -1) {
+                // Get the CGroup
+                int32_t currCGroupID = appConfig->mCGroupIds[i];
+                // Make the move via Resource Tuner APIs
+
+                Resource* resource = MPLACEV(Resource);
+                resource->setResCode(RES_CGRP_MOVE_PID);
+                resource->setNumValues(2);
+                resource->setValueAt(0, currCGroupID);
+                resource->setValueAt(1, targetPID);
+
+                ResIterable* resIterable = MPLACED(ResIterable);
+                resIterable->mData = resource;
+                request->addResource(resIterable);
+            }
+        }
+
+        // fast path to Request Queue
+        submitResProvisionRequest(request, true);
+
+    } catch(const std::exception& e) {
+        LOGE("CLASSIFIER",
+             "Failed to move per-app threads to cgroup, Error: " + std::string(e.what()));
+    }
 }
 
 ContextualClassifier::ContextualClassifier() : mMLInference(FT_MODEL_PATH) {}
@@ -238,26 +324,50 @@ void ContextualClassifier::ClassifierMain() {
                 int contextType =
                     ClassifyProcess(ev.pid, ev.tgid, comm, ctxDetails);
 
+                // Step 1: Move the process to focused-cgroup
+                // Also involves removing the process already there from focused.
+
+                // Code ........
+
+
+                // Step 2: Move the "threads" from per-app config to appropriate cgroups
+
+                // Code for determining per-app config threads
+                AppConfig* appConfig =
+                    AppConfigs::getInstance()->getAppConfig(comm);
+
+                if(appConfig != nullptr) {
+                    int32_t threadsCount = appConfig->mNumThreads;
+                    if(threadsCount > 0) {
+                        moveAppThreadsToCGroup(appConfig);
+                    }
+                }
+
+                // Step 3: Identify if any signal configuration exists
+                // Will return the sigID based on the workload
+                // For example: game, browser, multimedia
                 GetSignalDetailsForWorkload(contextType, sigId, sigSubtype);
 
-                // Example per-app post processing hooks (stubbed)
-                // std::vector<int> threadList;
-                // GetThreadListFromPerAppConfig(comm, threadList);
-                // bool sendPerAppSig =
-                // IsResourcesListPresentInPerAppConfig(comm);
-                // MoveFocusedAppThreads(ev.pid, threadList);
+                // By Default we can acquire the generic signal (subtype) associate with that ID
 
-                // if (sendPerAppSig) {
-                //     sigId = RESTUNE_APP_OPEN;
-                //     sigSubtype = PER_APP_CONFIG;
-                // }
+                // If the post processing block exists, call it
+                // It might provide us a more specific sigSubtype
 
-                // WorkloadPostprocessCallback postCb =
-                //     Extensions::getWorkloadPostprocessCallback(comm);
-                // if (postCb) {
-                //     postCb(comm, sigId, sigSubtype);
-                // }
+                PostProcessingCallback postCb =
+                    Extensions::getPostProcessingCallback(comm);
+                if(postCb) {
+                    PostProcessCBData postProcessData = {
+                        .mCmdline = comm,
+                        .mSigId = sigId,
+                        .mSigSubtype = sigSubtype,
+                    };
+                    postCb((void*)&postProcessData);
 
+                    sigId = postProcessData.mSigId;
+                    sigSubtype = postProcessData.mSigSubtype;
+                }
+
+                // Details are available, call tuneSignal
                 ApplyActions(comm, sigId, sigSubtype);
             }
         } else if (ev.type == CC_APP_CLOSE) {
@@ -441,6 +551,11 @@ static ContextualClassifier *g_classifier = nullptr;
 
 static ErrCode init(void *arg = nullptr) {
     (void)arg;
+
+    // Record PID and TID
+    ourPID = getpid();
+    ourTID = gettid();
+
     if (!g_classifier) {
         g_classifier = new ContextualClassifier();
     }
