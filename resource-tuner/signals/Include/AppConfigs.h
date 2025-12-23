@@ -10,6 +10,7 @@
 #include <unordered_map>
 
 #include "Logger.h"
+#include "Common.h"
 #include "ErrCodes.h"
 
 typedef struct {
@@ -53,9 +54,11 @@ public:
 
     ErrCode setAppName(const std::string& name);
     ErrCode setNumThreads(int32_t count);
-    ErrCode addThreadMapping(const std::string& threadName, const std::string& cGroup);
+    ErrCode addThreadMapping(int32_t index, const std::string& threadName, const std::string& cGroup);
     ErrCode setNumSigCodes(int32_t sigCount);
-    ErrCode addSigCode(const std::string& sigCodeStr);
+    ErrCode addSigCode(int32_t index, const std::string& sigCodeStr);
+
+    AppConfig* build();
 };
 
 #endif

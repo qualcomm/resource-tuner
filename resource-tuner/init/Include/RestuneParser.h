@@ -105,6 +105,12 @@
 #define EXT_FEATURE_CONFIGS_ELEM_DESCRIPTION "Description"
 #define EXT_FEATURE_CONFIGS_ELEM_SUBSCRIBER_LIST "Signals"
 
+// App Configs
+#define APP_CONFIGS_ROOT "PerAppConfigs"
+#define APP_CONFIGS_APP_NAME "App"
+#define APP_CONFIGS_THREAD_LIST "Threads"
+#define APP_CONFIGS_CONFIGURATION_LIST "Configurations"
+
 /**
  * The Resource Config file (ResourcesConfig.yaml) must follow a specific structure.
  * Example YAML configuration:

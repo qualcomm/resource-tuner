@@ -123,7 +123,11 @@ static int8_t isKey(const std::string& keyName) {
         EXT_FEATURE_CONFIGS_ELEM_LIB,
         EXT_FEATURE_CONFIGS_ELEM_NAME,
         EXT_FEATURE_CONFIGS_ELEM_DESCRIPTION,
-        EXT_FEATURE_CONFIGS_ELEM_SUBSCRIBER_LIST
+        EXT_FEATURE_CONFIGS_ELEM_SUBSCRIBER_LIST,
+        APP_CONFIGS_ROOT,
+        APP_CONFIGS_APP_NAME,
+        APP_CONFIGS_THREAD_LIST,
+        APP_CONFIGS_CONFIGURATION_LIST,
     };
 
     for(const std::string& key: keys) {
@@ -854,18 +858,16 @@ ErrCode RestuneParser::parsePerAppConfigYamlNode(const std::string& filePath) {
 
     int8_t parsingDone = false;
     int8_t docMarker = false;
-    int8_t parsingThreads = false;
-    int8_t parsingResources = false;
-    int8_t parsingValues = false;
-    int8_t parsingConfigurations = false;
+    int8_t inThreadList = false;
+    int8_t inConfigList = false;
 
     int32_t configurationsCount = 0;
     int32_t threadsCount = 0;
 
     std::string value;
     std::string topKey;
+    std::vector<std::string> itemArray;
     std::stack<std::string> keyTracker;
-    std::stack<std::string> itemArray;
 
     AppConfigBuilder* appConfigBuider = nullptr;
 
@@ -882,18 +884,39 @@ ErrCode RestuneParser::parsePerAppConfigYamlNode(const std::string& filePath) {
             case YAML_MAPPING_START_EVENT:
                 if(!docMarker) {
                     docMarker = true;
+                } else {
+                    topKey = keyTracker.top();
+                    if(topKey == APP_CONFIGS_ROOT && appConfigBuider == nullptr) {
+                        appConfigBuider = new AppConfigBuilder;
+                    }
                 }
 
                 break;
 
             case YAML_MAPPING_END_EVENT:
+                if(keyTracker.empty()) {
+                    break;
+                }
+
+                topKey = keyTracker.top();
+                if(topKey == APP_CONFIGS_ROOT) {
+                    // Add to registry
+                    AppConfigs::getInstance()->registerAppConfig(appConfigBuider->build());
+                    appConfigBuider = nullptr;
+                }
                 break;
 
             case YAML_SEQUENCE_START_EVENT:
-                if(topKey == "Threads") {
-                    parsingThreads = true;
-                } else if(topKey == "Configurations") {
-                    parsingConfigurations = true;
+                if(keyTracker.empty()) {
+                    return RC_YAML_INVALID_SYNTAX;
+                }
+
+                topKey = keyTracker.top();
+
+                if(topKey == APP_CONFIGS_THREAD_LIST) {
+                    inThreadList = true;
+                } else if(topKey == APP_CONFIGS_CONFIGURATION_LIST) {
+                    inConfigList = true;
                 }
 
                 break;
@@ -903,38 +926,50 @@ ErrCode RestuneParser::parsePerAppConfigYamlNode(const std::string& filePath) {
                     return RC_YAML_INVALID_SYNTAX;
                 }
 
-                if(parsingThreads) {
+                if(inThreadList) {
                     // Add threads to builder
-                    appConfigBuider->setNumThreads(threadsCount);
-                    while(threadsCount) {
-                        std::string cGroupID = itemArray.top();
-                        itemArray.pop();
-                        std::string threadName = itemArray.top();
-                        itemArray.pop();
-
-                        appConfigBuider->addThreadMapping(threadName, cGroupID);
-                        threadsCount -= 2;
+                    if(RC_IS_OK(rc)) {
+                        rc = appConfigBuider->setNumThreads(itemArray.size() / 2);
+                        if(RC_IS_NOTOK(rc)) {
+                            return RC_YAML_INVALID_SYNTAX;
+                        }
                     }
 
-                    threadsCount = 0;
-                    parsingThreads = !parsingThreads;
-
-                } else if(parsingConfigurations) {
-                    appConfigBuider->setNumSigCodes(configurationsCount);
-                    std::vector<std::string> configCodes(configurationsCount);
-                    for(int32_t i = configurationsCount - 1; i >= 0; i--) {
-                        configCodes[i] = itemArray.top();
-                        itemArray.pop();
+                    int32_t listIndex = 0;
+                    for(int32_t i = 0; i < itemArray.size(); i += 2) {
+                        if(RC_IS_OK(rc)) {
+                            rc = appConfigBuider->addThreadMapping(listIndex, itemArray[i], itemArray[i + 1]);
+                            listIndex++;
+                            if(RC_IS_NOTOK(rc)) {
+                                return RC_YAML_INVALID_SYNTAX;
+                            }
+                        }
                     }
 
-                    for(int32_t i = 0; i < configurationsCount; i++) {
-                        appConfigBuider->addSigCode(configCodes[i]);
+                    itemArray.clear();
+                    inThreadList = !inThreadList;
+
+                } else if(inConfigList) {
+                    if(RC_IS_OK(rc)) {
+                        rc = appConfigBuider->setNumSigCodes(itemArray.size());
+                        if(RC_IS_NOTOK(rc)) {
+                            return RC_YAML_INVALID_SYNTAX;
+                        }
+                    }
+                    for(int32_t i = 0; i < itemArray.size(); i++) {
+                        if(RC_IS_OK(rc)) {
+                            rc = appConfigBuider->addSigCode(i, itemArray[i]);
+                            if(RC_IS_NOTOK(rc)) {
+                                return RC_YAML_INVALID_SYNTAX;
+                            }
+                        }
                     }
 
-                    configurationsCount = 0;
-                    parsingConfigurations = !parsingConfigurations;
+                    itemArray.clear();
+                    inConfigList = !inConfigList;
                 }
 
+                keyTracker.pop();
                 break;
 
             case YAML_SCALAR_EVENT:
@@ -942,20 +977,32 @@ ErrCode RestuneParser::parsePerAppConfigYamlNode(const std::string& filePath) {
                     value = reinterpret_cast<char*>(event.data.scalar.value);
                 }
 
-                if(parsingConfigurations) {
-                    configurationsCount++;
-                } else if(parsingThreads) {
-                    threadsCount++;
+                if(isKey(value)) {
+                    keyTracker.push(value);
+                    break;
                 }
 
-                topKey = value;
-                if(!isKey(topKey)) {
-                    if(topKey == "App") {
-                        appConfigBuider->setAppName(value);
-                    } else {
-                        itemArray.push(value);
-                    }
+                if(keyTracker.empty()) {
+                    return RC_YAML_INVALID_SYNTAX;
                 }
+
+                topKey =  keyTracker.top();
+                if(!inConfigList && !inThreadList) {
+                    // Not in any list, pop out the key
+                    keyTracker.pop();
+                }
+
+                if(topKey == APP_CONFIGS_APP_NAME) {
+                    if(RC_IS_OK(rc)) {
+                        rc = appConfigBuider->setAppName(value);
+                        if(RC_IS_NOTOK(rc)) {
+                            return RC_YAML_INVALID_SYNTAX;
+                        }
+                    }
+                } else if(topKey == APP_CONFIGS_THREAD_LIST || topKey == APP_CONFIGS_CONFIGURATION_LIST) {
+                    itemArray.push_back(value);
+                }
+
                 break;
 
             default:
@@ -991,6 +1038,10 @@ ErrCode RestuneParser::parseSignalConfigs(const std::string& filePath, int8_t is
 
 ErrCode RestuneParser::parseExtFeaturesConfigs(const std::string& filePath) {
     return parseExtFeatureConfigYamlNode(filePath);
+}
+
+ErrCode RestuneParser::parsePerAppConfigs(const std::string& filePath) {
+    return parsePerAppConfigYamlNode(filePath);
 }
 
 ErrCode RestuneParser::parse(ConfigType configType, const std::string& filePath, int8_t isBuSpecified) {
