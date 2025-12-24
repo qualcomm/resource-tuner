@@ -101,7 +101,7 @@ typedef struct {
 } PropConfig;
 
 typedef struct {
-    std::string mCmdline;
+    pid_t mPid;
 	uint32_t mSigId;
 	uint32_t mSigSubtype;
 } PostProcessCBData;
