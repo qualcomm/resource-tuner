@@ -19,6 +19,11 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/modula)
 add_subdirectory(${CMAKE_SOURCE_DIR}/client)
 add_subdirectory(${CMAKE_SOURCE_DIR}/extensions)
 
+# Build any extension module if available
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/extensions-module/src)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/extensions-module)
+endif()
+
 # resource-tuner is a mandatory build
 add_subdirectory(${CMAKE_SOURCE_DIR}/resource-tuner)
 

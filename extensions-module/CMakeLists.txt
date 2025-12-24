@@ -1,6 +1,6 @@
 # install PerApp.yaml to /etc/urm/custom
 install(
-  DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+  DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/
   DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/urm/custom/
   FILES_MATCHING
   PATTERN "*.yaml"
@@ -8,8 +8,9 @@ install(
 )
 
 # Install the extension "RestunePlugin.so" lib
-add_library(RestunePlugin ${CMAKE_CURRENT_SOURCE_DIR}/Utils/Setup.cpp)
+file(GLOB SOURCES "src/*.cpp")
+add_library(RestunePlugin ${SOURCES})
 set_target_properties(RestunePlugin PROPERTIES VERSION 1.0.0 SOVERSION 1)
-target_link_libraries(RestunePlugin UrmExtAPIs)
+target_link_libraries(RestunePlugin UrmExtAPIs UrmAuxUtils)
 # install to standard /usr/lib or /lib
 install(TARGETS RestunePlugin DESTINATION ${CMAKE_INSTALL_LIBDIR})

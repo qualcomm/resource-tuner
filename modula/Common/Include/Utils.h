@@ -100,6 +100,12 @@ typedef struct {
     uint64_t mBufferSize;
 } PropConfig;
 
+typedef struct {
+    std::string mCmdline;
+	uint32_t mSigId;
+	uint32_t mSigSubtype;
+} PostProcessCBData;
+
 // Global Typedefs: Declare Function Pointers as types
 typedef ErrCode (*EventCallback)(void*);
 typedef int8_t (*ServerOnlineCheckCallback)();
