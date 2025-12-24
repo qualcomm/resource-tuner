@@ -65,7 +65,8 @@ public:
     static PostProcessingCallback getPostProcessingCallback(const std::string& identifier);
 };
 
-#define CONCAT(a, b) a ## b
+#define CONCAT_IMPL(a, b) a##b
+#define CONCAT(a, b) CONCAT_IMPL(a, b)
 
 /**
  * \def RESTUNE_REGISTER_APPLIER_CB(resCode, resourceApplierCallback)
@@ -110,6 +111,6 @@ public:
  * \note This macro must be used in the Global Scope.
  */
 #define CLASSIFIER_REGISTER_POST_PROCESS_CB(identifier, callback) \
-        static Extensions CONCAT(_postProcess_, identifier)(identifier, callback);
+        static Extensions CONCAT(callback, __LINE__)(identifier, callback);
 
 #endif

@@ -17,7 +17,14 @@ option(BUILD_CLASSIFIER "Classifier" OFF)
 add_subdirectory(${CMAKE_SOURCE_DIR}/configs)
 add_subdirectory(${CMAKE_SOURCE_DIR}/modula)
 add_subdirectory(${CMAKE_SOURCE_DIR}/client)
-add_subdirectory(${CMAKE_SOURCE_DIR}/extensions)
+add_subdirectory(${CMAKE_SOURCE_DIR}/extn-framework)
+
+# Build any extension module if available
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/plugins/src)
+  if(NOT BUILD_TESTS)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/plugins)
+  endif()
+endif()
 
 # resource-tuner is a mandatory build
 add_subdirectory(${CMAKE_SOURCE_DIR}/resource-tuner)

@@ -49,9 +49,9 @@ if(BUILD_TESTS)
         ${CMAKE_CURRENT_SOURCE_DIR}/Component/SafeOpsTests.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Component/RateLimiterTests.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Component/TimerTests.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Component/DeviceInfoTests.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Component/CocoTableTests.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Component/RequestMapTests.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Component/DeviceInfoTests.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Component/Trigger.cpp)
 
     target_link_libraries(RestuneComponentTests PUBLIC UrmAuxUtils

@@ -834,6 +834,12 @@ namespace AppConfigParserTests {
         C_ASSERT((appConfigInfo->mThreadNameList != nullptr));
         C_ASSERT((appConfigInfo->mCGroupIds != nullptr));
 
+        C_ASSERT((appConfigInfo->mThreadNameList[0] == "cam-server"));
+        C_ASSERT((appConfigInfo->mCGroupIds[0] == 4));
+
+        C_ASSERT((appConfigInfo->mThreadNameList[1] == "gst-launch-"));
+        C_ASSERT((appConfigInfo->mCGroupIds[1] == 4));
+
         C_ASSERT((appConfigInfo->mNumSignals == 0));
         C_ASSERT((appConfigInfo->mSignalCodes == nullptr));
     }
@@ -844,11 +850,16 @@ namespace AppConfigParserTests {
         C_ASSERT((appConfigInfo->mAppName == "chrome"));
         C_ASSERT((appConfigInfo->mNumThreads == 1));
 
+        C_ASSERT((appConfigInfo->mThreadNameList[0] == "chrome"));
+        C_ASSERT((appConfigInfo->mCGroupIds[0] == 4));
+
         C_ASSERT((appConfigInfo->mThreadNameList != nullptr));
         C_ASSERT((appConfigInfo->mCGroupIds != nullptr));
 
         C_ASSERT((appConfigInfo->mNumSignals == 1));
         C_ASSERT((appConfigInfo->mSignalCodes != nullptr));
+
+        C_ASSERT((appConfigInfo->mSignalCodes[0] == 0x80034aab));
     }
 
     static void RunTestGroup() {
