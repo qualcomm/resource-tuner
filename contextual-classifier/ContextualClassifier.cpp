@@ -83,9 +83,6 @@ static pid_t getProcessPID_COMM(const std::string& process_name) {
 
 static void moveAppThreadsToCGroup(AppConfig* appConfig) {
     try {
-        int32_t numThreads = appConfig->mNumThreads;
-        // Go over the list of proc names (comm) and get their pids
-
         Request* request = MPLACED(Request);
         request->setRequestType(REQ_RESOURCE_TUNING);
         request->setHandle(AuxRoutines::generateUniqueHandle());
@@ -94,28 +91,37 @@ static void moveAppThreadsToCGroup(AppConfig* appConfig) {
         request->setClientPID(ourPID);
         request->setClientTID(ourTID);
 
-        for(int32_t i = 0; i < numThreads; i++) {
-            std::string targetComm = appConfig->mThreadNameList[i];
-            pid_t targetPID = getProcessPID_COMM(targetComm);
-            if(targetPID != -1) {
-                // Get the CGroup
-                int32_t currCGroupID = appConfig->mCGroupIds[i];
-                // Make the move via Resource Tuner APIs
+        if(appConfig->mThreadNameList != nullptr) {
+            int32_t numThreads = appConfig->mNumThreads;
+            // Go over the list of proc names (comm) and get their pids
+            for(int32_t i = 0; i < numThreads; i++) {
+                std::string targetComm = appConfig->mThreadNameList[i];
+                pid_t targetPID = getProcessPID_COMM(targetComm);
+                if(targetPID != -1) {
+                    // Get the CGroup
+                    int32_t currCGroupID = appConfig->mCGroupIds[i];
+                    // Make the move via Resource Tuner APIs
 
-                Resource* resource = MPLACEV(Resource);
-                resource->setResCode(RES_CGRP_MOVE_PID);
-                resource->setNumValues(2);
-                resource->setValueAt(0, currCGroupID);
-                resource->setValueAt(1, targetPID);
+                    Resource* resource = MPLACEV(Resource);
+                    resource->setResCode(RES_CGRP_MOVE_PID);
+                    resource->setNumValues(2);
+                    resource->setValueAt(0, currCGroupID);
+                    resource->setValueAt(1, targetPID);
 
-                ResIterable* resIterable = MPLACED(ResIterable);
-                resIterable->mData = resource;
-                request->addResource(resIterable);
+                    ResIterable* resIterable = MPLACED(ResIterable);
+                    resIterable->mData = resource;
+                    request->addResource(resIterable);
+                }
             }
         }
 
-        // fast path to Request Queue
-        submitResProvisionRequest(request, true);
+        // Anything to issue
+        if(request->getResourcesCount() > 0) {
+            // fast path to Request Queue
+            submitResProvisionRequest(request, true);
+        } else {
+            Request::cleanUpRequest(request);
+        }
 
     } catch(const std::exception& e) {
         LOGE("CLASSIFIER",
