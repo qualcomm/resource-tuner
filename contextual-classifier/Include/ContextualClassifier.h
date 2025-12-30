@@ -32,7 +32,6 @@ typedef enum CC_TYPE {
     CC_BROWSER = 0x02,
     CC_GAME = 0x03,
     CC_MULTIMEDIA = 0x04,
-    CC_UNKNOWN = 0x05
 } CC_TYPE;
 
 struct ProcEvent {
@@ -57,6 +56,7 @@ class ContextualClassifier {
     void ApplyActions(std::string comm, int32_t sigId, int32_t sigType);
     void RemoveActions(int pid, int tgid);
     bool isIgnoredProcess(int evType, int pid);
+    Inference *getInferenceObject();
 
     NetLinkComm mNetLinkComm;
     Inference *mInference;
@@ -70,8 +70,6 @@ class ContextualClassifier {
     volatile bool mNeedExit = false;
 
     std::unordered_set<std::string> mIgnoredProcesses;
-    std::unordered_map<std::string, std::unordered_set<std::string>>
-        mTokenIgnoreMap;
     bool mDebugMode = false;
 
     std::unordered_set<int> mIgnoredPids;

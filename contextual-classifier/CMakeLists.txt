@@ -9,9 +9,6 @@ include_directories(${CMAKE_SOURCE_DIR}/resource-tuner/signals/Include/)
 
 # Single shared library that contains parser + classifier + netlink glue
 add_library(ContextualClassifier SHARED
-    FeatureExtractor.cpp
-    FeaturePruner.cpp
-    Inference.cpp
     ContextualClassifier.cpp
     NetLinkComm.cpp
 )
@@ -59,6 +56,8 @@ if(FASTTEXT_FOUND)
 
     # Define the ML inference library that actually uses fastText
     add_library(ml_inference_lib STATIC
+        FeatureExtractor.cpp
+        FeaturePruner.cpp
         MLInference.cpp
     )
 
