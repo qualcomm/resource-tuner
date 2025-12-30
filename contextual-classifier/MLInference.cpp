@@ -2,19 +2,23 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include "MLInference.h"
-#include <algorithm> // Add this include for std::transform
-#include <cmath>     // For std::exp
-#include <fstream>   // Add this include for std::ifstream
-#include <iomanip>   // For std::fixed and std::setprecision
-#include <iostream>
+
+#ifdef USE_FASTTEXT
+#include <algorithm>
+#include <cmath>
+#include <fstream>
+#include <iomanip>
 #include <map>
 #include <sstream>
-#include <stdexcept> // Add this include for std::runtime_error
+#include <stdexcept>
 #include <string>
-#include <syslog.h> // Include syslog for logging
+#include <syslog.h>
 #include <vector>
+#endif
 
-MLInference::MLInference(const std::string &ft_model_path) {
+MLInference::MLInference(const std::string &ft_model_path)
+    : Inference(ft_model_path) {
+#ifdef USE_FASTTEXT
     text_cols_ = {"attr", "cgroup",  "cmdline", "comm", "maps",
                   "fds",  "environ", "exe",     "logs"};
 
@@ -31,19 +35,28 @@ MLInference::MLInference(const std::string &ft_model_path) {
 
     syslog(LOG_INFO, "MLInference initialized. fastText dim: %d",
            embedding_dim_);
+#else
+    (void)ft_model_path;
+#endif
 }
 
-MLInference::~MLInference() {}
+MLInference::~MLInference() = default;
 
 std::string MLInference::normalize_text(const std::string &text) {
+#ifdef USE_FASTTEXT
     std::string s = text;
     std::transform(s.begin(), s.end(), s.begin(), ::tolower);
     return s;
+#else
+    return text;
+#endif
 }
 
-std::string
-MLInference::predict(int pid,
-                     const std::map<std::string, std::string> &raw_data) {
+uint32_t MLInference::predict(
+    int pid,
+    const std::map<std::string, std::string> &raw_data,
+    std::string &cat) {
+#ifdef USE_FASTTEXT
     std::lock_guard<std::mutex> lock(predict_mutex_);
     syslog(LOG_DEBUG, "Starting prediction.");
 
@@ -53,29 +66,26 @@ MLInference::predict(int pid,
         if (it != raw_data.end()) {
             concatenated_text += normalize_text(it->second) + " ";
         } else {
-            concatenated_text += " "; // Add space for missing text columns
+            concatenated_text += " ";
         }
     }
-    // Remove trailing space if any
     if (!concatenated_text.empty() && concatenated_text.back() == ' ') {
         concatenated_text.pop_back();
     }
 
     if (concatenated_text.empty()) {
         syslog(LOG_WARNING, "No text features found.");
-        return "Unknown";
+        cat = "Unknown";
+        return 1;
     }
 
     syslog(LOG_DEBUG, "Calling fastText predict().");
 
-    // Add a newline to the end of the text as is typical for fastText stream
-    // processing
     concatenated_text += "\n";
     std::istringstream iss(concatenated_text);
 
     std::vector<std::pair<fasttext::real, int>> predictions;
 
-    // Tokenize the text using the dictionary
     std::vector<int> words, labels;
     ft_model_.getDictionary()->getLine(iss, words, labels);
 
@@ -83,22 +93,20 @@ MLInference::predict(int pid,
 
     if (predictions.empty()) {
         syslog(LOG_WARNING, "fastText returned no predictions.");
-        return "Unknown";
+        cat = "Unknown";
+        return 1;
     }
 
-    // fastText returns pairs of (probability, label_id)
     fasttext::real probability = predictions[0].first;
     if (probability < 0) {
         probability = std::exp(probability);
     }
     int label_id = predictions[0].second;
 
-    // Get the label string from the dictionary
     std::string predicted_label = ft_model_.getDictionary()->getLabel(label_id);
 
-    // Strip __label__ prefix if present
     std::string prefix = "__label__";
-    if (predicted_label.rfind(prefix, 0) == 0) { // starts with prefix
+    if (predicted_label.rfind(prefix, 0) == 0) {
         predicted_label = predicted_label.substr(prefix.length());
     }
 
@@ -111,5 +119,13 @@ MLInference::predict(int pid,
         LOG_INFO,
         "Prediction complete. PID: %d, Comm: %s, Class: %s, Probability: %.4f",
         pid, comm.c_str(), predicted_label.c_str(), probability);
-    return predicted_label;
+
+    cat = predicted_label;
+    return 0;
+#else
+    (void)pid;
+    (void)raw_data;
+    cat = "Unknown";
+    return 1;
+#endif
 }

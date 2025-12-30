@@ -12,6 +12,11 @@
 #include "FeaturePruner.h"
 #include "RestuneInternal.h"
 #include "AppConfigs.h"
+#include "Extensions.h"
+#include "Inference.h"
+#ifdef USE_FASTTEXT
+#include "MLInference.h"
+#endif
 
 #include <algorithm>
 #include <chrono>
@@ -123,9 +128,22 @@ static void moveAppThreadsToCGroup(AppConfig* appConfig) {
     }
 }
 
-ContextualClassifier::ContextualClassifier() : mMLInference(FT_MODEL_PATH) {}
+static Inference* createInference() {
+#ifdef USE_FASTTEXT
+    return new MLInference(FT_MODEL_PATH);
+#else
+    return new Inference(FT_MODEL_PATH);
+#endif
+}
 
-ContextualClassifier::~ContextualClassifier() { Terminate(); }
+ContextualClassifier::ContextualClassifier()
+    : mInference(createInference()) {}
+
+ContextualClassifier::~ContextualClassifier() {
+    Terminate();
+    delete mInference;
+    mInference = nullptr;
+}
 
 void ContextualClassifier::LoadIgnoredProcesses() {
     std::ifstream file(IGNORE_PROC_PATH);
@@ -393,10 +411,12 @@ int ContextualClassifier::ClassifyProcess(int process_pid, int process_tgid,
     LOGD(CLASSIFIER_TAG,
          format_string("Starting classification for PID:%d", process_pid));
 
-    std::map<std::string, std::string> raw_data;
-
     const std::string proc_path = "/proc/" + std::to_string(process_pid);
+    CC_TYPE contextType = CC_UNKNOWN;
+    std::map<std::string, std::string> raw_data;
+    std::string predicted_label;
 
+#ifdef USE_FASTTEXT
     auto start_collect = std::chrono::high_resolution_clock::now();
     int collect_rc = FeatureExtractor::CollectAndStoreData(
         process_pid, mTokenIgnoreMap, raw_data, mDebugMode);
@@ -427,9 +447,6 @@ int ContextualClassifier::ClassifyProcess(int process_pid, int process_tgid,
         }
     }
 
-    // Default context type UNKNOWN.
-    CC_TYPE contextType = CC_UNKNOWN;
-
     if (has_sufficient_features) {
         if (access(proc_path.c_str(), F_OK) == -1) {
             return static_cast<int>(contextType);
@@ -439,14 +456,23 @@ int ContextualClassifier::ClassifyProcess(int process_pid, int process_tgid,
              format_string("Invoking ML inference for PID:%d", process_pid));
 
         auto start_inference = std::chrono::high_resolution_clock::now();
-        std::string predicted_label =
-            mMLInference.predict(process_pid, raw_data);
-        auto end_inference = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double, std::milli> elapsed_inference =
-            end_inference - start_inference;
-        LOGD(CLASSIFIER_TAG,
-             format_string("Inference for PID:%d took %f ms", process_pid,
-                           elapsed_inference.count()));
+        if (mInference) {
+            uint32_t rc = mInference->predict(process_pid, raw_data, predicted_label);
+            auto end_inference = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double, std::milli> elapsed_inference =
+                end_inference - start_inference;
+            LOGD(CLASSIFIER_TAG,
+                 format_string("Inference for PID:%d took %f ms (rc=%u)",
+                               process_pid, elapsed_inference.count(), rc));
+            if (rc != 0) {
+                // Inference failed, keep contextType as UNKNOWN.
+                predicted_label.clear();
+            }
+        } else {
+            LOGW(CLASSIFIER_TAG,
+                 format_string("No Inference object available for PID:%d",
+                               process_pid));
+        }
 
         // Map stripped label -> CC_APP enum.
         // MLInference::predict() returns after stripping "__label__".
@@ -472,6 +498,12 @@ int ContextualClassifier::ClassifyProcess(int process_pid, int process_tgid,
                            "insufficient features.",
                            process_pid));
     }
+#else
+    LOGD(CLASSIFIER_TAG,
+         format_string("Skipping data collection and ML inference for PID:%d due to "
+                       "USE_FASTTEXT not being defined.",
+                       process_pid));
+#endif
 
     return static_cast<int>(contextType);
 }
@@ -546,12 +578,12 @@ int ContextualClassifier::HandleProcEv() {
     return 0;
 }
 
-// Global instance
+// Global instance inside the shared library
 static ContextualClassifier *g_classifier = nullptr;
 
-static ErrCode init(void *arg = nullptr) {
-    (void)arg;
-
+// Public C interface exported from the contextual-classifier shared library.
+// These are what the URM module entrypoints will call.
+extern "C" ErrCode cc_init(void) {
     // Record PID and TID
     ourPID = getpid();
     ourTID = gettid();
@@ -562,8 +594,7 @@ static ErrCode init(void *arg = nullptr) {
     return g_classifier->Init();
 }
 
-static ErrCode terminate(void *arg = nullptr) {
-    (void)arg;
+extern "C" ErrCode cc_terminate(void) {
     if (g_classifier) {
         ErrCode rc = g_classifier->Terminate();
         delete g_classifier;
@@ -572,5 +603,3 @@ static ErrCode terminate(void *arg = nullptr) {
     }
     return RC_SUCCESS;
 }
-
-RESTUNE_REGISTER_MODULE(MOD_CLASSIFIER, init, terminate);

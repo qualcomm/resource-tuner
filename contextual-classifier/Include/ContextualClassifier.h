@@ -5,7 +5,6 @@
 #define CONTEXTUAL_CLASSIFIER_H
 
 #include "ComponentRegistry.h"
-#include "MLInference.h"
 #include "NetLinkComm.h"
 #include <condition_variable>
 #include <mutex>
@@ -15,6 +14,8 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
+class Inference;
 
 enum { CC_IGNORE = 0x00, CC_APP_OPEN = 0x01, CC_APP_CLOSE = 0x02 };
 
@@ -58,7 +59,7 @@ class ContextualClassifier {
     bool isIgnoredProcess(int evType, int pid);
 
     NetLinkComm mNetLinkComm;
-    MLInference mMLInference;
+    Inference *mInference;
 
     // Event queue for classifier main thread
     std::queue<ProcEvent> mPendingEv;
