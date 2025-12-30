@@ -20,7 +20,7 @@ class MLInference : public Inference {
     // Derived implementation using fastText.
     uint32_t predict(int pid,
                      const std::map<std::string, std::string> &raw_data,
-                     std::string &cat) override;
+                     std::string &cat);
     fasttext::FastText ft_model_;
     std::mutex predict_mutex_;
 
