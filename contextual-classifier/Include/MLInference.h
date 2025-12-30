@@ -18,7 +18,6 @@ class MLInference : public Inference {
     int Classify(int process_pid) override;
   private:
     // Derived implementation using fastText.
-    // Returns 0 on success, non-zero on failure and sets 'cat' accordingly.
     uint32_t predict(int pid,
                      const std::map<std::string, std::string> &raw_data,
                      std::string &cat) override;
@@ -31,13 +30,6 @@ class MLInference : public Inference {
 
     std::string normalize_text(const std::string &text);
 
-  public: // Public getters for feature lists
-    const std::vector<std::string> &getTextCols() const { return text_cols_; }
-    const std::vector<std::string> &getTextCols() const {
-        static const std::vector<std::string> empty;
-        return empty;
-    }
-#endif
 };
 
 #endif // ML_INFERENCE_H
