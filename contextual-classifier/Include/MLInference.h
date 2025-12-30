@@ -4,25 +4,23 @@
 #ifndef ML_INFERENCE_H
 #define ML_INFERENCE_H
 
-#include <algorithm>
-#include <fasttext/fasttext.h>
-#include <fstream>
-#include <map>
-#include <mutex>
-#include <sstream>
-#include <stdexcept>
-#include <string>
+#include "Inference.h"
 #include <vector>
 
-class MLInference {
+#include <fasttext/fasttext.h>
+#include <mutex>
+#include <string>
+
+class MLInference : public Inference {
   public:
     MLInference(const std::string &ft_model_path);
     ~MLInference();
-
-    std::string predict(int pid,
-                        const std::map<std::string, std::string> &raw_data);
-
+    int Classify(int process_pid) override;
   private:
+    // Derived implementation using fastText.
+    uint32_t predict(int pid,
+                     const std::map<std::string, std::string> &raw_data,
+                     std::string &cat);
     fasttext::FastText ft_model_;
     std::mutex predict_mutex_;
 
@@ -32,8 +30,6 @@ class MLInference {
 
     std::string normalize_text(const std::string &text);
 
-  public: // Public getters for feature lists
-    const std::vector<std::string> &getTextCols() const { return text_cols_; }
 };
 
 #endif // ML_INFERENCE_H

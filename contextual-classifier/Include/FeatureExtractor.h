@@ -4,6 +4,8 @@
 #ifndef FEATURE_EXTRACTOR_H
 #define FEATURE_EXTRACTOR_H
 
+
+#include "FeaturePruner.h"
 #include <cstdint>
 #include <map>
 #include <string>
@@ -12,15 +14,24 @@
 #include <unordered_set>
 #include <vector>
 
+
+#define CLASSIFIER_CONF_DIR "/etc/classifier/"
+const std::string IGNORE_TOKENS_PATH = CLASSIFIER_CONF_DIR "ignore-tokens.txt";
+
 class FeatureExtractor {
   public:
+    FeatureExtractor() {
+        std::vector<std::string> labels = {"attr", "cgroup",  "cmdline",
+                                       "comm", "environ", "exe",
+                                       "logs", "fds",     "map_files"};
+        mTokenIgnoreMap = FeaturePruner::loadIgnoreMap(IGNORE_TOKENS_PATH, labels);
+    }
     static int CollectAndStoreData(
         pid_t pid,
-        const std::unordered_map<std::string, std::unordered_set<std::string>>
-            &ignoreMap,
         std::map<std::string, std::string> &output_data, bool dump_csv);
 
   private:
+    static std::unordered_map<std::string, std::unordered_set<std::string>> mTokenIgnoreMap;
     static std::vector<std::string>
     ParseAttrCurrent(const uint32_t pid, const std::string &delimiters);
     static std::vector<std::string> ParseCgroup(pid_t pid,

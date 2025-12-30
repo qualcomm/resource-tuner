@@ -2,19 +2,22 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include "MLInference.h"
-#include <algorithm> // Add this include for std::transform
-#include <cmath>     // For std::exp
-#include <fstream>   // Add this include for std::ifstream
-#include <iomanip>   // For std::fixed and std::setprecision
-#include <iostream>
+#include "ContextualClassifier.h"
+#include <algorithm>
+#include <cmath>
+#include <fstream>
+#include <iomanip>
 #include <map>
 #include <sstream>
-#include <stdexcept> // Add this include for std::runtime_error
+#include <stdexcept>
 #include <string>
-#include <syslog.h> // Include syslog for logging
+#include <syslog.h>
 #include <vector>
 
-MLInference::MLInference(const std::string &ft_model_path) {
+#define CLASSIFIER_TAG "MLInference"
+
+MLInference::MLInference(const std::string &ft_model_path)
+    : Inference(ft_model_path) {
     text_cols_ = {"attr", "cgroup",  "cmdline", "comm", "maps",
                   "fds",  "environ", "exe",     "logs"};
 
@@ -31,9 +34,10 @@ MLInference::MLInference(const std::string &ft_model_path) {
 
     syslog(LOG_INFO, "MLInference initialized. fastText dim: %d",
            embedding_dim_);
+    (void)ft_model_path;
 }
 
-MLInference::~MLInference() {}
+MLInference::~MLInference() = default;
 
 std::string MLInference::normalize_text(const std::string &text) {
     std::string s = text;
@@ -41,9 +45,105 @@ std::string MLInference::normalize_text(const std::string &text) {
     return s;
 }
 
-std::string
-MLInference::predict(int pid,
-                     const std::map<std::string, std::string> &raw_data) {
+CC_TYPE MLInference::Classify(int process_pid) {
+    LOGD(CLASSIFIER_TAG,
+         format_string("Starting classification for PID:%d", process_pid));
+
+    const std::string proc_path = "/proc/" + std::to_string(process_pid);
+    CC_TYPE contextType = CC_APP;
+    std::map<std::string, std::string> raw_data;
+    std::string predicted_label;
+
+    auto start_collect = std::chrono::high_resolution_clock::now();
+    int collect_rc = FeatureExtractor::CollectAndStoreData(
+        process_pid, raw_data, mDebugMode);
+    auto end_collect = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> elapsed_collect =
+        end_collect - start_collect;
+    LOGD(CLASSIFIER_TAG,
+         format_string("Data collection for PID:%d took %f ms (rc=%d)",
+                       process_pid, elapsed_collect.count(), collect_rc));
+
+    if (collect_rc != 0) {
+        // Process exited or collection failed; skip further work.
+        return 0;
+    }
+
+    LOGD(CLASSIFIER_TAG,
+         format_string("Text features collected for PID:%d", process_pid));
+
+    if (access(proc_path.c_str(), F_OK) == -1) {
+        return 0;
+    }
+
+    bool has_sufficient_features = false;
+    for (const auto &kv : raw_data) {
+        if (!kv.second.empty()) {
+            has_sufficient_features = true;
+            break;
+        }
+    }
+
+    if (has_sufficient_features) {
+        if (access(proc_path.c_str(), F_OK) == -1) {
+            return contextType;
+        }
+
+        LOGD(CLASSIFIER_TAG,
+             format_string("Invoking ML inference for PID:%d", process_pid));
+
+        auto start_inference = std::chrono::high_resolution_clock::now();
+        if (mInference) {
+            uint32_t rc = mInference->predict(process_pid, raw_data, predicted_label);
+            auto end_inference = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double, std::milli> elapsed_inference =
+                end_inference - start_inference;
+            LOGD(CLASSIFIER_TAG,
+                 format_string("Inference for PID:%d took %f ms (rc=%u)",
+                               process_pid, elapsed_inference.count(), rc));
+            if (rc != 0) {
+                // Inference failed, keep contextType as UNKNOWN.
+                predicted_label.clear();
+            }
+        } else {
+            LOGW(CLASSIFIER_TAG,
+                 format_string("No Inference object available for PID:%d",
+                               process_pid));
+        }
+
+        // Map stripped label -> CC_APP enum.
+        // MLInference::predict() returns after stripping "__label__".
+        if (predicted_label == "app") {
+            contextType = CC_APP;
+        } else if (predicted_label == "browser") {
+            contextType = CC_BROWSER;
+        } else if (predicted_label == "game") {
+            contextType = CC_GAME;
+        } else if (predicted_label == "media") {
+            contextType = CC_MULTIMEDIA;
+        } else {
+            contextType = CC_APP;
+        }
+
+        LOGD(CLASSIFIER_TAG,
+             format_string("Predicted label '%s' mapped to contextType=%d",
+                           predicted_label.c_str(),
+                           static_cast<int>(contextType)));
+    } else {
+        LOGD(CLASSIFIER_TAG,
+             format_string("Skipping ML inference for PID:%d due to "
+                           "insufficient features.",
+                           process_pid));
+    }
+
+    return contextType;
+}
+
+
+uint32_t MLInference::predict(
+    int pid,
+    const std::map<std::string, std::string> &raw_data,
+    std::string &cat) {
     std::lock_guard<std::mutex> lock(predict_mutex_);
     syslog(LOG_DEBUG, "Starting prediction.");
 
@@ -53,29 +153,26 @@ MLInference::predict(int pid,
         if (it != raw_data.end()) {
             concatenated_text += normalize_text(it->second) + " ";
         } else {
-            concatenated_text += " "; // Add space for missing text columns
+            concatenated_text += " ";
         }
     }
-    // Remove trailing space if any
     if (!concatenated_text.empty() && concatenated_text.back() == ' ') {
         concatenated_text.pop_back();
     }
 
     if (concatenated_text.empty()) {
         syslog(LOG_WARNING, "No text features found.");
-        return "Unknown";
+        cat = "Unknown";
+        return 1;
     }
 
     syslog(LOG_DEBUG, "Calling fastText predict().");
 
-    // Add a newline to the end of the text as is typical for fastText stream
-    // processing
     concatenated_text += "\n";
     std::istringstream iss(concatenated_text);
 
     std::vector<std::pair<fasttext::real, int>> predictions;
 
-    // Tokenize the text using the dictionary
     std::vector<int> words, labels;
     ft_model_.getDictionary()->getLine(iss, words, labels);
 
@@ -83,22 +180,20 @@ MLInference::predict(int pid,
 
     if (predictions.empty()) {
         syslog(LOG_WARNING, "fastText returned no predictions.");
-        return "Unknown";
+        cat = "Unknown";
+        return 1;
     }
 
-    // fastText returns pairs of (probability, label_id)
     fasttext::real probability = predictions[0].first;
     if (probability < 0) {
         probability = std::exp(probability);
     }
     int label_id = predictions[0].second;
 
-    // Get the label string from the dictionary
     std::string predicted_label = ft_model_.getDictionary()->getLabel(label_id);
 
-    // Strip __label__ prefix if present
     std::string prefix = "__label__";
-    if (predicted_label.rfind(prefix, 0) == 0) { // starts with prefix
+    if (predicted_label.rfind(prefix, 0) == 0) {
         predicted_label = predicted_label.substr(prefix.length());
     }
 
@@ -111,5 +206,7 @@ MLInference::predict(int pid,
         LOG_INFO,
         "Prediction complete. PID: %d, Comm: %s, Class: %s, Probability: %.4f",
         pid, comm.c_str(), predicted_label.c_str(), probability);
-    return predicted_label;
+
+    cat = predicted_label;
+    return 0;
 }
