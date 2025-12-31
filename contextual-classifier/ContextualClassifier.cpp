@@ -8,7 +8,6 @@
 #include "AuxRoutines.h"
 #include "ContextualClassifier.h"
 #include "RestuneInternal.h"
-#include "AppConfigs.h"
 #include "Extensions.h"
 #include "Inference.h"
 
@@ -39,116 +38,18 @@ const std::string IGNORE_TOKENS_PATH = CLASSIFIER_CONF_DIR "ignore-tokens.txt";
 #include "FeatureExtractor.h"
 #include "FeaturePruner.h"
     //MLInference
-Inference *ContextualClassifier::getInferenceObject() {
+Inference *ContextualClassifier::GetInferenceObject() {
 	    return (new MLInference(FT_MODEL_PATH));
 }
 #else
     //inference
-Inference *ContextualClassifier::getInferenceObject() {
+Inference *ContextualClassifier::GetInferenceObject() {
 	    return (new Inference(FT_MODEL_PATH));
 }
 #endif
 
-static pid_t ourPID = 0;
-static pid_t ourTID = 0;
-
-static std::string format_string(const char *fmt, ...) {
-    char buffer[1024];
-    va_list args;
-    va_start(args, fmt);
-    vsnprintf(buffer, sizeof(buffer), fmt, args);
-    va_end(args);
-    return std::string(buffer);
-}
-
-// Helper to check if a string contains only digits
-static bool is_digits(const std::string& str) {
-    return std::all_of(str.begin(), str.end(), ::isdigit);
-}
-
-// Function to get the first matching PID for a given process name
-static pid_t getProcessPID_COMM(const std::string& process_name) {
-    DIR* proc_dir = opendir("/proc");
-    if (!proc_dir) {
-        std::cerr << "Failed to open /proc directory." << std::endl;
-        return -1;
-    }
-
-    struct dirent* entry;
-    while ((entry = readdir(proc_dir)) != nullptr) {
-        if (entry->d_type == DT_DIR && is_digits(entry->d_name)) {
-            std::string pid_str = entry->d_name;
-            std::string comm_path = "/proc/" + pid_str + "/comm";
-            std::ifstream comm_file(comm_path);
-            std::string comm;
-            if (comm_file) {
-                std::getline(comm_file, comm);
-                if (comm.find(process_name) != std::string::npos) {
-                    closedir(proc_dir);
-                    return static_cast<pid_t>(std::stoi(pid_str));
-                }
-            }
-        }
-    }
-
-    closedir(proc_dir);
-    return -1; // Not found
-}
-
-// ALERT !!!!!
-// This will flood CocoTable and RequestManager (tracker) up very very quickly
-// Need to think of some better approach rather than arbitrarily issuing all
-// requests with an INF duration (-1).
-static void moveAppThreadsToCGroup(AppConfig* appConfig) {
-    try {
-        Request* request = MPLACED(Request);
-        request->setRequestType(REQ_RESOURCE_TUNING);
-        request->setHandle(AuxRoutines::generateUniqueHandle());
-        request->setDuration(-1);
-        request->setProperties(RequestPriority::REQ_PRIORITY_HIGH);
-        request->setClientPID(ourPID);
-        request->setClientTID(ourTID);
-
-        if(appConfig->mThreadNameList != nullptr) {
-            int32_t numThreads = appConfig->mNumThreads;
-            // Go over the list of proc names (comm) and get their pids
-            for(int32_t i = 0; i < numThreads; i++) {
-                std::string targetComm = appConfig->mThreadNameList[i];
-                pid_t targetPID = getProcessPID_COMM(targetComm);
-                if(targetPID != -1) {
-                    // Get the CGroup
-                    int32_t currCGroupID = appConfig->mCGroupIds[i];
-                    // Make the move via Resource Tuner APIs
-
-                    Resource* resource = MPLACEV(Resource);
-                    resource->setResCode(RES_CGRP_MOVE_PID);
-                    resource->setNumValues(2);
-                    resource->setValueAt(0, currCGroupID);
-                    resource->setValueAt(1, targetPID);
-
-                    ResIterable* resIterable = MPLACED(ResIterable);
-                    resIterable->mData = resource;
-                    request->addResource(resIterable);
-                }
-            }
-        }
-
-        // Anything to issue
-        if(request->getResourcesCount() > 0) {
-            // fast path to Request Queue
-            submitResProvisionRequest(request, true);
-        } else {
-            Request::cleanUpRequest(request);
-        }
-
-    } catch(const std::exception& e) {
-        LOGE("CLASSIFIER",
-             "Failed to move per-app threads to cgroup, Error: " + std::string(e.what()));
-    }
-}
-
 ContextualClassifier::ContextualClassifier() {
-    mInference = getInferenceObject();
+    mInference = GetInferenceObject();
 }
 
 ContextualClassifier::~ContextualClassifier() {
@@ -159,115 +60,13 @@ ContextualClassifier::~ContextualClassifier() {
 	}
 }
 
-void ContextualClassifier::LoadIgnoredProcesses() {
-    std::ifstream file(IGNORE_PROC_PATH);
-    if (!file.is_open()) {
-        LOGW(CLASSIFIER_TAG,
-             format_string("Could not open ignore process file: %s",
-                           IGNORE_PROC_PATH.c_str()));
-        return;
-    }
-    std::string line;
-    while (std::getline(file, line)) {
-        std::stringstream ss(line);
-        std::string segment;
-        while (std::getline(ss, segment, ',')) {
-            size_t first = segment.find_first_not_of(" \t\n\r");
-            if (first == std::string::npos)
-                continue;
-            size_t last = segment.find_last_not_of(" \t\n\r");
-            segment = segment.substr(first, (last - first + 1));
-            if (!segment.empty()) {
-                mIgnoredProcesses.insert(segment);
-            }
-        }
-    }
-    LOGI(CLASSIFIER_TAG, format_string("Loaded %zu ignored processes.",
-                                       mIgnoredProcesses.size()));
-}
-
-int FetchComm(int pid, std::string &comm) {
-    std::string proc_path = "/proc/" + std::to_string(pid);
-    if (access(proc_path.c_str(), F_OK) == -1) {
-        LOGD(CLASSIFIER_TAG, format_string("Process %d has exited.", pid));
-        return -1;
-    }
-
-    std::string comm_path = "/proc/" + std::to_string(pid) + "/comm";
-    std::ifstream comm_file(comm_path);
-    if (comm_file.is_open()) {
-        std::getline(comm_file, comm);
-        // Trim
-        size_t first = comm.find_first_not_of(" \t\n\r");
-        if (first != std::string::npos) {
-            size_t last = comm.find_last_not_of(" \t\n\r");
-            comm = comm.substr(first, (last - first + 1));
-        }
-    }
-    return 0;
-}
-
-bool ContextualClassifier::isIgnoredProcess(int evType, int pid) {
-    bool ignore = false;
-
-    // For context close, see if pid is in ignored list and remove it.
-    if (evType == CC_APP_CLOSE) {
-        auto it = mIgnoredPids.find(pid);
-        if (it != mIgnoredPids.end()) {
-            mIgnoredPids.erase(it);
-            ignore = true;
-        }
-        return ignore;
-    }
-
-    // For context open, check if comm is in ignored list and track pid.
-    std::string comm_path = "/proc/" + std::to_string(pid) + "/comm";
-    std::ifstream comm_file(comm_path);
-    if (comm_file.is_open()) {
-        std::string proc_name;
-        std::getline(comm_file, proc_name);
-        // Trim
-        size_t first = proc_name.find_first_not_of(" \t\n\r");
-        if (first != std::string::npos) {
-            size_t last = proc_name.find_last_not_of(" \t\n\r");
-            proc_name = proc_name.substr(first, (last - first + 1));
-        }
-        if (mIgnoredProcesses.count(proc_name) != 0U) {
-            LOGD(CLASSIFIER_TAG, format_string("Ignoring process: %s (PID: %d)",
-                                               proc_name.c_str(), pid));
-            mIgnoredPids.insert(pid);
-            ignore = true;
-        }
-    } else {
-        LOGD(CLASSIFIER_TAG,
-             format_string("Process %d exited before initial check. Skipping.",
-                           pid));
-    }
-
-    return ignore;
-}
-
-void ContextualClassifier::GetSignalDetailsForWorkload(int32_t contextType,
-                                                       uint32_t &sigId,
-                                                       uint32_t &sigSubtype) {
-    (void)sigSubtype;
-    switch (contextType) {
-    case CC_MULTIMEDIA:
-        sigId = CC_MULTIMEDIA_APP_OPEN;
-        break;
-    case CC_GAME:
-        sigId = CC_GAME_APP_OPEN;
-        break;
-    case CC_BROWSER:
-        sigId = CC_BROWSER_APP_OPEN;
-        break;
-    }
-    return;
-}
-
 ErrCode ContextualClassifier::Init() {
     LOGI(CLASSIFIER_TAG, "Classifier module init.");
 
+    // Record PID and TID
+    mOurPid = getpid();
+    mOurTid = gettid();
+	
     LoadIgnoredProcesses();
 
     // Single worker thread for classification
@@ -348,38 +147,28 @@ void ContextualClassifier::ClassifierMain() {
                     continue;
                 }
 
+                // Step 1: Figure out workload type
                 int contextType =
                     ClassifyProcess(ev.pid, ev.tgid, comm, ctxDetails);
+                // Identify if any signal configuration exists
+                // Will return the sigID based on the workload
+                // For example: game, browser, multimedia
+                GetSignalDetailsForWorkload(contextType, sigId, sigSubtype);
 
-                // Step 1: Move the process to focused-cgroup
-                // Also involves removing the process already there from focused.
-
-                // Code ........
-
-
-                // Step 2: Move the "threads" from per-app config to appropriate cgroups
-
-                // Code for determining per-app config threads
+                // Step 2: Move focused app "threads" + any threads from per-app config
+                // to appropriate cgroups
                 AppConfig* appConfig =
                     AppConfigs::getInstance()->getAppConfig(comm);
 
                 if(appConfig != nullptr) {
                     int32_t threadsCount = appConfig->mNumThreads;
                     if(threadsCount > 0) {
-                        moveAppThreadsToCGroup(appConfig);
+                        MoveAppThreadsToCGroup(appConfig);
                     }
                 }
 
-                // Step 3: Identify if any signal configuration exists
-                // Will return the sigID based on the workload
-                // For example: game, browser, multimedia
-                GetSignalDetailsForWorkload(contextType, sigId, sigSubtype);
-
-                // By Default we can acquire the generic signal (subtype) associate with that ID
-
-                // If the post processing block exists, call it
+                //Step 3: If the post processing block exists, call it
                 // It might provide us a more specific sigSubtype
-
                 PostProcessingCallback postCb =
                     Extensions::getPostProcessingCallback(comm);
                 if(postCb) {
@@ -394,48 +183,13 @@ void ContextualClassifier::ClassifierMain() {
                     sigSubtype = postProcessData.mSigSubtype;
                 }
 
-                // Details are available, call tuneSignal
+                //Step 4: Apply actions, call tuneSignal
                 ApplyActions(comm, sigId, sigSubtype);
             }
         } else if (ev.type == CC_APP_CLOSE) {
             RemoveActions(ev.pid, ev.tgid);
         }
     }
-}
-
-int ContextualClassifier::ClassifyProcess(int process_pid, int process_tgid,
-                                          const std::string &comm,
-                                          uint32_t &ctxDetails) {
-    (void)process_tgid;
-    (void)ctxDetails;
-    CC_TYPE context = CC_APP;
-
-    if (mIgnoredProcesses.count(comm) != 0U) {
-        LOGD(CLASSIFIER_TAG,
-             format_string(
-                 "Skipping inference for ignored process: %s (PID: %d)",
-                 comm.c_str(), process_pid));
-        return 0;
-    }
-
-    LOGD(CLASSIFIER_TAG,
-         format_string("Starting classification for PID:%d", process_pid));
-    context = mInference->Classify(process_pid);
-    return context;
-}
-
-void ContextualClassifier::ApplyActions(std::string comm, int32_t sigId,
-                                        int32_t sigType) {
-    // tuneSignal and update the handles
-    // mResTunerHandles
-    return;
-}
-
-void ContextualClassifier::RemoveActions(int process_pid, int process_tgid) {
-    (void)process_tgid;
-    // untuneSignal and erase handles
-    // mResTunerHandles
-    return;
 }
 
 int ContextualClassifier::HandleProcEv() {
@@ -454,16 +208,14 @@ int ContextualClassifier::HandleProcEv() {
             if (mNeedExit) {
                 return 0;
             }
-            LOGE(CLASSIFIER_TAG,
-                 format_string("netlink recv: %s", strerror(errno)));
+            LOGE(CLASSIFIER_TAG, "netlink recv error");
             return -1;
         }
 
         switch (rc) {
         case CC_APP_OPEN:
             LOGD(CLASSIFIER_TAG,
-                 format_string("Received CC_APP_OPEN for tid=%d pid=%d", ev.pid,
-                               ev.tgid));
+                 "Received CC_APP_OPEN for pid=%d" + std::to_string(ev.pid));
             if (isIgnoredProcess(ev.type, ev.pid)) {
                 break;
             }
@@ -475,8 +227,7 @@ int ContextualClassifier::HandleProcEv() {
             break;
         case CC_APP_CLOSE:
             LOGD(CLASSIFIER_TAG,
-                 format_string("Received CC_APP_CLOSE pid=%d tgid=%d", ev.pid,
-                               ev.tgid));
+                 "Received CC_APP_CLOSE pid=%d tgid=%d" + std::to_string(ev.pid));
             if (isIgnoredProcess(ev.type, ev.pid)) {
                 break;
             }
@@ -494,16 +245,236 @@ int ContextualClassifier::HandleProcEv() {
     return 0;
 }
 
-// Global instance inside the shared library
+int32_t ContextualClassifier::ClassifyProcess(pid_t process_pid, pid_t process_tgid,
+                                          const std::string &comm,
+                                          uint32_t &ctxDetails) {
+    (void)process_tgid;
+    (void)ctxDetails;
+    CC_TYPE context = CC_APP;
+
+    if (mIgnoredProcesses.count(comm) != 0U) {
+        LOGD(CLASSIFIER_TAG,
+             "Skipping inference for ignored process: "+ comm);
+        return 0;
+    }
+
+    LOGD(CLASSIFIER_TAG,
+         "Starting classification for PID: "+ std::to_string(process_pid));
+    context = mInference->Classify(process_pid);
+    return context;
+}
+
+void ContextualClassifier::ApplyActions(std::string comm, int32_t sigId,
+                                        int32_t sigType) {
+    (void)comm;
+	(void)sigId;
+	(void)sigType;
+    // tuneSignal and update the handles
+    // mResTunerHandles
+    return;
+}
+
+void ContextualClassifier::RemoveActions(pid_t process_pid, pid_t process_tgid) {
+	(void)process_pid;
+    (void)process_tgid;
+    // untuneSignal and erase handles
+    // mResTunerHandles
+    return;
+}
+
+void ContextualClassifier::GetSignalDetailsForWorkload(int32_t contextType,
+                                                       uint32_t &sigId,
+                                                       uint32_t &sigSubtype) {
+    (void)sigSubtype;
+    switch (contextType) {
+    case CC_MULTIMEDIA:
+        sigId = CC_MULTIMEDIA_APP_OPEN;
+        break;
+    case CC_GAME:
+        sigId = CC_GAME_APP_OPEN;
+        break;
+    case CC_BROWSER:
+        sigId = CC_BROWSER_APP_OPEN;
+        break;
+    }
+    return;
+}
+
+void ContextualClassifier::LoadIgnoredProcesses() {
+    std::ifstream file(IGNORE_PROC_PATH);
+    if (!file.is_open()) {
+        LOGW(CLASSIFIER_TAG,
+             "Could not open ignore process file: "+IGNORE_PROC_PATH);
+        return;
+    }
+    std::string line;
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        std::string segment;
+        while (std::getline(ss, segment, ',')) {
+            size_t first = segment.find_first_not_of(" \t\n\r");
+            if (first == std::string::npos)
+                continue;
+            size_t last = segment.find_last_not_of(" \t\n\r");
+            segment = segment.substr(first, (last - first + 1));
+            if (!segment.empty()) {
+                mIgnoredProcesses.insert(segment);
+            }
+        }
+    }
+    LOGI(CLASSIFIER_TAG, "Loaded ignored processes.");
+}
+
+bool ContextualClassifier::isIgnoredProcess(int32_t evType, pid_t pid) {
+    bool ignore = false;
+
+    // For context close, see if pid is in ignored list and remove it.
+    if (evType == CC_APP_CLOSE) {
+        auto it = mIgnoredPids.find(pid);
+        if (it != mIgnoredPids.end()) {
+            mIgnoredPids.erase(it);
+            ignore = true;
+        }
+        return ignore;
+    }
+
+    // For context open, check if comm is in ignored list and track pid.
+    std::string comm_path = "/proc/" + std::to_string(pid) + "/comm";
+    std::ifstream comm_file(comm_path);
+    if (comm_file.is_open()) {
+        std::string proc_name;
+        std::getline(comm_file, proc_name);
+        // Trim
+        size_t first = proc_name.find_first_not_of(" \t\n\r");
+        if (first != std::string::npos) {
+            size_t last = proc_name.find_last_not_of(" \t\n\r");
+            proc_name = proc_name.substr(first, (last - first + 1));
+        }
+        if (mIgnoredProcesses.count(proc_name) != 0U) {
+            LOGD(CLASSIFIER_TAG, "Ignoring process: "+proc_name);
+            mIgnoredPids.insert(pid);
+            ignore = true;
+        }
+    } else {
+        LOGD(CLASSIFIER_TAG,
+             "Process " + std::to_string(pid) + " exited before initial check. Skipping.");
+    }
+
+    return ignore;
+}
+
+int32_t ContextualClassifier::FetchComm(pid_t pid, std::string &comm) {
+    std::string proc_path = "/proc/" + std::to_string(pid);
+    if (access(proc_path.c_str(), F_OK) == -1) {
+        LOGD(CLASSIFIER_TAG, "Process %d has exited." + std::to_string(pid));
+        return -1;
+    }
+
+    std::string comm_path = "/proc/" + std::to_string(pid) + "/comm";
+    std::ifstream comm_file(comm_path);
+    if (comm_file.is_open()) {
+        std::getline(comm_file, comm);
+        // Trim
+        size_t first = comm.find_first_not_of(" \t\n\r");
+        if (first != std::string::npos) {
+            size_t last = comm.find_last_not_of(" \t\n\r");
+            comm = comm.substr(first, (last - first + 1));
+        }
+    }
+    return 0;
+}
+
+// Function to get the first matching PID for a given process name
+pid_t ContextualClassifier::FetchPid(const std::string& process_name) {
+    DIR* proc_dir = opendir("/proc");
+    if (!proc_dir) {
+        std::cerr << "Failed to open /proc directory." << std::endl;
+        return -1;
+    }
+
+    struct dirent* entry;
+    while ((entry = readdir(proc_dir)) != nullptr) {
+        if (entry->d_type == DT_DIR && IsNumericString(entry->d_name)) {
+            std::string pid_str = entry->d_name;
+            std::string comm_path = "/proc/" + pid_str + "/comm";
+            std::ifstream comm_file(comm_path);
+            std::string comm;
+            if (comm_file) {
+                std::getline(comm_file, comm);
+                if (comm.find(process_name) != std::string::npos) {
+                    closedir(proc_dir);
+                    return static_cast<pid_t>(std::stoi(pid_str));
+                }
+            }
+        }
+    }
+
+    closedir(proc_dir);
+    return -1; // Not found
+}
+
+// Helper to check if a string contains only digits
+bool ContextualClassifier::IsNumericString(const std::string& str) {
+    return std::all_of(str.begin(), str.end(), ::isdigit);
+}
+
+// ALERT !!!!!
+// This will flood CocoTable and RequestManager (tracker) up very very quickly
+// Need to think of some better approach rather than arbitrarily issuing all
+// requests with an INF duration (-1).
+void ContextualClassifier::MoveAppThreadsToCGroup(AppConfig* appConfig) {
+    try {
+        Request* request = MPLACED(Request);
+        request->setRequestType(REQ_RESOURCE_TUNING);
+        request->setHandle(AuxRoutines::generateUniqueHandle());
+        request->setDuration(-1);
+        request->setProperties(RequestPriority::REQ_PRIORITY_HIGH);
+        request->setClientPID(mOurPid);
+        request->setClientTID(mOurTid);
+
+        if(appConfig->mThreadNameList != nullptr) {
+            int32_t numThreads = appConfig->mNumThreads;
+            // Go over the list of proc names (comm) and get their pids
+            for(int32_t i = 0; i < numThreads; i++) {
+                std::string targetComm = appConfig->mThreadNameList[i];
+                pid_t targetPID = FetchPid(targetComm);
+                if(targetPID != -1) {
+                    // Get the CGroup
+                    int32_t currCGroupID = appConfig->mCGroupIds[i];
+                    // Make the move via Resource Tuner APIs
+
+                    Resource* resource = MPLACEV(Resource);
+                    resource->setResCode(RES_CGRP_MOVE_PID);
+                    resource->setNumValues(2);
+                    resource->setValueAt(0, currCGroupID);
+                    resource->setValueAt(1, targetPID);
+
+                    ResIterable* resIterable = MPLACED(ResIterable);
+                    resIterable->mData = resource;
+                    request->addResource(resIterable);
+                }
+            }
+        }
+
+        // Anything to issue
+        if(request->getResourcesCount() > 0) {
+            // fast path to Request Queue
+            submitResProvisionRequest(request, true);
+        } else {
+            Request::cleanUpRequest(request);
+        }
+
+    } catch(const std::exception& e) {
+        LOGE("CLASSIFIER",
+             "Failed to move per-app threads to cgroup, Error: " + std::string(e.what()));
+    }
+}
+
 static ContextualClassifier *g_classifier = nullptr;
 
 // Public C interface exported from the contextual-classifier shared library.
 // These are what the URM module entrypoints will call.
 extern "C" ErrCode cc_init(void) {
-    // Record PID and TID
-    ourPID = getpid();
-    ourTID = gettid();
-
     if (!g_classifier) {
         g_classifier = new ContextualClassifier();
     }

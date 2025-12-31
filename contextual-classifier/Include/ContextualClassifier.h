@@ -6,6 +6,7 @@
 
 #include "ComponentRegistry.h"
 #include "NetLinkComm.h"
+#include "AppConfigs.h"
 #include <condition_variable>
 #include <mutex>
 #include <queue>
@@ -49,15 +50,27 @@ class ContextualClassifier {
 
   private:
     void ClassifierMain();
-    int HandleProcEv();
-    int ClassifyProcess(int pid, int tgid, const std::string &comm,
-                        uint32_t &ctxDetails);
-    void LoadIgnoredProcesses();
-    void ApplyActions(std::string comm, int32_t sigId, int32_t sigType);
-    void RemoveActions(int pid, int tgid);
-    bool isIgnoredProcess(int evType, int pid);
-    Inference *getInferenceObject();
+    int32_t HandleProcEv();
 
+    int32_t ClassifyProcess(pid_t pid, pid_t tgid, const std::string &comm,
+                        uint32_t &ctxDetails);
+    void ApplyActions(std::string comm, int32_t sigId, int32_t sigType);
+    void RemoveActions(pid_t pid, int tgid);
+
+    Inference *GetInferenceObject();
+	
+	void GetSignalDetailsForWorkload(int32_t contextType, uint32_t &sigId,
+                                     uint32_t &sigSubtype);
+
+    void LoadIgnoredProcesses();
+    bool isIgnoredProcess(int32_t evType, pid_t pid);
+
+    int32_t FetchComm(pid_t pid, std::string &comm);
+	pid_t FetchPid(const std::string& process_name);
+	bool IsNumericString(const std::string& str);
+    void MoveAppThreadsToCGroup(AppConfig* appConfig);
+
+private:
     NetLinkComm mNetLinkComm;
     Inference *mInference;
 
@@ -72,11 +85,11 @@ class ContextualClassifier {
     std::unordered_set<std::string> mIgnoredProcesses;
     bool mDebugMode = false;
 
-    std::unordered_set<int> mIgnoredPids;
-    std::unordered_map<int, uint64_t> mResTunerHandles;
+    std::unordered_set<pid_t> mIgnoredPids;
+    std::unordered_map<pid_t, uint64_t> mResTunerHandles;
 
-    void GetSignalDetailsForWorkload(int32_t contextType, uint32_t &sigId,
-                                     uint32_t &sigSubtype);
+	pid_t mOurPid = 0;
+    pid_t mOurTid = 0;
 };
 
 #endif // CONTEXTUAL_CLASSIFIER_H
