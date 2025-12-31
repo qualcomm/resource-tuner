@@ -100,6 +100,13 @@ typedef struct {
     uint64_t mBufferSize;
 } PropConfig;
 
+// Anywhere better ??
+typedef struct {
+    pid_t mPid;
+	uint32_t mSigId;
+	uint32_t mSigSubtype;
+} PostProcessCBData;
+
 // Global Typedefs: Declare Function Pointers as types
 typedef ErrCode (*EventCallback)(void*);
 typedef int8_t (*ServerOnlineCheckCallback)();

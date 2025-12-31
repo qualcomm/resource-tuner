@@ -7,7 +7,6 @@
 #include "Logger.h"
 #include "AuxRoutines.h"
 #include "ContextualClassifier.h"
-#include "PostProcess.h"
 #include "RestuneInternal.h"
 #include "AppConfigs.h"
 #include "Extensions.h"
@@ -96,11 +95,12 @@ static pid_t getProcessPID_COMM(const std::string& process_name) {
     return -1; // Not found
 }
 
+// ALERT !!!!!
+// This will flood CocoTable and RequestManager (tracker) up very very quickly
+// Need to think of some better approach rather than arbitrarily issuing all
+// requests with an INF duration (-1).
 static void moveAppThreadsToCGroup(AppConfig* appConfig) {
     try {
-        int32_t numThreads = appConfig->mNumThreads;
-        // Go over the list of proc names (comm) and get their pids
-
         Request* request = MPLACED(Request);
         request->setRequestType(REQ_RESOURCE_TUNING);
         request->setHandle(AuxRoutines::generateUniqueHandle());
@@ -109,28 +109,37 @@ static void moveAppThreadsToCGroup(AppConfig* appConfig) {
         request->setClientPID(ourPID);
         request->setClientTID(ourTID);
 
-        for(int32_t i = 0; i < numThreads; i++) {
-            std::string targetComm = appConfig->mThreadNameList[i];
-            pid_t targetPID = getProcessPID_COMM(targetComm);
-            if(targetPID != -1) {
-                // Get the CGroup
-                int32_t currCGroupID = appConfig->mCGroupIds[i];
-                // Make the move via Resource Tuner APIs
+        if(appConfig->mThreadNameList != nullptr) {
+            int32_t numThreads = appConfig->mNumThreads;
+            // Go over the list of proc names (comm) and get their pids
+            for(int32_t i = 0; i < numThreads; i++) {
+                std::string targetComm = appConfig->mThreadNameList[i];
+                pid_t targetPID = getProcessPID_COMM(targetComm);
+                if(targetPID != -1) {
+                    // Get the CGroup
+                    int32_t currCGroupID = appConfig->mCGroupIds[i];
+                    // Make the move via Resource Tuner APIs
 
-                Resource* resource = MPLACEV(Resource);
-                resource->setResCode(RES_CGRP_MOVE_PID);
-                resource->setNumValues(2);
-                resource->setValueAt(0, currCGroupID);
-                resource->setValueAt(1, targetPID);
+                    Resource* resource = MPLACEV(Resource);
+                    resource->setResCode(RES_CGRP_MOVE_PID);
+                    resource->setNumValues(2);
+                    resource->setValueAt(0, currCGroupID);
+                    resource->setValueAt(1, targetPID);
 
-                ResIterable* resIterable = MPLACED(ResIterable);
-                resIterable->mData = resource;
-                request->addResource(resIterable);
+                    ResIterable* resIterable = MPLACED(ResIterable);
+                    resIterable->mData = resource;
+                    request->addResource(resIterable);
+                }
             }
         }
 
-        // fast path to Request Queue
-        submitResProvisionRequest(request, true);
+        // Anything to issue
+        if(request->getResourcesCount() > 0) {
+            // fast path to Request Queue
+            submitResProvisionRequest(request, true);
+        } else {
+            Request::cleanUpRequest(request);
+        }
 
     } catch(const std::exception& e) {
         LOGE("CLASSIFIER",
@@ -375,7 +384,7 @@ void ContextualClassifier::ClassifierMain() {
                     Extensions::getPostProcessingCallback(comm);
                 if(postCb) {
                     PostProcessCBData postProcessData = {
-                        .mCmdline = comm,
+                        .mPid = ev.pid,
                         .mSigId = sigId,
                         .mSigSubtype = sigSubtype,
                     };
