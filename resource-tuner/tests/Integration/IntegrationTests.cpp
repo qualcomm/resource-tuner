@@ -3960,7 +3960,7 @@ namespace CGroupApplicationTests {
         resourceList[0].mResCode = 0x00090007;
         resourceList[0].mNumValues = 2;
         resourceList[0].mResValue.values = new int32_t[2];
-        resourceList[0].mResValue.values[0] = 5;
+        resourceList[0].mResValue.values[0] = 802;
         resourceList[0].mResValue.values[1] = 57;
         handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
         std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
@@ -4022,7 +4022,7 @@ namespace CGroupApplicationTests {
             resourceList[0].mResCode = 0x00090007;
             resourceList[0].mNumValues = 2;
             resourceList[0].mResValue.values = new int32_t[2];
-            resourceList[0].mResValue.values[0] = 5;
+            resourceList[0].mResValue.values[0] = 802;
             resourceList[0].mResValue.values[1] = 57;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
@@ -4082,7 +4082,7 @@ namespace CGroupApplicationTests {
             resourceList[0].mResCode = 0x00090008;
             resourceList[0].mNumValues = 2;
             resourceList[0].mResValue.values = new int32_t[2];
-            resourceList[0].mResValue.values[0] = 5;
+            resourceList[0].mResValue.values[0] = 802;
             resourceList[0].mResValue.values[1] = 68;
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);
@@ -4145,7 +4145,7 @@ namespace CGroupApplicationTests {
             resourceList[0].mResCode = 0x0009000b;
             resourceList[0].mNumValues = 2;
             resourceList[0].mResValue.values = new int32_t[2];
-            resourceList[0].mResValue.values[0] = 5;
+            resourceList[0].mResValue.values[0] = 802;
             resourceList[0].mResValue.values[1] = 950; // KB as per configs
 
             int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList);

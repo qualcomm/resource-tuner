@@ -48,10 +48,7 @@ std::string join_vector(const std::vector<std::string> &vec) {
     return res;
 }
 
-int FeatureExtractor::CollectAndStoreData(
-    pid_t pid,
-    const std::unordered_map<std::string, std::unordered_set<std::string>>
-        &ignoreMap,
+int FeatureExtractor::CollectAndStoreData( pid_t pid,
     std::map<std::string, std::string> &output_data, bool dump_csv) {
     if (!IsValidPidViaProc(pid)) {
         LOGE(SCANNER_TAG,
@@ -64,8 +61,8 @@ int FeatureExtractor::CollectAndStoreData(
     std::vector<std::string> lowerContext =
         FeaturePruner::toLowercaseVector(context);
     auto filtered_context = FeaturePruner::filterStrings(
-        lowerContext, ignoreMap.count("attr")
-                          ? ignoreMap.at("attr")
+        lowerContext, mTokenIgnoreMap.count("attr")
+                          ? mTokenIgnoreMap.at("attr")
                           : std::unordered_set<std::string>());
 
     delimiters = ":\"/";
@@ -73,8 +70,8 @@ int FeatureExtractor::CollectAndStoreData(
     std::vector<std::string> lowercgroup =
         FeaturePruner::toLowercaseVector(cgroup);
     auto filtered_cg = FeaturePruner::filterStrings(
-        lowercgroup, ignoreMap.count("cgroup")
-                         ? ignoreMap.at("cgroup")
+        lowercgroup, mTokenIgnoreMap.count("cgroup")
+                         ? mTokenIgnoreMap.at("cgroup")
                          : std::unordered_set<std::string>());
     FeaturePruner::normalize_numbers_inplace(filtered_cg);
 
@@ -90,8 +87,8 @@ int FeatureExtractor::CollectAndStoreData(
     std::vector<std::string> lowercmdline =
         FeaturePruner::toLowercaseVector(cmdline);
     auto filtered_cmd = FeaturePruner::filterStrings(
-        lowercmdline, ignoreMap.count("cmdline")
-                          ? ignoreMap.at("cmdline")
+        lowercmdline, mTokenIgnoreMap.count("cmdline")
+                          ? mTokenIgnoreMap.at("cmdline")
                           : std::unordered_set<std::string>());
     FeaturePruner::removeDoubleDash(filtered_cmd);
 
@@ -99,7 +96,7 @@ int FeatureExtractor::CollectAndStoreData(
     std::vector<std::string> comm = ParseComm(pid, delimiters);
     std::vector<std::string> lowercomm = FeaturePruner::toLowercaseVector(comm);
     auto filtered_comm = FeaturePruner::filterStrings(
-        lowercomm, ignoreMap.count("comm") ? ignoreMap.at("comm")
+        lowercomm, mTokenIgnoreMap.count("comm") ? mTokenIgnoreMap.at("comm")
                                            : std::unordered_set<std::string>());
     FeaturePruner::normalize_numbers_inplace(filtered_comm);
 
@@ -114,8 +111,8 @@ int FeatureExtractor::CollectAndStoreData(
 
     std::vector<std::string> lowermaps = FeaturePruner::toLowercaseVector(maps);
     auto filtered_maps = FeaturePruner::filterStrings(
-        lowermaps, ignoreMap.count("map_files")
-                       ? ignoreMap.at("map_files")
+        lowermaps, mTokenIgnoreMap.count("map_files")
+                       ? mTokenIgnoreMap.at("map_files")
                        : std::unordered_set<std::string>());
     FeaturePruner::normalize_numbers_inplace(filtered_maps);
 
@@ -130,7 +127,7 @@ int FeatureExtractor::CollectAndStoreData(
 
     std::vector<std::string> lowerfds = FeaturePruner::toLowercaseVector(fds);
     auto filtered_fds = FeaturePruner::filterStrings(
-        lowerfds, ignoreMap.count("fds") ? ignoreMap.at("fds")
+        lowerfds, mTokenIgnoreMap.count("fds") ? mTokenIgnoreMap.at("fds")
                                          : std::unordered_set<std::string>());
 
     t1 = std::chrono::high_resolution_clock::now();
@@ -145,8 +142,8 @@ int FeatureExtractor::CollectAndStoreData(
     std::vector<std::string> lowerenviron =
         FeaturePruner::toLowercaseVector(environ);
     auto filtered_environ = FeaturePruner::filterStrings(
-        lowerenviron, ignoreMap.count("environ")
-                          ? ignoreMap.at("environ")
+        lowerenviron, mTokenIgnoreMap.count("environ")
+                          ? mTokenIgnoreMap.at("environ")
                           : std::unordered_set<std::string>());
     FeaturePruner::normalize_numbers_inplace(filtered_environ);
 
@@ -154,7 +151,7 @@ int FeatureExtractor::CollectAndStoreData(
     std::vector<std::string> exe = ParseExe(pid, delimiters);
     std::vector<std::string> lowerexe = FeaturePruner::toLowercaseVector(exe);
     auto filtered_exe = FeaturePruner::filterStrings(
-        lowerexe, ignoreMap.count("exe") ? ignoreMap.at("exe")
+        lowerexe, mTokenIgnoreMap.count("exe") ? mTokenIgnoreMap.at("exe")
                                          : std::unordered_set<std::string>());
     FeaturePruner::normalize_numbers_inplace(filtered_exe);
 
@@ -181,7 +178,7 @@ int FeatureExtractor::CollectAndStoreData(
 
     std::vector<std::string> lowerlogs = FeaturePruner::toLowercaseVector(logs);
     auto filtered_logs = FeaturePruner::filterStrings(
-        lowerlogs, ignoreMap.count("logs") ? ignoreMap.at("logs")
+        lowerlogs, mTokenIgnoreMap.count("logs") ? mTokenIgnoreMap.at("logs")
                                            : std::unordered_set<std::string>());
     FeaturePruner::removeDoubleQuotes(filtered_logs);
 

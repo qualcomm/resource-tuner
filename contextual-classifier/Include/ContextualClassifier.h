@@ -5,7 +5,6 @@
 #define CONTEXTUAL_CLASSIFIER_H
 
 #include "ComponentRegistry.h"
-#include "MLInference.h"
 #include "NetLinkComm.h"
 #include <condition_variable>
 #include <mutex>
@@ -15,6 +14,8 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
+class Inference;
 
 enum { CC_IGNORE = 0x00, CC_APP_OPEN = 0x01, CC_APP_CLOSE = 0x02 };
 
@@ -31,7 +32,6 @@ typedef enum CC_TYPE {
     CC_BROWSER = 0x02,
     CC_GAME = 0x03,
     CC_MULTIMEDIA = 0x04,
-    CC_UNKNOWN = 0x05
 } CC_TYPE;
 
 struct ProcEvent {
@@ -56,9 +56,10 @@ class ContextualClassifier {
     void ApplyActions(std::string comm, int32_t sigId, int32_t sigType);
     void RemoveActions(int pid, int tgid);
     bool isIgnoredProcess(int evType, int pid);
+    Inference *getInferenceObject();
 
     NetLinkComm mNetLinkComm;
-    MLInference mMLInference;
+    Inference *mInference;
 
     // Event queue for classifier main thread
     std::queue<ProcEvent> mPendingEv;
@@ -69,8 +70,6 @@ class ContextualClassifier {
     volatile bool mNeedExit = false;
 
     std::unordered_set<std::string> mIgnoredProcesses;
-    std::unordered_map<std::string, std::unordered_set<std::string>>
-        mTokenIgnoreMap;
     bool mDebugMode = false;
 
     std::unordered_set<int> mIgnoredPids;
