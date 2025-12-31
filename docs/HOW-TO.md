@@ -184,6 +184,18 @@ If the Resource above were a default (upstream) resource, the only difference in
 0x00ea11fc in hex notation or:
 00000000111010100001000111111100, in binary
 
+The macro "CONSTRUCT_RES_CODE" can be used for generating opcodes directly if the ResType and ResID are known:
+```cpp
+   uint32_t resCode = CONSTRUCT_RES_CODE(0xea, 0x11fc);
+```
+
+If the resource is user-defined / custom then the MSB must be set to 1, so that the resource can
+be correctly identified. The CUSTOM function macro achieves this.
+
+```cpp
+   uint32_t resCode = CUSTOM(CONSTRUCT_RES_CODE(0xea, 0x11fc));
+```
+
 The above rules are similar for generating SigCode:
 The SigCode is an unsigned 32 bit integer composed of two fields:
 - The last 16 bits (17-32) are used to specify the SigID
@@ -213,9 +225,21 @@ Treating it as a custom or downstream Signal config (i.e. MSB should be set to 1
 - The Category is: "0x0d" and
 - The SigID is "0x0008"
 
-Hence, the resulting SigCode for this signal is:
+Hence, the resulting sigCode for this signal is:
 
-0x800d0008 in hex notation, or
-10000000000011010000000000001000, in binary.
+0x8000080d in hex notation, or
+10000000000000000000100000001101, in binary.
 
 ---
+
+The macro "CONSTRUCT_SIG_CODE" can be used for generating opcodes directly if the ResType and ResID are known:
+```cpp
+   uint32_t sigCode = CONSTRUCT_SIG_CODE(0x0008, 0x0d);
+```
+
+If the resource is user-defined / custom then the MSB must be set to 1, so that the resource can
+be correctly identified. The CUSTOM function macro achieves this.
+
+```cpp
+   uint32_t sigCode = CUSTOM(CONSTRUCT_SIG_CODE(0x0008, 0x0d));
+```

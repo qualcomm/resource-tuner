@@ -72,6 +72,8 @@ void func1() {
         }
     };
 
+    // Refer Example#2 for details on opcode construction
+
     int64_t handle = tuneResources(duration, properties, 1, resourceList);
 
     // Check the Returned Handle
@@ -116,12 +118,23 @@ void func2() {
     // Initialize Resource struct Fields:
 
     // Field: mResCode:
-    // Refer func1 for details
-    resourceList[0].mResCode = 0x00030000;
+    // If the opcode is known directly,
+    // resourceList[0].mResCode = 0x00030000;
+
+    // Else if the resType and resId are known then use the CONSTRUCT_RES_CODE macro as follows:
+    resourceList[0].mResCode = CONSTRUCT_RES_CODE(0x03, 0x0000);
+
+    /*
+     * Additional points to Note:
+     * If the resource is user-defined / custom, then annotate the opcode as such:
+     *     resourceList[0].mResCode = CUSTOM(resourceList[0].mResCode);
+     * Or in one go:
+     *     resourceList[0].mResCode = CUSTOM(CONSTRUCT_RES_CODE(0x03, 0x0000));
+    */
 
     // Field: mResInfo
     // Refer func1 for details
-    resourceList[0].mResCode = 0;
+    resourceList[0].mResInfo = 0;
     // Note, above line of Code is not necessary, since the field is already initialized
     // to 0 via the Constructor.
 
