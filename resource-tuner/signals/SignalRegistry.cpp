@@ -50,8 +50,8 @@ void SignalRegistry::registerSignal(SignalInfo* signalInfo, int8_t isBuSpecified
     }
 
     uint32_t signalBitmap = 0;
-    signalBitmap |= ((uint32_t)signalInfo->mSignalID);
-    signalBitmap |= ((uint32_t)signalInfo->mSignalCategory << 16);
+    signalBitmap |= ((uint32_t)signalInfo->mSignalID << 8);
+    signalBitmap |= ((uint32_t)signalInfo->mSignalCategory);
 
     // Check for any conflict
     if(this->mSystemIndependentLayerMappings.find(signalBitmap) !=

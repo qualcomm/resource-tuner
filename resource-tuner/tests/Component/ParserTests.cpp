@@ -88,7 +88,7 @@ namespace ResourceParsingTests {
 }
 
 namespace SignalParsingTests {
-    std::string __testGroupName = "Signal Application Checks";
+    std::string __testGroupName = "SignalParsingTests";
 
     static ErrCode parsingStatus = RC_SUCCESS;
     static void Init() {
@@ -102,7 +102,7 @@ namespace SignalParsingTests {
     }
 
     static void TestRestuneParserYAMLDataIntegrity3_1() {
-        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x000d0000);
+        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x0000000d);
 
         C_ASSERT(signalInfo != nullptr);
         C_ASSERT(signalInfo->mSignalID == 0);
@@ -131,7 +131,7 @@ namespace SignalParsingTests {
     }
 
     static void TestRestuneParserYAMLDataIntegrity3_2() {
-        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x000d0001);
+        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x0000010d);
 
         C_ASSERT(signalInfo != nullptr);
         C_ASSERT(signalInfo->mSignalID == 1);
@@ -166,12 +166,12 @@ namespace SignalParsingTests {
     }
 
     static void TestRestuneParserYAMLDataIntegrity3_3() {
-        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x000d0003);
+        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x0000030d);
         C_ASSERT(signalInfo == nullptr);
     }
 
     static void TestRestuneParserYAMLDataIntegrity3_4() {
-        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x000d0007);
+        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x0000070d);
 
         C_ASSERT(signalInfo != nullptr);
         C_ASSERT(signalInfo->mSignalID == 0x0007);
@@ -633,7 +633,7 @@ namespace ResourceParsingTestsAddOn {
 }
 
 namespace SignalParsingTestsAddOn {
-    std::string __testGroupName = "SignalParsingTests";
+    std::string __testGroupName = "SignalParsingTestsAddOn";
 
     static ErrCode parsingStatus = RC_SUCCESS;
     static void Init() {
@@ -654,7 +654,7 @@ namespace SignalParsingTestsAddOn {
     }
 
     static void TestSignalParsingSignalsMerged1() {
-        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x80deaadd);
+        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x80aaddde);
 
         C_ASSERT((signalInfo != nullptr));
         C_ASSERT((signalInfo->mSignalID == 0xaadd));
@@ -682,7 +682,7 @@ namespace SignalParsingTestsAddOn {
     }
 
     static void TestSignalParsingSignalsMerged2() {
-        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x000d0007);
+        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x0000070d);
 
         C_ASSERT(signalInfo != nullptr);
         C_ASSERT(signalInfo->mSignalID == 0x0007);
@@ -718,7 +718,7 @@ namespace SignalParsingTestsAddOn {
     }
 
     static void TestSignalParsingSignalsMerged3() {
-        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x801e00ab);
+        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x8000ab1e);
 
         C_ASSERT(signalInfo != nullptr);
         C_ASSERT(signalInfo->mSignalID == 0x00ab);
@@ -753,13 +753,13 @@ namespace SignalParsingTestsAddOn {
     }
 
     static void TestSignalParsingSignalsMerged4() {
-        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x00080000);
+        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x00000008);
 
         C_ASSERT((signalInfo == nullptr));
     }
 
     static void TestSignalParsingSignalsMerged5() {
-        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x80ceffcf);
+        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x80ffcfce);
 
         C_ASSERT((signalInfo != nullptr));
         C_ASSERT((signalInfo->mSignalID == 0xffcf));

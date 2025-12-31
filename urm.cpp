@@ -43,7 +43,7 @@ static ErrCode cleanupModule(ModuleID moduleId) {
 }
 
 static void serverCleanup() {
-    LOGE("RESTUNE_SERVER_INIT", "Server Stopped, Cleanup Initiated");
+    LOGI("RESTUNE_SERVER_INIT", "Server Stopped, Cleanup Initiated");
     UrmSettings::setServerOnlineStatus(false);
 }
 
