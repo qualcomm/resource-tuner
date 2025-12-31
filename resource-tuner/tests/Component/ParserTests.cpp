@@ -88,7 +88,7 @@ namespace ResourceParsingTests {
 }
 
 namespace SignalParsingTests {
-    std::string __testGroupName = "Signal Application Checks";
+    std::string __testGroupName = "SignalParsingTests";
 
     static ErrCode parsingStatus = RC_SUCCESS;
     static void Init() {
@@ -633,7 +633,7 @@ namespace ResourceParsingTestsAddOn {
 }
 
 namespace SignalParsingTestsAddOn {
-    std::string __testGroupName = "SignalParsingTests";
+    std::string __testGroupName = "SignalParsingTestsAddOn";
 
     static ErrCode parsingStatus = RC_SUCCESS;
     static void Init() {
