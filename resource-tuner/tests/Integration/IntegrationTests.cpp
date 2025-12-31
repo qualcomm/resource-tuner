@@ -976,7 +976,7 @@ namespace RequestApplicationTests {
 
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
-        resourceList[0].mResCode = 0x80ff0000;
+        resourceList[0].mResCode = CUSTOM(CONSTRUCT_RES_CODE(0xff, 0x0000));
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 980;
 
@@ -1043,17 +1043,17 @@ namespace RequestApplicationTests {
 
         SysResource* resourceList = new SysResource[3];
         memset(&resourceList[0], 0, sizeof(SysResource));
-        resourceList[0].mResCode = 0x80ff0003;
+        resourceList[0].mResCode = CUSTOM(CONSTRUCT_RES_CODE(0xff, 0x0003));
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 765;
 
         memset(&resourceList[1], 0, sizeof(SysResource));
-        resourceList[1].mResCode = 0x80ff0001;
+        resourceList[1].mResCode = CUSTOM(CONSTRUCT_RES_CODE(0xff, 0x0001));
         resourceList[1].mNumValues = 1;
         resourceList[1].mResValue.value = 889;
 
         memset(&resourceList[2], 0, sizeof(SysResource));
-        resourceList[2].mResCode = 0x80ff0002;
+        resourceList[2].mResCode = CUSTOM(CONSTRUCT_RES_CODE(0xff, 0x0002));
         resourceList[2].mNumValues = 1;
         resourceList[2].mResValue.value = 617;
 
@@ -1129,7 +1129,7 @@ namespace RequestApplicationTests {
         if(rc == 0) {
             SysResource* resourceList = new SysResource[1];
             memset(&resourceList[0], 0, sizeof(SysResource));
-            resourceList[0].mResCode = 0x80ff0003;
+            resourceList[0].mResCode = CUSTOM(CONSTRUCT_RES_CODE(0xff, 0x0003));
             resourceList[0].mNumValues = 1;
             resourceList[0].mResValue.value = 315;
 
@@ -1145,7 +1145,7 @@ namespace RequestApplicationTests {
 
             SysResource* resourceList = new SysResource[1];
             memset(&resourceList[0], 0, sizeof(SysResource));
-            resourceList[0].mResCode = 0x80ff0003;
+            resourceList[0].mResCode = CUSTOM(CONSTRUCT_RES_CODE(0xff, 0x0003));
             resourceList[0].mNumValues = 1;
             resourceList[0].mResValue.value = 209;
 
@@ -1210,7 +1210,7 @@ namespace RequestApplicationTests {
         if(rc1 == 0) {
             SysResource* resourceList = new SysResource[1];
             memset(&resourceList[0], 0, sizeof(SysResource));
-            resourceList[0].mResCode = 0x80ff0003;
+            resourceList[0].mResCode = CUSTOM(CONSTRUCT_RES_CODE(0xff, 0x0003));
             resourceList[0].mNumValues = 1;
             resourceList[0].mResValue.value = 1176;
 
@@ -1225,7 +1225,7 @@ namespace RequestApplicationTests {
             wait(nullptr);
             SysResource* resourceList = new SysResource[1];
             memset(&resourceList[0], 0, sizeof(SysResource));
-            resourceList[0].mResCode = 0x80ff0003;
+            resourceList[0].mResCode = CUSTOM(CONSTRUCT_RES_CODE(0xff, 0x0003));
             resourceList[0].mNumValues = 1;
             resourceList[0].mResValue.value = 823;
 
@@ -1300,7 +1300,7 @@ namespace RequestApplicationTests {
         if(rc1 == 0) {
             SysResource* resourceList = new SysResource[1];
             memset(&resourceList[0], 0, sizeof(SysResource));
-            resourceList[0].mResCode = 0x80ff0002;
+            resourceList[0].mResCode = CUSTOM(CONSTRUCT_RES_CODE(0xff, 0x0002));
             resourceList[0].mNumValues = 1;
             resourceList[0].mResValue.value = 578;
 
@@ -1326,7 +1326,7 @@ namespace RequestApplicationTests {
             if(rc2 == 0) {
                 SysResource* resourceList = new SysResource[1];
                 memset(&resourceList[0], 0, sizeof(SysResource));
-                resourceList[0].mResCode = 0x80ff0002;
+                resourceList[0].mResCode = CUSTOM(CONSTRUCT_RES_CODE(0xff, 0x0002));
                 resourceList[0].mNumValues = 1;
                 resourceList[0].mResValue.value = 445;
 
@@ -1350,7 +1350,7 @@ namespace RequestApplicationTests {
                 if(rc3 == 0) {
                     SysResource* resourceList = new SysResource[1];
                     memset(&resourceList[0], 0, sizeof(SysResource));
-                    resourceList[0].mResCode = 0x80ff0002;
+                    resourceList[0].mResCode = CUSTOM(CONSTRUCT_RES_CODE(0xff, 0x0002));
                     resourceList[0].mNumValues = 1;
                     resourceList[0].mResValue.value = 412;
 
@@ -1372,7 +1372,7 @@ namespace RequestApplicationTests {
 
                     SysResource* resourceList = new SysResource[1];
                     memset(&resourceList[0], 0, sizeof(SysResource));
-                    resourceList[0].mResCode = 0x80ff0002;
+                    resourceList[0].mResCode = CUSTOM(CONSTRUCT_RES_CODE(0xff, 0x0002));
                     resourceList[0].mNumValues = 1;
                     resourceList[0].mResValue.value = 378;
 
@@ -2915,7 +2915,7 @@ namespace SystemSysfsNodesTests {
 
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
-        resourceList[0].mResCode = 0x00040000;
+        resourceList[0].mResCode = CONSTRUCT_RES_CODE(0x04, 0x0000);
         resourceList[0].mNumValues = 1;
         resourceList[0].mResInfo = 0;
         // Valid Translation
@@ -2983,7 +2983,7 @@ namespace SystemSysfsNodesTests {
 
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
-        resourceList[0].mResCode = 0x00040000;
+        resourceList[0].mResCode = CONSTRUCT_RES_CODE(0x04, 0x0000);
         resourceList[0].mNumValues = 1;
         resourceList[0].mResInfo = 0;
         // Valid Translation
@@ -3060,7 +3060,7 @@ namespace SystemSysfsNodesTests {
         if(rc == 0) {
             SysResource* resourceList = new SysResource[1];
             memset(&resourceList[0], 0, sizeof(SysResource));
-            resourceList[0].mResCode = 0x00040000;
+            resourceList[0].mResCode = CONSTRUCT_RES_CODE(0x04, 0x0000);
             resourceList[0].mNumValues = 1;
             resourceList[0].mResInfo = 0;
             // Valid Translation
@@ -3079,7 +3079,7 @@ namespace SystemSysfsNodesTests {
             if(rc1 == 0) {
                 SysResource* resourceList = new SysResource[1];
                 memset(&resourceList[0], 0, sizeof(SysResource));
-                resourceList[0].mResCode = 0x00040000;
+                resourceList[0].mResCode = CONSTRUCT_RES_CODE(0x04, 0x0000);
                 resourceList[0].mNumValues = 1;
                 resourceList[0].mResInfo = 0;
                 // Valid Translation
@@ -3096,7 +3096,7 @@ namespace SystemSysfsNodesTests {
             } else {
                 SysResource* resourceList = new SysResource[1];
                 memset(&resourceList[0], 0, sizeof(SysResource));
-                resourceList[0].mResCode = 0x00040000;
+                resourceList[0].mResCode = CONSTRUCT_RES_CODE(0x04, 0x0000);
                 resourceList[0].mNumValues = 1;
                 resourceList[0].mResInfo = 0;
                 // Valid Translation
@@ -3168,7 +3168,7 @@ namespace SystemSysfsNodesTests {
 
         SysResource* resourceList = new SysResource[1];
         memset(&resourceList[0], 0, sizeof(SysResource));
-        resourceList[0].mResCode = 0x00030000;
+        resourceList[0].mResCode = CONSTRUCT_RES_CODE(0x03, 0x0000);
         resourceList[0].mNumValues = 1;
         resourceList[0].mResValue.value = 718;
 
@@ -3201,7 +3201,7 @@ namespace SystemSysfsNodesTests {
 
         SysResource* resourceList2 = new SysResource[1];
         memset(&resourceList2[0], 0, sizeof(SysResource));
-        resourceList2[0].mResCode = 0x00030001;
+        resourceList2[0].mResCode = CONSTRUCT_RES_CODE(0x03, 0x0001);
         resourceList2[0].mNumValues = 1;
         resourceList2[0].mResValue.value = 880;
 
@@ -3604,7 +3604,14 @@ namespace SignalApplicationTests {
         originalValue = C_STOI(value);
 
         int64_t handle =
-            tuneSignal(0x8000040d, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+            tuneSignal(
+                CUSTOM(CONSTRUCT_SIG_CODE(0x0004, 0x0d)),
+                5000,
+                RequestPriority::REQ_PRIORITY_HIGH,
+                "app-name",
+                "scenario-zip",
+                0,
+                nullptr);
         std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -3654,7 +3661,14 @@ namespace SignalApplicationTests {
         assert(originalValue == originalValues[2]);
 
         int64_t handle =
-            tuneSignal(0x8000050d, 5000, RequestPriority::REQ_PRIORITY_HIGH, "app-name", "scenario-zip", 0, nullptr);
+            tuneSignal(
+                CUSTOM(CONSTRUCT_SIG_CODE(0x0005, 0x0d)),
+                5000,
+                RequestPriority::REQ_PRIORITY_HIGH,
+                "app-name",
+                "scenario-zip",
+                0,
+                nullptr);
         std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));

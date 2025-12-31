@@ -52,7 +52,12 @@ void func1() {
     // Let's say this is a custom signal (i.e. one defined by the user)
     // then the SigCode will be as follows:
     // 0x 80 [MSB value of 1 indicates custom Signal] 0d [Category] 0003 [SigID]
-    uint32_t sigCode = 0x800d0003;
+    uint32_t sigCode = 0x8000030d;
+
+    /*
+     * Alternative Approach to construct opcode
+     * sigCode = CUSTOM(CONSTRUCT_SIG_CODE(0x0003, 0x0d))
+     */
 
     // Duration to tune the signal for
     int64_t duration = 20000; // 20 seconds
