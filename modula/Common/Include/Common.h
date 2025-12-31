@@ -142,11 +142,11 @@ enum Modes {
     signalBitmap;                                                                           \
 })                                                                                          \
 
-#define CUSTOM(opCode) ({                                                                    \
-    uint32_t opBitmap = opCode;                                                              \
-    opBitmap |= (1 << 31);                                                                   \
-    opBitmap;                                                                                \
-})                                                                                           \
+#define CUSTOM(opCode) ({                                                                   \
+    uint32_t opBitmap = opCode;                                                             \
+    opBitmap |= (1 << 31);                                                                  \
+    opBitmap;                                                                               \
+})                                                                                          \
 
 // Common ResCode and ResInfo codes
 // These enums can be used directly as part of tuneResources API, to uniquely
