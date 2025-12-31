@@ -34,7 +34,7 @@ const std::string UrmSettings::mCustomExtFeaturesFilePath =
                                     "/etc/urm/custom/ExtFeaturesConfig.yaml";
 
 const std::string UrmSettings::mCustomAppConfigFilePath =
-                                    "/etc/urm/common/PerApp.yaml";
+                                    "/etc/urm/custom/PerApp.yaml";
 
 const std::string UrmSettings::mExtensionsPluginLibPath =
                                     "libRestunePlugin.so";
