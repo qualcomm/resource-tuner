@@ -150,6 +150,10 @@ void ContextualClassifier::ClassifierMain() {
                 // Step 1: Figure out workload type
                 int contextType =
                     ClassifyProcess(ev.pid, ev.tgid, comm, ctxDetails);
+				if (contextType == CC_IGNORE) {
+					//ignore and wait for next event
+					continue;
+				}
                 // Identify if any signal configuration exists
                 // Will return the sigID based on the workload
                 // For example: game, browser, multimedia
@@ -187,6 +191,9 @@ void ContextualClassifier::ClassifierMain() {
                 ApplyActions(comm, sigId, sigSubtype);
             }
         } else if (ev.type == CC_APP_CLOSE) {
+			//Step1: move process to original cgroup
+
+			//Step2: remove actions, call untune signal
             RemoveActions(ev.pid, ev.tgid);
         }
     }
@@ -255,7 +262,7 @@ int32_t ContextualClassifier::ClassifyProcess(pid_t process_pid, pid_t process_t
     if (mIgnoredProcesses.count(comm) != 0U) {
         LOGD(CLASSIFIER_TAG,
              "Skipping inference for ignored process: "+ comm);
-        return 0;
+        return CC_IGNORE;
     }
 
     LOGD(CLASSIFIER_TAG,
