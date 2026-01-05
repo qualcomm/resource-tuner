@@ -16,5 +16,5 @@ InitConfigs:
       Create: true
       ID: 4
     - Name: "focused.slice"
-      Create: false
+      Create: true
       ID: 5
