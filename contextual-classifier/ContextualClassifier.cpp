@@ -148,8 +148,8 @@ void ContextualClassifier::ClassifierMain() {
             uint32_t sigSubtype = DEFAULT_CONFIG;
             uint32_t ctxDetails = 0U;
 
-            if (ev.pid != -1) {
-                if (FetchComm(ev.pid, comm) != 0) {
+            if(ev.pid != -1) {
+                if(FetchComm(ev.pid, comm) != 0) {
                     continue;
                 }
 
@@ -169,7 +169,7 @@ void ContextualClassifier::ClassifierMain() {
                 // - Move the process to focused-cgroup, Also involves removing the process
                 //  already there from the cgroup.
                 // - Move the "threads" from per-app config to appropriate cgroups
-                gCurrRestuneHandle = MoveAppThreadsToCGroup(ev.pid, FOCUSED_CGROUP_IDENTIFIER);
+                gCurrRestuneHandle = MoveAppThreadsToCGroup(ev.pid, comm, FOCUSED_CGROUP_IDENTIFIER);
 
                 //Step 3: If the post processing block exists, call it
                 // It might provide us a more specific sigSubtype
@@ -223,9 +223,13 @@ int ContextualClassifier::HandleProcEv() {
         case CC_APP_OPEN:
             LOGD(CLASSIFIER_TAG,
                  "Received CC_APP_OPEN for pid=%d" + std::to_string(ev.pid));
-            if (isIgnoredProcess(ev.type, ev.pid)) {
+            if(isIgnoredProcess(ev.type, ev.pid)) {
+                if(gCurrRestuneHandle != -1) {
+                    untuneResources(gCurrRestuneHandle);
+                }
                 break;
             }
+
             {
                 std::lock_guard<std::mutex> lock(mQueueMutex);
                 mPendingEv.push(ev);
@@ -266,7 +270,7 @@ int32_t ContextualClassifier::ClassifyProcess(pid_t process_pid, pid_t process_t
     }
 
     // Check if the process is still alive
-    const std::string commPath = "/proc/" + std::to_string(pid) + "/comm";
+    const std::string commPath = "/proc/" + std::to_string(process_pid) + "/comm";
     if(!AuxRoutines::fileExists(commPath)) {
         LOGD(CLASSIFIER_TAG,
              "Skipping inference, process is dead: "+ comm);
@@ -380,7 +384,7 @@ bool ContextualClassifier::isIgnoredProcess(int32_t evType, pid_t pid) {
 
 int32_t ContextualClassifier::FetchComm(pid_t pid, std::string &comm) {
     std::string proc_path = "/proc/" + std::to_string(pid);
-    if (AuxRoutines::fileExists(proc_path.c_str(), F_OK)) {
+    if(!AuxRoutines::fileExists(proc_path)) {
         LOGD(CLASSIFIER_TAG, "Process %d has exited." + std::to_string(pid));
         return -1;
     }
@@ -441,36 +445,38 @@ ResIterable* ContextualClassifier::createMovePidResource(int32_t cGroupdId, pid_
     resource->setValueAt(0, cGroupdId);
     resource->setValueAt(1, pid);
 
-    ResIterable* resIterable = MPLACED(ResIterable);
     resIterable->mData = resource;
     return resIterable;
 }
 
-void ContextualClassifier::MoveAppThreadsToCGroup(AppConfig* appConfig) {
+int64_t ContextualClassifier::MoveAppThreadsToCGroup(pid_t incomingPID,
+                                                  const std::string& comm,
+                                                  int32_t cgroupIdentifier) {
     // Check for any outstanding request, if found untune it.
     if(gCurrRestuneHandle != -1) {
         if(untuneResources(gCurrRestuneHandle) < 0) {
-            LOGE(CLASSIFIER_TAG, "Failed to untune outstanding request.")
-            return;
+            LOGE(CLASSIFIER_TAG, "Failed to untune outstanding request.");
+            return -1;
         }
     }
 
-    AppConfig* appConfig = AppConfigs::getInstance()->getAppConfig(comm);
+    int64_t handleGenerated = -1;
 
     try {
         Request* request = MPLACED(Request);
         request->setRequestType(REQ_RESOURCE_TUNING);
         // Generate and store the handle for future use
-        gCurrRestuneHandle = AuxRoutines::generateUniqueHandle();
-        request->setHandle(gCurrRestuneHandle);
+        handleGenerated = AuxRoutines::generateUniqueHandle();
+        request->setHandle(handleGenerated);
         request->setDuration(-1);
         request->setProperties(RequestPriority::REQ_PRIORITY_HIGH);
         request->setClientPID(mOurPid);
         request->setClientTID(mOurTid);
 
         // Move the incoming pid
-        request->addResource(this->createMovePidResource(currCGroupID, targetPID));
+        request->addResource(this->createMovePidResource(cgroupIdentifier, incomingPID));
 
+        AppConfig* appConfig = AppConfigs::getInstance()->getAppConfig(comm);
         if(appConfig != nullptr && appConfig->mThreadNameList != nullptr) {
             int32_t numThreads = appConfig->mNumThreads;
             // Go over the list of proc names (comm) and get their pids
@@ -491,12 +497,15 @@ void ContextualClassifier::MoveAppThreadsToCGroup(AppConfig* appConfig) {
             submitResProvisionRequest(request, true);
         } else {
             Request::cleanUpRequest(request);
+            return -1;
         }
 
     } catch(const std::exception& e) {
         LOGE("CLASSIFIER",
              "Failed to move per-app threads to cgroup, Error: " + std::string(e.what()));
     }
+
+    return handleGenerated;
 }
 
 static ContextualClassifier *g_classifier = nullptr;

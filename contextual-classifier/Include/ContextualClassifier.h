@@ -60,7 +60,7 @@ class ContextualClassifier {
     void RemoveActions(pid_t pid, int tgid);
 
     Inference *GetInferenceObject();
-	
+
 	void GetSignalDetailsForWorkload(int32_t contextType, uint32_t &sigId,
                                      uint32_t &sigSubtype);
 
@@ -70,7 +70,10 @@ class ContextualClassifier {
     int32_t FetchComm(pid_t pid, std::string &comm);
 	pid_t FetchPid(const std::string& process_name);
 	bool IsNumericString(const std::string& str);
-    void MoveAppThreadsToCGroup(AppConfig* appConfig);
+    ResIterable* createMovePidResource(int32_t cGroupdId, pid_t pid);
+    int64_t MoveAppThreadsToCGroup(pid_t incomingPID,
+                                   const std::string& comm,
+                                   int32_t cgroupIdentifier);
 
 private:
     NetLinkComm mNetLinkComm;
