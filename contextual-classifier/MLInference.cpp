@@ -72,7 +72,7 @@ CC_TYPE MLInference::Classify(int process_pid) {
     LOGD(CLASSIFIER_TAG,
          format_string("Text features collected for PID:%d", process_pid));
 
-    if (access(proc_path.c_str(), F_OK) == -1) {
+    if (!AuxRoutines::fileExists(proc_path)) {
         return 0;
     }
 
@@ -84,8 +84,8 @@ CC_TYPE MLInference::Classify(int process_pid) {
         }
     }
 
-    if (has_sufficient_features) {
-        if (access(proc_path.c_str(), F_OK) == -1) {
+    if(has_sufficient_features) {
+        if(!AuxRoutines::fileExists(proc_path)) {
             return contextType;
         }
 

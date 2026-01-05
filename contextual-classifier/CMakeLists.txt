@@ -82,5 +82,6 @@ if(FASTTEXT_FOUND)
     install(TARGETS ml_inference_lib DESTINATION lib)
     install(FILES ${CMAKE_SOURCE_DIR}/contextual-classifier/Artifacts/fasttext_model_supervised.bin DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/classifier)
 endif()
-install(FILES Configs/ignore-tokens.txt DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/classifier)
-install(FILES Configs/classifier-blocklist.txt DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/classifier)
+
+install(FILES Configs/ignore-tokens.txt DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/urm/classifier)
+install(FILES Configs/classifier-blocklist.txt DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/urm/classifier)

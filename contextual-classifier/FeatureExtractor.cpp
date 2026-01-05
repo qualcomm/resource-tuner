@@ -199,12 +199,13 @@ int FeatureExtractor::CollectAndStoreData( pid_t pid,
     std::string prunedFolder = PRUNED_DIR;
     std::string unfilteredFolder = UNFILTERED_DIR;
 
-    if (access(prunedFolder.c_str(), F_OK) != 0) {
+    if(!AuxRoutines::fileExists(prunedFolder)) {
         mkdir(prunedFolder.c_str(), 0755);
         LOGI(SCANNER_TAG,
              format_string("New folder created: %s", prunedFolder.c_str()));
     }
-    if (access(unfilteredFolder.c_str(), F_OK) != 0) {
+
+    if(!AuxRoutines::fileExists(unfilteredFolder)) {
         mkdir(unfilteredFolder.c_str(), 0755);
     }
 
