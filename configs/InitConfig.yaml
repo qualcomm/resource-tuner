@@ -15,3 +15,6 @@ InitConfigs:
     - Name: "focused.slice/main-cgroup"
       Create: true
       ID: 4
+    - Name: "focused.slice"
+      Create: true
+      ID: 5
