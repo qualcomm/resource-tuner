@@ -3636,7 +3636,7 @@ namespace SignalApplicationTests {
         int64_t handle =
             tuneSignal(
                 CUSTOM(CONSTRUCT_SIG_CODE(0x0004, 0x0d)),
-                0,
+                DEFAULT_SIGNAL_TYPE,
                 5000,
                 RequestPriority::REQ_PRIORITY_HIGH,
                 "app-name",
@@ -3694,7 +3694,7 @@ namespace SignalApplicationTests {
         int64_t handle =
             tuneSignal(
                 CUSTOM(CONSTRUCT_SIG_CODE(0x0005, 0x0d)),
-                0,
+                DEFAULT_SIGNAL_TYPE,
                 5000,
                 RequestPriority::REQ_PRIORITY_HIGH,
                 "app-name",
@@ -3763,6 +3763,7 @@ namespace SignalApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 917);
 
         std::this_thread::sleep_for(std::chrono::seconds(8));
@@ -3778,6 +3779,7 @@ namespace SignalApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
         assert(newValue == testResourceOriginalValue);
 
         LOG_END
@@ -3980,6 +3982,7 @@ namespace CGroupApplicationTests {
 
         int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_LOW, 1, resourceList);
         std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
+        assert(handle > 0);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -3988,12 +3991,14 @@ namespace CGroupApplicationTests {
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<newValue<<std::endl;
         assert(newValue == 52);
 
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
         value = AuxRoutines::readFromFile(testResourceName);
         newValue = C_STOI(value);
+        std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<newValue<<std::endl;
         assert(newValue == originalValue);
 
         delete resourceList;
@@ -4276,6 +4281,7 @@ namespace CGroupApplicationTests {
 
         int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_LOW, 2, resourceList);
         std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
+        assert(handle > 0);
 
         std::string value;
         int32_t newValue;
@@ -4331,17 +4337,20 @@ namespace CGroupApplicationTests {
 
         int64_t handle = tuneResources(8000, RequestPriority::REQ_PRIORITY_HIGH, 1, resourceList1);
         std::cout<<LOG_BASE<<"Handle Returned: "<<handle<<std::endl;
+        assert(handle > 0);
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
         std::string value;
 
         value = AuxRoutines::readFromFile(testResourceName);
+        std::cout<<LOG_BASE<<testResourceName<<" Configured Value: "<<value<<std::endl;
         assert(value == "0-1,3");
 
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
         value = AuxRoutines::readFromFile(testResourceName);
+        std::cout<<LOG_BASE<<testResourceName<<" Reset Value: "<<value<<std::endl;
         assert(value == originalValueString);
 
         delete resourceList1;

@@ -18,7 +18,7 @@ static void freeSignalConfig(SignalInfo* signalInfo) {
         }
 
         if(signalInfo->mSignalResources != nullptr) {
-            for(int32_t i = 0; i < signalInfo->mSignalResources->size(); i++) {
+            for(int32_t i = 0; i < (int32_t)signalInfo->mSignalResources->size(); i++) {
                 delete (*signalInfo->mSignalResources)[i];
             }
 
@@ -50,12 +50,12 @@ void SignalRegistry::registerSignal(SignalInfo* signalInfo, int8_t isBuSpecified
     }
 
     uint64_t signalBitmap = 0;
-    signalBitmap |= ((uint32_t)signalInfo->mSignalCategory << 16);
-    signalBitmap |= ((uint32_t)signalInfo->mSignalID);
+    signalBitmap |= ((uint32_t)signalInfo->mSignalID << 8);
+    signalBitmap |= ((uint32_t)signalInfo->mSignalCategory);
 
     // Add the sub-type
     signalBitmap <<= 32; // Make Room
-    signalBitmap |= (uint32_t)signalInfo->mSigType;
+    signalBitmap |= ((uint32_t)signalInfo->mSigType);
 
     // Check for any conflict
     if(this->mSILMappings.find(signalBitmap) !=
@@ -68,13 +68,13 @@ void SignalRegistry::registerSignal(SignalInfo* signalInfo, int8_t isBuSpecified
 
         if(isBuSpecified) {
             this->mSILMappings.erase(signalBitmap);
-            signalBitmap |= (1 << 63);
+            signalBitmap |= (1UL << 63);
 
             this->mSILMappings[signalBitmap] = signalTableIndex;
         }
     } else {
         if(isBuSpecified) {
-            signalBitmap |= (1 << 63);
+            signalBitmap |= (1UL << 63);
         }
 
         this->mSILMappings[signalBitmap] = this->mTotalSignals;
@@ -100,7 +100,7 @@ SignalInfo* SignalRegistry::getSignalConfigById(uint64_t sigID) {
 
 SignalInfo* SignalRegistry::getSignalConfigById(uint32_t sigCode, uint32_t sigType) {
     // Create the 64-bit index
-    uint64_t signalBitmap = sigCode;
+    uint64_t signalBitmap = (uint64_t)sigCode;
 
     // Add the sub-type
     signalBitmap <<= 32; // Make Room

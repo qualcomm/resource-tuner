@@ -82,9 +82,14 @@ int8_t getProp(const char* prop, char* buffer, size_t bufferSize, const char* de
 /**
  * @brief Tune the signal with the given ID.
  * @details Use this API to issue Signal Provisioning Requests, for a certain duration of time.
- * @param signalCode A uniqued 32-bit (unsigned) identifier for the Signal
+ * @param sigId A uniqued 32-bit (unsigned) identifier for the Signal
  *                   - The last 16 bits (17-32) are used to specify the SigID
  *                   - The next 8 bits (9-16) are used to specify the Signal Category
+ *                   - In addition for Custom Signals, the MSB must be set to 1 as well
+ * @param sigType Type of the signal, useful for use-case based signal filtering and selection, i.e.
+ *                in situations where multiple variants of the same core signal (with minor changes)
+ *                need to exist to support different use-case scenarios. If no such filtering is needed
+ *                pass this field as 0.
  *                   - In addition for Custom Signals, the MSB must be set to 1 as well
  * @param duration Duration (in milliseconds) to provision the Resources for. A value of -1 denotes infinite duration.
  * @param properties A 32 bit signed Integer storing the Properties of the Request.
@@ -103,8 +108,8 @@ int8_t getProp(const char* prop, char* buffer, size_t bufferSize, const char* de
  *            - A Positive Unique Handle to identify the issued Request. The handle is used for freeing the Provisioned signal later.\n
  *            - -1: If the Request could not be sent to the server.
  */
-int64_t tuneSignal(uint32_t signalCode,
-                   uint32_t signalType,
+int64_t tuneSignal(uint32_t sigId,
+                   uint32_t sigType,
                    int64_t duration,
                    int32_t properties,
                    const char* appName,
@@ -115,10 +120,14 @@ int64_t tuneSignal(uint32_t signalCode,
 /**
  * @brief Relay the signal to all the features subscribed to the signal with the given ID.
  * @details Use this API to issue Signal Relay Requests.
- * @param signalCode A uniqued 32-bit (unsigned) identifier for the Signal
+ * @param sigId A uniqued 32-bit (unsigned) identifier for the Signal
  *                   - The last 16 bits (17-32) are used to specify the SigID
  *                   - The next 8 bits (9-16) are used to specify the Signal Category
  *                   - In addition for Custom Signals, the MSB must be set to 1 as well
+ * @param sigType Type of the signal, useful for use-case based signal filtering and selection, i.e.
+ *                in situations where multiple variants of the same core signal (with minor changes)
+ *                need to exist to support different use-case scenarios. If no such filtering is needed
+ *                pass this field as 0.
  * @param duration Duration (in milliseconds)
  * @param properties A 32 bit signed Integer storing the Properties of the Request.
  *                   - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW).
@@ -135,8 +144,14 @@ int64_t tuneSignal(uint32_t signalCode,
  *            - 0: If the Request was successfully sent to the server.\n
  *            - -1: Otherwise
  */
-int8_t relaySignal(uint32_t signalCode, int64_t duration, int32_t properties,
-                   const char* appName, const char* scenario, int32_t numArgs, uint32_t* list);
+int8_t relaySignal(uint32_t sigId,
+                   uint32_t sigType,
+                   int64_t duration,
+                   int32_t properties,
+                   const char* appName,
+                   const char* scenario,
+                   int32_t numArgs,
+                   uint32_t* list);
 
 /**
  * @brief Release (or free) the signal with the given handle.
