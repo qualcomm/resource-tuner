@@ -7,6 +7,8 @@
 #include "ComponentRegistry.h"
 #include "NetLinkComm.h"
 #include "AppConfigs.h"
+#include "Resource.h"
+
 #include <condition_variable>
 #include <mutex>
 #include <queue>
