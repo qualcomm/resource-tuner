@@ -21,9 +21,9 @@ class Inference;
 enum { CC_IGNORE = 0x00, CC_APP_OPEN = 0x01, CC_APP_CLOSE = 0x02 };
 
 enum {
-    CC_BROWSER_APP_OPEN = 0x00,
-    CC_GAME_APP_OPEN = 0x01,
-    CC_MULTIMEDIA_APP_OPEN = 0x02
+    CC_BROWSER_APP_OPEN = 0x03,
+    CC_GAME_APP_OPEN = 0x04,
+    CC_MULTIMEDIA_APP_OPEN = 0x05
 };
 
 enum { DEFAULT_CONFIG, PER_APP_CONFIG };
@@ -51,6 +51,8 @@ class ContextualClassifier {
   private:
     void ClassifierMain();
     int32_t HandleProcEv();
+
+    int MovePidToCgroup(int process_pid, int cgroupId);
 
     int32_t ClassifyProcess(pid_t pid, pid_t tgid, const std::string &comm,
                         uint32_t &ctxDetails);
