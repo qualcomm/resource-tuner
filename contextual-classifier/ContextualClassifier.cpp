@@ -27,12 +27,13 @@
 
 #define CLASSIFIER_TAG "ContextualClassifier"
 #define CLASSIFIER_CONF_DIR "/etc/classifier/"
+#define CLASSIFIER_CONFIGS_PATH "/etc/urm/classifier/"
 
 const std::string FT_MODEL_PATH =
     CLASSIFIER_CONF_DIR "fasttext_model_supervised.bin";
 const std::string IGNORE_PROC_PATH =
-    CLASSIFIER_CONF_DIR "classifier-blocklist.txt";
-const std::string IGNORE_TOKENS_PATH = CLASSIFIER_CONF_DIR "ignore-tokens.txt";
+    CLASSIFIER_CONFIGS_PATH "classifier-blocklist.txt";
+const std::string IGNORE_TOKENS_PATH = CLASSIFIER_CONFIGS_PATH "ignore-tokens.txt";
 
 #ifdef USE_FASTTEXT
 #include "MLInference.h"
