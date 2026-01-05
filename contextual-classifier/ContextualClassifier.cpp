@@ -41,13 +41,13 @@ const std::string IGNORE_TOKENS_PATH = CLASSIFIER_CONF_DIR "ignore-tokens.txt";
 
 //MLInference
 Inference *ContextualClassifier::GetInferenceObject() {
-	    return (new MLInference(FT_MODEL_PATH));
+	return (new MLInference(FT_MODEL_PATH));
 }
 #else
 
 //inference
 Inference *ContextualClassifier::GetInferenceObject() {
-	    return (new Inference(FT_MODEL_PATH));
+	return (new Inference(FT_MODEL_PATH));
 }
 #endif
 
@@ -220,37 +220,38 @@ int ContextualClassifier::HandleProcEv() {
         }
 
         switch (rc) {
-        case CC_APP_OPEN:
-            LOGD(CLASSIFIER_TAG,
-                 "Received CC_APP_OPEN for pid=%d" + std::to_string(ev.pid));
-            if(isIgnoredProcess(ev.type, ev.pid)) {
-                if(gCurrRestuneHandle != -1) {
-                    untuneResources(gCurrRestuneHandle);
+            case CC_APP_OPEN:
+                LOGD(CLASSIFIER_TAG,
+                    "Received CC_APP_OPEN for pid=%d" + std::to_string(ev.pid));
+                if(isIgnoredProcess(ev.type, ev.pid)) {
+                    if(gCurrRestuneHandle != -1) {
+                        untuneResources(gCurrRestuneHandle);
+                        gCurrRestuneHandle = -1;
+                    }
+                    break;
+                }
+
+                {
+                    std::lock_guard<std::mutex> lock(mQueueMutex);
+                    mPendingEv.push(ev);
+                    mQueueCond.notify_one();
                 }
                 break;
-            }
-
-            {
-                std::lock_guard<std::mutex> lock(mQueueMutex);
-                mPendingEv.push(ev);
-                mQueueCond.notify_one();
-            }
-            break;
-        case CC_APP_CLOSE:
-            LOGD(CLASSIFIER_TAG,
-                 "Received CC_APP_CLOSE pid=%d tgid=%d" + std::to_string(ev.pid));
-            if (isIgnoredProcess(ev.type, ev.pid)) {
+            case CC_APP_CLOSE:
+                LOGD(CLASSIFIER_TAG,
+                    "Received CC_APP_CLOSE pid=%d tgid=%d" + std::to_string(ev.pid));
+                if (isIgnoredProcess(ev.type, ev.pid)) {
+                    break;
+                }
+                {
+                    std::lock_guard<std::mutex> lock(mQueueMutex);
+                    mPendingEv.push(ev);
+                    mQueueCond.notify_one();
+                }
                 break;
-            }
-            {
-                std::lock_guard<std::mutex> lock(mQueueMutex);
-                mPendingEv.push(ev);
-                mQueueCond.notify_one();
-            }
-            break;
-        default:
-            LOGW(CLASSIFIER_TAG, "unhandled proc event");
-            break;
+            default:
+                LOGW(CLASSIFIER_TAG, "unhandled proc event");
+                break;
         }
     }
     return 0;
