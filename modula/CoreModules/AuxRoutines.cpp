@@ -3,6 +3,8 @@
 
 #include "AuxRoutines.h"
 
+std::mutex AuxRoutines::handleGenLock {};
+
 std::string AuxRoutines::readFromFile(const std::string& fileName) {
     if(fileName.length() == 0) return "";
 
@@ -125,6 +127,8 @@ void AuxRoutines::dumpRequest(Signal* clientReq) {
 }
 
 int64_t AuxRoutines::generateUniqueHandle() {
+    const std::lock_guard<std::mutex> lock(handleGenLock);
+
     static int64_t handleGenerator = 0;
     OperationStatus opStatus;
     int64_t nextHandle = Add(handleGenerator, (int64_t)1, opStatus);
@@ -132,6 +136,7 @@ int64_t AuxRoutines::generateUniqueHandle() {
         handleGenerator = nextHandle;
         return nextHandle;
     }
+
     return -1;
 }
 

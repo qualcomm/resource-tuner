@@ -16,6 +16,12 @@
 typedef void (*ResourceLifecycleCallback)(void*);
 typedef void (*PostProcessingCallback)(void*);
 
+typedef struct {
+    pid_t mPid;
+    uint32_t mSigId;
+    uint32_t mSigSubtype;
+} PostProcessCBData;
+
 /**
  * @enum ConfigType
  * @brief Different Config (via YAML) Types supported.
