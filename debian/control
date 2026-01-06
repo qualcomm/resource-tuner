@@ -1,15 +1,15 @@
-Source: resource-tuner
+Source: userspace-resource-manager
 Section: libs
 Priority: optional
 Maintainer: Jagadeesh Pagadala <jpagadal@qti.qualcomm.com>
 Build-Depends: debhelper-compat (= 13), dh-sequence-cmake, cmake, pkgconf,
  libglib2.0-dev, libyaml-dev
 Standards-Version: 1.0
-Homepage:
+Homepage: https://github.com/qualcomm/userspace-resource-manager
 
-Package: resource-tuner
-Architecture: arm64
+Package: userspace-resource-manager
+Architecture: amd64
 Section: libs
 Depends:  ${shlibs:Depends}, ${misc:Depends}
-Description:
+Description: Userspace Resource Manager is a lightweight framework to dynamically provison of system resources like CPU, memory, Gpu, I/O, etc. It leverages kernel interfaces like procfs, sysfs and cgroups to infleunce the resource usage to ensure power and performance of applications 
 

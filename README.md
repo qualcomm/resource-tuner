@@ -63,6 +63,36 @@ sudo cmake --install .
 ```bash
 cmake --install . --prefix /tmp/urm-install
 ```
+## Build Debian packages
+* Install build tools
+```
+sudo apt-get install debhelper dh-sequence-cmake cmake pkg-config build-essential
+```
+* Build URM
+```bash 
+dpkg-buildpackage -us -uc -ui
+```
+* Above step generated deb packages one level above the workspace 
+```
+ls -l ../userspace-resource-manager_1.0.0_amd64.deb   
+```
+* Install urm package
+```
+sudo dpkg -i   ../userspace-resource-manager_1.0.0_amd64.deb
+```
+* Check urm service status
+```
+#systemctl status urm
+● urm.service - URM Service
+     Loaded: loaded (/usr/lib/systemd/system/urm.service; enabled; preset: enabled)
+     Active: active (running) since Tue 2026-01-06 14:06:04 +0530; 6s ago
+   Main PID: 4048154 (urm)
+      Tasks: 35 (limit: 77057)
+     Memory: 8.6M (peak: 11.3M)
+        CPU: 24ms
+     CGroup: /system.slice/urm.service
+             └─4048154 /usr/bin/urm
+```
 
 ## Documentation
 
