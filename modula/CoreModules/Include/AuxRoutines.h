@@ -10,6 +10,7 @@
 #include <fstream>
 #include <unistd.h>
 #include <getopt.h>
+#include <mutex>
 
 #include "Logger.h"
 #include "Request.h"
@@ -17,6 +18,9 @@
 #include "UrmSettings.h"
 
 class AuxRoutines {
+private:
+    static std::mutex handleGenLock;
+
 public:
     static std::string readFromFile(const std::string& fileName);
     static void writeToFile(const std::string& fileName, const std::string& value);
