@@ -1,6 +1,17 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
+#include <algorithm>
+#include <chrono>
+#include <cstdarg>
+#include <cstdlib>
+#include <cstring>
+#include <dirent.h>
+#include <fstream>
+#include <pthread.h>
+#include <sstream>
+#include <string>
+
 #include "Utils.h"
 #include "Common.h"
 #include "Request.h"
@@ -10,20 +21,6 @@
 #include "RestuneInternal.h"
 #include "Extensions.h"
 #include "Inference.h"
-#include "UrmAPIs.h"
-
-#include <algorithm>
-#include <chrono>
-#include <cstdarg>
-#include <cstdlib>
-#include <cstring>
-#include <dirent.h>
-#include <fstream>
-#include <iostream>
-#include <pthread.h>
-#include <sstream>
-#include <string>
-#include <syslog.h>
 
 #define CLASSIFIER_TAG "ContextualClassifier"
 #define CLASSIFIER_CONF_DIR "/etc/classifier/"
@@ -56,7 +53,9 @@ ContextualClassifier::ContextualClassifier() {
     mInference = GetInferenceObject();
 }
 
-// Global perf handle store, used across threads
+static ContextualClassifier *g_classifier = nullptr;
+
+// Global Restune handle store, used across threads
 static int64_t gCurrRestuneHandle = -1;
 
 ContextualClassifier::~ContextualClassifier() {
@@ -189,7 +188,8 @@ void ContextualClassifier::ClassifierMain() {
                 }
 
                 //Step 4: Apply actions, call tuneSignal
-                ApplyActions(comm, sigId, sigSubtype);
+                // Skip
+                // ApplyActions(comm, sigId, sigSubtype);
             }
         } else if (ev.type == CC_APP_CLOSE) {
 			//Step1: move process to original cgroup
@@ -202,59 +202,58 @@ void ContextualClassifier::ClassifierMain() {
 
 int ContextualClassifier::HandleProcEv() {
     pthread_setname_np(pthread_self(), "ClassNetlink");
-    int rc = 0;
+    int32_t rc = 0;
 
-    while (!mNeedExit) {
+    while(!mNeedExit) {
         ProcEvent ev{};
         rc = mNetLinkComm.RecvEvent(ev);
-        if (rc == CC_IGNORE) {
+        if(rc == CC_IGNORE) {
             continue;
-        } else if (rc == -1) {
-            if (errno == EINTR) {
+        }
+        if(rc == -1) {
+            if(errno == EINTR) {
                 continue;
             }
-            if (mNeedExit) {
+
+            if(mNeedExit) {
                 return 0;
             }
-            LOGE(CLASSIFIER_TAG, "netlink recv error");
+
+            // Error would have already been logged by this point.
             return -1;
         }
 
         switch (rc) {
             case CC_APP_OPEN:
-                LOGD(CLASSIFIER_TAG,
-                    "Received CC_APP_OPEN for pid=%d" + std::to_string(ev.pid));
-                if(isIgnoredProcess(ev.type, ev.pid)) {
-                    if(gCurrRestuneHandle != -1) {
-                        untuneResources(gCurrRestuneHandle);
-                        gCurrRestuneHandle = -1;
-                    }
-                    break;
+                TYPELOGV(NOTIFY_CLASSIFIER_PROC_EVENT, "CC_APP_OPEN", ev.pid);
+                if(!this->isIgnoredProcess(ev.type, ev.pid)) {
+                    const std::lock_guard<std::mutex> lock(mQueueMutex);
+                    this->mPendingEv.push(ev);
+                    this->mQueueCond.notify_one();
+                } else {
+                    TYPELOGV(NOTIFY_CLASSIFIER_PROC_IGNORE, ev.pid);
                 }
 
-                {
-                    std::lock_guard<std::mutex> lock(mQueueMutex);
-                    mPendingEv.push(ev);
-                    mQueueCond.notify_one();
-                }
                 break;
+
             case CC_APP_CLOSE:
-                LOGD(CLASSIFIER_TAG,
-                    "Received CC_APP_CLOSE pid=%d tgid=%d" + std::to_string(ev.pid));
-                if (isIgnoredProcess(ev.type, ev.pid)) {
-                    break;
-                }
-                {
+                TYPELOGV(NOTIFY_CLASSIFIER_PROC_EVENT, "CC_APP_CLOSE", ev.pid);
+                if(!this->isIgnoredProcess(ev.type, ev.pid)) {
                     std::lock_guard<std::mutex> lock(mQueueMutex);
-                    mPendingEv.push(ev);
-                    mQueueCond.notify_one();
+                    this->mPendingEv.push(ev);
+                    this->mQueueCond.notify_one();
+                } else {
+                    TYPELOGV(NOTIFY_CLASSIFIER_PROC_IGNORE, ev.pid);
                 }
+
                 break;
+
             default:
-                LOGW(CLASSIFIER_TAG, "unhandled proc event");
+                // log error??
                 break;
         }
     }
+
     return 0;
 }
 
@@ -408,8 +407,8 @@ int32_t ContextualClassifier::FetchComm(pid_t pid, std::string &comm) {
 // Function to get the first matching PID for a given process name
 pid_t ContextualClassifier::FetchPid(const std::string& process_name) {
     DIR* proc_dir = opendir("/proc");
-    if (!proc_dir) {
-        std::cerr << "Failed to open /proc directory." << std::endl;
+    if(proc_dir == nullptr) {
+        TYPELOGV(ERRNO_LOG, "opendir", strerror(errno));
         return -1;
     }
 
@@ -452,16 +451,37 @@ ResIterable* ContextualClassifier::createMovePidResource(int32_t cGroupdId, pid_
 }
 
 int64_t ContextualClassifier::MoveAppThreadsToCGroup(pid_t incomingPID,
-                                                  const std::string& comm,
-                                                  int32_t cgroupIdentifier) {
+                                                     const std::string& comm,
+                                                     int32_t cgroupIdentifier) {
     // Check for any outstanding request, if found untune it.
     if(gCurrRestuneHandle != -1) {
-        if(untuneResources(gCurrRestuneHandle) < 0) {
-            LOGE(CLASSIFIER_TAG, "Failed to untune outstanding request.");
-            return -1;
+        static Request* untuneRequest = nullptr;
+        if(untuneRequest == nullptr) {
+            untuneRequest = MPLACED(Request);
         }
+
+        untuneRequest->setRequestType(REQ_RESOURCE_UNTUNING);
+        untuneRequest->setHandle(gCurrRestuneHandle);
+        untuneRequest->setDuration(-1);
+
+        // Passing priority as HIGH_TRANSFER_PRIORITY (= -1)
+        // - Ensures untune requests are processed before even SERVER_HIGH priority tune requests
+        //   which helps in freeing memory
+        // - Since this level of priority is only used internally, hence it has been customized to
+        //   not free up the underlying Request object, allowing for reuse.
+        // Priority Level: -2 is used to force server termination and cleanup so should not be used otherwise.
+        untuneRequest->setProperties(HIGH_TRANSFER_PRIORITY);
+        untuneRequest->setClientPID(mOurPid);
+        untuneRequest->setClientTID(mOurTid);
+
+        // fast path to Request Queue
+        // Mark verification status as true. Request still goes through RequestManager though.
+        LOGD(CLASSIFIER_TAG, "Issuing untune request for handle = " + std::to_string(gCurrRestuneHandle));
+        submitResProvisionRequest(untuneRequest, true);
+        gCurrRestuneHandle = -1;
     }
 
+    // Issue a tune request for the new pid (and any associated app-config pids)
     int64_t handleGenerated = -1;
 
     try {
@@ -503,14 +523,12 @@ int64_t ContextualClassifier::MoveAppThreadsToCGroup(pid_t incomingPID,
         }
 
     } catch(const std::exception& e) {
-        LOGE("CLASSIFIER",
+        LOGE(CLASSIFIER_TAG,
              "Failed to move per-app threads to cgroup, Error: " + std::string(e.what()));
     }
 
     return handleGenerated;
 }
-
-static ContextualClassifier *g_classifier = nullptr;
 
 // Public C interface exported from the contextual-classifier shared library.
 // These are what the URM module entrypoints will call.

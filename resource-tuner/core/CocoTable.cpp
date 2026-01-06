@@ -230,10 +230,14 @@ int32_t CocoTable::getCocoTableSecondaryIndex(Resource* resource, int8_t priorit
     return -1;
 }
 
+// Resource Level DLLs manipulation logic
+// The request with the highest priority at the head of the linked list is applied.
 int8_t CocoTable::insertInCocoTable(ResIterable* newNode, int8_t priority) {
     if(newNode == nullptr) return false;
     Resource* resource = (Resource*) newNode->mData;
     ResConfInfo* rConf = this->mResourceRegistry->getResConf(resource->getResCode());
+
+    // Special handling for resources with policy: "pass_through"
     if(rConf->mPolicy == Policy::PASS_THROUGH) {
         // straightaway apply the action
         this->fastPathApply(resource);
@@ -252,8 +256,14 @@ int8_t CocoTable::insertInCocoTable(ResIterable* newNode, int8_t priority) {
     enum Policy policy = this->mResourceRegistry->getResConf(resource->getResCode())->mPolicy;
     DLManager* dlm = this->mCocoTable[primaryIndex][secondaryIndex];
 
+    // Unlikely
+    if(dlm == nullptr) {
+        return false;
+    }
+
     switch(policy) {
         case INSTANT_APPLY: {
+            // Insert this Request at the head of the linked list and apply it.
             if(RC_IS_OK(dlm->insert(newNode, DLOptions::INSERT_START))) {
                 if(dlm->isNodeNth(0, newNode)) {
                     this->applyAction(newNode, primaryIndex, priority);
@@ -262,6 +272,8 @@ int8_t CocoTable::insertInCocoTable(ResIterable* newNode, int8_t priority) {
             break;
         }
         case HIGHER_BETTER: {
+            // Insert the request in accordance with higher_is_better policy
+            // If the request ends up at the head of the resource DLL, apply it
             if(RC_IS_OK(dlm->insertWithPolicy(newNode, comparHBetter))) {
                 if(dlm->isNodeNth(0, newNode)) {
                     this->applyAction(newNode, primaryIndex, priority);
@@ -270,6 +282,8 @@ int8_t CocoTable::insertInCocoTable(ResIterable* newNode, int8_t priority) {
             break;
         }
         case LOWER_BETTER: {
+            // Insert the request in accordance with lower_is_better policy
+            // If the request ends up at the head of the resource DLL, apply it
             if(RC_IS_OK(dlm->insertWithPolicy(newNode, comparLBetter))) {
                 if(dlm->isNodeNth(0, newNode)) {
                     this->applyAction(newNode, primaryIndex, priority);
@@ -278,6 +292,7 @@ int8_t CocoTable::insertInCocoTable(ResIterable* newNode, int8_t priority) {
             break;
         }
         case LAZY_APPLY: {
+            // Insert the request at the end of the Resource DLL.
             if(RC_IS_OK(dlm->insert(newNode))) {
                 if(dlm->isNodeNth(0, newNode)) {
                     this->applyAction(newNode, primaryIndex, priority);
@@ -305,26 +320,36 @@ int8_t CocoTable::insertRequest(Request* req) {
 
     // Create a time to associate with the request
     Timer* requestTimer = nullptr;
-    try {
-        requestTimer = MPLACEV(Timer, std::bind(&CocoTable::timerExpired, this, req));
-    } catch(const std::bad_alloc& e) {
-        TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE_HANDLE, req->getHandle(), e.what());
-        return false;
+    req->setTimer(nullptr);
+
+    // No timer allocation needed if the request duration is INF (-1).
+    if(req->getDuration() != -1) {
+        try {
+            requestTimer = MPLACEV(Timer, std::bind(&CocoTable::timerExpired, this, req));
+        } catch(const std::bad_alloc& e) {
+            TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE_HANDLE, req->getHandle(), e.what());
+            return false;
+        }
+
+        req->setTimer(requestTimer);
     }
 
-    req->setTimer(requestTimer);
-
+    // Iterate over all the resources in the request and add them to the table.
+    // Note the notion of "request being applied" refers to one or more of the resource configurations
+    // part of the request being applied.
     DL_ITERATE(req->getResDlMgr()) {
         // Expect ResIterable* iter to be provided by the macro
-        if(iter == nullptr) return false;
+        if(iter == nullptr) continue;
         ResIterable* resIter = (ResIterable*) iter;
         this->insertInCocoTable(resIter, req->getPriority());
     }
 
     // Start the timer for this request
-    if(!requestTimer->startTimer(req->getDuration())) {
-        TYPELOGV(TIMER_START_FAILURE, req->getHandle());
-        return false;
+    if(req->getDuration() != -1 && requestTimer != nullptr) {
+        if(!requestTimer->startTimer(req->getDuration())) {
+            TYPELOGV(TIMER_START_FAILURE, req->getHandle());
+            return false;
+        }
     }
 
     return true;
