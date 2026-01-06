@@ -22,10 +22,13 @@ This project depends on the following external libraries:
     ```
   * Ubuntu:
     ```bash
+    apt-get install -y cmake
+    apt-get install -y pkg-config
     apt-get install -y libyaml-dev
     apt-get install -y libsystemd-dev
-    apt install fasttext
-    apt install libfasttext-dev
+    # Optional packages
+    apt-get install -y fasttext
+    apt-get install -y libfasttext-dev
     ```
 
 ## Build and install Instructions
