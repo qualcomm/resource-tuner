@@ -100,11 +100,11 @@ int NetLinkComm::RecvEvent(ProcEvent &ev) {
     } nlcn_msg;
 
     rc = recv(nl_sock, &nlcn_msg, sizeof(nlcn_msg), 0);
-    if (rc == 0) {
+    if(rc == 0) {
         // Socket shutdown or no more data.
         return 0;
     }
-    if (rc == -1) {
+    if(rc == -1) {
         if (errno == EINTR) {
             // Caller (ContextualClassifier::HandleProcEv) will handle EINTR.
             return -1;
@@ -117,74 +117,66 @@ int NetLinkComm::RecvEvent(ProcEvent &ev) {
     ev.tgid = -1;
     ev.type = CC_IGNORE;
 
-    std::string commData = "";
-    switch (nlcn_msg.proc_ev.what) {
-    case PROC_EVENT_NONE:
-        // No actionable event.
-        break;
-    case PROC_EVENT_FORK:
-        // LOGD(CLASSIFIER_TAG, "Incoming (fork) Process, pid = " + commData);
-        /*LOGD(CLASSIFIER_TAG,
-             format_string("fork: parent tid=%d pid=%d -> child tid=%d pid=%d",
-                           nlcn_msg.proc_ev.event_data.fork.parent_pid,
-                           nlcn_msg.proc_ev.event_data.fork.parent_tgid,
-                           nlcn_msg.proc_ev.event_data.fork.child_pid,
-                           nlcn_msg.proc_ev.event_data.fork.child_tgid));
-        commData = AuxRoutines::readFromFile("/proc/" + std::to_string(ev.pid) + "/comm");
-        */
-        break;
-    case PROC_EVENT_EXEC:
+    switch(nlcn_msg.proc_ev.what) {
+        case PROC_EVENT_NONE:
+            // No actionable event.
+            break;
 
-        /*LOGD(CLASSIFIER_TAG,
-             format_string("Received PROC_EVENT_EXEC for tid=%d pid=%d",
-                           nlcn_msg.proc_ev.event_data.exec.process_pid,
-                           nlcn_msg.proc_ev.event_data.exec.process_tgid));
-                           */
+        case PROC_EVENT_FORK:
+            /*LOGD(CLASSIFIER_TAG,
+                format_string("fork: parent tid=%d pid=%d -> child tid=%d pid=%d",
+                            nlcn_msg.proc_ev.event_data.fork.parent_pid,
+                            nlcn_msg.proc_ev.event_data.fork.parent_tgid,
+                            nlcn_msg.proc_ev.event_data.fork.child_pid,
+                            nlcn_msg.proc_ev.event_data.fork.child_tgid));
+            */
+            break;
 
-        // commData = AuxRoutines::readFromFile("/proc/" + std::to_string(ev.pid) + "/comm");
-        // LOGD(CLASSIFIER_TAG, "Incoming (exec) Process, pid = " + commData);
-    
-        ev.pid = nlcn_msg.proc_ev.event_data.exec.process_pid;
-        ev.tgid = nlcn_msg.proc_ev.event_data.exec.process_tgid;
-        ev.type = CC_APP_OPEN;
-        rc = CC_APP_OPEN;
-        break;
-    case PROC_EVENT_UID:
-        // LOGD(CLASSIFIER_TAG, "Incoming (uid) Process, pid = " + commData);
-        // LOGD(CLASSIFIER_TAG,
-        //      format_string("uid change: tid=%d pid=%d from %d to %d",
-        //                    nlcn_msg.proc_ev.event_data.id.process_pid,
-        //                    nlcn_msg.proc_ev.event_data.id.process_tgid,
-        //                    nlcn_msg.proc_ev.event_data.id.r.ruid,
-        //                    nlcn_msg.proc_ev.event_data.id.e.euid));
-        // commData = AuxRoutines::readFromFile("/proc/" + std::to_string(ev.pid) + "/comm");
-        break;
-    case PROC_EVENT_GID:
-        // LOGD(CLASSIFIER_TAG, "Incoming (gid) Process, pid = " + commData);
-        // LOGD(CLASSIFIER_TAG,
-        //      format_string("gid change: tid=%d pid=%d from %d to %d",
-        //                    nlcn_msg.proc_ev.event_data.id.process_pid,
-        //                    nlcn_msg.proc_ev.event_data.id.process_tgid,
-        //                    nlcn_msg.proc_ev.event_data.id.r.rgid,
-        //                    nlcn_msg.proc_ev.event_data.id.e.egid));
-        // commData = AuxRoutines::readFromFile("/proc/" + std::to_string(ev.pid) + "/comm");
-        break;
-    case PROC_EVENT_EXIT:
-        // LOGD(CLASSIFIER_TAG,
-        //      format_string("exit: tid=%d pid=%d exit_code=%d",
-        //                    nlcn_msg.proc_ev.event_data.exit.process_pid,
-        //                    nlcn_msg.proc_ev.event_data.exit.process_tgid,
-        //                    nlcn_msg.proc_ev.event_data.exit.exit_code));
-        ev.pid = nlcn_msg.proc_ev.event_data.exit.process_pid;
-        ev.tgid = nlcn_msg.proc_ev.event_data.exit.process_tgid;
-        ev.type = CC_APP_CLOSE;
-        rc = CC_APP_CLOSE;
-        commData = AuxRoutines::readFromFile("/proc/" + std::to_string(ev.pid) + "/comm");
-        // LOGD(CLASSIFIER_TAG, "Incoming (exit) Process, pid = " + commData);
-        break;
-    default:
-        // LOGW(CLASSIFIER_TAG, "unhandled proc event");
-        break;
+        case PROC_EVENT_EXEC:
+            /*LOGD(CLASSIFIER_TAG,
+                format_string("Received PROC_EVENT_EXEC for tid=%d pid=%d",
+                            nlcn_msg.proc_ev.event_data.exec.process_pid,
+                            nlcn_msg.proc_ev.event_data.exec.process_tgid));
+                            */
+
+            ev.pid = nlcn_msg.proc_ev.event_data.exec.process_pid;
+            ev.tgid = nlcn_msg.proc_ev.event_data.exec.process_tgid;
+            ev.type = CC_APP_OPEN;
+            rc = CC_APP_OPEN;
+            break;
+
+        case PROC_EVENT_UID:
+            // LOGD(CLASSIFIER_TAG,
+            //      format_string("uid change: tid=%d pid=%d from %d to %d",
+            //                    nlcn_msg.proc_ev.event_data.id.process_pid,
+            //                    nlcn_msg.proc_ev.event_data.id.process_tgid,
+            //                    nlcn_msg.proc_ev.event_data.id.r.ruid,
+            //                    nlcn_msg.proc_ev.event_data.id.e.euid));
+            break;
+
+        case PROC_EVENT_GID:
+            // LOGD(CLASSIFIER_TAG,
+            //      format_string("gid change: tid=%d pid=%d from %d to %d",
+            //                    nlcn_msg.proc_ev.event_data.id.process_pid,
+            //                    nlcn_msg.proc_ev.event_data.id.process_tgid,
+            //                    nlcn_msg.proc_ev.event_data.id.r.rgid,
+            //                    nlcn_msg.proc_ev.event_data.id.e.egid));
+            break;
+
+        case PROC_EVENT_EXIT:
+            // LOGD(CLASSIFIER_TAG,
+            //      format_string("exit: tid=%d pid=%d exit_code=%d",
+            //                    nlcn_msg.proc_ev.event_data.exit.process_pid,
+            //                    nlcn_msg.proc_ev.event_data.exit.process_tgid,
+            //                    nlcn_msg.proc_ev.event_data.exit.exit_code));
+            ev.pid = nlcn_msg.proc_ev.event_data.exit.process_pid;
+            ev.tgid = nlcn_msg.proc_ev.event_data.exit.process_tgid;
+            ev.type = CC_APP_CLOSE;
+            rc = CC_APP_CLOSE;
+            break;
+
+        default:
+            break;
     }
 
     return rc;

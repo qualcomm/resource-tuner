@@ -171,7 +171,7 @@ void ContextualClassifier::ClassifierMain() {
                 // - Move the "threads" from per-app config to appropriate cgroups
                 gCurrRestuneHandle = MoveAppThreadsToCGroup(ev.pid, comm, FOCUSED_CGROUP_IDENTIFIER);
 
-                //Step 3: If the post processing block exists, call it
+                // Step 3: If the post processing block exists, call it
                 // It might provide us a more specific sigSubtype
                 PostProcessingCallback postCb =
                     Extensions::getPostProcessingCallback(comm);
@@ -223,7 +223,12 @@ int ContextualClassifier::HandleProcEv() {
             return -1;
         }
 
-        switch (rc) {
+        // Process still up?
+        if(!AuxRoutines::fileExists(COMM(ev.pid))) {
+            continue;
+        }
+
+        switch(rc) {
             case CC_APP_OPEN:
                 TYPELOGV(NOTIFY_CLASSIFIER_PROC_EVENT, "CC_APP_OPEN", ev.pid);
                 if(!this->isIgnoredProcess(ev.type, ev.pid)) {
@@ -271,8 +276,7 @@ int32_t ContextualClassifier::ClassifyProcess(pid_t process_pid, pid_t process_t
     }
 
     // Check if the process is still alive
-    const std::string commPath = "/proc/" + std::to_string(process_pid) + "/comm";
-    if(!AuxRoutines::fileExists(commPath)) {
+    if(!AuxRoutines::fileExists(COMM(process_pid))) {
         LOGD(CLASSIFIER_TAG,
              "Skipping inference, process is dead: "+ comm);
         return CC_IGNORE;
@@ -359,7 +363,7 @@ bool ContextualClassifier::isIgnoredProcess(int32_t evType, pid_t pid) {
     }
 
     // For context open, check if comm is in ignored list and track pid.
-    std::string comm_path = "/proc/" + std::to_string(pid) + "/comm";
+    std::string comm_path = COMM(pid);
     std::ifstream comm_file(comm_path);
     if (comm_file.is_open()) {
         std::string proc_name;
@@ -390,7 +394,7 @@ int32_t ContextualClassifier::FetchComm(pid_t pid, std::string &comm) {
         return -1;
     }
 
-    std::string comm_path = "/proc/" + std::to_string(pid) + "/comm";
+    std::string comm_path = COMM(pid);
     std::ifstream comm_file(comm_path);
     if (comm_file.is_open()) {
         std::getline(comm_file, comm);
@@ -416,7 +420,7 @@ pid_t ContextualClassifier::FetchPid(const std::string& process_name) {
     while ((entry = readdir(proc_dir)) != nullptr) {
         if (entry->d_type == DT_DIR && IsNumericString(entry->d_name)) {
             std::string pid_str = entry->d_name;
-            std::string comm_path = "/proc/" + pid_str + "/comm";
+            std::string comm_path = COMM_S(pid_str);
             std::ifstream comm_file(comm_path);
             std::string comm;
             if (comm_file) {
