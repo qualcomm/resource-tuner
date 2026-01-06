@@ -84,7 +84,7 @@ sudo dpkg -i ../userspace-resource-manager_1.0.0_amd64.deb
      Active: active (running) since Tue 2026-01-06 14:06:04 +0530; 6s ago
    Main PID: 4048154 (urm)
       Tasks: 35 (limit: 77057)
-     Memory: 8.6M (peak: 11.3M)
+     Memory: 8.6M (peak: 8.9M)
         CPU: 24ms
      CGroup: /system.slice/urm.service
              └─4048154 /usr/bin/urm

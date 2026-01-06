@@ -11,5 +11,5 @@ Package: userspace-resource-manager
 Architecture: amd64
 Section: libs
 Depends:  ${shlibs:Depends}, ${misc:Depends}
-Description: Userspace Resource Manager is a lightweight framework to dynamically provison of system resources like CPU, memory, Gpu, I/O, etc. It leverages kernel interfaces like procfs, sysfs and cgroups to infleunce the resource usage to ensure power and performance of applications 
+Description: Userspace Resource Manager is a lightweight framework to dynamically provison of system resources like CPU, memory, Gpu, I/O, etc. It leverages kernel interfaces like procfs, sysfs and cgroups to infleunce the resource usage to ensure power and performance of applications.
 
