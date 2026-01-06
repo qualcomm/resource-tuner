@@ -22,16 +22,15 @@ This project depends on the following external libraries:
     ```
   * Ubuntu:
     ```bash
-    apt-get install -y libyaml-dev
-    apt-get install -y libsystemd-dev
-    apt install fasttext
-    apt install libfasttext-dev
+    sudo apt-get install -y cmake pkg-config libyaml-dev libsystemd-dev
+    # Optional packages
+    sudo apt-get install -y fasttext libfasttext-dev
     ```
 
 ## Build and install Instructions
 * Create a build directory
 ```bash
-mkdir -p build && cd build
+rm -rf build && mkdir build && cd build
 ```
 * Configure the project:
 Default Build
@@ -45,7 +44,7 @@ cmake .. -DCMAKE_INSTALL_PREFIX=/ -DBUILD_CLASSIFIER=ON
 ```
 * Build the project
 ```bash
-cmake  --build .
+cmake --build .
 ```
 * Install to default directory (/usr/local)
 ```bash
@@ -59,6 +58,40 @@ sudo cmake --install .
 * Install to a custom temporary directory [Optional]
 ```bash
 cmake --install . --prefix /tmp/urm-install
+```
+## Build Debian packages
+* Install build tools
+```
+sudo apt-get install debhelper dh-sequence-cmake cmake pkg-config build-essential
+```
+* Build URM
+```bash 
+dpkg-buildpackage -us -uc -ui
+```
+* Note: The generated .deb files are placed in the parent directory of your source tree (one level above the workspace).
+```
+ls -l ../*.deb
+```
+* Install urm package
+```
+sudo dpkg -i ../userspace-resource-manager_1.0.0_amd64.deb
+```
+* Check urm service status
+```
+#systemctl status urm
+● urm.service - URM Service
+     Loaded: loaded (/usr/lib/systemd/system/urm.service; enabled; preset: enabled)
+     Active: active (running) since Tue 2026-01-06 14:06:04 +0530; 6s ago
+   Main PID: 4048154 (urm)
+      Tasks: 35 (limit: 77057)
+     Memory: 8.6M (peak: 8.9M)
+        CPU: 24ms
+     CGroup: /system.slice/urm.service
+             └─4048154 /usr/bin/urm
+```
+* Cleanup the workspace
+```
+fakeroot debian/rules clean
 ```
 
 ## Documentation
