@@ -48,14 +48,21 @@ jobs:
 
       - name: Build userspace-resource-manager in the URM container
         run: |
-          docker run --rm -v "$PWD":/workspace -w /workspace urm-image:ci bash -lc '
-            set -euo pipefail
-            mkdir -p build
-            cd build
-            cmake .. -DBUILD_TESTS=ON -DBUILD_CLASSIFIER=ON -DCMAKE_INSTALL_PREFIX="${URM_INSTALL_PREFIX}"
-            cmake --build .
-            make install
-          '
+          docker run --rm \
+            -v "$PWD":/workspace \
+            -w /workspace \
+            -e URM_BINS_DIR="${URM_BINS_DIR}" \
+            -e URM_INSTALL_PREFIX="${URM_INSTALL_PREFIX}" \
+            -e TAR_NAME="${TAR_NAME}" \
+            urm-image:ci bash -lc '
+              set -euo pipefail
+              mkdir -p build
+              cd build
+              cmake .. -DBUILD_TESTS=ON -DBUILD_CLASSIFIER=ON -DCMAKE_INSTALL_PREFIX="${URM_INSTALL_PREFIX}"
+              cmake --build .
+              make install
+            '
+
       - name: Create a tar file of build
         run: |
           cd build
