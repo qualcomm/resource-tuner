@@ -13,6 +13,10 @@ jobs:
     runs-on:
       group: GHA-CSEPerf-prd-SelfHosted-RG
       labels: [self-hosted, cseperf-prd-u2204-arm64-xlrg-od-ephem]
+    env:
+      URM_BINS_DIR: urm-bins                     # base dir name
+      URM_INSTALL_PREFIX: ./urm-bins/            # used by CMake
+      TAR_NAME: urm-bins.tar.gz                  # output tarball name
 
     steps:
       - uses: actions/checkout@v5
@@ -46,19 +50,19 @@ jobs:
         run: |
           docker run --rm -v "$PWD":/workspace -w /workspace urm-image:ci bash -lc '
             set -euo pipefail
-            mkdir build
+            mkdir -p build
             cd build
-            cmake .. -DBUILD_TESTS=ON -DBUILD_CLASSIFIER=ON -DCMAKE_INSTALL_PREFIX=./urm-bins/usr/
+            cmake .. -DBUILD_TESTS=ON -DBUILD_CLASSIFIER=ON -DCMAKE_INSTALL_PREFIX="${URM_INSTALL_PREFIX}"
             cmake --build .
             make install
           '
       - name: Create a tar file of build
         run: |
           cd build
-          tar -cjf "${{ github.workspace }}/urm-bins.tar.gz" urm-bins
-          cd ${{ github.workspace }}
+          tar -cjf "${{ github.workspace }}/${{ env.TAR_NAME }}" "${{ env.URM_BINS_DIR }}"
+          cd "${{ github.workspace }}"
           touch file_list.txt
-          echo "${{ github.workspace }}/userspace-resource-manager-bins.tar.gz" >> file_list.txt
+          echo "${{ github.workspace }}/${{ env.TAR_NAME }}" >> file_list.txt
 
       - name: Upload artifacts to S3
         uses: qualcomm/userspace-resource-manager/.github/actions/aws_s3_helper@main
