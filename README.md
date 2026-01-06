@@ -22,19 +22,15 @@ This project depends on the following external libraries:
     ```
   * Ubuntu:
     ```bash
-    apt-get install -y cmake
-    apt-get install -y pkg-config
-    apt-get install -y libyaml-dev
-    apt-get install -y libsystemd-dev
+    sudo apt-get install -y cmake pkg-config libyaml-dev libsystemd-dev
     # Optional packages
-    apt-get install -y fasttext
-    apt-get install -y libfasttext-dev
+    sudo apt-get install -y fasttext libfasttext-dev
     ```
 
 ## Build and install Instructions
 * Create a build directory
 ```bash
-mkdir -p build && cd build
+rm -rf build && mkdir build && cd build
 ```
 * Configure the project:
 Default Build
@@ -48,7 +44,7 @@ cmake .. -DCMAKE_INSTALL_PREFIX=/ -DBUILD_CLASSIFIER=ON
 ```
 * Build the project
 ```bash
-cmake  --build .
+cmake --build .
 ```
 * Install to default directory (/usr/local)
 ```bash
@@ -72,13 +68,13 @@ sudo apt-get install debhelper dh-sequence-cmake cmake pkg-config build-essentia
 ```bash 
 dpkg-buildpackage -us -uc -ui
 ```
-* Above step generated deb packages one level above the workspace 
+* Note: The generated .deb files are placed in the parent directory of your source tree (one level above the workspace).
 ```
-ls -l ../userspace-resource-manager_1.0.0_amd64.deb   
+ls -l ../*.deb
 ```
 * Install urm package
 ```
-sudo dpkg -i   ../userspace-resource-manager_1.0.0_amd64.deb
+sudo dpkg -i ../userspace-resource-manager_1.0.0_amd64.deb
 ```
 * Check urm service status
 ```
@@ -92,6 +88,10 @@ sudo dpkg -i   ../userspace-resource-manager_1.0.0_amd64.deb
         CPU: 24ms
      CGroup: /system.slice/urm.service
              └─4048154 /usr/bin/urm
+```
+* Cleanup the workspace
+```
+fakeroot debian/rules clean
 ```
 
 ## Documentation
