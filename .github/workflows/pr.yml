@@ -1,4 +1,4 @@
-name: Build Resource Tuner
+name: Build URM
 
 on:
   workflow_dispatch:
@@ -13,6 +13,10 @@ jobs:
     runs-on:
       group: GHA-CSEPerf-prd-SelfHosted-RG
       labels: [self-hosted, cseperf-prd-u2204-arm64-xlrg-od-ephem]
+    env:
+      URM_BINS_DIR: urm-bins                     # base dir name
+      URM_INSTALL_PREFIX: ./urm-bins/            # used by CMake
+      TAR_NAME: urm-bins.tar.gz                  # output tarball name
 
     steps:
       - uses: actions/checkout@v5
@@ -35,38 +39,40 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Sync codebase
-        uses: qualcomm/resource-tuner/.github/actions/sync@main
+        uses: qualcomm/userspace-resource-manager/.github/actions/sync@main
         with:
           event_name: ${{ github.event_name }}
           pr_ref: ${{ github.event.pull_request.head.ref }}
           pr_repo: ${{ github.event.pull_request.head.repo.full_name }}
           base_ref: ${{ github.ref_name }}
 
-      - name: Build resource-tuner in the URM container
+      - name: Build userspace-resource-manager in the URM container
         run: |
-          docker run --rm -v "$PWD":/workspace -w /workspace urm-image:ci bash -lc '
-            set -euo pipefail
-            mkdir build
-            cd build
-            cmake .. -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=./resource-tuner-bins/usr/
-            cmake --build .
-            make install
-            mkdir -p resource-tuner-bins/etc/urm/{common,custom,tests}
-            mkdir -p resource-tuner-bins/etc/urm/tests/{configs,nodes}
-            cp ../configs/*.yaml resource-tuner-bins/etc/urm/common/
-            cp ../resource-tuner/tests/Configs/*.yaml resource-tuner-bins/etc/urm/tests/configs/
-            cp ../resource-tuner/tests/Configs/ResourceSysFsNodes/*.txt resource-tuner-bins/etc/urm/tests/nodes/
-          '
+          docker run --rm \
+            -v "$PWD":/workspace \
+            -w /workspace \
+            -e URM_BINS_DIR="${URM_BINS_DIR}" \
+            -e URM_INSTALL_PREFIX="${URM_INSTALL_PREFIX}" \
+            -e TAR_NAME="${TAR_NAME}" \
+            urm-image:ci bash -lc '
+              set -euo pipefail
+              mkdir -p build
+              cd build
+              cmake .. -DBUILD_TESTS=ON -DBUILD_CLASSIFIER=ON -DCMAKE_INSTALL_PREFIX="${URM_INSTALL_PREFIX}"
+              cmake --build .
+              make install
+            '
+
       - name: Create a tar file of build
         run: |
           cd build
-          tar -cjf "${{ github.workspace }}/resource-tuner-bins.tar.gz" resource-tuner-bins
-          cd ${{ github.workspace }}
+          tar -cjf "${{ github.workspace }}/${{ env.TAR_NAME }}" "${{ env.URM_BINS_DIR }}"
+          cd "${{ github.workspace }}"
           touch file_list.txt
-          echo "${{ github.workspace }}/resource-tuner-bins.tar.gz" >> file_list.txt
+          echo "${{ github.workspace }}/${{ env.TAR_NAME }}" >> file_list.txt
 
       - name: Upload artifacts to S3
-        uses: qualcomm/resource-tuner/.github/actions/aws_s3_helper@main
+        uses: qualcomm/userspace-resource-manager/.github/actions/aws_s3_helper@main
         with:
           s3_bucket: qli-prd-cseperf-gh-artifacts
           mode: multi-upload
