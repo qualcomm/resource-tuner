@@ -72,12 +72,10 @@ void RequestQueue::orderedQueueConsumerHook() {
                 // Then don't cleanup the corresponding Tune Request, as it is still valid.
                 requestManager->removeRequest(correspondingTuneRequest);
                 if(req->getPriority() != HIGH_TRANSFER_PRIORITY) {
-                    // Free up the Corresponding Tune Request Resources
-                    Request::cleanUpRequest(correspondingTuneRequest);
+                    // Free Up the Untune Request
+                    Request::cleanUpRequest(req);
                 }
-
-                // Free Up the Untune Request
-                Request::cleanUpRequest(req);
+                Request::cleanUpRequest(correspondingTuneRequest);
 
             } else if(req->getRequestType() == REQ_RESOURCE_RETUNING) {
                 int64_t newDuration = req->getDuration();

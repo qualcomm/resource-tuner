@@ -58,6 +58,8 @@ static ContextualClassifier *g_classifier = nullptr;
 // Global Restune handle store, used across threads
 static int64_t gCurrRestuneHandle = -1;
 
+static const int32_t pendingQueueControlSize = 30;
+
 ContextualClassifier::~ContextualClassifier() {
     Terminate();
     if (mInference) {
@@ -234,6 +236,9 @@ int ContextualClassifier::HandleProcEv() {
                 if(!this->isIgnoredProcess(ev.type, ev.pid)) {
                     const std::lock_guard<std::mutex> lock(mQueueMutex);
                     this->mPendingEv.push(ev);
+                    if(this->mPendingEv.size() > pendingQueueControlSize) {
+                        this->mPendingEv.pop();
+                    }
                     this->mQueueCond.notify_one();
                 } else {
                     TYPELOGV(NOTIFY_CLASSIFIER_PROC_IGNORE, ev.pid);
@@ -244,8 +249,11 @@ int ContextualClassifier::HandleProcEv() {
             case CC_APP_CLOSE:
                 TYPELOGV(NOTIFY_CLASSIFIER_PROC_EVENT, "CC_APP_CLOSE", ev.pid);
                 if(!this->isIgnoredProcess(ev.type, ev.pid)) {
-                    std::lock_guard<std::mutex> lock(mQueueMutex);
+                    const std::lock_guard<std::mutex> lock(mQueueMutex);
                     this->mPendingEv.push(ev);
+                    if(this->mPendingEv.size() > pendingQueueControlSize) {
+                        this->mPendingEv.pop();
+                    }
                     this->mQueueCond.notify_one();
                 } else {
                     TYPELOGV(NOTIFY_CLASSIFIER_PROC_IGNORE, ev.pid);

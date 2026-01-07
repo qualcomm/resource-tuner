@@ -350,6 +350,10 @@ int8_t CocoTable::insertRequest(Request* req) {
             TYPELOGV(TIMER_START_FAILURE, req->getHandle());
             return false;
         }
+    } else if(req->getDuration() != -1 && requestTimer == nullptr) {
+        // Should not be hit, since bad-allocation check should have already handled this condition.
+        TYPELOGV(TIMER_START_FAILURE, req->getHandle());
+        return false;
     }
 
     return true;
@@ -388,6 +392,16 @@ int8_t CocoTable::updateRequest(Request* req, int64_t duration) {
 }
 
 // Methods for Request Cleanup
+// Phase 1:
+// Iterate over all the resources part of the request and un-configure them
+// If the resource[i] is applied (i.e. at the head of its Resource's DLL), then check if there
+// is any pending configurations (waiting behind it), if found apply it.
+// If the resource[i] is somewhere in the middle (or end) of the DLL, then simply remove it and
+// adjust the prev and next pointers accordingly.
+// Phase 2:
+// Actually freeing up the Request and its associated memory resources. This is not handled by
+// CocoTable, instead RequestQueue is responsible for freeing up the Request and untracking it
+// from the RequestManager.
 int8_t CocoTable::removeRequest(Request* request) {
     TYPELOGV(NOTIFY_COCO_TABLE_REMOVAL_START, request->getHandle());
 
