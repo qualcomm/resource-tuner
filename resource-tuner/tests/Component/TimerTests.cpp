@@ -1,129 +1,187 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
+
+// TimerTests_mtest.cpp
 #include <cmath>
+#include <atomic>
+#include <thread>
+#include <chrono>
+#include <iostream>
 
-#include "TestUtils.h"
-#include "Timer.h"
-#include "TestAggregator.h"
+#include "Timer.h"         // your Timer component
+#include "ThreadPool.h"    // whatever defines ThreadPool
+#include "TestUtils.h"     // if you still need MakeAlloc<Timer>
 
-static std::shared_ptr<ThreadPool> tpoolInstance = std::shared_ptr<ThreadPool> (new ThreadPool(4, 5));
+
+#define MTEST_NO_MAIN
+#include "../framework/mini.hpp"
+
+
+// ---- Shared elements from your original suite ----
+// (We keep the same pool size and allocation count.)
+static std::shared_ptr<ThreadPool> tpoolInstance{ new ThreadPool(4, 5) };
 static std::atomic<int8_t> isFinished;
 
+// Callback signature matches your Timer: void(*)(void*)
 static void afterTimer(void*) {
     isFinished.store(true);
 }
 
+// Equivalent to your Init()
 static void Init() {
     Timer::mTimerThreadPool = tpoolInstance.get();
     MakeAlloc<Timer>(10);
 }
 
+// Busy-wait with short sleeps until callback sets isFinished
 static void simulateWork() {
-    while(!isFinished.load()){
+    while (!isFinished.load()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 }
 
-static void BaseCase() {
+// Small helper for "near" checks with readable failure messages.
+static void REQUIRE_NEAR(mtest::TestContext& ctx,
+                         long long got, long long expected, long long tol,
+                         const char* what) {
+    long long diff = std::llabs(got - expected);
+    if (diff > tol) {
+        std::ostringstream oss;
+        oss << what << " near check failed: got=" << got
+            << " expected=" << expected << " tol=" << tol
+            << " (|diff|=" << diff << ")";
+        MT_FAIL(ctx, oss.str().c_str());
+    }
+}
+
+// ----------------- Tests -----------------
+
+// BaseCase: one-shot 200ms
+MT_TEST(timer, BaseCase, "component-serial") {
+    Init();
     Timer* timer = new Timer(afterTimer);
     isFinished.store(false);
 
-    C_ASSERT(timer != nullptr);
-    auto start = std::chrono::high_resolution_clock::now();
+    MT_REQUIRE(ctx, timer != nullptr);
+
+    auto t0 = std::chrono::high_resolution_clock::now();
     timer->startTimer(200);
     simulateWork();
-    auto finish = std::chrono::high_resolution_clock::now();
-    auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
+    auto t1 = std::chrono::high_resolution_clock::now();
 
-    C_ASSERT_NEAR(dur, 200, 25); //some tolerance
+    auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+    REQUIRE_NEAR(ctx, dur, 200, 25, "BaseCase");   // ±25ms tolerance
     delete timer;
 }
 
-static void killBeforeCompletion() {
+// Kill before completion at ~100ms
+MT_TEST(timer, killBeforeCompletion, "component-serial") {
+    Init();
     Timer* timer = new Timer(afterTimer);
     isFinished.store(false);
 
-    C_ASSERT(timer != nullptr);
-    auto start = std::chrono::high_resolution_clock::now();
+    MT_REQUIRE(ctx, timer != nullptr);
+
+    auto t0 = std::chrono::high_resolution_clock::now();
     timer->startTimer(200);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     timer->killTimer();
-    auto finish = std::chrono::high_resolution_clock::now();
-    auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
+    auto t1 = std::chrono::high_resolution_clock::now();
 
-    C_ASSERT_NEAR(dur, 100, 25); //some tolerance
+    auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+    REQUIRE_NEAR(ctx, dur, 100, 25, "killBeforeCompletion");
     delete timer;
 }
 
-static void killAfterCompletion() {
+// Kill after completion (~300ms)
+MT_TEST(timer, killAfterCompletion, "component-serial") {
+    Init();
     Timer* timer = new Timer(afterTimer);
     isFinished.store(false);
 
-    C_ASSERT(timer != nullptr);
-    auto start = std::chrono::high_resolution_clock::now();
+    MT_REQUIRE(ctx, timer != nullptr);
+
+    auto t0 = std::chrono::high_resolution_clock::now();
     timer->startTimer(200);
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
     timer->killTimer();
-    auto finish = std::chrono::high_resolution_clock::now();
-    auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
+    auto t1 = std::chrono::high_resolution_clock::now();
 
-    C_ASSERT_NEAR(dur, 300, 25); //some tolerance
+    auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+    REQUIRE_NEAR(ctx, dur, 300, 25, "killAfterCompletion");
     delete timer;
 }
 
-static void RecurringTimer() {
+// Recurring timer: expect ~600ms for 3 cycles
+MT_TEST(timer, RecurringTimer, "component-serial") {
+    Init();
     Timer* recurringTimer = new Timer(afterTimer, true);
     isFinished.store(false);
 
-    C_ASSERT(recurringTimer != nullptr);
+    MT_REQUIRE(ctx, recurringTimer != nullptr);
 
-    auto start = std::chrono::high_resolution_clock::now();
+    auto t0 = std::chrono::high_resolution_clock::now();
     recurringTimer->startTimer(200);
-    simulateWork();
-    isFinished.store(false);
-    simulateWork();
-    isFinished.store(false);
-    simulateWork();
-    recurringTimer->killTimer();
-    auto finish = std::chrono::high_resolution_clock::now();
-    auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
 
-    C_ASSERT_NEAR(dur, 600, 25); //some tolerance
+    simulateWork();      // 1st
+    isFinished.store(false);
+    simulateWork();      // 2nd
+    isFinished.store(false);
+    simulateWork();      // 3rd
+
+    recurringTimer->killTimer();
+    auto t1 = std::chrono::high_resolution_clock::now();
+
+    auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+    REQUIRE_NEAR(ctx, dur, 600, 25, "RecurringTimer");
     delete recurringTimer;
 }
 
-static void RecurringTimerPreMatureKill() {
+// Recurring + premature kill: ~500ms (2 cycles + ~100ms)
+MT_TEST(timer, RecurringTimerPreMatureKill, "component-serial") {
+    Init();
     Timer* recurringTimer = new Timer(afterTimer, true);
     isFinished.store(false);
 
-    C_ASSERT(recurringTimer != nullptr);
+    MT_REQUIRE(ctx, recurringTimer != nullptr);
 
-    auto start = std::chrono::high_resolution_clock::now();
+    auto t0 = std::chrono::high_resolution_clock::now();
     recurringTimer->startTimer(200);
-    simulateWork();
+
+    simulateWork();      // 1st
     isFinished.store(false);
-    simulateWork();
+    simulateWork();      // 2nd
     isFinished.store(false);
+
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     recurringTimer->killTimer();
-    auto finish = std::chrono::high_resolution_clock::now();
-    auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
 
-    C_ASSERT_NEAR(dur, 500, 25); //some tolerance
+    auto t1 = std::chrono::high_resolution_clock::now();
+    auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+
+    REQUIRE_NEAR(ctx, dur, 500, 25, "RecurringTimerPreMatureKill");
+    delete recurringTimer;
 }
 
-static void RunTests() {
-    std::cout<<"Running Test Suite: [TimerTests]\n"<<std::endl;
+// -------- Parameterized variant for BaseCase (try multiple targets) --------
+
+MT_TEST_P(timer, BaseCaseParam, "component-serial", int,
+          (std::initializer_list<int>{100, 200, 300})) { 
 
     Init();
-    RUN_TEST(BaseCase);
-    RUN_TEST(killBeforeCompletion);
-    RUN_TEST(killAfterCompletion);
-    RUN_TEST(RecurringTimer);
-    RUN_TEST(RecurringTimerPreMatureKill);
+    Timer* timer = new Timer(afterTimer);
+    isFinished.store(false);
 
-    std::cout<<"\nAll Tests from the suite: [TimerTests], executed successfully"<<std::endl;
+    MT_REQUIRE(ctx, timer != nullptr);
+
+    auto t0 = std::chrono::high_resolution_clock::now();
+    timer->startTimer(param);     // param is the target duration
+    simulateWork();
+    auto t1 = std::chrono::high_resolution_clock::now();
+
+    auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+    REQUIRE_NEAR(ctx, dur, param, 25, "BaseCaseParam");
+    delete timer;
 }
 
-REGISTER_TEST(RunTests);

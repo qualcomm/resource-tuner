@@ -230,16 +230,6 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
     std::shared_ptr<RequestManager> requestManager = RequestManager::getInstance();
     std::shared_ptr<RequestQueue> requestQueue = RequestQueue::getInstance();
 
-    if(isValidated && request->getRequestType() == REQ_RESOURCE_TUNING) {
-        // Request is already validated, add it to RequestQueue directly.
-        if(addToRequestManager(request)) {
-            requestQueue->addAndWakeup(request);
-        } else {
-            Request::cleanUpRequest(request);
-        }
-        return;
-    }
-
     // Perform a Global Rate Limit Check before Processing the Request
     // This is to check if the current Active Request count has hit the
     // Max Number of Concurrent Requests Allowed Threshold
@@ -318,19 +308,29 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
         return;
     }
 
-    if(VerifyIncomingRequest(request)) {
-        TYPELOGV(VERIFIER_REQUEST_VALIDATED, request->getHandle());
+    // Validate the Request
+    if(!isValidated) {
+        if(VerifyIncomingRequest(request)) {
+            TYPELOGV(VERIFIER_REQUEST_VALIDATED, request->getHandle());
 
+            if(addToRequestManager(request)) {
+                // Add this request to the RequestQueue
+                requestQueue->addAndWakeup(request);
+            } else {
+                Request::cleanUpRequest(request);
+            }
+
+        } else {
+            TYPELOGV(VERIFIER_STATUS_FAILURE, request->getHandle());
+            Request::cleanUpRequest(request);
+        }
+    } else {
         if(addToRequestManager(request)) {
             // Add this request to the RequestQueue
             requestQueue->addAndWakeup(request);
         } else {
             Request::cleanUpRequest(request);
         }
-
-    } else {
-        TYPELOGV(VERIFIER_STATUS_FAILURE, request->getHandle());
-        Request::cleanUpRequest(request);
     }
 }
 
