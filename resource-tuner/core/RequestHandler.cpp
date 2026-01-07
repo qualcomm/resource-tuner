@@ -324,6 +324,13 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
             TYPELOGV(VERIFIER_STATUS_FAILURE, request->getHandle());
             Request::cleanUpRequest(request);
         }
+    } else {
+        if(addToRequestManager(request)) {
+            // Add this request to the RequestQueue
+            requestQueue->addAndWakeup(request);
+        } else {
+            Request::cleanUpRequest(request);
+        }
     }
 }
 
