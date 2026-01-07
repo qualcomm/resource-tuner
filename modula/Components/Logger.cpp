@@ -673,6 +673,20 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             Logger::log(LOG_ERR, "RESTUNE_COCO_TABLE", funcName, std::string(buffer));
             break;
 
+        case CommonMessageTypes::NOTIFY_CLASSIFIER_PROC_EVENT:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Received event: [%s] for pid: [%d]", args);
+
+            Logger::log(LOG_DEBUG, "CONTEXTUAL_CLASSIFIER", funcName, std::string(buffer));
+            break;
+
+        case CommonMessageTypes::NOTIFY_CLASSIFIER_PROC_IGNORE:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Ignoring black listed pid: [%d]", args);
+
+            Logger::log(LOG_DEBUG, "CONTEXTUAL_CLASSIFIER", funcName, std::string(buffer));
+            break;
+
         default:
             break;
     }

@@ -250,7 +250,7 @@ int8_t getProp(const char* prop, char* buffer, size_t bufferSize, const char* de
 
         // read the response
         char resultBuf[bufferSize];
-        if(RC_IS_NOTOK(conn->readMsg(resultBuf, sizeof(resultBuf)) == -1)) {
+        if(RC_IS_NOTOK(conn->readMsg(resultBuf, sizeof(resultBuf)))) {
             return -1;
         }
 

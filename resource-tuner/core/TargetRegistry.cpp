@@ -608,7 +608,7 @@ CacheInfoBuilder::CacheInfoBuilder() {
 
     this->mCacheInfo->mPriorityAware = false;
     this->mCacheInfo->mCacheType = "";
-    this->mCacheInfo->mNumCacheBlocks == -1;
+    this->mCacheInfo->mNumCacheBlocks = -1;
 }
 
 ErrCode CacheInfoBuilder::setType(const std::string& type) {

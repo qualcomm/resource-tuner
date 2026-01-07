@@ -134,4 +134,9 @@ typedef void (*MessageReceivedCallback)(int32_t, MsgForwardInfo*);
 #define LOGGER_LOGGING_LEVEL_TYPE "urm.logging.level.exact"
 #define LOGGER_LOGGING_OUTPUT_REDIRECT "urm.logging.redirect_to"
 
+#define COMM(pid) ("/proc/" + std::to_string(pid) + "/comm")
+#define COMM_S(pidstr) ("/proc/" + pidstr + "/comm")
+#define STATUS(pid) ("/proc/" + std::to_string(pid) + "/status")
+#define CMDLINE(pid) ("/proc/" + std::to_string(pid) + "/cmdline")
+
 #endif

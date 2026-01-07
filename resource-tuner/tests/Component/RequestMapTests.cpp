@@ -125,8 +125,8 @@ static void TestDuplicateRequestScenario1() {
         requestMap->addRequest(secondRequest);
     }
 
-    C_ASSERT(resultFirst == true);
-    C_ASSERT(resultSecond == false);
+    C_ASSERT((resultFirst == true));
+    C_ASSERT((resultSecond == false));
 
     requestMap->removeRequest(firstRequest);
     requestMap->removeRequest(secondRequest);
@@ -193,8 +193,8 @@ static void TestDuplicateRequestScenario2() {
         requestMap->addRequest(secondRequest);
     }
 
-    C_ASSERT(resultFirst == true);
-    C_ASSERT(resultSecond == false);
+    C_ASSERT((resultFirst == true));
+    C_ASSERT((resultSecond == false));
 
     requestMap->removeRequest(firstRequest);
     requestMap->removeRequest(secondRequest);
@@ -239,7 +239,7 @@ static void TestDuplicateRequestScenario3_1() {
         requestsCreated.push_back(request);
 
         int8_t requestCheck = requestMap->shouldRequestBeAdded(request);
-        C_ASSERT(requestCheck == true);
+        C_ASSERT((requestCheck == true));
         requestMap->addRequest(request);
     }
 
@@ -325,8 +325,8 @@ static void TestDuplicateRequestScenario3_2() {
         requestMap->addRequest(secondRequest);
     }
 
-    C_ASSERT(resultFirst == true);
-    C_ASSERT(resultSecond == true);
+    C_ASSERT((resultFirst == true));
+    C_ASSERT((resultSecond == true));
 
     requestMap->removeRequest(firstRequest);
     requestMap->removeRequest(secondRequest);
@@ -944,21 +944,21 @@ static void TestGetRequestFromMap() {
         requestMap->addRequest(request);
     }
 
-    C_ASSERT(result == true);
+    C_ASSERT((result == true));
 
     // Retrieve request and check it's integrity
     Request* fetchedRequest = requestMap->getRequestFromMap(325);
 
-    C_ASSERT(fetchedRequest != nullptr);
-    C_ASSERT(fetchedRequest->getDuration() == -1);
-    C_ASSERT(fetchedRequest->getClientPID() == testClientPID);
-    C_ASSERT(fetchedRequest->getClientTID() == testClientTID);
-    C_ASSERT(fetchedRequest->getResourcesCount() == 1);
+    C_ASSERT((fetchedRequest != nullptr));
+    C_ASSERT((fetchedRequest->getDuration() == -1));
+    C_ASSERT((fetchedRequest->getClientPID() == testClientPID));
+    C_ASSERT((fetchedRequest->getClientTID() == testClientTID));
+    C_ASSERT((fetchedRequest->getResourcesCount() == 1));
 
     requestMap->removeRequest(request);
 
     fetchedRequest = requestMap->getRequestFromMap(325);
-    C_ASSERT(fetchedRequest == nullptr);
+    C_ASSERT((fetchedRequest == nullptr));
 
     clientDataManager->deleteClientPID(testClientPID);
     clientDataManager->deleteClientTID(testClientTID);
