@@ -789,7 +789,6 @@ namespace SignalParsingTestsAddOn {
         EnsureInit();
         SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x80ffcfce);
 
-
         MT_REQUIRE(ctx, (signalInfo != nullptr));
         MT_REQUIRE_EQ(ctx, signalInfo->mSignalID, 0xffcf);
         MT_REQUIRE_EQ(ctx, signalInfo->mSignalCategory, 0xce);
