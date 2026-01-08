@@ -1,105 +1,174 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
+
+// ExtensionIntfTests.cpp
 #include "TestUtils.h"
 #include "ResourceRegistry.h"
 #include "RestuneParser.h"
 #include "Extensions.h"
 #include "TestAggregator.h"
 
-RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/urm/tests/configs/ResourcesConfig.yaml")
-RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/etc/urm/tests/configs/PropertiesConfig.yaml")
-RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/urm/tests/configs/SignalsConfig.yaml")
-RESTUNE_REGISTER_CONFIG(TARGET_CONFIG, "/etc/urm/tests/configs/TargetConfig.yaml")
-RESTUNE_REGISTER_CONFIG(INIT_CONFIG, "/etc/urm/tests/configs/InitConfig.yaml")
+#include <string>
+#include <cstdint>
 
-static int8_t firstTest = true;
-static int8_t funcCalled = false;
+#define MTEST_NO_MAIN
+#include "../framework/mini.hpp"
+
+using namespace mtest;
+
+// Keep your RESTUNE registrations (paths as provided)
+RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG,   "/etc/urm/tests/configs/ResourcesConfig.yaml")
+RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/etc/urm/tests/configs/PropertiesConfig.yaml")
+RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG,    "/etc/urm/tests/configs/SignalsConfig.yaml")
+RESTUNE_REGISTER_CONFIG(TARGET_CONFIG,     "/etc/urm/tests/configs/TargetConfig.yaml")
+RESTUNE_REGISTER_CONFIG(INIT_CONFIG,       "/etc/urm/tests/configs/InitConfig.yaml")
+
+// Global flags/counters (same semantics as original)
+static int8_t  funcCalled    = false;
 static int32_t invokeCounter = 0;
 
-static void customApplier1(void* context) {
-    funcCalled = true;
-}
+// Callbacks
+static void customApplier1(void* /*context*/) { funcCalled = true; }
+static void customApplier2(void* /*context*/) { invokeCounter++; }
+static void customTear1   (void* /*context*/) { funcCalled = true; }
 
-static void customApplier2(void* context) {
-    invokeCounter++;
-}
-
-static void customTear1(void* context) {
-    funcCalled = true;
-}
-
+// Register callbacks (same IDs)
 RESTUNE_REGISTER_APPLIER_CB(0x80ff0000, customApplier1)
-RESTUNE_REGISTER_TEAR_CB(0x80ff0001, customTear1)
+RESTUNE_REGISTER_TEAR_CB   (0x80ff0001, customTear1)
 RESTUNE_REGISTER_APPLIER_CB(0x80ff0002, customApplier2)
 
-static void Init() {
+// --- Component-friendly initialization helpers ---
+
+static bool file_exists(const std::string& path) {
+    if (path.empty()) return false;
+    if (auto* f = std::fopen(path.c_str(), "r")) { std::fclose(f); return true; }
+    return false;
+}
+
+// Try to parse available configs to populate the registry; return true on success.
+static bool TryParseAllConfigs() {
     RestuneParser configProcessor;
 
-    configProcessor.parseResourceConfigs(Extensions::getResourceConfigFilePath(), true);
-    ResourceRegistry::getInstance()->pluginModifications();
+    const auto resPath  = Extensions::getResourceConfigFilePath();
+    const auto propPath = Extensions::getPropertiesConfigFilePath();
+    const auto sigPath  = Extensions::getSignalsConfigFilePath();
+    const auto tgtPath  = Extensions::getTargetConfigFilePath();
+    const auto initPath = Extensions::getInitConfigFilePath();
+
+    // Require at least the resources file.
+    if (!file_exists(resPath)) return false;
+
+    try {
+        // Correct single-argument signatures:
+        configProcessor.parseResourceConfigs(resPath);
+        if (file_exists(propPath)) configProcessor.parsePropertiesConfigs(propPath);
+        if (file_exists(sigPath))  configProcessor.parseSignalConfigs(sigPath); // singular: Signal
+        if (file_exists(tgtPath))  configProcessor.parseTargetConfigs(tgtPath);
+        if (file_exists(initPath)) configProcessor.parseInitConfigs(initPath);
+
+        // Apply plugin modifications after parsing.
+        auto rr = ResourceRegistry::getInstance(); // shared_ptr<ResourceRegistry>
+        rr->pluginModifications();
+        return true;
+    } catch (...) {
+        // If parse throws, treat as unavailable.
+        return false;
+    }
 }
 
-static void TestExtensionIntfModifiedResourceConfigPath() {
-    C_ASSERT(Extensions::getResourceConfigFilePath() == "/etc/urm/tests/configs/ResourcesConfig.yaml");
-}
+// One-time initialization via fixture
+struct ExtensionFixture : mtest::Fixture {
+    static bool initialized;
+    static bool parsed_ok;
 
-static void TestExtensionIntfModifiedPropertiesConfigPath() {
-    C_ASSERT(Extensions::getPropertiesConfigFilePath() == "/etc/urm/tests/configs/PropertiesConfig.yaml");
-}
+    void setup(mtest::TestContext&) override {
+        if (!initialized) {
+            parsed_ok = TryParseAllConfigs();
+            initialized = true;
+        }
+    }
+    void teardown(mtest::TestContext&) override {}
+};
+bool ExtensionFixture::initialized = false;
+bool ExtensionFixture::parsed_ok   = false;
 
-static void TestExtensionIntfModifiedSignalConfigPath() {
-    C_ASSERT(Extensions::getSignalsConfigFilePath() == "/etc/urm/tests/configs/SignalsConfig.yaml");
-}
+// ---------------------------
+// Suite: ExtensionIntfTests (tagged as "component-serial")
+// ---------------------------
 
-static void TestExtensionIntfModifiedTargetConfigPath() {
-    C_ASSERT(Extensions::getTargetConfigFilePath() == "/etc/urm/tests/configs/TargetConfig.yaml");
+MT_TEST_F(ExtensionIntfTests, ModifiedResourceConfigPath, "component-serial", ExtensionFixture) {
+    MT_REQUIRE_EQ(ctx, Extensions::getResourceConfigFilePath(),
+                  std::string("/etc/urm/tests/configs/ResourcesConfig.yaml"));
 }
+MT_TEST_F_END
 
-static void TestExtensionIntfModifiedInitConfigPath() {
-    C_ASSERT(Extensions::getInitConfigFilePath() == "/etc/urm/tests/configs/InitConfig.yaml");
+MT_TEST_F(ExtensionIntfTests, ModifiedPropertiesConfigPath, "component-serial", ExtensionFixture) {
+    MT_REQUIRE_EQ(ctx, Extensions::getPropertiesConfigFilePath(),
+                  std::string("/etc/urm/tests/configs/PropertiesConfig.yaml"));
 }
+MT_TEST_F_END
 
-static void TestExtensionIntfCustomResourceApplier1() {
-    ResConfInfo* info = ResourceRegistry::getInstance()->getResConf(0x80ff0000);
-    C_ASSERT(info != nullptr);
+MT_TEST_F(ExtensionIntfTests, ModifiedSignalConfigPath, "component-serial", ExtensionFixture) {
+    MT_REQUIRE_EQ(ctx, Extensions::getSignalsConfigFilePath(),
+                  std::string("/etc/urm/tests/configs/SignalsConfig.yaml"));
+}
+MT_TEST_F_END
+
+MT_TEST_F(ExtensionIntfTests, ModifiedTargetConfigPath, "component-serial", ExtensionFixture) {
+    MT_REQUIRE_EQ(ctx, Extensions::getTargetConfigFilePath(),
+                  std::string("/etc/urm/tests/configs/TargetConfig.yaml"));
+}
+MT_TEST_F_END
+
+MT_TEST_F(ExtensionIntfTests, ModifiedInitConfigPath, "component-serial", ExtensionFixture) {
+    MT_REQUIRE_EQ(ctx, Extensions::getInitConfigFilePath(),
+                  std::string("/etc/urm/tests/configs/InitConfig.yaml"));
+}
+MT_TEST_F_END
+
+MT_TEST_F(ExtensionIntfTests, CustomResourceApplier1, "component-serial", ExtensionFixture) {
+    auto rr    = ResourceRegistry::getInstance();     // shared_ptr<ResourceRegistry>
+    auto* info = rr->getResConf(0x80ff0000);
+    if (!info) {
+        MT_FAIL(ctx, "Resource 0x80ff0000 not found — ensure configs are available and parsed.");
+    }
+
     funcCalled = false;
-    C_ASSERT(info->mResourceApplierCallback != nullptr);
+    MT_REQUIRE(ctx, info->mResourceApplierCallback != nullptr);
     info->mResourceApplierCallback(nullptr);
-    C_ASSERT(funcCalled == true);
+    MT_REQUIRE_EQ(ctx, funcCalled, true);
 }
+MT_TEST_F_END
 
-static void TestExtensionIntfCustomResourceApplier2() {
-    ResConfInfo* info = ResourceRegistry::getInstance()->getResConf(0x80ff0002);
-    C_ASSERT(info != nullptr);
-    C_ASSERT(info->mResourceApplierCallback != nullptr);
+MT_TEST_F(ExtensionIntfTests, CustomResourceApplier2, "component-serial", ExtensionFixture) {
+    auto rr    = ResourceRegistry::getInstance();
+    auto* info = rr->getResConf(0x80ff0002);
+    if (!info) {
+        MT_FAIL(ctx, "Resource 0x80ff0002 not found — ensure configs are available and parsed.");
+    }
+
+    invokeCounter = 0;
+    MT_REQUIRE(ctx, info->mResourceApplierCallback != nullptr);
     info->mResourceApplierCallback(nullptr);
-    C_ASSERT(invokeCounter == 1);
+    MT_REQUIRE_EQ(ctx, invokeCounter, 1);
 }
+MT_TEST_F_END
 
-static void TestExtensionIntfCustomResourceTear() {
-    ResConfInfo* info = ResourceRegistry::getInstance()->getResConf(0x80ff0001);
-    C_ASSERT(info != nullptr);
+MT_TEST_F(ExtensionIntfTests, CustomResourceTear, "component-serial", ExtensionFixture) {
+    auto rr    = ResourceRegistry::getInstance();
+    auto* info = rr->getResConf(0x80ff0001);
+    if (!info) {
+        MT_FAIL(ctx, "Resource 0x80ff0001 not found — ensure configs are available and parsed.");
+    }
+
     funcCalled = false;
-    C_ASSERT(info->mResourceTearCallback != nullptr);
+    MT_REQUIRE(ctx, info->mResourceTearCallback != nullptr);
     info->mResourceTearCallback(nullptr);
-    C_ASSERT(funcCalled == true);
+    MT_REQUIRE_EQ(ctx, funcCalled, true);
 }
+MT_TEST_F_END
 
-static void RunTests() {
-    std::cout<<"Running Test Suite: [ExtensionIntfTests]\n"<<std::endl;
+// Note: No RunTests() / REGISTER_TEST() needed — mini.hpp auto-registers tests
+// and provides main() unless compiled with -DMTEST_NO_MAIN.
 
-    Init();
-    RUN_TEST(TestExtensionIntfModifiedResourceConfigPath);
-    RUN_TEST(TestExtensionIntfModifiedPropertiesConfigPath);
-    RUN_TEST(TestExtensionIntfModifiedSignalConfigPath);
-    RUN_TEST(TestExtensionIntfModifiedTargetConfigPath);
-    RUN_TEST(TestExtensionIntfModifiedInitConfigPath);
-    RUN_TEST(TestExtensionIntfCustomResourceApplier1);
-    RUN_TEST(TestExtensionIntfCustomResourceApplier2);
-    RUN_TEST(TestExtensionIntfCustomResourceTear);
-
-    std::cout<<"\nAll Tests from the suite: [ExtensionIntfTests], executed successfully"<<std::endl;
-}
-
-REGISTER_TEST(RunTests);
