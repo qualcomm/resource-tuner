@@ -5,6 +5,8 @@ Description=URM Service
 Restart=on-failure
 ExecStart=/usr/bin/urm
 TimeoutStopSec=2
+Slice=focused.slice
+Delegate=yes
 
 [Install]
 WantedBy=multi-user.target
