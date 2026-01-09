@@ -144,7 +144,7 @@ void RequestManager::addRequest(Request* request) {
     // Populate all the Trackers with info for this Request
     this->mActiveRequests[handle] = request;
     this->mRequestsList[ACTIVE_TUNE].insert(request);
-    this->mRequestProcessingStatus[handle] = REQ_UNCHANGED;
+    this->mRequestProcessingStatus[handle] |= REQ_UNCHANGED;
 
     // Add this request handle to the client list
     int32_t clientTID = request->getClientTID();
@@ -185,13 +185,17 @@ std::vector<Request*> RequestManager::getPendingList() {
 }
 
 void RequestManager::disableRequestProcessing(int64_t handle) {
-    this->mRequestProcessingStatus[handle] = REQ_CANCELLED;
+    this->mRequestMapMutex.lock();
+    this->mRequestProcessingStatus[handle] |= REQ_CANCELLED;
+    this->mRequestMapMutex.unlock();
 }
 
 void RequestManager::modifyRequestDuration(int64_t handle, int64_t duration) {
+    this->mRequestMapMutex.lock();
     if(this->mRequestProcessingStatus[handle] != REQ_CANCELLED) {
         this->mRequestProcessingStatus[handle] = duration;
     }
+    this->mRequestMapMutex.unlock();
 }
 
 int64_t RequestManager::getActiveReqeustsCount() {
@@ -199,10 +203,12 @@ int64_t RequestManager::getActiveReqeustsCount() {
 }
 
 void RequestManager::markRequestAsComplete(int64_t handle) {
-    this->mRequestProcessingStatus[handle] = REQ_COMPLETED;
+    this->mRequestMapMutex.lock();
+    this->mRequestProcessingStatus[handle] |= REQ_COMPLETED;
+    this->mRequestMapMutex.unlock();
 }
 
-int64_t RequestManager::getRequestProcessingStatus(int64_t handle) {
+int8_t RequestManager::getRequestProcessingStatus(int64_t handle) {
     return this->mRequestProcessingStatus[handle];
 }
 
