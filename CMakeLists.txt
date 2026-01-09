@@ -56,8 +56,13 @@ target_link_libraries(urm PUBLIC ${SERVER_LIBS})
 # Install bin
 install(TARGETS urm RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/urm.service.in
+    ${CMAKE_CURRENT_BINARY_DIR}/urm.service
+@ONLY)
+
 # Install service
 pkg_check_modules(PC_SYSTEMD QUIET systemd)
 if(PC_SYSTEMD_FOUND)
-  install(FILES ${CMAKE_SOURCE_DIR}/urm.service DESTINATION ${CMAKE_INSTALL_LIBDIR}/systemd/system/)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/urm.service DESTINATION ${CMAKE_INSTALL_LIBDIR}/systemd/system/)
 endif()
