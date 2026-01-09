@@ -37,8 +37,7 @@ private:
 
     int64_t mActiveRequestCount;
     std::unordered_set<Request*> mRequestsList[4];
-    std::unordered_map<int64_t, Request*> mActiveRequests;
-    std::unordered_map<int64_t, int8_t> mRequestProcessingStatus;
+    std::unordered_map<int64_t, std::pair<Request*, int8_t>> mActiveRequests;
     std::shared_timed_mutex mRequestMapMutex;
 
     RequestManager();
