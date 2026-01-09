@@ -48,8 +48,10 @@ target_link_libraries(urm PUBLIC ${SERVER_LIBS})
 # Install bin
 install(TARGETS urm RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
-# Install service
 pkg_check_modules(PC_SYSTEMD QUIET systemd)
 if(PC_SYSTEMD_FOUND)
+  # Install slice file
+  install(FILES ${CMAKE_SOURCE_DIR}/focused.slice DESTINATION ${CMAKE_INSTALL_LIBDIR}/systemd/system/ PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ GROUP_WRITE WORLD_READ WORLD_WRITE)
+  # Install service
   install(FILES ${CMAKE_SOURCE_DIR}/urm.service DESTINATION ${CMAKE_INSTALL_LIBDIR}/systemd/system/)
 endif()
