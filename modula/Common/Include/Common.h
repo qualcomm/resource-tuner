@@ -234,4 +234,17 @@ static uint32_t getResCodeFromString(const char* strCode, int8_t* found) {
     return 0;
 }
 
+//Predefined Signal config enums
+enum {
+    URM_SIGNAL_APP_OPEN = 0x00000001,
+    URM_SIGNAL_BROWSER_APP_OPEN = 0x00000002,
+    URM_SIG_GAME_APP_OPEN = 0x00000003,
+    URM_SIG_MULTIMEDIA_APP_OPEN = 0x00000004,
+    URM_SIG_VIDEO_DECODE = 0x00000005,
+    URM_SIG_CAMERA_PREVIEW = 0x00000006,
+    URM_SIG_CAMERA_ENCODE = 0x00000007,
+    URM_SIG_CAMERA_ENCODE_MULTI_STREAMS = 0x00000008,
+    URM_SIG_ENCODE_DECODE = 0x00000009,
+};
+
 #endif
