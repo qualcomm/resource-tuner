@@ -862,9 +862,6 @@ ErrCode RestuneParser::parsePerAppConfigYamlNode(const std::string& filePath) {
     int8_t inThreadList = false;
     int8_t inConfigList = false;
 
-    int32_t configurationsCount = 0;
-    int32_t threadsCount = 0;
-
     std::string value;
     std::string topKey;
     std::vector<std::string> itemArray;
