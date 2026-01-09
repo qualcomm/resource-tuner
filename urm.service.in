@@ -3,7 +3,7 @@ Description=URM Service
 
 [Service]
 Restart=on-failure
-ExecStart=/usr/bin/urm
+ExecStart=@CMAKE_INSTALL_FULL_BINDIR@/urm
 TimeoutStopSec=2
 
 [Install]
