@@ -90,7 +90,7 @@ int8_t RequestManager::requestMatch(Request* request) {
     // If it is, we can use multiple threads from the pool for faster checking
 
     for(int64_t handle: *clientHandles) {
-        Request* targetRequest = this->mActiveRequests[handle];
+        Request* targetRequest = this->mActiveRequests[handle].first;
 
         // Check that the Number of Resources in the requests are the same
         if(request->getResourcesCount() != targetRequest->getResourcesCount()) {
@@ -107,7 +107,7 @@ int8_t RequestManager::requestMatch(Request* request) {
 
 int8_t RequestManager::verifyHandle(int64_t handle) {
     this->mRequestMapMutex.lock_shared();
-    int8_t handleExists = (mActiveRequests.find(handle) != mActiveRequests.end());
+    int8_t handleExists = (this->mActiveRequests.find(handle) != this->mActiveRequests.end());
     this->mRequestMapMutex.unlock_shared();
 
     return handleExists;
@@ -115,7 +115,7 @@ int8_t RequestManager::verifyHandle(int64_t handle) {
 
 Request* RequestManager::getRequestFromMap(int64_t handle) {
     this->mRequestMapMutex.lock_shared();
-    Request* request = mActiveRequests[handle];
+    Request* request = this->mActiveRequests[handle].first;
     this->mRequestMapMutex.unlock_shared();
 
     return request;
@@ -142,9 +142,7 @@ void RequestManager::addRequest(Request* request) {
     int64_t handle = request->getHandle();
 
     // Populate all the Trackers with info for this Request
-    this->mActiveRequests[handle] = request;
-    this->mRequestsList[ACTIVE_TUNE].insert(request);
-    this->mRequestProcessingStatus[handle] |= REQ_UNCHANGED;
+    this->mActiveRequests[handle] = {request, REQ_UNCHANGED};
 
     // Add this request handle to the client list
     int32_t clientTID = request->getClientTID();
@@ -166,9 +164,6 @@ void RequestManager::removeRequest(Request* request) {
 
     // Remove the handle from the list of active requests
     this->mActiveRequests.erase(handle);
-    // Remove the Request from the list of Active Requests
-    this->mRequestsList[ACTIVE_TUNE].erase(request);
-    this->mRequestProcessingStatus.erase(handle);
 
     this->mActiveRequestCount--;
     this->mRequestMapMutex.unlock();
@@ -186,14 +181,14 @@ std::vector<Request*> RequestManager::getPendingList() {
 
 void RequestManager::disableRequestProcessing(int64_t handle) {
     this->mRequestMapMutex.lock();
-    this->mRequestProcessingStatus[handle] |= REQ_CANCELLED;
+    this->mActiveRequests[handle].second |= REQ_CANCELLED;
     this->mRequestMapMutex.unlock();
 }
 
 void RequestManager::modifyRequestDuration(int64_t handle, int64_t duration) {
     this->mRequestMapMutex.lock();
-    if(this->mRequestProcessingStatus[handle] != REQ_CANCELLED) {
-        this->mRequestProcessingStatus[handle] = duration;
+    if(this->mActiveRequests[handle].second != REQ_CANCELLED) {
+        this->mActiveRequests[handle].second = duration;
     }
     this->mRequestMapMutex.unlock();
 }
@@ -204,12 +199,12 @@ int64_t RequestManager::getActiveReqeustsCount() {
 
 void RequestManager::markRequestAsComplete(int64_t handle) {
     this->mRequestMapMutex.lock();
-    this->mRequestProcessingStatus[handle] |= REQ_COMPLETED;
+    this->mActiveRequests[handle].second |= REQ_COMPLETED;
     this->mRequestMapMutex.unlock();
 }
 
 int8_t RequestManager::getRequestProcessingStatus(int64_t handle) {
-    return this->mRequestProcessingStatus[handle];
+    return this->mActiveRequests[handle].second;
 }
 
 void RequestManager::moveToPendingList() {
