@@ -13,6 +13,8 @@ find_package(PkgConfig REQUIRED)
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 # Custom Build Options
 option(BUILD_CLASSIFIER "Classifier" OFF)
+option(BUILD_TESTS "Testing" OFF)
+
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/configs)
 add_subdirectory(${CMAKE_SOURCE_DIR}/modula)
@@ -21,6 +23,10 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/extensions)
 
 # resource-tuner is a mandatory build
 add_subdirectory(${CMAKE_SOURCE_DIR}/resource-tuner)
+
+if(BUILD_TESTS)
+add_subdirectory(${CMAKE_SOURCE_DIR}/tests)
+endif()
 
 # Create and install the urm executable
 set(SERVER_EXECUTABLE "")
