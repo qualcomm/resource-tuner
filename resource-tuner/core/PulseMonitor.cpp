@@ -13,7 +13,7 @@ static int8_t getAllRunningProcess(std::unordered_set<int64_t>& processId) {
         return -1;
     }
 
-    while(ent = readdir(proc)) {
+    while((ent = readdir(proc)) != nullptr) {
         if(!isdigit(*ent->d_name)) {
             continue;
         }

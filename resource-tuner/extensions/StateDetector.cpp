@@ -43,6 +43,8 @@ static void cleanup() {
 static int32_t onSdBusMessageReceived(sd_bus_message* message,
                                       void *userdata,
                                       sd_bus_error* retError) {
+    (void)userdata;
+    (void)retError;
     int8_t sleepStatus;
     LOGI("RESTUNE_MODE_DETECTION", "sd-bus signal received");
 
@@ -87,6 +89,9 @@ static int32_t onSdBusMessageReceived(sd_bus_message* message,
 static int32_t eventLoopTerminator(sd_event_source *s,
                                    const struct signalfd_siginfo *si,
                                    void *userdata) {
+    (void)s;;
+    (void)si;;
+    (void)userdata;
     sd_event_exit(event, 0);
     return 0;
 }
@@ -139,6 +144,7 @@ static void initHelper() {
 
 // Register Module's Callback functions
 static ErrCode init(void* arg) {
+    (void)arg;
     try {
         eventTrackerThread = std::thread(initHelper);
     } catch(const std::system_error& e) {
@@ -150,6 +156,7 @@ static ErrCode init(void* arg) {
 }
 
 static ErrCode tear(void* arg) {
+    (void)arg;
     if(eventTrackerThread.joinable()) {
         eventTrackerThread.join();
     }
