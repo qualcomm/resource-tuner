@@ -418,6 +418,7 @@ static void configureFocusedSlice() {
 }
 
 static ErrCode init(void* arg) {
+    (void)arg;
     // Server might have been restarted by systemd
     // Ensure that Resource Nodes are reset to sane state
     restoreToSafeState();
@@ -530,6 +531,7 @@ static ErrCode init(void* arg) {
 }
 
 static ErrCode tear(void* arg) {
+    (void)arg;
     // Check if the thread is joinable, to prevent undefined behaviour
     if(resourceTunerListener.joinable()) {
         resourceTunerListener.join();
