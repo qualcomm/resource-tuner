@@ -13,10 +13,12 @@
 static int8_t terminateServer = false;
 
 static void handleSIGINT(int32_t sig) {
+    (void)sig;
     terminateServer = true;
 }
 
 static void handleSIGTERM(int32_t sig) {
+    (void)sig;
     terminateServer = true;
 }
 
@@ -48,6 +50,8 @@ static void serverCleanup() {
 }
 
 int32_t main(int32_t argc, char *argv[]) {
+    (void)argc;
+    (void)argv;
     // Initialize syslog
     openlog(URM_IDENTIFIER, LOG_PID | LOG_CONS | LOG_NDELAY, LOG_DAEMON);
     setlogmask(LOG_UPTO(LOG_DEBUG));

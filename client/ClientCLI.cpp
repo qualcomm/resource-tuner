@@ -65,7 +65,12 @@ int8_t parseResources(const std::string& input,
 
 void sendTuneRequest(int64_t duration, int32_t priority, int32_t count, const std::string& resourceInfo) {
     std::vector<std::pair<uint32_t, std::pair<int32_t, std::vector<int32_t>>>> resourceVec;
-    if(parseResources(resourceInfo, resourceVec) == -1 || resourceVec.size() > count) {
+    if(count < 0)
+    {
+        std::cout<<"Invalid resouce count"<<std::endl;
+        return;
+    }
+    if(parseResources(resourceInfo, resourceVec) == -1 || resourceVec.size() > static_cast<size_t>(count)) {
         std::cout<<"Failed to parse Resource List"<<std::endl;
         return;
     }
@@ -73,7 +78,7 @@ void sendTuneRequest(int64_t duration, int32_t priority, int32_t count, const st
     std::cout<<"Number of unique resources in the request: "<<resourceVec.size()<<std::endl;
     SysResource* resourceList = new SysResource[resourceVec.size()];
 
-    for(int32_t i = 0; i < resourceVec.size(); i++) {
+    for(size_t i = 0; i < resourceVec.size(); i++) {
         memset(&resourceList[i], 0, sizeof(SysResource));
         resourceList[i].mResCode = resourceVec[i].first;
         resourceList[i].mResInfo = resourceVec[i].second.first;
@@ -89,7 +94,7 @@ void sendTuneRequest(int64_t duration, int32_t priority, int32_t count, const st
     }
 
     // Log the resources
-    for(int32_t idx = 0; idx < resourceVec.size(); idx++) {
+    for(size_t idx = 0; idx < resourceVec.size(); idx++) {
         std::cout<<"Printing Resource at index = "<<idx<<std::endl;
         std::cout<<"ResCode for this Resource = "<<resourceList[idx].mResCode<<std::endl;
         std::cout<<"ResInfo for this Resource = "<<resourceList[idx].mResInfo<<std::endl;

@@ -222,7 +222,7 @@ static ResPair resCodeMapping[] = {
 #undef X
 };
 
-static uint32_t getResCodeFromString(const char* strCode, int8_t* found) {
+static inline uint32_t getResCodeFromString(const char* strCode, int8_t* found) {
     int32_t size = sizeof(resCodeMapping) / sizeof(resCodeMapping[0]);
     for(int32_t i = 0; i < size; i++) {
         if(strcmp(resCodeMapping[i].name, strCode) == 0) {

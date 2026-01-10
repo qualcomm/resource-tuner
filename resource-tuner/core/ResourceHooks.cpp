@@ -677,6 +677,7 @@ static void resetRunOnCoresExclusively(void* context) {
 }
 
 static void no_op(void* context) {
+    (void)context;
     return;
 }
 
@@ -686,7 +687,6 @@ static void setPmQos(void* context) {
 
     if(resource->getValuesCount() < 1) return;
 
-    int32_t value = resource->getValueAt(0);
     int32_t clusterID = resource->getClusterValue();
 
     ClusterInfo* cinfo = TargetRegistry::getInstance()->getClusterInfo(clusterID);
@@ -705,7 +705,6 @@ static void resetPmQos(void* context) {
 
     if(resource->getValuesCount() < 1) return;
 
-    int32_t value = resource->getValueAt(0);
     int32_t clusterID = resource->getClusterValue();
 
     ClusterInfo* cinfo = TargetRegistry::getInstance()->getClusterInfo(clusterID);
