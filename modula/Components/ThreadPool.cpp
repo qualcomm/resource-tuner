@@ -158,8 +158,7 @@ int8_t ThreadPool::addNewThread(int8_t isCoreThread) {
         });
 
         try {
-            thNode->th = new std::thread(threadStartRoutine, isCoreThread);
-
+            thNode->th = std::make_unique<std::thread>(threadStartRoutine, isCoreThread);
         } catch(const std::system_error& e) {
             FreeBlock<ThreadNode>(static_cast<void*>(thNode));
             throw;

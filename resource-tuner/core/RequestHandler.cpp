@@ -359,6 +359,9 @@ void submitResProvisionReqMsg(void* msg) {
 
     } catch(const std::bad_alloc& e) {
         TYPELOGV(REQUEST_MEMORY_ALLOCATION_FAILURE, e.what());
+        if(request != nullptr) {
+            Request::cleanUpRequest(request);
+        }
     }
 
     if(info != nullptr) {

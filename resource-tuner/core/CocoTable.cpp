@@ -131,11 +131,11 @@ CocoTable::CocoTable() {
             vectorSize = TOTAL_PRIORITIES;
         }
 
-        std::vector<DLManager*> innerVec(vectorSize, nullptr);
-        for(size_t i = 0; i < vectorSize; i++) {
-            innerVec[i] = new DLManager(COCO_TABLE_DL_NR);
+        std::vector<std::unique_ptr<DLManager>> innerVec(vectorSize, nullptr);
+        for(int32_t i = 0; i < vectorSize; i++) {
+            innerVec.push_back(std::make_unique<DLManager>(COCO_TABLE_DL_NR));
         }
-        this->mCocoTable.push_back(innerVec);
+        this->mCocoTable.push_back(std::move(innerVec));
     }
 }
 
@@ -237,12 +237,15 @@ int8_t CocoTable::insertInCocoTable(ResIterable* newNode, int8_t priority) {
     Resource* resource = (Resource*) newNode->mData;
     ResConfInfo* rConf = this->mResourceRegistry->getResConf(resource->getResCode());
 
+    std::lock_guard<std::mutex> lock(mCocoTableMutex);
+
     // Special handling for resources with policy: "pass_through"
     if(rConf->mPolicy == Policy::PASS_THROUGH) {
         // straightaway apply the action
         this->fastPathApply(resource);
         return true;
     }
+
 
     int32_t primaryIndex = this->getCocoTablePrimaryIndex(resource->getResCode());
     int32_t secondaryIndex = this->getCocoTableSecondaryIndex(resource, priority);
@@ -498,5 +501,9 @@ void CocoTable::timerExpired(Request* request) {
 }
 
 // CocoNodes allocated for the Request will be freed up as part of Request Cleanup,
-// Use the Request::cleanUpRequest method, for freeing up these nodes.
-CocoTable::~CocoTable() {}
+// delete all preallocated nodes and cleanup coco table
+CocoTable::~CocoTable() {
+	//clear coco table
+	this->mCocoTable.clear();
+    this->mCocoTable.shrink_to_fit();		
+}

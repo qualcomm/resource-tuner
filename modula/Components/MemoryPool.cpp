@@ -44,8 +44,8 @@ int32_t MemoryPool::makeAllocation(int32_t blockCount) {
     try {
         const std::lock_guard<std::mutex> lock(this->mMemoryPoolMutex);
 
-        int32_t blocksAllocated = addNodesToFreeList(blockCount);
-        this->mfreeBlocks += blockCount;
+        blocksAllocated = addNodesToFreeList(blockCount);
+        this->mfreeBlocks += blocksAllocated;
         return blocksAllocated;
 
     } catch(const std::bad_alloc& e) {
@@ -160,13 +160,15 @@ MemoryPool::~MemoryPool() {
         }
 
         curNode = this->mAllocatedListHead;
-        while(curNode != nullptr) {
+        while(curNode != nullptr) {			
             MemoryNode* nextNode = curNode->next;
-
+            if(curNode->block != nullptr) {
+                delete[] static_cast<char*>(curNode->block);
+                curNode->block = nullptr;
+            }
             delete curNode;
             curNode = nextNode;
         }
-
     } catch(const std::bad_alloc& e) {}
 }
 

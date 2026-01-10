@@ -57,7 +57,7 @@ public:
 };
 
 struct ThreadNode {
-    std::thread* th;
+	std::unique_ptr<std::thread> th;
     ThreadNode* next;
 };
 

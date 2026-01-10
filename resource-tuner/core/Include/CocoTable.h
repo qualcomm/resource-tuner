@@ -103,6 +103,8 @@ private:
      *        For each resource, for each priority, you store a head (second) and tail (first) pointers to store a linked list in memory.
      */
     std::vector<std::vector<DLManager*>> mCocoTable;
+	
+    std::mutex mCocoTableMutex;
 
     /**
      * @brief Data structure storing the currently applied priority for each resource.
