@@ -157,6 +157,10 @@ static int8_t VerifyIncomingRequest(Request* req) {
     if(allowedPriority == -1) return false;
     req->setPriority(allowedPriority);
 
+    if(req->getResDlMgr() == nullptr) {
+        return false;
+    }
+
     DL_ITERATE(req->getResDlMgr()) {
         if(iter == nullptr) {
             return false;

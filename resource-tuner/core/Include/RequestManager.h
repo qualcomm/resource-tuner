@@ -17,10 +17,10 @@ enum RequestListType {
     PENDING_TUNE,
 };
 
-enum RequestProcessingStatus {
-    REQ_UNCHANGED = -2,
-    REQ_CANCELLED,
-    REQ_COMPLETED
+enum RequestProcessingStatus : int8_t {
+    REQ_UNCHANGED = 0x01,
+    REQ_CANCELLED = 0x02,
+    REQ_COMPLETED = 0x04,
 };
 
 /**
@@ -37,8 +37,7 @@ private:
 
     int64_t mActiveRequestCount;
     std::unordered_set<Request*> mRequestsList[4];
-    std::unordered_map<int64_t, Request*> mActiveRequests;
-    std::unordered_map<int64_t, int64_t> mRequestProcessingStatus;
+    std::unordered_map<int64_t, std::pair<Request*, int8_t>> mActiveRequests;
     std::shared_timed_mutex mRequestMapMutex;
 
     RequestManager();
@@ -114,7 +113,7 @@ public:
 
     void markRequestAsComplete(int64_t handle);
 
-    int64_t getRequestProcessingStatus(int64_t handle);
+    int8_t getRequestProcessingStatus(int64_t handle);
 
     std::vector<Request*> getPendingList();
 
