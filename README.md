@@ -3,7 +3,7 @@
 Official repo of URM project. 
 Below are the major components of URM:
 - resource-tuner
-- contextual-classifier
+- contextual-classifier (Netlink based realtime process monitor and classifier)
 
 ## Branches
 
