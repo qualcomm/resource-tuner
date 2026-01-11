@@ -2,7 +2,7 @@
 
 Official repo of URM project. Includes:
 - resource-tuner
-- contextual-classifier
+- contextual-classifier (NetLink based process monitor and classifier)
 
 ## Branches
 
