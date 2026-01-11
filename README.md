@@ -1,6 +1,7 @@
 # Userspace Resource Manager (URM)
 
-Official repo of URM project. Includes:
+Official repo of URM project. 
+Below are the major components of URM:
 - resource-tuner
 - contextual-classifier
 
