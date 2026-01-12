@@ -43,7 +43,6 @@ void Logger::log(int32_t level,
                  const std::string& tag,
                  const std::string& funcName,
                  const char* message) {
-
     if(mLevelSpecificLogging) {
         if(level != mLowestLogLevel) return;
     } else {
