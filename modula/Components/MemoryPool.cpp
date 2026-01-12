@@ -44,7 +44,7 @@ int32_t MemoryPool::makeAllocation(int32_t blockCount) {
     try {
         const std::lock_guard<std::mutex> lock(this->mMemoryPoolMutex);
 
-        int32_t blocksAllocated = addNodesToFreeList(blockCount);
+        blocksAllocated = this->addNodesToFreeList(blockCount);
         this->mfreeBlocks += blockCount;
         return blocksAllocated;
 

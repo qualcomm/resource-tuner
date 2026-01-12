@@ -947,7 +947,7 @@ static void TestGetRequestFromMap() {
     C_ASSERT((result == true));
 
     // Retrieve request and check it's integrity
-    Request* fetchedRequest = requestMap->getRequestFromMap(325);
+    Request* fetchedRequest = requestMap->getRequestFromMap(325).first;
 
     C_ASSERT((fetchedRequest != nullptr));
     C_ASSERT((fetchedRequest->getDuration() == -1));
@@ -957,7 +957,7 @@ static void TestGetRequestFromMap() {
 
     requestMap->removeRequest(request);
 
-    fetchedRequest = requestMap->getRequestFromMap(325);
+    fetchedRequest = requestMap->getRequestFromMap(325).first;
     C_ASSERT((fetchedRequest == nullptr));
 
     clientDataManager->deleteClientPID(testClientPID);

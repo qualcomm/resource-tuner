@@ -41,12 +41,12 @@ void ResourceRegistry::setLifeCycleCallbacks(ResConfInfo* resourceConfigInfo) {
 void ResourceRegistry::addDefaultValue(const std::string& filePath, const std::string& value) {
     this->mDefaultValueStore[filePath] = value;
 
-    std::fstream persistenceFile(UrmSettings::mPersistenceFile, std::ios::out | std::ios::app);
-    std::string resourceData = filePath;
-    resourceData.push_back(',');
-    resourceData.append(value);
-    resourceData.push_back('\n');
-    persistenceFile << resourceData;
+    // std::fstream persistenceFile(UrmSettings::mPersistenceFile, std::ios::out | std::ios::app);
+    // std::string resourceData = filePath;
+    // resourceData.push_back(',');
+    // resourceData.append(value);
+    // resourceData.push_back('\n');
+    // persistenceFile << resourceData;
 }
 
 void ResourceRegistry::fetchAndStoreDefaults(ResConfInfo* resourceConfigInfo) {
@@ -183,6 +183,10 @@ int32_t ResourceRegistry::getTotalResourcesCount() {
 
 std::string ResourceRegistry::getDefaultValue(const std::string& filePath) {
     return this->mDefaultValueStore[filePath];
+}
+
+void ResourceRegistry::deleteDefaultValue(const std::string& filePath) {
+    this->mDefaultValueStore.erase(filePath);
 }
 
 void ResourceRegistry::pluginModifications() {

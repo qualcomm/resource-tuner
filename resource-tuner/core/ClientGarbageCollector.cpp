@@ -45,7 +45,8 @@ void ClientGarbageCollector::performCleanup() {
         ClientDataManager::getInstance()->deleteClientTID(clientTID);
 
         for(int64_t handle: handlesToRemove) {
-            Request* request = RequestManager::getInstance()->getRequestFromMap(handle);
+            RequestInfo reqInfo = RequestManager::getInstance()->getRequestFromMap(handle);
+            Request* request = reqInfo.first;
             if(request == nullptr) continue;
 
             Request* untuneRequest = nullptr;

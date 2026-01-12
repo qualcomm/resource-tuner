@@ -36,4 +36,4 @@ PropertyConfigs:
 
   - Name: urm.logging.redirect_to
     # Possible values: FILE, SYSLOG, FTRACE, LOGCAT.
-    Value: "SYSLOG"
+    Value: "FILE"

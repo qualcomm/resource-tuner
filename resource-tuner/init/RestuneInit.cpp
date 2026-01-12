@@ -59,6 +59,7 @@ static void preAllocateMemory() {
 
     MakeAlloc<Message> (concurrentRequestsUB);
     MakeAlloc<Request> (concurrentRequestsUB);
+    MakeAlloc<DLManager> (concurrentRequestsUB);
     MakeAlloc<Timer> (concurrentRequestsUB);
     MakeAlloc<Resource> (maxBlockCount);
     MakeAlloc<ClientInfo> (maxBlockCount);
@@ -111,8 +112,9 @@ static ErrCode fetchMetaConfigs() {
         UrmSettings::targetConfigs.targetName = AuxRoutines::getMachineName();
         TYPELOGV(NOTIFY_CURRENT_TARGET_NAME, UrmSettings::targetConfigs.targetName.c_str());
 
-        submitPropGetRequest(MAX_CONCURRENT_REQUESTS, resultBuffer, "120");
-        UrmSettings::metaConfigs.mMaxConcurrentRequests = (uint32_t)std::stol(resultBuffer);
+        // submitPropGetRequest(MAX_CONCURRENT_REQUESTS, resultBuffer, "120");
+        UrmSettings::metaConfigs.mMaxConcurrentRequests = 50;
+        // (uint32_t)std::stol(resultBuffer);
 
         submitPropGetRequest(MAX_RESOURCES_PER_REQUEST, resultBuffer, "5");
         UrmSettings::metaConfigs.mMaxResourcesPerRequest = (uint32_t)std::stol(resultBuffer);

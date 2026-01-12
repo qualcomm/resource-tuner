@@ -337,6 +337,10 @@ int8_t CocoTable::insertRequest(Request* req) {
     // Iterate over all the resources in the request and add them to the table.
     // Note the notion of "request being applied" refers to one or more of the resource configurations
     // part of the request being applied.
+    if(req->getResDlMgr() == nullptr) {
+        return false;
+    }
+
     DL_ITERATE(req->getResDlMgr()) {
         // Expect ResIterable* iter to be provided by the macro
         if(iter == nullptr) continue;
@@ -360,7 +364,9 @@ int8_t CocoTable::insertRequest(Request* req) {
 }
 
 int8_t CocoTable::updateRequest(Request* req, int64_t duration) {
-    if(req == nullptr || duration < -1 || (duration > 0 && (duration < req->getDuration()))) return false;
+    if(req == nullptr || duration < -1 || (duration > 0 && (duration < req->getDuration()))) {
+        return false;
+    }
     TYPELOGV(NOTIFY_COCO_TABLE_UPDATE_START, req->getHandle(), duration);
 
     // Update the duration of the request, and the corresponding timer interval.
@@ -405,6 +411,11 @@ int8_t CocoTable::updateRequest(Request* req, int64_t duration) {
 int8_t CocoTable::removeRequest(Request* request) {
     TYPELOGV(NOTIFY_COCO_TABLE_REMOVAL_START, request->getHandle());
 
+    if(request == nullptr || request->getResDlMgr() == nullptr) {
+        // nothing to do
+        return 0;
+    }
+
     DL_ITERATE(request->getResDlMgr()) {
         if(iter == nullptr) continue;
 
@@ -429,6 +440,7 @@ int8_t CocoTable::removeRequest(Request* request) {
         }
 
         DLManager* dlm = this->mCocoTable[primaryIndex][secondaryIndex];
+        if(dlm == nullptr) continue;
         int8_t nodeIsHead = dlm->isNodeNth(0, iter);
 
         // Proceed with removal of the node from CocoTable
