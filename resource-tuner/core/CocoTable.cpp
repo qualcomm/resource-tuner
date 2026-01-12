@@ -511,4 +511,11 @@ void CocoTable::timerExpired(Request* request) {
 
 // CocoNodes allocated for the Request will be freed up as part of Request Cleanup,
 // Use the Request::cleanUpRequest method, for freeing up these nodes.
-CocoTable::~CocoTable() {}
+CocoTable::~CocoTable() {
+    for(int32_t i = 0; i < this->mCocoTable.size(); i++) {
+        for(int32_t j = 0; j < this->mCocoTable[i].size(); j++) {
+            delete(this->mCocoTable[i][j]);
+            this->mCocoTable[i][j] = nullptr;
+        }
+    }
+}

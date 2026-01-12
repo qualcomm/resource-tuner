@@ -161,29 +161,29 @@ void ContextualClassifier::ClassifierMain() {
                 // Identify if any signal configuration exists
                 // Will return the sigID based on the workload
                 // For example: game, browser, multimedia
-                GetSignalDetailsForWorkload(contextType, sigId, sigSubtype);
+                this->GetSignalDetailsForWorkload(contextType, sigId, sigSubtype);
 
                 // Step 2:
                 // - Move the process to focused-cgroup, Also involves removing the process
                 //  already there from the cgroup.
                 // - Move the "threads" from per-app config to appropriate cgroups
-                MoveAppThreadsToCGroup(ev.pid, comm, FOCUSED_CGROUP_IDENTIFIER);
+                this->MoveAppThreadsToCGroup(ev.pid, comm, FOCUSED_CGROUP_IDENTIFIER);
 
                 // Step 3: If the post processing block exists, call it
                 // It might provide us a more specific sigSubtype
-                // PostProcessingCallback postCb =
-                //     Extensions::getPostProcessingCallback(comm);
-                // if(postCb) {
-                //     PostProcessCBData postProcessData = {
-                //         .mPid = ev.pid,
-                //         .mSigId = sigId,
-                //         .mSigSubtype = sigSubtype,
-                //     };
-                //     postCb((void*)&postProcessData);
+                PostProcessingCallback postCb =
+                    Extensions::getPostProcessingCallback(comm);
+                if(postCb) {
+                    PostProcessCBData postProcessData = {
+                        .mPid = ev.pid,
+                        .mSigId = sigId,
+                        .mSigSubtype = sigSubtype,
+                    };
+                    postCb((void*)&postProcessData);
 
-                //     sigId = postProcessData.mSigId;
-                //     sigSubtype = postProcessData.mSigSubtype;
-                // }
+                    sigId = postProcessData.mSigId;
+                    sigSubtype = postProcessData.mSigSubtype;
+                }
 
                 //Step 4: Apply actions, call tuneSignal
                 // Skip

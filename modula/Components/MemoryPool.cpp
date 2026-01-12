@@ -16,18 +16,23 @@ int32_t MemoryPool::addNodesToFreeList(int32_t blockCount) {
     for(int32_t i = 0; i < blockCount; i++) {
         MemoryNode* allocationBlock = nullptr;
 
-        try {
-            allocationBlock = new MemoryNode;
-            allocationBlock->block = new char[this->mBlockSize];
-            allocationBlock->next = nullptr;
-            allocatedCount++;
-
-        } catch(const std::bad_alloc& e) {
+        allocationBlock = new(std::nothrow) MemoryNode;
+        if(allocationBlock == nullptr) {
             TYPELOGV(MEMORY_POOL_ALLOCATION_FAILURE, this->mBlockSize,
                      blockCount, allocatedCount);
             return allocatedCount;
         }
 
+        allocationBlock->next = nullptr;
+        allocationBlock->block = new(std::nothrow) char[this->mBlockSize];
+        if(allocationBlock->block == nullptr) {
+            TYPELOGV(MEMORY_POOL_ALLOCATION_FAILURE, this->mBlockSize,
+                     blockCount, allocatedCount);
+            delete(allocationBlock);
+            return allocatedCount;
+        }
+
+        allocatedCount++;
         if(this->mFreeListHead == nullptr) {
             this->mFreeListHead = allocationBlock;
             this->mFreeListTail = allocationBlock;
@@ -36,6 +41,7 @@ int32_t MemoryPool::addNodesToFreeList(int32_t blockCount) {
             this->mFreeListTail = this->mFreeListTail->next;
         }
     }
+
     return allocatedCount;
 }
 
@@ -162,6 +168,10 @@ MemoryPool::~MemoryPool() {
         curNode = this->mAllocatedListHead;
         while(curNode != nullptr) {
             MemoryNode* nextNode = curNode->next;
+            if(curNode->block != nullptr) {
+                delete[] static_cast<char*> (curNode->block);
+                curNode->block = nullptr;
+            }
 
             delete curNode;
             curNode = nextNode;
@@ -250,6 +260,15 @@ void PoolWrapper::freeBlock(std::type_index typeIndex, void* block) {
 
     if(memoryPool != nullptr) {
         memoryPool->freeBlock(block);
+    }
+}
+
+PoolWrapper::~PoolWrapper() {
+    for(std::pair<std::type_index, MemoryPool*> entry: this->mMemoryPoolRefs) {
+        if(entry.second != nullptr) {
+            delete entry.second;
+            entry.second = nullptr;
+        }
     }
 }
 
