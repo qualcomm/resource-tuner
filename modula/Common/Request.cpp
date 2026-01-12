@@ -5,7 +5,7 @@
 
 Request::Request() {
     this->mTimer = nullptr;
-    this->mResourceList = new DLManager(REQUEST_DL_NR);
+    this->mResourceList = MPLACEV(DLManager, REQUEST_DL_NR);
 }
 
 int32_t Request::getResourcesCount() {
@@ -62,7 +62,7 @@ void Request::clearResources() {
 // Use cleanpUpRequest for clearing a Request and it's associated components
 Request::~Request() {
     if(this->mResourceList != nullptr) {
-        delete(this->mResourceList);
+        FreeBlock<DLManager>(this->mResourceList);
         this->mResourceList = nullptr;
     }
 }

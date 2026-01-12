@@ -44,13 +44,29 @@ struct ProcEvent {
 };
 
 class ContextualClassifier {
-  public:
-    ContextualClassifier();
-    ~ContextualClassifier();
-    ErrCode Init();
-    ErrCode Terminate();
+private:
+    NetLinkComm mNetLinkComm;
+    Inference *mInference;
 
-  private:
+    // Event queue for classifier main thread
+    std::queue<ProcEvent> mPendingEv;
+    std::mutex mQueueMutex;
+    std::condition_variable mQueueCond;
+    std::thread mClassifierMain;
+    std::thread mNetlinkThread;
+    volatile bool mNeedExit = false;
+
+    std::unordered_set<std::string> mIgnoredProcesses;
+    bool mDebugMode = false;
+
+    std::unordered_set<pid_t> mIgnoredPids;
+    std::unordered_map<pid_t, uint64_t> mResTunerHandles;
+
+	pid_t mOurPid = 0;
+    pid_t mOurTid = 0;
+
+    int64_t mRestuneHandle;
+
     void ClassifierMain();
     int32_t HandleProcEv();
 
@@ -73,30 +89,16 @@ class ContextualClassifier {
 	pid_t FetchPid(const std::string& process_name);
 	bool IsNumericString(const std::string& str);
     ResIterable* createMovePidResource(int32_t cGroupdId, pid_t pid);
-    int64_t MoveAppThreadsToCGroup(pid_t incomingPID,
-                                   const std::string& comm,
-                                   int32_t cgroupIdentifier);
+    void MoveAppThreadsToCGroup(pid_t incomingPID,
+                                const std::string& comm,
+                                int32_t cgroupIdentifier);
 
-private:
-    NetLinkComm mNetLinkComm;
-    Inference *mInference;
+public:
+    ContextualClassifier();
+    ~ContextualClassifier();
 
-    // Event queue for classifier main thread
-    std::queue<ProcEvent> mPendingEv;
-    std::mutex mQueueMutex;
-    std::condition_variable mQueueCond;
-    std::thread mClassifierMain;
-    std::thread mNetlinkThread;
-    volatile bool mNeedExit = false;
-
-    std::unordered_set<std::string> mIgnoredProcesses;
-    bool mDebugMode = false;
-
-    std::unordered_set<pid_t> mIgnoredPids;
-    std::unordered_map<pid_t, uint64_t> mResTunerHandles;
-
-	pid_t mOurPid = 0;
-    pid_t mOurTid = 0;
+    ErrCode Init();
+    ErrCode Terminate();
 };
 
 #endif // CONTEXTUAL_CLASSIFIER_H

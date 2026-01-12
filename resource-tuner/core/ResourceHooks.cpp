@@ -358,6 +358,9 @@ static void moveProcessToCGroup(void* context) {
     CGroupConfigInfo* cGroupConfig =
         TargetRegistry::getInstance()->getCGroupConfig(cGroupIdentifier);
 
+    ResConfInfo* resourceConfig =
+        ResourceRegistry::getInstance()->getResConf(resource->getResCode());
+
     if(cGroupConfig == nullptr) {
         TYPELOGV(VERIFIER_CGROUP_NOT_FOUND, cGroupIdentifier);
         return;
@@ -369,7 +372,12 @@ static void moveProcessToCGroup(void* context) {
         return;
     }
 
-    std::string controllerFilePath = getCGroupTypeResourceNodePath(resource, cGroupName);
+    std::string filePath = resourceConfig->mResourcePath;
+
+    // Replace %s in above file path with the actual cgroup name
+    char pathBuffer[128] = {0};
+    std::snprintf(pathBuffer, sizeof(pathBuffer), filePath.c_str(), cGroupName.c_str());
+
     for(int32_t i = 1; i < resource->getValuesCount(); i++) {
         int32_t pid = resource->getValueAt(i);
         std::string currentCGroupFilePath = "/proc/" + std::to_string(pid) + "/cgroup";
@@ -380,8 +388,8 @@ static void moveProcessToCGroup(void* context) {
             ResourceRegistry::getInstance()->addDefaultValue(currentCGroupFilePath, currentCGroup);
         }
 
-        TYPELOGV(NOTIFY_NODE_WRITE, controllerFilePath.c_str(), pid);
-        std::ofstream controllerFile(controllerFilePath);
+        TYPELOGV(NOTIFY_NODE_WRITE, pathBuffer, pid);
+        std::ofstream controllerFile(pathBuffer);
         if(!controllerFile.is_open()) {
             TYPELOGV(ERRNO_LOG, "open", strerror(errno));
             return;
@@ -571,13 +579,17 @@ static void removeProcessFromCGroup(void* context) {
     for(int32_t i = 1; i < resource->getValuesCount(); i++) {
         int32_t pid = resource->getValueAt(i);
 
+        std::string originalCGroupKey = "/proc/" + std::to_string(pid) + "/cgroup";
         std::string cGroupPath =
-            ResourceRegistry::getInstance()->getDefaultValue("/proc/" + std::to_string(pid) + "/cgroup");
+            ResourceRegistry::getInstance()->getDefaultValue(originalCGroupKey);
+
         if(cGroupPath.length() == 0) {
             cGroupPath = UrmSettings::mBaseCGroupPath + "cgroup.procs";
         } else {
             cGroupPath =  UrmSettings::mBaseCGroupPath + cGroupPath + "/cgroup.procs";
         }
+
+        ResourceRegistry::getInstance()->deleteDefaultValue(originalCGroupKey);
 
         LOGD("RESTUNE_COCO_TABLE", "Moving PID: " + std::to_string(pid) + " to: " + cGroupPath);
         std::ofstream controllerFile(cGroupPath, std::ios::app);
