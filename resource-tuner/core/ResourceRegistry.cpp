@@ -218,7 +218,7 @@ void ResourceRegistry::restoreResourcesToDefaultValues() {
 }
 
 ResourceRegistry::~ResourceRegistry() {
-    for(int32_t i = 0; i < this->mResourceConfigs.size(); i++) {
+    for(size_t i = 0; i < this->mResourceConfigs.size(); i++) {
         if(this->mResourceConfigs[i] != nullptr) {
             delete this->mResourceConfigs[i];
             this->mResourceConfigs[i] = nullptr;

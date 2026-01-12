@@ -77,16 +77,10 @@ private:
     void ClassifierMain();
     int32_t HandleProcEv();
 
-    int MovePidToCgroup(int process_pid, int cgroupId);
-
-    int32_t ClassifyProcess(pid_t pid,
-                            pid_t tgid,
-                            const std::string &comm,
-                            uint32_t &ctxDetails);
     void ApplyActions(std::string comm, int32_t sigId, int32_t sigType);
     void RemoveActions(pid_t pid, int tgid);
 
-    Inference *GetInferenceObject();
+    Inference* GetInferenceObject();
 
 	void GetSignalDetailsForWorkload(int32_t contextType,
                                      uint32_t &sigId,
@@ -102,6 +96,12 @@ private:
     void MoveAppThreadsToCGroup(pid_t incomingPID,
                                 const std::string& comm,
                                 int32_t cgroupIdentifier);
+
+
+    int32_t ClassifyProcess(pid_t pid,
+                            pid_t tgid,
+                            const std::string &comm,
+                            uint32_t &ctxDetails);
 
 public:
     ContextualClassifier();

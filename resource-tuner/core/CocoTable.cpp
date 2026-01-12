@@ -132,7 +132,7 @@ CocoTable::CocoTable() {
         }
 
         std::vector<DLManager*> innerVec(vectorSize, nullptr);
-        for(int32_t i = 0; i < vectorSize; i++) {
+        for(size_t i = 0; i < vectorSize; i++) {
             innerVec[i] = new DLManager(COCO_TABLE_DL_NR);
         }
         this->mCocoTable.push_back(innerVec);

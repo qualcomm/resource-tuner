@@ -388,7 +388,39 @@ static void* restuneThreadStart() {
     return nullptr;
 }
 
+static ErrCode setCgroupParam(const char *slice, const char *name, const char *value) {
+    // 1) Build the absolute cGroupPath: /sys/fs/cgroup/<slice>/<name>
+    std::string cGroupPath = UrmSettings::mBaseCGroupPath;
+    cGroupPath += slice;
+    cGroupPath += "/";
+    cGroupPath += name;
+    // 2) Quick existence/permission check for diagnostics
+    if (!AuxRoutines::fileExists(cGroupPath)) {
+        // Compose a detailed log line with cGroupPath + strerror
+        std::string detail = "cGroupPath=" + cGroupPath + ", err=" + std::string(strerror(errno));
+        TYPELOGV(ERRNO_LOG, "access", detail.c_str());
+        return RC_SOCKET_FD_READ_FAILURE;
+    }
+    // 3) Write the value with newline (echo-style)
+    AuxRoutines::writeToFile(cGroupPath, value);
+    return RC_SUCCESS;
+}
+
+static void configureFocusedSlice() {
+    // 2D array of const char* pairs: {key, value}
+    const char *cgroupParam[][2] = {
+        { "cgroup.max.depth",       "3"  },
+        { "cgroup.max.descendants", "10" },
+        // { "pids.max",               "100" },
+    };
+
+    for (size_t i = 0; i < sizeof(cgroupParam)/sizeof(cgroupParam[0]); i++) {
+        setCgroupParam(FOCUSED_SLICE, cgroupParam[i][0], cgroupParam[i][1]);
+    }
+}
+
 static ErrCode init(void* arg) {
+    (void)arg;
     // Server might have been restarted by systemd
     // Ensure that Resource Nodes are reset to sane state
     restoreToSafeState();
@@ -459,6 +491,9 @@ static ErrCode init(void* arg) {
     // Initialize external features
     ExtFeaturesRegistry::getInstance()->initializeFeatures();
 
+    // Configure focused.slice parameters
+    configureFocusedSlice();
+
     // Create the Processor thread:
     try {
         restuneHandlerThread = std::thread(restuneThreadStart);
@@ -498,6 +533,7 @@ static ErrCode init(void* arg) {
 }
 
 static ErrCode tear(void* arg) {
+    (void)arg;
     // Check if the thread is joinable, to prevent undefined behaviour
     if(resourceTunerListener.joinable()) {
         resourceTunerListener.join();
