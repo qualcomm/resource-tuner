@@ -143,7 +143,6 @@ int NetLinkComm::RecvEvent(ProcEvent &ev) {
             ev.tgid = nlcn_msg.proc_ev.event_data.exec.process_tgid;
             ev.type = CC_APP_OPEN;
             rc = CC_APP_OPEN;
-            LOGE(CLASSIFIER_TAG, "Incoming process comm is: " + AuxRoutines::readFromFile(COMM(ev.pid)));
             break;
 
         case PROC_EVENT_UID:
@@ -174,7 +173,6 @@ int NetLinkComm::RecvEvent(ProcEvent &ev) {
             ev.tgid = nlcn_msg.proc_ev.event_data.exit.process_tgid;
             ev.type = CC_APP_CLOSE;
             rc = CC_APP_CLOSE;
-            LOGE(CLASSIFIER_TAG, "Incoming process comm is: " + AuxRoutines::readFromFile(COMM(ev.pid)));
             break;
 
         default:

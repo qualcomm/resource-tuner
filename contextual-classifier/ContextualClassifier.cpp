@@ -173,7 +173,7 @@ void ContextualClassifier::ClassifierMain() {
                 // It might provide us a more specific sigSubtype
                 PostProcessingCallback postCb =
                     Extensions::getPostProcessingCallback(comm);
-                if(postCb) {
+                if(postCb != nullptr) {
                     PostProcessCBData postProcessData = {
                         .mPid = ev.pid,
                         .mSigId = sigId,
@@ -185,7 +185,7 @@ void ContextualClassifier::ClassifierMain() {
                     sigSubtype = postProcessData.mSigSubtype;
                 }
 
-                //Step 4: Apply actions, call tuneSignal
+                // Step 4: Apply actions, call tuneSignal
                 // Skip
                 // ApplyActions(comm, sigId, sigSubtype);
             }
