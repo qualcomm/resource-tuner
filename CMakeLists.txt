@@ -25,6 +25,8 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/extensions)
 add_subdirectory(${CMAKE_SOURCE_DIR}/resource-tuner)
 
 if(BUILD_TESTS)
+include(CTest)       # sets BUILD_TESTING option
+enable_testing()     # turns on CTest collection
 add_subdirectory(${CMAKE_SOURCE_DIR}/tests)
 endif()
 
