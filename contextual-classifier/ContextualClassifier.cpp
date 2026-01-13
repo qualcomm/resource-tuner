@@ -507,27 +507,25 @@ void ContextualClassifier::MoveAppThreadsToCGroup(pid_t incomingPID,
         ResIterable* resIter = this->createMovePidResource(cgroupIdentifier, incomingPID);
         request->addResource(resIter);
 
-        // AppConfig* appConfig = AppConfigs::getInstance()->getAppConfig(comm);
-        // if(appConfig != nullptr && appConfig->mThreadNameList != nullptr) {
-        //     int32_t numThreads = appConfig->mNumThreads;
-        //     // Go over the list of proc names (comm) and get their pids
-        //     for(int32_t i = 0; i < numThreads; i++) {
-        //         std::string targetComm = appConfig->mThreadNameList[i];
-        //         pid_t targetPID = FetchPid(targetComm);
-        //         if(targetPID != -1 && targetPID != incomingPID) {
-        //             // Get the CGroup
-        //             int32_t currCGroupID = appConfig->mCGroupIds[i];
-        //             request->addResource(createMovePidResource(currCGroupID, targetPID));
-        //         }
-        //     }
-        // }
+        AppConfig* appConfig = AppConfigs::getInstance()->getAppConfig(comm);
+        if(appConfig != nullptr && appConfig->mThreadNameList != nullptr) {
+            int32_t numThreads = appConfig->mNumThreads;
+            // Go over the list of proc names (comm) and get their pids
+            for(int32_t i = 0; i < numThreads; i++) {
+                std::string targetComm = appConfig->mThreadNameList[i];
+                pid_t targetPID = this->FetchPid(targetComm);
+                if(targetPID != -1 && targetPID != incomingPID) {
+                    // Get the CGroup
+                    int32_t currCGroupID = appConfig->mCGroupIds[i];
+                    request->addResource(createMovePidResource(currCGroupID, targetPID));
+                }
+            }
+        }
 
         // Anything to issue
         if(request->getResourcesCount() > 0) {
             // fast path to Request Queue
-            LOGE(CLASSIFIER_TAG, "Issuing tune request with handle = " + std::to_string(request->getHandle()));
             submitResProvisionRequest(request, true);
-            LOGE(CLASSIFIER_TAG, "Tune Request Issued");
         } else {
             Request::cleanUpRequest(request);
             this->mRestuneHandle = -1;
@@ -538,7 +536,6 @@ void ContextualClassifier::MoveAppThreadsToCGroup(pid_t incomingPID,
              "Failed to move per-app threads to cgroup, Error: " + std::string(e.what()));
         this->mRestuneHandle = -1;
     }
-    LOGE(CLASSIFIER_TAG, "exit MoveAppThreadsToCGroup");
 }
 
 // Public C interface exported from the contextual-classifier shared library.
