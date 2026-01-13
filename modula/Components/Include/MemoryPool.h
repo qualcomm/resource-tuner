@@ -106,7 +106,7 @@ private:
 
 public:
     PoolWrapper() {}
-    ~PoolWrapper() {}
+    ~PoolWrapper();
 
     /**
      * @brief Allocate memory for the specified type T.

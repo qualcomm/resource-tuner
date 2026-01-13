@@ -12,15 +12,31 @@
 #include "CocoTable.h"
 #include "ClientDataManager.h"
 
+typedef std::pair<Request*, int8_t> RequestInfo;
+
 enum RequestListType {
-    ACTIVE_TUNE,
+    ACTIVE_TUNE = 0,
     PENDING_TUNE,
 };
 
-enum RequestProcessingStatus {
-    REQ_UNCHANGED = -2,
-    REQ_CANCELLED,
-    REQ_COMPLETED
+enum RequestProcessingStatus : int8_t {
+    REQ_UNCHANGED = 0x01,
+    REQ_CANCELLED = 0x02,
+    REQ_COMPLETED = 0x04,
+    REQ_NOT_FOUND = 0x08,
+};
+
+class HandleCache {
+private:
+    int32_t mMaxSize;
+    std::unordered_set<int64_t> mHandleSet;
+    std::queue<int64_t> mRecencyQueue;
+
+public:
+    HandleCache(int32_t maxSize = 30);
+
+    void insert(int64_t handle);
+    int8_t isPresent(int64_t handle);
 };
 
 /**
@@ -35,10 +51,9 @@ private:
     static std::shared_ptr<RequestManager> mReqeustManagerInstance;
     static std::mutex instanceProtectionLock;
 
-    int64_t mActiveRequestCount;
-    std::unordered_set<Request*> mRequestsList[4];
-    std::unordered_map<int64_t, Request*> mActiveRequests;
-    std::unordered_map<int64_t, int64_t> mRequestProcessingStatus;
+    std::unordered_set<Request*> mRequestsList[2];
+    std::unordered_map<int64_t, RequestInfo> mActiveRequests;
+    HandleCache mUntuneCache;
     std::shared_timed_mutex mRequestMapMutex;
 
     RequestManager();
@@ -75,7 +90,7 @@ public:
      * @details This routine should only be called if shouldRequestBeAdded returns 1.
      * @param request pointer to the request to be added to the map
      */
-    void addRequest(Request* request);
+    int8_t addRequest(Request* request);
 
     /**
      * @brief Remove a given request from the RequestMap
@@ -89,7 +104,7 @@ public:
      * @return Request*:\n
      *            - Pointer to the request with the specified index.
      */
-    Request* getRequestFromMap(int64_t handle);
+    RequestInfo getRequestFromMap(int64_t handle);
 
     /**
      * @brief Get the current Global Active Requests Count
@@ -108,13 +123,13 @@ public:
      *
      * @param handle Request Identifier, for which processing needs to be disabled.
      */
-    void disableRequestProcessing(int64_t handle);
+    int8_t disableRequestProcessing(int64_t handle);
 
     void modifyRequestDuration(int64_t handle, int64_t duration);
 
     void markRequestAsComplete(int64_t handle);
 
-    int64_t getRequestProcessingStatus(int64_t handle);
+    int8_t getRequestProcessingStatus(int64_t handle);
 
     std::vector<Request*> getPendingList();
 

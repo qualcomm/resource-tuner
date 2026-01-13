@@ -139,6 +139,7 @@ public:
     std::string getDefaultValue(const std::string& fileName);
 
     void addDefaultValue(const std::string& key, const std::string& value);
+    void deleteDefaultValue(const std::string& filePath);
     void restoreResourcesToDefaultValues();
     void displayResources();
 

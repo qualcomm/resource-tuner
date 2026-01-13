@@ -641,6 +641,9 @@ ErrCode RestuneParser::parseSignalConfigYamlNode(const std::string& filePath, in
                         inResourcesMap = true;
                         resourceBuilder = new(std::nothrow) ResourceBuilder;
                         if(resourceBuilder == nullptr) {
+                            if(signalInfoBuilder != nullptr) {
+                                delete(signalInfoBuilder);
+                            }
                             return RC_YAML_PARSING_ERROR;
                         }
 
@@ -660,7 +663,7 @@ ErrCode RestuneParser::parseSignalConfigYamlNode(const std::string& filePath, in
                     inResourcesMap = false;
                     if(RC_IS_OK(rc)) {
                         rc = signalInfoBuilder->addResource(resourceBuilder->build());
-                        delete resourceBuilder;
+                        delete(resourceBuilder);
                         resourceBuilder = nullptr;
                     }
 
@@ -674,7 +677,7 @@ ErrCode RestuneParser::parseSignalConfigYamlNode(const std::string& filePath, in
 
                     SignalRegistry::getInstance()->
                         registerSignal(signalInfoBuilder->build(), isBuSpecified);
-                    delete signalInfoBuilder;
+                    delete(signalInfoBuilder);
                     signalInfoBuilder = nullptr;
                 }
 
@@ -714,6 +717,12 @@ ErrCode RestuneParser::parseSignalConfigYamlNode(const std::string& filePath, in
                 }
 
                 if(keyTracker.empty()) {
+                    if(signalInfoBuilder != nullptr) {
+                        delete signalInfoBuilder;
+                    }
+                    if(resourceBuilder != nullptr) {
+                        delete resourceBuilder;
+                    }
                     return RC_YAML_INVALID_SYNTAX;
                 }
 
@@ -747,6 +756,14 @@ ErrCode RestuneParser::parseSignalConfigYamlNode(const std::string& filePath, in
         }
 
         yaml_event_delete(&event);
+    }
+
+    if(signalInfoBuilder != nullptr) {
+        delete(signalInfoBuilder);
+    }
+
+    if(resourceBuilder != nullptr) {
+        delete(resourceBuilder);
     }
 
     TEARDOWN_LIBYAML_PARSING

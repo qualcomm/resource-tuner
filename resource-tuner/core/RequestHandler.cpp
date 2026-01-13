@@ -157,6 +157,10 @@ static int8_t VerifyIncomingRequest(Request* req) {
     if(allowedPriority == -1) return false;
     req->setPriority(allowedPriority);
 
+    if(req->getResDlMgr() == nullptr) {
+        return false;
+    }
+
     DL_ITERATE(req->getResDlMgr()) {
         if(iter == nullptr) {
             return false;
@@ -216,11 +220,13 @@ static int8_t addToRequestManager(Request* request) {
     std::shared_ptr<RequestManager> requestManager = RequestManager::getInstance();
 
     if(requestManager->shouldRequestBeAdded(request)) {
-        requestManager->addRequest(request);
+        if(!requestManager->addRequest(request)) {
+            TYPELOGV(REQUEST_MANAGER_DUPLICATE_FOUND, request->getHandle());
+            return false;
+        }
         return true;
     }
 
-    TYPELOGV(REQUEST_MANAGER_DUPLICATE_FOUND, request->getHandle());
     return false;
 }
 
@@ -230,18 +236,20 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
     std::shared_ptr<RequestManager> requestManager = RequestManager::getInstance();
     std::shared_ptr<RequestQueue> requestQueue = RequestQueue::getInstance();
 
-    // Perform a Global Rate Limit Check before Processing the Request
-    // This is to check if the current Active Request count has hit the
-    // Max Number of Concurrent Requests Allowed Threshold
-    // If the Threshold has been hit, we don't process the Request any further.
-    if(!isValidated && !rateLimiter->isGlobalRateLimitHonored()) {
-        TYPELOGV(RATE_LIMITER_GLOBAL_RATE_LIMIT_HIT, request->getHandle());
-        // Free the Request Memory Block
-        Request::cleanUpRequest(request);
-        return;
-    }
-
     if(request->getRequestType() == REQ_RESOURCE_TUNING) {
+        // Perform a Global Rate Limit Check before Processing the Request
+        // This is to check if the current Active Request count has hit the
+        // Max Number of Concurrent Requests Allowed Threshold
+        // If the Threshold has been hit, we don't process the Request any further.
+        // Note: Exempt Untune Requests from Global Rate Limiting
+        if(!rateLimiter->isGlobalRateLimitHonored()) {
+            TYPELOGV(RATE_LIMITER_GLOBAL_RATE_LIMIT_HIT, request->getHandle());
+            // Free the Request Memory Block
+            Request::cleanUpRequest(request);
+            return;
+        }
+
+        // Client Checks
         if(!clientDataManager->clientExists(request->getClientPID(), request->getClientTID())) {
             if(!clientDataManager->createNewClient(request->getClientPID(), request->getClientTID())) {
                 // Client Entry Could not be Created, don't Proceed further with the Request
@@ -266,7 +274,10 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
             //    before a Client Data Entry is even created for the Tune Request.
             // 2. Tune and Untune Requests are sent concurrently and the Untune Request is picked
             //    up for Processing in the RequestQueue before the Tune Request is added to the RequestManager.
-            requestManager->disableRequestProcessing(request->getHandle());
+            if(!requestManager->disableRequestProcessing(request->getHandle())) {
+                Request::cleanUpRequest(request);
+                return;
+            }
         } else {
             // Done for handling Edge Cases,
             // Refer the comment in the if-block for more explanation
@@ -280,6 +291,7 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
         }
     }
 
+    // Trusted clients can skip per-client rate limiter checks
     if(!isValidated && !rateLimiter->isRateLimitHonored(request->getClientTID())) {
         TYPELOGV(RATE_LIMITER_RATE_LIMITED, request->getClientTID(), request->getHandle());
         Request::cleanUpRequest(request);
@@ -297,10 +309,6 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
             TYPELOGV(REQUEST_MANAGER_REQUEST_NOT_ACTIVE, request->getHandle());
             Request::cleanUpRequest(request);
         } else {
-            if(request->getRequestType() == REQ_RESOURCE_UNTUNING) {
-                // Update the Processing Status for this handle to false
-                requestManager->disableRequestProcessing(request->getHandle());
-            }
             // Add it to request queue for further processing
             requestQueue->addAndWakeup(request);
         }

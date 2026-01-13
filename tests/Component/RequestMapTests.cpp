@@ -817,7 +817,7 @@ MT_TEST(RequestMap, TestGetRequestFromMap, "component-serial") {
 
     MT_REQUIRE(ctx, result == true);
 
-    Request* fetchedRequest = requestMap->getRequestFromMap(325);
+    Request* fetchedRequest = requestMap->getRequestFromMap(325).first;
 
     MT_REQUIRE(ctx, fetchedRequest != nullptr);
     MT_REQUIRE(ctx, fetchedRequest->getDuration() == -1);
@@ -827,7 +827,7 @@ MT_TEST(RequestMap, TestGetRequestFromMap, "component-serial") {
 
     requestMap->removeRequest(request);
 
-    fetchedRequest = requestMap->getRequestFromMap(325);
+    fetchedRequest = requestMap->getRequestFromMap(325).first;
     MT_REQUIRE(ctx, fetchedRequest == nullptr);
 
     clientDataManager->deleteClientPID(testClientPID);

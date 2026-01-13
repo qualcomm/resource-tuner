@@ -20,7 +20,11 @@
 
 class Inference;
 
-enum { CC_IGNORE = 0x00, CC_APP_OPEN = 0x01, CC_APP_CLOSE = 0x02 };
+enum {
+    CC_IGNORE = 0x00,
+    CC_APP_OPEN = 0x01,
+    CC_APP_CLOSE = 0x02
+};
 
 enum {
     CC_BROWSER_APP_OPEN = 0x03,
@@ -28,7 +32,10 @@ enum {
     CC_MULTIMEDIA_APP_OPEN = 0x05
 };
 
-enum { DEFAULT_CONFIG, PER_APP_CONFIG };
+enum {
+    DEFAULT_CONFIG,
+    PER_APP_CONFIG
+};
 
 typedef enum CC_TYPE {
     CC_APP = 0x01,
@@ -38,43 +45,12 @@ typedef enum CC_TYPE {
 } CC_TYPE;
 
 struct ProcEvent {
-    int pid;
-    int tgid;
-    int type; // CC_APP_OPEN / CC_APP_CLOSE / CC_IGNORE
+    int32_t pid;
+    int32_t tgid;
+    int32_t type; // CC_APP_OPEN / CC_APP_CLOSE / CC_IGNORE
 };
 
 class ContextualClassifier {
-  public:
-    ContextualClassifier();
-    ~ContextualClassifier();
-    ErrCode Init();
-    ErrCode Terminate();
-
-  private:
-    void ClassifierMain();
-    int32_t HandleProcEv();
-
-    int32_t ClassifyProcess(pid_t pid, pid_t tgid, const std::string &comm,
-                        uint32_t &ctxDetails);
-    void ApplyActions(std::string comm, int32_t sigId, int32_t sigType);
-    void RemoveActions(pid_t pid, int tgid);
-
-    Inference *GetInferenceObject();
-
-	void GetSignalDetailsForWorkload(int32_t contextType, uint32_t &sigId,
-                                     uint32_t &sigSubtype);
-
-    void LoadIgnoredProcesses();
-    bool isIgnoredProcess(int32_t evType, pid_t pid);
-
-    int32_t FetchComm(pid_t pid, std::string &comm);
-	pid_t FetchPid(const std::string& process_name);
-	bool IsNumericString(const std::string& str);
-    ResIterable* createMovePidResource(int32_t cGroupdId, pid_t pid);
-    int64_t MoveAppThreadsToCGroup(pid_t incomingPID,
-                                   const std::string& comm,
-                                   int32_t cgroupIdentifier);
-
 private:
     NetLinkComm mNetLinkComm;
     Inference *mInference;
@@ -95,6 +71,44 @@ private:
 
 	pid_t mOurPid = 0;
     pid_t mOurTid = 0;
+
+    int64_t mRestuneHandle;
+
+    void ClassifierMain();
+    int32_t HandleProcEv();
+
+    void ApplyActions(std::string comm, int32_t sigId, int32_t sigType);
+    void RemoveActions(pid_t pid, int tgid);
+
+    Inference* GetInferenceObject();
+
+	void GetSignalDetailsForWorkload(int32_t contextType,
+                                     uint32_t &sigId,
+                                     uint32_t &sigSubtype);
+
+    void LoadIgnoredProcesses();
+    bool isIgnoredProcess(int32_t evType, pid_t pid);
+
+    int32_t FetchComm(pid_t pid, std::string &comm);
+	pid_t FetchPid(const std::string& process_name);
+	bool IsNumericString(const std::string& str);
+    ResIterable* createMovePidResource(int32_t cGroupdId, pid_t pid);
+    void MoveAppThreadsToCGroup(pid_t incomingPID,
+                                const std::string& comm,
+                                int32_t cgroupIdentifier);
+
+
+    int32_t ClassifyProcess(pid_t pid,
+                            pid_t tgid,
+                            const std::string &comm,
+                            uint32_t &ctxDetails);
+
+public:
+    ContextualClassifier();
+    ~ContextualClassifier();
+
+    ErrCode Init();
+    ErrCode Terminate();
 };
 
 #endif // CONTEXTUAL_CLASSIFIER_H
