@@ -274,20 +274,20 @@ int32_t ContextualClassifier::ClassifyProcess(pid_t process_pid, pid_t process_t
     CC_TYPE context = CC_APP;
 
     if(mIgnoredProcesses.count(comm) != 0U) {
-        // LOGD(CLASSIFIER_TAG,
-        //      "Skipping inference for ignored process: "+ comm);
+        LOGD(CLASSIFIER_TAG,
+             "Skipping inference for ignored process: "+ comm);
         return CC_IGNORE;
     }
 
     // Check if the process is still alive
     if(!AuxRoutines::fileExists(COMM(process_pid))) {
-        // LOGD(CLASSIFIER_TAG,
-        //      "Skipping inference, process is dead: "+ comm);
+        LOGD(CLASSIFIER_TAG,
+             "Skipping inference, process is dead: "+ comm);
         return CC_IGNORE;
     }
 
-    // LOGD(CLASSIFIER_TAG,
-        //  "Starting classification for PID: "+ std::to_string(process_pid));
+    LOGD(CLASSIFIER_TAG,
+         "Starting classification for PID: "+ std::to_string(process_pid));
     context = mInference->Classify(process_pid);
     return context;
 }
@@ -331,8 +331,8 @@ void ContextualClassifier::GetSignalDetailsForWorkload(int32_t contextType,
 void ContextualClassifier::LoadIgnoredProcesses() {
     std::ifstream file(IGNORE_PROC_PATH);
     if (!file.is_open()) {
-        // LOGW(CLASSIFIER_TAG,
-            //  "Could not open ignore process file: "+IGNORE_PROC_PATH);
+        LOGW(CLASSIFIER_TAG,
+             "Could not open ignore process file: "+IGNORE_PROC_PATH);
         return;
     }
     std::string line;
@@ -379,13 +379,13 @@ bool ContextualClassifier::isIgnoredProcess(int32_t evType, pid_t pid) {
             proc_name = proc_name.substr(first, (last - first + 1));
         }
         if (mIgnoredProcesses.count(proc_name) != 0U) {
-            // LOGD(CLASSIFIER_TAG, "Ignoring process: "+proc_name);
+            LOGD(CLASSIFIER_TAG, "Ignoring process: " + proc_name);
             mIgnoredPids.insert(pid);
             ignore = true;
         }
     } else {
-        // LOGD(CLASSIFIER_TAG,
-            //  "Process " + std::to_string(pid) + " exited before initial check. Skipping.");
+        LOGD(CLASSIFIER_TAG,
+             "Process " + std::to_string(pid) + " exited before initial check. Skipping.");
     }
 
     return ignore;
@@ -394,7 +394,7 @@ bool ContextualClassifier::isIgnoredProcess(int32_t evType, pid_t pid) {
 int32_t ContextualClassifier::FetchComm(pid_t pid, std::string &comm) {
     std::string proc_path = "/proc/" + std::to_string(pid);
     if(!AuxRoutines::fileExists(proc_path)) {
-        // LOGD(CLASSIFIER_TAG, "Process %d has exited." + std::to_string(pid));
+        LOGD(CLASSIFIER_TAG, "Process %d has exited." + std::to_string(pid));
         return -1;
     }
 
