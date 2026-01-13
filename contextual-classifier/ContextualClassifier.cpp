@@ -461,6 +461,7 @@ ResIterable* ContextualClassifier::createMovePidResource(int32_t cGroupdId, pid_
 void ContextualClassifier::MoveAppThreadsToCGroup(pid_t incomingPID,
                                                   const std::string& comm,
                                                   int32_t cgroupIdentifier) {
+    (void)comm;
     try {
         // Check for any outstanding request, if found untune it.
         LOGE(CLASSIFIER_TAG, "enter MoveAppThreadsToCGroup");
