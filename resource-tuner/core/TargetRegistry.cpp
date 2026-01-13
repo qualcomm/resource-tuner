@@ -454,6 +454,8 @@ void TargetRegistry::addCGroupMapping(CGroupConfigInfo* cGroupConfigInfo) {
 
     if(RC_IS_OK(createCGroup(cGroupConfigInfo))) {
         this->mCGroupMapping[cGroupConfigInfo->mCgroupID] = cGroupConfigInfo;
+    } else {
+        delete(cGroupConfigInfo);
     }
 }
 

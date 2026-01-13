@@ -5,10 +5,14 @@
 
 Request::Request() {
     this->mTimer = nullptr;
-    this->mResourceList = new DLManager(REQUEST_DL_NR);
+    this->mResourceList = MPLACEV(DLManager, REQUEST_DL_NR);
 }
 
 int32_t Request::getResourcesCount() {
+    if(this->mResourceList == nullptr) {
+        return 0;
+    }
+
     return this->mResourceList->getLen();
 }
 
@@ -21,6 +25,10 @@ DLManager* Request::getResDlMgr() {
 }
 
 void Request::addResource(ResIterable* resIterable) {
+    if(this->mResourceList == nullptr) {
+        return;
+    }
+
     this->mResourceList->insert(resIterable);
 }
 
@@ -34,40 +42,51 @@ void Request::unsetTimer() {
 }
 
 void Request::clearResources() {
-    DL_ITERATE(this->mResourceList) {
-        ResIterable* resIter = (ResIterable*) iter;
-        if(resIter != nullptr && resIter->mData != nullptr) {
-            // Delete Resource struct
-            FreeBlock<Resource>(resIter->mData);
-        }
+    if(this->mResourceList != nullptr) {
+        DL_ITERATE(this->mResourceList) {
+            ResIterable* resIter = (ResIterable*) iter;
+            if(resIter != nullptr && resIter->mData != nullptr) {
+                // Delete Resource struct
+                FreeBlock<Resource>(resIter->mData);
+            }
 
-        if(resIter != nullptr) {
-            // Delete ResIterable itself
-            FreeBlock<ResIterable>(resIter);
+            if(resIter != nullptr) {
+                // Delete ResIterable itself
+                FreeBlock<ResIterable>(resIter);
+            }
         }
+        this->mResourceList->destroy();
     }
-    this->mResourceList->destroy();
 }
 
 // Use cleanpUpRequest for clearing a Request and it's associated components
-Request::~Request() {}
+Request::~Request() {
+    if(this->mResourceList != nullptr) {
+        FreeBlock<DLManager>(this->mResourceList);
+        this->mResourceList = nullptr;
+    }
+}
 
 void Request::populateUntuneRequest(Request* untuneRequest) {
-    untuneRequest->mReqType= REQ_RESOURCE_UNTUNING;
+    if(untuneRequest == nullptr) return;
+    untuneRequest->mReqType = REQ_RESOURCE_UNTUNING;
     untuneRequest->mProperties = this->getProperties();
     untuneRequest->mHandle = this->getHandle();
     untuneRequest->mClientPID = this->getClientPID();
     untuneRequest->mClientTID = this->getClientTID();
     untuneRequest->mTimer = nullptr;
+    untuneRequest->mResourceList = nullptr;
 }
 
 void Request::populateRetuneRequest(Request* retuneRequest, int64_t newDuration) {
-    retuneRequest->mReqType= REQ_RESOURCE_RETUNING;
+    if(retuneRequest == nullptr) return;
+    retuneRequest->mReqType = REQ_RESOURCE_RETUNING;
     retuneRequest->mHandle = this->getHandle();
     retuneRequest->mProperties = this->getProperties();
     retuneRequest->mClientPID = this->getClientPID();
     retuneRequest->mClientTID = this->getClientTID();
     retuneRequest->mDuration = newDuration;
+    retuneRequest->mResourceList = nullptr;
 }
 
 ErrCode Request::deserialize(char* buf) {
@@ -127,7 +146,10 @@ ErrCode Request::deserialize(char* buf) {
 
 // Request Utils
 void Request::cleanUpRequest(Request* request) {
-    if(request == nullptr) return;
+    if(request == nullptr) {
+        return;
+    }
+
     request->clearResources();
 
     // Free timer block

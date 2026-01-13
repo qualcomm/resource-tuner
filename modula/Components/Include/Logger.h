@@ -128,7 +128,7 @@ private:
     static RedirectOptions mRedirectOutputTo;
 
     static std::string getTimestamp();
-    static std::string levelToString(int32_t level);
+    static const char* levelToString(int32_t level);
 
 public:
     /**
@@ -151,6 +151,7 @@ public:
      * @details Note, this Routine should not be called directly, instead the Macros
      *          LOGD, LOGE, LOGI, TYPELOGD and TYPELOGV should be used.
      */
+    static void log(int32_t level, const std::string& tag, const std::string& funcName, const char* message);
     static void log(int32_t level, const std::string& tag, const std::string& funcName, const std::string& message);
     static void typeLog(CommonMessageTypes type, const std::string& funcName, ...);
 };

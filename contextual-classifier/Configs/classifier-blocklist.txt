@@ -1,3 +1,3 @@
-ls,cp,mv,rm,mkdir,touch,find
-grep,sed,awk,cat,tail,head,less,more,sort,uniq,wc,cut,tr
-ps,top,sleep,journalctl,xargs
+ls,cp,sh,mv,rm,mkdir,touch,find,irqbalance
+grep,sed,awk,cat,tail,head,less,more,sort,uniq,wc,cut,tr,tee
+ps,top,sleep,journalctl,xargs,logrotate
