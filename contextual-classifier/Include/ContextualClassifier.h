@@ -20,11 +20,11 @@
 
 class Inference;
 
-enum {
+typedef enum : int8_t {
     CC_IGNORE = 0x00,
     CC_APP_OPEN = 0x01,
     CC_APP_CLOSE = 0x02
-};
+} EventType;
 
 enum {
     CC_BROWSER_APP_OPEN = 0x03,
@@ -52,6 +52,12 @@ struct ProcEvent {
 
 class ContextualClassifier {
 private:
+	pid_t mOurPid;
+    pid_t mOurTid;
+    int64_t mRestuneHandle;
+    int8_t mDebugMode = false;
+    volatile int8_t mNeedExit = false;
+
     NetLinkComm mNetLinkComm;
     Inference *mInference;
 
@@ -61,47 +67,41 @@ private:
     std::condition_variable mQueueCond;
     std::thread mClassifierMain;
     std::thread mNetlinkThread;
-    volatile bool mNeedExit = false;
 
     std::unordered_set<std::string> mIgnoredProcesses;
-    bool mDebugMode = false;
-
-    std::unordered_set<pid_t> mIgnoredPids;
     std::unordered_map<pid_t, uint64_t> mResTunerHandles;
-
-	pid_t mOurPid = 0;
-    pid_t mOurTid = 0;
-
-    int64_t mRestuneHandle;
 
     void ClassifierMain();
     int32_t HandleProcEv();
 
-    void ApplyActions(std::string comm, int32_t sigId, int32_t sigType);
-    void RemoveActions(pid_t pid, int tgid);
-
-    Inference* GetInferenceObject();
-
-	void GetSignalDetailsForWorkload(int32_t contextType,
-                                     uint32_t &sigId,
-                                     uint32_t &sigSubtype);
-
-    void LoadIgnoredProcesses();
-    bool isIgnoredProcess(int32_t evType, pid_t pid);
-
-    int32_t FetchComm(pid_t pid, std::string &comm);
-	pid_t FetchPid(const std::string& process_name);
-	bool IsNumericString(const std::string& str);
-    ResIterable* createMovePidResource(int32_t cGroupdId, pid_t pid);
-    void MoveAppThreadsToCGroup(pid_t incomingPID,
-                                const std::string& comm,
-                                int32_t cgroupIdentifier);
-
-
+    // Main classification flow
     int32_t ClassifyProcess(pid_t pid,
                             pid_t tgid,
                             const std::string &comm,
                             uint32_t &ctxDetails);
+
+    // Fetch signal configuration info
+    void GetSignalDetailsForWorkload(int32_t contextType,
+                                     uint32_t &sigId,
+                                     uint32_t &sigSubtype);
+
+    // Methods for tuning / untuning signals based on the workload
+    void ApplyActions(uint32_t sigId, uint32_t sigType);
+    void RemoveActions(pid_t pid, int tgid);
+
+    // blacklisting mechanism
+    void LoadIgnoredProcesses();
+    int8_t isIgnoredProcess(int32_t evType, pid_t pid);
+
+    // Transparently get the classification object, without expecting the client
+    // to be aware of the underlying model / implementation.
+    Inference* GetInferenceObject();
+
+    // Helper methods to move the current process to focused-cgroup
+    ResIterable* createMovePidResource(int32_t cGroupdId, pid_t pid);
+    void MoveAppThreadsToCGroup(pid_t incomingPID,
+                                const std::string& comm,
+                                int32_t cgroupIdentifier);
 
 public:
     ContextualClassifier();

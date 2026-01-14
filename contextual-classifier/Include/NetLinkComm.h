@@ -24,14 +24,17 @@ struct cn_msg_hdr {
 struct ProcEvent;
 
 class NetLinkComm {
-  public:
-    NetLinkComm();
+private:
+	int32_t mNlSock;
+
+public:
+	NetLinkComm();
     ~NetLinkComm();
 
-    int connect();
-    int set_listen(bool enable);
-    int get_socket() const;
-    void close_socket();
+    int32_t connect();
+    int32_t setListen(int8_t enable);
+    int32_t getSocket() const;
+    void closeSocket();
 
     // Receive a single proc connector event and fill ProcEvent.
     // Returns:
@@ -39,10 +42,7 @@ class NetLinkComm {
     //   CC_APP_CLOSE on EXIT
     //   0            on non-actionable events
     //   -1           on error
-    int RecvEvent(ProcEvent &ev);
-
-  private:
-    int nl_sock;
+    int32_t recvEvent(ProcEvent &ev);
 };
 
 #endif // NETLINK_COMM_H

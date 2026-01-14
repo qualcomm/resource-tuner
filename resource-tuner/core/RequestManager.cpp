@@ -41,7 +41,7 @@ std::shared_ptr<RequestManager> RequestManager::mReqeustManagerInstance = nullpt
 std::mutex RequestManager::instanceProtectionLock{};
 
 RequestManager::RequestManager() {
-    this->mActiveRequests.reserve(50);
+    this->mActiveRequests.reserve(UrmSettings::metaConfigs.mMaxConcurrentRequests);
     this->mActiveRequests.max_load_factor(1.0f);
 }
 
@@ -136,6 +136,10 @@ int8_t RequestManager::shouldRequestBeAdded(Request* request) {
     if(!isSane(request)) return false;
 
     this->mRequestMapMutex.lock_shared();
+    if(this->mActiveRequests.size() >= UrmSettings::metaConfigs.mMaxConcurrentRequests) {
+        this->mRequestMapMutex.unlock_shared();
+        return false;
+    }
 
     // Check for duplicates
     int8_t duplicateFound = this->requestMatch(request);
@@ -148,6 +152,11 @@ int8_t RequestManager::shouldRequestBeAdded(Request* request) {
 int8_t RequestManager::addRequest(Request* request) {
     if(request == nullptr) return false;
     this->mRequestMapMutex.lock();
+
+    if(this->mActiveRequests.size() >= UrmSettings::metaConfigs.mMaxConcurrentRequests) {
+        this->mRequestMapMutex.unlock();
+        return false;
+    }
 
     int64_t handle = request->getHandle();
     if(this->mActiveRequests.find(handle) != this->mActiveRequests.end()) {
