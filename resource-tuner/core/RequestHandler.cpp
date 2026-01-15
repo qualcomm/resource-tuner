@@ -231,9 +231,6 @@ static int8_t addToRequestManager(Request* request) {
 }
 
 static void processIncomingRequest(Request* request, int8_t isValidated=false) {
-    Request::cleanUpRequest(request);
-    return;
-
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RateLimiter> rateLimiter = RateLimiter::getInstance();
     std::shared_ptr<RequestManager> requestManager = RequestManager::getInstance();
