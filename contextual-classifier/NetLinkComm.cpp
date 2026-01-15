@@ -154,13 +154,13 @@ int32_t NetLinkComm::recvEvent(ProcEvent &ev) {
             ev.tgid = nlcn_msg.proc_ev.event_data.exec.process_tgid;
             ev.type = CC_APP_OPEN;
 
-            if(!fetchPpid(ev.tgid, ppid)) {
-                return CC_IGNORE;
-            }
+            // if(!fetchPpid(ev.tgid, ppid)) {
+            //     return CC_IGNORE;
+            // }
 
-            if(ppid <= 50) {
-                return CC_IGNORE;
-            }
+            // if(ppid <= 50) {
+            //     return CC_IGNORE;
+            // }
 
             rc = CC_APP_OPEN;
 
@@ -177,13 +177,13 @@ int32_t NetLinkComm::recvEvent(ProcEvent &ev) {
             ev.tgid = nlcn_msg.proc_ev.event_data.exit.process_tgid;
             ev.type = CC_APP_CLOSE;
 
-            if(!fetchPpid(ev.tgid, ppid)) {
-                return CC_IGNORE;
-            }
+            // if(!fetchPpid(ev.tgid, ppid)) {
+            //     return CC_IGNORE;
+            // }
 
-            if(ppid <= 50) {
-                return CC_IGNORE;
-            }
+            // if(ppid <= 50) {
+            //     return CC_IGNORE;
+            // }
 
             rc = CC_APP_CLOSE;
 

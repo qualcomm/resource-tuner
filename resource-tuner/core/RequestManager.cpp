@@ -41,6 +41,7 @@ std::shared_ptr<RequestManager> RequestManager::mReqeustManagerInstance = nullpt
 std::mutex RequestManager::instanceProtectionLock{};
 
 RequestManager::RequestManager() {
+    this->mTotalRequestServed = 0;
     this->mActiveRequests.reserve(UrmSettings::metaConfigs.mMaxConcurrentRequests);
     this->mActiveRequests.max_load_factor(1.0f);
 }
@@ -171,6 +172,7 @@ int8_t RequestManager::addRequest(Request* request) {
     }
 
     // Populate all the Trackers with info for this Request
+    this->mTotalRequestServed++;
     this->mActiveRequests[handle] = {request, REQ_UNCHANGED};
 
     // Add this request handle to the client list
@@ -232,6 +234,7 @@ void RequestManager::modifyRequestDuration(int64_t handle, int64_t duration) {
 
 int64_t RequestManager::getActiveReqeustsCount() {
     this->mRequestMapMutex.lock_shared();
+    LOGE("REQUEST_MANAGER", "Total Requests served = " + std::to_string(this->mTotalRequestServed));
     int32_t size = this->mActiveRequests.size();
     this->mRequestMapMutex.unlock_shared();
     return size;

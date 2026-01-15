@@ -51,6 +51,7 @@ private:
     static std::shared_ptr<RequestManager> mReqeustManagerInstance;
     static std::mutex instanceProtectionLock;
 
+    int64_t mTotalRequestServed;
     std::unordered_set<Request*> mRequestsList[2];
     std::unordered_map<int64_t, RequestInfo> mActiveRequests;
     HandleCache mUntuneCache;
