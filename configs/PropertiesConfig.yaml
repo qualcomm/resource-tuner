@@ -9,10 +9,10 @@ PropertyConfigs:
     Value: "20"
 
   - Name: resource_tuner.pulse.duration
-    Value: "60000000"
+    Value: "60000"
 
   - Name: resource_tuner.garbage_collection.duration
-    Value: "83000000"
+    Value: "83000"
 
   - Name: resource_tuner.garbage_collection.batch_size
     Value: "5"
