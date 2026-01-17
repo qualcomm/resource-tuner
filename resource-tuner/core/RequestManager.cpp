@@ -234,7 +234,6 @@ void RequestManager::modifyRequestDuration(int64_t handle, int64_t duration) {
 
 int64_t RequestManager::getActiveReqeustsCount() {
     this->mRequestMapMutex.lock_shared();
-    LOGE("REQUEST_MANAGER", "Total Requests served = " + std::to_string(this->mTotalRequestServed));
     int32_t size = this->mActiveRequests.size();
     this->mRequestMapMutex.unlock_shared();
     return size;
