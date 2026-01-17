@@ -13,15 +13,6 @@
 
 #define CLASSIFIER_TAG "NetLinkComm"
 
-static std::string format_string(const char *fmt, ...) {
-    char buffer[1024];
-    va_list args;
-    va_start(args, fmt);
-    vsnprintf(buffer, sizeof(buffer), fmt, args);
-    va_end(args);
-    return std::string(buffer);
-}
-
 NetLinkComm::NetLinkComm() {
     this->mNlSock = -1;
 }
@@ -91,24 +82,6 @@ int32_t NetLinkComm::setListen(int8_t enable) {
     return 0;
 }
 
-
-static int8_t fetchPpid(pid_t tgid, pid_t& targetPpid) {
-    std::ostringstream path;
-    path << "/proc/" << tgid << "/status";
-    std::ifstream f(path.str());
-    if (!f.is_open()) return false;
-
-    std::string line;
-    while (std::getline(f, line)) {
-        if (line.rfind("PPid:", 0) == 0) {
-            std::istringstream iss(line.substr(5));
-            iss >> targetPpid;
-            return !iss.fail();
-        }
-    }
-    return false;
-}
-
 int32_t NetLinkComm::recvEvent(ProcEvent &ev) {
     int32_t rc = 0;
     struct __attribute__((aligned(NLMSG_ALIGNTO))) {
@@ -137,9 +110,6 @@ int32_t NetLinkComm::recvEvent(ProcEvent &ev) {
     ev.tgid = -1;
     ev.type = CC_IGNORE;
 
-    LOGE(CLASSIFIER_TAG, "Incoming proc event");
-
-    pid_t ppid;
     switch(nlcn_msg.proc_ev.what) {
         case PROC_EVENT_NONE:
         case PROC_EVENT_FORK:
@@ -153,14 +123,6 @@ int32_t NetLinkComm::recvEvent(ProcEvent &ev) {
             ev.pid = nlcn_msg.proc_ev.event_data.exec.process_pid;
             ev.tgid = nlcn_msg.proc_ev.event_data.exec.process_tgid;
             ev.type = CC_APP_OPEN;
-
-            // if(!fetchPpid(ev.tgid, ppid)) {
-            //     return CC_IGNORE;
-            // }
-
-            // if(ppid <= 50) {
-            //     return CC_IGNORE;
-            // }
 
             rc = CC_APP_OPEN;
 
@@ -177,21 +139,13 @@ int32_t NetLinkComm::recvEvent(ProcEvent &ev) {
             ev.tgid = nlcn_msg.proc_ev.event_data.exit.process_tgid;
             ev.type = CC_APP_CLOSE;
 
-            // if(!fetchPpid(ev.tgid, ppid)) {
-            //     return CC_IGNORE;
-            // }
-
-            // if(ppid <= 50) {
-            //     return CC_IGNORE;
-            // }
-
             rc = CC_APP_CLOSE;
 
             if(AuxRoutines::fileExists(COMM(ev.pid))) {
                 std::string procComm = AuxRoutines::readFromFile(COMM(ev.pid));
                 LOGE(CLASSIFIER_TAG, "Incoming proc [exit] comm: " + procComm);
             } else {
-                rc = ev.type = CC_IGNORE;
+                // rc = ev.type = CC_IGNORE;
             }
             break;
 

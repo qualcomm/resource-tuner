@@ -33,7 +33,7 @@ enum {
 };
 
 enum {
-    DEFAULT_CONFIG,
+    DEFAULT_CONFIG = 0,
     PER_APP_CONFIG
 };
 
@@ -87,7 +87,7 @@ private:
 
     // Methods for tuning / untuning signals based on the workload
     void ApplyActions(uint32_t sigId, uint32_t sigType);
-    void RemoveActions(pid_t pid, int tgid);
+    void RemoveActions(pid_t pid, int32_t tgid);
 
     // blacklisting mechanism
     void LoadIgnoredProcesses();
