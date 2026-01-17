@@ -248,7 +248,8 @@ int8_t CocoTable::insertInCocoTable(ResIterable* newNode, int8_t priority) {
     int32_t secondaryIndex = this->getCocoTableSecondaryIndex(resource, priority);
 
     if(primaryIndex < 0 || secondaryIndex < 0 ||
-       primaryIndex >= this->mCocoTable.size() || secondaryIndex >= this->mCocoTable[primaryIndex].size()) {
+       primaryIndex >= (int32_t)this->mCocoTable.size() ||
+       secondaryIndex >= (int32_t)this->mCocoTable[primaryIndex].size()) {
         TYPELOGV(INV_COCO_TBL_INDEX, resource->getResCode(), primaryIndex, secondaryIndex);
         return false;
     }
@@ -435,7 +436,8 @@ int8_t CocoTable::removeRequest(Request* request) {
         int32_t secondaryIndex = this->getCocoTableSecondaryIndex(resource, priority);
 
         if(primaryIndex < 0 || secondaryIndex < 0 ||
-           primaryIndex >= this->mCocoTable.size() || secondaryIndex >= this->mCocoTable[primaryIndex].size()) {
+           primaryIndex >= (int32_t)this->mCocoTable.size() ||
+           secondaryIndex >= (int32_t)this->mCocoTable[primaryIndex].size()) {
             continue;
         }
 
@@ -512,8 +514,8 @@ void CocoTable::timerExpired(Request* request) {
 // CocoNodes allocated for the Request will be freed up as part of Request Cleanup,
 // Use the Request::cleanUpRequest method, for freeing up these nodes.
 CocoTable::~CocoTable() {
-    for(int32_t i = 0; i < this->mCocoTable.size(); i++) {
-        for(int32_t j = 0; j < this->mCocoTable[i].size(); j++) {
+    for(int32_t i = 0; i < (int32_t)this->mCocoTable.size(); i++) {
+        for(int32_t j = 0; j < (int32_t)this->mCocoTable[i].size(); j++) {
             delete(this->mCocoTable[i][j]);
             this->mCocoTable[i][j] = nullptr;
         }

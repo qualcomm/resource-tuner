@@ -1,46 +1,43 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include "NetLinkComm.h"
-#include "AuxRoutines.h"
-#include "ContextualClassifier.h"
-#include "Logger.h"
 #include <cerrno>
 #include <cstdarg>
 #include <cstring>
 #include <unistd.h>
 
+#include "Logger.h"
+#include "AuxRoutines.h"
+#include "NetLinkComm.h"
+#include "ContextualClassifier.h"
+
 #define CLASSIFIER_TAG "NetLinkComm"
 
-static std::string format_string(const char *fmt, ...) {
-    char buffer[1024];
-    va_list args;
-    va_start(args, fmt);
-    vsnprintf(buffer, sizeof(buffer), fmt, args);
-    va_end(args);
-    return std::string(buffer);
+NetLinkComm::NetLinkComm() {
+    this->mNlSock = -1;
 }
 
-NetLinkComm::NetLinkComm() : nl_sock(-1) {}
+NetLinkComm::~NetLinkComm() {
+    this->closeSocket();
+}
 
-NetLinkComm::~NetLinkComm() { close_socket(); }
-
-void NetLinkComm::close_socket() {
-    if (nl_sock != -1) {
-        close(nl_sock);
-        nl_sock = -1;
+void NetLinkComm::closeSocket() {
+    if(this->mNlSock != -1) {
+        close(this->mNlSock);
+        this->mNlSock = -1;
     }
 }
 
-int NetLinkComm::get_socket() const { return nl_sock; }
+int32_t NetLinkComm::getSocket() const {
+    return this->mNlSock;
+}
 
-int NetLinkComm::connect() {
-    int rc;
+int32_t NetLinkComm::connect() {
     struct sockaddr_nl sa_nl;
 
-    nl_sock = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_CONNECTOR);
-    if (nl_sock == -1) {
-        LOGE(CLASSIFIER_TAG, format_string("socket: %s", strerror(errno)));
+    this->mNlSock = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_CONNECTOR);
+    if(this->mNlSock == -1) {
+        TYPELOGV(ERRNO_LOG, "socket", strerror(errno));
         return -1;
     }
 
@@ -48,18 +45,16 @@ int NetLinkComm::connect() {
     sa_nl.nl_groups = CN_IDX_PROC;
     sa_nl.nl_pid = getpid();
 
-    rc = bind(nl_sock, (struct sockaddr *)&sa_nl, sizeof(sa_nl));
-    if (rc == -1) {
-        LOGE(CLASSIFIER_TAG, format_string("bind: %s", strerror(errno)));
-        close_socket();
+    if((bind(this->mNlSock, (struct sockaddr *)&sa_nl, sizeof(sa_nl))) == -1) {
+        TYPELOGV(ERRNO_LOG, "bind", strerror(errno));
+        this->closeSocket();
         return -1;
     }
 
-    return nl_sock;
+    return this->mNlSock;
 }
 
-int NetLinkComm::set_listen(bool enable) {
-    int rc;
+int32_t NetLinkComm::setListen(int8_t enable) {
     struct __attribute__((aligned(NLMSG_ALIGNTO))) {
         struct nlmsghdr nl_hdr;
         struct __attribute__((__packed__)) {
@@ -79,18 +74,16 @@ int NetLinkComm::set_listen(bool enable) {
 
     nlcn_msg.cn_mcast = enable ? PROC_CN_MCAST_LISTEN : PROC_CN_MCAST_IGNORE;
 
-    rc = send(nl_sock, &nlcn_msg, sizeof(nlcn_msg), 0);
-    if (rc == -1) {
-        LOGE(CLASSIFIER_TAG,
-             format_string("netlink send: %s", strerror(errno)));
+    if(send(mNlSock, &nlcn_msg, sizeof(nlcn_msg), 0) == -1) {
+        TYPELOGV(ERRNO_LOG, "netlink send", strerror(errno));
         return -1;
     }
 
     return 0;
 }
 
-int NetLinkComm::RecvEvent(ProcEvent &ev) {
-    int rc = 0;
+int32_t NetLinkComm::recvEvent(ProcEvent &ev) {
+    int32_t rc = 0;
     struct __attribute__((aligned(NLMSG_ALIGNTO))) {
         struct nlmsghdr nl_hdr;
         struct __attribute__((__packed__)) {
@@ -99,7 +92,7 @@ int NetLinkComm::RecvEvent(ProcEvent &ev) {
         };
     } nlcn_msg;
 
-    rc = recv(nl_sock, &nlcn_msg, sizeof(nlcn_msg), 0);
+    rc = recv(mNlSock, &nlcn_msg, sizeof(nlcn_msg), 0);
     if(rc == 0) {
         // Socket shutdown or no more data.
         return 0;
@@ -119,60 +112,33 @@ int NetLinkComm::RecvEvent(ProcEvent &ev) {
 
     switch(nlcn_msg.proc_ev.what) {
         case PROC_EVENT_NONE:
-            // No actionable event.
-            break;
-
         case PROC_EVENT_FORK:
-            /*LOGD(CLASSIFIER_TAG,
-                format_string("fork: parent tid=%d pid=%d -> child tid=%d pid=%d",
-                            nlcn_msg.proc_ev.event_data.fork.parent_pid,
-                            nlcn_msg.proc_ev.event_data.fork.parent_tgid,
-                            nlcn_msg.proc_ev.event_data.fork.child_pid,
-                            nlcn_msg.proc_ev.event_data.fork.child_tgid));
-            */
+        case PROC_EVENT_UID:
+        case PROC_EVENT_GID: {
+            // No actionable item.
             break;
+        }
 
         case PROC_EVENT_EXEC:
-            /*LOGD(CLASSIFIER_TAG,
-                format_string("Received PROC_EVENT_EXEC for tid=%d pid=%d",
-                            nlcn_msg.proc_ev.event_data.exec.process_pid,
-                            nlcn_msg.proc_ev.event_data.exec.process_tgid));
-                            */
-
             ev.pid = nlcn_msg.proc_ev.event_data.exec.process_pid;
             ev.tgid = nlcn_msg.proc_ev.event_data.exec.process_tgid;
             ev.type = CC_APP_OPEN;
+
             rc = CC_APP_OPEN;
-            break;
-
-        case PROC_EVENT_UID:
-            // LOGD(CLASSIFIER_TAG,
-            //      format_string("uid change: tid=%d pid=%d from %d to %d",
-            //                    nlcn_msg.proc_ev.event_data.id.process_pid,
-            //                    nlcn_msg.proc_ev.event_data.id.process_tgid,
-            //                    nlcn_msg.proc_ev.event_data.id.r.ruid,
-            //                    nlcn_msg.proc_ev.event_data.id.e.euid));
-            break;
-
-        case PROC_EVENT_GID:
-            // LOGD(CLASSIFIER_TAG,
-            //      format_string("gid change: tid=%d pid=%d from %d to %d",
-            //                    nlcn_msg.proc_ev.event_data.id.process_pid,
-            //                    nlcn_msg.proc_ev.event_data.id.process_tgid,
-            //                    nlcn_msg.proc_ev.event_data.id.r.rgid,
-            //                    nlcn_msg.proc_ev.event_data.id.e.egid));
+            if(!AuxRoutines::fileExists(COMM(ev.pid))) {
+                rc = ev.type = CC_IGNORE;
+            }
             break;
 
         case PROC_EVENT_EXIT:
-            // LOGD(CLASSIFIER_TAG,
-            //      format_string("exit: tid=%d pid=%d exit_code=%d",
-            //                    nlcn_msg.proc_ev.event_data.exit.process_pid,
-            //                    nlcn_msg.proc_ev.event_data.exit.process_tgid,
-            //                    nlcn_msg.proc_ev.event_data.exit.exit_code));
             ev.pid = nlcn_msg.proc_ev.event_data.exit.process_pid;
             ev.tgid = nlcn_msg.proc_ev.event_data.exit.process_tgid;
             ev.type = CC_APP_CLOSE;
+
             rc = CC_APP_CLOSE;
+            if(!AuxRoutines::fileExists(COMM(ev.pid))) {
+                rc = ev.type = CC_IGNORE;
+            }
             break;
 
         default:

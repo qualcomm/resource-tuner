@@ -6,7 +6,7 @@ PropertyConfigs:
     Value: "60"
 
   - Name: resource_tuner.maximum.resources.per.request
-    Value: "64"
+    Value: "20"
 
   - Name: resource_tuner.pulse.duration
     Value: "60000"
