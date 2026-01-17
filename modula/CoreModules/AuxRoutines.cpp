@@ -12,12 +12,12 @@ std::string AuxRoutines::readFromFile(const std::string& fileName) {
     std::string value = "";
 
     if(!fileStream.is_open()) {
-        LOGW("RESTUNE_AUX_ROUTINE", "Failed to open file: " + fileName + " Error: " + strerror(errno));
+        LOGW("URM_AUX_ROUTINE", "Failed to open file: " + fileName + " Error: " + strerror(errno));
         return "";
     }
 
     if(!getline(fileStream, value)) {
-        LOGW("RESTUNE_AUX_ROUTINE", "Failed to read from file: " + fileName + " Error: " + strerror(errno));
+        LOGW("URM_AUX_ROUTINE", "Failed to read from file: " + fileName + " Error: " + strerror(errno));
         return "";
     }
 
@@ -30,14 +30,14 @@ void AuxRoutines::writeToFile(const std::string& fileName, const std::string& va
 
     std::ofstream fileStream(fileName, std::ios::out | std::ios::trunc);
     if(!fileStream.is_open()) {
-        LOGE("RESTUNE_AUX_ROUTINE", "Failed to open file: " + fileName + " Error: " + strerror(errno));
+        LOGE("URM_AUX_ROUTINE", "Failed to open file: " + fileName + " Error: " + strerror(errno));
         return;
     }
 
     fileStream<<value;
 
     if(fileStream.fail()) {
-        LOGE("RESTUNE_AUX_ROUTINE", "Failed to write to file: "+ fileName + " Error: " + strerror(errno));
+        LOGE("URM_AUX_ROUTINE", "Failed to write to file: "+ fileName + " Error: " + strerror(errno));
     }
 
     fileStream.flush();
@@ -97,33 +97,59 @@ std::string AuxRoutines::getMachineName() {
     return AuxRoutines::readFromFile(UrmSettings::mDeviceNamePath);
 }
 
-void dumpRequest(Request* clientReq) {
-    std::string LOG_TAG = "RESTUNE_SERVER";
-
-    LOGD(LOG_TAG, "Request details:");
-    LOGD(LOG_TAG, "reqType: " + std::to_string(clientReq->getRequestType()));
-    LOGD(LOG_TAG, "handle: " + std::to_string(clientReq->getHandle()));
-    LOGD(LOG_TAG, "Duration: " + std::to_string(clientReq->getDuration()));
-    LOGD(LOG_TAG, "Priority: " + std::to_string(clientReq->getPriority()));
-    LOGD(LOG_TAG, "client PID: " +std::to_string(clientReq->getClientPID()));
-    LOGD(LOG_TAG, "client TID: " + std::to_string(clientReq->getClientTID()));
-    LOGD(LOG_TAG, "Background Processing Enabled?: " + std::to_string((int32_t)clientReq->getProcessingModes()));
-    LOGD(LOG_TAG, "Number of Resources: " + std::to_string(clientReq->getResourcesCount()));
-
+// Helper to check if a string contains only digits
+int8_t AuxRoutines::isNumericString(const std::string& str) {
+    return std::all_of(str.begin(), str.end(), ::isdigit);
 }
 
-void AuxRoutines::dumpRequest(Signal* clientReq) {
-    std::string LOG_TAG = "RESTUNE_SERVER";
-    LOGD(LOG_TAG, "Print Signal details:");
+// Function to get the first matching PID for a given process name
+pid_t AuxRoutines::fetchPid(const std::string& process_name) {
+    DIR* proc_dir = opendir("/proc");
+    if(proc_dir == nullptr) {
+        TYPELOGV(ERRNO_LOG, "opendir", strerror(errno));
+        return -1;
+    }
 
-    LOGD(LOG_TAG, "Print Signal Request");
-    LOGD(LOG_TAG, "Signal ID: " + std::to_string(clientReq->getSignalCode()));
-    LOGD(LOG_TAG, "Handle: " + std::to_string(clientReq->getHandle()));
-    LOGD(LOG_TAG, "Duration: " + std::to_string(clientReq->getDuration()));
-    LOGD(LOG_TAG, "App Name: " + std::string(clientReq->getAppName()));
-    LOGD(LOG_TAG, "Scenario: " + std::string(clientReq->getScenario()));
-    LOGD(LOG_TAG, "Num Args: " + std::to_string(clientReq->getNumArgs()));
-    LOGD(LOG_TAG, "Priority: " + std::to_string(clientReq->getPriority()));
+    struct dirent* entry;
+    while ((entry = readdir(proc_dir)) != nullptr) {
+        if (entry->d_type == DT_DIR && isNumericString(entry->d_name)) {
+            std::string pid_str = entry->d_name;
+            std::string comm_path = COMM_S(pid_str);
+            std::ifstream comm_file(comm_path);
+            std::string comm;
+            if (comm_file) {
+                std::getline(comm_file, comm);
+                if (comm.find(process_name) != std::string::npos) {
+                    closedir(proc_dir);
+                    return static_cast<pid_t>(std::stoi(pid_str));
+                }
+            }
+        }
+    }
+
+    closedir(proc_dir);
+    return -1; // Not found
+}
+
+int32_t AuxRoutines::fetchComm(pid_t pid, std::string &comm) {
+    std::string proc_path = "/proc/" + std::to_string(pid);
+    if(!AuxRoutines::fileExists(proc_path)) {
+        LOGD("URM_AUX_ROUTINE", "Process %d has exited." + std::to_string(pid));
+        return -1;
+    }
+
+    std::string comm_path = COMM(pid);
+    std::ifstream comm_file(comm_path);
+    if (comm_file.is_open()) {
+        std::getline(comm_file, comm);
+        // Trim
+        size_t first = comm.find_first_not_of(" \t\n\r");
+        if (first != std::string::npos) {
+            size_t last = comm.find_last_not_of(" \t\n\r");
+            comm = comm.substr(first, (last - first + 1));
+        }
+    }
+    return 0;
 }
 
 FlatBuffEncoder::FlatBuffEncoder() {

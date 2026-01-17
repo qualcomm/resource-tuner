@@ -28,7 +28,7 @@ enum RequestProcessingStatus : int8_t {
 
 class HandleCache {
 private:
-    int32_t mMaxSize;
+    size_t mMaxSize;
     std::unordered_set<int64_t> mHandleSet;
     std::queue<int64_t> mRecencyQueue;
 
@@ -51,6 +51,7 @@ private:
     static std::shared_ptr<RequestManager> mReqeustManagerInstance;
     static std::mutex instanceProtectionLock;
 
+    int64_t mTotalRequestServed;
     std::unordered_set<Request*> mRequestsList[2];
     std::unordered_map<int64_t, RequestInfo> mActiveRequests;
     HandleCache mUntuneCache;

@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <mutex>
+#include <dirent.h>
 
 #include "Logger.h"
 #include "Request.h"
@@ -31,8 +32,9 @@ public:
     static int32_t createProcess();
     static std::string getMachineName();
 
-    static void dumpRequest(Request* request);
-    static void dumpRequest(Signal* signal);
+    static int8_t isNumericString(const std::string& str);
+	static pid_t fetchPid(const std::string& processName);
+    static int32_t fetchComm(pid_t pid, std::string &comm);
 
     static int64_t generateUniqueHandle();
     static int64_t getCurrentTimeInMilliseconds();
