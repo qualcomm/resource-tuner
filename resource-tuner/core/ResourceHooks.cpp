@@ -54,12 +54,6 @@ static std::string getCGroupTypeResourceNodePath(Resource* resource, const std::
     return filePath;
 }
 
-static void truncateFile(const std::string& filePath) {
-    std::ofstream ofStream(filePath, std::ofstream::out | std::ofstream::trunc);
-    ofStream<<""<<std::endl;
-    ofStream.close();
-}
-
 // Default Applier Callback for Resources with ApplyType = "cluster"
 void defaultClusterLevelApplierCb(void* context) {
     if(context == nullptr) return;

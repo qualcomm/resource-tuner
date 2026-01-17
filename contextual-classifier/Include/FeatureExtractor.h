@@ -4,8 +4,6 @@
 #ifndef FEATURE_EXTRACTOR_H
 #define FEATURE_EXTRACTOR_H
 
-
-#include "FeaturePruner.h"
 #include <cstdint>
 #include <map>
 #include <string>
@@ -14,6 +12,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include "FeaturePruner.h"
 
 #define CLASSIFIER_CONF_DIR "/etc/classifier/"
 const std::string IGNORE_TOKENS_PATH = CLASSIFIER_CONF_DIR "ignore-tokens.txt";
