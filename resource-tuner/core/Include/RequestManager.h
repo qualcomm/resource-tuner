@@ -28,7 +28,7 @@ enum RequestProcessingStatus : int8_t {
 
 class HandleCache {
 private:
-    int32_t mMaxSize;
+    size_t mMaxSize;
     std::unordered_set<int64_t> mHandleSet;
     std::queue<int64_t> mRecencyQueue;
 

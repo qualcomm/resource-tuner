@@ -125,11 +125,7 @@ int32_t NetLinkComm::recvEvent(ProcEvent &ev) {
             ev.type = CC_APP_OPEN;
 
             rc = CC_APP_OPEN;
-
-            if(AuxRoutines::fileExists(COMM(ev.pid))) {
-                std::string procComm = AuxRoutines::readFromFile(COMM(ev.pid));
-                LOGE(CLASSIFIER_TAG, "Incoming proc [exec] comm: " + procComm);
-            } else {
+            if(!AuxRoutines::fileExists(COMM(ev.pid))) {
                 rc = ev.type = CC_IGNORE;
             }
             break;
@@ -140,12 +136,8 @@ int32_t NetLinkComm::recvEvent(ProcEvent &ev) {
             ev.type = CC_APP_CLOSE;
 
             rc = CC_APP_CLOSE;
-
-            if(AuxRoutines::fileExists(COMM(ev.pid))) {
-                std::string procComm = AuxRoutines::readFromFile(COMM(ev.pid));
-                LOGE(CLASSIFIER_TAG, "Incoming proc [exit] comm: " + procComm);
-            } else {
-                // rc = ev.type = CC_IGNORE;
+            if(!AuxRoutines::fileExists(COMM(ev.pid))) {
+                rc = ev.type = CC_IGNORE;
             }
             break;
 
