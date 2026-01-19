@@ -17,12 +17,15 @@ Userspace resource manager (uRM) contains
 - Resource-tuner uses YAML based config files, for fetching information relating to resources/signals and properties.
 
 ## Contextual Classifier
-- Contextual Classifier identifies usecase type based on offline trained model
-- Sends signals to Resource Tuner on app opening or launching with app pid and use-case type
-- Extracts use-case's further details based on app pid
-- Moves focused active app's threads to "Focused" cgroup
-- Move previously focused app threads to its origional group
-- This is an optional module which can be enabled at compile time
+The Contextual Classifier is an optional module designed to identify the static context of workloads (e.g., whether an application is a game, multimedia app, or browser) based on an offline-trained model.
+
+**Key functionalities include:**
+- **Process Event Monitoring:** Monitors process creation and termination events via Netlink.
+- **Process Classification:** Classifies workloads (e.g., game, multimedia) using fastText (if enabled at build time). If fastText is not built, a default inference mechanism that always classifies the workload as an application.
+- **Signal Generation:** Retrieves specific signal details based on classified workload types.
+- **Cgroup Management:** Dynamically manages cgroups by moving application threads to designated cgroups.
+- **Action Application:** Calls `ApplyActions` to send tuning requests and `RemoveActions` to untune for process events.
+- **Configurability:** Influenced by configuration files such as `fasttext_model_supervised.bin`, `classifier-blocklist.txt`, and `ignore-tokens.txt`.
 
 <div style="page-break-after: always;"></div>
 

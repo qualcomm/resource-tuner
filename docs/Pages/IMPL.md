@@ -28,4 +28,65 @@ Resource-tuner architecture is captured above.
 - A timer is created and used to keep track of a request, i.e. check if it has expired. Once it is detected that the request has expired an untune request for the same handle as this request, is automatically generated and submitted, it will take care of resetting the effected resource nodes to their original values.
 - Client modules can provide their own custom resource actions for any resource. The default action provided by resource-tuner is writing to the resource sysfs node.
 
+
+## Flow of Events
+
+```
++---------------------------+
+| Process Event Listener    |
+|       (NetLinkComm)       |
++-------------+-------------+
+              |
+              | Catches process events (e.g., fork, exec, exit)
+              V
++---------------------------+
+|      HandleProcEv()       |
+| (Filters and queues events)|
++-------------+-------------+
+              |
+              | Notifies worker thread
+              V
++---------------------------+
+|     ClassifierMain()      |
+|    (Worker Thread)        |
++-------------+-------------+
+              |
+              +----(Event Type)----+
+              |                     |
+              V                     V
+        +------------+        +------------+
+        | CC_APP_OPEN|        | CC_APP_CLOSE|
+        +-----+------+        +-----+------+
+              |                     |
+              V                     V
+   +-----------------------+    +---------------------------+
+   | Is Ignored Process?   |--->| Move Process to Original  |
+   | (classifier-blocklist)|    |   Cgroup                  |
+   +----------+------------+    +---+-----------------------+
+              |  No                 |
+              V                     V
+   +---------------------+   +---------------------------+
+   |  ClassifyProcess()  |   |   RemoveActions           |
+   | (MLInference model) |   |    (untuneSignal)         |
+   +----------+----------+   +---------------------------+
+              |
+              V
+   +---------------------+
+   | GetSignalDetailsFor |
+   |      Workload()     |
+   +----------+----------+
+              |
+              V
+   +----------------------------+
+   | MoveAppThreadsToCGroup()   |
+   | (Assign to Focused Cgroup) |
+   +----------+-----------------+
+              |
+              V
+   +---------------------+
+   |    ApplyActions     |
+   |    (tuneSignal)     |
+   +---------------------+
+```
+
 ---

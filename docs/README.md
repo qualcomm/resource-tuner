@@ -21,13 +21,13 @@
 
 <div style="page-break-after: always;"></div>
 
-# Contact
+## Contact
 
 For questions, suggestions, or contributions, feel free to reach out:
 
 - **Email**: maintainers.resource-tuner-moderator@qti.qualcomm.com
 
-# License
+## License
 
 This project is licensed under the BSD 3-Clause Clear License.
 

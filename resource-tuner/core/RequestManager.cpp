@@ -225,11 +225,7 @@ int8_t RequestManager::disableRequestProcessing(int64_t handle) {
 }
 
 void RequestManager::modifyRequestDuration(int64_t handle, int64_t duration) {
-    this->mRequestMapMutex.lock();
-    if(this->mActiveRequests[handle].second != REQ_CANCELLED) {
-        this->mActiveRequests[handle].second = duration;
-    }
-    this->mRequestMapMutex.unlock();
+    return;
 }
 
 int64_t RequestManager::getActiveReqeustsCount() {
