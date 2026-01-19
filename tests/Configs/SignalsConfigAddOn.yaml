@@ -1,0 +1,56 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause-Clear
+
+SignalConfigs:
+  - SigId: "0x00ab"
+    Category: "0x1e"
+    Name: "CUSTOM_SIGNAL_1"
+    Enable: true
+    TargetsEnabled: ["target1", "target2"]
+    Permissions: ["third_party"]
+    Derivatives: ["derivative-device1"]
+    Timeout: 6700
+    Resources:
+    - {ResCode: "0x80f10000", ResInfo: "0x0a00f000", Values: [665]}
+    - {ResCode: "0x800100d0", ResInfo: "0x00100112", Values: [679, 812]}
+
+  - SigId: "0xffcf"
+    Category: "0xce"
+    Name: CAMERA_OPEN_CUSTOM
+    TargetsDisabled: ["target1", "target2"]
+    Enable: true
+    Permissions: ["system"]
+    Resources:
+      - {ResCode: "0x80d9aa00", Values: [1, 556]}
+      - {ResCode: "0x80c6500f", Values: [1, 900, 965]}
+
+  - SigId: "0xaadd"
+    Category: "0xde"
+    Name: OVERRIDE_SIGNAL_1
+    Enable: true
+    TargetsEnabled: ["qti-cli-test"]
+    Derivatives: ["test-derivative"]
+    Permissions: ["system"]
+    Timeout: 14500
+    Resources:
+      - {ResCode: "0x80dbaaa0", ResInfo: "0x000776aa", Values: [887]}
+
+  - SigId: "0xaaaa"
+    Category: "0x99"
+    Name: "CUSTOM_SIGNAL_2"
+    Enable: true
+    Permissions: ["third_party"]
+    Timeout: 8000
+    Resources:
+    - {ResCode: "RES_SCHED_UTIL_CLAMP_MIN", Values: [665]}
+    - {ResCode: "RES_CGRP_CPU_LATENCY", Values: [900, -15]}
+
+  - SigId: "0xaaab"
+    Category: "0x99"
+    Name: "CUSTOM_SIGNAL_3"
+    Enable: true
+    Permissions: ["third_party"]
+    Timeout: 8000
+    Resources:
+    - {ResCode: "RES_SCALE_MAX_FREQ", ResInfo: "CLUSTER_BIG_ALL_CORES", Values: [2300]} # big cluster
+    - {ResCode: "RES_PM_QOS_LATENCY", ResInfo: "CLUSTER_LITTLE_CORE_1", Values: [900, 3]} # second core of little cluster
