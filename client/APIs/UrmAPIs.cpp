@@ -72,8 +72,6 @@ int64_t tuneResources(int64_t duration,
             return -1;
         }
 
-        VALIDATE_GE(properties, 0);
-
         // Encoding Order:
         // 0. Module ID
         // 1. Request Type
@@ -97,23 +95,18 @@ int64_t tuneResources(int64_t duration,
              .append<int8_t>(REQ_RESOURCE_TUNING)
              .append<int64_t>(0)
              .append<int64_t>(duration)
-             .append<int32_t>(numRes)
-             .append<int32_t>(properties)
+             .append<int32_t>(VALIDATE_GT(numRes, 0))
+             .append<int32_t>(VALIDATE_GE(properties, 0))
              .append<int32_t>(getpid())
              .append<int32_t>(gettid());
 
         for(int32_t i = 0; i < numRes; i++) {
             SysResource resource = SafeDeref((resourceList + i));
 
-            VALIDATE_GE(resource.mResCode, 0);
-            VALIDATE_GE(resource.mResInfo, 0);
-            VALIDATE_GE(resource.mOptionalInfo, 0);
-            VALIDATE_GT(resource.mNumValues, 0);
-
-            batch.append<uint32_t>(resource.mResCode)
-                 .append<int32_t>(resource.mResInfo)
-                 .append<int32_t>(resource.mOptionalInfo)
-                 .append<int32_t>(resource.mNumValues);
+            batch.append<uint32_t>(VALIDATE_GT(resource.mResCode, 0))
+                 .append<int32_t>(VALIDATE_GE(resource.mResInfo, 0))
+                 .append<int32_t>(VALIDATE_GE(resource.mOptionalInfo, 0))
+                 .append<int32_t>(VALIDATE_GT(resource.mNumValues, 0));
 
             if(resource.mNumValues == 1) {
                 batch.append<int32_t>(resource.mResValue.value);
@@ -149,41 +142,28 @@ int8_t retuneResources(int64_t handle, int64_t duration) {
             return -1;
         }
 
-        char buf[1024];
-        int8_t* ptr8 = (int8_t*)buf;
-        ASSIGN_AND_INCR(ptr8, MOD_RESTUNE);
-        ASSIGN_AND_INCR(ptr8, REQ_RESOURCE_RETUNING);
+        char buf[REQ_BUFFER_SIZE] = {0};
+        batch.setBuf(buf);
+        batch.append<int8_t>(MOD_RESTUNE)
+             .append<int8_t>(REQ_RESOURCE_RETUNING)
+             .append<int64_t>(handle)
+             .append<int64_t>(duration)
+             .append<int32_t>(0)
+             .append<int32_t>(0)
+             .append<int32_t>((int32_t)getpid())
+             .append<int32_t>((int32_t)gettid());
 
-        int64_t* ptr64 = (int64_t*)ptr8;
-        ASSIGN_AND_INCR(ptr64, handle);
-        ASSIGN_AND_INCR(ptr64, duration);
-
-        int32_t* ptr = (int32_t*)ptr64;
-        ASSIGN_AND_INCR(ptr, 0);
-        ASSIGN_AND_INCR(ptr, 0);
-        ASSIGN_AND_INCR(ptr, (int32_t)getpid());
-        ASSIGN_AND_INCR(ptr, (int32_t)gettid());
-
-        if(RC_IS_NOTOK(conn == nullptr || conn->initiateConnection())) {
-            LOGE("RESTUNE_CLIENT", CONN_INIT_FAIL);
-            return -1;
+        if(batch.isBufSane()) {
+            if(sendMsgHelper(buf) == 0) return 0;
+        } else {
+            LOGE("RESTUNE_CLIENT", "Malformed Request");
         }
-
-        if(RC_IS_NOTOK(conn->sendMsg(buf, sizeof(buf)))) {
-            LOGE("RESTUNE_CLIENT", CONN_SEND_FAIL);
-            return -1;
-        }
-
-        return 0;
-
-    } catch(const std::invalid_argument& e) {
-        LOGE("RESTUNE_CLIENT", REQ_SEND_ERR(e.what()));
-        return -1;
 
     } catch(const std::exception& e) {
         LOGE("RESTUNE_CLIENT", REQ_SEND_ERR(e.what()));
-        return -1;
     }
+
+    return -1;
 }
 
 // - Construct a Request object and populate it with the API specified Params
@@ -198,41 +178,28 @@ int8_t untuneResources(int64_t handle) {
             return -1;
         }
 
-        char buf[1024];
-        int8_t* ptr8 = (int8_t*)buf;
-        ASSIGN_AND_INCR(ptr8, MOD_RESTUNE);
-        ASSIGN_AND_INCR(ptr8, REQ_RESOURCE_UNTUNING);
+        char buf[REQ_BUFFER_SIZE] = {0};
+        batch.setBuf(buf);
+        batch.append<int8_t>(MOD_RESTUNE)
+             .append<int8_t>(REQ_RESOURCE_UNTUNING)
+             .append<int64_t>(handle)
+             .append<int64_t>(-1)
+             .append<int32_t>(0)
+             .append<int32_t>(0)
+             .append<int32_t>((int32_t)getpid())
+             .append<int32_t>((int32_t)gettid());
 
-        int64_t* ptr64 = (int64_t*)ptr8;
-        ASSIGN_AND_INCR(ptr64, handle);
-        ASSIGN_AND_INCR(ptr64, -1);
-
-        int32_t* ptr = (int32_t*)ptr64;
-        ASSIGN_AND_INCR(ptr, 0);
-        ASSIGN_AND_INCR(ptr, 0);
-        ASSIGN_AND_INCR(ptr, (int32_t)getpid());
-        ASSIGN_AND_INCR(ptr, (int32_t)gettid());
-
-        if(conn == nullptr || RC_IS_NOTOK(conn->initiateConnection())) {
-            LOGE("RESTUNE_CLIENT", CONN_INIT_FAIL);
-            return -1;
+        if(batch.isBufSane()) {
+            if(sendMsgHelper(buf) == 0) return 0;
+        } else {
+            LOGE("RESTUNE_CLIENT", "Malformed Request");
         }
-
-        if(RC_IS_NOTOK(conn->sendMsg(buf, sizeof(buf)))) {
-            LOGE("RESTUNE_CLIENT", CONN_SEND_FAIL);
-            return -1;
-        }
-
-        return 0;
-
-    } catch(const std::invalid_argument& e) {
-        LOGE("RESTUNE_CLIENT", REQ_SEND_ERR(e.what()));
-        return -1;
 
     } catch(const std::exception& e) {
         LOGE("RESTUNE_CLIENT", REQ_SEND_ERR(e.what()));
-        return -1;
     }
+
+    return -1;
 }
 
 // - Construct a Prop Get Request object and populate it with the Request Params

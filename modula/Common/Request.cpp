@@ -5,7 +5,7 @@
 
 Request::Request() {
     this->mTimer = nullptr;
-    this->mResourceList = MPLACEV(DLManager, REQUEST_DL_NR);
+    this->mResourceList = nullptr;
 }
 
 int32_t Request::getResourcesCount() {
@@ -26,10 +26,16 @@ DLManager* Request::getResDlMgr() {
 
 void Request::addResource(ResIterable* resIterable) {
     if(this->mResourceList == nullptr) {
-        return;
+        try {
+            this->mResourceList = MPLACEV(DLManager, REQUEST_DL_NR);
+        } catch(const std::bad_alloc& e) {
+            return;
+        }
     }
 
-    this->mResourceList->insert(resIterable);
+    if(this->mResourceList != nullptr) {
+        this->mResourceList->insert(resIterable);
+    }
 }
 
 // Define Methods to update the Request
