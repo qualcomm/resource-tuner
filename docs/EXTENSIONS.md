@@ -1,4 +1,4 @@
-\page extensions Extension Interface Guide
+\page extensions_usage Extension Interface Guide
 
 Refer Plugin.cpp in Examples section, for basic code-guidance.
 
