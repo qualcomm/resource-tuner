@@ -19,7 +19,7 @@ typedef void (*PostProcessingCallback)(void*);
 typedef struct {
     pid_t mPid;
     uint32_t mSigId;
-    uint32_t mSigSubtype;
+    uint32_t mSigType;
 } PostProcessCBData;
 
 /**

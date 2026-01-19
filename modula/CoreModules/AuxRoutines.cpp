@@ -134,7 +134,6 @@ pid_t AuxRoutines::fetchPid(const std::string& process_name) {
 int32_t AuxRoutines::fetchComm(pid_t pid, std::string &comm) {
     std::string proc_path = "/proc/" + std::to_string(pid);
     if(!AuxRoutines::fileExists(proc_path)) {
-        LOGD("URM_AUX_ROUTINE", "Process %d has exited." + std::to_string(pid));
         return -1;
     }
 
