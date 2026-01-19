@@ -49,6 +49,28 @@ Inference *ContextualClassifier::GetInferenceObject() {
 }
 #endif
 
+static pid_t getParent(pid_t pid) {
+    std::string statusFile = "/proc/" + std::to_string(pid) + "/status";
+    std::ifstream file(statusFile);
+    std::string line;
+
+    if(!file.is_open()) {
+        return 0;
+    }
+
+    while(std::getline(file, line)) {
+        if(line.rfind("PPid:", 0) == 0) {
+            std::istringstream iss(line);
+            std::string label;
+            pid_t parentPid;
+            iss >> label >> parentPid;
+            return parentPid;
+        }
+    }
+
+    return 0;
+}
+
 ContextualClassifier::ContextualClassifier() {
     this->mRestuneHandle = -1;
     this->mOurPid = this->mOurTid = 0;
