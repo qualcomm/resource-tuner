@@ -19,6 +19,8 @@
 #include "MemoryPool.h"
 #include "TestAggregator.h"
 
+#include "TestInitReset.hpp"
+
 // ---------- Init ----------
 static void Init() {
     MakeAlloc<ClientInfo> (30);
@@ -51,10 +53,22 @@ static Resource* generateResourceFromMemoryPoolForTesting(int32_t seed) {
     return resource;
 }
 
+
+struct CleanStateFixture : mtest::Fixture {
+    void setup(mtest::TestContext&) override {
+        testinit::InitAll();
+        testinit::ResetAll(); // clear any leaked state from previous test
+    }
+    void teardown(mtest::TestContext&) override {
+        testinit::ResetAll(); // leave no leftovers for next test
+    }
+};
+
+
 // ---------- Tests (ported one-to-one) ----------
 
 // TestSingleRequestScenario
-MT_TEST(RequestMap, TestSingleRequestScenario, "component-serial") {
+MT_TEST_F(RequestMap, TestSingleRequestScenario, "component-serial", CleanStateFixture) {
     Init();
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RequestManager>    requestMap        = RequestManager::getInstance();
@@ -91,7 +105,7 @@ MT_TEST(RequestMap, TestSingleRequestScenario, "component-serial") {
 }
 
 // TestDuplicateRequestScenario1
-MT_TEST(RequestMap, TestDuplicateRequestScenario1, "component-serial") {
+MT_TEST_F(RequestMap, TestDuplicateRequestScenario1, "component-serial", CleanStateFixture) {
     Init();
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RequestManager>    requestMap        = RequestManager::getInstance();
@@ -148,7 +162,7 @@ MT_TEST(RequestMap, TestDuplicateRequestScenario1, "component-serial") {
 }
 
 // TestDuplicateRequestScenario2
-MT_TEST(RequestMap, TestDuplicateRequestScenario2, "component-serial") {
+MT_TEST_F(RequestMap, TestDuplicateRequestScenario2, "component-serial", CleanStateFixture) {
     Init();
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RequestManager>    requestMap        = RequestManager::getInstance();
@@ -213,7 +227,7 @@ MT_TEST(RequestMap, TestDuplicateRequestScenario2, "component-serial") {
 }
 
 // TestDuplicateRequestScenario3_1
-MT_TEST(RequestMap, TestDuplicateRequestScenario3_1, "component-serial") {
+MT_TEST_F(RequestMap, TestDuplicateRequestScenario3_1, "component-serial", CleanStateFixture) {
     Init();
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RequestManager>    requestMap        = RequestManager::getInstance();
@@ -258,7 +272,7 @@ MT_TEST(RequestMap, TestDuplicateRequestScenario3_1, "component-serial") {
 }
 
 // TestDuplicateRequestScenario3_2
-MT_TEST(RequestMap, TestDuplicateRequestScenario3_2, "component-serial") {
+MT_TEST_F(RequestMap, TestDuplicateRequestScenario3_2, "component-serial", CleanStateFixture) {
     Init();
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RequestManager>    requestMap        = RequestManager::getInstance();
@@ -335,7 +349,7 @@ MT_TEST(RequestMap, TestDuplicateRequestScenario3_2, "component-serial") {
 }
 
 // TestDuplicateRequestScenario4
-MT_TEST(RequestMap, TestDuplicateRequestScenario4, "component-serial") {
+MT_TEST_F(RequestMap, TestDuplicateRequestScenario4, "component-serial", CleanStateFixture) {
     Init();
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RequestManager>    requestMap        = RequestManager::getInstance();
@@ -423,7 +437,7 @@ MT_TEST(RequestMap, TestDuplicateRequestScenario4, "component-serial") {
 }
 
 // TestMultipleClientsScenario5
-MT_TEST(RequestMap, TestMultipleClientsScenario5, "component-serial") {
+MT_TEST_F(RequestMap, TestMultipleClientsScenario5, "component-serial", CleanStateFixture) {
     Init();
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RequestManager>    requestMap        = RequestManager::getInstance();
@@ -532,7 +546,7 @@ MT_TEST(RequestMap, TestMultipleClientsScenario5, "component-serial") {
 }
 
 // TestRequestWithHandleExists1
-MT_TEST(RequestMap, TestRequestWithHandleExists1, "component-serial") {
+MT_TEST_F(RequestMap, TestRequestWithHandleExists1, "component-serial", CleanStateFixture) {
     Init();
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RequestManager>    requestMap        = RequestManager::getInstance();
@@ -577,7 +591,7 @@ MT_TEST(RequestMap, TestRequestWithHandleExists1, "component-serial") {
 }
 
 // TestRequestWithHandleExists2
-MT_TEST(RequestMap, TestRequestWithHandleExists2, "component-serial") {
+MT_TEST_F(RequestMap, TestRequestWithHandleExists2, "component-serial", CleanStateFixture) {
     Init();
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RequestManager>    requestMap        = RequestManager::getInstance();
@@ -622,7 +636,7 @@ MT_TEST(RequestMap, TestRequestWithHandleExists2, "component-serial") {
 }
 
 // TestRequestDeletion1
-MT_TEST(RequestMap, TestRequestDeletion1, "component-serial") {
+MT_TEST_F(RequestMap, TestRequestDeletion1, "component-serial", CleanStateFixture) {
     Init();
     int32_t testClientPID = 321;
     int32_t testClientTID = 321;
@@ -669,7 +683,7 @@ MT_TEST(RequestMap, TestRequestDeletion1, "component-serial") {
 }
 
 // TestRequestDeletion2
-MT_TEST(RequestMap, TestRequestDeletion2, "component-serial") {
+MT_TEST_F(RequestMap, TestRequestDeletion2, "component-serial", CleanStateFixture) {
     Init();
     int32_t testClientPID = 321;
     int32_t testClientTID = 321;
@@ -732,14 +746,14 @@ MT_TEST(RequestMap, TestRequestDeletion2, "component-serial") {
 }
 
 // TestNullRequestAddition
-MT_TEST(RequestMap, TestNullRequestAddition, "component-serial") {
+MT_TEST_F(RequestMap, TestNullRequestAddition, "component-serial", CleanStateFixture) {
     Init();
     std::shared_ptr<RequestManager> requestMap = RequestManager::getInstance();
     MT_REQUIRE(ctx, requestMap->shouldRequestBeAdded(nullptr) == false);
 }
 
 // TestRequestWithNullResourcesAddition
-MT_TEST(RequestMap, TestRequestWithNullResourcesAddition, "component-serial") {
+MT_TEST_F(RequestMap, TestRequestWithNullResourcesAddition, "component-serial", CleanStateFixture) {
     Init();
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RequestManager>    requestMap        = RequestManager::getInstance();
@@ -775,7 +789,7 @@ MT_TEST(RequestMap, TestRequestWithNullResourcesAddition, "component-serial") {
 }
 
 // TestGetRequestFromMap
-MT_TEST(RequestMap, TestGetRequestFromMap, "component-serial") {
+MT_TEST_F(RequestMap, TestGetRequestFromMap, "component-serial", CleanStateFixture) {
     Init();
     int32_t testClientPID = 321;
     int32_t testClientTID = 321;
@@ -817,7 +831,7 @@ MT_TEST(RequestMap, TestGetRequestFromMap, "component-serial") {
 
     MT_REQUIRE(ctx, result == true);
 
-    Request* fetchedRequest = requestMap->getRequestFromMap(325);
+    Request* fetchedRequest = requestMap->getRequestFromMap(325).first;
 
     MT_REQUIRE(ctx, fetchedRequest != nullptr);
     MT_REQUIRE(ctx, fetchedRequest->getDuration() == -1);
@@ -827,7 +841,7 @@ MT_TEST(RequestMap, TestGetRequestFromMap, "component-serial") {
 
     requestMap->removeRequest(request);
 
-    fetchedRequest = requestMap->getRequestFromMap(325);
+    fetchedRequest = requestMap->getRequestFromMap(325).first;
     MT_REQUIRE(ctx, fetchedRequest == nullptr);
 
     clientDataManager->deleteClientPID(testClientPID);

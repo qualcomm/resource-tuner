@@ -18,7 +18,7 @@
 #include "RequestQueue.h"
 #include "TestUtils.h"
 #include "TestAggregator.h"
-
+#include "../Utils/Include/JoiningThread.hpp"
 // ---------- Init (unchanged) ----------
 static void Init() {
     MakeAlloc<Message>(30);
@@ -422,14 +422,15 @@ MT_TEST(RequestQueue, TestRequestQueueTaskEnqueue, "component-serial") {
     MT_REQUIRE_EQ(ctx, requestsProcessed, requestCount);
 }
 
+
 MT_TEST(RequestQueue, TestRequestQueueSingleTaskPickup1, "component-serial") {
     Init();
     std::shared_ptr<RequestQueue> requestQueue = RequestQueue::getInstance();
 
     ConsumerPickup1 consumer(&requestQueue);
-    std::thread consumerThread(consumer);
+    joining_thread consumerThread{ std::thread(consumer) };
 
-    // Producer (unchanged logic)
+    // Producer
     Request* req = new Request();
     req->setRequestType(REQ_RESOURCE_TUNING);
     req->setHandle(200);
@@ -437,10 +438,11 @@ MT_TEST(RequestQueue, TestRequestQueueSingleTaskPickup1, "component-serial") {
     req->setClientPID(321);
     req->setClientTID(2445);
     req->setProperties(0);
-    requestQueue->addAndWakeup(req);
 
-    consumerThread.join();
+    // If this throws, ~joining_thread() will still join on unwind
+    requestQueue->addAndWakeup(req);
 }
+
 
 MT_TEST(RequestQueue, TestRequestQueueSingleTaskPickup2, "component-serial") {
     Init();

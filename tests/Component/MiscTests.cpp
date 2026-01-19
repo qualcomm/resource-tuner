@@ -6,7 +6,7 @@
 
 #include "AuxRoutines.h"
 #include "UrmSettings.h"
-
+#include "TestUtils.h"
 #include "Common.h"
 #include "MemoryPool.h"
 #include "Request.h"
@@ -140,18 +140,32 @@ MT_TEST(MiscTests, AuxRoutineFileExists, "component-serial") {
     MT_REQUIRE_EQ(ctx, fileExists, false);
 }
 
+
+// MiscTests.cpp
+#include "TestUtils.h" // where MakeAlloc<T>() lives
+
 MT_TEST(MiscTests, RequestModeAddition, "component-serial") {
-    Request request;
+    // Initialize the pool used by Request::Request() before creating any Request
+    MakeAlloc<DLManager>(/*capacity*/ 32);   // pick a sensible capacity for your suite
 
-    request.setProperties(0);
-    request.addProcessingMode(MODE_RESUME);
-    MT_REQUIRE_EQ(ctx, request.getProcessingModes(), MODE_RESUME);
+    // Case 1
+    Request request1;
+    request1.setProperties(0);
+    request1.addProcessingMode(MODE_RESUME);
+    MT_REQUIRE_EQ(ctx,
+        static_cast<uint32_t>(request1.getProcessingModes()),
+        static_cast<uint32_t>(MODE_RESUME));
 
-    request.setProperties(0);
-    request.addProcessingMode(MODE_RESUME);
-    request.addProcessingMode(MODE_SUSPEND);
-    request.addProcessingMode(MODE_DOZE);
-    MT_REQUIRE_EQ(ctx, request.getProcessingModes(),
-                  (MODE_RESUME | MODE_SUSPEND | MODE_DOZE));
+    // Case 2 – use a fresh Request since there is no clearProcessingModes()
+    Request request2;
+    request2.setProperties(0);
+    request2.addProcessingMode(MODE_RESUME);
+    request2.addProcessingMode(MODE_SUSPEND);
+    request2.addProcessingMode(MODE_DOZE);
+    MT_REQUIRE_EQ(ctx,
+        static_cast<uint32_t>(request2.getProcessingModes()),
+        static_cast<uint32_t>(MODE_RESUME) |
+        static_cast<uint32_t>(MODE_SUSPEND) |
+        static_cast<uint32_t>(MODE_DOZE));
 }
 
