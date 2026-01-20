@@ -43,12 +43,12 @@ if(BUILD_TESTS)
 # --- Mini.hpp header-only unit/module/usecase tests ---
 # Source list for mini.hpp-based tests (add more .cpps here as you create them)
 # IMPORTANT: Do NOT include Integration/IntegrationTests.cpp here; it belongs to the integration runner.
-set(MINI_TEST_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/Component/tests_main.cpp
+set(COMPONENT_TEST_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/framework/testrunner.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Component/ThreadPoolTests.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Component/TimerTests.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Component/SafeOpsTests.cpp
-    #${CMAKE_CURRENT_SOURCE_DIR}/Component/RequestQueueTests.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Component/RequestQueueTests.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Component/RateLimiterTests.cpp
     #${CMAKE_CURRENT_SOURCE_DIR}/Component/ParserTests.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Component/MiscTests.cpp
@@ -58,19 +58,18 @@ set(MINI_TEST_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/Component/RequestMapTests.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Component/CocoTableTests.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Component/ClientDataManagerTests.cpp
-    # DO NOT list Integration/IntegrationTests.cpp here
 )
 
 # Create a single test runner binary that uses mini.hpp's built-in main()
-add_executable(RestuneMiniTests ${MINI_TEST_SOURCES})
+add_executable(RestuneComponentTests ${COMPONENT_TEST_SOURCES})
 
 # Make the header visible to the test sources
-target_include_directories(RestuneMiniTests PRIVATE
+target_include_directories(RestuneComponentTests PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/framework
 )
 
 # Link any production libraries your tests depend on (adjust as needed)
-target_link_libraries(RestuneMiniTests PUBLIC
+target_link_libraries(RestuneComponentTests PUBLIC
     UrmAuxUtils
     UrmExtAPIs
     RestuneCore
@@ -82,21 +81,21 @@ target_link_libraries(RestuneMiniTests PUBLIC
 )
 
 # (Optional) defines
-target_compile_definitions(RestuneMiniTests PRIVATE
+target_compile_definitions(RestuneComponentTests PRIVATE
     MTEST_DEFAULT_OUTPUT_TAP=0
     # MTEST_ENABLE_EXCEPTIONS=1
 )
 
 # Install the test runner like your other test executables
-install(TARGETS RestuneMiniTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS RestuneComponentTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 
 # All Mini tests – emit reports every run
-add_test(NAME RestuneMiniTests_All
-         COMMAND RestuneMiniTests
-                 --report-json=${TEST_REPORT_DIR}/mini_all.json
-                 --report-junit=${TEST_REPORT_DIR}/mini_all.junit.xml
-                 --report-md=${TEST_REPORT_DIR}/mini_all.md)
+add_test(NAME RestuneComponentTests_All
+         COMMAND RestuneComponentTests
+                 --report-json=${TEST_REPORT_DIR}/component_all.json
+                 --report-junit=${TEST_REPORT_DIR}/component_all.junit.xml
+                 --report-md=${TEST_REPORT_DIR}/component_all.md)
 
 
 # (Optional) make XPASS fail the test run, useful in CI strict mode
@@ -107,7 +106,7 @@ add_test(NAME RestuneMiniTests_All
 #     PASS_REGULAR_EXPRESSION "Summary:.*failed=0"
 # )
 
-set_tests_properties(RestuneMiniTests_All PROPERTIES
+set_tests_properties(RestuneComponentTests_All PROPERTIES
     ENVIRONMENT "${TEST_REPORT_ENV};NO_COLOR="
 )
 
@@ -120,7 +119,7 @@ add_executable(RestuneIntegrationTests
 
 # Include directories (mini.hpp and any headers used)
 target_include_directories(RestuneIntegrationTests PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/framework         # mini.h location
+    ${CMAKE_CURRENT_SOURCE_DIR}/framework         # mini.hpp location
     ${CMAKE_CURRENT_SOURCE_DIR}/Integration       # local includes used by Integration tests
     # add other include dirs if your tests need them
 )
@@ -153,5 +152,74 @@ set_tests_properties(RestuneIntegrationTests_All PROPERTIES
     ENVIRONMENT "${TEST_REPORT_ENV};NO_COLOR="
 )
 
+
+
+
+# ----------------------------------------
+# Unified RestuneUnit binary (all unit tests)
+# ----------------------------------------
+
+# 1) One main TU that provides main()
+set(RESTUNE_UNIT_MAIN
+    ${CMAKE_CURRENT_SOURCE_DIR}/framework/testrunner.cpp
+)
+
+# 2) Test sources + shim + stubs + the real file under test for getResConf
+set(RESTUNE_UNIT_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/unit/test_submitResProvisionRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/unit/test_getResConf.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/unit/shims/SubmitShim.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/unit/stubs/RegistryStubs.cpp
+    ${CMAKE_SOURCE_DIR}/resource-tuner/core/ResourceRegistry.cpp
+)
+
+# Helpful debug output
+message(STATUS "RESTUNE_UNIT_MAIN    = ${RESTUNE_UNIT_MAIN}")
+message(STATUS "RESTUNE_UNIT_SOURCES = ${RESTUNE_UNIT_SOURCES}")
+
+# 3) Create the binary
+add_executable(RestuneUnitTests
+    ${RESTUNE_UNIT_MAIN}
+    ${RESTUNE_UNIT_SOURCES}
+)
+
+# 4) Only the main TU should generate main(); the test TUs must not
+set_source_files_properties(
+    ${CMAKE_CURRENT_SOURCE_DIR}/unit/test_submitResProvisionRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/unit/test_getResConf.cpp
+    PROPERTIES COMPILE_DEFINITIONS "MTEST_NO_MAIN=1"
+)
+
+# 5) Include paths for tests and core headers
+target_include_directories(RestuneUnitTests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/framework
+    ${CMAKE_SOURCE_DIR}/resource-tuner/core/Include
+    ${CMAKE_SOURCE_DIR}/modula/Common/Include
+)
+
+# 6) Link minimal libs only (do NOT link RestuneCore; shim+stubs avoid heavy initializers)
+target_link_libraries(RestuneUnitTests PRIVATE
+    UrmAuxUtils
+    UrmExtAPIs
+    RestuneTestUtils
+)
+
+# 7) mini.hpp default behavior
+target_compile_definitions(RestuneUnitTests PRIVATE
+    MTEST_DEFAULT_OUTPUT_TAP=0
+)
+
+# 8) Install & register with CTest
+install(TARGETS RestuneUnitTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+add_test(NAME RestuneUnitTests_All
+         COMMAND RestuneUnit
+                 --report-json=${TEST_REPORT_DIR}/unit_all.json
+                 --report-junit=${TEST_REPORT_DIR}/unit_all.junit.xml
+                 --report-md=${TEST_REPORT_DIR}/unit_all.md)
+
+set_tests_properties(RestuneUnitTests_All PROPERTIES
+    ENVIRONMENT "${TEST_REPORT_ENV};NO_COLOR="
+)
 
 endif()
