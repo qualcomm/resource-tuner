@@ -1,0 +1,39 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause-Clear
+
+TargetConfig:
+  - TargetName: ["TestDevice"]
+    ClusterInfo:
+      - LgcId: 0
+        PhyId: 4
+      - LgcId: 1
+        PhyId: 0
+      - LgcId: 2
+        PhyId: 9
+      - LgcId: 3
+        PhyId: 7
+    ClusterSpread:
+      - PhyId: 0
+        NumCores: 4
+      - PhyId: 4
+        NumCores: 3
+      - PhyId: 7
+        NumCores: 2
+      - PhyId: 9
+        NumCores: 1
+
+  - TargetName: ["*"]
+    ClusterInfo:
+      - LgcId: 0
+        PhyId: 2
+      - LgcId: 1
+        PhyId: 5
+      - LgcId: 2
+        PhyId: 0
+    ClusterSpread:
+      - PhyId: 0
+        NumCores: 2
+      - PhyId: 2
+        NumCores: 3
+      - PhyId: 5
+        NumCores: 2

@@ -1,0 +1,20 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause-Clear
+
+PropertyConfigs:
+  # Delay Running PM and GC so that they don't interfere with test execution.
+  - Name: "resource_tuner.pulse.duration"
+    Value: "60000000"
+
+  - Name: "resource_tuner.garbage_collection.duration"
+    Value: "83000000"
+
+  # Test-Only Properties
+  - Name: "test.debug.enabled"
+    Value: "true"
+
+  - Name: "test.doc.build.mode.enabled"
+    Value: "false"
+
+  - Name: "test.current.worker_thread.count"
+    Value: "125"
