@@ -19,6 +19,7 @@
 #include "AuxRoutines.h"
 #include "ContextualClassifier.h"
 #include "RestuneInternal.h"
+#include "SignalRegistry.h"
 #include "Extensions.h"
 #include "Inference.h"
 
@@ -56,6 +57,65 @@ ContextualClassifier::ContextualClassifier() {
 
 static ContextualClassifier *gClassifier = nullptr;
 static const int32_t pendingQueueControlSize = 30;
+
+static Request* createResourceTuningRequest(uint32_t sigId,
+                                            uint32_t sigType,
+                                            pid_t incomingPID,
+                                            pid_t incomingTID) {
+    try {
+        std::shared_ptr<SignalRegistry> sigRegistry = SignalRegistry::getInstance();
+
+        // Check if a Signal with the given ID exists in the Registry
+        SignalInfo* signalInfo = sigRegistry->getSignalConfigById(sigId, sigType);
+
+        if(signalInfo == nullptr) return nullptr;
+
+        Request* request = MPLACED(Request);
+
+        int64_t handleGenerated = AuxRoutines::generateUniqueHandle();
+        request->setHandle(handleGenerated);
+
+        request->setRequestType(REQ_RESOURCE_TUNING);
+        request->setDuration(signalInfo->mTimeout);
+        request->setProperties(SYSTEM_HIGH);
+        request->setClientPID(incomingPID);
+        request->setClientTID(incomingTID);
+
+        std::vector<Resource*>* signalLocks = signalInfo->mSignalResources;
+
+        for(int32_t i = 0; i < signalLocks->size(); i++) {
+            if((*signalLocks)[i] == nullptr) {
+                continue;
+            }
+
+            // Copy
+            Resource* resource = MPLACEV(Resource, (*((*signalLocks)[i])));
+
+            ResIterable* resIterable = MPLACED(ResIterable);
+            resIterable->mData = resource;
+            request->addResource(resIterable);
+        }
+
+        return request;
+
+    } catch(const std::bad_alloc& e) {
+        return nullptr;
+    }
+
+    return nullptr;
+}
+
+static ResIterable* createMovePidResource(int32_t cGroupdId, pid_t pid) {
+    ResIterable* resIterable = MPLACED(ResIterable);
+    Resource* resource = MPLACED(Resource);
+    resource->setResCode(RES_CGRP_MOVE_PID);
+    resource->setNumValues(2);
+    resource->setValueAt(0, cGroupdId);
+    resource->setValueAt(1, pid);
+
+    resIterable->mData = resource;
+    return resIterable;
+}
 
 ContextualClassifier::~ContextualClassifier() {
     this->Terminate();
@@ -142,7 +202,7 @@ void ContextualClassifier::ClassifierMain() {
 
         if(ev.type == CC_APP_OPEN) {
             std::string comm;
-            uint32_t sigId = CC_APP_OPEN;
+            uint32_t sigId = CONSTRUCT_SIG_CODE(URM_SIG_APP_OPEN, URM_SIG_CAT_GENERIC);
             uint32_t sigType = DEFAULT_SIGNAL_TYPE;
             uint32_t ctxDetails = 0U;
 
@@ -187,7 +247,7 @@ void ContextualClassifier::ClassifierMain() {
                 }
 
                 // Step 4: Apply actions, call tuneSignal
-                this->ApplyActions(sigId, sigType);
+                this->ApplyActions(sigId, sigType, ev.pid, ev.tgid);
             }
         } else if (ev.type == CC_APP_CLOSE) {
 			//Step1: move process to original cgroup
@@ -286,39 +346,36 @@ int32_t ContextualClassifier::ClassifyProcess(pid_t processPid,
     return context;
 }
 
-void ContextualClassifier::ApplyActions(uint32_t sigId, uint32_t sigType) {
-	(void)sigId;
-	(void)sigType;
-
-    // Call tuneSignal here
-    // tuneSignal and update the handles
-    // mResTunerHandles
-
-    // TODO:: No second level interface for signals exists as of now
-    return;
+void ContextualClassifier::ApplyActions(uint32_t sigId,
+                                        uint32_t sigType,
+                                        pid_t incomingPID,
+                                        pid_t incomingTID) {
+    Request* request = createResourceTuningRequest(sigId, sigType, incomingPID, incomingTID);
+    if(request != nullptr) {
+        submitResProvisionRequest(request, false);
+    }
 }
 
 void ContextualClassifier::RemoveActions(pid_t processPid, pid_t processTgid) {
 	(void)processPid;
     (void)processTgid;
-    // untuneSignal and erase handles
-    // mResTunerHandles
     return;
 }
 
 uint32_t ContextualClassifier::GetSignalIDForWorkload(int32_t contextType) {
     switch(contextType) {
         case CC_MULTIMEDIA:
-            return CC_MULTIMEDIA_APP_OPEN;
+            return CONSTRUCT_SIG_CODE(URM_SIG_MULTIMEDIA_APP_OPEN, URM_SIG_CAT_MULTIMEDIA);
         case CC_GAME:
-            return CC_GAME_APP_OPEN;
+            return CONSTRUCT_SIG_CODE(URM_SIG_GAME_APP_OPEN, URM_SIG_CAT_GAMING);
         case CC_BROWSER:
-            return CC_BROWSER_APP_OPEN;
+            return CONSTRUCT_SIG_CODE(URM_SIG_BROWSER_APP_OPEN, URM_SIG_CAT_BROWSER);
         default:
             break;
     }
 
-    return CC_APP_OPEN;
+    // CC_APP
+    return CONSTRUCT_SIG_CODE(URM_SIG_APP_OPEN, URM_SIG_CAT_GENERIC);
 }
 
 void ContextualClassifier::LoadIgnoredProcesses() {
@@ -380,18 +437,6 @@ int8_t ContextualClassifier::isIgnoredProcess(int32_t evType, pid_t pid) {
     return ignore;
 }
 
-ResIterable* ContextualClassifier::createMovePidResource(int32_t cGroupdId, pid_t pid) {
-    ResIterable* resIterable = MPLACED(ResIterable);
-    Resource* resource = MPLACED(Resource);
-    resource->setResCode(RES_CGRP_MOVE_PID);
-    resource->setNumValues(2);
-    resource->setValueAt(0, cGroupdId);
-    resource->setValueAt(1, pid);
-
-    resIterable->mData = resource;
-    return resIterable;
-}
-
 void ContextualClassifier::MoveAppThreadsToCGroup(pid_t incomingPID,
                                                   pid_t incomingTID,
                                                   const std::string& comm,
@@ -432,7 +477,7 @@ void ContextualClassifier::MoveAppThreadsToCGroup(pid_t incomingPID,
         request->setClientTID(incomingTID);
 
         // Move the incoming pid
-        ResIterable* resIter = this->createMovePidResource(cgroupIdentifier, incomingPID);
+        ResIterable* resIter = createMovePidResource(cgroupIdentifier, incomingPID);
         request->addResource(resIter);
 
         AppConfig* appConfig = AppConfigs::getInstance()->getAppConfig(comm);

@@ -231,17 +231,16 @@ static inline uint32_t getResCodeFromString(const char* strCode, int8_t* found) 
     return 0;
 }
 
-//Predefined Signal config enums
-//categories
+// Predefined Signal Categories
 enum {
-    URM_SIG_CAT_TEST=0x01,
-    URM_SIG_CAT_GENERIC=0x02,
-    URM_SIG_CAT_MULTIMEDIA=0x03,
-    URM_SIG_CAT_GAMING=0x04,
-    URM_SIG_CAT_BROWSER=0x05,
+    URM_SIG_CAT_TEST = 0x01,
+    URM_SIG_CAT_GENERIC = 0x02,
+    URM_SIG_CAT_MULTIMEDIA = 0x03,
+    URM_SIG_CAT_GAMING = 0x04,
+    URM_SIG_CAT_BROWSER = 0x05,
 };
 
-//generic
+// Generic
 enum {
     URM_SIG_APP_OPEN = 0x0001,
     URM_SIG_BROWSER_APP_OPEN = 0x0002,
@@ -249,7 +248,7 @@ enum {
     URM_SIG_MULTIMEDIA_APP_OPEN = 0x0004,
 };
 
-//multimedia
+// Multimedia
 enum {
     URM_SIG_VIDEO_DECODE = 0x0001,
     URM_SIG_CAMERA_PREVIEW = 0x0002,
