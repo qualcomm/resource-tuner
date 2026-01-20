@@ -15,7 +15,7 @@
 
 
 #define MTEST_NO_MAIN
-#include "../framework/mini.hpp"
+#include "../framework/mini.h"
 
 
 // ---- Shared elements from your original suite ----

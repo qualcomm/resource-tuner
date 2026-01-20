@@ -1,5 +1,5 @@
-
-#pragma once
+#ifndef MINI_HPP_INCLUDED
+#define MINI_HPP_INCLUDED
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>

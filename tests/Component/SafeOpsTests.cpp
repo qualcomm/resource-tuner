@@ -7,7 +7,7 @@
 #include <limits>
 
 #define MTEST_NO_MAIN
-#include "../framework/mini.hpp"
+#include "../framework/mini.h"
 
 #include "ErrCodes.h"
 #include "TestUtils.h"

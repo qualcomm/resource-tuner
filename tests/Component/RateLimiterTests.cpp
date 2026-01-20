@@ -15,7 +15,7 @@
 #include <iostream>
 
 #define MTEST_NO_MAIN
-#include "../framework/mini.hpp"
+#include "../framework/mini.h"
 
 #include "TestUtils.h"
 #include "RequestManager.h"

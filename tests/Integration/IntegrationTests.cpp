@@ -5,7 +5,7 @@
 #include "TestBaseline.h"
 #include "UrmAPIs.h"
 //#define MTEST_NO_MAIN
-#include "../framework/mini.hpp"
+#include "../framework/mini.h"
 
 static TestBaseline baseline;                // local instance for this TU
 // Fetch baseline once for all tests (your original code did this in main)

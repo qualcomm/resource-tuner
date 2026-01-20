@@ -11,7 +11,7 @@
 #include <new>       // std::bad_alloc
 
 #define MTEST_NO_MAIN
-#include "../framework/mini.hpp"
+#include "../framework/mini.h"
 
 #include "TestUtils.h"
 #include "RequestManager.h"
@@ -19,7 +19,7 @@
 #include "MemoryPool.h"
 #include "TestAggregator.h"
 
-#include "TestInitReset.hpp"
+#include "TestInitReset.h"
 
 // ---------- Init ----------
 static void Init() {

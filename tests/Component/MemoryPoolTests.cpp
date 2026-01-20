@@ -14,9 +14,8 @@
 #include <new>      // placement new
 
 #define MTEST_NO_MAIN
-#include "../framework/mini.hpp"
+#include "../framework/mini.h"
 
-#include "mini.hpp"   // your minimal test framework
 
 using namespace mtest;
 

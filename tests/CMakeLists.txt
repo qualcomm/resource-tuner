@@ -120,7 +120,7 @@ add_executable(RestuneIntegrationTests
 
 # Include directories (mini.hpp and any headers used)
 target_include_directories(RestuneIntegrationTests PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/framework         # mini.hpp location
+    ${CMAKE_CURRENT_SOURCE_DIR}/framework         # mini.h location
     ${CMAKE_CURRENT_SOURCE_DIR}/Integration       # local includes used by Integration tests
     # add other include dirs if your tests need them
 )

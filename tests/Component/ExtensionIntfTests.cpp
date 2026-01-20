@@ -13,7 +13,7 @@
 #include <cstdint>
 
 #define MTEST_NO_MAIN
-#include "../framework/mini.hpp"
+#include "../framework/mini.h"
 
 using namespace mtest;
 

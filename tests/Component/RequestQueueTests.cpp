@@ -13,12 +13,12 @@
 #include <memory>
 
 #define MTEST_NO_MAIN
-#include "../framework/mini.hpp"
+#include "../framework/mini.h"
 
 #include "RequestQueue.h"
 #include "TestUtils.h"
 #include "TestAggregator.h"
-#include "../Utils/Include/JoiningThread.hpp"
+#include "../Utils/Include/JoiningThread.h"
 // ---------- Init (unchanged) ----------
 static void Init() {
     MakeAlloc<Message>(30);

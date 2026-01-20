@@ -5,7 +5,7 @@
 // ParserTests_mtest.cpp
 
 #define MTEST_NO_MAIN
-#include "../framework/mini.hpp"
+#include "../framework/mini.h"
 
 // ParserTests.cpp (ported to mini.hpp with assert adaptation + no lambdas in concurrent test)
 #include "ErrCodes.h"

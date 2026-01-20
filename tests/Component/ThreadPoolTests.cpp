@@ -16,7 +16,7 @@
 #include "ThreadPool.h"   // your thread pool component
 
 #define MTEST_NO_MAIN
-#include "../framework/mini.hpp"
+#include "../framework/mini.h"
 
 
 // ---- Shared state (same as original) ----

@@ -1,1 +1,1 @@
-#include "../framework/mini.hpp"  // no #define MTEST_NO_MAIN here
+#include "../framework/mini.h"  // no #define MTEST_NO_MAIN here
