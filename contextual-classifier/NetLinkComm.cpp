@@ -12,6 +12,29 @@
 #include "ContextualClassifier.h"
 
 #define CLASSIFIER_TAG "NetLinkComm"
+#define PROCP_THRESH 50
+
+static pid_t getParent(pid_t pid) {
+    std::string statusFile = "/proc/" + std::to_string(pid) + "/status";
+    std::ifstream file(statusFile);
+    std::string line;
+
+    if(!file.is_open()) {
+        return 0;
+    }
+
+    while(std::getline(file, line)) {
+        if(line.rfind("PPid:", 0) == 0) {
+            std::istringstream iss(line);
+            std::string label;
+            pid_t parentPid;
+            iss >> label >> parentPid;
+            return parentPid;
+        }
+    }
+
+    return 0;
+}
 
 NetLinkComm::NetLinkComm() {
     this->mNlSock = -1;
@@ -98,7 +121,7 @@ int32_t NetLinkComm::recvEvent(ProcEvent &ev) {
         return 0;
     }
     if(rc == -1) {
-        if (errno == EINTR) {
+        if(errno == EINTR) {
             // Caller (ContextualClassifier::HandleProcEv) will handle EINTR.
             return -1;
         }
@@ -125,7 +148,7 @@ int32_t NetLinkComm::recvEvent(ProcEvent &ev) {
             ev.type = CC_APP_OPEN;
 
             rc = CC_APP_OPEN;
-            if(!AuxRoutines::fileExists(COMM(ev.pid))) {
+            if(!AuxRoutines::fileExists(COMM(ev.pid)) || (getParent(ev.pid) <= PROCP_THRESH)) {
                 rc = ev.type = CC_IGNORE;
             }
             break;
@@ -136,7 +159,7 @@ int32_t NetLinkComm::recvEvent(ProcEvent &ev) {
             ev.type = CC_APP_CLOSE;
 
             rc = CC_APP_CLOSE;
-            if(!AuxRoutines::fileExists(COMM(ev.pid))) {
+            if(!AuxRoutines::fileExists(COMM(ev.pid)) || (getParent(ev.pid) <= PROCP_THRESH)) {
                 rc = ev.type = CC_IGNORE;
             }
             break;
