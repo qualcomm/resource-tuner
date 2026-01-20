@@ -54,12 +54,14 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
         return false;
     }
 
+    // Client Permission Checks
     int8_t clientPermissions = ClientDataManager::getInstance()->getClientLevelByClientID(signal->getClientPID());
     if(clientPermissions == -1) {
         TYPELOGV(VERIFIER_INVALID_PERMISSION, signal->getClientPID(), signal->getClientTID());
         return false;
     }
 
+    // Priority Checks
     int8_t reqSpecifiedPriority = signal->getPriority();
     if(reqSpecifiedPriority > RequestPriority::REQ_PRIORITY_LOW ||
        reqSpecifiedPriority < RequestPriority::REQ_PRIORITY_HIGH) {
@@ -71,6 +73,7 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
     if(allowedPriority == -1) return false;
     signal->setPriority(allowedPriority);
 
+    // Does Client have sufficient permissions to acquire this signal
     int8_t permissionCheck = false;
     for(enum Permissions signalPermission: *signalInfo->mPermissions) {
         if(clientPermissions == signalPermission) {
@@ -85,51 +88,7 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
         return false;
     }
 
-    if(signal->getRequestType() == REQ_SIGNAL_RELAY) {
-        TYPELOGV(VERIFIER_REQUEST_VALIDATED, signal->getHandle());
-        return true;
-    }
-
-    // Perform Resource Level Checking, using the ResourceRegistry
-    for(int32_t i = 0; i < signalInfo->mSignalResources->size(); i++) {
-        Resource* resource = signalInfo->mSignalResources->at(i);
-        ResConfInfo* resourceConfig = ResourceRegistry::getInstance()->getResConf(resource->getResCode());
-
-        // Basic sanity: Invalid ResCode
-        if(resourceConfig == nullptr) {
-            TYPELOGV(VERIFIER_INVALID_OPCODE, resource->getResCode());
-            return false;
-        }
-
-        // Verify value is in the range [LT, HT]
-        if(resource->getValuesCount() == 1) {
-            int32_t configValue = resource->getValueAt(0);
-            int32_t lowThreshold = resourceConfig->mLowThreshold;
-            int32_t highThreshold = resourceConfig->mHighThreshold;
-
-            if((lowThreshold != -1 && highThreshold != -1) &&
-                (configValue < lowThreshold || configValue > highThreshold)) {
-                TYPELOGV(VERIFIER_VALUE_OUT_OF_BOUNDS, configValue, resource->getResCode());
-                return false;
-            }
-        } else {
-            // Note: Extend this verification for multiple values
-        }
-
-        // Check for Client permissions
-        if(resourceConfig->mPermissions == PERMISSION_SYSTEM && clientPermissions == PERMISSION_THIRD_PARTY) {
-            TYPELOGV(VERIFIER_NOT_SUFFICIENT_PERMISSION, resource->getResCode());
-            return false;
-        }
-
-        // Check if logical to physical mapping is needed for the resource, if needed
-        // try to perform the translation.
-        if(RC_IS_NOTOK(translateToPhysicalIDs(resource))) {
-            // Translation needed but could not be performed, reject the request
-            return false;
-        }
-    }
-
+    // If duration (timeout) is not specified, derive it from Signal Configs
     if(signal->getDuration() == 0) {
         // If the Client has not specified a duration to tune the Signal for,
         // We use the default duration for the Signal, specified in the Signal
@@ -137,10 +96,8 @@ static int8_t VerifyIncomingRequest(Signal* signal) {
         signal->setDuration(signalInfo->mTimeout);
     }
 
-    TYPELOGV(VERIFIER_REQUEST_VALIDATED, signal->getHandle());
     return true;
 }
-
 
 static Request* createResourceTuningRequest(Signal* signal) {
     try {
@@ -275,7 +232,7 @@ static void processIncomingRequest(Signal* signal) {
 
             // Submit the Resource Provisioning request for processing
             if(request != nullptr) {
-                submitResProvisionRequest(request, true);
+                submitResProvisionRequest(request, false);
             } else {
                 LOGE("RESTUNE_SIGNAL_QUEUE", "Malformed Signal Request");
             }
