@@ -67,6 +67,7 @@ public:
 
     static const std::string mDeviceNamePath;
     static const std::string mBaseCGroupPath;
+    static const std::string focusedCgroup;
 
     static const std::string mPersistenceFile;
 

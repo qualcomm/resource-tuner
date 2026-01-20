@@ -41,9 +41,10 @@ const std::string UrmSettings::mExtensionsPluginLibPath =
 
 const std::string UrmSettings::mDeviceNamePath =
                                     "/sys/devices/soc0/machine";
-
 const std::string UrmSettings::mBaseCGroupPath =
                                     "/sys/fs/cgroup/";
+const std::string UrmSettings::focusedCgroup =
+                                    "focused.slice";
 
 const std::string UrmSettings::mPersistenceFile =
                                     "/etc/urm/data/resource_original_values.txt";

@@ -410,11 +410,10 @@ static void configureFocusedSlice() {
     const char *cgroupParam[][2] = {
         { "cgroup.max.depth",       "3"  },
         { "cgroup.max.descendants", "10" },
-        // { "pids.max",               "100" },
     };
 
     for (size_t i = 0; i < sizeof(cgroupParam)/sizeof(cgroupParam[0]); i++) {
-        setCgroupParam(FOCUSED_SLICE, cgroupParam[i][0], cgroupParam[i][1]);
+        setCgroupParam(UrmSettings::focusedCgroup.c_str(), cgroupParam[i][0], cgroupParam[i][1]);
     }
 }
 

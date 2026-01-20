@@ -1,11 +1,12 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include "ComponentRegistry.h"
-#include "Logger.h"
 #include <dlfcn.h>
 #include <string>
 #include <cstdarg>
+
+#include "Logger.h"
+#include "ComponentRegistry.h"
 
 // Helper function from ContextualClassifier to format strings
 static std::string format_string(const char *fmt, ...) {
