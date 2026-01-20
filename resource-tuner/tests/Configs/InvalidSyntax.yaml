@@ -1,6 +1,0 @@
-SampleYamlConfig:
-  Name: "sample_yaml_config",
-    Value: "44"
-  - List:
-      Key: "test_values",
-        Value: 12
