@@ -127,18 +127,19 @@ MT_TEST_F(ExtensionIntfTests, ModifiedInitConfigPath, "component-serial", Extens
 }
 MT_TEST_F_END
 
-static void TestExtensionIntfCustomResourceApplier1() {
+MT_TEST_F(ExtensionIntfTests, CustomResourceApplier1, "component-serial", ExtensionFixture) {
+    auto rr    = ResourceRegistry::getInstance();     // shared_ptr<ResourceRegistry>
+    auto* info = rr->getResConf(0x80ff0000);
+    if (!info) {
+        MT_FAIL(ctx, "Resource 0x80ff0000 not found — ensure configs are available and parsed.");
+    }
 
-}
-
-MT_TEST_F(ExtensionIntfTests, CustomResourceApplier1) {
-    ResConfInfo* info = ResourceRegistry::getInstance()->getResConf(0x80ff0000);
-    E_ASSERT(info != nullptr);
     funcCalled = false;
-    E_ASSERT(info->mResourceApplierCallback != nullptr);
+    MT_REQUIRE(ctx, info->mResourceApplierCallback != nullptr);
     info->mResourceApplierCallback(nullptr);
-    E_ASSERT(funcCalled == true);
+    MT_REQUIRE_EQ(ctx, funcCalled, true);
 }
+MT_TEST_F_END
 
 MT_TEST_F(ExtensionIntfTests, CustomResourceApplier2, "component-serial", ExtensionFixture) {
     auto rr    = ResourceRegistry::getInstance();
@@ -167,3 +168,6 @@ MT_TEST_F(ExtensionIntfTests, CustomResourceTear, "component-serial", ExtensionF
     MT_REQUIRE_EQ(ctx, funcCalled, true);
 }
 MT_TEST_F_END
+
+// Note: No RunTests() / REGISTER_TEST() needed — mini.hpp auto-registers tests
+// and provides main() unless compiled with -DMTEST_NO_MAIN.
