@@ -1775,9 +1775,7 @@ MT_TEST(SignalApplicationTests, TestMultiResourceSignal, "Integration") {
     LOG_END
 }
 
-MT_TEST_XFAIL(Integration, TestCgroupWriteAndResetBasicCase, "cgroup", "Known issue: failing on ubuntu") {
-
-//MT_TEST(Integration , TestCgroupWriteAndResetBasicCase, "cgroup") {
+MT_TEST(Integration , TestCgroupWriteAndResetBasicCase, "cgroup") {
     LOG_START
 
     const std::string testResourceName = "/sys/fs/cgroup/audio-cgroup/cpu.uclamp.min";
@@ -1818,9 +1816,7 @@ MT_TEST_XFAIL(Integration, TestCgroupWriteAndResetBasicCase, "cgroup", "Known is
     LOG_END
 }
 
-MT_TEST_XFAIL(Integration, TestCgroupWriteAndReset1, "cgroup", "Known issue: failing on ubuntu") {
-
-//MT_TEST(Integration, TestCgroupWriteAndReset1, "cgroup") {
+MT_TEST(Integration, TestCgroupWriteAndReset1, "cgroup") {
     LOG_START
 
     const std::string testResourceName = "/sys/fs/cgroup/audio-cgroup/cpu.uclamp.min";
@@ -1881,9 +1877,7 @@ MT_TEST_XFAIL(Integration, TestCgroupWriteAndReset1, "cgroup", "Known issue: fai
     LOG_END
 }
 
-MT_TEST_XFAIL(Integration, TestCgroupWriteAndReset2, "cgroup", "Known issue: failing on ubuntu") {
-
-//MT_TEST(Integration, TestCgroupWriteAndReset2, "cgroup") {
+MT_TEST(Integration, TestCgroupWriteAndReset2, "cgroup") {
     LOG_START
 
     const std::string testResourceName = "/sys/fs/cgroup/audio-cgroup/cpu.uclamp.min";
@@ -1943,9 +1937,7 @@ MT_TEST_XFAIL(Integration, TestCgroupWriteAndReset2, "cgroup", "Known issue: fai
     LOG_END
 }
 
-MT_TEST_XFAIL(Integration, TestCgroupWriteAndReset3, "cgroup", "Known issue: failing on ubuntu") {
-
-//MT_TEST(Integration, TestCgroupWriteAndReset3, "cgroup") {
+MT_TEST(Integration, TestCgroupWriteAndReset3, "cgroup") {
     LOG_START
 
     const std::string testResourceName = "/sys/fs/cgroup/audio-cgroup/cpu.uclamp.max";
@@ -2010,10 +2002,7 @@ MT_TEST_XFAIL(Integration, TestCgroupWriteAndReset3, "cgroup", "Known issue: fai
     LOG_END
 }
 
-
-  MT_TEST_XFAIL(Integration, TestCgroupWriteAndReset4, "cgroup", "Known issue: failing on ubuntu") {
-
-//MT_TEST(Integration, TestCgroupWriteAndReset4, "cgroup") {
+MT_TEST(Integration, TestCgroupWriteAndReset4, "cgroup") {
     LOG_START
 
     const std::string testResourceName = "/sys/fs/cgroup/audio-cgroup/memory.max";
@@ -2080,10 +2069,7 @@ MT_TEST_XFAIL(Integration, TestCgroupWriteAndReset3, "cgroup", "Known issue: fai
     LOG_END
 }
 
-
-MT_TEST_XFAIL(Integration, TestCgroupWriteAndReset5, "cgroup", "Known issue: failing on ubuntu") {
-
-//MT_TEST(Integration, TestCgroupWriteAndReset5, "cgroup") {
+MT_TEST(Integration, TestCgroupWriteAndReset5, "cgroup") {
     LOG_START
 
     const std::string testResourceName1 = "/sys/fs/cgroup/camera-cgroup/cpu.uclamp.min";
@@ -2154,9 +2140,7 @@ MT_TEST_XFAIL(Integration, TestCgroupWriteAndReset5, "cgroup", "Known issue: fai
     LOG_END
 }
 
-
-MT_TEST_XFAIL(Integration, TestCgroupWriteAndReset6, "cgroup", "Known issue: failing on ubuntu") {
-//MT_TEST(Integration, TestCgroupWriteAndReset6, "cgroup") {
+MT_TEST(Integration, TestCgroupWriteAndReset6, "cgroup") {
     LOG_START
 
     const std::string cpusPath = "/sys/fs/cgroup/audio-cgroup/cpuset.cpus";
@@ -2240,4 +2224,3 @@ MT_TEST_XFAIL(Integration, TestCgroupWriteAndReset6, "cgroup", "Known issue: fai
 
     LOG_END
 }
-

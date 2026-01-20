@@ -171,4 +171,3 @@ MT_TEST_F_END
 
 // Note: No RunTests() / REGISTER_TEST() needed — mini.hpp auto-registers tests
 // and provides main() unless compiled with -DMTEST_NO_MAIN.
-

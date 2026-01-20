@@ -27,12 +27,17 @@ set(SERVER_EXECUTABLE "")
 list(APPEND SERVER_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/urm.cpp
                               ${CMAKE_CURRENT_SOURCE_DIR}/resource-tuner/init/RestuneInit.cpp)
 
-# build classifier conditionally
+# Build Classifier conditionally
 if(BUILD_CLASSIFIER)
   add_subdirectory(${CMAKE_SOURCE_DIR}/contextual-classifier)
   include_directories(${CMAKE_SOURCE_DIR}/modula/Components/Include)
   list(APPEND SERVER_EXECUTABLE
        ${CMAKE_CURRENT_SOURCE_DIR}/contextual-classifier/ContextualClassifierInit.cpp)
+endif()
+
+# Build Tests conditionally
+if(BUILD_TESTS)
+  add_subdirectory(${CMAKE_SOURCE_DIR}/tests)
 endif()
 
 set(SERVER_LIBS "")
