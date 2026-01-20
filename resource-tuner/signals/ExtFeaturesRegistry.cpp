@@ -74,7 +74,7 @@ void ExtFeaturesRegistry::displayExtFeatures() {
 }
 
 void ExtFeaturesRegistry::initializeFeatures() {
-    for(int32_t i = 0; i < this->mExtFeaturesConfigs.size(); i++) {
+    for(int32_t i = 0; i < (int32_t)this->mExtFeaturesConfigs.size(); i++) {
         if(this->mExtFeaturesConfigs[i] == nullptr) continue;
         void* handle = openLib(this->mExtFeaturesConfigs[i]->mFeatureLib);
 
@@ -94,7 +94,7 @@ void ExtFeaturesRegistry::initializeFeatures() {
 }
 
 void ExtFeaturesRegistry::teardownFeatures() {
-    for(int32_t i = 0; i < this->mExtFeaturesConfigs.size(); i++) {
+    for(int32_t i = 0; i < (int32_t)this->mExtFeaturesConfigs.size(); i++) {
         if(this->mExtFeaturesConfigs[i] == nullptr) continue;
         void* handle = openLib(this->mExtFeaturesConfigs[i]->mFeatureLib);
 
@@ -147,7 +147,7 @@ ErrCode ExtFeaturesRegistry::relayToFeature(uint32_t featureId, Signal* signal) 
 }
 
 ExtFeaturesRegistry::~ExtFeaturesRegistry() {
-    for(int32_t i = 0; i < this->mExtFeaturesConfigs.size(); i++) {
+    for(int32_t i = 0; i < (int32_t)this->mExtFeaturesConfigs.size(); i++) {
         delete(this->mExtFeaturesConfigs[i]);
         this->mExtFeaturesConfigs[i] = nullptr;
     }

@@ -121,7 +121,7 @@ static Request* createResourceTuningRequest(Signal* signal) {
         std::vector<Resource*>* signalLocks = signalInfo->mSignalResources;
 
         int32_t listIndex = 0;
-        for(int32_t i = 0; i < signalLocks->size(); i++) {
+        for(int32_t i = 0; i < (int32_t)signalLocks->size(); i++) {
             if((*signalLocks)[i] == nullptr) {
                 continue;
             }

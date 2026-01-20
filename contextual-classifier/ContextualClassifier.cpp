@@ -76,14 +76,13 @@ static Request* createResourceTuningRequest(uint32_t sigId,
         request->setHandle(handleGenerated);
 
         request->setRequestType(REQ_RESOURCE_TUNING);
-        request->setDuration(-1);
+        request->setDuration(signalInfo->mTimeout);
         request->setProperties(SYSTEM_HIGH);
         request->setClientPID(incomingPID);
         request->setClientTID(incomingTID);
 
         std::vector<Resource*>* signalLocks = signalInfo->mSignalResources;
 
-        int32_t listIndex = 0;
         for(int32_t i = 0; i < signalLocks->size(); i++) {
             if((*signalLocks)[i] == nullptr) {
                 continue;
@@ -203,7 +202,7 @@ void ContextualClassifier::ClassifierMain() {
 
         if(ev.type == CC_APP_OPEN) {
             std::string comm;
-            uint32_t sigId = CC_APP_OPEN;
+            uint32_t sigId = CONSTRUCT_SIG_CODE(URM_SIG_APP_OPEN, URM_SIG_CAT_GENERIC);
             uint32_t sigType = DEFAULT_SIGNAL_TYPE;
             uint32_t ctxDetails = 0U;
 
@@ -360,24 +359,23 @@ void ContextualClassifier::ApplyActions(uint32_t sigId,
 void ContextualClassifier::RemoveActions(pid_t processPid, pid_t processTgid) {
 	(void)processPid;
     (void)processTgid;
-    // untuneSignal and erase handles
-    // mResTunerHandles
     return;
 }
 
 uint32_t ContextualClassifier::GetSignalIDForWorkload(int32_t contextType) {
     switch(contextType) {
         case CC_MULTIMEDIA:
-            return CC_MULTIMEDIA_APP_OPEN;
+            return CONSTRUCT_SIG_CODE(URM_SIG_MULTIMEDIA_APP_OPEN, URM_SIG_CAT_MULTIMEDIA);
         case CC_GAME:
-            return CC_GAME_APP_OPEN;
+            return CONSTRUCT_SIG_CODE(URM_SIG_GAME_APP_OPEN, URM_SIG_CAT_GAMING);
         case CC_BROWSER:
-            return CC_BROWSER_APP_OPEN;
+            return CONSTRUCT_SIG_CODE(URM_SIG_BROWSER_APP_OPEN, URM_SIG_CAT_BROWSER);
         default:
             break;
     }
 
-    return CC_APP_OPEN;
+    // CC_APP
+    return CONSTRUCT_SIG_CODE(URM_SIG_APP_OPEN, URM_SIG_CAT_GENERIC);
 }
 
 void ContextualClassifier::LoadIgnoredProcesses() {

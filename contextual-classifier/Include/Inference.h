@@ -15,10 +15,10 @@ public:
     virtual ~Inference() = default;
 
     virtual CC_TYPE Classify(int pid) {
-    (void)pid;
-    // Base implementation: no ML, just return default".
-    return CC_APP;
-}
+        (void)pid;
+        // Base implementation: no ML, just return default".
+        return CC_APP;
+    }
 
 protected:
     std::string model_path_;
