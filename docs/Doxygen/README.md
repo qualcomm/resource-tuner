@@ -2,7 +2,7 @@
 
 ## Table of Contents
 
-- [Introduction and Getting Started](Pages/INTRO.md)
+- [Introduction and Getting Started](Pages/intro.html)
 - [Urm Key Features](urm_keyfeatures.html)
 - [System Independent Layer](sil.html)
 - [APIs Description and Usage](apis.html)

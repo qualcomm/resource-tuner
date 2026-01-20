@@ -15,9 +15,9 @@
 ### Additional Details
 
 - [General Usage Guide](Pages/HOW-TO.md)
-- [Formulating Tune Requests](Pages/requests_formulation.html)
-- [External Features (Relay Signals) Guide](Pages/ext_features.html)
-- [Extension Interface; Deeper Dive](Pages/extensions_usage.html)
+- [Formulating Tune Requests](Pages/REQUESTS.md)
+- [Extension Interface; Deeper Dive](Pages/EXTENSIONS-USAGE.md)
+- [External Features (Relay Signals) Guide](Pages/FEATURES.md)
 
 <div style="page-break-after: always;"></div>
 
