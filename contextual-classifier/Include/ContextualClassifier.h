@@ -52,8 +52,6 @@ struct ProcEvent {
 
 class ContextualClassifier {
 private:
-	pid_t mOurPid;
-    pid_t mOurTid;
     int64_t mRestuneHandle;
     int8_t mDebugMode = false;
     volatile int8_t mNeedExit = false;
@@ -81,9 +79,7 @@ private:
                             uint32_t &ctxDetails);
 
     // Fetch signal configuration info
-    void GetSignalDetailsForWorkload(int32_t contextType,
-                                     uint32_t &sigId,
-                                     uint32_t &sigSubtype);
+    uint32_t GetSignalIDForWorkload(int32_t contextType);
 
     // Methods for tuning / untuning signals based on the workload
     void ApplyActions(uint32_t sigId, uint32_t sigType);
@@ -100,6 +96,7 @@ private:
     // Helper methods to move the current process to focused-cgroup
     ResIterable* createMovePidResource(int32_t cGroupdId, pid_t pid);
     void MoveAppThreadsToCGroup(pid_t incomingPID,
+                                pid_t incomingTID,
                                 const std::string& comm,
                                 int32_t cgroupIdentifier);
 
