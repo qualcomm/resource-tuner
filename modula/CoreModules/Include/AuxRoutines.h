@@ -12,6 +12,7 @@
 #include <getopt.h>
 #include <mutex>
 #include <dirent.h>
+#include <algorithm>
 
 #include "Logger.h"
 #include "Request.h"

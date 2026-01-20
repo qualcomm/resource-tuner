@@ -92,28 +92,28 @@ ErrCode ContextualClassifier::Init() {
 ErrCode ContextualClassifier::Terminate() {
     LOGI(CLASSIFIER_TAG, "Classifier module terminate.");
 
-    if (mNetLinkComm.getSocket() != -1) {
-        mNetLinkComm.setListen(false);
+    if (this->mNetLinkComm.getSocket() != -1) {
+        this->mNetLinkComm.setListen(false);
     }
 
     {
-        std::unique_lock<std::mutex> lock(mQueueMutex);
-        mNeedExit = true;
+        std::unique_lock<std::mutex> lock(this->mQueueMutex);
+        this->mNeedExit = true;
         // Clear any pending PIDs so the worker doesn't see stale entries
-        while (!mPendingEv.empty()) {
-            mPendingEv.pop();
+        while (!this->mPendingEv.empty()) {
+            this->mPendingEv.pop();
         }
     }
-    mQueueCond.notify_all();
+    this->mQueueCond.notify_all();
 
-    mNetLinkComm.closeSocket();
+    this->mNetLinkComm.closeSocket();
 
-    if (mNetlinkThread.joinable()) {
-        mNetlinkThread.join();
+    if (this->mNetlinkThread.joinable()) {
+        this->mNetlinkThread.join();
     }
 
-    if (mClassifierMain.joinable()) {
-        mClassifierMain.join();
+    if (this->mClassifierMain.joinable()) {
+        this->mClassifierMain.join();
     }
 
     return RC_SUCCESS;
@@ -199,7 +199,7 @@ void ContextualClassifier::ClassifierMain() {
 }
 
 int ContextualClassifier::HandleProcEv() {
-    pthread_setname_np(pthread_self(), "ClassNetlink");
+    pthread_setname_np(pthread_self(), "urmNetlinkListener");
     int32_t rc = 0;
 
     while(!mNeedExit) {
@@ -269,7 +269,7 @@ int32_t ContextualClassifier::ClassifyProcess(pid_t processPid,
 
     if(this->mIgnoredProcesses.count(comm) != 0U) {
         LOGD(CLASSIFIER_TAG,
-             "Skipping inference for ignored process: "+ comm);
+             "Skipping inference for ignored process: " + comm);
         return CC_IGNORE;
     }
 
