@@ -82,7 +82,10 @@ private:
     uint32_t GetSignalIDForWorkload(int32_t contextType);
 
     // Methods for tuning / untuning signals based on the workload
-    void ApplyActions(uint32_t sigId, uint32_t sigType);
+    void ApplyActions(uint32_t sigId,
+                      uint32_t sigType,
+                      pid_t incomingPID,
+                      pid_t incomingTID);
     void RemoveActions(pid_t pid, int32_t tgid);
 
     // blacklisting mechanism
@@ -93,8 +96,7 @@ private:
     // to be aware of the underlying model / implementation.
     Inference* GetInferenceObject();
 
-    // Helper methods to move the current process to focused-cgroup
-    ResIterable* createMovePidResource(int32_t cGroupdId, pid_t pid);
+    // Methods to move the current process to focused-cgroup
     void MoveAppThreadsToCGroup(pid_t incomingPID,
                                 pid_t incomingTID,
                                 const std::string& comm,
