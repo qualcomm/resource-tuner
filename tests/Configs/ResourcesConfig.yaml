@@ -1,0 +1,163 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause-Clear
+
+ResourceConfigs:
+  - ResType: "0xff"
+    ResID: "0x0000"
+    Name: "TEST_RESOURCE_1"
+    Path: "/etc/urm/tests/nodes/sched_util_clamp_min.txt"
+    Supported: true
+    HighThreshold: 1024
+    LowThreshold: 0
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: "higher_is_better"
+    ApplyType: "global"
+
+  - ResType: "0xff"
+    ResID: "0x0001"
+    Name: "TEST_RESOURCE_2"
+    Path: "/etc/urm/tests/nodes/sched_util_clamp_max.txt"
+    Supported: true
+    HighThreshold: 1024
+    LowThreshold: 512
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: "higher_is_better"
+    ApplyType: "global"
+
+  - ResType: "0xff"
+    ResID: "0x0002"
+    Name: "TEST_RESOURCE_3"
+    Path: "/etc/urm/tests/nodes/scaling_min_freq.txt"
+    Supported: true
+    HighThreshold: 1024
+    LowThreshold: 0
+    Permissions: "third_party"
+    Modes: ["display_on", "display_off"]
+    Policy: "lower_is_better"
+    ApplyType: "global"
+
+  - ResType: "0xff"
+    ResID: "0x0003"
+    Name: "TEST_RESOURCE_4"
+    Path: "/etc/urm/tests/nodes/scaling_max_freq.txt"
+    Supported: true
+    HighThreshold: 2048
+    LowThreshold: 0
+    Permissions: "third_party"
+    Modes: ["display_on", "display_off"]
+    Policy: "higher_is_better"
+    ApplyType: "global"
+
+  - ResType: "0xff"
+    ResID: "0x0004"
+    Name: "TEST_RESOURCE_5"
+    Path: "/etc/urm/tests/nodes/target_test_resource1.txt"
+    Supported: true
+    HighThreshold: 400
+    LowThreshold: 0
+    Permissions: "system"
+    Modes: ["display_on", "display_off"]
+    Policy: "higher_is_better"
+    ApplyType: "global"
+
+  - ResType: "0xff"
+    ResID: "0x0005"
+    Name: "TEST_RESOURCE_6"
+    Path: "/etc/urm/tests/nodes/target_test_resource2.txt"
+    Supported: true
+    HighThreshold: 6500
+    LowThreshold: 50
+    Permissions: "third_party"
+    Modes: ["display_on"]
+    Policy: "higher_is_better"
+    ApplyType: "core"
+
+  - ResType: "0xff"
+    ResID: "0x0006"
+    Name: "TEST_RESOURCE_7"
+    Path: "/etc/urm/tests/nodes/target_test_resource3.txt"
+    Supported: true
+    HighThreshold: 5511
+    LowThreshold: 4000
+    Permissions: "third_party"
+    Modes: ["display_off"]
+    Policy: "higher_is_better"
+    ApplyType: "global"
+
+  - ResType: "0xff"
+    ResID: "0x0007"
+    Name: "TEST_RESOURCE_8"
+    Path: "/etc/urm/tests/nodes/target_test_resource4.txt"
+    Supported: false
+    HighThreshold: 900
+    LowThreshold: 300
+    Permissions: "third_party"
+    Modes: ["display_on"]
+    Policy: "higher_is_better"
+    ApplyType: "global"
+
+  - ResType: "0xff"
+    ResID: "0x0008"
+    Name: "TEST_RESOURCE_9"
+    Path: "/etc/urm/tests/nodes/target_test_resource5.txt"
+    Supported: true
+    HighThreshold: 20
+    LowThreshold: 0
+    Permissions: "third_party"
+    Modes: ["display_on"]
+    Policy: "lazy_apply"
+    ApplyType: "global"
+
+  - ResType: "0xff"
+    ResID: "0x0009"
+    Name: "DEFAULT_VALUES_TEST"
+
+  - ResType: "0xff"
+    ResID: "0x000a"
+    Name: "TEST_RESOURCE_10_CLUSTER_imitate"
+    Path: "/etc/urm/tests/nodes/cluster_type_resource_%d_cluster_id.txt"
+    Supported: true
+    HighThreshold: 2048
+    LowThreshold: 0
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: "higher_is_better"
+    ApplyType: "cluster"
+
+  - ResType: "0xff"
+    ResID: "0x000b"
+    Name: "OVERRIDE_RESOURCE_1"
+    Path: "/etc/resouce-tuner/tests/Configs/pathA.txt"
+    Supported: true
+    HighThreshold: 160
+    LowThreshold: 110
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: "higher_is_better"
+    ApplyType: "global"
+
+  - ResType: "0xff"
+    ResID: "0x000c"
+    Name: "OVERRIDE_RESOURCE_2"
+    Path: "/proc/dummy/path/kernel/clamp.pid.txt"
+    Supported: true
+    HighThreshold: 66788
+    LowThreshold: 25568
+    Permissions: "system"
+    Modes: ["display_on", "doze"]
+    Policy: "lazy_apply"
+    ApplyType: "cluster"
+
+  - ResType: "0xff"
+    ResID: "0x000d"
+    Name: "TEST_RESOURCE_11_CGROUP_imitate"
+    Path: "/etc/urm/tests/nodes/target_test_resource4.txt"
+    Supported: true
+    HighThreshold: 66788
+    LowThreshold: 25568
+    Permissions: "system"
+    Modes: ["display_on", "doze"]
+    Policy: "instant_apply"
+    ApplyType: "cgroup"
