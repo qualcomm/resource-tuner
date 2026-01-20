@@ -44,7 +44,7 @@ if(BUILD_TESTS)
 # Source list for mini.hpp-based tests (add more .cpps here as you create them)
 # IMPORTANT: Do NOT include Integration/IntegrationTests.cpp here; it belongs to the integration runner.
 set(COMPONENT_TEST_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/Component/tests_main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/framework/testrunner.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Component/ThreadPoolTests.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Component/TimerTests.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Component/SafeOpsTests.cpp
@@ -161,7 +161,7 @@ set_tests_properties(RestuneIntegrationTests_All PROPERTIES
 
 # 1) One main TU that provides main()
 set(RESTUNE_UNIT_MAIN
-    ${CMAKE_CURRENT_SOURCE_DIR}/unit/tests_main_unit.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/framework/testrunner.cpp
 )
 
 # 2) Test sources + shim + stubs + the real file under test for getResConf
