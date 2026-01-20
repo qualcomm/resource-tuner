@@ -19,6 +19,7 @@
 #include "AuxRoutines.h"
 #include "ContextualClassifier.h"
 #include "RestuneInternal.h"
+#include "SignalRegistry.h"
 #include "Extensions.h"
 #include "Inference.h"
 
@@ -51,12 +52,70 @@ Inference *ContextualClassifier::GetInferenceObject() {
 
 ContextualClassifier::ContextualClassifier() {
     this->mRestuneHandle = -1;
-    this->mOurPid = this->mOurTid = 0;
     mInference = GetInferenceObject();
 }
 
-static ContextualClassifier *g_classifier = nullptr;
+static ContextualClassifier *gClassifier = nullptr;
 static const int32_t pendingQueueControlSize = 30;
+
+static Request* createResourceTuningRequest(uint32_t sigId,
+                                            uint32_t sigType,
+                                            pid_t incomingPID,
+                                            pid_t incomingTID) {
+    try {
+        std::shared_ptr<SignalRegistry> sigRegistry = SignalRegistry::getInstance();
+
+        // Check if a Signal with the given ID exists in the Registry
+        SignalInfo* signalInfo = sigRegistry->getSignalConfigById(sigId, sigType);
+
+        if(signalInfo == nullptr) return nullptr;
+
+        Request* request = MPLACED(Request);
+
+        int64_t handleGenerated = AuxRoutines::generateUniqueHandle();
+        request->setHandle(handleGenerated);
+
+        request->setRequestType(REQ_RESOURCE_TUNING);
+        request->setDuration(signalInfo->mTimeout);
+        request->setProperties(SYSTEM_HIGH);
+        request->setClientPID(incomingPID);
+        request->setClientTID(incomingTID);
+
+        std::vector<Resource*>* signalLocks = signalInfo->mSignalResources;
+
+        for(int32_t i = 0; i < signalLocks->size(); i++) {
+            if((*signalLocks)[i] == nullptr) {
+                continue;
+            }
+
+            // Copy
+            Resource* resource = MPLACEV(Resource, (*((*signalLocks)[i])));
+
+            ResIterable* resIterable = MPLACED(ResIterable);
+            resIterable->mData = resource;
+            request->addResource(resIterable);
+        }
+
+        return request;
+
+    } catch(const std::bad_alloc& e) {
+        return nullptr;
+    }
+
+    return nullptr;
+}
+
+static ResIterable* createMovePidResource(int32_t cGroupdId, pid_t pid) {
+    ResIterable* resIterable = MPLACED(ResIterable);
+    Resource* resource = MPLACED(Resource);
+    resource->setResCode(RES_CGRP_MOVE_PID);
+    resource->setNumValues(2);
+    resource->setValueAt(0, cGroupdId);
+    resource->setValueAt(1, pid);
+
+    resIterable->mData = resource;
+    return resIterable;
+}
 
 ContextualClassifier::~ContextualClassifier() {
     this->Terminate();
@@ -68,10 +127,6 @@ ContextualClassifier::~ContextualClassifier() {
 
 ErrCode ContextualClassifier::Init() {
     LOGI(CLASSIFIER_TAG, "Classifier module init.");
-
-    // Record PID and TID
-    this->mOurPid = getpid();
-    this->mOurTid = gettid();
 
     this->LoadIgnoredProcesses();
 
@@ -97,54 +152,58 @@ ErrCode ContextualClassifier::Init() {
 ErrCode ContextualClassifier::Terminate() {
     LOGI(CLASSIFIER_TAG, "Classifier module terminate.");
 
-    if (mNetLinkComm.getSocket() != -1) {
-        mNetLinkComm.setListen(false);
+    if (this->mNetLinkComm.getSocket() != -1) {
+        this->mNetLinkComm.setListen(false);
     }
 
     {
-        std::unique_lock<std::mutex> lock(mQueueMutex);
-        mNeedExit = true;
+        std::unique_lock<std::mutex> lock(this->mQueueMutex);
+        this->mNeedExit = true;
         // Clear any pending PIDs so the worker doesn't see stale entries
-        while (!mPendingEv.empty()) {
-            mPendingEv.pop();
+        while (!this->mPendingEv.empty()) {
+            this->mPendingEv.pop();
         }
     }
-    mQueueCond.notify_all();
+    this->mQueueCond.notify_all();
 
-    mNetLinkComm.closeSocket();
+    this->mNetLinkComm.closeSocket();
 
-    if (mNetlinkThread.joinable()) {
-        mNetlinkThread.join();
+    if (this->mNetlinkThread.joinable()) {
+        this->mNetlinkThread.join();
     }
 
-    if (mClassifierMain.joinable()) {
-        mClassifierMain.join();
+    if (this->mClassifierMain.joinable()) {
+        this->mClassifierMain.join();
     }
 
     return RC_SUCCESS;
 }
 
 void ContextualClassifier::ClassifierMain() {
-    pthread_setname_np(pthread_self(), "uRMClassifierMain");
+    pthread_setname_np(pthread_self(), "urmClassifier");
     while (true) {
         ProcEvent ev{};
         {
-            std::unique_lock<std::mutex> lock(mQueueMutex);
-            mQueueCond.wait(
-                lock, [this] { return !mPendingEv.empty() || mNeedExit; });
+            std::unique_lock<std::mutex> lock(this->mQueueMutex);
+            this->mQueueCond.wait(
+                lock,
+                [this] {
+                    return !mPendingEv.empty() || this->mNeedExit;
+                }
+            );
 
-            if (mNeedExit) {
+            if(this->mNeedExit) {
                 return;
             }
 
-            ev = mPendingEv.front();
-            mPendingEv.pop();
+            ev = this->mPendingEv.front();
+            this->mPendingEv.pop();
         }
 
-        if (ev.type == CC_APP_OPEN) {
+        if(ev.type == CC_APP_OPEN) {
             std::string comm;
-            uint32_t sigId = CC_APP_OPEN;
-            uint32_t sigSubtype = DEFAULT_CONFIG;
+            uint32_t sigId = CONSTRUCT_SIG_CODE(URM_SIG_APP_OPEN, URM_SIG_CAT_GENERIC);
+            uint32_t sigType = DEFAULT_SIGNAL_TYPE;
             uint32_t ctxDetails = 0U;
 
             if(ev.pid != -1) {
@@ -153,43 +212,42 @@ void ContextualClassifier::ClassifierMain() {
                 }
 
                 // Step 1: Figure out workload type
-                int contextType =
-                    ClassifyProcess(ev.pid, ev.tgid, comm, ctxDetails);
-				if (contextType == CC_IGNORE) {
-					//ignore and wait for next event
+                int32_t contextType =
+                    this->ClassifyProcess(ev.pid, ev.tgid, comm, ctxDetails);
+				if(contextType == CC_IGNORE) {
+					// Ignore and wait for next event
 					continue;
 				}
+
                 // Identify if any signal configuration exists
                 // Will return the sigID based on the workload
                 // For example: game, browser, multimedia
-                this->GetSignalDetailsForWorkload(contextType, sigId, sigSubtype);
+                sigId = this->GetSignalIDForWorkload(contextType);
 
                 // Step 2:
                 // - Move the process to focused-cgroup, Also involves removing the process
                 //  already there from the cgroup.
                 // - Move the "threads" from per-app config to appropriate cgroups
-                this->MoveAppThreadsToCGroup(ev.pid, comm, FOCUSED_CGROUP_IDENTIFIER);
+                this->MoveAppThreadsToCGroup(ev.pid, ev.tgid, comm, FOCUSED_CGROUP_IDENTIFIER);
 
                 // Step 3: If the post processing block exists, call it
-                // It might provide us a more specific sigSubtype
-                /*
+                // It might provide us a more specific sigID or sigType
                 PostProcessingCallback postCb =
                     Extensions::getPostProcessingCallback(comm);
                 if(postCb != nullptr) {
                     PostProcessCBData postProcessData = {
                         .mPid = ev.pid,
                         .mSigId = sigId,
-                        .mSigSubtype = sigSubtype,
+                        .mSigType = sigType,
                     };
                     postCb((void*)&postProcessData);
 
                     sigId = postProcessData.mSigId;
-                    sigSubtype = postProcessData.mSigSubtype;
+                    sigType = postProcessData.mSigType;
                 }
-            */
 
                 // Step 4: Apply actions, call tuneSignal
-                this->ApplyActions(sigId, sigSubtype);
+                this->ApplyActions(sigId, sigType, ev.pid, ev.tgid);
             }
         } else if (ev.type == CC_APP_CLOSE) {
 			//Step1: move process to original cgroup
@@ -201,7 +259,7 @@ void ContextualClassifier::ClassifierMain() {
 }
 
 int ContextualClassifier::HandleProcEv() {
-    pthread_setname_np(pthread_self(), "ClassNetlink");
+    pthread_setname_np(pthread_self(), "urmNetlinkListener");
     int32_t rc = 0;
 
     while(!mNeedExit) {
@@ -215,7 +273,7 @@ int ContextualClassifier::HandleProcEv() {
                 continue;
             }
 
-            if(mNeedExit) {
+            if(this->mNeedExit) {
                 return 0;
             }
 
@@ -230,7 +288,6 @@ int ContextualClassifier::HandleProcEv() {
 
         switch(rc) {
             case CC_APP_OPEN:
-                // TYPELOGV(NOTIFY_CLASSIFIER_PROC_EVENT, "CC_APP_OPEN", ev.pid);
                 if(!this->isIgnoredProcess(ev.type, ev.pid)) {
                     const std::lock_guard<std::mutex> lock(mQueueMutex);
                     this->mPendingEv.push(ev);
@@ -238,14 +295,11 @@ int ContextualClassifier::HandleProcEv() {
                         this->mPendingEv.pop();
                     }
                     this->mQueueCond.notify_one();
-                } else {
-                    // TYPELOGV(NOTIFY_CLASSIFIER_PROC_IGNORE, ev.pid);
                 }
 
                 break;
 
             case CC_APP_CLOSE:
-                // TYPELOGV(NOTIFY_CLASSIFIER_PROC_EVENT, "CC_APP_CLOSE", ev.pid);
                 if(!this->isIgnoredProcess(ev.type, ev.pid)) {
                     const std::lock_guard<std::mutex> lock(mQueueMutex);
                     this->mPendingEv.push(ev);
@@ -253,14 +307,11 @@ int ContextualClassifier::HandleProcEv() {
                         this->mPendingEv.pop();
                     }
                     this->mQueueCond.notify_one();
-                } else {
-                    // TYPELOGV(NOTIFY_CLASSIFIER_PROC_IGNORE, ev.pid);
                 }
 
                 break;
 
             default:
-                // log error??
                 break;
         }
     }
@@ -268,66 +319,63 @@ int ContextualClassifier::HandleProcEv() {
     return 0;
 }
 
-int32_t ContextualClassifier::ClassifyProcess(pid_t process_pid, pid_t process_tgid,
+int32_t ContextualClassifier::ClassifyProcess(pid_t processPid,
+                                              pid_t processTgid,
                                               const std::string &comm,
                                               uint32_t &ctxDetails) {
-    (void)process_tgid;
+    (void)processTgid;
     (void)ctxDetails;
     CC_TYPE context = CC_APP;
 
-    if(mIgnoredProcesses.count(comm) != 0U) {
+    if(this->mIgnoredProcesses.count(comm) != 0U) {
         LOGD(CLASSIFIER_TAG,
-             "Skipping inference for ignored process: "+ comm);
+             "Skipping inference for ignored process: " + comm);
         return CC_IGNORE;
     }
 
     // Check if the process is still alive
-    if(!AuxRoutines::fileExists(COMM(process_pid))) {
+    if(!AuxRoutines::fileExists(COMM(processPid))) {
         LOGD(CLASSIFIER_TAG,
              "Skipping inference, process is dead: "+ comm);
         return CC_IGNORE;
     }
 
     LOGD(CLASSIFIER_TAG,
-         "Starting classification for PID: "+ std::to_string(process_pid));
-    context = mInference->Classify(process_pid);
+         "Starting classification for PID: "+ std::to_string(processPid));
+    context = mInference->Classify(processPid);
     return context;
 }
 
-void ContextualClassifier::ApplyActions(uint32_t sigId, uint32_t sigType) {
-	(void)sigId;
-	(void)sigType;
-
-    // Call tuneSignal here
-    // tuneSignal and update the handles
-    // mResTunerHandles
-    return;
-}
-
-void ContextualClassifier::RemoveActions(pid_t process_pid, pid_t process_tgid) {
-	(void)process_pid;
-    (void)process_tgid;
-    // untuneSignal and erase handles
-    // mResTunerHandles
-    return;
-}
-
-void ContextualClassifier::GetSignalDetailsForWorkload(int32_t contextType,
-                                                       uint32_t &sigId,
-                                                       uint32_t &sigSubtype) {
-    (void)sigSubtype;
-    switch (contextType) {
-    case CC_MULTIMEDIA:
-        sigId = CC_MULTIMEDIA_APP_OPEN;
-        break;
-    case CC_GAME:
-        sigId = CC_GAME_APP_OPEN;
-        break;
-    case CC_BROWSER:
-        sigId = CC_BROWSER_APP_OPEN;
-        break;
+void ContextualClassifier::ApplyActions(uint32_t sigId,
+                                        uint32_t sigType,
+                                        pid_t incomingPID,
+                                        pid_t incomingTID) {
+    Request* request = createResourceTuningRequest(sigId, sigType, incomingPID, incomingTID);
+    if(request != nullptr) {
+        submitResProvisionRequest(request, false);
     }
+}
+
+void ContextualClassifier::RemoveActions(pid_t processPid, pid_t processTgid) {
+	(void)processPid;
+    (void)processTgid;
     return;
+}
+
+uint32_t ContextualClassifier::GetSignalIDForWorkload(int32_t contextType) {
+    switch(contextType) {
+        case CC_MULTIMEDIA:
+            return CONSTRUCT_SIG_CODE(URM_SIG_MULTIMEDIA_APP_OPEN, URM_SIG_CAT_MULTIMEDIA);
+        case CC_GAME:
+            return CONSTRUCT_SIG_CODE(URM_SIG_GAME_APP_OPEN, URM_SIG_CAT_GAMING);
+        case CC_BROWSER:
+            return CONSTRUCT_SIG_CODE(URM_SIG_BROWSER_APP_OPEN, URM_SIG_CAT_BROWSER);
+        default:
+            break;
+    }
+
+    // CC_APP
+    return CONSTRUCT_SIG_CODE(URM_SIG_APP_OPEN, URM_SIG_CAT_GENERIC);
 }
 
 void ContextualClassifier::LoadIgnoredProcesses() {
@@ -343,12 +391,14 @@ void ContextualClassifier::LoadIgnoredProcesses() {
         std::string segment;
         while (std::getline(ss, segment, ',')) {
             size_t first = segment.find_first_not_of(" \t\n\r");
-            if (first == std::string::npos)
+            if(first == std::string::npos) {
                 continue;
+            }
+
             size_t last = segment.find_last_not_of(" \t\n\r");
             segment = segment.substr(first, (last - first + 1));
-            if (!segment.empty()) {
-                mIgnoredProcesses.insert(segment);
+            if(!segment.empty()) {
+                this->mIgnoredProcesses.insert(segment);
             }
         }
     }
@@ -364,19 +414,19 @@ int8_t ContextualClassifier::isIgnoredProcess(int32_t evType, pid_t pid) {
     }
 
     // For context open, check if comm is in ignored list and track pid.
-    std::string comm_path = COMM(pid);
-    std::ifstream comm_file(comm_path);
-    if (comm_file.is_open()) {
-        std::string proc_name;
-        std::getline(comm_file, proc_name);
+    std::string commPath = COMM(pid);
+    std::ifstream commFile(commPath);
+    if (commFile.is_open()) {
+        std::string procName;
+        std::getline(commFile, procName);
         // Trim
-        size_t first = proc_name.find_first_not_of(" \t\n\r");
+        size_t first = procName.find_first_not_of(" \t\n\r");
         if (first != std::string::npos) {
-            size_t last = proc_name.find_last_not_of(" \t\n\r");
-            proc_name = proc_name.substr(first, (last - first + 1));
+            size_t last = procName.find_last_not_of(" \t\n\r");
+            procName = procName.substr(first, (last - first + 1));
         }
-        if (mIgnoredProcesses.count(proc_name) != 0U) {
-            LOGD(CLASSIFIER_TAG, "Ignoring process: " + proc_name);
+        if (this->mIgnoredProcesses.count(procName) != 0U) {
+            LOGD(CLASSIFIER_TAG, "Ignoring process: " + procName);
             ignore = true;
         }
     } else {
@@ -387,22 +437,10 @@ int8_t ContextualClassifier::isIgnoredProcess(int32_t evType, pid_t pid) {
     return ignore;
 }
 
-ResIterable* ContextualClassifier::createMovePidResource(int32_t cGroupdId, pid_t pid) {
-    ResIterable* resIterable = MPLACED(ResIterable);
-    Resource* resource = MPLACED(Resource);
-    resource->setResCode(RES_CGRP_MOVE_PID);
-    resource->setNumValues(2);
-    resource->setValueAt(0, cGroupdId);
-    resource->setValueAt(1, pid);
-
-    resIterable->mData = resource;
-    return resIterable;
-}
-
 void ContextualClassifier::MoveAppThreadsToCGroup(pid_t incomingPID,
+                                                  pid_t incomingTID,
                                                   const std::string& comm,
                                                   int32_t cgroupIdentifier) {
-    (void)comm;
     try {
         // Check for any outstanding request, if found untune it.
         if(this->mRestuneHandle != -1) {
@@ -418,8 +456,8 @@ void ContextualClassifier::MoveAppThreadsToCGroup(pid_t incomingPID,
             //   not free up the underlying Request object, allowing for reuse.
             // Priority Level: -2 is used to force server termination and cleanup so should not be used otherwise.
             untuneRequest->setPriority(SYSTEM_HIGH);
-            untuneRequest->setClientPID(mOurPid);
-            untuneRequest->setClientTID(mOurTid);
+            untuneRequest->setClientPID(incomingPID);
+            untuneRequest->setClientTID(incomingTID);
 
             // fast path to Request Queue
             // Mark verification status as true. Request still goes through RequestManager though.
@@ -435,27 +473,27 @@ void ContextualClassifier::MoveAppThreadsToCGroup(pid_t incomingPID,
         request->setHandle(this->mRestuneHandle);
         request->setDuration(-1);
         request->setPriority(SYSTEM_LOW);
-        request->setClientPID(this->mOurPid);
-        request->setClientTID(this->mOurTid);
+        request->setClientPID(incomingPID);
+        request->setClientTID(incomingTID);
 
         // Move the incoming pid
-        ResIterable* resIter = this->createMovePidResource(cgroupIdentifier, incomingPID);
+        ResIterable* resIter = createMovePidResource(cgroupIdentifier, incomingPID);
         request->addResource(resIter);
 
-        // AppConfig* appConfig = AppConfigs::getInstance()->getAppConfig(comm);
-        // if(appConfig != nullptr && appConfig->mThreadNameList != nullptr) {
-        //     int32_t numThreads = appConfig->mNumThreads;
-        //     // Go over the list of proc names (comm) and get their pids
-        //     for(int32_t i = 0; i < numThreads; i++) {
-        //         std::string targetComm = appConfig->mThreadNameList[i];
-        //         pid_t targetPID = this->fetchPid(targetComm);
-        //         if(targetPID != -1 && targetPID != incomingPID) {
-        //             // Get the CGroup
-        //             int32_t currCGroupID = appConfig->mCGroupIds[i];
-        //             request->addResource(createMovePidResource(currCGroupID, targetPID));
-        //         }
-        //     }
-        // }
+        AppConfig* appConfig = AppConfigs::getInstance()->getAppConfig(comm);
+        if(appConfig != nullptr && appConfig->mThreadNameList != nullptr) {
+            int32_t numThreads = appConfig->mNumThreads;
+            // Go over the list of proc names (comm) and get their pids
+            for(int32_t i = 0; i < numThreads; i++) {
+                std::string targetComm = appConfig->mThreadNameList[i];
+                pid_t targetPID = AuxRoutines::fetchPid(targetComm);
+                if(targetPID != -1 && targetPID != incomingPID) {
+                    // Get the CGroup
+                    int32_t currCGroupID = appConfig->mCGroupIds[i];
+                    request->addResource(createMovePidResource(currCGroupID, targetPID));
+                }
+            }
+        }
 
         // Anything to issue
         if(request->getResourcesCount() > 0) {
@@ -476,18 +514,18 @@ void ContextualClassifier::MoveAppThreadsToCGroup(pid_t incomingPID,
 // Public C interface exported from the contextual-classifier shared library.
 // These are what the URM module entrypoints will call.
 extern "C" ErrCode cc_init(void) {
-    if (!g_classifier) {
-        g_classifier = new ContextualClassifier();
+    if(gClassifier == nullptr) {
+        gClassifier = new ContextualClassifier();
     }
-    return g_classifier->Init();
+    return gClassifier->Init();
 }
 
 extern "C" ErrCode cc_terminate(void) {
-    if (g_classifier) {
-        ErrCode rc = g_classifier->Terminate();
-        delete g_classifier;
-        g_classifier = nullptr;
-        return rc;
+    if(gClassifier != nullptr) {
+        ErrCode opStatus = gClassifier->Terminate();
+        delete gClassifier;
+        gClassifier = nullptr;
+        return opStatus;
     }
     return RC_SUCCESS;
 }

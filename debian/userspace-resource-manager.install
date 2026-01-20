@@ -1,0 +1,6 @@
+usr/bin/urm
+usr/bin/urmCli
+usr/lib/${DEB_HOST_MULTIARCH}/*.so*
+etc/urm/common/*
+usr/include/Urm/*
+usr/lib/systemd/system/urm.service
