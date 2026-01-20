@@ -63,22 +63,21 @@ option(BUILD_CLI "CLI" OFF)
 ## Project Structure
 
 ```text
-/
-├── Client
-├── Server                 # Defines the Server Communication Endpoint and other Common Server-Side Utils
-├── Resource Tuner
-│   ├── Core
-│   │   ├── Framework      # Core Resource Provisioning Request Flow Logic
-│   │   ├── Modula         # Common Utilities and Components used across Resource Tuner Modules
-│   ├── Signals            # Optional Module, exposes Signal Tuning / Relay APIs
-├── Contextual Classifier
-├── CLI                    # Exposes the Client Facing APIs, and Defines the Client Communication Endpoint
-├── Configs                # Resources Config, Properties Config, Init Config, Signal Configs, Ext Feature Configs
-├── Tests                  # Unit and System Wide Tests
-└── Docs                   # Documentation
+.
+├── client
+├── configs
+├── contextual-classifier
+├── debian
+├── docs
+├── extensions
+├── modula
+├── public_headers
+└── resource-tuner
 ```
 
+
 ---
+
 
 <div style="page-break-after: always;"></div>
 
