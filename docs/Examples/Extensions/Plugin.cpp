@@ -6,8 +6,8 @@
  *
  * @example Plugin.cpp
  * This files covers examples of the following APIs:
- * - RESTUNE_REGISTER_APPLIER_CB
- * - RESTUNE_REGISTER_CONFIG
+ * - URM_REGISTER_RES_APPLIER_CB
+ * - URM_REGISTER_CONFIG
  */
 
 #include "Extensions.h"
@@ -23,8 +23,8 @@ void customTearCB(void* context) {
 __attribute__((constructor))
 void registerWithUrm() {
     // Associate the callback (handler) to the desired Resource (ResCode).
-    RESTUNE_REGISTER_APPLIER_CB(0x00030000, customApplyCB);
-    RESTUNE_REGISTER_TEAR_CB(0x00040a22, customTearCB);
+    URM_REGISTER_RES_APPLIER_CB(0x00030000, customApplyCB);
+    URM_REGISTER_RES_TEAR_CB(0x00040a22, customTearCB);
 }
 
 /*
