@@ -1,0 +1,10 @@
+1. Core Dev tasks
+    - SeLinux Rules enablement 
+    - Enable Classifier on meta-qcom builds
+    - Analyze CodeQL reported issues
+
+2. Process tasks (GitHub actions and repo workflow)
+    - Enable Axiom CI tests
+    - Orbit Integration
+    - Submit FastText Recipe file to Yocto community
+    - Integrate and Enable ARMOR
