@@ -18,11 +18,11 @@
 using namespace mtest;
 
 // Keep your RESTUNE registrations (paths as provided)
-RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG,   "/etc/urm/tests/configs/ResourcesConfig.yaml")
-RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/etc/urm/tests/configs/PropertiesConfig.yaml")
-RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG,    "/etc/urm/tests/configs/SignalsConfig.yaml")
-RESTUNE_REGISTER_CONFIG(TARGET_CONFIG,     "/etc/urm/tests/configs/TargetConfig.yaml")
-RESTUNE_REGISTER_CONFIG(INIT_CONFIG,       "/etc/urm/tests/configs/InitConfig.yaml")
+URM_REGISTER_CONFIG(RESOURCE_CONFIG,   "/etc/urm/tests/configs/ResourcesConfig.yaml")
+URM_REGISTER_CONFIG(PROPERTIES_CONFIG, "/etc/urm/tests/configs/PropertiesConfig.yaml")
+URM_REGISTER_CONFIG(SIGNALS_CONFIG,    "/etc/urm/tests/configs/SignalsConfig.yaml")
+URM_REGISTER_CONFIG(TARGET_CONFIG,     "/etc/urm/tests/configs/TargetConfig.yaml")
+URM_REGISTER_CONFIG(INIT_CONFIG,       "/etc/urm/tests/configs/InitConfig.yaml")
 
 // Global flags/counters (same semantics as original)
 static int8_t  funcCalled    = false;
@@ -34,9 +34,9 @@ static void customApplier2(void* /*context*/) { invokeCounter++; }
 static void customTear1   (void* /*context*/) { funcCalled = true; }
 
 // Register callbacks (same IDs)
-RESTUNE_REGISTER_APPLIER_CB(0x80ff0000, customApplier1)
-RESTUNE_REGISTER_TEAR_CB   (0x80ff0001, customTear1)
-RESTUNE_REGISTER_APPLIER_CB(0x80ff0002, customApplier2)
+URM_REGISTER_RES_APPLIER_CB(0x80ff0000, customApplier1)
+URM_REGISTER_RES_TEAR_CB   (0x80ff0001, customTear1)
+URM_REGISTER_RES_APPLIER_CB(0x80ff0002, customApplier2)
 
 // --- Component-friendly initialization helpers ---
 

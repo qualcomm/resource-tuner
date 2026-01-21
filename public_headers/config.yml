@@ -1,4 +1,4 @@
-project: https://github.com/qualcomm/resource-tuner
+project: https://github.com/qualcomm/userspace-resource-manager
 
 branches:
   main:
@@ -6,5 +6,5 @@ branches:
       non-blocking:
         headers:
           - client/APIs/Include/UrmAPIs.h
-          - modula/Common/Include/Common.h
-          - resource-tuner/extensions/Include/Extensions.h
+          - modula/Common/Include/UrmPlatformAL.h
+          - extensions/Include/Extensions.h

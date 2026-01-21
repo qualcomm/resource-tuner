@@ -28,6 +28,10 @@ This project depends on the following external libraries:
     ```
 
 ## Build and install Instructions
+* Clone 
+```bash
+    git clone https://github.com/qualcomm/userspace-resource-manager.git
+```
 * Create a build directory
 ```bash
 rm -rf build && mkdir build && cd build
@@ -37,11 +41,18 @@ Default Build
 ```bash
 cmake .. -DCMAKE_INSTALL_PREFIX=/
 ```
+# Optional Components
 
-With classifier support enabled:
+The project provides optional components that can be enabled using CMake flags:
+
+- **Classifier** (runtime classification module)
+- **Test Framework** (unit and integration tests)
+
+To enable both:
 ```bash
-cmake .. -DCMAKE_INSTALL_PREFIX=/ -DBUILD_CLASSIFIER=ON
+cmake .. -DCMAKE_INSTALL_PREFIX=/ -DBUILD_CLASSIFIER=ON -DBUILD_TESTS=ON
 ```
+
 * Build the project
 ```bash
 cmake --build .
