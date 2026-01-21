@@ -3,13 +3,13 @@
 ## Table of Contents
 
 - [Introduction](#introduction)
-- [Resource Tuner Key Points](#resource-tuner-key-points)
-- [Resource Tuner APIs](#resource-tuner-apis)
+- [URM Key Points](#userspace-resource-manager-key-points)
+- [URM APIs](#urm-apis)
 - [Config Files Format](#config-files-format)
 - [Resource Format](#resource-format)
-- [Example Usage](#example-usage-of-resource-tuner-apis)
+- [Example Usage](#example-usage-of-urm-apis)
 - [Extension Interface](#extension-interface)
-- [Resource Tuner Features](#resource-tuner-features)
+- [URM Implementation Details](#urm-implementation-details)
 - [Client CLI](#client-cli)
 
 <div style="page-break-after: always;"></div>
@@ -24,7 +24,7 @@ Gaining control over system resources such as the CPU, caches, and GPU is a powe
 
 For example, increasing the CPU's dynamic clock and voltage scaling (DCVS) minimum frequency to 1 GHz can boost performance during demanding tasks. Conversely, capping the maximum frequency at 1.5 GHz can help conserve power during less intensive operations.
 
-Resource Tuner supports `Signals` which is dynamic provisioning of system resources in response to specific signals —such as app launches or app installations —based on configurations defined in YAML. It allows other software modules or applications to register extensions and add custom functionality tailored to their specific needs.
+URM supports `Signals` which is dynamic provisioning of system resources in response to specific signals —such as app launches or app installations —based on configurations defined in YAML. It allows other software modules or applications to register extensions and add custom functionality tailored to their specific needs.
 
 ---
 
@@ -35,7 +35,7 @@ Resource Tuner supports `Signals` which is dynamic provisioning of system resour
 To get started with the project:
 [Build and install](../README.md#build-and-install-instructions)
 
-Refer the Examples Tab for guidance on resource-tuner API usage.
+Refer the Examples Tab for guidance on URM API usage.
 
 ---
 
@@ -87,14 +87,16 @@ Userspace resource manager (uRM) contains
 - These APIs can be used by apps, features and other modules
 - Using these APIs, client can tune any system resource parameters like cpu, dcvs, min / max frequencies etc.
 - Userspace resource manager (uRM) provides
+
 ## Resource Tuner
 - Queued requests processed by resource Tuner
 - Set of Yaml config files provides extensive configuration capability
 - Tuning resources provides control over system resources like CPU, Caches, GPU, etc for. Example changing the operating point of CPU DCVS min-freq to 1GHz to improve performance or limiting its max frequency to 1.5GHz to save power
 - Tuning Signals dynamically provisions the system resources for a use case or scenario such as apps launches, installations, etc. in response to received signal. Resources can be configured in yaml for signals.
 - Signals pick resources related to signal from SignalsConfig.yaml
-- Extension interface provides a way to customize resource-tuner behaviour, by specifying custom resources, custom signals and features.
-- Resource-tuner uses YAML based config files, for fetching information relating to resources/signals and properties.
+- Extension interface provides a way to customize URM behaviour, by specifying custom resources, custom signals and features.
+- URM uses YAML based config files, for fetching information relating to resources/signals and properties.
+
 ## Contextual Classifier
 The Contextual Classifier is an optional module designed to identify the static context of workloads (e.g., whether an application is a game, multimedia app, or browser) based on an offline-trained model.
 
@@ -261,7 +263,7 @@ Signals
 
 <div style="page-break-after: always;"></div>
 
-# APIs
+# URM APIs
 This API suite allows you to manage system resource provisioning through tuning requests. You can issue, modify, or withdraw resource tuning requests with specified durations and priorities.
 
 ## tuneResources
@@ -475,10 +477,10 @@ int8_t getProp(const char* prop,
 <div style="page-break-after: always;"></div>
 
 # Config Files Format
-Resource-tuner utilises YAML files for configuration. This includes the resources, signal config files. Target can provide their own config files, which are specific to their use-case through the extension interface
+URM utilises YAML files for configuration. This includes the resources, signal config files. Target can provide their own config files, which are specific to their use-case through the extension interface
 
 ## 1. Initialization Configs
-Initialisation configs are mentioned in InitConfig.yaml file. This config enables resource-tuner to setup the required settings at the time of initialisation before any request processing happens.
+Initialisation configs are mentioned in InitConfig.yaml file. This config enables URM to setup the required settings at the time of initialisation before any request processing happens.
 
 ### Common Initialization Configs
 Common initialization configs are defined in /etc/urm/common/InitConfig.yaml
@@ -527,7 +529,7 @@ Configs of mpam grp map in InitConfigs->MpamGroupsInfo section
 | Field           | Type       | Description | Default Value |
 |----------------|------------|-------------|-----------------|
 | `ID`        | `int32_t` (Mandatory)   | A 32-bit unique identifier for the CGroup | Not Applicable |
-| `Create`       | `boolean` (Optional)  | Boolean flag indicating if the CGroup needs to be created by the resource-tuner server | False |
+| `Create`       | `boolean` (Optional)  | Boolean flag indicating if the CGroup needs to be created by the URM server | False |
 | `IsThreaded`       | `boolean` (Optional)  | Boolean flag indicating if the CGroup is threaded | False |
 | `Name`          | `string` (Optional)   | Descriptive name for the CGroup | `Empty String` |
 
@@ -548,7 +550,7 @@ Configs of mpam grp map in InitConfigs->MpamGroupsInfo section
 | Field           | Type       | Description | Default Value |
 |----------------|------------|-------------|-----------------|
 | `Type`        | `string` (Mandatory)   | Type of cache (L2 or L3) for which config is intended | Not Applicable |
-| `NumCacheBlocks`  | `int32_t` (Mandatory)  | Number of Cache blocks for the above mentioned type, to be managed by resource-tuner | Not Applicable |
+| `NumCacheBlocks`  | `int32_t` (Mandatory)  | Number of Cache blocks for the above mentioned type, to be managed by URM | Not Applicable |
 | `PriorityAware`          | `boolean` (Optional)   | Boolean flag indicating if the Cache Type supports different Priority Levels. | `false` |
 
 <div style="page-break-after: always;"></div>
@@ -667,7 +669,7 @@ ResourceConfigs:
 <div style="page-break-after: always;"></div>
 
 ## 3. Properties Config
-PropertiesConfig.yaml file stores various properties which are used by resource-tuner modules internally. For example, to allocate sufficient amount of memory for different types, or to determine the Pulse Monitor duration. Client can also use this as a property store to store their properties which gives it flexibility to control properties depending on the target.
+PropertiesConfig.yaml file stores various properties which are used by URM modules internally. For example, to allocate sufficient amount of memory for different types, or to determine the Pulse Monitor duration. Client can also use this as a property store to store their properties which gives it flexibility to control properties depending on the target.
 
 ### Common Properties Configs
 Common resource configs are defined in /etc/urm/common/PropertiesConfig.yaml.
@@ -754,7 +756,7 @@ SignalConfigs:
 The file TargetConfig.yaml defines the target configs, note this is an optional config, i.e. this
 file need not necessarily be provided. uRM can dynamically fetch system info, like target name,
 logical to physical core / cluster mapping, number of cores etc. Use this file, if you want to
-provide this information explicitly. If the TargetConfig.yaml is provided, resource-tuner will always
+provide this information explicitly. If the TargetConfig.yaml is provided, URM will always
 overide default dynamically generated target information and use it. Also note, there are no field-level default values available if the TargetConfig.yaml is provided. Hence if you wish to provide this file, then you'll need to provide all the complete required information.
 
 #### Field Descriptions
@@ -795,7 +797,7 @@ TargetConfig:
 
 ## 6. (Optional) ExtFeatures Configs
 The file ExtFeaturesConfig.yaml defines the Extension Features, note this is an optional config, i.e. this
-file need not necessarily be provided. Use this file to specify your own custom features. Each feature is associated with it's own library and an associated list of signals. Whenever a relaySignal API request is received for any of these signals, resource-tuner will forward the request to the corresponding library.
+file need not necessarily be provided. Use this file to specify your own custom features. Each feature is associated with it's own library and an associated list of signals. Whenever a relaySignal API request is received for any of these signals, URM will forward the request to the corresponding library.
 The library is required to implement the following 3 functions:
 - initFeature
 - tearFeature
@@ -866,7 +868,7 @@ typedef struct {
 
 ## Notes on Resource ResCode
 
-As mentioned above, the resource code is an unsigned 32 bit integer. This section describes how this code can be constructed. Resource-tuner implements a System Independent Layer(SIL) which provides a transparent and consistent way for indexing resources. This makes it easy for the clients to identify the resource they want to provision, without needing to worry about portability issues across targets or about the order in which the resources are defined in the YAML files.
+As mentioned above, the resource code is an unsigned 32 bit integer. This section describes how this code can be constructed. URM implements a System Independent Layer(SIL) which provides a transparent and consistent way for indexing resources. This makes it easy for the clients to identify the resource they want to provision, without needing to worry about portability issues across targets or about the order in which the resources are defined in the YAML files.
 
 Essentially, the resource code (unsigned 32 bit) is composed of two fields:
 - ResID (last 16 bits, 17 - 32)
@@ -898,11 +900,11 @@ Examples:
 
 <div style="page-break-after: always;"></div>
 
-# Example Usage of Resource Tuner APIs
+# Example Usage of URM APIs
 
 ## tuneResources
 
-Note the following code snippets showcase the use of resource-tuner APIs. For more in-depth examples
+Note the following code snippets showcase the use of URM APIs. For more in-depth examples
 refer "link to examples dir"
 
 This example demonstrates the use of tuneResources API for resource provisioning.
@@ -942,7 +944,7 @@ void sendRequest() {
     // Let's say we stored the handle returned by the tuneResources API in
     // a variable called "handle". Then the retuneResources API can be simply called like:
     if(retuneResources(20000, handle) < 0) {
-        std::cerr<<"Failed to Send retune request to Resource Tuner Server"<<std::endl;
+        std::cerr<<"Failed to Send retune request to URM Server"<<std::endl;
     }
 }
 ```
@@ -956,7 +958,7 @@ The below example demonstrates the use of the untuneResources API for untuning a
 void sendRequest() {
     // Withdraw a Previously issued tuning request
     if(untuneResources(handle) == -1) {
-        std::cerr<<"Failed to Send untune request to Resource Tuner Server"<<std::endl;
+        std::cerr<<"Failed to Send untune request to URM Server"<<std::endl;
     }
 }
 ```
@@ -967,7 +969,7 @@ void sendRequest() {
 
 # Extension Interface
 
-The Resource-tuner framework allows target chipsets to extend its functionality and customize it to their use-case. Extension interface essentially provides a series of hooks to the targets or other modules to add their own custom behaviour. This is achieved through a lightweight extension interface. This happens in the initialisation phase before the service is ready for requests.
+The URM framework allows target chipsets to extend its functionality and customize it to their use-case. Extension interface essentially provides a series of hooks to the targets or other modules to add their own custom behaviour. This is achieved through a lightweight extension interface. This happens in the initialisation phase before the service is ready for requests.
 
 Specifically the extension interface provides the following capabilities:
 - Registering custom resource handlers
@@ -978,7 +980,7 @@ Specifically the extension interface provides the following capabilities:
 ### URM_REGISTER_RES_APPLIER_CB
 
 Registers a custom resource Applier handler with the system. This allows the framework to invoke a user-defined callback when a tune request for a specific resource opcode is encountered. A function pointer to the callback is to be registered.
-Now, instead of the default resource handler (provided by resource-tuner), this callback function will be called when a Resource Provisioning Request for this particular resource opcode arrives.
+Now, instead of the default resource handler (provided by URM), this callback function will be called when a Resource Provisioning Request for this particular resource opcode arrives.
 
 ### Usage Example
 ```cpp
@@ -995,7 +997,7 @@ URM_REGISTER_RES_APPLIER_CB(0x00010001, applyCustomCpuFreqCustom);
 ### URM_REGISTER_RES_TEAR_CB
 
 Registers a custom resource teardown handler with the system. This allows the framework to invoke a user-defined callback when an untune request for a specific resource opcode is encountered. A function pointer to the callback is to be registered.
-Now, instead of the normal resource handler (provided by resource-tuner), this callback function will be called when a Resource Deprovisioning Request for this particular resource opcode arrives.
+Now, instead of the normal resource handler (provided by URM), this callback function will be called when a Resource Deprovisioning Request for this particular resource opcode arrives.
 
 ### Usage Example
 ```cpp
@@ -1017,7 +1019,7 @@ Registers a custom configuration YAML file. This enables target chipset to provi
 ```cpp
 URM_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/bin/targetResourceConfigCustom.yaml");
 ```
-The above line of code, will indicate to resource-tuner to read the resource configs from the file
+The above line of code, will tell URM to read the resource configs from the file
 "/etc/bin/targetResourceConfigCustom.yaml" instead of the default file. note, the target chipset must honour the structure of the YAML files, for them to be read and registered successfully.
 
 Custom signal config file can be specified similarly:
@@ -1031,25 +1033,25 @@ URM_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/bin/targetSignalConfigCustom.yaml");
 <div style="page-break-after: always;"></div>
 
 
-# Resource Tuner Features
+# URM Implementation Details
 
-<img src="design_resource_tuner.png" alt="Resource Tuner Design" width="70%"/>
+<img src="design_resource_tuner.png" alt="URM Design" width="70%"/>
 
-Resource-tuner architecture is captured above.
+URM architecture is captured above.
 
 ## Initialization
 - During the server initialization phase, the YAML config files are read to build up the resource registry, property store etc.
 - If the target chipset has registered any custom resources, signals or custom YAML files via the extension interface, then these changes are detected during this phase itself to build up a consolidated system view, before it can start serving requests.
 - During the initialization phase, memory is pre-allocated for commonly used types (via MemoryPool), and worker (thread) capacity is reserved in advance via the ThreadPool, to avoid any delays during the request processing phase.
-- Resource-tuner will also fetch the target details, like target name, total number of cores, logical to physical cluster / core mapping in this phase.
+- URM will also fetch the target details, like target name, total number of cores, logical to physical cluster / core mapping in this phase.
 - If the Signals module is plugged in, it will be initialized as well and the signal configs will be parsed similarly to resource configs.
 - Once all the initialization is completed, the server is ready to serve requests, a new listener thread is created for handling requests.
 
 <div style="page-break-after: always;"></div>
 
 ## Request Processing
-- The client can use the resource-tuner client library to send their requests.
-- Resource-tuner supports sockets and binders for client-server communication.
+- The client can use the URM client library to send their requests.
+- URM supports sockets and binders for client-server communication.
 - As soon as the request is received on the server end, a handle is generated and returned to the client. This handle uniquely identifies the request and can be used for subsequent retune (retuneResources) or untune (untuneResources) API calls.
 - The request is submitted to the ThreadPool for async processing.
 - When the request is picked up by a worker thread (from the ThreadPool), it will decode the request message and then validate the request.
@@ -1059,7 +1061,7 @@ Resource-tuner architecture is captured above.
 - To handle concurrent requests for the same resource, we maintain resource level linked lists of pending requests, which are ordered according to the request priority and resource policy. This ensures that the request with the higher priority will always be applied first. For two requests with the same priority, the application order will depend on resource policy. For example, in case of resource with "higher is better" policy, the request with a higher configuration value for the resource shall take effect first.
 - Once a request reaches the head of the resource level linked list, it is applied, i.e. the config value specified by this request for the resource takes effect on the corresponding sysfs node.
 - A timer is created and used to keep track of a request, i.e. check if it has expired. Once it is detected that the request has expired an untune request for the same handle as this request, is automatically generated and submitted, it will take care of resetting the effected resource nodes to their original values.
-- Client modules can provide their own custom resource actions for any resource. The default action provided by resource-tuner is writing to the resource sysfs node.
+- Client modules can provide their own custom resource actions for any resource. The default action provided by URM is writing to the resource sysfs node.
 
 ---
 <div style="page-break-after: always;"></div>
@@ -1078,7 +1080,7 @@ To ensure efficient and predictable handling of concurrent requests, each system
 - Lazy Apply: Sometimes, you want the resources to apply requests in a first-in-first-out manner.
 
 ## 3. Request-Level Priorities
-As part of the tuneResources API call, client is allowed to specify a desired priority level for the request. Resource-tuner supports 2 priority levels:
+As part of the tuneResources API call, client is allowed to specify a desired priority level for the request. URM supports 2 priority levels:
 - High
 - Low
 
@@ -1091,23 +1093,23 @@ However when multiplexed with client-level permissions, effetive request level p
 Requests with a higher priority will always be prioritized, over another request with a lower priority. Note, the request priorities are related to the client permissions. A client with system permission is allowed to acquire any priority level it wants, however a client with third party permissions can only acquire either third party high (TPH) or third party low (TPL) level of priorities. If a client with third party permissions tries to acquire a System High or System Low level of priority, then the request will not be honoured.
 
 ## 4. Pulse Monitor: Detection of Dead Clients and Subsequent Cleanup
-To improve efficiency and conserve memory, it is essential to regularly check for dead clients and free up any system resources associated with them. This includes, untuning all (if any) ongoing tune request issued by this client and freeing up the memory used to store client specific data (Example: client's list of requests (handles), health, permissions, threads associated with the client etc). resource-tuner ensures that such clients are detected and cleaned up within 90 seconds of the client terminated.
+To improve efficiency and conserve memory, it is essential to regularly check for dead clients and free up any system resources associated with them. This includes, untuning all (if any) ongoing tune request issued by this client and freeing up the memory used to store client specific data (Example: client's list of requests (handles), health, permissions, threads associated with the client etc). URM ensures that such clients are detected and cleaned up within 90 seconds of the client terminated.
 
-Resource-tuner performs these actions by making use of two components:
+URM performs these actions by making use of two components:
 - Pulse check: scans the list of the active clients, and checks if any of the client (PID) is dead. If it finds a dead client, it schedules the cleanup by adding this PID to a queue.
 - Garbage collection: When the thread runs it iterates over the GC queue and performs the cleanup.
 
 Pulse Monitor runs on a seperate thread peroidically.
 
 ## 5. Rate Limiter: Preventing System Abuse
-Resource-tuner has rate limiter module that prevents abuse of the system by limiting the number of requests a client can make within a given time frame. This helps to prevent clients from overwhelming the system with requests and ensures that the system remains responsive and efficient. Rate limiter works on a reward/punishment methodology. Whenever a client requests the system for the first time, it is assigned a "Health" of 100. A punishment is handed over if a client makes subsequent new requests in a very short time interval (called delta, say 2 ms).
+URM has a rate limiter module that prevents abuse of the system by limiting the number of requests a client can make within a given time frame. This helps to prevent clients from overwhelming the system with requests and ensures that the system remains responsive and efficient. Rate limiter works on a reward/punishment methodology. Whenever a client requests the system for the first time, it is assigned a "Health" of 100. A punishment is handed over if a client makes subsequent new requests in a very short time interval (called delta, say 2 ms).
 A Reward results in increasing the health of a client (not above 100), while a punishment involves decreasing the health of the client. If at any point this value of Health reaches zero then any further requests from this client wil be dropped. Value of delta, punishment and rewards are target-configurable.
 
 ## 6. Duplicate Checking
-Resource-tuner's RequestManager component is responsible for detecting any duplicate requests issued by a client, and dropping them. This is done by checking against a list of all the requests issued by a clientto identify a duplicate. If it is, then the request is dropped. If it is not, then the request is added and processed. Duplicate checking helps to improve system efficiency, by saving wasteful CPU time on processing duplicates.
+URM's RequestManager component is responsible for detecting any duplicate requests issued by a client, and dropping them. This is done by checking against a list of all the requests issued by a clientto identify a duplicate. If it is, then the request is dropped. If it is not, then the request is added and processed. Duplicate checking helps to improve system efficiency, by saving wasteful CPU time on processing duplicates.
 
 ## 7. Dynamic Mapper: Logical to Physical Mapping
-Logical to physical core/cluster mapping helps to achieve application code portability across different chipsets on client side. Client can specify logical values for core and cluster. Resource-tuner will translate these values to their physical counterparts and apply the request accordingly. Logical to physical mapping helps to create system independent layer and helps to make the same client code interchangable across different targets.
+Logical to physical core/cluster mapping helps to achieve application code portability across different chipsets on client side. Client can specify logical values for core and cluster. URM will translate these values to their physical counterparts and apply the request accordingly. Logical to physical mapping helps to create system independent layer and helps to make the same client code interchangable across different targets.
 
 Logical mapping entries can be found in InitConfig.yaml and can be modified if required.
 
@@ -1122,7 +1124,7 @@ below table present in InitConfigs->ClusterMap section
 |   1    |   "big"    |
 |   2    |    "prime" |
 
-resource-tuner reads machine topology and prepares logical to physical table dynamically in the init phase, similar to below one
+URM reads machine topology and prepares logical to physical table dynamically in the init phase, similar to below one
 | LgcId  |  PhyId  |
 |--------|---------|
 |   0    |     0   |
@@ -1135,13 +1137,13 @@ resource-tuner reads machine topology and prepares logical to physical table dyn
 The system's operational modes are influenced by the state of the device's display. To conserve power, certain system resources are optimized only when the display is active. However, for critical components that require consistent performance—such as during background processing or time-sensitive tasks, resource tuning can still be applied even when the display is off, including during low-power states like doze mode. This ensures that essential operations maintain responsiveness without compromising overall energy efficiency.
 
 ## 9. Crash Recovery
-In case of server crash, resource-tuner ensures that all the resource sysfs nodes are restored to a sane state, i.e. they are reset to their original values. This is done by maintaining a backup of all the resource's original values, before any modification was made on behalf of the clients by resource tuner. In the event of server crash, reset to their original values in the backup.
+In case of server crash, URM ensures that all the resource sysfs nodes are restored to a sane state, i.e. they are reset to their original values. This is done by maintaining a backup of all the resource's original values, before any modification was made on behalf of the clients by urm. In the event of server crash, reset to their original values in the backup.
 
 ## 10. Flexible Packaging
-The Users are free to pick and choose the resource-tuner modules they want for their use-case and which fit their constraints. The Framework Module is the core/central module, however if the users choose they can add on top of it other Modules: signals and profiles.
+The Users are free to pick and choose the URM modules they want for their use-case and which fit their constraints. The Framework Module is the core/central module, however if the users choose they can add on top of it other Modules: signals and profiles.
 
 ## 11. Pre-Allocate Capacity for efficiency
-Resource Tuner provides a MemoryPool component, which allows for pre-allocation of memory for certain commonly used type at the time of server initialization. This is done to improve the efficiency of the system, by reducing the number of memory allocations and deallocations that are required during the processing of requests. The allocated memory is managed as a series of blocks which can be recycled without any system call overhead. This reduces the overhead of memory allocation and deallocation, and improves the performance of the system.
+URM provides a MemoryPool component, which allows for pre-allocation of memory for certain commonly used type at the time of server initialization. This is done to improve the efficiency of the system, by reducing the number of memory allocations and deallocations that are required during the processing of requests. The allocated memory is managed as a series of blocks which can be recycled without any system call overhead. This reduces the overhead of memory allocation and deallocation, and improves the performance of the system.
 
 Further, a ThreadPool component is provided to pre-allocate processing capacity. This is done to improve the efficiency of the system, by reducing the number of thread creation and destruction required during the processing of Requests, further ThreadPool allows for the threads to be repeatedly reused for processing different tasks.
 
@@ -1149,7 +1151,7 @@ Further, a ThreadPool component is provided to pre-allocate processing capacity.
 <div style="page-break-after: always;"></div>
 
 # Client CLI
-Resource-tuner provides a minimal CLI to interact with the server. This is provided to help with development and debugging purposes.
+URM provides a minimal CLI to interact with the server. This is provided to help with development and debugging purposes.
 
 ## Usage Examples
 
@@ -1238,7 +1240,7 @@ Example:
 
 For questions, suggestions, or contributions, feel free to reach out:
 
-- **Email**: maintainers.resource-tuner-moderator@qti.qualcomm.com
+- **Email**: Maintainers.userspace-resource-moderator@qti.qualcomm.com
 
 # License
 
