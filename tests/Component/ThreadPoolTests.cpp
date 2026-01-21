@@ -1,8 +1,6 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-
-// ThreadPoolTests_mtest.cpp
 #include <iostream>
 #include <thread>
 #include <chrono>
@@ -12,7 +10,7 @@
 #include <string>
 #include <cassert>
 
-#include "TestUtils.h"    // if your tests rely on helpers/macros
+#include "TestUtils.h"    // tests rely on helpers/macros
 #include "ThreadPool.h"   // your thread pool component
 
 #define MTEST_NO_MAIN

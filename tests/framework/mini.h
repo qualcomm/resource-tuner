@@ -1149,7 +1149,7 @@ inline int run_main(int argc, const char* argv[]) {
         }
     }
 
-    // ✅ Add auto-report defaults here:
+    //  Add auto-report defaults here:
     if (!opt.report_json && !opt.report_junit && !opt.report_md) {
         const char* dir = std::getenv("TEST_REPORT_DIR");
         std::string outdir = dir ? dir : "."; // fallback to current dir

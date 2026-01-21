@@ -7,7 +7,6 @@
 #define MTEST_NO_MAIN
 #include "../framework/mini.h"
 
-// ParserTests.cpp (ported to mini.hpp with assert adaptation + no lambdas in concurrent test)
 #include "ErrCodes.h"
 #include "TestUtils.h"
 #include "RestuneParser.h"
@@ -880,10 +879,3 @@ namespace AppConfigParserTests {
         MT_REQUIRE(ctx, (appConfigInfo->mSignalCodes != nullptr));
     }
 } // namespace AppConfigParserTests
-
-// NOTE: No RunTests() / REGISTER_TEST() needed — mini.hpp auto-registers tests
-// and provides main() unless compiled with -DMTEST_NO_MAIN.
-//
-// Run serially:
-//   ./RestuneMiniTests --tag=component-serial --threads=1
-

@@ -9,9 +9,9 @@
 #include <chrono>
 #include <iostream>
 
-#include "Timer.h"         // your Timer component
+#include "Timer.h"         // Timer component
 #include "ThreadPool.h"    // whatever defines ThreadPool
-#include "TestUtils.h"     // if you still need MakeAlloc<Timer>
+#include "TestUtils.h"
 
 
 #define MTEST_NO_MAIN
