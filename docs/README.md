@@ -367,8 +367,8 @@ int64_t tuneSignal(uint32_t sigId,
 
 **Parameters:**
 
+```text
 - `sigID` (`uint32_t`): A uniqued 32-bit (unsigned) identifier for the Signal
-
                               - The last 16 bits (17-32) are used to specify the SigID
                               - The next 8 bits (9-16) are used to specify the Signal Category
                               - In addition for Custom Signals, the MSB must be set to 1 as well
@@ -389,6 +389,8 @@ int64_t tuneSignal(uint32_t sigId,
 `int64_t`
 - A Positive Unique Handle to identify the issued Request. The handle is used for freeing the Provisioned signal later.
 - `-1`: If the Request could not be sent to the server.
+
+```
 
 ---
 <div style="page-break-after: always;"></div>
@@ -434,8 +436,8 @@ int8_t relaySignal(uint32_t sigId,
 
 **Parameters:**
 
+```text
 - `sigId` (`uint32_t`): A uniqued 32-bit (unsigned) identifier for the Signal
-
                       - The last 16 bits (17-32) are used to specify the SigID
                       - The next 8 bits (9-16) are used to specify the Signal Category
                       - In addition for Custom Signals, the MSB must be set to 1 as well
@@ -453,6 +455,8 @@ int8_t relaySignal(uint32_t sigId,
 `int8_t`
 - `0`: If the Request was successfully sent to the server.
 - `-1`: Otherwise
+
+```
 
 ---
 <div style="page-break-after: always;"></div>
