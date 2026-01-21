@@ -25,7 +25,7 @@ extern "C" {
 #include <stdint.h>
 #endif
 
-#include "Common.h"
+#include "UrmPlatformAL.h"
 
 /**
  * @brief Tune Resource Values for finite or finite duration.

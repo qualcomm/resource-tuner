@@ -487,7 +487,7 @@ Common initialization configs are defined in /etc/urm/common/InitConfig.yaml
 Targets can override initialization configs (in addition to common init configs, i.e. overrides specific configs) by simply pushing its own InitConfig.yaml into /etc/urm/custom/InitConfig.yaml
 
 ### Overiding with Custom Extension File
-RESTUNE_REGISTER_CONFIG(INIT_CONFIG, "/bin/InitConfigCustom.yaml");
+URM_REGISTER_CONFIG(INIT_CONFIG, "/bin/InitConfigCustom.yaml");
 
 ### 1. Logical Cluster Map
 Configs of cluster map in InitConfigs->ClusterMap section
@@ -611,7 +611,7 @@ Common resource configs are defined in /etc/urm/common/ResourcesConfig.yaml.
 Targets can override resource cofigs (can fully override or selective resources) by simply pushing its own ResourcesConfig.yaml into /etc/urm/custom/ResourcesConfig.yaml
 
 ### Overiding with Custom Extension File
-RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/bin/targetResourceConfigCustom.yaml");
+URM_REGISTER_CONFIG(RESOURCE_CONFIG, "/bin/targetResourceConfigCustom.yaml");
 
 Each resource is defined with the following fields:
 
@@ -676,7 +676,7 @@ Common resource configs are defined in /etc/urm/common/PropertiesConfig.yaml.
 Targets can override Properties cofigs (can fully override or selective resources) by simply pushing its own PropertiesConfig.yaml into /etc/urm/custom/PropertiesConfig.yaml
 
 ### Overiding with Custom Properties File
-RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/bin/targetPropertiesConfigCustom.yaml"); if Client have no specific extensions like custom resources or features only want to change the config then the above method (using the same file name and pushing it to custom folder) is the best method to go for.
+URM_REGISTER_CONFIG(PROPERTIES_CONFIG, "/bin/targetPropertiesConfigCustom.yaml"); if Client have no specific extensions like custom resources or features only want to change the config then the above method (using the same file name and pushing it to custom folder) is the best method to go for.
 
 #### Field Descriptions
 
@@ -975,7 +975,7 @@ Specifically the extension interface provides the following capabilities:
 
 ## Extension APIs
 
-### RESTUNE_REGISTER_APPLIER_CB
+### URM_REGISTER_RES_APPLIER_CB
 
 Registers a custom resource Applier handler with the system. This allows the framework to invoke a user-defined callback when a tune request for a specific resource opcode is encountered. A function pointer to the callback is to be registered.
 Now, instead of the default resource handler (provided by resource-tuner), this callback function will be called when a Resource Provisioning Request for this particular resource opcode arrives.
@@ -987,12 +987,12 @@ void applyCustomCpuFreqCustom(void* res) {
     return 0;
 }
 
-RESTUNE_REGISTER_APPLIER_CB(0x00010001, applyCustomCpuFreqCustom);
+URM_REGISTER_RES_APPLIER_CB(0x00010001, applyCustomCpuFreqCustom);
 ```
 
 ---
 
-### RESTUNE_REGISTER_TEAR_CB
+### URM_REGISTER_RES_TEAR_CB
 
 Registers a custom resource teardown handler with the system. This allows the framework to invoke a user-defined callback when an untune request for a specific resource opcode is encountered. A function pointer to the callback is to be registered.
 Now, instead of the normal resource handler (provided by resource-tuner), this callback function will be called when a Resource Deprovisioning Request for this particular resource opcode arrives.
@@ -1004,18 +1004,18 @@ void resetCustomCpuFreqCustom(void* res) {
     return 0;
 }
 
-RESTUNE_REGISTER_TEAR_CB(0x00010001, resetCustomCpuFreqCustom);
+URM_REGISTER_RES_TEAR_CB(0x00010001, resetCustomCpuFreqCustom);
 ```
 
 ---
 
-### RESTUNE_REGISTER_CONFIG
+### URM_REGISTER_CONFIG
 
 Registers a custom configuration YAML file. This enables target chipset to provide their own config files, i.e. allowing them to provide their own custom resources for example.
 
 ### Usage Example
 ```cpp
-RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/bin/targetResourceConfigCustom.yaml");
+URM_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/bin/targetResourceConfigCustom.yaml");
 ```
 The above line of code, will indicate to resource-tuner to read the resource configs from the file
 "/etc/bin/targetResourceConfigCustom.yaml" instead of the default file. note, the target chipset must honour the structure of the YAML files, for them to be read and registered successfully.
@@ -1024,7 +1024,7 @@ Custom signal config file can be specified similarly:
 
 ### Usage Example
 ```cpp
-RESTUNE_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/bin/targetSignalConfigCustom.yaml");
+URM_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/bin/targetSignalConfigCustom.yaml");
 ```
 
 ---

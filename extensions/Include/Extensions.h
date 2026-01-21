@@ -75,29 +75,29 @@ public:
 #define CONCAT(a, b) CONCAT_IMPL(a, b)
 
 /**
- * \def RESTUNE_REGISTER_APPLIER_CB(resCode, resourceApplierCallback)
+ * \def URM_REGISTER_RES_APPLIER_CB(resCode, resourceApplierCallback)
  * \brief Register a Customer Resource Applier Callback for a particular ResCode
  * \param resCode An unsigned 32-bit integer representing the Resource ResCode.
  * \param resourceApplierCallback A function Pointer to the Custom Applier Callback.
  *
  * \note This macro must be used in the Global Scope.
  */
-#define RESTUNE_REGISTER_APPLIER_CB(resCode, resourceApplierCallback) \
+#define URM_REGISTER_RES_APPLIER_CB(resCode, resourceApplierCallback) \
         static Extensions CONCAT(_resourceApplier, resCode)(resCode, 0, resourceApplierCallback);
 
 /**
- * \def RESTUNE_REGISTER_TEAR_CB(resCode, resourceTearCallback)
+ * \def URM_REGISTER_RES_TEAR_CB(resCode, resourceTearCallback)
  * \brief Register a Customer Resource Teardown Callback for a particular ResCode
  * \param resCode An unsigned 32-bit integer representing the Resource ResCode.
  * \param resourceTearCallback A function Pointer to the Custom Teardown Callback.
  *
  * \note This macro must be used in the Global Scope.
  */
-#define RESTUNE_REGISTER_TEAR_CB(resCode, resourceTearCallback) \
+#define URM_REGISTER_RES_TEAR_CB(resCode, resourceTearCallback) \
         static Extensions CONCAT(_resourceTear, resCode)(resCode, 1, resourceTearCallback);
 
 /**
- * \def RESTUNE_REGISTER_CONFIG(configType, yamlFile)
+ * \def URM_REGISTER_CONFIG(configType, yamlFile)
  * \brief Register custom Config (YAML) file. This Macro can be used to register
  *        Resource Configs File, Signal Configs file and others with Resource Tuner.
  * \param configType The type of Config for which the Custom YAML file has to be specified.
@@ -105,18 +105,18 @@ public:
  *
  * \note This macro must be used in the Global Scope.
  */
-#define RESTUNE_REGISTER_CONFIG(configType, yamlFile) \
+#define URM_REGISTER_CONFIG(configType, yamlFile) \
         static Extensions CONCAT(_regConfig, configType)(configType, yamlFile);
 
 /**
- * \def CLASSIFIER_REGISTER_POST_PROCESS_CB(identifier, callback)
+ * \def URM_REGISTER_POST_PROCESS_CB(identifier, callback)
  * \brief Register post processing callbacks for different workloads and per-process.
  * \param identifier The key (string) identifier for the process or workload
  * \param callback The post processing Callback to be registered
  *
  * \note This macro must be used in the Global Scope.
  */
-#define CLASSIFIER_REGISTER_POST_PROCESS_CB(identifier, callback) \
+#define URM_REGISTER_POST_PROCESS_CB(identifier, callback) \
         static Extensions CONCAT(callback, __LINE__)(identifier, callback);
 
 #endif
