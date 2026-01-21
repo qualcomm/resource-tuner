@@ -376,9 +376,9 @@ int64_t tuneSignal(uint32_t sigId,
                           need to exist to support different use-case scenarios. If no such filtering is needed, pass this field as 0.
 - `duration` (`int64_t`): Duration (in milliseconds) to tune the Signal for. A value of -1 denotes infinite duration.
 - `properties` (`int32_t`): Properties of the Request.
-                            - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
-                            - The Next 8 bits [17 - 24] represent a Boolean Flag, which indicates
-                              if the Request should be processed in the background (in case of Display Off or Doze Mode).
+    - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
+    - The Next 8 bits [17 - 24] represent a Boolean Flag, which indicates if the Request should be
+      processed in the background (in case of Display Off or Doze Mode).
 - `appName` (`const char*`): Name of the Application that is issuing the Request
 - `scenario` (`const char*`): Use-Case Scenario
 - `numArgs` (`int32_t`): Number of Additional Arguments to be passed as part of the Request
@@ -434,7 +434,6 @@ int8_t relaySignal(uint32_t sigId,
 **Parameters:**
 
 - `sigId` (`uint32_t`): A uniqued 32-bit (unsigned) identifier for the Signal
-
     - The last 16 bits (17-32) are used to specify the SigID
     - The next 8 bits (9-16) are used to specify the Signal Category
     - In addition for Custom Signals, the MSB must be set to 1 as well
@@ -443,6 +442,9 @@ int8_t relaySignal(uint32_t sigId,
                           need to exist to support different use-case scenarios. If no such filtering is needed, pass this field as 0.
 - `duration` (`int64_t`): Duration (in milliseconds)
 - `properties` (`int32_t`): Properties of the Request.
+    - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
+    - The Next 8 bits [17 - 24] represent a Boolean Flag, which indicates if the Request should be
+      processed in the background (in case of Display Off or Doze Mode).
 - `appName` (`const char*`): Name of the Application that is issuing the Request
 - `scenario` (`const char*`): Name of the Scenario that is issuing the Request
 - `numArgs` (`int32_t`): Number of Additional Arguments to be passed as part of the Request
