@@ -67,6 +67,7 @@ private:
     std::thread mNetlinkThread;
 
     std::unordered_set<std::string> mIgnoredProcesses;
+    std::unordered_set<std::string> mAllowedProcesses;
     std::unordered_map<pid_t, uint64_t> mResTunerHandles;
 
     void ClassifierMain();
@@ -90,7 +91,7 @@ private:
 
     // blacklisting mechanism
     void LoadIgnoredProcesses();
-    int8_t isIgnoredProcess(int32_t evType, pid_t pid);
+    int8_t shouldProcBeIgnored(int32_t evType, pid_t pid);
 
     // Transparently get the classification object, without expecting the client
     // to be aware of the underlying model / implementation.

@@ -36,11 +36,11 @@ public:
     static int8_t isNumericString(const std::string& str);
 	static pid_t fetchPid(const std::string& processName);
     static int32_t fetchComm(pid_t pid, std::string &comm);
+    static std::string getProcName(pid_t pid);
 
     static int64_t generateUniqueHandle();
     static int64_t getCurrentTimeInMilliseconds();
 };
-
 
 // Following are some client-lib centric utilities
 class FlatBuffEncoder {
