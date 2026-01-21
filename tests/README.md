@@ -43,7 +43,9 @@ Build & run:
 mkdir build && cd build
 cmake .. -DBUILD_TESTS=ON
 make
-./tests/RestuneMiniTests
+./tests/RestuneComponentTests 
+./tests/RestuneIntegrationTests
+./tests/RestuneUnitTests
 ```
 
 ---
