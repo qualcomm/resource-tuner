@@ -368,9 +368,9 @@ int64_t tuneSignal(uint32_t sigId,
 **Parameters:**
 
 - `sigID` (`uint32_t`): A uniqued 32-bit (unsigned) identifier for the Signal
-                              - The last 16 bits (17-32) are used to specify the SigID
-                              - The next 8 bits (9-16) are used to specify the Signal Category
-                              - In addition for Custom Signals, the MSB must be set to 1 as well
+    - The last 16 bits (17-32) are used to specify the SigID
+    - The next 8 bits (9-16) are used to specify the Signal Category
+    - In addition for Custom Signals, the MSB must be set to 1 as well
 - `sigType` (`uint32_t`): Type of the signal, useful for use-case based signal filtering and selection, i.e.
                           in situations where multiple variants of the same core signal (with minor changes)
                           need to exist to support different use-case scenarios. If no such filtering is needed, pass this field as 0.
@@ -435,9 +435,9 @@ int8_t relaySignal(uint32_t sigId,
 
 - `sigId` (`uint32_t`): A uniqued 32-bit (unsigned) identifier for the Signal
 
-                      - The last 16 bits (17-32) are used to specify the SigID
-                      - The next 8 bits (9-16) are used to specify the Signal Category
-                      - In addition for Custom Signals, the MSB must be set to 1 as well
+    - The last 16 bits (17-32) are used to specify the SigID
+    - The next 8 bits (9-16) are used to specify the Signal Category
+    - In addition for Custom Signals, the MSB must be set to 1 as well
 - `sigType` (`uint32_t`): Type of the signal, useful for use-case based signal filtering and selection, i.e.
                           in situations where multiple variants of the same core signal (with minor changes)
                           need to exist to support different use-case scenarios. If no such filtering is needed, pass this field as 0.
