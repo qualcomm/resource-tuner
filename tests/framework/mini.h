@@ -1,3 +1,6 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+
 #ifndef MINI_HPP_INCLUDED
 #define MINI_HPP_INCLUDED
 #include <cstdio>

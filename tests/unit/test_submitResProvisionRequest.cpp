@@ -1,3 +1,5 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
 
 // (Optional) If you use a dedicated main TU, add this at top:
 
@@ -19,7 +21,7 @@ static RecordedCall g_lastCall;
 
 static void resetRecordedCall() { g_lastCall = RecordedCall{}; }
 
-// ✅ Move this OUT of the anonymous namespace so it has external linkage
+//  Move this OUT of the anonymous namespace so it has external linkage
 void __mock_processIncomingRequest(Request* request, int8_t isValidated) {
     g_lastCall.req  = request;
     g_lastCall.flag = isValidated;
