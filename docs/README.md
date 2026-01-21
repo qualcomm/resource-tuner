@@ -355,7 +355,8 @@ Tune the signal with the given ID.
 
 **API Signature:**
 ```cpp
-int64_t tuneSignal(uint32_t signalCode,
+int64_t tuneSignal(uint32_t sigId,
+                   uint32_t sigType,
                    int64_t duration,
                    int32_t properties,
                    const char* appName,
@@ -366,10 +367,13 @@ int64_t tuneSignal(uint32_t signalCode,
 
 **Parameters:**
 
-- `signalCode` (`uint32_t`): A uniqued 32-bit (unsigned) identifier for the Signal
+- `sigID` (`uint32_t`): A uniqued 32-bit (unsigned) identifier for the Signal
                               - The last 16 bits (17-32) are used to specify the SigID
                               - The next 8 bits (9-16) are used to specify the Signal Category
                               - In addition for Custom Signals, the MSB must be set to 1 as well
+- `sigType` (`uint32_t`): Type of the signal, useful for use-case based signal filtering and selection, i.e.
+                          in situations where multiple variants of the same core signal (with minor changes)
+                          need to exist to support different use-case scenarios. If no such filtering is needed, pass this field as 0.
 - `duration` (`int64_t`): Duration (in milliseconds) to tune the Signal for. A value of -1 denotes infinite duration.
 - `properties` (`int32_t`): Properties of the Request.
                             - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
@@ -417,13 +421,14 @@ Tune the signal with the given ID.
 
 **API Signature:**
 ```cpp
-int64_t relaySignal(uint32_t signalCode,
-                    int64_t duration,
-                    int32_t properties,
-                    const char* appName,
-                    const char* scenario,
-                    int32_t numArgs,
-                    uint32_t* list);
+int8_t relaySignal(uint32_t sigId,
+                   uint32_t sigType,
+                   int64_t duration,
+                   int32_t properties,
+                   const char* appName,
+                   const char* scenario,
+                   int32_t numArgs,
+                   uint32_t* list);
 ```
 
 **Parameters:**

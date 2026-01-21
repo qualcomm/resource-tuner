@@ -88,7 +88,7 @@ int8_t getProp(const char* prop, char* buffer, size_t bufferSize, const char* de
  *                   - In addition for Custom Signals, the MSB must be set to 1 as well
  * @param sigType Type of the signal, useful for use-case based signal filtering and selection, i.e.
  *                in situations where multiple variants of the same core signal (with minor changes)
- *                need to exist to support different use-case scenarios. If no such filtering is needed
+ *                need to exist to support different use-case scenarios. If no such filtering is needed,
  *                pass this field as 0.
  *                   - In addition for Custom Signals, the MSB must be set to 1 as well
  * @param duration Duration (in milliseconds) to provision the Resources for. A value of -1 denotes infinite duration.
