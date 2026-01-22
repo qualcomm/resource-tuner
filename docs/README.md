@@ -198,7 +198,56 @@ int64_t tuneSignal(uint32_t sigId,
 - A Positive Unique Handle to identify the issued Request. The handle is used for freeing the Provisioned signal later.
 - `-1`: If the Request could not be sent to the server.
 
+**Usage Notes**
+The sigID is an unsigned 32 bit integer composed of two fields:
+- The last 16 bits (17-32) are used to specify the sigCode
+- The next 8 bits (9-16) are used to specify the Signal Category (sigCat)
+- In addition for Custom Signals, the MSB must be set to 1 as well
+
+Suppose we would like to tune the following signal
+```yaml
+SignalConfigs:
+  - SigId: "0x0008"
+    Category: "0x0d"
+    Name: DEMO_SIGNAL
+    Enable: true
+    Permissions: ["system"]
+    Timeout: 50000
+    Resources:
+      - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [2, 0,1,2,3,4]}
+      - {ResCode: "0x00090009", ResInfo: "0x00000000", Values: [2, 170]}
+      - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [3, 4,5,6]}
+      - {ResCode: "0x00090002", ResInfo: "0x00000000", Values: [4, 0,1,2,3,4,5,6]}
+      - {ResCode: "0x00090009", ResInfo: "0x00000000", Values: [4, 150]}
+      - {ResCode: "0x00090011", ResInfo: "0x00000000", Values: [4, -20]}
+
+```
+
+Treating it as a custom or downstream Signal config (i.e. MSB should be set to 1), the SigCode can be generated as follows:
+- The Category is: "0x0d" and
+- The SigID is "0x0008"
+
+Hence, the resulting sigCode for this signal is:
+
+**0x8000080d** in hex notation, or
+**10000000000000000000100000001101**, in binary.
+
 ---
+
+The macro "CONSTRUCT_SIG_CODE" can be used for generating opcodes directly if the ResType and ResID are known:
+```cpp
+   uint32_t sigCode = CONSTRUCT_SIG_CODE(0x0008, 0x0d);
+```
+
+If the resource is user-defined / custom then the MSB must be set to 1, so that the resource can
+be correctly identified. The CUSTOM function macro achieves this.
+
+```cpp
+   uint32_t sigCode = CUSTOM(CONSTRUCT_SIG_CODE(0x0008, 0x0d));
+```
+
+---
+
 <div style="page-break-after: always;"></div>
 
 ## untuneSignal
@@ -496,6 +545,7 @@ SignalConfigs:
     Category: "0x01"
     Name: URM_APP_OPEN
     Enable: true
+    Timeout: 4000
     Permissions: ["system", "third_party"]
     Resources:
       - {ResCode: "RES_CGRP_MOVE_PID", Values: [4, "%d"]}
@@ -505,6 +555,16 @@ SignalConfigs:
 
 Here the signal consists of 3 resources, the first resource: RES_CGRP_MOVE_PID (0x00090000) moves
 a given PID to the cgroup (identified by a unique integer, passed in as the first argument). Since the PID cannot be defined statically, hence a placeholder "%d" is specified as the second argument, indicating this value will be supplied by the caller at runtime itself.
+
+```text
+Signals are identified (similar to Resources) via an unsigned 32-bit integer.
+- The last 16 bits (17-32) are used to specify the SigID
+- The next 8 bits (9-16) are used to specify the Signal Category
+- In addition for Custom Signals, the MSB must be set to 1 as well
+```
+
+In addition another attribute called sigType is provided, for use-case based signal filtering and selection, i.e. in situations where multiple variants of the same core signal (with minor changes)
+need to exist to support different use-case scenarios. If no such filtering is needed, pass this field as 0 in the call to tuneSignal.
 
 ---
 
