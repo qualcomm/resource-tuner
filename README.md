@@ -31,7 +31,7 @@ This project depends on the following external libraries:
 ### Building with Yocto
 * The URM Yocto recipe is available here: <https://github.com/qualcomm-linux/meta-qcom/tree/master/recipes-support/userspace-resource-manager>
 
-### Building on Ubuntu (Developer‑Friendly Native Debian build)
+### Building on Debian/Ubuntu (Native Debian build)
 * Install build tools
 ```
 sudo apt-get install debhelper dh-sequence-cmake cmake pkg-config build-essential
