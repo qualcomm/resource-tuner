@@ -131,6 +131,27 @@ pid_t AuxRoutines::fetchPid(const std::string& process_name) {
     return -1; // Not found
 }
 
+int8_t AuxRoutines::getProcName(pid_t pid, std::string& procName) {
+    std::string comm = "";
+    std::string commPath = COMM(pid);
+    std::ifstream commFile(commPath);
+
+    std::string processName = "";
+    if(commFile.is_open()) {
+        std::getline(commFile, processName);
+
+        // Trim
+        size_t first = processName.find_first_not_of(" \t\n\r");
+        if(first != std::string::npos) {
+            size_t last = processName.find_last_not_of(" \t\n\r");
+            procName = processName.substr(first, (last - first + 1));
+            return true;
+        }
+    }
+
+    return false;
+}
+
 int32_t AuxRoutines::fetchComm(pid_t pid, std::string &comm) {
     std::string proc_path = "/proc/" + std::to_string(pid);
     if(!AuxRoutines::fileExists(proc_path)) {
