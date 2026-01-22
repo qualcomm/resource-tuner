@@ -170,32 +170,6 @@ The ResCode is an unsigned 32 bit integer composed of two fields:
 - ResType (next 8 bits, 9 - 16)
 - Additionally MSB should be set to '1' if customer or other modules or target chipset is providing it's own custom resource config files, indicating this is a custom resource else it shall be treated as a default resource. This bit doesn't influence resource processing, just to aid debugging and development.
 
-To construct one for the above Resource, we first note that this is a custom Resource (or downstream resource). Hence, the MSB must be set 1, additionally as the yaml config indicates:
-- The ResType is: "0xea" and
-- The ResId is "0x11fc"
-
-The ResCode would therefore be:
-0x80ea11fc in hex notation, or:
-10000000111010100001000111111100, in binary
-
-The binary notation clearly tells the first bit is set to 1.
-
-If the Resource above were a default (upstream) resource, the only difference in the ResCode would be the MSB being turned off, i.e.
-0x00ea11fc in hex notation or:
-00000000111010100001000111111100, in binary
-
-The macro "CONSTRUCT_RES_CODE" can be used for generating opcodes directly if the ResType and ResID are known:
-```cpp
-   uint32_t resCode = CONSTRUCT_RES_CODE(0xea, 0x11fc);
-```
-
-If the resource is user-defined / custom then the MSB must be set to 1, so that the resource can
-be correctly identified. The CUSTOM function macro achieves this.
-
-```cpp
-   uint32_t resCode = CUSTOM(CONSTRUCT_RES_CODE(0xea, 0x11fc));
-```
-
 The above rules are similar for generating SigCode:
 The SigCode is an unsigned 32 bit integer composed of two fields:
 - The last 16 bits (17-32) are used to specify the SigID

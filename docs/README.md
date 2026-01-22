@@ -110,20 +110,42 @@ typedef struct {
 
 <div style="page-break-after: always;"></div>
 
-## Notes on Resource ResCode
+Next, we describe all the fields in further details, how to use / manipulate them and helper macros provided for this purpose. Assume, for the discussion that we would like to tune / configure the following resource:
+
+Suppose we would like to tune the following resource (config):
+
+```yaml
+ResourceConfigs:
+  - ResType: "0xea"
+    ResID: "0x11fc"
+    Name: "A_DEMONSTRATION_RESOURCE"
+    Path: "/proc/some_path_to_some_resource/A"
+    Supported: true
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: "lower_is_better"
+    ApplyType: "global"
+```
+
+### Resource ResCode and ResCode construction
 
 As mentioned above, the resource code is an unsigned 32 bit integer. This section describes how this code can be constructed. URM implements a System Independent Layer(SIL) which provides a transparent and consistent way for indexing resources. This makes it easy for the clients to identify the resource they want to provision, without needing to worry about portability issues across targets or about the order in which the resources are defined in the YAML files.
 
+```text
 Essentially, the resource code (unsigned 32 bit) is composed of two fields:
 - ResID (last 16 bits, 17 - 32)
 - ResType (next 8 bits, 9 - 16)
 - Additionally MSB should be set to '1' if customer or other modules or target chipset is providing it's own custom resource config files, indicating this is a custom resource else it shall be treated as a default resource. This bit doesn't influence resource processing, just to aid debugging and development.
 
-These fields can uniquely identify a resource across targets, hence making the code operating on these resources interchangable. In essence, we ensure that the resource with code "x", refers to the same tunable resource across different targets.
+```
 
+These fields combined together can uniquely identify a resource across targets, hence making the code operating on these resources interchangable. In essence, we ensure that the resource with code "x", refers to the same tunable resource across different targets.
+
+```text
 Examples:
 - The ResCode: 65536 (0x00010000) [00000000 00000001 00000000 00000000], Refers to the Default Resource with ResID 0 and ResType 1.
 - The ResCode: 2147549185 (0x80010001) [10000000 00000001 00000000 00000001], Refers to the Custom Resource with ResID 1 and ResType 1.
+```
 
 #### List Of Resource Types (Use this table to get the value of ResType for a Resource)
 
@@ -142,9 +164,70 @@ Examples:
 
 ---
 
+To construct the ResCode for the above Resource, we first note that this is a custom Resource (or downstream resource). Hence, the MSB must be set 1, additionally as the yaml config indicates:
+- The ResType is: "0xea" and
+- The ResId is "0x11fc"
+
+The ResCode would therefore be:
+0x80ea11fc in hex notation, or:
+10000000111010100001000111111100, in binary
+
+The binary notation clearly tells the first bit is set to 1.
+
+If the Resource above were a default (upstream) resource, the only difference in the ResCode would be the MSB being turned off, i.e.
+0x00ea11fc in hex notation or:
+00000000111010100001000111111100, in binary
+
+The macro "CONSTRUCT_RES_CODE" can be used for generating opcodes directly if the ResType and ResID are known:
+```cpp
+   uint32_t resCode = CONSTRUCT_RES_CODE(0xea, 0x11fc);
+```
+
+If the resource is user-defined / custom then the MSB must be set to 1, so that the resource can
+be correctly identified. The CUSTOM function macro achieves this.
+
+```cpp
+   uint32_t resCode = CUSTOM(CONSTRUCT_RES_CODE(0xea, 0x11fc));
+```
 
 <div style="page-break-after: always;"></div>
 
+### Resource ResInfo and ResInfo construction
+
+```text
+The ResInfo field specified as part of the SysResource struct encodes the following information:
+- Bits [24 - 31]: Core Information
+- Bits [16 - 23]: Cluster Information
+```
+
+These core and cluster values are logical values, this decouples the client from system arch information and allows the calling code to be reusable across devices. This allows for (among others) specifications like:
+- Apply the config on the gold cluster, or:
+- Apply the config on the 2nd core in the little / silver cluster.
+
+#### Logical IDs for clusters
+
+| LgcId  |     Name   |
+|--------|------------|
+|   0    |   "little" |
+|   1    |   "big"    |
+|   2    |   "prime"  |
+
+The macros SET_RESOURCE_CLUSTER_VALUE and SET_RESOURCE_CORE_VALUE are provided for clients to easily specify the configuration core / cluster information, if needed.
+
+```cpp
+int32_t mResInfo = 0;
+// Set logical cluster ID to 1 (Gold)
+mResInfo = SET_RESOURCE_CLUSTER_VALUE(mResInfo, 1);
+```
+
+```cpp
+int32_t mResInfo = 0;
+// 2nd core on the little cluster
+mResInfo = SET_RESOURCE_CLUSTER_VALUE(mResInfo, 0);
+mResInfo = SET_RESOURCE_CORE_VALUE(mResInfo, 2)
+```
+
+<div style="page-break-after: always;"></div>
 
 
 # Userspace Resource Manager Key Points
