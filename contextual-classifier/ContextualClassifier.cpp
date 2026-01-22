@@ -385,12 +385,14 @@ void ContextualClassifier::LoadIgnoredProcesses() {
     std::string filePath = ALLOW_LIST_PATH;
     if(AuxRoutines::fileExists(filePath)) {
         isAllowedListPresent = true;
+    } else {
+        filePath = IGNORE_PROC_PATH;
     }
 
     std::ifstream file(filePath);
     if(!file.is_open()) {
         LOGW(CLASSIFIER_TAG,
-             "Could not open ignore process file: " + filePath);
+             "Could not open process filter file: " + filePath);
         return;
     }
 
@@ -415,7 +417,7 @@ void ContextualClassifier::LoadIgnoredProcesses() {
             }
         }
     }
-    LOGI(CLASSIFIER_TAG, "Loaded ignored processes.");
+    LOGI(CLASSIFIER_TAG, "Loaded filter processes.");
 }
 
 int8_t ContextualClassifier::shouldProcBeIgnored(int32_t evType, pid_t pid) {
@@ -424,7 +426,10 @@ int8_t ContextualClassifier::shouldProcBeIgnored(int32_t evType, pid_t pid) {
         return true;
     }
 
-    std::string procName = AuxRoutines::getProcName(pid);
+    std::string procName = "";
+    if(!AuxRoutines::getProcName(pid, procName)) {
+        return true;
+    }
 
     if(this->mAllowedProcesses.size() > 0) {
         // Check in allowed-list is present
