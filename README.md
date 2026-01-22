@@ -13,7 +13,7 @@ Official repo of URM project. Includes:
 ## Requirements
 
 This project depends on the following external libraries:
-* libyaml – Used for parsing and handling YAML configuration files.
+* libyaml - Used for parsing and handling YAML configuration files.
 * libsystemd - Used for communication over dbus (optional)
 * Installing Dependencies:
   * Yocto: Add the following to your recipe or image
@@ -27,56 +27,17 @@ This project depends on the following external libraries:
     sudo apt-get install -y fasttext libfasttext-dev
     ```
 
-## Build and install Instructions
-* Clone 
-```bash
-    git clone https://github.com/qualcomm/userspace-resource-manager.git
-```
-* Create a build directory
-```bash
-rm -rf build && mkdir build && cd build
-```
-* Configure the project:
-Default Build
-```bash
-cmake .. -DCMAKE_INSTALL_PREFIX=/
-```
-# Optional Components
+## URM Build & Installation
+### Building with Yocto
+* The URM Yocto recipe is available here: <https://github.com/qualcomm-linux/meta-qcom/tree/master/recipes-support/userspace-resource-manager>
 
-The project provides optional components that can be enabled using CMake flags:
-
-- **Classifier** (runtime classification module)
-- **Test Framework** (unit and integration tests)
-
-To enable both:
-```bash
-cmake .. -DCMAKE_INSTALL_PREFIX=/ -DBUILD_CLASSIFIER=ON -DBUILD_TESTS=ON
-```
-
-* Build the project
-```bash
-cmake --build .
-```
-* Install to default directory (/usr/local)
-```bash
-sudo cmake --install .
-```
-* Start the URM Server
-```bash
-/usr/bin/urm
-```
-
-* Install to a custom temporary directory [Optional]
-```bash
-cmake --install . --prefix /tmp/urm-install
-```
-## Build Debian packages
+### Building on Debian/Ubuntu (Native Debian build)
 * Install build tools
 ```
 sudo apt-get install debhelper dh-sequence-cmake cmake pkg-config build-essential
 ```
 * Build URM
-```bash 
+```bash
 dpkg-buildpackage -us -uc -ui
 ```
 * Note: The generated .deb files are placed in the parent directory of your source tree (one level above the workspace).
@@ -95,7 +56,7 @@ sudo dpkg -i ../userspace-resource-manager_1.0.0_amd64.deb
      Active: active (running) since Tue 2026-01-06 14:06:04 +0530; 6s ago
    Main PID: 4048154 (urm)
       Tasks: 35 (limit: 77057)
-     Memory: 8.6M (peak: 8.9M)
+     Memory: 4.6M (peak: 6.9M)
         CPU: 24ms
      CGroup: /system.slice/urm.service
              └─4048154 /usr/bin/urm
@@ -105,9 +66,66 @@ sudo dpkg -i ../userspace-resource-manager_1.0.0_amd64.deb
 fakeroot debian/rules clean
 ```
 
-## Documentation
+## Building & Installing on Generic Linux (Manual Clone + Build + Install)
+* Clone 
+```bash
+    git clone https://github.com/qualcomm/userspace-resource-manager.git
+```
+* Create a build directory
+```bash
+rm -rf build && mkdir build && cd build
+```
+* Configure the project:
+Default Build
+```bash
+cmake .. -DCMAKE_INSTALL_PREFIX=/
+```
+### Optional modules
+The project provides optional components that can be enabled using CMake flags:
+- **Contextual-Classifier**- Contains support for idenfitification of static usecases
+```bash
+    CMake option -DBUILD_CLASSIFIER
+```
+- **Test Framework**- Unit tests and module level tests
+```bash
+    CMake option -DBUILD_TESTS
+```
+To enable both:
+```bash
+cmake .. -DCMAKE_INSTALL_PREFIX=/ -DBUILD_CLASSIFIER=ON -DBUILD_TESTS=ON
+```
+* Build the project
+```bash
+cmake --build .
+```
+* Install to default directory (/usr/local)
+```bash
+sudo cmake --install .
+```
+* Start the URM Server
+```bash
+/usr/bin/urm
+```
 
-Refer: https://qualcomm.github.io/userspace-resource-manager/
+* Install to a custom temporary directory [Optional]
+```bash
+cmake --install . --prefix /tmp/urm-install
+```
+
+## Documentation
+### In‑Repository Documentation
+See the detailed documentation here:
+
+- [`docs/README.md`](docs/README.md)
+
+This contains examples, architecture details, and internal design notes.
+
+### Doxygen API Reference
+The full API reference generated via Doxygen is available at:
+
+- <https://qualcomm.github.io/userspace-resource-manager/>
+
+This includes function‑level documentation, structures, enums, and examples etc.
 
 ## Development
 
