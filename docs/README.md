@@ -236,14 +236,14 @@ Hence, the resulting sigCode for this signal is:
 
 The macro "CONSTRUCT_SIG_CODE" can be used for generating opcodes directly if the ResType and ResID are known:
 ```cpp
-   uint32_t sigCode = CONSTRUCT_SIG_CODE(0x0008, 0x0d);
+   uint32_t sigCode = CONSTRUCT_SIG_CODE(0x0d, 0x0008);
 ```
 
 If the resource is user-defined / custom then the MSB must be set to 1, so that the resource can
 be correctly identified. The CUSTOM function macro achieves this.
 
 ```cpp
-   uint32_t sigCode = CUSTOM(CONSTRUCT_SIG_CODE(0x0008, 0x0d));
+   uint32_t sigCode = CUSTOM(CONSTRUCT_SIG_CODE(0x0d, 0x0008));
 ```
 
 ---

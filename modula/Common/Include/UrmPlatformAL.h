@@ -135,10 +135,10 @@ enum Modes {
     resourceBitmap;                                                                          \
 })                                                                                           \
 
-#define CONSTRUCT_SIG_CODE(sigID, category) ({                                              \
+#define CONSTRUCT_SIG_CODE(sigCat, sigID) ({                                                \
     uint32_t signalBitmap = 0;                                                              \
-    signalBitmap |= ((uint32_t)category);                                                   \
-    signalBitmap |= ((uint32_t)sigID << 8);                                                 \
+    signalBitmap |= ((uint32_t)sigID);                                                      \
+    signalBitmap |= ((uint32_t)sigCat << 16);                                               \
     signalBitmap;                                                                           \
 })                                                                                          \
 
