@@ -5,9 +5,9 @@
 #include <thread>
 
 #include "Utils.h"
-#include "Common.h"
 #include "Logger.h"
 #include "UrmSettings.h"
+#include "UrmPlatformAL.h"
 #include "ComponentRegistry.h"
 
 static int8_t terminateServer = false;

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include "ErrCodes.h"
-#include "Common.h"
+#include "UrmPlatformAL.h"
 #include "Utils.h"
 #include "TestUtils.h"
 #include "TestBaseline.h"

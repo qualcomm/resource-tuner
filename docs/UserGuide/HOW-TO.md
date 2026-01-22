@@ -7,10 +7,10 @@ On top of it, resource-tuner allows the addition of Custom Resources.
 To add Custom Resources, developers can follow one of the following two strategies.
 1. Add the Custom ResourcesConfig.yaml at /etc/urm/custom. Note the file name must exactly match "ResourcesConfig.yaml". As part of initialization, resource-tuner will check if this file is present, if it is, it will be parsed alongside the Common Resources.
 
-2. The custom Resources file can also be placed in a different location other than /etc/urm/custom. This can be done through Resource Tuner's Extension Interface. For example if the file is present at /opt/custom/ResourcesConfig.yaml, then the RESTUNE_REGISTER_CONFIG macro can be used as follows:
+2. The custom Resources file can also be placed in a different location other than /etc/urm/custom. This can be done through Resource Tuner's Extension Interface. For example if the file is present at /opt/custom/ResourcesConfig.yaml, then the URM_REGISTER_CONFIG macro can be used as follows:
 
 ```cpp
-RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/opt/custom/ResourcesConfig.yaml")
+URM_REGISTER_CONFIG(RESOURCE_CONFIG, "/opt/custom/ResourcesConfig.yaml")
 ```
 This will indicate to resource-tuner, that Custom Resources are present at the above specified location so that they can be parsed as part of initialization.
 
@@ -123,10 +123,10 @@ Common Properties are defined by resource-tuner in the /etc/urm/common/Propertie
 
 1. Add the Custom PropertiesConfig.yaml at /etc/urm/custom. Note the file name must exactly match "PropertiesConfig.yaml". As part of initialization, resource-tuner will check if this file is present, if it is, it will be parsed alongside the Common Properties.
 
-2. The custom Properties file can also be placed in a different location other than /etc/urm/custom/. This can be done through Resource Tuner's Extension Interface. For example if the file is present at /opt/custom/PropertiesConfig.yaml, then the RESTUNE_REGISTER_CONFIG macro can be used as follows:
+2. The custom Properties file can also be placed in a different location other than /etc/urm/custom/. This can be done through Resource Tuner's Extension Interface. For example if the file is present at /opt/custom/PropertiesConfig.yaml, then the URM_REGISTER_CONFIG macro can be used as follows:
 
 ```cpp
-RESTUNE_REGISTER_CONFIG(PROPERTIES_CONFIG, "/opt/custom/PropertiesConfig.yaml")
+URM_REGISTER_CONFIG(PROPERTIES_CONFIG, "/opt/custom/PropertiesConfig.yaml")
 ```
 
 Note:

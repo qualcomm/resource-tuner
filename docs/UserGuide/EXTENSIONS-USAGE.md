@@ -72,16 +72,16 @@ static void limitCpuTime(void* context) {
 }
 
 // Register the Custom Applier Callback with Resource Tuner
-RESTUNE_REGISTER_APPLIER_CB(0x00090005, limitCpuTime);
+URM_REGISTER_RES_APPLIER_CB(0x00090005, limitCpuTime);
 ```
 
 # 3. Custom Configs
-Resource Tuner allows users to provide their own Config files for different entities like: Resources, Signals, Properties etc. In order for these custom config files to be read and parsed they can either be placed in /etc/urm/custom/ or if the user wants even more flexibility in terms of location, they can specify the location of the Config file, using the Extensions Interface's RESTUNE_REGISTER_CONFIG macro.
+Resource Tuner allows users to provide their own Config files for different entities like: Resources, Signals, Properties etc. In order for these custom config files to be read and parsed they can either be placed in /etc/urm/custom/ or if the user wants even more flexibility in terms of location, they can specify the location of the Config file, using the Extensions Interface's URM_REGISTER_CONFIG macro.
 
 For example:
 
 ```cpp
-RESTUNE_REGISTER_CONFIG(RESOURCE_CONFIG, "/opt/custom/ResourcesConfig.yaml")
+URM_REGISTER_CONFIG(RESOURCE_CONFIG, "/opt/custom/ResourcesConfig.yaml")
 ```
 
 This will tell Resource Tuner that the custom Resources Config file is located at: "/opt/custom/ResourcesConfig.yaml". Similar strategy can be followed for Signals, Properties, Ext Features etc.

@@ -7,7 +7,7 @@
 #include "AuxRoutines.h"
 #include "UrmSettings.h"
 #include "TestUtils.h"
-#include "Common.h"
+#include "UrmPlatformAL.h"
 #include "MemoryPool.h"
 #include "Request.h"
 #include "Signal.h"
