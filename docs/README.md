@@ -485,9 +485,29 @@ If multi-valued config is needed, the use the "values" field in the mResValue un
 ```
 
 ## Signals
-signals info
+
+A signal represents a group of tunables which can be tuned or acquired in response to some usecase or event. Additionally Signals allow runtime customization, which might be required in certain usecases.
+
+Here is a Signal Config demonstrating this property.
+
+```yaml
+SignalConfigs:
+  - SigId: "0x0001"
+    Category: "0x01"
+    Name: URM_APP_OPEN
+    Enable: true
+    Permissions: ["system", "third_party"]
+    Resources:
+      - {ResCode: "RES_CGRP_MOVE_PID", Values: [4, "%d"]}
+      - {ResCode: "RES_CGRP_RUN_CORES", Values: [2, 0,1,2,3]}
+      - {ResCode: "RES_CGRP_CPU_LATENCY", Values: [4, -20]}
+```
+
+Here the signal consists of 3 resources, the first resource: RES_CGRP_MOVE_PID (0x00090000) moves
+a given PID to the cgroup (identified by a unique integer, passed in as the first argument). Since the PID cannot be defined statically, hence a placeholder "%d" is specified as the second argument, indicating this value will be supplied by the caller at runtime itself.
 
 ---
+
 
 # Example Usage of URM APIs
 
@@ -1299,9 +1319,11 @@ Further, a ThreadPool component is provided to pre-allocate processing capacity.
 
 ## 12. System Independent Layer
 This section defines logical layer to improve code and config portability across different targets and systems.
+
 Please avoid changing these configs.
 
 ### Logical IDs
+
 #### 1. Logical Cluster Map
 Logical IDs for clusters. Configs of cluster map can be found in InitConfigs->ClusterMap section
 | LgcId  |     Name   |
@@ -1330,7 +1352,9 @@ Logical IDs for MPAM groups. Configs of mpam grp map in InitConfigs->MpamGroupsI
 |   3    |       "games"     |
 
 ### Resources
+
 Resource Types/Categories
+
 |      Resource Type    | type  |
 |-----------------------|-------|
 |   Lpm                 |   0   |
@@ -1347,44 +1371,58 @@ Resource Types/Categories
 Resource Code is composed of 2 least significant bytes contains resource ID and next significant byte contains resource type
 i.e. 0xrr tt iiii  (i: resource id, t: resoruce type, r: reserved)
 
-|      Resource Name                          |    Id             |
-|---------------------------------------------|-------------------|
-|   RES_TUNER_CPU_DMA_LATENCY                 |   0x 00 01 0000   |
-|   RES_TUNER_PM_QOS_LATENCY                  |   0x 00 01 0001   |
-|   RES_TUNER_SCHED_UTIL_CLAMP_MIN            |   0x 00 03 0000   |
-|   RES_TUNER_SCHED_UTIL_CLAMP_MAX            |   0x 00 03 0001   |
-|   RES_TUNER_SCHED_ENERGY_AWARE              |   0x 00 03 0002   |
-|   RES_TUNER_SCALING_MIN_FREQ                |   0x 00 04 0000   |
-|   RES_TUNER_SCALING_MAX_FREQ                |   0x 00 04 0001   |
-|   RES_TUNER_RATE_LIMIT_US                   |   0x 00 04 0002   |
-|   RES_TUNER_CGROUP_MOVE_PID                 |   0x 00 09 0000   |
-|   RES_TUNER_CGROUP_MOVE_TID                 |   0x 00 09 0001   |
-|   RES_TUNER_CGROUP_RUN_ON_CORES             |   0x 00 09 0002   |
-|   RES_TUNER_CGROUP_RUN_ON_CORES_EXCLUSIVELY |   0x 00 09 0003   |
-|   RES_TUNER_CGROUP_FREEZE                   |   0x 00 09 0004   |
-|   RES_TUNER_CGROUP_LIMIT_CPU_TIME           |   0x 00 09 0005   |
-|   RES_TUNER_CGROUP_RUN_WHEN_CPU_IDLE        |   0x 00 09 0006   |
-|   RES_TUNER_CGROUP_UCLAMP_MIN               |   0x 00 09 0007   |
-|   RES_TUNER_CGROUP_UCLAMP_MAX               |   0x 00 09 0008   |
-|   RES_TUNER_CGROUP_RELATIVE_CPU_WEIGHT      |   0x 00 09 0009   |
-|   RES_TUNER_CGROUP_HIGH_MEMORY              |   0x 00 09 000a   |
-|   RES_TUNER_CGROUP_MAX_MEMORY               |   0x 00 09 000b   |
-|   RES_TUNER_CGROUP_LOW_MEMORY               |   0x 00 09 000c   |
-|   RES_TUNER_CGROUP_MIN_MEMORY               |   0x 00 09 000d   |
-|   RES_TUNER_CGROUP_SWAP_MAX_MEMORY          |   0x 00 09 000e   |
-|   RES_TUNER_CGROUP_IO_WEIGHT                |   0x 00 09 000f   |
-|   RES_TUNER_CGROUP_CPU_LATENCY              |   0x 00 09 0011   |
+The following enums are provided for direct integration into client-side code or yaml configs and provide an easy and standard way to specify a certain Resource, without needing to formulate the opcodes.
 
-These are defined in resource config file, but should not be changed. Resources can be added.
+|      Resource Name                  |         Id        |
+|-------------------------------------|-------------------|
+|   RES_TUNER_CPU_DMA_LATENCY         |   0x 00 01 0000   |
+|   RES_TUNER_PM_QOS_LATENCY          |   0x 00 01 0001   |
+|   RES_TUNER_SCHED_UTIL_CLAMP_MIN    |   0x 00 03 0000   |
+|   RES_TUNER_SCHED_UTIL_CLAMP_MAX    |   0x 00 03 0001   |
+|   RES_TUNER_SCHED_ENERGY_AWARE      |   0x 00 03 0002   |
+|   RES_SCALE_MIN_FREQ                |   0x 00 04 0000   |
+|   RES_SCALE_MAX_FREQ                |   0x 00 04 0001   |
+|   RES_RATE_LIMIT_US                 |   0x 00 04 0002   |
+|   RES_CGRP_MOVE_PID                 |   0x 00 09 0000   |
+|   RES_CGRP_MOVE_TID                 |   0x 00 09 0001   |
+|   RES_CGRP_RUN_CORES                |   0x 00 09 0002   |
+|   RES_CGRP_RUN_CORES_EXCL           |   0x 00 09 0003   |
+|   RES_CGRP_FREEZE                   |   0x 00 09 0004   |
+|   RES_CGRP_LIMIT_CPU_TIME           |   0x 00 09 0005   |
+|   RES_CGRP_RUN_WHEN_CPU_IDLE        |   0x 00 09 0006   |
+|   RES_CGRP_UCLAMP_MIN               |   0x 00 09 0007   |
+|   RES_CGRP_UCLAMP_MAX               |   0x 00 09 0008   |
+|   RES_CGRP_REL_CPU_WEIGHT           |   0x 00 09 0009   |
+|   RES_CGRP_HIGH_MEM                 |   0x 00 09 000a   |
+|   RES_CGRP_MAX_MEM                  |   0x 00 09 000b   |
+|   RES_CGRP_LOW_MEM                  |   0x 00 09 000c   |
+|   RES_CGRP_MIN_MEM                  |   0x 00 09 000d   |
+|   RES_CGRP_SWAP_MAX_MEMORY          |   0x 00 09 000e   |
+|   RES_CGRP_IO_WEIGHT                |   0x 00 09 000f   |
+|   RES_CGRP_BFQ_IO_WEIGHT            |   0x 00 09 0010   |
+|   RES_CGRP_CPU_LATENCY              |   0x 00 09 0011   |
+
+The above mentioned list of enums are available in the file "UrmPlatformAL.h".
 
 ### Signals
-Signals
 
-|      Signal           |     Id          |
-|-----------------------|-----------------|
-|   URM_APP_OPEN        |   0x 00000001   |
-|   URM_APP_CLOSE       |   0x 00000002   |
+#### Signal Category Enums
 
+|         Enum             |  Value (1 byte) |
+|--------------------------|-----------------|
+|   URM_SIG_CAT_GENERIC    |      0x01       |
+|   URM_SIG_CAT_MULTIMEDIA |      0x02       |
+|   URM_SIG_CAT_GAMING     |      0x02       |
+|   URM_SIG_CAT_BROWSER    |      0x02       |
+
+#### Predefined ID Enums
+
+|           Enum                |  Value (2 byte) |
+|-------------------------------|-----------------|
+|   URM_SIG_APP_OPEN            |      0x0001     |
+|   URM_SIG_BROWSER_APP_OPEN    |      0x0002     |
+|   URM_SIG_GAME_APP_OPEN       |      0x0003     |
+|   URM_SIG_MULTIMEDIA_APP_OPEN |      0x0004     |
 
 ---
 
