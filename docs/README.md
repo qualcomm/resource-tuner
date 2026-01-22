@@ -495,8 +495,9 @@ The following section provides, excerpts related to URM API usage. For more in-d
 https://github.com/qualcomm/userspace-resource-manager/blob/main/docs/Examples/CoreAPIsExamples.cpp
 
 See also:
-https://qualcomm.github.io/userspace-resource-manager/examples.html
-https://qualcomm.github.io/userspace-resource-manager/CoreAPIsExamples_8cpp-example.html (for added code-navigation support).
+- https://qualcomm.github.io/userspace-resource-manager/examples.html
+- https://github.com/qualcomm/userspace-resource-manager/blob/main/docs/Examples/CoreAPIsExamples.c
+- https://qualcomm.github.io/userspace-resource-manager/CoreAPIsExamples_8cpp-example.html (for added code-navigation support).
 
 ## tuneResources
 
@@ -1093,6 +1094,7 @@ FeatureConfigs:
 # URM Implementation Details
 
 ## Userspace Resource Manager Key Points
+
 Userspace resource manager (uRM) contains
 - Userspace resource manager (uRM) exposes a variery of APIs for resource tuning and use-case/scenario tuning
 - These APIs can be used by apps, features and other modules
@@ -1183,7 +1185,7 @@ The Contextual Classifier is an optional module designed to identify the static 
 
 <div style="page-break-after: always;"></div>
 
-<img src="design_resource_tuner.png" alt="URM Design" width="70%"/>
+<img src="Images/design_resource_tuner.png" alt="URM Design" width="70%"/>
 
 URM architecture is captured above.
 
