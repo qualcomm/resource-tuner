@@ -135,7 +135,10 @@ As mentioned above, the resource code is an unsigned 32 bit integer. This sectio
 Essentially, the resource code (unsigned 32 bit) is composed of two fields:
 - ResID (last 16 bits, 17 - 32)
 - ResType (next 8 bits, 9 - 16)
-- Additionally MSB should be set to '1' if customer or other modules or target chipset is providing it's own custom resource config files, indicating this is a custom resource else it shall be treated as a default resource. This bit doesn't influence resource processing, just to aid debugging and development.
+- Additionally MSB should be set to '1' if customer or other modules or target
+chipset is providing it's own custom resource config files, indicating this is a
+custom resource else it shall be treated as a default resource.
+This bit doesn't influence resource processing, just to aid debugging and development.
 
 ```
 
@@ -162,21 +165,20 @@ Examples:
 | Cgroup         |    `9`   | `/sys/fs/cgroup/%s/cgroup.procs`, `/sys/fs/cgroup/%s/cgroup.threads`, `/sys/fs/cgroup/%s/cpuset.cpus`, `/sys/fs/cgroup/%s/cpuset.cpus.partition`, `/sys/fs/cgroup/%s/cgroup.freeze`, `/sys/fs/cgroup/%s/cpu.max`, `/sys/fs/cgroup/%s/cpu.idle`, `/sys/fs/cgroup/%s/cpu.uclamp.min`, `/sys/fs/cgroup/%s/cpu.uclamp.max`, `/sys/fs/cgroup/%s/cpu.weight`, `/sys/fs/cgroup/%s/memory.max`, `/sys/fs/cgroup/%s/memory.min`, `/sys/fs/cgroup/%s/cpu.weight.nice` |
 |    STORAGE      |    `a`   | |
 
----
 
 To construct the ResCode for the above Resource, we first note that this is a custom Resource (or downstream resource). Hence, the MSB must be set 1, additionally as the yaml config indicates:
 - The ResType is: "0xea" and
 - The ResId is "0x11fc"
 
 The ResCode would therefore be:
-0x80ea11fc in hex notation, or:
-10000000111010100001000111111100, in binary
+**0x80ea11fc** in hex notation, or:
+**10000000111010100001000111111100**, in binary
 
 The binary notation clearly tells the first bit is set to 1.
 
 If the Resource above were a default (upstream) resource, the only difference in the ResCode would be the MSB being turned off, i.e.
-0x00ea11fc in hex notation or:
-00000000111010100001000111111100, in binary
+**0x00ea11fc** in hex notation or:
+**00000000111010100001000111111100**, in binary
 
 The macro "CONSTRUCT_RES_CODE" can be used for generating opcodes directly if the ResType and ResID are known:
 ```cpp
@@ -194,10 +196,12 @@ be correctly identified. The CUSTOM function macro achieves this.
 
 ### Resource ResInfo and ResInfo construction
 
-```text
 The ResInfo field specified as part of the SysResource struct encodes the following information:
+
+```text
 - Bits [24 - 31]: Core Information
 - Bits [16 - 23]: Cluster Information
+- Bits [0 - 15]: MPAM Application Information
 ```
 
 These core and cluster values are logical values, this decouples the client from system arch information and allows the calling code to be reusable across devices. This allows for (among others) specifications like:
@@ -228,6 +232,42 @@ mResInfo = SET_RESOURCE_CORE_VALUE(mResInfo, 2)
 ```
 
 <div style="page-break-after: always;"></div>
+
+### Resource mOptionalInfo
+The mOptionalInfo field, as the name suggests can be used to store any optional information needed for resource application. It can be used as part of customized resource applier / tear callbacks if needed, else it can be left as 0.
+
+### Resource mNumValues and value(s)
+URM Allows for both single and multi-valued configurations. The SysResource struct allows for storing all the configuration values. The field mNumValues specifies the number of values to be configured
+
+The following example shows a simple single-valued config, use the "value" field in the mResValue union.
+
+```cpp
+    SysResource* resourceList = new SysResource[1];
+    memset(&resourceList[0], 0, sizeof(SysResource));
+    resourceList[0].mResCode = 0x0002a0be;
+    resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 1);
+    resourceList[0].mNumValues = 1;
+    resourceList[0].mResValue.value = 999;
+```
+
+If multi-valued config is needed, the use the "values" field in the mResValue union.
+
+```cpp
+    SysResource* resourceList = new SysResource[1];
+    memset(&resourceList[0], 0, sizeof(SysResource));
+
+    resourceList[0].mResCode = 0x00090007;
+    resourceList[0].mResInfo = 0;
+    resourceList[0].mNumValues = 2;
+    resourceList[0].mResValue.values = new int32_t[resourceList[0].mNumValues];
+    resourceList[0].mResValue.values[0] = 0;
+    resourceList[0].mResValue.values[1] = 55;
+```
+
+---
+
+## Signals
+signals info
 
 
 # Userspace Resource Manager Key Points
