@@ -12,7 +12,8 @@ find_package(PkgConfig REQUIRED)
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 # Custom Build Options
-option(BUILD_CLASSIFIER "Classifier" OFF)
+option(BUILD_CLASSIFIER "Classifier" ON)
+option(BUILD_TESTS "Test Framework, Unit and Integration Tests" OFF)
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/configs)
 add_subdirectory(${CMAKE_SOURCE_DIR}/modula)
