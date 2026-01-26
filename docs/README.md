@@ -201,10 +201,10 @@ The following signal codes are supported signals. Target or segment specific cus
 
 |       Signal Code             |  Code           |
 |-------------------------------|-----------------|
-|   URM_SIG_APP_OPEN            | 0x 00 02 0000   |
-|   URM_SIG_BROWSER_APP_OPEN    | 0x 00 02 0001   |
-|   URM_SIG_GAME_APP_OPEN       | 0x 00 02 0002   |
-|   URM_SIG_MULTIMEDIA_APP_OPEN | 0x 00 02 0003   |
+|   URM_SIG_APP_OPEN            | 0x 00 02 0001   |
+|   URM_SIG_BROWSER_APP_OPEN    | 0x 00 02 0002   |
+|   URM_SIG_GAME_APP_OPEN       | 0x 00 02 0003   |
+|   URM_SIG_MULTIMEDIA_APP_OPEN | 0x 00 02 0004   |
 
 The above mentioned list of enums are available in the interface file "UrmPlatformAL.h".
 
@@ -1379,8 +1379,8 @@ The Contextual Classifier is an optional module designed to identify the static 
                  |
                  v
           +--------------+
-				  |    Action    |
-					+--------------+
+          |    Action    |
+          +--------------+
 ```
 
 

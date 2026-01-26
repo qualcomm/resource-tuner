@@ -204,7 +204,7 @@ void ContextualClassifier::ClassifierMain() {
 
         if(ev.type == CC_APP_OPEN) {
             std::string comm;
-            uint32_t sigId = CONSTRUCT_SIG_CODE(URM_SIG_CAT_GENERIC, URM_SIG_APP_OPEN);
+            uint32_t sigId = URM_SIG_APP_OPEN;
             uint32_t sigType = DEFAULT_SIGNAL_TYPE;
             uint32_t ctxDetails = 0U;
 
@@ -367,17 +367,17 @@ void ContextualClassifier::RemoveActions(pid_t processPid, pid_t processTgid) {
 uint32_t ContextualClassifier::GetSignalIDForWorkload(int32_t contextType) {
     switch(contextType) {
         case CC_MULTIMEDIA:
-            return CONSTRUCT_SIG_CODE(URM_SIG_CAT_MULTIMEDIA, URM_SIG_MULTIMEDIA_APP_OPEN);
+            return URM_SIG_MULTIMEDIA_APP_OPEN;
         case CC_GAME:
-            return CONSTRUCT_SIG_CODE(URM_SIG_CAT_GAMING, URM_SIG_GAME_APP_OPEN);
+            return URM_SIG_GAME_APP_OPEN;
         case CC_BROWSER:
-            return CONSTRUCT_SIG_CODE(URM_SIG_CAT_BROWSER, URM_SIG_BROWSER_APP_OPEN);
+            return URM_SIG_BROWSER_APP_OPEN;
         default:
             break;
     }
 
     // CC_APP
-    return CONSTRUCT_SIG_CODE(URM_SIG_CAT_GENERIC, URM_SIG_APP_OPEN);
+    return URM_SIG_APP_OPEN;
 }
 
 void ContextualClassifier::LoadIgnoredProcesses() {
