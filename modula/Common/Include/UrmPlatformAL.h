@@ -231,30 +231,45 @@ static inline uint32_t getResCodeFromString(const char* strCode, int8_t* found) 
     return 0;
 }
 
+//Predefined Resource Types
+enum {
+	CPU_LPM    = 0x00,
+	CACHE_MGMT = 0x01,
+	CPU_SCHED  = 0x02,
+	CPU_FREQ   = 0x03,
+	GPU_OPP    = 0x04,
+	NPU_OPP    = 0x06,
+	MEMORY_QOS = 0x07,
+	MPAM_QOS   = 0x08,
+	CGRP_OPS   = 0x09,
+	STORAGE_IO = 0x0a,
+	CUSTOM     = 0x80
+};
+
 // Predefined Signal Categories
 enum {
-    URM_SIG_CAT_TEST = 0x01,
-    URM_SIG_CAT_GENERIC = 0x02,
+    URM_SIG_CAT_TEST       = 0x01,
+    URM_SIG_CAT_GENERIC    = 0x02,
     URM_SIG_CAT_MULTIMEDIA = 0x03,
-    URM_SIG_CAT_GAMING = 0x04,
-    URM_SIG_CAT_BROWSER = 0x05,
+    URM_SIG_CAT_GAMING     = 0x04,
+    URM_SIG_CAT_BROWSER    = 0x05,
+	URM_SIG_CAT_CUSTOM     = 0x80
 };
 
-// Generic
+//Signal codes
 enum {
-    URM_SIG_APP_OPEN = 0x0001,
-    URM_SIG_BROWSER_APP_OPEN = 0x0002,
-    URM_SIG_GAME_APP_OPEN = 0x0003,
-    URM_SIG_MULTIMEDIA_APP_OPEN = 0x0004,
-};
+	// Generic
+    URM_SIG_APP_OPEN                    = 0x00020001,
+    URM_SIG_BROWSER_APP_OPEN            = 0x00020002,
+    URM_SIG_GAME_APP_OPEN               = 0x00020003,
+    URM_SIG_MULTIMEDIA_APP_OPEN         = 0x00020004,
 
-// Multimedia
-enum {
-    URM_SIG_VIDEO_DECODE = 0x0001,
-    URM_SIG_CAMERA_PREVIEW = 0x0002,
-    URM_SIG_CAMERA_ENCODE = 0x0003,
-    URM_SIG_CAMERA_ENCODE_MULTI_STREAMS = 0x0004,
-    URM_SIG_ENCODE_DECODE = 0x0005,
+    // Multimedia
+    URM_SIG_VIDEO_DECODE                = 0x00030001,
+    URM_SIG_CAMERA_PREVIEW              = 0x00030002,
+    URM_SIG_CAMERA_ENCODE               = 0x00030003,
+    URM_SIG_CAMERA_ENCODE_MULTI_STREAMS = 0x00030004,
+    URM_SIG_ENCODE_DECODE               = 0x00030005,
 };
 
 #endif
