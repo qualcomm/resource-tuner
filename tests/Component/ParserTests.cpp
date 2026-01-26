@@ -134,7 +134,7 @@ namespace SignalParsingTests {
 
     MT_TEST(SignalParsingTests, RestuneParserYAMLDataIntegrity3_1, "component-serial") {
         EnsureInit();
-        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x0000000d);
+        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x000d0000);
 
         MT_REQUIRE(ctx, signalInfo != nullptr);
         MT_REQUIRE_EQ(ctx, signalInfo->mSignalID, 0);
@@ -163,7 +163,7 @@ namespace SignalParsingTests {
 
     MT_TEST(SignalParsingTests, RestuneParserYAMLDataIntegrity3_2, "component-serial") {
         EnsureInit();
-        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x0000010d);
+        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x000d0001);
 
         MT_REQUIRE(ctx, signalInfo != nullptr);
         MT_REQUIRE_EQ(ctx, signalInfo->mSignalID, 1);
@@ -198,13 +198,13 @@ namespace SignalParsingTests {
 
     MT_TEST(SignalParsingTests, RestuneParserYAMLDataIntegrity3_3, "component-serial") {
         EnsureInit();
-        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x0000030d);
+        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x000d0003);
         MT_REQUIRE_EQ(ctx, signalInfo, (SignalInfo*)nullptr);
     }
 
     MT_TEST(SignalParsingTests, RestuneParserYAMLDataIntegrity3_4, "component-serial") {
         EnsureInit();
-        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x0000070d);
+        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x000d0007);
 
         MT_REQUIRE(ctx, signalInfo != nullptr);
         MT_REQUIRE_EQ(ctx, signalInfo->mSignalID, 0x0007);
@@ -684,7 +684,7 @@ namespace SignalParsingTestsAddOn {
 
     MT_TEST(SignalParsingTestsAddOn, SignalParsingSignalsMerged1, "component-serial") {
         EnsureInit();
-        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x80aaddde);
+        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x80deaadd);
 
         MT_REQUIRE(ctx, (signalInfo != nullptr));
         MT_REQUIRE_EQ(ctx, signalInfo->mSignalID, 0xaadd);
@@ -712,7 +712,7 @@ namespace SignalParsingTestsAddOn {
 
     MT_TEST(SignalParsingTestsAddOn, SignalParsingSignalsMerged2, "component-serial") {
         EnsureInit();
-        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x0000070d);
+        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x000d0007);
 
         MT_REQUIRE(ctx, signalInfo != nullptr);
         MT_REQUIRE_EQ(ctx, signalInfo->mSignalID, 0x0007);
@@ -749,7 +749,7 @@ namespace SignalParsingTestsAddOn {
 
     MT_TEST(SignalParsingTestsAddOn, SignalParsingSignalsMerged3, "component-serial") {
         EnsureInit();
-        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x8000ab1e);
+        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x801e00ab);
 
         MT_REQUIRE(ctx, signalInfo != nullptr);
         MT_REQUIRE_EQ(ctx, signalInfo->mSignalID, 0x00ab);
@@ -784,13 +784,13 @@ namespace SignalParsingTestsAddOn {
 
     MT_TEST(SignalParsingTestsAddOn, SignalParsingSignalsMerged4, "component-serial") {
         EnsureInit();
-        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x00000008);
+        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x00080000);
         MT_REQUIRE_EQ(ctx, (signalInfo), (SignalInfo*)nullptr);
     }
 
     MT_TEST(SignalParsingTestsAddOn, SignalParsingSignalsMerged5, "component-serial") {
         EnsureInit();
-        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x80ffcfce);
+        SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x80ceffcf);
 
         MT_REQUIRE(ctx, (signalInfo != nullptr));
         MT_REQUIRE_EQ(ctx, signalInfo->mSignalID, 0xffcf);

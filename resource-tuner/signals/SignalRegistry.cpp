@@ -50,8 +50,8 @@ void SignalRegistry::registerSignal(SignalInfo* signalInfo, int8_t isBuSpecified
     }
 
     uint64_t signalBitmap = 0;
-    signalBitmap |= ((uint32_t)signalInfo->mSignalID << 8);
-    signalBitmap |= ((uint32_t)signalInfo->mSignalCategory);
+    signalBitmap |= ((uint32_t)signalInfo->mSignalID);
+    signalBitmap |= ((uint32_t)signalInfo->mSignalCategory << 16);
 
     // Add the sub-type
     signalBitmap <<= 32; // Make Room

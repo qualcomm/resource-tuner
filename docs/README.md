@@ -602,7 +602,7 @@ Signals are identified (similar to Resources) via an unsigned 32-bit integer.
 
 The macro "CONSTRUCT_SIG_CODE" can be used for generating opcodes directly if the ResType and ResID are known:
 ```cpp
-   uint32_t sigCode = CONSTRUCT_SIG_CODE(0x0008, 0x0d);
+   uint32_t sigCode = CONSTRUCT_SIG_CODE(0x0d, 0x0008);
 ```
 
 ### 4.2.5. untuneSignal
