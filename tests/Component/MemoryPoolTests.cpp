@@ -1,17 +1,14 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-
-// MemoryPoolTests.cpp
 #include "TestUtils.h"
 #include "MemoryPool.h"
 #include "TestAggregator.h"
-
 #include <vector>
 #include <string>
 #include <cstdint>
-#include <cstdlib>  // malloc
-#include <new>      // placement new
+#include <cstdlib>  
+#include <new>      
 
 #define MTEST_NO_MAIN
 #include "../framework/mini.h"
@@ -64,7 +61,7 @@ public:
 // Suite: MemoryPoolTests
 // -------------------------
 
-MT_TEST(MemoryPoolTests, BasicAllocation1, "unit") {
+MT_TEST(Component, BasicAllocation1, "memorypool") {
     MakeAlloc<TestBuffer>(1);
 
     void* block = GetBlock<TestBuffer>();
@@ -73,7 +70,7 @@ MT_TEST(MemoryPoolTests, BasicAllocation1, "unit") {
     FreeBlock<TestBuffer>(static_cast<void*>(block));
 }
 
-MT_TEST(MemoryPoolTests, BasicAllocation2, "unit") {
+MT_TEST(Component, BasicAllocation2, "memorypool") {
     MakeAlloc<char[250]>(2);
 
     void* firstBlock = GetBlock<char[250]>();
@@ -86,7 +83,7 @@ MT_TEST(MemoryPoolTests, BasicAllocation2, "unit") {
     FreeBlock<char[250]>(secondBlock);
 }
 
-MT_TEST(MemoryPoolTests, BasicAllocation3, "unit") {
+MT_TEST(Component, BasicAllocation3, "memorypool") {
     MakeAlloc<ListNode>(10);
     ListNode* head = nullptr;
     ListNode* cur  = nullptr;
@@ -118,7 +115,7 @@ MT_TEST(MemoryPoolTests, BasicAllocation3, "unit") {
     }
 }
 
-MT_TEST(MemoryPoolTests, BasicAllocation4, "unit") {
+MT_TEST(Component, BasicAllocation4, "memorypool") {
     MakeAlloc<std::vector<CustomRequest*>>(1);
     MakeAlloc<CustomRequest>(20);
 
@@ -144,7 +141,7 @@ MT_TEST(MemoryPoolTests, BasicAllocation4, "unit") {
     FreeBlock<std::vector<CustomRequest*>>(static_cast<void*>(requests));
 }
 
-MT_TEST(MemoryPoolTests, BasicAllocation5, "unit") {
+MT_TEST(Component, BasicAllocation5, "memorypool") {
     MakeAlloc<DataHub>(1);
 
     auto* dataHubObj = new (GetBlock<DataHub>()) DataHub(30, 17, "XYZ-co");
@@ -153,7 +150,7 @@ MT_TEST(MemoryPoolTests, BasicAllocation5, "unit") {
     FreeBlock<DataHub>(static_cast<void*>(dataHubObj));
 }
 
-MT_TEST(MemoryPoolTests, BasicAllocation6, "unit") {
+MT_TEST(Component, BasicAllocation6, "memorypool") {
     int8_t allocationFailed = false;
     void* block = nullptr;
 
@@ -167,7 +164,7 @@ MT_TEST(MemoryPoolTests, BasicAllocation6, "unit") {
     MT_REQUIRE_EQ(ctx, allocationFailed, true);
 }
 
-MT_TEST(MemoryPoolTests, BasicAllocation7, "unit") {
+MT_TEST(Component, BasicAllocation7, "memorypool") {
     MakeAlloc<int64_t>(1);
 
     void* block = nullptr;
@@ -187,7 +184,7 @@ MT_TEST(MemoryPoolTests, BasicAllocation7, "unit") {
     MT_REQUIRE(ctx, block == nullptr);
 }
 
-MT_TEST(MemoryPoolTests, FreeingMemory1, "unit") {
+MT_TEST(Component, FreeingMemory1, "memorypool") {
     MakeAlloc<char[125]>(2);
 
     void* firstBlock  = GetBlock<char[125]>();
@@ -202,7 +199,7 @@ MT_TEST(MemoryPoolTests, FreeingMemory1, "unit") {
     MT_REQUIRE(ctx, thirdBlock != nullptr);
 }
 
-MT_TEST(MemoryPoolTests, FreeingMemory2, "unit") {
+MT_TEST(Component, FreeingMemory2, "memorypool") {
     MakeAlloc<char[200]>(5);
 
     std::vector<void*> allocatedBlocks;
@@ -240,7 +237,7 @@ MT_TEST(MemoryPoolTests, FreeingMemory2, "unit") {
     }
 }
 
-MT_TEST(MemoryPoolTests, FreeingMemory3_DestructorCalled, "unit") {
+MT_TEST(Component, FreeingMemory3_DestructorCalled, "memorypool") {
     MakeAlloc<CustomDataType>(1);
 
     int8_t* destructorCalled = static_cast<int8_t*>(std::malloc(sizeof(int8_t)));

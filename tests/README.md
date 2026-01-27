@@ -1,19 +1,3 @@
-# Mini Test Framework (`mtest`)
-
-A lightweight, header-only C++ testing framework for unit, component, and integration tests. Designed for simplicity, speed, and CI-friendly reporting.
-
----
-
-##  Features
-- Header-only: Single include (`mini.hpp`).
-- Simple macros: `MT_TEST`, `MT_TEST_F`, `MT_TEST_P_LIST`, `MT_TEST_FP_LIST`.
-- Assertions: `MT_REQUIRE`, `MT_CHECK`, `MT_REQUIRE_EQ`, `MT_CHECK_EQ`, `MT_FAIL`.
-- Fixtures & Parameterized tests.
-- Parallel execution with deterministic output.
-- Filtering by name (`--filter`) and tag (`--tag`).
-- Colored output and TAP v13 for CI.
-- Timing per test and summary.
-
 ---
 
 ##  New Enhancements

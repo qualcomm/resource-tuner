@@ -77,7 +77,7 @@ static void taskBFunc(void* /*arg*/) {
 static void sleep_seconds(int s) { std::this_thread::sleep_for(std::chrono::seconds(s)); }
 
 // 1) Single worker, single queue: task pickup and value write
-MT_TEST(threadpool, TestThreadPoolTaskPickup1, "component-serial") {
+MT_TEST(Component, TestThreadPoolTaskPickup1, "threadpool") {
     ThreadPool* threadPool = new ThreadPool(1, 1);
     sleep_seconds(1);
 
@@ -98,7 +98,7 @@ MT_TEST(threadpool, TestThreadPoolTaskPickup1, "component-serial") {
 }
 
 // 2) Two workers, two depth: enqueue status and value write
-MT_TEST(threadpool, TestThreadPoolEnqueueStatus1, "component-serial") {
+MT_TEST(Component, TestThreadPoolEnqueueStatus1, "threadpool") {
     ThreadPool* threadPool = new ThreadPool(2, 2);
     sleep_seconds(1);
 
@@ -117,7 +117,7 @@ MT_TEST(threadpool, TestThreadPoolEnqueueStatus1, "component-serial") {
 }
 
 // 3) One worker, one depth: enqueue two long tasks
-MT_TEST(threadpool, TestThreadPoolEnqueueStatus2_1, "component-serial") {
+MT_TEST(Component, TestThreadPoolEnqueueStatus2_1, "threadpool") {
     ThreadPool* threadPool = new ThreadPool(1, 1);
     sleep_seconds(1);
 
@@ -136,7 +136,7 @@ MT_TEST(threadpool, TestThreadPoolEnqueueStatus2_1, "component-serial") {
 }
 
 // 4) Two workers, two depth: enqueue three long tasks
-MT_TEST(threadpool, TestThreadPoolEnqueueStatus2_2, "component-serial") {
+MT_TEST(Component, TestThreadPoolEnqueueStatus2_2, "threadpool") {
     ThreadPool* threadPool = new ThreadPool(2, 2);
     sleep_seconds(1);
 
@@ -157,7 +157,7 @@ MT_TEST(threadpool, TestThreadPoolEnqueueStatus2_2, "component-serial") {
 }
 
 // 5) Two workers: concurrent processing of two heavy tasks, check sharedVariable
-MT_TEST(threadpool, TestThreadPoolTaskProcessing1, "component-serial") {
+MT_TEST(Component, TestThreadPoolTaskProcessing1, "threadpool") {
     sharedVariable = 0;
 
     ThreadPool* threadPool = new ThreadPool(2, 2);
@@ -179,7 +179,7 @@ MT_TEST(threadpool, TestThreadPoolTaskProcessing1, "component-serial") {
 }
 
 // 6) Single worker: lambda task increments sharedVariable → replaced with named task
-MT_TEST(threadpool, TestThreadPoolTaskProcessing2, "component-serial") {
+MT_TEST(Component, TestThreadPoolTaskProcessing2, "threadpool") {
     ThreadPool* threadPool = new ThreadPool(1, 1);
     sleep_seconds(1);
     sharedVariable = 0;
@@ -196,7 +196,7 @@ MT_TEST(threadpool, TestThreadPoolTaskProcessing2, "component-serial") {
 }
 
 // 7) Single worker: lambda reading argument → replaced with named task
-MT_TEST(threadpool, TestThreadPoolTaskProcessing3, "component-serial") {
+MT_TEST(Component, TestThreadPoolTaskProcessing3, "threadpool") {
     ThreadPool* threadPool = new ThreadPool(1, 1);
     sleep_seconds(1);
 
@@ -217,7 +217,7 @@ MT_TEST(threadpool, TestThreadPoolTaskProcessing3, "component-serial") {
 }
 
 // 8) Two workers: CV coordination between A and B tasks
-MT_TEST(threadpool, TestThreadPoolTaskProcessing4, "component-serial") {
+MT_TEST(Component, TestThreadPoolTaskProcessing4, "threadpool") {
     sharedString.clear();
     taskCondition = false;
 
@@ -239,7 +239,7 @@ MT_TEST(threadpool, TestThreadPoolTaskProcessing4, "component-serial") {
 }
 
 // 9) Scaling: expansion 2 -> 3
-MT_TEST(threadpool, TestThreadPoolEnqueueStatusWithExpansion1, "component-serial") {
+MT_TEST(Component, TestThreadPoolEnqueueStatusWithExpansion1, "threadpool") {
     ThreadPool* threadPool = new ThreadPool(2, 3);
     sleep_seconds(1);
 
@@ -260,7 +260,7 @@ MT_TEST(threadpool, TestThreadPoolEnqueueStatusWithExpansion1, "component-serial
 }
 
 // 10) Scaling: expansion 2 -> 4
-MT_TEST(threadpool, TestThreadPoolEnqueueStatusWithExpansion2, "component-serial") {
+MT_TEST(Component, TestThreadPoolEnqueueStatusWithExpansion2, "threadpool") {
     ThreadPool* threadPool = new ThreadPool(2, 4);
     sleep_seconds(1);
 

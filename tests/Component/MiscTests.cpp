@@ -1,9 +1,6 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-
-// misc_tests.cpp
-
 #include "AuxRoutines.h"
 #include "UrmSettings.h"
 #include "TestUtils.h"
@@ -12,16 +9,16 @@
 #include "Request.h"
 #include "Signal.h"
 #include "TestAggregator.h"
+#include "TestUtils.h" // where MakeAlloc<T>() lives
+
 #define MTEST_NO_MAIN
 #include "../framework/mini.h"
-
-
 
 using namespace mtest;
 
 // Suite: MiscTests
 
-MT_TEST(MiscTests, ResourceCoreClusterSettingAndExtraction, "component-serial") {
+MT_TEST(Component, ResourceCoreClusterSettingAndExtraction, "misctest") {
     Resource resource;
 
     resource.setCoreValue(2);
@@ -31,13 +28,13 @@ MT_TEST(MiscTests, ResourceCoreClusterSettingAndExtraction, "component-serial") 
     MT_REQUIRE_EQ(ctx, resource.getClusterValue(), 1);
 }
 
-MT_TEST(MiscTests, ResourceStructOps1, "unit") {
+MT_TEST(Component, ResourceStructOps1, "misctest") {
     int32_t properties = -1;
     properties = SET_REQUEST_PRIORITY(properties, REQ_PRIORITY_HIGH);
     MT_REQUIRE_EQ(ctx, properties, -1);
 }
 
-MT_TEST(MiscTests, ResourceStructOps2, "unit") {
+MT_TEST(Component, ResourceStructOps2, "misctest") {
     int32_t properties = 0;
     properties = SET_REQUEST_PRIORITY(properties, 44);
     MT_REQUIRE_EQ(ctx, properties, -1);
@@ -47,7 +44,7 @@ MT_TEST(MiscTests, ResourceStructOps2, "unit") {
     MT_REQUIRE_EQ(ctx, properties, -1);
 }
 
-MT_TEST(MiscTests, ResourceStructOps3, "unit") {
+MT_TEST(Component, ResourceStructOps3, "misctest") {
     int32_t properties = 0;
     properties = SET_REQUEST_PRIORITY(properties, REQ_PRIORITY_HIGH);
     int8_t priority = EXTRACT_REQUEST_PRIORITY(properties);
@@ -59,7 +56,7 @@ MT_TEST(MiscTests, ResourceStructOps3, "unit") {
     MT_REQUIRE_EQ(ctx, priority, REQ_PRIORITY_LOW);
 }
 
-MT_TEST(MiscTests, ResourceStructOps4, "component-serial") {
+MT_TEST(Component, ResourceStructOps4, "misctest") {
     int32_t properties = 0;
     properties = ADD_ALLOWED_MODE(properties, MODE_RESUME);
     int8_t allowedModes = EXTRACT_ALLOWED_MODES(properties);
@@ -72,13 +69,13 @@ MT_TEST(MiscTests, ResourceStructOps4, "component-serial") {
     MT_REQUIRE_EQ(ctx, allowedModes, (MODE_RESUME | MODE_DOZE));
 }
 
-MT_TEST(MiscTests, ResourceStructOps5, "component-serial") {
+MT_TEST(Component, ResourceStructOps5, "misctest") {
     int32_t properties = 0;
     properties = ADD_ALLOWED_MODE(properties, 87);
     MT_REQUIRE_EQ(ctx, properties, -1);
 }
 
-MT_TEST(MiscTests, ResourceStructOps6, "component-serial") {
+MT_TEST(Component, ResourceStructOps6, "misctest") {
     int32_t properties = 0;
     properties = ADD_ALLOWED_MODE(properties, MODE_RESUME);
     properties = ADD_ALLOWED_MODE(properties, MODE_SUSPEND);
@@ -86,7 +83,7 @@ MT_TEST(MiscTests, ResourceStructOps6, "component-serial") {
     MT_REQUIRE_EQ(ctx, allowedModes, (MODE_RESUME | MODE_SUSPEND));
 }
 
-MT_TEST(MiscTests, ResourceStructOps7, "component-serial") {
+MT_TEST(Component, ResourceStructOps7, "misctest") {
     int32_t properties = 0;
     properties = ADD_ALLOWED_MODE(properties, MODE_RESUME);
     properties = ADD_ALLOWED_MODE(properties, -1);
@@ -94,7 +91,7 @@ MT_TEST(MiscTests, ResourceStructOps7, "component-serial") {
     MT_REQUIRE_EQ(ctx, allowedModes, -1);
 }
 
-MT_TEST(MiscTests, ResourceStructOps8, "component-serial") {
+MT_TEST(Component, ResourceStructOps8, "misctest") {
     int32_t properties = 0;
     properties = SET_REQUEST_PRIORITY(properties, REQ_PRIORITY_LOW);
     properties = ADD_ALLOWED_MODE(properties, MODE_RESUME);
@@ -107,7 +104,7 @@ MT_TEST(MiscTests, ResourceStructOps8, "component-serial") {
     MT_REQUIRE_EQ(ctx, allowedModes, (MODE_RESUME | MODE_SUSPEND));
 }
 
-MT_TEST(MiscTests, ResourceMpamOps, "component-serial") {
+MT_TEST(Component, ResourceMpamOps, "misctest") {
     int32_t resInfo = 0;
     resInfo = SET_RESOURCE_MPAM_VALUE(resInfo, 30);
     int8_t mpamValue = EXTRACT_RESOURCE_MPAM_VALUE(resInfo);
@@ -116,14 +113,14 @@ MT_TEST(MiscTests, ResourceMpamOps, "component-serial") {
 
 // NOTE: This test can be very slow (2e7 iterations). Consider running with --threads
 // or gate it under a tag filter or environment if needed.
-MT_TEST(MiscTests, HandleGeneration, "component-serial") {
+MT_TEST(Component, HandleGeneration, "misctest") {
     for (int32_t i = 1; i <= static_cast<int32_t>(2e7); ++i) {
         int64_t handle = AuxRoutines::generateUniqueHandle();
         MT_REQUIRE_EQ(ctx, handle, static_cast<int64_t>(i));
     }
 }
 
-MT_TEST(MiscTests, AuxRoutineFileExists, "component-serial") {
+MT_TEST(Component, AuxRoutineFileExists, "misctest") {
     int8_t fileExists = AuxRoutines::fileExists("AuxParserTest.yaml");
     MT_REQUIRE_EQ(ctx, fileExists, false);
 
@@ -140,11 +137,7 @@ MT_TEST(MiscTests, AuxRoutineFileExists, "component-serial") {
     MT_REQUIRE_EQ(ctx, fileExists, false);
 }
 
-
-// MiscTests.cpp
-#include "TestUtils.h" // where MakeAlloc<T>() lives
-
-MT_TEST(MiscTests, RequestModeAddition, "component-serial") {
+MT_TEST(Component, RequestModeAddition, "misctest") {
     // Initialize the pool used by Request::Request() before creating any Request
     MakeAlloc<DLManager>(/*capacity*/ 32);   // pick a sensible capacity for your suite
 

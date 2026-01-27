@@ -1,21 +1,18 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-
-// ClientDataManagerTests.cpp
 #include "ErrCodes.h"
 #include "TestUtils.h"
 #include "AuxRoutines.h"
 #include "ClientDataManager.h"
 #include "TestAggregator.h"
-#include "MemoryPool.h"   // MakeAlloc<...>
-
+#include "MemoryPool.h"   
 #include <vector>
 #include <thread>
 #include <unordered_set>
 #include <memory>
 #include <cstdint>
-#include <cstdlib>        // malloc, free
+#include <cstdlib>        
 #include <iostream>
 
 #define MTEST_NO_MAIN
@@ -80,11 +77,11 @@ static void ThreadStart_CreateClientUnderPID(void* arg,
 }
 
 // ---------------------------
-// Suite: ClientDataManagerTests
-// Tag:  component-serial
+// Suite: Component 
+// Tag:  clientdatamanager
 // ---------------------------
 
-MT_TEST(ClientDataManagerTests, TestClientDataManagerClientEntryCreation1, "component-serial") {
+MT_TEST(Component, TestClientDataManagerClientEntryCreation1, "clientdatamanager") {
     EnsureInit();
 
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
@@ -100,7 +97,7 @@ MT_TEST(ClientDataManagerTests, TestClientDataManagerClientEntryCreation1, "comp
     clientDataManager->deleteClientTID(testClientTID);
 }
 
-MT_TEST(ClientDataManagerTests, TestClientDataManagerClientEntryCreation2, "component-serial") {
+MT_TEST(Component, TestClientDataManagerClientEntryCreation2, "clientdatamanager") {
     EnsureInit();
 
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
@@ -133,7 +130,7 @@ MT_TEST(ClientDataManagerTests, TestClientDataManagerClientEntryCreation2, "comp
     }
 }
 
-MT_TEST(ClientDataManagerTests, TestClientDataManagerClientEntryDeletion, "component-serial") {
+MT_TEST(Component, TestClientDataManagerClientEntryDeletion, "clientdatamanager") {
     EnsureInit();
 
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
@@ -150,7 +147,7 @@ MT_TEST(ClientDataManagerTests, TestClientDataManagerClientEntryDeletion, "compo
     MT_REQUIRE_EQ(ctx, clientDataManager->clientExists(testClientPID, testClientTID), false);
 }
 
-MT_TEST(ClientDataManagerTests, TestClientDataManagerRateLimiterUtilsHealth, "component-serial") {
+MT_TEST(Component, TestClientDataManagerRateLimiterUtilsHealth, "clientdatamanager") {
     EnsureInit();
 
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
@@ -169,7 +166,7 @@ MT_TEST(ClientDataManagerTests, TestClientDataManagerRateLimiterUtilsHealth, "co
     clientDataManager->deleteClientTID(testClientTID);
 }
 
-MT_TEST(ClientDataManagerTests, TestClientDataManagerRateLimiterUtilsHealthSetGet, "component-serial") {
+MT_TEST(Component, TestClientDataManagerRateLimiterUtilsHealthSetGet, "clientdatamanager") {
     EnsureInit();
 
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
@@ -190,7 +187,7 @@ MT_TEST(ClientDataManagerTests, TestClientDataManagerRateLimiterUtilsHealthSetGe
     clientDataManager->deleteClientTID(testClientTID);
 }
 
-MT_TEST(ClientDataManagerTests, TestClientDataManagerRateLimiterUtilsLastRequestTimestampSetGet, "component-serial") {
+MT_TEST(Component, TestClientDataManagerRateLimiterUtilsLastRequestTimestampSetGet, "clientdatamanager") {
     EnsureInit();
 
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
@@ -213,7 +210,7 @@ MT_TEST(ClientDataManagerTests, TestClientDataManagerRateLimiterUtilsLastRequest
     clientDataManager->deleteClientTID(testClientTID);
 }
 
-MT_TEST(ClientDataManagerTests, TestClientDataManagerPulseMonitorClientListFetch, "component-serial") {
+MT_TEST(Component, TestClientDataManagerPulseMonitorClientListFetch, "clientdatamanager") {
     EnsureInit();
 
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
@@ -240,7 +237,7 @@ MT_TEST(ClientDataManagerTests, TestClientDataManagerPulseMonitorClientListFetch
     }
 }
 
-MT_TEST(ClientDataManagerTests, TestClientDataManagerRequestMapInsertion, "component-serial") {
+MT_TEST(Component, TestClientDataManagerRequestMapInsertion, "clientdatamanager") {
     EnsureInit();
 
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
@@ -272,7 +269,7 @@ MT_TEST(ClientDataManagerTests, TestClientDataManagerRequestMapInsertion, "compo
     MT_REQUIRE_EQ(ctx, static_cast<int>(clientRequests->size()), 0);
 }
 
-MT_TEST(ClientDataManagerTests, TestClientDataManagerClientThreadTracking1, "component-serial") {
+MT_TEST(Component, TestClientDataManagerClientThreadTracking1, "clientdatamanager") {
     EnsureInit();
 
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
@@ -305,7 +302,7 @@ MT_TEST(ClientDataManagerTests, TestClientDataManagerClientThreadTracking1, "com
     }
 }
 
-MT_TEST(ClientDataManagerTests, TestClientDataManagerClientThreadTracking2, "component-serial") {
+MT_TEST(Component, TestClientDataManagerClientThreadTracking2, "clientdatamanager") {
     EnsureInit();
 
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();

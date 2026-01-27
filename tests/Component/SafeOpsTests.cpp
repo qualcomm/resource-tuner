@@ -23,7 +23,7 @@ static void Overflow1_impl(mtest::TestContext& ctx) {
     MT_REQUIRE(ctx, status == OVERFLOW);
     MT_REQUIRE_EQ(ctx, result, (int64_t)std::numeric_limits<int32_t>::max());
 }
-MT_TEST(SafeOps, Overflow1, "component") { Overflow1_impl(ctx); }
+MT_TEST(component, Overflow1, "safeops") { Overflow1_impl(ctx); }
 
 static void Underflow1_impl(mtest::TestContext& ctx) {
     OperationStatus status;
@@ -31,7 +31,7 @@ static void Underflow1_impl(mtest::TestContext& ctx) {
     MT_REQUIRE(ctx, status == UNDERFLOW);
     MT_REQUIRE_EQ(ctx, result, std::numeric_limits<int32_t>::lowest());
 }
-MT_TEST(SafeOps, Underflow1, "component") { Underflow1_impl(ctx); }
+MT_TEST(component, Underflow1, "safeops") { Underflow1_impl(ctx); }
 
 static void PositiveNoOverflow1_impl(mtest::TestContext& ctx) {
     OperationStatus status;
@@ -39,7 +39,7 @@ static void PositiveNoOverflow1_impl(mtest::TestContext& ctx) {
     MT_REQUIRE(ctx, status == SUCCESS);
     MT_REQUIRE_EQ(ctx, result, (int8_t)30);
 }
-MT_TEST(SafeOps, PositiveNoOverflow1, "component") { PositiveNoOverflow1_impl(ctx); }
+MT_TEST(component, PositiveNoOverflow1, "safeops") { PositiveNoOverflow1_impl(ctx); }
 
 static void NegativeNoUnderflow1_impl(mtest::TestContext& ctx) {
     OperationStatus status;
@@ -47,7 +47,7 @@ static void NegativeNoUnderflow1_impl(mtest::TestContext& ctx) {
     MT_REQUIRE(ctx, status == SUCCESS);
     MT_REQUIRE_EQ(ctx, result, (int8_t)-30);
 }
-MT_TEST(SafeOps, NegativeNoUnderflow1, "component") { NegativeNoUnderflow1_impl(ctx); }
+MT_TEST(component, NegativeNoUnderflow1, "safeops") { NegativeNoUnderflow1_impl(ctx); }
 
 static void IncorrectType1_impl(mtest::TestContext& ctx) {
     OperationStatus status;
@@ -56,7 +56,7 @@ static void IncorrectType1_impl(mtest::TestContext& ctx) {
     MT_REQUIRE(ctx, status == SUCCESS);
     MT_REQUIRE_EQ(ctx, result, (uint8_t)255);
 }
-MT_TEST(SafeOps, IncorrectType1, "component") { IncorrectType1_impl(ctx); }
+MT_TEST(component, IncorrectType1, "safeops") { IncorrectType1_impl(ctx); }
 
 static void DifferentTypes_impl(mtest::TestContext& ctx) {
     OperationStatus status;
@@ -66,7 +66,7 @@ static void DifferentTypes_impl(mtest::TestContext& ctx) {
     MT_REQUIRE(ctx, status == SUCCESS);
     MT_REQUIRE_EQ(ctx, result, (int16_t)250);
 }
-MT_TEST(SafeOps, DifferentTypes, "component") { DifferentTypes_impl(ctx); }
+MT_TEST(component, DifferentTypes, "safeops") { DifferentTypes_impl(ctx); }
 
 // ---------- Tests for Subtract ----------
 
@@ -77,7 +77,7 @@ static void Overflow2_impl(mtest::TestContext& ctx) {
     MT_REQUIRE(ctx, status == OVERFLOW);
     MT_REQUIRE_EQ(ctx, result, std::numeric_limits<int64_t>::max());
 }
-MT_TEST(SafeOps, Overflow2, "component") { Overflow2_impl(ctx); }
+MT_TEST(component, Overflow2, "safeops") { Overflow2_impl(ctx); }
 
 static void Underflow2_impl(mtest::TestContext& ctx) {
     OperationStatus status;
@@ -85,7 +85,7 @@ static void Underflow2_impl(mtest::TestContext& ctx) {
     MT_REQUIRE(ctx, status == UNDERFLOW);
     MT_REQUIRE_EQ(ctx, result, std::numeric_limits<int32_t>::lowest());
 }
-MT_TEST(SafeOps, Underflow2, "component") { Underflow2_impl(ctx); }
+MT_TEST(component, Underflow2, "safeops") { Underflow2_impl(ctx); }
 
 static void PositiveNoOverflow2_impl(mtest::TestContext& ctx) {
     OperationStatus status;
@@ -93,7 +93,7 @@ static void PositiveNoOverflow2_impl(mtest::TestContext& ctx) {
     MT_REQUIRE(ctx, status == SUCCESS);
     MT_REQUIRE_EQ(ctx, result, (int8_t)10);
 }
-MT_TEST(SafeOps, PositiveNoOverflow2, "component") { PositiveNoOverflow2_impl(ctx); }
+MT_TEST(component, PositiveNoOverflow2, "safeops") { PositiveNoOverflow2_impl(ctx); }
 
 static void NegativeNoUnderflow2_impl(mtest::TestContext& ctx) {
     OperationStatus status;
@@ -101,7 +101,7 @@ static void NegativeNoUnderflow2_impl(mtest::TestContext& ctx) {
     MT_REQUIRE(ctx, status == SUCCESS);
     MT_REQUIRE_EQ(ctx, result, (int8_t)-10);
 }
-MT_TEST(SafeOps, NegativeNoUnderflow2, "component") { NegativeNoUnderflow2_impl(ctx); }
+MT_TEST(component, NegativeNoUnderflow2, "safeops") { NegativeNoUnderflow2_impl(ctx); }
 
 // ---------- Tests for Multiply ----------
 
@@ -112,7 +112,7 @@ static void Underflow3_impl(mtest::TestContext& ctx) {
     MT_REQUIRE(ctx, status == UNDERFLOW);
     MT_REQUIRE_EQ(ctx, result, std::numeric_limits<int64_t>::lowest());
 }
-MT_TEST(SafeOps, Underflow3, "component") { Underflow3_impl(ctx); }
+MT_TEST(component, Underflow3, "safeops") { Underflow3_impl(ctx); }
 
 static void PositiveNoOverflow3_impl(mtest::TestContext& ctx) {
     OperationStatus status;
@@ -120,7 +120,7 @@ static void PositiveNoOverflow3_impl(mtest::TestContext& ctx) {
     MT_REQUIRE(ctx, status == SUCCESS);
     MT_REQUIRE_EQ(ctx, result, (int64_t)200);
 }
-MT_TEST(SafeOps, PositiveNoOverflow3, "component") { PositiveNoOverflow3_impl(ctx); }
+MT_TEST(component, PositiveNoOverflow3, "safeops") { PositiveNoOverflow3_impl(ctx); }
 
 static void DoublePositiveOverflow_impl(mtest::TestContext& ctx) {
     OperationStatus status;
@@ -128,7 +128,7 @@ static void DoublePositiveOverflow_impl(mtest::TestContext& ctx) {
     MT_REQUIRE(ctx, status == OVERFLOW);
     MT_REQUIRE_EQ(ctx, result, std::numeric_limits<double>::max());
 }
-MT_TEST(SafeOps, DoublePositiveOverflow, "component") { DoublePositiveOverflow_impl(ctx); }
+MT_TEST(component, DoublePositiveOverflow, "safeops") { DoublePositiveOverflow_impl(ctx); }
 
 static void DoubleUnderflow_impl(mtest::TestContext& ctx) {
     OperationStatus status;
@@ -136,7 +136,7 @@ static void DoubleUnderflow_impl(mtest::TestContext& ctx) {
     MT_REQUIRE(ctx, status == UNDERFLOW);
     MT_REQUIRE_EQ(ctx, result, std::numeric_limits<double>::lowest());
 }
-MT_TEST(SafeOps, DoubleUnderflow, "component") { DoubleUnderflow_impl(ctx); }
+MT_TEST(component, DoubleUnderflow, "safeops") { DoubleUnderflow_impl(ctx); }
 
 static void DoublePositiveNoOverflow_impl(mtest::TestContext& ctx) {
     OperationStatus status;
@@ -144,7 +144,7 @@ static void DoublePositiveNoOverflow_impl(mtest::TestContext& ctx) {
     MT_REQUIRE(ctx, status == SUCCESS);
     MT_REQUIRE_EQ(ctx, result, 20.0);
 }
-MT_TEST(SafeOps, DoublePositiveNoOverflow, "component") { DoublePositiveNoOverflow_impl(ctx); }
+MT_TEST(component, DoublePositiveNoOverflow, "safeops") { DoublePositiveNoOverflow_impl(ctx); }
 
 // ---------- Tests for Divide ----------
 
@@ -154,7 +154,7 @@ static void DivByZero_impl(mtest::TestContext& ctx) {
     MT_REQUIRE(ctx, status == DIVISION_BY_ZERO);
     MT_REQUIRE_EQ(ctx, result, 10.0);
 }
-MT_TEST(SafeOps, DivByZero, "component") { DivByZero_impl(ctx); }
+MT_TEST(component, DivByZero, "safeops") { DivByZero_impl(ctx); }
 
 static void PositiveOverflow_impl(mtest::TestContext& ctx) {
     OperationStatus status;
@@ -162,7 +162,7 @@ static void PositiveOverflow_impl(mtest::TestContext& ctx) {
     MT_REQUIRE(ctx, status == OVERFLOW);
     MT_REQUIRE_EQ(ctx, result, std::numeric_limits<double>::max());
 }
-MT_TEST(SafeOps, PositiveOverflow, "component") { PositiveOverflow_impl(ctx); }
+MT_TEST(component, PositiveOverflow, "safeops") { PositiveOverflow_impl(ctx); }
 
 static void Underflow4_impl(mtest::TestContext& ctx) {
     OperationStatus status;
@@ -170,7 +170,7 @@ static void Underflow4_impl(mtest::TestContext& ctx) {
     MT_REQUIRE(ctx, status == UNDERFLOW);
     MT_REQUIRE_EQ(ctx, result, std::numeric_limits<double>::lowest());
 }
-MT_TEST(SafeOps, Underflow4, "component") { Underflow4_impl(ctx); }
+MT_TEST(component, Underflow4, "safeops") { Underflow4_impl(ctx); }
 
 // ---------- Tests for Safe* macros & VALIDATE_* ----------
 
@@ -184,7 +184,7 @@ static void TestSafeDerefMacro_impl(mtest::TestContext& ctx) {
     }
     MT_REQUIRE(ctx, exceptionHit == true);
 }
-MT_TEST(SafeOps, TestSafeDerefMacro, "component") { TestSafeDerefMacro_impl(ctx); }
+MT_TEST(component, TestSafeDerefMacro, "safeops") { TestSafeDerefMacro_impl(ctx); }
 
 static void TestSafeAssignmentMacro_impl(mtest::TestContext& ctx) {
     int32_t* int_ptr = nullptr;
@@ -196,7 +196,7 @@ static void TestSafeAssignmentMacro_impl(mtest::TestContext& ctx) {
     }
     MT_REQUIRE(ctx, exceptionHit == true);
 }
-MT_TEST(SafeOps, TestSafeAssignmentMacro, "component") { TestSafeAssignmentMacro_impl(ctx); }
+MT_TEST(component, TestSafeAssignmentMacro, "safeops") { TestSafeAssignmentMacro_impl(ctx); }
 
 static void TestSafeStaticCastMacro_impl(mtest::TestContext& ctx) {
     int32_t* int_ptr = nullptr;
@@ -208,7 +208,7 @@ static void TestSafeStaticCastMacro_impl(mtest::TestContext& ctx) {
     }
     MT_REQUIRE(ctx, exceptionHit == true);
 }
-MT_TEST(SafeOps, TestSafeStaticCastMacro, "component") { TestSafeStaticCastMacro_impl(ctx); }
+MT_TEST(component, TestSafeStaticCastMacro, "safeops") { TestSafeStaticCastMacro_impl(ctx); }
 
 static void TestValidationMacro1_impl(mtest::TestContext& ctx) {
     int32_t val = -670;
@@ -220,7 +220,7 @@ static void TestValidationMacro1_impl(mtest::TestContext& ctx) {
     }
     MT_REQUIRE(ctx, exceptionHit == true);
 }
-MT_TEST(SafeOps, TestValidationMacro1, "component") { TestValidationMacro1_impl(ctx); }
+MT_TEST(component, TestValidationMacro1, "safeops") { TestValidationMacro1_impl(ctx); }
 
 static void TestValidationMacro2_impl(mtest::TestContext& ctx) {
     int32_t val = 100;
@@ -232,5 +232,5 @@ static void TestValidationMacro2_impl(mtest::TestContext& ctx) {
     }
     MT_REQUIRE(ctx, exceptionHit == false);
 }
-MT_TEST(SafeOps, TestValidationMacro2, "component") { TestValidationMacro2_impl(ctx); }
+MT_TEST(component, TestValidationMacro2, "safeops") { TestValidationMacro2_impl(ctx); }
 
