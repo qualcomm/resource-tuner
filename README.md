@@ -80,19 +80,23 @@ Default Build
 ```bash
 cmake .. -DCMAKE_INSTALL_PREFIX=/
 ```
-### Optional modules
+### Packaging and Optional modules
 The project provides optional components that can be enabled using CMake flags:
 - **Contextual-Classifier**- Contains support for idenfitification of static usecases
 ```bash
-    CMake option -DBUILD_CLASSIFIER
+    CMake option -DBUILD_CLASSIFIER #Enabled by default
+```
+To disable Classifier:
+```bash
+cmake .. -DCMAKE_INSTALL_PREFIX=/ -DBUILD_CLASSIFIER=OFF
 ```
 - **Test Framework**- Unit tests and module level tests
 ```bash
     CMake option -DBUILD_TESTS
 ```
-To enable both:
+To enable Test Framework:
 ```bash
-cmake .. -DCMAKE_INSTALL_PREFIX=/ -DBUILD_CLASSIFIER=ON -DBUILD_TESTS=ON
+cmake .. -DCMAKE_INSTALL_PREFIX=/ -DBUILD_TESTS=ON
 ```
 * Build the project
 ```bash

@@ -32,6 +32,8 @@ const std::string IGNORE_PROC_PATH =
     CLASSIFIER_CONFIGS_DIR "classifier-blocklist.txt";
 const std::string IGNORE_TOKENS_PATH =
     CLASSIFIER_CONFIGS_DIR "ignore-tokens.txt";
+const std::string ALLOW_LIST_PATH =
+    CLASSIFIER_CONFIGS_DIR "allow-list.txt";
 
 #ifdef USE_FASTTEXT
 #include "MLInference.h"
@@ -83,7 +85,7 @@ static Request* createResourceTuningRequest(uint32_t sigId,
 
         std::vector<Resource*>* signalLocks = signalInfo->mSignalResources;
 
-        for(int32_t i = 0; i < signalLocks->size(); i++) {
+        for(int32_t i = 0; i < (int32_t)signalLocks->size(); i++) {
             if((*signalLocks)[i] == nullptr) {
                 continue;
             }
@@ -202,7 +204,7 @@ void ContextualClassifier::ClassifierMain() {
 
         if(ev.type == CC_APP_OPEN) {
             std::string comm;
-            uint32_t sigId = CONSTRUCT_SIG_CODE(URM_SIG_APP_OPEN, URM_SIG_CAT_GENERIC);
+            uint32_t sigId = URM_SIG_APP_OPEN;
             uint32_t sigType = DEFAULT_SIGNAL_TYPE;
             uint32_t ctxDetails = 0U;
 
@@ -288,7 +290,7 @@ int ContextualClassifier::HandleProcEv() {
 
         switch(rc) {
             case CC_APP_OPEN:
-                if(!this->isIgnoredProcess(ev.type, ev.pid)) {
+                if(!this->shouldProcBeIgnored(ev.type, ev.pid)) {
                     const std::lock_guard<std::mutex> lock(mQueueMutex);
                     this->mPendingEv.push(ev);
                     if(this->mPendingEv.size() > pendingQueueControlSize) {
@@ -300,7 +302,7 @@ int ContextualClassifier::HandleProcEv() {
                 break;
 
             case CC_APP_CLOSE:
-                if(!this->isIgnoredProcess(ev.type, ev.pid)) {
+                if(!this->shouldProcBeIgnored(ev.type, ev.pid)) {
                     const std::lock_guard<std::mutex> lock(mQueueMutex);
                     this->mPendingEv.push(ev);
                     if(this->mPendingEv.size() > pendingQueueControlSize) {
@@ -365,31 +367,40 @@ void ContextualClassifier::RemoveActions(pid_t processPid, pid_t processTgid) {
 uint32_t ContextualClassifier::GetSignalIDForWorkload(int32_t contextType) {
     switch(contextType) {
         case CC_MULTIMEDIA:
-            return CONSTRUCT_SIG_CODE(URM_SIG_MULTIMEDIA_APP_OPEN, URM_SIG_CAT_MULTIMEDIA);
+            return URM_SIG_MULTIMEDIA_APP_OPEN;
         case CC_GAME:
-            return CONSTRUCT_SIG_CODE(URM_SIG_GAME_APP_OPEN, URM_SIG_CAT_GAMING);
+            return URM_SIG_GAME_APP_OPEN;
         case CC_BROWSER:
-            return CONSTRUCT_SIG_CODE(URM_SIG_BROWSER_APP_OPEN, URM_SIG_CAT_BROWSER);
+            return URM_SIG_BROWSER_APP_OPEN;
         default:
             break;
     }
 
     // CC_APP
-    return CONSTRUCT_SIG_CODE(URM_SIG_APP_OPEN, URM_SIG_CAT_GENERIC);
+    return URM_SIG_APP_OPEN;
 }
 
 void ContextualClassifier::LoadIgnoredProcesses() {
-    std::ifstream file(IGNORE_PROC_PATH);
-    if (!file.is_open()) {
+    int8_t isAllowedListPresent = false;
+    std::string filePath = ALLOW_LIST_PATH;
+    if(AuxRoutines::fileExists(filePath)) {
+        isAllowedListPresent = true;
+    } else {
+        filePath = IGNORE_PROC_PATH;
+    }
+
+    std::ifstream file(filePath);
+    if(!file.is_open()) {
         LOGW(CLASSIFIER_TAG,
-             "Could not open ignore process file: "+IGNORE_PROC_PATH);
+             "Could not open process filter file: " + filePath);
         return;
     }
+
     std::string line;
-    while (std::getline(file, line)) {
+    while(std::getline(file, line)) {
         std::stringstream ss(line);
         std::string segment;
-        while (std::getline(ss, segment, ',')) {
+        while(std::getline(ss, segment, ',')) {
             size_t first = segment.find_first_not_of(" \t\n\r");
             if(first == std::string::npos) {
                 continue;
@@ -398,43 +409,43 @@ void ContextualClassifier::LoadIgnoredProcesses() {
             size_t last = segment.find_last_not_of(" \t\n\r");
             segment = segment.substr(first, (last - first + 1));
             if(!segment.empty()) {
-                this->mIgnoredProcesses.insert(segment);
+                if(isAllowedListPresent) {
+                    this->mAllowedProcesses.insert(segment);
+                } else {
+                    this->mIgnoredProcesses.insert(segment);
+                }
             }
         }
     }
-    LOGI(CLASSIFIER_TAG, "Loaded ignored processes.");
+    LOGI(CLASSIFIER_TAG, "Loaded filter processes.");
 }
 
-int8_t ContextualClassifier::isIgnoredProcess(int32_t evType, pid_t pid) {
-    int8_t ignore = false;
-
+int8_t ContextualClassifier::shouldProcBeIgnored(int32_t evType, pid_t pid) {
     // For context close, see if pid is in ignored list and remove it.
-    if (evType == CC_APP_CLOSE) {
+    if(evType == CC_APP_CLOSE) {
         return true;
     }
 
-    // For context open, check if comm is in ignored list and track pid.
-    std::string commPath = COMM(pid);
-    std::ifstream commFile(commPath);
-    if (commFile.is_open()) {
-        std::string procName;
-        std::getline(commFile, procName);
-        // Trim
-        size_t first = procName.find_first_not_of(" \t\n\r");
-        if (first != std::string::npos) {
-            size_t last = procName.find_last_not_of(" \t\n\r");
-            procName = procName.substr(first, (last - first + 1));
-        }
-        if (this->mIgnoredProcesses.count(procName) != 0U) {
-            LOGD(CLASSIFIER_TAG, "Ignoring process: " + procName);
-            ignore = true;
-        }
-    } else {
-        LOGD(CLASSIFIER_TAG,
-             "Process " + std::to_string(pid) + " exited before initial check. Skipping.");
+    std::string procName = "";
+    if(!AuxRoutines::getProcName(pid, procName)) {
+        return true;
     }
 
-    return ignore;
+    if(this->mAllowedProcesses.size() > 0) {
+        // Check in allowed-list is present
+        if(this->mAllowedProcesses.count(procName) == 0U) {
+            LOGD(CLASSIFIER_TAG, "Ignoring process: " + procName);
+            return true;
+        }
+    } else {
+        // If allow-list is not present, check in blocklist
+        if(this->mIgnoredProcesses.count(procName) != 0U) {
+            LOGD(CLASSIFIER_TAG, "Ignoring process: " + procName);
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void ContextualClassifier::MoveAppThreadsToCGroup(pid_t incomingPID,
