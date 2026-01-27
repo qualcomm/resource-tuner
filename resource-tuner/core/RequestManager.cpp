@@ -225,6 +225,8 @@ int8_t RequestManager::disableRequestProcessing(int64_t handle) {
 }
 
 void RequestManager::modifyRequestDuration(int64_t handle, int64_t duration) {
+    (void)handle;
+    (void)duration;
     return;
 }
 

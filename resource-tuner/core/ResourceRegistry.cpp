@@ -263,6 +263,61 @@ ErrCode ResourceConfigInfoBuilder::setPath(const std::string& path) {
     }
 
     this->mResourceConfigInfo->mResourcePath = path;
+
+    std::string curToken;
+    std::vector<std::string> tokens;
+    std::istringstream resPathStream(path);
+    while(std::getline(resPathStream, curToken, '*')) {
+        tokens.push_back(curToken);
+    }
+
+    if(tokens.size() < 2) {
+        return RC_SUCCESS;
+    }
+
+    // Further split to get the pattern to match to:
+    std::string keyMatch = "";
+    std::string remFilePath = "";
+    int8_t foundSplit = false;
+    for(char ch: tokens[1]) {
+        if(ch == '/') {
+            if(foundSplit) {
+                remFilePath.push_back(ch);
+            }
+            foundSplit = true;
+        } else {
+            if(foundSplit) {
+                remFilePath.push_back(ch);
+            } else {
+                keyMatch.push_back(ch);
+            }
+        }
+    }
+
+    DIR* dir = opendir(tokens[0].c_str());
+    if(dir != nullptr) {
+        struct dirent* entry;
+        while((entry = readdir(dir)) != nullptr) {
+            std::string dirName = std::string(entry->d_name);
+            if(keyMatch.size() < dirName.size()) {
+                // calculate starting index
+                int32_t start = dirName.size() - keyMatch.size();
+                if(start >= 0) {
+                    if(dirName.compare(start, keyMatch.size(), keyMatch) == 0) {
+                        // Generate the resulting path:
+                        std::string filePath =
+                            tokens[0] + "/" + dirName + "/" + remFilePath;
+                        if(AuxRoutines::fileExists(filePath)) {
+                            this->mResourceConfigInfo->mResourcePath = filePath;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        closedir(dir);
+    }
+
     return RC_SUCCESS;
 }
 

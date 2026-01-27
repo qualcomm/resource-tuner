@@ -57,7 +57,7 @@ ResourceConfigs:
     Supported: true
     HighThreshold: 1024
     LowThreshold: 0
-    Permissions: third_party
+    Permissions: "third_party"
     Modes: ["display_on", "doze"]
     Policy: "higher_is_better"
     ApplyType: "global"
@@ -67,7 +67,7 @@ ResourceConfigs:
     Name: "RES_SCHED_ENERGY_AWARE"
     Path: "/proc/sys/kernel/sched_energy_aware"
     Supported: true
-    Permissions: third_party
+    Permissions: "third_party"
     Modes: ["display_on"]
     Policy: "pass_through"
     ApplyType: "global"
@@ -78,7 +78,7 @@ ResourceConfigs:
     Name: "RES_SCALE_MIN_FREQ"
     Path: "/sys/devices/system/cpu/cpufreq/policy%d/scaling_min_freq"
     Supported: true
-    Permissions: third_party
+    Permissions: "third_party"
     Modes: ["display_on", "doze"]
     Policy: "lower_is_better"
     ApplyType: "cluster"
@@ -89,7 +89,7 @@ ResourceConfigs:
     Name: "RES_SCALE_MAX_FREQ"
     Path: "/sys/devices/system/cpu/cpufreq/policy%d/scaling_max_freq"
     Supported: true
-    Permissions: third_party
+    Permissions: "third_party"
     Modes: ["display_on", "doze"]
     Policy: "higher_is_better"
     ApplyType: "cluster"
@@ -99,10 +99,40 @@ ResourceConfigs:
     Name: "RES_RATE_LIMIT_US"
     Path: "/sys/devices/system/cpu/cpufreq/policy%d/schedutil/rate_limit_us"
     Supported: true
-    Permissions: third_party
+    Permissions: "third_party"
     Modes: ["display_on", "doze"]
     Policy: "lower_is_better"
     ApplyType: "cluster"
+
+  - ResType: "0x05"
+    ResID: "0x0000"
+    Name: "RES_DEVFREQ_GPU_MAX"
+    Path: "/sys/class/devfreq/*.gpu/max_freq"
+    Supported: true
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: higher_is_better
+    ApplyType: "global"
+
+  - ResType: "0x05"
+    ResID: "0x0001"
+    Name: "RES_DEVFREQ_GPU_MIN"
+    Path: "/sys/class/devfreq/*.gpu/min_freq"
+    Supported: true
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: higher_is_better
+    ApplyType: "global"
+
+  - ResType: "0x05"
+    ResID: "0x0002"
+    Name: "RES_DEVFREQ_GPU_POLL_INTV"
+    Path: "/sys/class/devfreq/*.gpu/polling_interval"
+    Supported: true
+    LowThreshold: 0
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: higher_is_better
 
   - ResType: "0x09"
     ResID: "0x0000"
@@ -289,12 +319,42 @@ ResourceConfigs:
     Policy: "lower_is_better"
     ApplyType: "cgroup"
 
+  - ResType: "0x0a"
+    ResID: "0x0000"
+    Name: "RES_DEVFREQ_UFS_MAX"
+    Path: "/sys/class/devfreq/*.ufshc/max_freq"
+    Supported: true
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: higher_is_better
+    ApplyType: "global"
+
+  - ResType: "0x0a"
+    ResID: "0x0001"
+    Name: "RES_DEVFREQ_UFS_MIN"
+    Path: "/sys/class/devfreq/*.ufshc/min_freq"
+    Supported: true
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: higher_is_better
+    ApplyType: "global"
+
+  - ResType: "0x0a"
+    ResID: "0x0002"
+    Name: "RES_DEVFREQ_UFS_POLL_INTV"
+    Path: "/sys/class/devfreq/*.ufshc/polling_interval"
+    Supported: true
+    LowThreshold: 0
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: higher_is_better
+
   - ResType: "0x0b"
     ResID: "0x0000"
     Name: "RES_IRQ_AFFINE"
     Path: "/proc/irq/%d/smp_affinity"
     Supported: true
-    Permissions: "system"
+    Permissions: "third_party"
     Modes: ["display_on"]
     Policy: "pass_through"
     ApplyType: "core"
@@ -304,7 +364,7 @@ ResourceConfigs:
     Name: "RES_DEF_IRQ_AFFINE"
     Path: "/proc/irq/default_smp_affinity"
     Supported: true
-    Permissions: "system"
+    Permissions: "third_party"
     Modes: ["display_on"]
     Policy: "pass_through"
     ApplyType: "global"
