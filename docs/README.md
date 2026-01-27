@@ -174,9 +174,6 @@ The following resource codes are supported resources or operations on upstream L
 |   RES_DEVFREQ_GPU_MAX               |   0x 00 05 0000   |
 |   RES_DEVFREQ_GPU_MIN               |   0x 00 05 0001   |
 |   RES_DEVFREQ_GPU_POLL_INTV         |   0x 00 05 0002   |
-|   RES_DEVFREQ_UFS_MAX               |   0x 00 0a 0000   |
-|   RES_DEVFREQ_UFS_MIN               |   0x 00 0a 0001   |
-|   RES_DEVFREQ_UFS_POLL_INTV         |   0x 00 0a 0002   |
 |   RES_CGRP_MOVE_PID                 |   0x 00 09 0000   |
 |   RES_CGRP_MOVE_TID                 |   0x 00 09 0001   |
 |   RES_CGRP_RUN_CORES                |   0x 00 09 0002   |
@@ -195,6 +192,9 @@ The following resource codes are supported resources or operations on upstream L
 |   RES_CGRP_IO_WEIGHT                |   0x 00 09 000f   |
 |   RES_CGRP_BFQ_IO_WEIGHT            |   0x 00 09 0010   |
 |   RES_CGRP_CPU_LATENCY              |   0x 00 09 0011   |
+|   RES_DEVFREQ_UFS_MAX               |   0x 00 0a 0000   |
+|   RES_DEVFREQ_UFS_MIN               |   0x 00 0a 0001   |
+|   RES_DEVFREQ_UFS_POLL_INTV         |   0x 00 0a 0002   |
 
 The above mentioned list of enums are available in the interface file "UrmPlatformAL.h".
 
