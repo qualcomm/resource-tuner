@@ -288,3 +288,23 @@ ResourceConfigs:
     Modes: ["display_on"]
     Policy: "lower_is_better"
     ApplyType: "cgroup"
+
+  - ResType: "0x0b"
+    ResID: "0x0000"
+    Name: "RES_IRQ_AFFINE"
+    Path: "/proc/irq/%d/smp_affinity"
+    Supported: true
+    Permissions: "system"
+    Modes: ["display_on"]
+    Policy: "pass_through"
+    ApplyType: "irq"
+
+  - ResType: "0x0b"
+    ResID: "0x0001"
+    Name: "RES_DEF_IRQ_AFFINE"
+    Path: "/proc/irq/default_smp_affinity"
+    Supported: true
+    Permissions: "system"
+    Modes: ["display_on"]
+    Policy: "pass_through"
+    ApplyType: "global"

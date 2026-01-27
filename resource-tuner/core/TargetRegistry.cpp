@@ -139,7 +139,7 @@ void TargetRegistry::generatePolicyBasedMapping(std::vector<std::string>& policy
                 // proceed with determining the Cluster Capcity
                 int32_t cpuID = cpuList[0];
                 clusterInfo->mStartCpu = cpuID;
-                for(int32_t i = 0; i < cpuList.size(); i++) {
+                for(int32_t i = 0; i < (int32_t)cpuList.size(); i++) {
                     clusterInfo->mStartCpu = std::min(clusterInfo->mStartCpu, cpuList[i]);
                 }
 
