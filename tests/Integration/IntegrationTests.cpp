@@ -424,7 +424,7 @@ MT_TEST(Integration, SignalTestOutOfBoundsResourceTuning, "signal-verification")
 
     int64_t handle =
     tuneSignal(
-        CUSTOM(CONSTRUCT_SIG_CODE(0x0002, 0x0d)),
+        CUSTOM(CONSTRUCT_SIG_CODE(0x0d, 0x0002)),
         DEFAULT_SIGNAL_TYPE,
         5000,
         RequestPriority::REQ_PRIORITY_HIGH,
@@ -454,7 +454,7 @@ MT_TEST(Integration, SignalTestTargetCompatabilityVerificationChecks, "signal-ve
     MT_REQUIRE_EQ(ctx, originalValue, testResourceOriginalValue);
 
     int64_t handle = tuneSignal(
-        CUSTOM(CONSTRUCT_SIG_CODE(0x0000, 0x0d)),
+        CUSTOM(CONSTRUCT_SIG_CODE(0x0d, 0x0000)),
         DEFAULT_SIGNAL_TYPE,
         5000,
         RequestPriority::REQ_PRIORITY_HIGH,
@@ -484,7 +484,7 @@ MT_TEST(Integration, SignalTestNonSupportedSignalProvisioningVerification, "sign
     MT_REQUIRE_EQ(ctx, originalValue, testResourceOriginalValue);
 
     int64_t handle = tuneSignal(
-        CUSTOM(CONSTRUCT_SIG_CODE(0x0003, 0x0d)),
+        CUSTOM(CONSTRUCT_SIG_CODE(0x0d, 0x0003)),
         DEFAULT_SIGNAL_TYPE,
         5000,
         RequestPriority::REQ_PRIORITY_HIGH,
@@ -1493,7 +1493,7 @@ MT_TEST(Integration, TestSingleClientTuneSignal1, "signal-application") {
     originalValue = C_STOI(value);
     int64_t handle =
     tuneSignal(
-        CUSTOM(CONSTRUCT_SIG_CODE(0x0004, 0x0d)),
+        CUSTOM(CONSTRUCT_SIG_CODE(0x0d, 0x0004)),
         DEFAULT_SIGNAL_TYPE,
         5000,
         RequestPriority::REQ_PRIORITY_HIGH,
@@ -1536,7 +1536,7 @@ MT_TEST(Integration, TestSingleClientTuneSignal2, "signal-application") {
     MT_REQUIRE_EQ(ctx, originalValue, originalValues[2]);
     int64_t handle =
     tuneSignal(
-        CUSTOM(CONSTRUCT_SIG_CODE(0x0005, 0x0d)),
+        CUSTOM(CONSTRUCT_SIG_CODE(0x0d, 0x0005)),
         DEFAULT_SIGNAL_TYPE,
         5000,
         RequestPriority::REQ_PRIORITY_HIGH,
@@ -1588,7 +1588,7 @@ MT_TEST(Integration, TestSignalUntuning, "signal-application") {
     // Apply signal
     int64_t handle =
         tuneSignal(
-            CUSTOM(CONSTRUCT_SIG_CODE(0x0004, 0x0d)),
+            CUSTOM(CONSTRUCT_SIG_CODE(0x0d, 0x0004)),
             DEFAULT_SIGNAL_TYPE,
             -1,
             RequestPriority::REQ_PRIORITY_HIGH,
@@ -1660,7 +1660,7 @@ MT_TEST(Integration, TestObservationSignal, "signal-application") {
 
     // Apply observation signal
     int64_t handle = tuneSignal(
-        CUSTOM(CONSTRUCT_SIG_CODE(0x0009, 0x0d)),
+        CUSTOM(CONSTRUCT_SIG_CODE(0x0d, 0x0009)),
         DEFAULT_SIGNAL_TYPE,
         0, 0, "", "",
         3,
@@ -1735,7 +1735,7 @@ MT_TEST(Integration, TestMultiResourceSignal, "signal-application") {
 
     // Apply the multi-resource signal
     int64_t handle = tuneSignal(
-        CUSTOM(CONSTRUCT_SIG_CODE(0x000a, 0x0d)),
+        CUSTOM(CONSTRUCT_SIG_CODE(0x0d, 0x000a)),
         DEFAULT_SIGNAL_TYPE,
         /*target*/ 0,
         /*flags*/  0,

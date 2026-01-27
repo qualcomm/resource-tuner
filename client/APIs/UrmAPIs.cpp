@@ -97,8 +97,8 @@ int64_t tuneResources(int64_t duration,
              .append<int64_t>(duration)
              .append<int32_t>(VALIDATE_GT(numRes, 0))
              .append<int32_t>(VALIDATE_GE(properties, 0))
-             .append<int32_t>(getpid())
-             .append<int32_t>(gettid());
+             .append<int32_t>((int32_t)getpid())
+             .append<int32_t>((int32_t)gettid());
 
         for(int32_t i = 0; i < numRes; i++) {
             SysResource resource = SafeDeref((resourceList + i));

@@ -2,182 +2,225 @@
 
 ## Table of Contents
 
-- [Introduction](#introduction)
-- [URM Key Points](#userspace-resource-manager-key-points)
-- [URM APIs](#urm-apis)
-- [Config Files Format](#config-files-format)
-- [Resource Format](#resource-format)
-- [Example Usage](#example-usage-of-urm-apis)
-- [Extension Interface](#extension-interface)
-- [URM Implementation Details](#urm-implementation-details)
-- [Client CLI](#client-cli)
 
-<div style="page-break-after: always;"></div>
+- [1. Overview](#1-overview)
+  - [1.1. Why uRM is Needed](#11-why-urm-is-needed)
+  - [1.2. Powerful System-Level Control](#12-powerful-system-level-control)
+  - [1.3. Dynamic Resource Provisioning via Signals](#13-dynamic-resource-provisioning-via-signals)
+  - [1.4. Extension Framework](#14-extension-framework)
 
-# Introduction
+- [2. Getting Started](#2-getting-started)
 
-Userspace Resource Manager is a lightweight framework which provides below
-- Contextual Classifier : Identifies static contexts of workloads
-- Resource Tuner : Helps to dynamically provision system resources like CPU, memory, Gpu, I/O, etc. It leverages kernel interfaces like procfs, sysfs and cgroups to infleunce the resource usage to ensure power and performance of applications or usecases in embedded and resource-constrained environments.
+- [3. Configurable Resources and Signals](#3-configurable-resources-and-signals)
+  - [3.1. Resources](#31-resources)
+  - [3.2. Signals](#32-signals)
 
-Gaining control over system resources such as the CPU, caches, and GPU is a powerful capability in any developer’s toolkit. By fine-tuning these components, developers can optimize the system’s operating point to make more efficient use of hardware resources and significantly enhance the user experience while saving power.
+- [4. uRM Interface](#4-urm-interface)
+  - [4.1. Platform Abstraction Layer](#41-platform-abstraction-layer)
+  - [4.2. uRM APIs](#42-urm-apis)
+    - [4.2.1. tuneResources](#421-tuneresources)
+      - [4.2.1.1. SysResource](#4211-sysresource)
+      - [4.2.1.2. Resource ResCode Construction](#4212-resource-rescode-construction)
+      - [4.2.1.3. Resource ResInfo Construction](#4213-resource-resinfo-construction)
+      - [4.2.1.4. Example](#4214-example)
+    - [4.2.2. retuneResources](#422-retuneresources)
+      - [4.2.2.1. Example](#4221-example)
+    - [4.2.3. untuneResources](#423-untuneresources)
+      - [4.2.3.1. Example](#4231-example)
+    - [4.2.4. tuneSignal](#424-tunesignal)
+      - [4.2.4.1. Signal Code Construction](#4241-signal-code-construction)
+    - [4.2.5. untuneSignal](#425-untunesignal)
+    - [4.2.6. relaySignal](#426-relaysignal)
+    - [4.2.7. getProp](#427-getprop)
+  - [4.3. Configs](#43-configs)
+    - [4.3.1. Initialization Configs](#431-initialization-configs)
+    - [4.3.2. Resource Configs](#432-resource-configs)
+    - [4.3.3. Properties Config](#433-properties-config)
+    - [4.3.4. Signal Configs](#434-signal-configs)
 
-For example, increasing the CPU's dynamic clock and voltage scaling (DCVS) minimum frequency to 1 GHz can boost performance during demanding tasks. Conversely, capping the maximum frequency at 1.5 GHz can help conserve power during less intensive operations.
+- [5. Client CLI](#5-client-cli)
+  - [5.1. Send a Tune Request](#51-send-a-tune-request)
+  - [5.2. Send an Untune Request](#52-send-an-untune-request)
+  - [5.3. Send a Retune Request](#53-send-a-retune-request)
+  - [5.4. Send a getProp Request](#54-send-a-getprop-request)
+  - [5.5. Send a tuneSignal Request](#55-send-a-tunesignal-request)
 
-URM supports `Signals` which is dynamic provisioning of system resources in response to specific signals —such as app launches or app installations —based on configurations defined in YAML. It allows other software modules or applications to register extensions and add custom functionality tailored to their specific needs.
+- [6. Customizations & Extensions](#6-customizations--extensions)
+  - [6.1. Extensions Interface](#61-extensions-interface)
+    - [6.1.1. Registering Resource Callbacks](#611-registering-resource-callbacks)
+    - [6.1.2. Registering Custom Configs](#612-registering-custom-configs)
+  - [6.2. Custom Configs](#62-custom-configs)
+    - [6.2.1. Initialization Configs](#621-initialization-configs)
+    - [6.2.2. Resource Configs](#622-resource-configs)
+    - [6.2.3. Properties Config](#623-properties-config)
+    - [6.2.4. Signal Configs](#624-signal-configs)
+    - [6.2.5. Target Configs](#625-target-configs)
+  - [6.3. Extension Features](#63-extension-features)
 
----
+- [7. URM Implementation Details](#7-urm-implementation-details)
+  - [7.1. Project Structure](#71-project-structure)
+  - [7.2. Userspace Resource Manager Key Points](#72-userspace-resource-manager-key-points)
+    - [7.2.1. Contextual Classifier](#721-contextual-classifier)
+    - [7.2.2. Resource Tuner](#722-resource-tuner)
+    - [7.2.3. URM Initialization](#723-urm-initialization)
+    - [7.2.4. Request Processing](#724-request-processing)
+  - [7.3. Client-Level Permissions](#73-client-level-permissions)
+  - [7.4. Resource-Level Policies](#74-resource-level-policies)
+  - [7.5. Request-Level Priorities](#75-request-level-priorities)
+  - [7.6. Pulse Monitor](#76-pulse-monitor)
+  - [7.7. Rate Limiter](#77-rate-limiter)
+  - [7.8. Duplicate Checking](#78-duplicate-checking)
+  - [7.9. Dynamic Mapper](#79-dynamic-mapper)
+  - [7.10. Display-Aware Operational Modes](#710-display-aware-operational-modes)
+  - [7.11. Crash Recovery](#711-crash-recovery)
+  - [7.12. Flexible Packaging](#712-flexible-packaging)
+  - [7.13. Pre-Allocate Capacity for efficiency](#713-pre-allocate-capacity-for-efficiency)
 
-<div style="page-break-after: always;"></div>
+- [8. Contact](#8-contact)
 
-## Getting Started
+- [9. License](#9-license)
 
-To get started with the project:
-[Build and install](../README.md#build-and-install-instructions)
-
-Refer the Examples Tab for guidance on URM API usage.
-
----
-
-## Flexible Packaging: Packaging required modules
-- Core -> Core module which contains server, client, framwork and helper libraries.
-- Signals -> Contains support for provisioning system for the recieved signal
-- Contextual-Classifier -> Contains support for idenfitification of static usecases
-- Tests -> Unit tests and module level tests
-- CLI -> Command Line Interface to interact with service for debug and development purpose.
-
-Userspace resource manager offers flexibility to select modules through the build system at compile time to make it suitable for devices which have stringent memory requirements. While Tests and Cli are debug and develoment modules which can be removed in the final product config. However resource tuner core module is mandatory.
-
-Alter options in corresponding build file like below (ex. cmake options)
-```cmake
-option(BUILD_SIGNALS "Signals" OFF)
-option(BUILD_CONTEXTUAL_CLASSIFIER, "ContextualClassifier" OFF)
-option(BUILD_TESTS "Testing" OFF)
-option(BUILD_CLI "CLI" OFF)
-```
-
----
-
-<div style="page-break-after: always;"></div>
-
-## Project Structure
-
-```text
-.
-├── client
-├── configs
-├── contextual-classifier
-├── debian
-├── docs
-├── extensions
-├── modula
-├── public_headers
-└── resource-tuner
-```
-
-
----
-
-
-<div style="page-break-after: always;"></div>
-
-# Userspace Resource Manager Key Points
-Userspace resource manager (uRM) contains
-- Userspace resource manager (uRM) exposes a variery of APIs for resource tuning and use-case/scenario tuning
-- These APIs can be used by apps, features and other modules
-- Using these APIs, client can tune any system resource parameters like cpu, dcvs, min / max frequencies etc.
-- Userspace resource manager (uRM) provides
-
-## Resource Tuner
-- Queued requests processed by resource Tuner
-- Set of Yaml config files provides extensive configuration capability
-- Tuning resources provides control over system resources like CPU, Caches, GPU, etc for. Example changing the operating point of CPU DCVS min-freq to 1GHz to improve performance or limiting its max frequency to 1.5GHz to save power
-- Tuning Signals dynamically provisions the system resources for a use case or scenario such as apps launches, installations, etc. in response to received signal. Resources can be configured in yaml for signals.
-- Signals pick resources related to signal from SignalsConfig.yaml
-- Extension interface provides a way to customize URM behaviour, by specifying custom resources, custom signals and features.
-- URM uses YAML based config files, for fetching information relating to resources/signals and properties.
-
-## Contextual Classifier
-The Contextual Classifier is an optional module designed to identify the static context of workloads (e.g., whether an application is a game, multimedia app, or browser) based on an offline-trained model.
-
-**Key functionalities include:**
-- **Process Event Monitoring:** Monitors process creation and termination events via Netlink.
-- **Process Classification:** Classifies workloads (e.g., game, multimedia) using fastText (if enabled at build time). If fastText is not built, a default inference mechanism that always classifies the workload as an application.
-- **Signal Generation:** Retrieves specific signal details based on classified workload types.
-- **Cgroup Management:** Dynamically manages cgroups by moving application threads to designated cgroups.
-- **Action Application:** Calls `ApplyActions` to send tuning requests and `RemoveActions` to untune for process events.
-- **Configurability:** Influenced by configuration files such as `fasttext_model_supervised.bin`, `classifier-blocklist.txt`, and `ignore-tokens.txt`.
-
-**Flow of Events:**
-
+# 1. Overview
+The Userspace Resource Manager (uRM) is a lightweight, extensible framework designed to intelligently manage and provision system resources from userspace. It brings together two key components that enable dynamic, context‑aware optimization of performance and power across diverse embedded and resource‑constrained environments:
+- Contextual Classifier
+A FastText‑based classifier that identifies static workload contexts—such as camera pipelines, multimedia sessions, installations, or background services. By understanding what the system is running, uRM can apply the right resource strategy without manual intervention.
+- Resource Tuner
+A userspace engine that dynamically provisions system resources—CPU, memory, GPU, I/O, caches, and more—using standard kernel interfaces such as procfs, sysfs, and cgroups. This enables fine‑grained control of system operating points to balance performance and power for each application or use case.
 ```
 +---------------------------+
 | Process Event Listener    |
 |       (NetLinkComm)       |
 +-------------+-------------+
-              |
-              | Catches process events (e.g., fork, exec, exit)
-              V
-+---------------------------+
-|      HandleProcEv()       |
-| (Filters and queues events)|
+              |                (Event trigger)
+              |             (from app using APIs)
+              V                      |
++---------------------------+        |
+|    Contextual Classifier  |        |
++-------------+-------------+        |
+              |                      |
+          (Workload)                 |
+              |                      |
+              V                      |
++---------------------------+        |
+|     Resource Tuner        |<-------+
 +-------------+-------------+
               |
-              | Notifies worker thread
               V
-+---------------------------+
-|     ClassifierMain()      |
-|    (Worker Thread)        |
-+-------------+-------------+
-              |
-              +----(Event Type)----+
-              |                     |
-              V                     V
-        +------------+        +------------+
-        | CC_APP_OPEN|        | CC_APP_CLOSE|
-        +-----+------+        +-----+------+
-              |                     |
-              V                     V
-   +-----------------------+    +---------------------------+
-   | Is Ignored Process?   |--->| Move Process to Original  |
-   | (classifier-blocklist)|    |   Cgroup                  |
-   +----------+------------+    +---+-----------------------+
-              |  No                 |
-              V                     V
-   +---------------------+   +---------------------------+
-   |  ClassifyProcess()  |   |   RemoveActions           |
-   | (MLInference model) |   |    (untuneSignal)         |
-   +----------+----------+   +---------------------------+
-              |
-              V
-   +---------------------+
-   | GetSignalDetailsFor |
-   |      Workload()     |
-   +----------+----------+
-              |
-              V
-   +----------------------------+
-   | MoveAppThreadsToCGroup()   |
-   | (Assign to Focused Cgroup) |
-   +----------+-----------------+
-              |
-              V
-   +---------------------+
-   |    ApplyActions     |
-   |    (tuneSignal)     |
-   +---------------------+
+      +--------------+
+      |    Action    |
+      +--------------+
 ```
+### 1.1. Why uRM is Needed
+Modern workloads vary drastically across segments like servers, compute, XR, mobile, and IoT. Each use case exhibits unique characteristics. Some may demand high CPU frequency, others may require sustained GPU throughput, and many hinge on efficient caching or more memory bandwidth.
 
----
+At the same time, these workloads run on a broad spectrum of hardware platforms with different capabilities, power envelopes, and user expectations. A "one‑size‑fits‑all" tuning approach fails in such environments.
+
+uRM addresses this challenge by offering:
+- Per‑use‑case adaptability
+- Hardware‑aware tuning
+- User‑experience‑driven power/perf balancing
+
+This allows systems to achieve consistent performance while minimizing energy consumption.
+
+### 1.2. Powerful System‑Level Control
+Fine‑tuning system resources is a powerful tool for any developer or OEM building high‑performance embedded systems. With uRM, developers can directly influence operating points to match workload demands.
+For example: to boost performance, increase the CPU DCVS minimum frequency to 1 GHz to improve responsiveness during compute‑intensive scenarios. To save power, cap the maximum CPU frequency at 1.5 GHz when the workload is light, preventing unnecessary turbo boosts and improving battery life. Such targeted interventions can significantly enhance user experience while optimizing for energy efficiency.
+
+### 1.3. Dynamic Resource Provisioning via Signals
+uRM introduces Signals, a mechanism that adjusts system resources in real time based on events such as:
+
+- App launches
+- App installations
+- On‑device workflows or triggers
+
+These behaviors are governed by flexible, human‑readable YAML configurations, making policies easy to author, review, and evolve.
+
+### 1.4. Extension Framework
+uRM also provides extension APIs that allow other modules or applications to:
+
+- Register custom resources
+- Define custom provisioning logic
+- Add Segment‑specific or product‑specific behaviors
+
+This ensures the framework remains adaptable as hardware, use cases, and business requirements evolve.
+
 
 <div style="page-break-after: always;"></div>
 
-# System Independent Layer
-This section defines logical layer to improve code and config portability across different targets and systems.
-Please avoid changing these configs.
+# 2. Getting Started
 
-## Logical IDs
-### 1. Logical Cluster Map
+To get started with the project:
+[Build and install](../README.md#build-and-install-instructions)
+
+# 3. Configurable Resources and Signals
+
+## 3.1. Resources
+
+**Resource Code** is composed of two least significant bytes (the lower 16 bits) contains resource ID and next significant byte contains resource type
+i.e. 0xrr tt iiii  (i: resource id, t: resource type, r: reserved)
+
+The following resource codes are supported resources or operations on upstream Linux. Target or segment specific resources can be defined further. These resources can be directly used in client-side code or yaml configs and provide an easy and standard way to specify a certain resource, without needing to formulate the opcodes.
+
+|      Resource Name                  |         Id        |
+|-------------------------------------|-------------------|
+|   RES_CPU_DMA_LATENCY               |   0x 00 01 0000   |
+|   RES_PM_QOS_LATENCY                |   0x 00 01 0001   |
+|   RES_SCHED_UTIL_CLAMP_MIN          |   0x 00 03 0000   |
+|   RES_SCHED_UTIL_CLAMP_MAX          |   0x 00 03 0001   |
+|   RES_SCHED_ENERGY_AWARE            |   0x 00 03 0002   |
+|   RES_SCALE_MIN_FREQ                |   0x 00 04 0000   |
+|   RES_SCALE_MAX_FREQ                |   0x 00 04 0001   |
+|   RES_RATE_LIMIT_US                 |   0x 00 04 0002   |
+|   RES_CGRP_MOVE_PID                 |   0x 00 09 0000   |
+|   RES_CGRP_MOVE_TID                 |   0x 00 09 0001   |
+|   RES_CGRP_RUN_CORES                |   0x 00 09 0002   |
+|   RES_CGRP_RUN_CORES_EXCL           |   0x 00 09 0003   |
+|   RES_CGRP_FREEZE                   |   0x 00 09 0004   |
+|   RES_CGRP_LIMIT_CPU_TIME           |   0x 00 09 0005   |
+|   RES_CGRP_RUN_WHEN_CPU_IDLE        |   0x 00 09 0006   |
+|   RES_CGRP_UCLAMP_MIN               |   0x 00 09 0007   |
+|   RES_CGRP_UCLAMP_MAX               |   0x 00 09 0008   |
+|   RES_CGRP_REL_CPU_WEIGHT           |   0x 00 09 0009   |
+|   RES_CGRP_HIGH_MEM                 |   0x 00 09 000a   |
+|   RES_CGRP_MAX_MEM                  |   0x 00 09 000b   |
+|   RES_CGRP_LOW_MEM                  |   0x 00 09 000c   |
+|   RES_CGRP_MIN_MEM                  |   0x 00 09 000d   |
+|   RES_CGRP_SWAP_MAX_MEMORY          |   0x 00 09 000e   |
+|   RES_CGRP_IO_WEIGHT                |   0x 00 09 000f   |
+|   RES_CGRP_BFQ_IO_WEIGHT            |   0x 00 09 0010   |
+|   RES_CGRP_CPU_LATENCY              |   0x 00 09 0011   |
+
+The above mentioned list of enums are available in the interface file "UrmPlatformAL.h".
+
+## 3.2. Signals
+
+**Signal Code** is composed of two least significant bytes (the lower 16 bits) contains signal ID and next significant byte contains signal category
+i.e. 0xrr cc iiii  (i: signal id, t: signal category, r: reserved)
+
+The following signal codes are supported signals. Target or segment specific custom signals can be defined further.
+
+|       Signal Code             |  Code           |
+|-------------------------------|-----------------|
+|   URM_SIG_APP_OPEN            | 0x 00 02 0001   |
+|   URM_SIG_BROWSER_APP_OPEN    | 0x 00 02 0002   |
+|   URM_SIG_GAME_APP_OPEN       | 0x 00 02 0003   |
+|   URM_SIG_MULTIMEDIA_APP_OPEN | 0x 00 02 0004   |
+
+The above mentioned list of enums are available in the interface file "UrmPlatformAL.h".
+
+# 4. uRM Interface
+
+   - Platform Abstraction Layer
+   - uRM APIs
+   - Configs
+
+## 4.1. Platform Abstraction Layer
+
+This section defines logical layer to improve code and config portability across different targets and segments. 
+
+Some logical maps are present in init config, these can not be changed.
+
+**Logical Cluster Map**
 Logical IDs for clusters. Configs of cluster map can be found in InitConfigs->ClusterMap section
 | LgcId  |     Name   |
 |--------|------------|
@@ -185,8 +228,9 @@ Logical IDs for clusters. Configs of cluster map can be found in InitConfigs->Cl
 |   1    |   "big"    |
 |   2    |   "prime"  |
 
-### 2. Cgroups map
+**Cgroups map**
 Logical IDs for cgroups. Configs of cgroups map in InitConfigs->CgroupsInfo section
+
 | Lgc Cgrp No |   Cgrp Name      |
 |-------------|------------------|
 |      0      |  "root"          |
@@ -195,8 +239,8 @@ Logical IDs for cgroups. Configs of cgroups map in InitConfigs->CgroupsInfo sect
 |      3      |  "user.slice"    |
 |      4      |  "focused.slice" |
 
-### 3. Mpam Groups Map
-Logical IDs for MPAM groups. Configs of mpam grp map in InitConfigs->MpamGroupsInfo section
+**Mpam Groups Map**
+Logical IDs for MPAM groups. Configs of MPAM group map in InitConfigs->MpamGroupsInfo section
 | LgcId  |    Mpam grp Name  |
 |--------|-------------------|
 |   0    |      "default"    |
@@ -204,69 +248,36 @@ Logical IDs for MPAM groups. Configs of mpam grp map in InitConfigs->MpamGroupsI
 |   2    |       "camera"    |
 |   3    |       "games"     |
 
-## Resources
-Resource Types/Categories
-|      Resource Type    | type  |
-|-----------------------|-------|
-|   Lpm                 |   0   |
-|   Caches              |   1   |
-|   Sched               |   3   |
-|   Dcvs                |   4   |
-|   Gpu                 |   5   |
-|   Npu                 |   6   |
-|   Memory              |   7   |
-|   Mpam                |   8   |
-|   Cgroup              |   9   |
-|   Storage/Io          |   a   |
 
-Resource Code is composed of 2 least significant bytes contains resource ID and next significant byte contains resource type
-i.e. 0xrr tt iiii  (i: resource id, t: resoruce type, r: reserved)
+**Resource Types**  These are defined in UrmPlatformAL.h
+|Resource Type| type  |Resource Type| type  |
+|-------------|-------|-------------|-------|
+| Cpu Lpm     |   0   | Memory Qos  |  7    |
+| Cache Mgmt  |   1   | Mpam Qos    |  8    |
+| Cpu Sched   |   3   | Cgroup Ops  |  9    | 
+| Cpu Freq    |   4   | Storage IO  |  10   |
+| Gpu Opp     |   5   | Custom      |  128+ |
+| Npu         |   6   |             |       |
 
-|      Resource Name                          |    Id             |
-|---------------------------------------------|-------------------|
-|   RES_TUNER_CPU_DMA_LATENCY                 |   0x 00 01 0000   |
-|   RES_TUNER_PM_QOS_LATENCY                  |   0x 00 01 0001   |
-|   RES_TUNER_SCHED_UTIL_CLAMP_MIN            |   0x 00 03 0000   |
-|   RES_TUNER_SCHED_UTIL_CLAMP_MAX            |   0x 00 03 0001   |
-|   RES_TUNER_SCHED_ENERGY_AWARE              |   0x 00 03 0002   |
-|   RES_TUNER_SCALING_MIN_FREQ                |   0x 00 04 0000   |
-|   RES_TUNER_SCALING_MAX_FREQ                |   0x 00 04 0001   |
-|   RES_TUNER_RATE_LIMIT_US                   |   0x 00 04 0002   |
-|   RES_TUNER_CGROUP_MOVE_PID                 |   0x 00 09 0000   |
-|   RES_TUNER_CGROUP_MOVE_TID                 |   0x 00 09 0001   |
-|   RES_TUNER_CGROUP_RUN_ON_CORES             |   0x 00 09 0002   |
-|   RES_TUNER_CGROUP_RUN_ON_CORES_EXCLUSIVELY |   0x 00 09 0003   |
-|   RES_TUNER_CGROUP_FREEZE                   |   0x 00 09 0004   |
-|   RES_TUNER_CGROUP_LIMIT_CPU_TIME           |   0x 00 09 0005   |
-|   RES_TUNER_CGROUP_RUN_WHEN_CPU_IDLE        |   0x 00 09 0006   |
-|   RES_TUNER_CGROUP_UCLAMP_MIN               |   0x 00 09 0007   |
-|   RES_TUNER_CGROUP_UCLAMP_MAX               |   0x 00 09 0008   |
-|   RES_TUNER_CGROUP_RELATIVE_CPU_WEIGHT      |   0x 00 09 0009   |
-|   RES_TUNER_CGROUP_HIGH_MEMORY              |   0x 00 09 000a   |
-|   RES_TUNER_CGROUP_MAX_MEMORY               |   0x 00 09 000b   |
-|   RES_TUNER_CGROUP_LOW_MEMORY               |   0x 00 09 000c   |
-|   RES_TUNER_CGROUP_MIN_MEMORY               |   0x 00 09 000d   |
-|   RES_TUNER_CGROUP_SWAP_MAX_MEMORY          |   0x 00 09 000e   |
-|   RES_TUNER_CGROUP_IO_WEIGHT                |   0x 00 09 000f   |
-|   RES_TUNER_CGROUP_CPU_LATENCY              |   0x 00 09 0011   |
+**Signal Categories** These are defined UrmPlatformAL.h
+|    Signal Category       |  Value          |
+|--------------------------|-----------------|
+|   URM_SIG_CAT_TEST       |       1         |
+|   URM_SIG_CAT_GENERIC    |       2         |
+|   URM_SIG_CAT_MULTIMEDIA |       3         |
+|   URM_SIG_CAT_GAMING     |       4         |
+|   URM_SIG_CAT_BROWSER    |       5         |
+|   URM_SIG_CAT_CUSTOM     |      128+       |
 
-These are defined in resource config file, but should not be changed. Resources can be added.
+Custom resource types and signal categories must be >=128 to avoid conflicts with default types.
 
-## Signals
-Signals
-
-|      Signal           |     Id          |
-|-----------------------|-----------------|
-|   URM_APP_OPEN        |   0x 00000001   |
-|   URM_APP_CLOSE       |   0x 00000002   |
-
-
-<div style="page-break-after: always;"></div>
-
-# URM APIs
+## 4.2. uRM APIs
 This API suite allows you to manage system resource provisioning through tuning requests. You can issue, modify, or withdraw resource tuning requests with specified durations and priorities.
 
-## tuneResources
+APIs examples: 
+https://github.com/qualcomm/userspace-resource-manager/tree/main/docs/Examples
+
+### 4.2.1. tuneResources
 
 **Description:**
 Issues a resource provisioning (or tuning) request for a finite or infinite duration.
@@ -298,10 +309,177 @@ int64_t tuneResources(int64_t duration,
 - **A positive unique handle** identifying the issued request (used for future `retune` or `untune` operations)
 - `-1` otherwise.
 
----
-<div style="page-break-after: always;"></div>
+#### 4.2.1.1. SysResource
 
-## retuneResources
+```cpp
+typedef struct {
+    uint32_t mResCode;
+    int32_t mResInfo;
+    int32_t mOptionalInfo;
+    int32_t mNumValues;
+
+    union {
+        int32_t value;
+        int32_t* values;
+    } mResValue;
+} SysResource;
+```
+
+`mResCode` (`uint32_t`): An unsigned 32-bit unique identifier for the resource. It encodes essential information that is useful in abstracting away the system specific details.
+
+`mResInfo`  (`int32_t`): Encodes operation-specific information such as the Logical cluster and Logical core ID, and MPAM part ID.
+
+`mOptionalInfo`  (`int32_t`): Additional optional metadata, useful for custom or extended resource configurations.
+
+`mNumValues`  (`int32_t`): Number of values associated with the resource. If multiple values are needed, this must be set accordingly.
+
+`Value / Values`  (`uint32_t *`): It is a single value when the resource requires a single value or a pointer to an array of values for multi-value configurations.
+
+#### 4.2.1.2. Resource ResCode Construction
+This section describes how this code can be constructed. URM implements a platform abstraction layer (logical layer) which provides a transparent and consistent way for indexing resources. This makes it easy for the clients to identify the resource they want to provision, without needing to worry about portability issues across targets.
+
+```text
+Resource code (unsigned 32 bit) is composed of two fields:
+- ResID (LSBs 0-15)
+- ResType (next 8 bits, 16-23)
+
+31                 24                 16                         0
++--------------------+------------------+------------------------+
+| Reserved (1 byte)  | ResType (1 byte) |     ResId (2 bytes)    |
++--------------------+------------------+------------------------+
+```
+
+These fields combined together can uniquely identify a resource across targets, hence making the code operating on these resources interchangable.
+
+```text
+Examples:
+Code for cpu_freq (0x04) resource type and min_freq (0x00) operation : 0x00040000
+
+                     cpu_freq  min_freq
+0x00040000 - 0x00    04        00000
+
+Code for cgrp (0x09) resource type and run-cores (0x02) operation : 0x00090002
+
+                     cgrp      run-on-cores
+0x00090002 - 0x00    09        00002
+```
+
+The macro **CONSTRUCT_RES_CODE** can be used for generating opcodes directly from the resource type and resource id:
+```cpp
+   uint32_t resCode = CONSTRUCT_RES_CODE(0x09, 0x02);
+```
+
+#### 4.2.1.3. Resource ResInfo Construction
+
+The ResInfo field specified as part of the SysResource struct encodes the following information:
+
+```text
+- Bits [0 - 7]: Core Information
+- Bits [8 - 15]: Cluster Information
+- Bits [16 - 31]: MPAM Application Information
+
+31          24            16            8             0
++-------------+-------------+------------+------------+
+|      MPAM Info            |  Cluster   |     Core   |
++-------------+-------------+------------+------------+
+```
+
+```text
+Examples:
+ResInfo for if you want operate resource on big cluster(0x01) : 0x00000100
+
+                       cluster   core
+0x00040000 - 0x0000    01        00
+```
+
+The macros SET_RESOURCE_CLUSTER_VALUE and SET_RESOURCE_CORE_VALUE are provided for clients to easily specify the configuration core / cluster information, if needed.
+
+```cpp
+int32_t mResInfo = 0;
+// Set logical cluster ID to 1 (Gold)
+mResInfo = SET_RESOURCE_CLUSTER_VALUE(mResInfo, 1);
+```
+
+```cpp
+int32_t mResInfo = 0;
+// 2nd core on the little cluster
+mResInfo = SET_RESOURCE_CLUSTER_VALUE(mResInfo, 0);
+mResInfo = SET_RESOURCE_CORE_VALUE(mResInfo, 2)
+```
+**Resource mOptionalInfo**
+The mOptionalInfo field, as the name suggests can be used to store any optional information needed for resource application. It can be used as part of customized resource applier / tear callbacks if needed, else it can be left as 0.
+
+**Resource mNumValues and value(s)**
+URM Allows for both single and multi-valued configurations. The SysResource struct allows for storing all the configuration values. The field mNumValues specifies the number of values to be configured
+
+The following example shows a simple single-valued config, use the "value" field in the mResValue union.
+
+```cpp
+    SysResource resourceList[1];
+    memset(&resourceList[0], 0, sizeof(SysResource));
+    resourceList[0].mResCode = 0x0002a0be;
+    resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 1);
+    resourceList[0].mNumValues = 1;
+    resourceList[0].mResValue.value = 999;
+```
+
+If multi-valued config is needed, the use the "values" field in the mResValue union.
+
+```cpp
+    SysResource* resourceList = new SysResource[1];
+    memset(&resourceList[0], 0, sizeof(SysResource));
+
+    resourceList[0].mResCode = 0x00090007;
+    resourceList[0].mResInfo = 0;
+    resourceList[0].mNumValues = 2;
+    resourceList[0].mResValue.values = new int32_t[resourceList[0].mNumValues];
+    resourceList[0].mResValue.values[0] = 0;
+    resourceList[0].mResValue.values[1] = 55;
+```
+The caller is responsible for freeing SysResource objects and any allocated value arrays.
+
+#### 4.2.1.4. Example
+
+```cpp
+#include <iostream>
+#include <Urm/UrmAPIs.h>
+
+void sendRequest() {
+    // Define resources
+
+    // Need to tune a single resource
+    SysResource* resourceList = new SysResource[2];
+
+    //Seting cpu min_freq of big cluster
+    resourceList[0].mResCode = 0x00040000;
+    resourceList[0].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[0].mResInfo, 1);
+    resourceList[0].mNumValues = 1;
+    resourceList[0].mResValue.value = 980;
+
+    // Resource Identifier, capping cpu max_freq of prime cluster
+    resourceList[1].mResCode = 0x00040001;
+    resourceList[1].mResInfo = SET_RESOURCE_CLUSTER_VALUE(resourceList[1].mResInfo, 2);
+    resourceList[1].mNumValues = 1;
+    resourceList[1].mResValue.value = 1024;
+
+    // Issue the Tune Request
+    int64_t handle = tuneResources(5000, 0, 2, resourceList);
+
+    if(handle < 0) {
+        std::cerr<<"Failed to issue tuning request."<<std::endl;
+    } else {
+        std::cout<<"Tuning request issued. Handle: "<<handle<<std::endl;
+    }
+
+    if (resourceList) {
+        delete resourceList;
+    }
+}
+```
+The memory allocated for the resourceList needs to be freed by the caller.
+
+
+### 4.2.2. retuneResources
 
 **Description:**
 Modifies the duration of an existing tune request.
@@ -322,11 +500,23 @@ int8_t retuneResources(int64_t handle,
 - `0` if the request was successfully submitted.
 - `-1` otherwise.
 
----
+#### 4.2.2.1. Example
 
-<div style="page-break-after: always;"></div>
+The below example demonstrates the use of the retuneResources API for modifying a request's duration.
+Note: Only extension of request duration is allowed.
 
-## untuneResources
+```cpp
+void sendRequest() {
+    // Modify the duration of a previously issued Tune Request to 20 seconds
+    // Let's say we stored the handle returned by the tuneResources API in
+    // a variable called "handle". Then the retuneResources API can be simply called like:
+    if(retuneResources(handle, 20000) < 0) {
+        std::cerr<<"Failed to Send retune request to URM Server"<<std::endl;
+    }
+}
+```
+
+### 4.2.3. untuneResources
 
 **Description:**
 Withdraws a previously issued resource provisioning (or tune) request.
@@ -345,10 +535,20 @@ int8_t untuneResources(int64_t handle);
 - `0` if the request was successfully submitted.
 - `-1` otherwise.
 
----
-<div style="page-break-after: always;"></div>
+#### 4.2.3.1. Example
 
-## tuneSignal
+The below example demonstrates the use of the untuneResources API for untuning (i.e. reverting) a previously issued tune Request.
+
+```cpp
+void sendRequest() {
+    // Withdraw a Previously issued tuning request
+    if(untuneResources(handle) < 0) {
+        std::cerr<<"Failed to Send untune request to URM Server"<<std::endl;
+    }
+}
+```
+
+### 4.2.4. tuneSignal
 
 **Description:**
 Tune the signal with the given ID.
@@ -371,9 +571,7 @@ int64_t tuneSignal(uint32_t sigId,
     - The last 16 bits (17-32) are used to specify the SigID
     - The next 8 bits (9-16) are used to specify the Signal Category
     - In addition for Custom Signals, the MSB must be set to 1 as well
-- `sigType` (`uint32_t`): Type of the signal, useful for use-case based signal filtering and selection, i.e.
-                          in situations where multiple variants of the same core signal (with minor changes)
-                          need to exist to support different use-case scenarios. If no such filtering is needed, pass this field as 0.
+- `sigType` (`uint32_t`): Type of the signal, sigType is typically used in multimedia pipelines (camera, encoder, transcoder) where the same signal ID may represent multiple mode variants. Default value is 0.
 - `duration` (`int64_t`): Duration (in milliseconds) to tune the Signal for. A value of -1 denotes infinite duration.
 - `properties` (`int32_t`): Properties of the Request.
     - The last 8 bits [25 - 32] store the Request Priority (HIGH / LOW)
@@ -389,10 +587,25 @@ int64_t tuneSignal(uint32_t sigId,
 - A Positive Unique Handle to identify the issued Request. The handle is used for freeing the Provisioned signal later.
 - `-1`: If the Request could not be sent to the server.
 
----
-<div style="page-break-after: always;"></div>
+#### 4.2.4.1. Signal Code Construction
 
-## untuneSignal
+```text
+Signals are identified (similar to Resources) via an unsigned 32-bit integer.
+- SigID (LSBs 0-15)
+- Sig Category (next 8 bits, 16-23)
+
+31                 24                 16                         0
++--------------------+------------------+------------------------+
+| Reserved (1 byte)  | Sig Cat (1 byte) |     SigId (2 bytes)    |
++--------------------+------------------+------------------------+
+```
+
+The macro "CONSTRUCT_SIG_CODE" can be used for generating opcodes directly if the ResType and ResID are known:
+```cpp
+   uint32_t sigCode = CONSTRUCT_SIG_CODE(0x0d, 0x0008);
+```
+
+### 4.2.5. untuneSignal
 
 **Description:**
 Release (or free) the signal with the given handle.
@@ -414,7 +627,7 @@ int8_t untuneSignal(int64_t handle);
 ---
 <div style="page-break-after: always;"></div>
 
-## relaySignal
+### 4.2.6. relaySignal
 
 **Description:**
 Tune the signal with the given ID.
@@ -458,7 +671,7 @@ int8_t relaySignal(uint32_t sigId,
 ---
 <div style="page-break-after: always;"></div>
 
-## getProp
+### 4.2.7. getProp
 
 **Description:**
 Gets a property from the config file, this is used as property config file used for enabling or disabling internal features in uRM, can also be used by modules or clients to enable/disable features in their software based on property configs in uRM.
@@ -483,94 +696,16 @@ int8_t getProp(const char* prop,
 - `0` If the Property was found in the store, and successfully fetched
 - `-1` otherwise.
 
----
+## 4.3. Configs
 
-<div style="page-break-after: always;"></div>
-
-# Config Files Format
 URM utilises YAML files for configuration. This includes the resources, signal config files. Target can provide their own config files, which are specific to their use-case through the extension interface
 
-## 1. Initialization Configs
-Initialisation configs are mentioned in InitConfig.yaml file. This config enables URM to setup the required settings at the time of initialisation before any request processing happens.
+### 4.3.1. Initialization Configs
 
-### Common Initialization Configs
-Common initialization configs are defined in /etc/urm/common/InitConfig.yaml
-
-### Overriding Initialization Configs
-Targets can override initialization configs (in addition to common init configs, i.e. overrides specific configs) by simply pushing its own InitConfig.yaml into /etc/urm/custom/InitConfig.yaml
-
-### Overiding with Custom Extension File
-URM_REGISTER_CONFIG(INIT_CONFIG, "/bin/InitConfigCustom.yaml");
-
-### 1. Logical Cluster Map
-Configs of cluster map in InitConfigs->ClusterMap section
-| LgcId  |     Name   |
-|--------|------------|
-|   0    |   "little" |
-|   1    |   "big"    |
-|   2    |   "prime"  |
-
-### 2. Cgroups map
-Configs of cgroups map in InitConfigs->CgroupsInfo section
-| Lgc Cgrp No | Cgrp Name  |
-|-------------|------------|
-|      0      |  "default" |
-|      1      |  "bg-app"  |
-|      2      |  "top-app" |
-|      3      |"camera-app"|
-
-### 3. Mpam Groups Map
-Configs of mpam grp map in InitConfigs->MpamGroupsInfo section
-
-| Num Cache Blocks  |    Cache Type  | Prio Aware|
-|-------------------|----------------|-----------|
-|         2         |      "L2"      |     0     |
-|         1         |      "L3"      |     1     |
-
-| LgcId  |    Mpam grp Name  | prio |
-|--------|-------------------|------|
-|   0    |      "default"    |   0  |
-|   1    |       "video"     |   1  |
-|   2    |       "camera"    |   2  |
-
-<div style="page-break-after: always;"></div>
-
-#### Fields Description for CGroup Config
-
-| Field           | Type       | Description | Default Value |
-|----------------|------------|-------------|-----------------|
-| `ID`        | `int32_t` (Mandatory)   | A 32-bit unique identifier for the CGroup | Not Applicable |
-| `Create`       | `boolean` (Optional)  | Boolean flag indicating if the CGroup needs to be created by the URM server | False |
-| `IsThreaded`       | `boolean` (Optional)  | Boolean flag indicating if the CGroup is threaded | False |
-| `Name`          | `string` (Optional)   | Descriptive name for the CGroup | `Empty String` |
-
-<div style="page-break-after: always;"></div>
-
-#### Fields Description for Mpam Group Config
-
-| Field           | Type       | Description | Default Value |
-|----------------|------------|-------------|-----------------|
-| `ID`        | `int32_t` (Mandatory)   | A 32-bit unique identifier for the Mpam Group | Not Applicable |
-| `Priority`       | `int32_t` (Optional)  | Mpam Group Priority | 0 |
-| `Name`          | `string` (Optional)   | Descriptive name for the Mpam Group | `Empty String` |
-
-<div style="page-break-after: always;"></div>
-
-#### Fields Description for Cache Info Config
-
-| Field           | Type       | Description | Default Value |
-|----------------|------------|-------------|-----------------|
-| `Type`        | `string` (Mandatory)   | Type of cache (L2 or L3) for which config is intended | Not Applicable |
-| `NumCacheBlocks`  | `int32_t` (Mandatory)  | Number of Cache blocks for the above mentioned type, to be managed by URM | Not Applicable |
-| `PriorityAware`          | `boolean` (Optional)   | Boolean flag indicating if the Cache Type supports different Priority Levels. | `false` |
-
-<div style="page-break-after: always;"></div>
-
-#### Example
+Initialisation configs are mentioned in InitConfig.yaml file. This config enables URM to setup the required settings at the time of initialisation before any request processing happens. This also defines logical layer for clusters, cgroup ids, mpam partitions, etc for configs and apps to use, which promotes portability across targets and segments.
 
 ```yaml
 InitConfigs:
-  # Logical IDs should always be arranged from lower to higher cluster capacities
   - ClusterMap:
     - Id: 0
       Type: little
@@ -578,58 +713,43 @@ InitConfigs:
       Type: big
     - Id: 2
       Type: prime
-
   - CgroupsInfo:
-    - Name: "camera-cgroup"
-      Create: true
-      ID: 0
-    - Name: "audio-cgroup"
-      Create: true
+    - Name: "init.scope"
+      Create: false
       ID: 1
-    - Name: "video-cgroup"
+    - Name: "system.slice"
+      Create: false
+      ID: 2
+    - Name: "user.slice"
+      Create: false
+      ID: 3
+    - Name: "focused.slice/app.slice"
       Create: true
-      IsThreaded: true
-      ID: 2
-
-  - MPAMgroupsInfo:
-    - Name: "camera-mpam-group"
-      ID: 0
-      Priority: 0
-    - Name: "audio-mpam-group"
-      ID: 1
-      Priority: 1
-    - Name: "video-mpam-group"
-      ID: 2
-      Priority: 2
-
-  - CacheInfo:
-    - Type: L2
-      NumCacheBlocks: 2
-      PriorityAware: 0
-    - Type: L3
-      NumCacheBlocks: 1
-      PriorityAware: 1
+      ID: 4
 ```
 
----
-<div style="page-break-after: always;"></div>
+**Fields Description for CGroup Config**
+```
+| Field        | Type       | Description | Default Value |
+|--------------|------------|-------------|-----------------|
+| `ID`         | `int32_t`(Mandatory)| A 32-bit unique identifier for the CGroup | Not Applicable |
+| `Create`     | `boolean`(Optional) | Boolean flag indicating if the CGroup     |                |
+|              |                     | needs to be created by the URM server     | False          |
+| `IsThreaded` | `boolean`(Optional) | Indicate if cgroup is threaded            | False          |
+| `Name`       | `string` (Optional) | Descriptive name for the CGroup           | `Empty String` |
+```
 
-## 2. Resource Configs
+Common initialization configs are defined in /etc/urm/common/InitConfig.yaml
+
+### 4.3.2. Resource Configs
+
 Tunable resources are specified via ResourcesConfig.yaml file.
 
-### Common Resource Configs
 Common resource configs are defined in /etc/urm/common/ResourcesConfig.yaml.
 
-### Overriding Resource Configs
-Targets can override resource cofigs (can fully override or selective resources) by simply pushing its own ResourcesConfig.yaml into /etc/urm/custom/ResourcesConfig.yaml
-
-### Overiding with Custom Extension File
-URM_REGISTER_CONFIG(RESOURCE_CONFIG, "/bin/targetResourceConfigCustom.yaml");
 
 Each resource is defined with the following fields:
-
-#### Fields Description
-
+**Fields Description**
 | Field           | Type       | Description | Default Value |
 |----------------|------------|-------------|-----------------|
 | `ResID`        | `Integer` (Mandatory)   | unsigned 16-bit Resource Identifier, unique within the Resource Type. | Not Applicable |
@@ -646,10 +766,6 @@ Each resource is defined with the following fields:
 | `ApplyType` | `string` (Optional)  | Indicates if the resource can have different values, across different cores, clusters or cgroups. | `global` |
 | `TargetsEnabled`          | `array` (Optional)   | List of Targets on which this Resource should be available for tuning | `Empty List` |
 | `TargetsDisabled`          | `array` (Optional)   | List of Targets on which this Resource should not be available for tuning | `Empty List` |
-
-<div style="page-break-after: always;"></div>
-
-#### Example
 
 ```yaml
 ResourceConfigs:
@@ -676,30 +792,9 @@ ResourceConfigs:
     Policy: "lower_is_better"
 ```
 
----
-<div style="page-break-after: always;"></div>
+### 4.3.3. Properties Config
 
-## 3. Properties Config
 PropertiesConfig.yaml file stores various properties which are used by URM modules internally. For example, to allocate sufficient amount of memory for different types, or to determine the Pulse Monitor duration. Client can also use this as a property store to store their properties which gives it flexibility to control properties depending on the target.
-
-### Common Properties Configs
-Common resource configs are defined in /etc/urm/common/PropertiesConfig.yaml.
-
-### Overriding Properties Configs
-Targets can override Properties cofigs (can fully override or selective resources) by simply pushing its own PropertiesConfig.yaml into /etc/urm/custom/PropertiesConfig.yaml
-
-### Overiding with Custom Properties File
-URM_REGISTER_CONFIG(PROPERTIES_CONFIG, "/bin/targetPropertiesConfigCustom.yaml"); if Client have no specific extensions like custom resources or features only want to change the config then the above method (using the same file name and pushing it to custom folder) is the best method to go for.
-
-#### Field Descriptions
-
-| Field          | Type       | Description | Default Value  |
-|----------------|------------|-------------|----------------|
-| `Name`         | `string` (Mandatory)   | Unique name of the property | Not Applicable
-| `Value`        | `integer` (Mandatory)   | The value for the property. | Not Applicable
-
-
-#### Example
 
 ```yaml
 PropertyConfigs:
@@ -710,17 +805,24 @@ PropertyConfigs:
   - Name: resource_tuner.pulse.duration
     Value: "60000"
 ```
-<div style="page-break-after: always;"></div>
 
-## 4. Signal Configs
+**Field Descriptions**
+| Field          | Type       | Description | Default Value  |
+|----------------|------------|-------------|----------------|
+| `Name`         | `string` (Mandatory)   | Unique name of the property | Not Applicable
+| `Value`        | `integer` (Mandatory)   | The value for the property. | Not Applicable
+
+Common resource configs are defined in /etc/urm/common/PropertiesConfig.yaml.
+
+### 4.3.4. Signal Configs
 The file SignalsConfig.yaml defines the signal configs.
 
-#### Field Descriptions
-
+**Field Descriptions**
 | Field           | Type       | Description | Default Value |
 |----------------|------------|-------------|---------------|
 | `SigId`          | `Integer` (Mandatory)   | 16 bit unsigned Signal Identifier, unique within the signal category | Not Applicable |
 | `Category`          | `Integer` (Mandatory)   | 8 bit unsigned integer, indicating the Category of the Signal, for example: Generic, App Lifecycle. | Not Applicable |
+| `Type`          | `Integer` (optional)   | 32 bit unsigned integer, indicating the type of signal ex. camera encode type, no.of multiple streams in cam encode, etc | Not Applicable |
 | `Name`          | `string` (Optional)  | |`Empty String` |
 | `Enable`          | `boolean` (Optional)   | Indicates if the Signal is Eligible for Provisioning. | `False` |
 | `TargetsEnabled`          | `array` (Optional)   | List of Targets on which this Signal can be Tuned | `Empty List` |
@@ -731,442 +833,35 @@ The file SignalsConfig.yaml defines the signal configs.
 
 <div style="page-break-after: always;"></div>
 
-#### Example
-
+**Example**
 ```yaml
+# camera encode multi-stream
+# encode (12+ streams)
 SignalConfigs:
-  - SigId: "0x0"
-    Category: "0x1"
-    Name: INSTALL
+  - SigId: "0x0004"
+    Category: "0x03"
+    Type: 12
+    Name: URM_SIG_CAMERA_ENCODE_MULTI_STREAMS
     Enable: true
-    TargetsEnabled: ["sun", "moon"]
-    Permissions: ["system", "third_party"]
-    Derivatives: ["solar"]
-    Timeout: 4000
+    TargetsEnabled: ["qcm6490"]
+    Permissions: ["third_party", "system"]
     Resources:
-      - {ResId: "0x0", ResType: "0x1", OpInfo: 0, Values: [700]}
-
-  - SigId: "0x1"
-    Category: "0x1"
-    Name: EARLY_WAKEUP
-    Enable: true
-    TargetsDisabled: ["sun"]
-    Permissions: ["system"]
-    Derivatives: ["solar"]
-    Timeout: 5000
-    Resources:
-      - {ResId: "0", ResType: "0x1", OpInfo: 0, Values: [300, 400]}
-      - {ResId: "1", ResType: "0x1", OpInfo: 1024, Values: [12, 45]}
-      - {ResId: "2", ResType: "0x2", OpInfo: 32, Values: [5]}
-      - {ResId: "3", ResType: "0x4", OpInfo: 256, Values: [23, 90]}
-      - {ResId: "4", ResType: "0x1", OpInfo: 512, Values: [87]}
+      - {ResCode: "RES_CGRP_RUN_CORES", Values: [2, 0,1,2,3]}
+      - {ResCode: "RES_CGRP_RUN_CORES", Values: [3, 4,5,6,7]}
+      - {ResCode: "RES_CGRP_REL_CPU_WEIGHT", Values: [3, 90]}
+      - {ResCode: "RES_CGRP_HIGH_MEMORY", Values: [3, 1073741824]}
+      - {ResCode: "RES_CGRP_RUN_CORES", Values: [4, 0,1,2,3,4,5,6,7]}
+      - {ResCode: "RES_CGRP_REL_CPU_WEIGHT", Values: [4, 150]}
+      - {ResCode: "RES_CGRP_CPU_LATENCY", Values: [4, -20]}
+      - {ResCode: "RES_CGRP_LOW_MEMORY", Values: [4, 519430400]}
+      - {ResCode: "RES_CGRP_MIN_MEMORY", Values: [4, 119430400]}
 ```
-<div style="page-break-after: always;"></div>
+Common resource configs are defined in /etc/urm/common/SignalsConfig.yaml.
 
-## 5. (Optional) Target Configs
-The file TargetConfig.yaml defines the target configs, note this is an optional config, i.e. this
-file need not necessarily be provided. uRM can dynamically fetch system info, like target name,
-logical to physical core / cluster mapping, number of cores etc. Use this file, if you want to
-provide this information explicitly. If the TargetConfig.yaml is provided, URM will always
-overide default dynamically generated target information and use it. Also note, there are no field-level default values available if the TargetConfig.yaml is provided. Hence if you wish to provide this file, then you'll need to provide all the complete required information.
-
-#### Field Descriptions
-
-| Field           | Type       | Description | Default Value |
-|----------------|------------|-------------|---------------|
-| `TargetName`          | `string` | Target Identifier | Not Applicable |
-| `ClusterInfo`          | `array` | Cluster ID to Type Mapping | Not Applicable |
-| `ClusterSpread`          | `array` |  Cluster ID to Per Cluster Core Count Mapping | Not Applicable |
-
-<div style="page-break-after: always;"></div>
-
-#### Example
-
-```yaml
-TargetConfig:
-  - TargetName: ["QCS9100"]
-    ClusterInfo:
-      - LgcId: 0
-        PhyId: 4
-      - LgcId: 1
-        PhyId: 0
-      - LgcId: 2
-        PhyId: 9
-      - LgcId: 3
-        PhyId: 7
-    ClusterSpread:
-      - PhyId: 0
-        NumCores: 4
-      - PhyId: 4
-        NumCores: 3
-      - PhyId: 7
-        NumCores: 2
-      - PhyId: 9
-        NumCores: 1
-```
-<div style="page-break-after: always;"></div>
-
-## 6. (Optional) ExtFeatures Configs
-The file ExtFeaturesConfig.yaml defines the Extension Features, note this is an optional config, i.e. this
-file need not necessarily be provided. Use this file to specify your own custom features. Each feature is associated with it's own library and an associated list of signals. Whenever a relaySignal API request is received for any of these signals, URM will forward the request to the corresponding library.
-The library is required to implement the following 3 functions:
-- initFeature
-- tearFeature
-- relayFeature
-Refer the Examples section for more details on how to use the relaySignal API.
-
-#### Field Descriptions
-
-| Field           | Type       | Description | Default Value |
-|----------------|------------|-------------|---------------|
-| `FeatId`          | `Integer` | unsigned 32-bit Unique Feature Identifier | Not Applicable |
-| `LibPath`         | `string` | Path to the associated library | Not Applicable |
-| `Signals`         | `array` |  List of signals to subscribe the feature to | Not Applicable |
-
-<div style="page-break-after: always;"></div>
-
-#### Example
-
-```yaml
-FeatureConfigs:
-  - FeatId: "0x00000001"
-    Name: "FEAT-1"
-    LibPath: "rlib2.so"
-    Description: "Simple Algorithmic Feature, defined by the BU"
-    Signals: ["0x00050000", "0x00050001"]
-
-  - FeatId: "0x00000002"
-    Name: "FEAT-2"
-    LibPath: "rlib1.so"
-    Description: "Simple Observer-Observable Feature, defined by the BU"
-    Subscribers: ["0x00050000", "0x00050002"]
-```
-
----
-
-<div style="page-break-after: always;"></div>
-
-# Resource Format
-
-As part of the tuneResources APIs, the resources (which need to be provisioned) are specified by using
-a List of `Resource` structures. The format of the `Resource` structure is as follows:
-
-```cpp
-typedef struct {
-    uint32_t mResCode;
-    int32_t mResInfo;
-    int32_t mOptionalInfo;
-    int32_t mNumValues;
-
-    union {
-        int32_t value;
-        int32_t* values;
-    } mResValue;
-} SysResource;
-```
-
-**mResCode**: An unsigned 32-bit unique identifier for the resource. It encodes essential information that is useful in abstracting away the system specific details.
-
-**mResInfo**: Encodes operation-specific information such as the Logical cluster and Logical core ID, and MPAM part ID.
-
-**mOptionalInfo**: Additional optional metadata, useful for custom or extended resource configurations.
-
-**mNumValues**: Number of values associated with the resource. If multiple values are needed, this must be set accordingly.
-
-**Value / Values**: It is a single value when the resource requires a single value or a pointer to an array of values for multi-value configurations.
-
-<div style="page-break-after: always;"></div>
-
-## Notes on Resource ResCode
-
-As mentioned above, the resource code is an unsigned 32 bit integer. This section describes how this code can be constructed. URM implements a System Independent Layer(SIL) which provides a transparent and consistent way for indexing resources. This makes it easy for the clients to identify the resource they want to provision, without needing to worry about portability issues across targets or about the order in which the resources are defined in the YAML files.
-
-Essentially, the resource code (unsigned 32 bit) is composed of two fields:
-- ResID (last 16 bits, 17 - 32)
-- ResType (next 8 bits, 9 - 16)
-- Additionally MSB should be set to '1' if customer or other modules or target chipset is providing it's own custom resource config files, indicating this is a custom resource else it shall be treated as a default resource. This bit doesn't influence resource processing, just to aid debugging and development.
-
-These fields can uniquely identify a resource across targets, hence making the code operating on these resources interchangable. In essence, we ensure that the resource with code "x", refers to the same tunable resource across different targets.
-
-Examples:
-- The ResCode: 65536 (0x00010000) [00000000 00000001 00000000 00000000], Refers to the Default Resource with ResID 0 and ResType 1.
-- The ResCode: 2147549185 (0x80010001) [10000000 00000001 00000000 00000001], Refers to the Custom Resource with ResID 1 and ResType 1.
-
-#### List Of Resource Types (Use this table to get the value of ResType for a Resource)
-
-| Name           | ResType  | Examples |
-|----------------|----------|----------|
-|    LPM       |    `1`   | `/dev/cpu_dma_latency`, `/sys/devices/system/cpu/cpu<>/power/pm_qos_resume_latency_us` |
-|    CACHES    |    `2`   | |
-|    CPU_SCHED   |    `3`   | `/proc/sys/kernel/sched_util_clamp_min`, `/proc/sys/kernel/sched_util_clamp_max` |
-|    CPU_DCVS    |    `4`   | `/sys/devices/system/cpu/cpufreq/policy<>/scaling_min_freq`, `/sys/devices/system/cpu/cpufreq/policy<>/scaling_max_freq` |
-|    GPU         |    `5`   | |
-|    NPU         |    `6`   | |
-|    MEMORY      |    `7`   | |
-|    MPAM        |    `8`   | |
-| Cgroup         |    `9`   | `/sys/fs/cgroup/%s/cgroup.procs`, `/sys/fs/cgroup/%s/cgroup.threads`, `/sys/fs/cgroup/%s/cpuset.cpus`, `/sys/fs/cgroup/%s/cpuset.cpus.partition`, `/sys/fs/cgroup/%s/cgroup.freeze`, `/sys/fs/cgroup/%s/cpu.max`, `/sys/fs/cgroup/%s/cpu.idle`, `/sys/fs/cgroup/%s/cpu.uclamp.min`, `/sys/fs/cgroup/%s/cpu.uclamp.max`, `/sys/fs/cgroup/%s/cpu.weight`, `/sys/fs/cgroup/%s/memory.max`, `/sys/fs/cgroup/%s/memory.min`, `/sys/fs/cgroup/%s/cpu.weight.nice` |
-|    STORAGE      |    `a`   | |
-
----
-
-<div style="page-break-after: always;"></div>
-
-# Example Usage of URM APIs
-
-## tuneResources
-
-Note the following code snippets showcase the use of URM APIs. For more in-depth examples
-refer "link to examples dir"
-
-This example demonstrates the use of tuneResources API for resource provisioning.
-```cpp
-#include <iostream>
-#include <ResourceTuner/ResourceTunerAPIs.h>
-
-void sendRequest() {
-    // Define resources
-    SysResource* resourceList = new SysResource[1];
-    resourceList[0].mResCode = 65536;
-    resourceList[0].mNumValues = 1;
-    resourceList[0].mResValue.value = 980;
-
-    // Issue the Tune Request
-    int64_t handle = tuneResources(5000, 0, 1, resourceList);
-
-    if(handle < 0) {
-        std::cerr<<"Failed to issue tuning request."<<std::endl;
-    } else {
-        std::cout<<"Tuning request issued. Handle: "<<handle<<std::endl;
-    }
-}
-```
-
-The memory allocated for the resourceList will be freed by the tuneResources API. The user of
-this API should not free this memory.
-
-<div style="page-break-after: always;"></div>
-
-## retuneResources
-
-The below example demonstrates the use of the retuneResources API for modifying a request's duration.
-```cpp
-void sendRequest() {
-    // Modify the duration of a previously issued Tune Request to 20 seconds
-    // Let's say we stored the handle returned by the tuneResources API in
-    // a variable called "handle". Then the retuneResources API can be simply called like:
-    if(retuneResources(20000, handle) < 0) {
-        std::cerr<<"Failed to Send retune request to URM Server"<<std::endl;
-    }
-}
-```
-
-<div style="page-break-after: always;"></div>
-
-## untuneResources
-
-The below example demonstrates the use of the untuneResources API for untuning a previously issued tune Request.
-```cpp
-void sendRequest() {
-    // Withdraw a Previously issued tuning request
-    if(untuneResources(handle) == -1) {
-        std::cerr<<"Failed to Send untune request to URM Server"<<std::endl;
-    }
-}
-```
-
----
-
-<div style="page-break-after: always;"></div>
-
-# Extension Interface
-
-The URM framework allows target chipsets to extend its functionality and customize it to their use-case. Extension interface essentially provides a series of hooks to the targets or other modules to add their own custom behaviour. This is achieved through a lightweight extension interface. This happens in the initialisation phase before the service is ready for requests.
-
-Specifically the extension interface provides the following capabilities:
-- Registering custom resource handlers
-- Registering custom configuration files (This includes resource configs, signal configs and property configs). This allows, for example the specification of custom resources.
-
-## Extension APIs
-
-### URM_REGISTER_RES_APPLIER_CB
-
-Registers a custom resource Applier handler with the system. This allows the framework to invoke a user-defined callback when a tune request for a specific resource opcode is encountered. A function pointer to the callback is to be registered.
-Now, instead of the default resource handler (provided by URM), this callback function will be called when a Resource Provisioning Request for this particular resource opcode arrives.
-
-### Usage Example
-```cpp
-void applyCustomCpuFreqCustom(void* res) {
-    // Custom logic to apply CPU frequency
-    return 0;
-}
-
-URM_REGISTER_RES_APPLIER_CB(0x00010001, applyCustomCpuFreqCustom);
-```
-
----
-
-### URM_REGISTER_RES_TEAR_CB
-
-Registers a custom resource teardown handler with the system. This allows the framework to invoke a user-defined callback when an untune request for a specific resource opcode is encountered. A function pointer to the callback is to be registered.
-Now, instead of the normal resource handler (provided by URM), this callback function will be called when a Resource Deprovisioning Request for this particular resource opcode arrives.
-
-### Usage Example
-```cpp
-void resetCustomCpuFreqCustom(void* res) {
-    // Custom logic to clear currently applied CPU frequency
-    return 0;
-}
-
-URM_REGISTER_RES_TEAR_CB(0x00010001, resetCustomCpuFreqCustom);
-```
-
----
-
-### URM_REGISTER_CONFIG
-
-Registers a custom configuration YAML file. This enables target chipset to provide their own config files, i.e. allowing them to provide their own custom resources for example.
-
-### Usage Example
-```cpp
-URM_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/bin/targetResourceConfigCustom.yaml");
-```
-The above line of code, will tell URM to read the resource configs from the file
-"/etc/bin/targetResourceConfigCustom.yaml" instead of the default file. note, the target chipset must honour the structure of the YAML files, for them to be read and registered successfully.
-
-Custom signal config file can be specified similarly:
-
-### Usage Example
-```cpp
-URM_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/bin/targetSignalConfigCustom.yaml");
-```
-
----
-<div style="page-break-after: always;"></div>
-
-
-# URM Implementation Details
-
-<img src="design_resource_tuner.png" alt="URM Design" width="70%"/>
-
-URM architecture is captured above.
-
-## Initialization
-- During the server initialization phase, the YAML config files are read to build up the resource registry, property store etc.
-- If the target chipset has registered any custom resources, signals or custom YAML files via the extension interface, then these changes are detected during this phase itself to build up a consolidated system view, before it can start serving requests.
-- During the initialization phase, memory is pre-allocated for commonly used types (via MemoryPool), and worker (thread) capacity is reserved in advance via the ThreadPool, to avoid any delays during the request processing phase.
-- URM will also fetch the target details, like target name, total number of cores, logical to physical cluster / core mapping in this phase.
-- If the Signals module is plugged in, it will be initialized as well and the signal configs will be parsed similarly to resource configs.
-- Once all the initialization is completed, the server is ready to serve requests, a new listener thread is created for handling requests.
-
-<div style="page-break-after: always;"></div>
-
-## Request Processing
-- The client can use the URM client library to send their requests.
-- URM supports sockets and binders for client-server communication.
-- As soon as the request is received on the server end, a handle is generated and returned to the client. This handle uniquely identifies the request and can be used for subsequent retune (retuneResources) or untune (untuneResources) API calls.
-- The request is submitted to the ThreadPool for async processing.
-- When the request is picked up by a worker thread (from the ThreadPool), it will decode the request message and then validate the request.
-- The request verifier, will run a series of checks on the request like permission checks, and on the resources part of the request, like config value bounds check.
-- Once request is verified, a duplicate check is performed, to verify if the client has already submitted the same request before. This is done so as to the improve system efficiency and performace.
-- Next the request is added to an queue, which is essentially PriorityQueue, which orders requests based on their priorities (for more details on Priority Levels, refer the next Section). This is done so that the request with the highest priority is always served first.
-- To handle concurrent requests for the same resource, we maintain resource level linked lists of pending requests, which are ordered according to the request priority and resource policy. This ensures that the request with the higher priority will always be applied first. For two requests with the same priority, the application order will depend on resource policy. For example, in case of resource with "higher is better" policy, the request with a higher configuration value for the resource shall take effect first.
-- Once a request reaches the head of the resource level linked list, it is applied, i.e. the config value specified by this request for the resource takes effect on the corresponding sysfs node.
-- A timer is created and used to keep track of a request, i.e. check if it has expired. Once it is detected that the request has expired an untune request for the same handle as this request, is automatically generated and submitted, it will take care of resetting the effected resource nodes to their original values.
-- Client modules can provide their own custom resource actions for any resource. The default action provided by URM is writing to the resource sysfs node.
-
----
-<div style="page-break-after: always;"></div>
-
-Here is a more detailed explanation of the key features discussed above:
-
-## 1. Client-Level Permissions
-Certain resources can be tuned only by system clients and some which have no such restrictions and can be tuned even by third party clients. The client permissions are dynamically determined, the first time it makes a request. If a client with third party permissions tries to tune a resource, which allows only clients with system permissions to tune it, then the request shall be dropped.
-
-## 2. Resource-Level Policies
-To ensure efficient and predictable handling of concurrent requests, each system resource is governed by one of four predefined policies. Selecting the appropriate policy helps maintain system stability, optimize performance/power, and align resource behavior with application requirements.
-
-- Instant Apply: This policy is for resources where the latest request needs to be honored. This is kept as the default policy.
-- Higher is better: This policy honors the request writing the highest value to the node. One of the cases where this makes sense is for resources that describe the upper bound value. By applying the higher-valued request, the lower-valued request is implicitly honored.
-- Lower is better: Works exactly opposite of the higher is better policy.
-- Lazy Apply: Sometimes, you want the resources to apply requests in a first-in-first-out manner.
-
-## 3. Request-Level Priorities
-As part of the tuneResources API call, client is allowed to specify a desired priority level for the request. URM supports 2 priority levels:
-- High
-- Low
-
-However when multiplexed with client-level permissions, effetive request level priorities would be
-- System High [SH]
-- System Low [SL]
-- Third Party High (or Regular High) [TPH]
-- Third Party Low (or Regular Low) [TPL]
-
-Requests with a higher priority will always be prioritized, over another request with a lower priority. Note, the request priorities are related to the client permissions. A client with system permission is allowed to acquire any priority level it wants, however a client with third party permissions can only acquire either third party high (TPH) or third party low (TPL) level of priorities. If a client with third party permissions tries to acquire a System High or System Low level of priority, then the request will not be honoured.
-
-## 4. Pulse Monitor: Detection of Dead Clients and Subsequent Cleanup
-To improve efficiency and conserve memory, it is essential to regularly check for dead clients and free up any system resources associated with them. This includes, untuning all (if any) ongoing tune request issued by this client and freeing up the memory used to store client specific data (Example: client's list of requests (handles), health, permissions, threads associated with the client etc). URM ensures that such clients are detected and cleaned up within 90 seconds of the client terminated.
-
-URM performs these actions by making use of two components:
-- Pulse check: scans the list of the active clients, and checks if any of the client (PID) is dead. If it finds a dead client, it schedules the cleanup by adding this PID to a queue.
-- Garbage collection: When the thread runs it iterates over the GC queue and performs the cleanup.
-
-Pulse Monitor runs on a seperate thread peroidically.
-
-## 5. Rate Limiter: Preventing System Abuse
-URM has a rate limiter module that prevents abuse of the system by limiting the number of requests a client can make within a given time frame. This helps to prevent clients from overwhelming the system with requests and ensures that the system remains responsive and efficient. Rate limiter works on a reward/punishment methodology. Whenever a client requests the system for the first time, it is assigned a "Health" of 100. A punishment is handed over if a client makes subsequent new requests in a very short time interval (called delta, say 2 ms).
-A Reward results in increasing the health of a client (not above 100), while a punishment involves decreasing the health of the client. If at any point this value of Health reaches zero then any further requests from this client wil be dropped. Value of delta, punishment and rewards are target-configurable.
-
-## 6. Duplicate Checking
-URM's RequestManager component is responsible for detecting any duplicate requests issued by a client, and dropping them. This is done by checking against a list of all the requests issued by a clientto identify a duplicate. If it is, then the request is dropped. If it is not, then the request is added and processed. Duplicate checking helps to improve system efficiency, by saving wasteful CPU time on processing duplicates.
-
-## 7. Dynamic Mapper: Logical to Physical Mapping
-Logical to physical core/cluster mapping helps to achieve application code portability across different chipsets on client side. Client can specify logical values for core and cluster. URM will translate these values to their physical counterparts and apply the request accordingly. Logical to physical mapping helps to create system independent layer and helps to make the same client code interchangable across different targets.
-
-Logical mapping entries can be found in InitConfig.yaml and can be modified if required.
-
-Logical layer values always arranged from lower to higher cluster capacities.
-If no names assigned to entries in the dynamic mapping table then cluster'number' will be the name of the cluster
-for ex. LgcId 4 named as "cluster4"
-
-below table present in InitConfigs->ClusterMap section
-| LgcId  |     Name   |
-|--------|------------|
-|   0    |   "little" |
-|   1    |   "big"    |
-|   2    |    "prime" |
-
-URM reads machine topology and prepares logical to physical table dynamically in the init phase, similar to below one
-| LgcId  |  PhyId  |
-|--------|---------|
-|   0    |     0   |
-|   1    |     1   |
-|   2    |     3   |
-|   3    |     2   |
-
-
-## 8. Display-Aware Operational Modes
-The system's operational modes are influenced by the state of the device's display. To conserve power, certain system resources are optimized only when the display is active. However, for critical components that require consistent performance—such as during background processing or time-sensitive tasks, resource tuning can still be applied even when the display is off, including during low-power states like doze mode. This ensures that essential operations maintain responsiveness without compromising overall energy efficiency.
-
-## 9. Crash Recovery
-In case of server crash, URM ensures that all the resource sysfs nodes are restored to a sane state, i.e. they are reset to their original values. This is done by maintaining a backup of all the resource's original values, before any modification was made on behalf of the clients by urm. In the event of server crash, reset to their original values in the backup.
-
-## 10. Flexible Packaging
-The Users are free to pick and choose the URM modules they want for their use-case and which fit their constraints. The Framework Module is the core/central module, however if the users choose they can add on top of it other Modules: signals and profiles.
-
-## 11. Pre-Allocate Capacity for efficiency
-URM provides a MemoryPool component, which allows for pre-allocation of memory for certain commonly used type at the time of server initialization. This is done to improve the efficiency of the system, by reducing the number of memory allocations and deallocations that are required during the processing of requests. The allocated memory is managed as a series of blocks which can be recycled without any system call overhead. This reduces the overhead of memory allocation and deallocation, and improves the performance of the system.
-
-Further, a ThreadPool component is provided to pre-allocate processing capacity. This is done to improve the efficiency of the system, by reducing the number of thread creation and destruction required during the processing of Requests, further ThreadPool allows for the threads to be repeatedly reused for processing different tasks.
-
----
-<div style="page-break-after: always;"></div>
-
-# Client CLI
+## 5. Client CLI
 URM provides a minimal CLI to interact with the server. This is provided to help with development and debugging purposes.
 
-## Usage Examples
-
-### 1. Send a Tune Request
+### 5.1. Send a Tune Request
 ```bash
 /usr/bin/urmCli --tune --duration <> --priority <> --num <> --res <>
 ```
@@ -1194,7 +889,7 @@ Example:
 /usr/bin/urmCli --tune --duration 6500 --priority 0 --num 2 --res "0x00030000:800;0x00040011#0x00000101:50000,100000"
 ```
 
-### 2. Send an Untune Request
+### 5.2. Send an Untune Request
 ```bash
 /usr/bin/urmCli --untune --handle <>
 ```
@@ -1206,7 +901,7 @@ Example:
 /usr/bin/urmCli --untune --handle 50
 ```
 
-### 3. Send a Retune Request
+### 5.3. Send a Retune Request
 ```bash
 /usr/bin/urmCli --retune --handle <> --duration <>
 ```
@@ -1219,7 +914,7 @@ Example:
 /usr/bin/urmCli --retune --handle 7 --duration 8000
 ```
 
-### 4. Send a getProp Request
+### 5.4. Send a getProp Request
 
 ```bash
 /usr/bin/urmCli --getProp --key <>
@@ -1232,7 +927,7 @@ Example:
 /usr/bin/urmCli --getProp --key "urm.logging.level"
 ```
 
-### 5. Send a tuneSignal Request
+### 5.5. Send a tuneSignal Request
 
 ```bash
 /usr/bin/urmCli --signal --scode <>
@@ -1247,13 +942,573 @@ Example:
 
 <div style="page-break-after: always;"></div>
 
-# Contact
+# 6. Customizations & Extensions
+
+ - Extension Interface
+ - Custom Configs
+ - Extension Features
+
+## 6.1. Extensions Interface
+
+The URM extesnion framework allows target chipsets to extend its functionality and customize it to their use-case. Extension interface essentially provides a series of hooks to the targets or other modules to add their own custom behaviour. This is achieved through a lightweight extension interface. This happens in the initialisation phase before the service is ready for requests.
+
+Specifically the extension interface provides the following capabilities:
+- Registering custom resource handlers
+- Registering custom configuration files
+- Extension features
+
+**Extension APIs**
+
+### 6.1.1. Registering Resource Callbacks
+
+Registers a custom resource applier (URM_REGISTER_RES_APPLIER_CB) handler with the system. This allows the framework to invoke a user-defined callback when a tune request for a specific resource opcode is encountered. A function pointer to the callback is to be registered. Now, instead of the default resource handler (provided by URM), this callback function will be called when a resource provisioning request for this particular resource opcode arrives.
+
+Registers a custom resource teardown handler (URM_REGISTER_RES_TEAR_CB) with the system. This allows the framework to invoke a user-defined callback when an untune request for a specific resource opcode is encountered. A function pointer to the callback is to be registered. Now, instead of the normal resource handler (provided by URM), this callback function will be called when a resource deprovisioning request for this particular resource opcode arrives.
+
+**Usage Example**
+
+```cpp
+void applyCustomCpuFreqCustom(void* res) {
+    // Custom logic to apply CPU frequency
+    return 0;
+}
+
+URM_REGISTER_RES_APPLIER_CB(0x00010001, applyCustomCpuFreqCustom);
+```
+
+```cpp
+void resetCustomCpuFreqCustom(void* res) {
+    // Custom logic to clear currently applied CPU frequency
+    return 0;
+}
+
+URM_REGISTER_RES_TEAR_CB(0x00010001, resetCustomCpuFreqCustom);
+```
+
+
+### 6.1.2. Registering Custom Configs
+
+Custom config files either can be placed in /etc/urm/custom or Registers a custom configuration (URM_REGISTER_CONFIG) YAML file. This enables target chipset to provide their own config files, i.e. allowing them to provide their own custom resources for example.
+
+**Usage Example**
+
+```cpp
+URM_REGISTER_CONFIG(RESOURCE_CONFIG, "/etc/custom_dir/targetResourceConfigCustom.yaml");
+```
+The above line of code, will tell URM to read the resource configs from the file
+"/etc/custom_dir/targetResourceConfigCustom.yaml" instead of the default file. Note: the target chipset must honour the structure of the YAML files, for them to be read and registered successfully.
+
+Custom signal config file can be specified similarly:
+
+```cpp
+URM_REGISTER_CONFIG(SIGNALS_CONFIG, "/etc/bin/targetSignalConfigCustom.yaml");
+```
+
+
+## 6.2. Custom Configs
+uRM allows to add custom configs and override configs items. It also provides additional configs.
+
+### 6.2.1. Initialization Configs
+Custom init configs can be added to init config yaml. New init sections can be defined. For example "ClusterMap" can be redefined if your target has 4 clusters. Also you can define new section like MPAMgroupsInfo, see the example below.
+
+```yaml
+InitConfigs:
+  # Logical IDs should always be arranged from lower to higher cluster capacities
+  - ClusterMap:
+    - Id: 0
+      Type: cluster0
+    - Id: 1
+      Type: cluster1
+    - Id: 2
+      Type: cluster2
+    - Id: 3
+      Type: cluster3
+
+  - MPAMgroupsInfo:
+    - Name: "default"
+      ID: 0
+      Priority: 0
+    - Name: "camera-mpam-group"
+      ID: 1
+      Priority: 1
+    - Name: "audio-mpam-group"
+      ID: 2
+      Priority: 2
+    - Name: "video-mpam-group"
+      ID: 3
+      Priority: 3
+
+  - CacheInfo:
+    - Type: L2
+      NumCacheBlocks: 2
+      PriorityAware: 0
+    - Type: L3
+      NumCacheBlocks: 1
+      PriorityAware: 1
+```  
+
+Fields Description for Mpam Group Config
+| Field     | Type                | Description                | Default Value  |
+|-----------|---------------------|----------------------------|----------------|
+| `ID`      | `int32_t`(Mandatory)| A 32-bit unique identifier |                |
+|           |                     | for the Mpam Group         | Not Applicable |
+| `Priority`| `int32_t`(Optional) | Mpam Group Priority        | 0              |
+| `Name`    | `string` (Optional) | Descriptive name for the   |                |
+|           |                     | Mpam Group                 | `Empty String` |
+
+Fields Description for Cache Info Config
+
+| Field           | Type                | Description                  | Default Value |
+|-----------------|---------------------|------------------------------|---------------|
+| `Type`          | `string` (Mandatory)| Type of cache (L2 or L3)     |               |
+|                 |                     | for which config is intended | Not Applicable|
+| `NumCacheBlocks`| `int32_t`(Mandatory)| Number of Cache blocks for   |               |
+|                 |                     | the above mentioned type,    |               |
+|                 |                     | to be managed by URM         | Not Applicable|
+| `PriorityAware` | `boolean`(Optional) | Boolean flag indicating if   |               |
+|                 |                     | the Cache Type supports      |               |
+|                 |                     | different Priority Levels    | `false`       |
+
+Initialisation configs can be customized. Entire init config file can be overided by
+- Targets can override initialization configs (in addition to common init configs, i.e. overrides specific configs) by simply pushing its own InitConfig.yaml into /etc/urm/custom/InitConfig.yaml
+- register with extension interface 
+  URM_REGISTER_CONFIG(INIT_CONFIG, "/bin/InitConfigCustom.yaml");
+
+### 6.2.2. Resource Configs
+Custom resources can be added to resources config yaml. New resources can be defined. For example "MY_OWN_CPU_SCHED_RESOURCE" defined in the example below in sched resource type (you can also choose custom resource type), and ID is taken next resource ID available after upstream resources, resource ID can also be any custom ID that you choose if you want. 
+
+```yaml
+ResourceConfigs:
+  - ResType: "0x3"
+    ResID: "0x10"
+    Name: "MY_OWN_CPU_SCHED_RESOURCE"
+    Path: "/proc/sys/kernel/sched_up_down_migrate"
+    Supported: true
+    HighThreshold: 1024
+    LowThreshold: 0
+    Permissions: "third_party"
+    Modes: ["display_on", "doze"]
+    Policy: "higher_is_better"
+```
+Resources config yaml file can be given in one of the below ways
+- Targets can override resource configs by simply pushing its own ResourcesConfig.yaml into /etc/urm/custom/ResourcesConfig.yaml
+- Register your resources config with URM_REGISTER_CONFIG(RESOURCE_CONFIG, "/bin/targetResourceConfigCustom.yaml");
+
+<div style="page-break-after: always;"></div>
+
+### 6.2.3. Properties Config
+Custom properties can be added to properties config yaml. Default property can be overridden or new properties can be defined. For example "resource_tuner.maximum.concurrent.requests" default property overridden with new value, and a new property "user_own_property" defined in the example below
+
+```yaml
+PropertyConfigs:
+  - Name: resource_tuner.maximum.concurrent.requests
+    Value: "5"
+  - Name: user_own_property
+    Value: "64"
+```
+Properties config yaml file can be given in one of the below ways
+- Targets can override properties configs by placing "PropertiesConfig.yaml" into /etc/urm/custom/PropertiesConfig.yaml
+- Register your property config with URM_REGISTER_CONFIG(PROPERTIES_CONFIG, "/bin/targetPropertiesConfigCustom.yaml");
+
+<div style="page-break-after: always;"></div>
+
+### 6.2.4. Signal Configs
+Custom signal configs can be added to signals config yaml. New signal configs can be defined. For example "URM_SIG_VIDEO_DECODE" is defined in the example below, you can use custom signal category, Id, and resources. 
+
+```yaml
+SignalConfigs:
+  # Video decode
+  # Default decode 30 fps
+  - SigId: "0x0001"
+    Category: "0x03"
+    Name: "URM_SIG_VIDEO_DECODE"
+    Enable: true
+    TargetsEnabled: ["qcm6490"]
+    Permissions: ["third_party", "system"]
+    Resources:
+      - {ResCode: "RES_CGRP_RUN_CORES", Values: [2, 0,1,2,3]}
+      - {ResCode: "RES_CGRP_RUN_CORES", Values: [3, 4,5,6]}
+      - {ResCode: "RES_CGRP_REL_CPU_WEIGHT", Values: [3, 90]}
+      - {ResCode: "RES_CGRP_HIGH_MEMORY", Values: [3, 1073741824]}
+      - {ResCode: "RES_CGRP_RUN_CORES", Values: [4, 0,1,2,3,4,5,6]}
+      - {ResCode: "RES_CGRP_REL_CPU_WEIGHT", Values: [4, 150]}
+      - {ResCode: "RES_CGRP_CPU_LATENCY", Values: [4, -20]}
+      - {ResCode: "RES_CGRP_LOW_MEMORY", Values: [4, 519430400]}
+      - {ResCode: "RES_CGRP_MIN_MEMORY", Values: [4, 119430400]}
+      - {ResCode: "RES_SCALING_MAX_FREQ", ResInfo: "CLUSTER_LITTLE_ALL_CORES", Values: [940800]}
+      - {ResCode: "RES_SCALING_MAX_FREQ", ResInfo: "CLUSTER_BIG_ALL_CORES", Values: [940800]}
+      - {ResCode: "RES_SCALING_MAX_FREQ", ResInfo: "CLUSTER_PLUS_ALL_CORES", Values: [940800]}
+```
+Signal config yaml file can be given in one of the below ways
+- Targets can override signal configs by simply pushing its own SignalsConfig.yaml into /etc/urm/custom/SignalsConfig.yaml
+- Register your signals config with URM_REGISTER_CONFIG(SIGNALS_CONFIG, "/bin/targetSignalConfigCustom.yaml");
+
+<div style="page-break-after: always;"></div>
+
+### 6.2.5. Target Configs
+The file TargetConfig.yaml defines the target configs, note this is an optional config, i.e. this
+file need not necessarily be provided. uRM can dynamically fetch system info, like target name,
+logical to physical core / cluster mapping, number of cores etc. Use this file, if you want to
+provide this information explicitly. If the TargetConfig.yaml is provided, URM will always
+overide default dynamically generated target information with given config and use it. Also note, there are no field-level default values available if the TargetConfig.yaml is provided. Hence if you wish to provide this file, then you'll need to provide all the complete required information.
+
+
+| Field           | Type       | Description                                   | Default Value  |
+|-----------------|------------|-----------------------------------------------|----------------|
+| `TargetName`    | `string`   | Target Identifier                             | Not Applicable |
+| `ClusterInfo`   | `array`    | Cluster ID to Type Mapping                    | Not Applicable |
+| `ClusterSpread` | `array`    |  Cluster ID to Per Cluster Core Count Mapping | Not Applicable |
+
+
+```yaml
+TargetConfig:
+  - TargetName: ["QCS9100"]
+    ClusterInfo:
+      - LgcId: 0
+        PhyId: 4
+      - LgcId: 1
+        PhyId: 0
+      - LgcId: 2
+        PhyId: 9
+      - LgcId: 3
+        PhyId: 7
+    ClusterSpread:
+      - PhyId: 0
+        NumCores: 4
+      - PhyId: 4
+        NumCores: 3
+      - PhyId: 7
+        NumCores: 2
+      - PhyId: 9
+        NumCores: 1
+```
+
+## 6.3. Extension Features
+
+The file ExtFeaturesConfig.yaml defines the Extension Features, note this is an optional config, i.e. this
+file need not necessarily be provided. Use this file to specify your own custom features. Each feature is associated with it's own library and an associated list of signals. Whenever a relaySignal API request is received for any of these signals, URM will forward the request to the corresponding library.
+The library is required to implement the following 3 functions:
+- initFeature
+- tearFeature
+- relayFeature
+Refer the Examples section for more details on how to use the relaySignal API.
+
+**Field Descriptions**
+
+| Field     | Type      | Description                                 | Default Value  |
+|-----------|-----------|---------------------------------------------|----------------|
+| `FeatId`  | `Integer` | unsigned 32-bit Unique Feature Identifier   | Not Applicable |
+| `LibPath` | `string`  | Path to the associated library              | Not Applicable |
+| `Signals` | `array`   | List of signals to subscribe the feature to | Not Applicable |
+
+
+**Example Config:**
+
+```yaml
+FeatureConfigs:
+  - FeatId: "0x00000001"
+    Name: "FEAT-1"
+    LibPath: "rlib2.so"
+    Description: "Simple Algorithmic Feature, defined by the BU"
+    Signals: ["0x00050000", "0x00050001"]
+
+  - FeatId: "0x00000002"
+    Name: "FEAT-2"
+    LibPath: "rlib1.so"
+    Description: "Simple Observer-Observable Feature, defined by the BU"
+    Subscribers: ["0x00050000", "0x00050002"]
+```
+
+
+# 7. URM Implementation Details
+
+## 7.1. Project Structure
+
+```text
+.
+├── client
+├── configs
+├── contextual-classifier
+├── debian
+├── docs
+├── extensions
+├── modula
+├── public_headers
+└── resource-tuner
+```
+
+
+## 7.2. Userspace Resource Manager Key Points
+
+Userspace resource manager (uRM) contains
+- Userspace resource manager (uRM) exposes a variery of APIs for resource tuning and use-case/scenario tuning
+- These APIs can be used by apps, features and other modules
+- Using these APIs, client can tune any system resource parameters like cpu, dcvs, min / max frequencies etc.
+- Userspace resource manager (uRM) provides
+
+### 7.2.1. Contextual Classifier
+
+The Contextual Classifier is an optional module designed to identify the static context of workloads (e.g., whether an application is a game, multimedia app, or browser) based on an offline-trained model.
+
+**Key functionalities include:**
+- **Process Event Monitoring:** Monitors process creation and termination events via Netlink.
+- **Process Classification:** Classifies workloads (e.g., game, multimedia) using fastText (if enabled at build time). If fastText is not built, a default inference mechanism that always classifies the workload as an application.
+- **Signal Generation:** Retrieves specific signal details based on classified workload types.
+- **Cgroup Management:** Dynamically manages cgroups by moving application threads to designated cgroups.
+- **Action Application:** Calls `ApplyActions` to send tuning requests and `RemoveActions` to untune for process events.
+- **Configurability:** Influenced by configuration files such as `fasttext_model_supervised.bin`, `classifier-blocklist.txt`, and `ignore-tokens.txt`.
+
+**Flow of Events:**
+
+```
++---------------------------+
+| Process Event Listener    |
+|       (NetLinkComm)       |
++-------------+-------------+
+              |
+              | Catches process events (e.g., fork, exec, exit)
+              v
++---------------------------+
+|      HandleProcEv()       |
+| (Filters and queues events)|
++-------------+-------------+
+              |
+              | Notifies worker thread
+              v
++---------------------------+
+|     ClassifierMain()      |
+|    (Worker Thread)        |
++-------------+-------------+
+              |
+              +----(Event Type)-----+
+              |                     |
+              v                     v
+        +------------+        +-------------+
+        | CC_APP_OPEN|        | CC_APP_CLOSE|
+        +-----+------+        +-----+-------+
+              |                     |
+              v                     v
+   +-----------------------+    +---------------------------+
+   | Is Ignored Process?   |--->| Move Process to Original  |
+   | (classifier-blocklist)|    |   Cgroup                  |
+   +----------+------------+    +---+-----------------------+
+              |  No                 |
+              v                     v
+   +---------------------+   +---------------------------+
+   |  ClassifyProcess()  |   |   RemoveActions           |
+   | (MLInference model) |   |    (untuneSignal)         |
+   +----------+----------+   +---------------------------+
+              |
+              v
+   +---------------------+
+   | GetSignalDetailsFor |
+   |      Workload()     |
+   +----------+----------+
+              |
+              v
+   +----------------------------+
+   | MoveAppThreadsToCGroup()   |
+   | (Assign to Focused Cgroup) |
+   +----------+-----------------+
+              |
+              v
+   +---------------------+
+   |    ApplyActions     |
+   |    (tuneSignal)     |
+   +---------------------+
+```
+
+### 7.2.2. Resource Tuner
+
+- Queued requests processed by resource Tuner
+- Set of Yaml config files provides extensive configuration capability
+- Tuning resources provides control over system resources like CPU, Caches, GPU, etc for. Example changing the operating point of CPU DCVS min-freq to 1GHz to improve performance or limiting its max frequency to 1.5GHz to save power
+- Tuning Signals dynamically provisions the system resources for a use case or scenario such as apps launches, installations, etc. in response to received signal. Resources can be configured in yaml for signals.
+- Signals pick resources related to signal from SignalsConfig.yaml
+- Extension interface provides a way to customize URM behaviour, by specifying custom resources, custom signals and features.
+- URM uses YAML based config files, for fetching information relating to resources/signals and properties.
+
+
+```
+
+              |
+              | Tune/Untune Requests
+              v
++---------------------------+
+|           API             |
+|           ---             |
+|          Client           |
++-------------+-------------+
+              |
+          (sockets)
+              | 
+              v
+     .----------------.                    .--------------.
+    (                  )                  (                )
+    (      Server      )----(periodic)--->( Pulse monitor  )
+    (                  )                  (                )
+     .--------+-------.                    .--------------.
+              |
+              +----(Init)-----------+---------------+-----------+
+              |                     |               |           |
+              v                     v               |           v
+        +------------+        +------------------+  |   +------------------+
+        | Duplicate  |        | Upstream Configs,|  |   | Custom resources |
+        |  Checker   |     	  | Resources        |  |   |    & features    |
+        +-----+------+        +-----+------------+  |   +------------------+
+              |                                     |
+              v                                     v
+        +------------+                    +--------------------+
+        |  Handle    |                    |   Target specific  |
+        |  Generator |                    |   configs          |
+        +-----+------+                    +--------------------+
+              |     
+              v       
+        +------------+          .----------.          +---------------+
+        |  Queue     |         (  Process   )         |               |
+        |  Requests  |   ...   (  Requests  )-------->|  Authorizer   |
+        |            |         (            )         |               |
+        +------------+          .----------.          +-------+-------+
+                                                              |
+                                                              v
+          +--------------+      +---------------+     +---------------+
+          | Concurrency  |      | Action        |     |               |
+          | Coordinator  |<-----+ Thresholds    |<----+ Rate Limiter  |
+          |              |      |               |     |               |
+          +------+-------+      +---------------+     +---------------+
+                 |
+                 v
+          +--------------+
+          |    Action    |
+          +--------------+
+```
+
+
+Resource Tuner architecture is captured above.
+
+### 7.2.3. URM Initialization
+
+- During the server initialization phase, the YAML config files are read to build up the resource registry, property store etc.
+- If the target chipset has registered any custom resources, signals or custom YAML files via the extension interface, then these changes are detected during this phase itself to build up a consolidated system view, before it can start serving requests.
+- During the initialization phase, memory is pre-allocated for commonly used types (via MemoryPool), and worker (thread) capacity is reserved in advance via the ThreadPool, to avoid any delays during the request processing phase.
+- URM will also fetch the target details, like target name, total number of cores, logical to physical cluster / core mapping in this phase.
+- If the Signals module is plugged in, it will be initialized as well and the signal configs will be parsed similarly to resource configs.
+- Once all the initialization is completed, the server is ready to serve requests, a new listener thread is created for handling requests.
+
+
+### 7.2.4. Request Processing
+
+- The client can use the URM client library to send their requests.
+- URM supports sockets and binders for client-server communication.
+- As soon as the request is received on the server end, a handle is generated and returned to the client. This handle uniquely identifies the request and can be used for subsequent retune (retuneResources) or untune (untuneResources) API calls.
+- The request is submitted to the ThreadPool for async processing.
+- When the request is picked up by a worker thread (from the ThreadPool), it will decode the request message and then validate the request.
+- The request verifier, will run a series of checks on the request like permission checks, and on the resources part of the request, like config value bounds check.
+- Once request is verified, a duplicate check is performed, to verify if the client has already submitted the same request before. This is done so as to the improve system efficiency and performace.
+- Next the request is added to an queue, which is essentially PriorityQueue, which orders requests based on their priorities (for more details on Priority Levels, refer the next Section). This is done so that the request with the highest priority is always served first.
+- To handle concurrent requests for the same resource, we maintain resource level linked lists of pending requests, which are ordered according to the request priority and resource policy. This ensures that the request with the higher priority will always be applied first. For two requests with the same priority, the application order will depend on resource policy. For example, in case of resource with "higher is better" policy, the request with a higher configuration value for the resource shall take effect first.
+- Once a request reaches the head of the resource level linked list, it is applied, i.e. the config value specified by this request for the resource takes effect on the corresponding sysfs node.
+- A timer is created and used to keep track of a request, i.e. check if it has expired. Once it is detected that the request has expired an untune request for the same handle as this request, is automatically generated and submitted, it will take care of resetting the effected resource nodes to their original values.
+- Client modules can provide their own custom resource actions for any resource. The default action provided by URM is writing to the resource sysfs node.
+
+**Here is a more detailed explanation of the key features discussed above:**
+
+## 7.3. Client-Level Permissions
+
+Certain resources can be tuned only by system clients and some which have no such restrictions and can be tuned even by third party clients. The client permissions are dynamically determined, the first time it makes a request. If a client with third party permissions tries to tune a resource, which allows only clients with system permissions to tune it, then the request shall be dropped.
+
+## 7.4. Resource-Level Policies
+
+To ensure efficient and predictable handling of concurrent requests, each system resource is governed by one of four predefined policies. Selecting the appropriate policy helps maintain system stability, optimize performance/power, and align resource behavior with application requirements.
+
+- Instant Apply: This policy is for resources where the latest request needs to be honored. This is kept as the default policy.
+- Higher is better: This policy honors the request writing the highest value to the node. One of the cases where this makes sense is for resources that describe the upper bound value. By applying the higher-valued request, the lower-valued request is implicitly honored.
+- Lower is better: Works exactly opposite of the higher is better policy.
+- Lazy Apply: Sometimes, you want the resources to apply requests in a first-in-first-out manner.
+
+## 7.5. Request-Level Priorities
+
+As part of the tuneResources API call, client is allowed to specify a desired priority level for the request. URM supports 2 priority levels:
+- High
+- Low
+
+However when multiplexed with client-level permissions, effetive request level priorities would be
+- System High [SH]
+- System Low [SL]
+- Third Party High (or Regular High) [TPH]
+- Third Party Low (or Regular Low) [TPL]
+
+Requests with a higher priority will always be prioritized, over another request with a lower priority. Note, the request priorities are related to the client permissions. A client with system permission is allowed to acquire any priority level it wants, however a client with third party permissions can only acquire either third party high (TPH) or third party low (TPL) level of priorities. If a client with third party permissions tries to acquire a System High or System Low level of priority, then the request will not be honoured.
+
+## 7.6. Pulse Monitor: Detection of Dead Clients and Subsequent Cleanup
+
+To improve efficiency and conserve memory, it is essential to regularly check for dead clients and free up any system resources associated with them. This includes, untuning all (if any) ongoing tune request issued by this client and freeing up the memory used to store client specific data (Example: client's list of requests (handles), health, permissions, threads associated with the client etc). URM ensures that such clients are detected and cleaned up within 90 seconds of the client terminated.
+
+URM performs these actions by making use of two components:
+- Pulse check: scans the list of the active clients, and checks if any of the client (PID) is dead. If it finds a dead client, it schedules the cleanup by adding this PID to a queue.
+- Garbage collection: When the thread runs it iterates over the GC queue and performs the cleanup.
+
+Pulse Monitor runs on a separate thread peroidically.
+
+## 7.7. Rate Limiter: Preventing System Abuse
+
+URM has a rate limiter module that prevents abuse of the system by limiting the number of requests a client can make within a given time frame. This helps to prevent clients from overwhelming the system with requests and ensures that the system remains responsive and efficient. Rate limiter works on a reward/punishment methodology. Whenever a client requests the system for the first time, it is assigned a "Health" of 100. A punishment is handed over if a client makes subsequent new requests in a very short time interval (called delta, say 2 ms).
+A Reward results in increasing the health of a client (not above 100), while a punishment involves decreasing the health of the client. If at any point this value of Health reaches zero then any further requests from this client wil be dropped. Value of delta, punishment and rewards are target-configurable.
+
+## 7.8. Duplicate Checking
+
+URM's RequestManager component is responsible for detecting any duplicate requests issued by a client, and dropping them. This is done by checking against a list of all the requests issued by a client to identify a duplicate. If it is, then the request is dropped. If it is not, then the request is added and processed. Duplicate checking helps to improve system efficiency, by saving wasteful CPU time on processing duplicates.
+
+## 7.9. Dynamic Mapper: Logical to Physical Mapping
+
+Logical to physical core/cluster mapping helps to achieve application code portability across different chipsets on client side. Client can specify logical values for core and cluster. URM will translate these values to their physical counterparts and apply the request accordingly. Logical to physical mapping helps to create system independent layer and helps to make the same client code interchangable across different targets.
+
+Logical mapping entries can be found in InitConfig.yaml and can be modified if required.
+
+Logical layer values always arranged from lower to higher cluster capacities.
+If no names assigned to entries in the dynamic mapping table then cluster'number' will be the name of the cluster
+for ex. LgcId 4 named as "cluster4"
+
+below table present in InitConfigs->ClusterMap section
+| LgcId  |     Name   |
+|--------|------------|
+|   0    |   "little" |
+|   1    |   "big"    |
+|   2    |   "prime"  |
+
+URM reads machine topology and prepares logical to physical table dynamically in the init phase, similar to below one
+| LgcId  |  PhyId  |
+|--------|---------|
+|   0    |     0   |
+|   1    |     1   |
+|   2    |     3   |
+|   3    |     2   |
+
+## 7.10. Display-Aware Operational Modes
+
+The system's operational modes are influenced by the state of the device's display. To conserve power, certain system resources are optimized only when the display is active. However, for critical components that require consistent performance—such as during background processing or time-sensitive tasks, resource tuning can still be applied even when the display is off, including during low-power states like doze mode. This ensures that essential operations maintain responsiveness without compromising overall energy efficiency.
+
+## 7.11. Crash Recovery
+
+In case of server crash, URM ensures that all the resource sysfs nodes are restored to a sane state, i.e. they are reset to their original values. This is done by maintaining a backup of all the resource's original values, before any modification was made on behalf of the clients by urm. In the event of server crash, reset to their original values in the backup.
+
+## 7.12. Flexible Packaging
+
+The Users are free to pick and choose the URM modules they want for their use-case and which fit their constraints. The Framework Module is the core/central module, however if the users choose they can add on top of it other Modules: signals and profiles.
+
+## 7.13. Pre-Allocate Capacity for efficiency
+
+URM provides a MemoryPool component, which allows for pre-allocation of memory for certain commonly used type at the time of server initialization. This is done to improve the efficiency of the system, by reducing the number of memory allocations and deallocations that are required during the processing of requests. The allocated memory is managed as a series of blocks which can be recycled without any system call overhead. This reduces the overhead of memory allocation and deallocation, and improves the performance of the system.
+
+Further, a ThreadPool component is provided to pre-allocate processing capacity. This is done to improve the efficiency of the system, by reducing the number of thread creation and destruction required during the processing of Requests, further ThreadPool allows for the threads to be repeatedly reused for processing different tasks.
+
+# 8. Contact
 
 For questions, suggestions, or contributions, feel free to reach out:
 
 - **Email**: Maintainers.userspace-resource-moderator@qti.qualcomm.com
 
-# License
+# 9. License
 
 This project is licensed under the BSD 3-Clause Clear License.
 

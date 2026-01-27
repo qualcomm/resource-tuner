@@ -56,7 +56,7 @@ void func1() {
 
     /*
      * Alternative Approach to construct opcode
-     * sigCode = CUSTOM(CONSTRUCT_SIG_CODE(0x0003, 0x0d))
+     * sigCode = CUSTOM(CONSTRUCT_SIG_CODE(0x0d, 0x0003))
      */
 
     // Duration to tune the signal for
