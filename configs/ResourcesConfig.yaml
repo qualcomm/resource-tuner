@@ -126,7 +126,7 @@ ResourceConfigs:
 
   - ResType: "0x05"
     ResID: "0x0002"
-    Name: "RES_DEVFREQ_GPU_POLLING_INTV"
+    Name: "RES_DEVFREQ_GPU_POLL_INTV"
     Path: "/sys/class/devfreq/*.gpu/polling_interval"
     Supported: true
     LowThreshold: 0
@@ -341,7 +341,7 @@ ResourceConfigs:
 
   - ResType: "0x0a"
     ResID: "0x0002"
-    Name: "RES_DEVFREQ_UFS_POLLING_INTV"
+    Name: "RES_DEVFREQ_UFS_POLL_INTV"
     Path: "/sys/class/devfreq/*.ufshc/polling_interval"
     Supported: true
     LowThreshold: 0
