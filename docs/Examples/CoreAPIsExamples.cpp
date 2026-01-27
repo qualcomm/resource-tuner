@@ -26,17 +26,19 @@
 //   The Resource Config for this Resource is as follows (note, Configs are specified via YAML files):
 
 /*
-Resource:
-  - ResType: "0x03"
-    ResID: "0x0000"
-    Name: "/proc/sys/kernel/sched_util_clamp_min"
-    Supported: true
-    HighThreshold: 1024
-    LowThreshold: 0
-    Permissions: "third_party"
-    Modes: ["display_on", "doze"]
-    Policy: "higher_is_better"
-*/
+ * ResourceConfigs:
+ *   - ResType: "0x03"
+ *     ResID: "0x0000"
+ *     Name: "RES_SCHED_UTIL_CLAMP_MIN"
+ *     Path: "/proc/sys/kernel/sched_util_clamp_min"
+ *     Supported: true
+ *     HighThreshold: 1024
+ *     LowThreshold: 0
+ *     Permissions: "third_party"
+ *     Modes: ["display_on", "doze"]
+ *     Policy: "lower_is_better"
+ *     ApplyType: "global"
+ */
 void func1() {
     // First Create a List of Resources to be Provisioned as part of this Request
     // Note multiple Resources can be part of a single Resource Tuner Request

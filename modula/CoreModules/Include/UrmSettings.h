@@ -12,7 +12,7 @@
 #include "Utils.h"
 
 #define URM_IDENTIFIER "urm"
-#define REQ_BUFFER_SIZE 1024
+#define REQ_BUFFER_SIZE 580
 
 // Operational Tunable Parameters for Resource Tuner
 typedef struct {
@@ -52,25 +52,21 @@ public:
     static const std::string mCustomSignalFilePath;
     static const std::string mCommonPropertiesFilePath;
     static const std::string mCustomPropertiesFilePath;
+    static const std::string mCommonInitConfigFilePath;
+    static const std::string mCustomInitConfigFilePath;
 
     // Only Custom Config is supported for Target and Ext Features Config
     static const std::string mCustomTargetFilePath;
     static const std::string mCustomExtFeaturesFilePath;
-
     static const std::string mCustomAppConfigFilePath;
 
-    // Support both versions: Common and Custom
-    static const std::string mCommonInitConfigFilePath;
-    static const std::string mCustomInitConfigFilePath;
-
-    static const std::string mExtensionsPluginLibPath;
-
+    static const std::string focusedCgroup;
     static const std::string mDeviceNamePath;
     static const std::string mBaseCGroupPath;
-    static const std::string focusedCgroup;
-
     static const std::string mPersistenceFile;
+    static const std::string mExtensionsPluginLibPath;
 
+    // Target Information Stores
     static MetaConfigs metaConfigs;
     static TargetConfigs targetConfigs;
 

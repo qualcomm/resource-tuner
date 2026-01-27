@@ -37,6 +37,7 @@
     - [4.3.2. Resource Configs](#432-resource-configs)
     - [4.3.3. Properties Config](#433-properties-config)
     - [4.3.4. Signal Configs](#434-signal-configs)
+    - [4.3.5. Per-App Configs](#435-per-app-configs)
 
 - [5. Client CLI](#5-client-cli)
   - [5.1. Send a Tune Request](#51-send-a-tune-request)
@@ -862,7 +863,36 @@ SignalConfigs:
       - {ResCode: "RES_CGRP_LOW_MEMORY", Values: [4, 519430400]}
       - {ResCode: "RES_CGRP_MIN_MEMORY", Values: [4, 119430400]}
 ```
-Common resource configs are defined in /etc/urm/common/SignalsConfig.yaml.
+Common Signal configs are defined in /etc/urm/common/SignalsConfig.yaml.
+
+### 4.3.5. Per App Configs
+The file PerApp.yaml defines the per-app configs.
+
+**Field Descriptions**
+| Field           | Type       | Description | Default Value |
+|----------------|------------|-------------|---------------|
+| `App`          | `String` (Mandatory)   | Name of the App, equivalent to process "comm" | Not Applicable |
+| `Threads`          | `array` (Optional)   | List of app threads (identified by their "comm" value as specified in /proc/{pid}/comm) to be considered as in-focus, hence moved to the focused-cgroup when the app (with the above identifier) is launched. | `Empty List` |
+| `Configurations`   | `array` (optional)   | List of Signal Configurations indicating the signals to be acquired when this app is launched. Note: The specified signal opcodes should correspond to actual configurations in the SignalsConfig.yaml file. | `Empty List` |
+
+<div style="page-break-after: always;"></div>
+
+**Example**
+```yaml
+PerAppConfigs:
+  - App: "gst-launch-"
+    Threads:
+       - {"cam-server": "4"}
+       - {"gst-launch-": "4"}
+
+  - App: "chrome"
+    Threads:
+       - {"chrome": "FOCUSED_CGROUP_IDENTIFIER"}
+    Configurations: ["0x80034aab"]
+
+```
+
+PerApp configs should be defined in /etc/urm/custom/PerApp.yaml.
 
 ## 5. Client CLI
 URM provides a minimal CLI to interact with the server. This is provided to help with development and debugging purposes.

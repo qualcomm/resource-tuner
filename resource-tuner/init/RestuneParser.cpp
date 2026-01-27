@@ -951,7 +951,7 @@ ErrCode RestuneParser::parsePerAppConfigYamlNode(const std::string& filePath) {
                     }
 
                     int32_t listIndex = 0;
-                    for(int32_t i = 0; i < itemArray.size(); i += 2) {
+                    for(int32_t i = 0; i < (int32_t)itemArray.size(); i += 2) {
                         if(RC_IS_OK(rc)) {
                             rc = appConfigBuider->addThreadMapping(listIndex, itemArray[i], itemArray[i + 1]);
                             listIndex++;
