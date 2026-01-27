@@ -866,7 +866,7 @@ The file PerApp.yaml defines the per-app configs.
 | Field           | Type       | Description | Default Value |
 |----------------|------------|-------------|---------------|
 | `App`          | `String` (Mandatory)   | Name of the App, equivalent to process "comm" | Not Applicable |
-| `Threads`          | `array` (Optional)   | List of app threads (identified by their "comm" value as specified in /proc/<pid>/comm) to be considered as in-focus, hence moved to the focused-cgroup when the app (with the above identifier) is launched. | `Empty List` |
+| `Threads`          | `array` (Optional)   | List of app threads (identified by their "comm" value as specified in /proc/{pid}/comm) to be considered as in-focus, hence moved to the focused-cgroup when the app (with the above identifier) is launched. | `Empty List` |
 | `Configurations`   | `array` (optional)   | List of Signal Configurations indicating the signals to be acquired when this app is launched. Note: The specified signal opcodes should correspond to actual configurations in the SignalsConfig.yaml file. | `Empty List` |
 
 <div style="page-break-after: always;"></div>
