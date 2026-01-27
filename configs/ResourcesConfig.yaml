@@ -288,3 +288,33 @@ ResourceConfigs:
     Modes: ["display_on"]
     Policy: "lower_is_better"
     ApplyType: "cgroup"
+
+  - ResType: "0x0a"
+    ResID: "0x0000"
+    Name: "RES_DEVFREQ_UFS_MAX"
+    Path: "/sys/class/devfreq/*.ufshc/max_freq"
+    Supported: true
+    Permissions: third_party
+    Modes: ["display_on", "doze"]
+    Policy: higher_is_better
+    ApplyType: "global"
+
+  - ResType: "0x0a"
+    ResID: "0x0001"
+    Name: "RES_DEVFREQ_UFS_MIN"
+    Path: "/sys/class/devfreq/*.ufshc/min_freq"
+    Supported: true
+    Permissions: third_party
+    Modes: ["display_on", "doze"]
+    Policy: higher_is_better
+    ApplyType: "global"
+
+  - ResType: "0x0a"
+    ResID: "0x0002"
+    Name: "RES_DEVFREQ_UFS_POLLING_INTV"
+    Path: "/sys/class/devfreq/*.ufshc/polling_interval"
+    Supported: true
+    LowThreshold: 0
+    Permissions: third_party
+    Modes: ["display_on", "doze"]
+    Policy: higher_is_better
