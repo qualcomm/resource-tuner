@@ -128,25 +128,25 @@ enum Modes {
     (int32_t) ((resInfo ^ (EXTRACT_RESOURCE_MPAM_VALUE(resInfo) << 16)) | (newValue << 16));  \
 })                                                                                            \
 
-#define CONSTRUCT_RES_CODE(resType, resCode) ({                                              \
-    uint32_t resourceBitmap = 0;                                                             \
-    resourceBitmap |= ((uint32_t)resCode);                                                   \
-    resourceBitmap |= ((uint32_t)resType << 16);                                             \
-    resourceBitmap;                                                                          \
-})                                                                                           \
+#define CONSTRUCT_RES_CODE(resType, resCode) ({                                               \
+    uint32_t resourceBitmap = 0;                                                              \
+    resourceBitmap |= ((uint32_t)resCode);                                                    \
+    resourceBitmap |= ((uint32_t)resType << 16);                                              \
+    resourceBitmap;                                                                           \
+})                                                                                            \
 
-#define CONSTRUCT_SIG_CODE(sigCat, sigID) ({                                                \
-    uint32_t signalBitmap = 0;                                                              \
-    signalBitmap |= ((uint32_t)sigID);                                                      \
-    signalBitmap |= ((uint32_t)sigCat << 16);                                               \
-    signalBitmap;                                                                           \
-})                                                                                          \
+#define CONSTRUCT_SIG_CODE(sigCat, sigID) ({                                                  \
+    uint32_t signalBitmap = 0;                                                                \
+    signalBitmap |= ((uint32_t)sigID);                                                        \
+    signalBitmap |= ((uint32_t)sigCat << 16);                                                 \
+    signalBitmap;                                                                             \
+})                                                                                            \
 
-#define CUSTOM(opCode) ({                                                                   \
-    uint32_t opBitmap = opCode;                                                             \
-    opBitmap |= (1 << 31);                                                                  \
-    opBitmap;                                                                               \
-})                                                                                          \
+#define CUSTOM(opCode) ({                                                                     \
+    uint32_t opBitmap = opCode;                                                               \
+    opBitmap |= (1 << 31);                                                                    \
+    opBitmap;                                                                                 \
+})                                                                                            \
 
 // Common ResCode and ResInfo codes
 // These enums can be used directly as part of tuneResources API, to uniquely
