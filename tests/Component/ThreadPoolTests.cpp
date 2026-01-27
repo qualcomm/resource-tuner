@@ -10,8 +10,8 @@
 #include <string>
 #include <cassert>
 
-#include "TestUtils.h"    // tests rely on helpers/macros
-#include "ThreadPool.h"   // your thread pool component
+#include "TestUtils.h"    
+#include "ThreadPool.h"   
 
 #define MTEST_NO_MAIN
 #include "../framework/mini.h"

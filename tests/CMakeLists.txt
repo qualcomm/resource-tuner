@@ -150,7 +150,6 @@ set(RESTUNE_UNIT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/unit/test_submitResProvisionRequest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/unit/test_getResConf.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/unit/shims/SubmitShim.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/unit/stubs/RegistryStubs.cpp
     ${CMAKE_SOURCE_DIR}/resource-tuner/core/ResourceRegistry.cpp
 )
 
@@ -183,6 +182,7 @@ target_link_libraries(RestuneUnitTests PRIVATE
     UrmAuxUtils
     UrmExtAPIs
     RestuneTestUtils
+    RestuneCore
 )
 
 # 7) mini.hpp default behavior

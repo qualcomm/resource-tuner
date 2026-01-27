@@ -405,23 +405,6 @@ inline void with_fixture(TestContext& ctx,
     } \
     static void suite##_##name##_impl(mtest::TestContext& ctx, const ParamType& param)
 
-#define MT_TEST_P_LIST(suite, name, tag, ParamType, ...) \
-    static void suite##_##name##_impl(mtest::TestContext&, const ParamType& param); \
-    namespace suite##_##name##_param_list_ns { \
-        static struct registrar_t { \
-            registrar_t() { \
-                const ParamType _params[] = { __VA_ARGS__ }; \
-                for (const ParamType& _p : _params) { \
-                    std::string _n = std::string(MTEST_STRINGIFY(name)) + "(" + mtest::detail::to_string_any(_p) + ")"; \
-                    mtest::Registrar( \
-                        MTEST_STRINGIFY(suite), _n, tag, __FILE__, __LINE__, \
-                        std::bind(suite##_##name##_impl, std::placeholders::_1, _p) \
-                    ); \
-                } \
-            } \
-        } _registrar_instance; \
-    } \
-    static void suite##_##name##_impl(mtest::TestContext& ctx, const ParamType& param)
 
 #define MT_TEST_FP(suite, name, tag, FixtureType, ParamType, params) \
     static void suite##_##name##_body(FixtureType&, mtest::TestContext&, const ParamType&); \
@@ -441,29 +424,6 @@ inline void with_fixture(TestContext& ctx,
     } \
     static void suite##_##name##_impl(mtest::TestContext& ctx) { \
         (void)ctx; \
-    } \
-    static void suite##_##name##_body(FixtureType& f, mtest::TestContext& ctx, const ParamType& param)
-
-#define MT_TEST_FP_LIST(suite, name, tag, FixtureType, ParamType, ...) \
-    static void suite##_##name##_body(FixtureType&, mtest::TestContext&, const ParamType&); \
-    static void suite##_##name##_impl_instance(mtest::TestContext&, const ParamType&); \
-    namespace suite##_##name##_fp_list_ns { \
-        static struct registrar_t { \
-            registrar_t() { \
-                const ParamType _params[] = { __VA_ARGS__ }; \
-                for (const ParamType& _p : _params) { \
-                    std::string _n = std::string(MTEST_STRINGIFY(name)) + "(" + mtest::detail::to_string_any(_p) + ")"; \
-                    mtest::Registrar( \
-                        MTEST_STRINGIFY(suite), _n, tag, __FILE__, __LINE__, \
-                        std::bind(suite##_##name##_impl_instance, std::placeholders::_1, _p) \
-                    ); \
-                } \
-            } \
-        } _registrar_instance; \
-    } \
-    static void suite##_##name##_impl_instance(mtest::TestContext& ctx, const ParamType& param) { \
-        mtest::with_fixture<FixtureType>(ctx, std::bind( \
-            suite##_##name##_body, std::placeholders::_1, std::placeholders::_2, param)); \
     } \
     static void suite##_##name##_body(FixtureType& f, mtest::TestContext& ctx, const ParamType& param)
 
@@ -510,88 +470,6 @@ inline void with_fixture(TestContext& ctx,
             suite##_##name##_body, std::placeholders::_1, std::placeholders::_2)); \
     } \
     static void suite##_##name##_body(FixtureType& f, mtest::TestContext& ctx)
-
-#define MT_TEST_P_XFAIL_LIST(suite, name, tag, ParamType, reason, ...) \
-    static void suite##_##name##_impl(mtest::TestContext&, const ParamType& param); \
-    namespace suite##_##name##_param_xfail_list_ns { \
-        static struct registrar_t { \
-            registrar_t() { \
-                const ParamType _params[] = { __VA_ARGS__ }; \
-                for (const ParamType& _p : _params) { \
-                    std::string _n = std::string(MTEST_STRINGIFY(name)) + "(" + mtest::detail::to_string_any(_p) + ")"; \
-                    mtest::Registrar( \
-                        MTEST_STRINGIFY(suite), _n, tag, __FILE__, __LINE__, \
-                        std::bind(suite##_##name##_impl, std::placeholders::_1, _p), \
-                        /*skip*/false, /*xfail*/true, reason, /*xfail_strict*/false); \
-                } \
-            } \
-        } _registrar_instance; \
-    } \
-    static void suite##_##name##_impl(mtest::TestContext& ctx, const ParamType& param)
-
-#define MT_TEST_P_SKIP_LIST(suite, name, tag, ParamType, reason, ...) \
-    static void suite##_##name##_impl(mtest::TestContext&, const ParamType& param); \
-    namespace suite##_##name##_param_skip_list_ns { \
-        static struct registrar_t { \
-            registrar_t() { \
-                const ParamType _params[] = { __VA_ARGS__ }; \
-                for (const ParamType& _p : _params) { \
-                    std::string _n = std::string(MTEST_STRINGIFY(name)) + "(" + mtest::detail::to_string_any(_p) + ")"; \
-                    mtest::Registrar( \
-                        MTEST_STRINGIFY(suite), _n, tag, __FILE__, __LINE__, \
-                        std::bind(suite##_##name##_impl, std::placeholders::_1, _p), \
-                        /*skip*/true, /*xfail*/false, reason, /*xfail_strict*/false); \
-                } \
-            } \
-        } _registrar_instance; \
-    } \
-    static void suite##_##name##_impl(mtest::TestContext& ctx, const ParamType& param)
-
-#define MT_TEST_FP_LIST_XFAIL(suite, name, tag, FixtureType, ParamType, reason, ...) \
-    static void suite##_##name##_body(FixtureType&, mtest::TestContext&, const ParamType&); \
-    static void suite##_##name##_impl_instance(mtest::TestContext&, const ParamType&); \
-    namespace suite##_##name##_fp_list_xfail_ns { \
-        static struct registrar_t { \
-            registrar_t() { \
-                const ParamType _params[] = { __VA_ARGS__ }; \
-                for (const ParamType& _p : _params) { \
-                    std::string _n = std::string(MTEST_STRINGIFY(name)) + "(" + mtest::detail::to_string_any(_p) + ")"; \
-                    mtest::Registrar( \
-                        MTEST_STRINGIFY(suite), _n, tag, __FILE__, __LINE__, \
-                        std::bind(suite##_##name##_impl_instance, std::placeholders::_1, _p), \
-                        /*skip*/false, /*xfail*/true, reason, /*xfail_strict*/false); \
-                } \
-            } \
-        } _registrar_instance; \
-    } \
-    static void suite##_##name##_impl_instance(mtest::TestContext& ctx, const ParamType& param) { \
-        mtest::with_fixture<FixtureType>(ctx, std::bind( \
-            suite##_##name##_body, std::placeholders::_1, std::placeholders::_2, param)); \
-    } \
-    static void suite##_##name##_body(FixtureType& f, mtest::TestContext& ctx, const ParamType& param)
-
-#define MT_TEST_FP_LIST_SKIP(suite, name, tag, FixtureType, ParamType, reason, ...) \
-    static void suite##_##name##_body(FixtureType&, mtest::TestContext&, const ParamType&); \
-    static void suite##_##name##_impl_instance(mtest::TestContext&, const ParamType&); \
-    namespace suite##_##name##_fp_list_skip_ns { \
-        static struct registrar_t { \
-            registrar_t() { \
-                const ParamType _params[] = { __VA_ARGS__ }; \
-                for (const ParamType& _p : _params) { \
-                    std::string _n = std::string(MTEST_STRINGIFY(name)) + "(" + mtest::detail::to_string_any(_p) + ")"; \
-                    mtest::Registrar( \
-                        MTEST_STRINGIFY(suite), _n, tag, __FILE__, __LINE__, \
-                        std::bind(suite##_##name##_impl_instance, std::placeholders::_1, _p), \
-                        /*skip*/true, /*xfail*/false, reason, /*xfail_strict*/false); \
-                } \
-            } \
-        } _registrar_instance; \
-    } \
-    static void suite##_##name##_impl_instance(mtest::TestContext& ctx, const ParamType& param) { \
-        mtest::with_fixture<FixtureType>(ctx, std::bind( \
-            suite##_##name##_body, std::placeholders::_1, std::placeholders::_2, param)); \
-    } \
-    static void suite##_##name##_body(FixtureType& f, mtest::TestContext& ctx, const ParamType& param)
 
 
 // ---------- Runner ----------
