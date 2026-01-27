@@ -104,6 +104,36 @@ ResourceConfigs:
     Policy: "lower_is_better"
     ApplyType: "cluster"
 
+  - ResType: "0x05"
+    ResID: "0x0000"
+    Name: "RES_DEVFREQ_GPU_MAX"
+    Path: "/sys/class/devfreq/*.gpu/max_freq"
+    Supported: true
+    Permissions: third_party
+    Modes: ["display_on", "doze"]
+    Policy: higher_is_better
+    ApplyType: "global"
+
+  - ResType: "0x05"
+    ResID: "0x0001"
+    Name: "RES_DEVFREQ_GPU_MIN"
+    Path: "/sys/class/devfreq/*.gpu/min_freq"
+    Supported: true
+    Permissions: third_party
+    Modes: ["display_on", "doze"]
+    Policy: higher_is_better
+    ApplyType: "global"
+
+  - ResType: "0x05"
+    ResID: "0x0002"
+    Name: "RES_DEVFREQ_GPU_POLLING_INTV"
+    Path: "/sys/class/devfreq/*.gpu/polling_interval"
+    Supported: true
+    LowThreshold: 0
+    Permissions: third_party
+    Modes: ["display_on", "doze"]
+    Policy: higher_is_better
+
   - ResType: "0x09"
     ResID: "0x0000"
     Name: "RES_CGRP_MOVE_PID"
