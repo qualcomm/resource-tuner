@@ -77,7 +77,14 @@ void RequestQueue::orderedQueueConsumerHook() {
 
             } else if(req->getRequestType() == REQ_RESOURCE_RETUNING) {
                 int64_t newDuration = req->getDuration();
-                cocoTable->updateRequest(matchingTuneReq.first, newDuration);
+
+                if((processingStatus & REQ_COMPLETED) == 0) {
+                    // Request not in Coco Table yet
+                    // Update the Request Duration directly.
+                    matchingTuneReq.first->setDuration(newDuration);
+                } else {
+                    cocoTable->updateRequest(matchingTuneReq.first, newDuration);
+                }
 
                 // Free Up the Retune Request
                 Request::cleanUpRequest(req);

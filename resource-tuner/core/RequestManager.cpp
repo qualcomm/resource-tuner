@@ -224,12 +224,6 @@ int8_t RequestManager::disableRequestProcessing(int64_t handle) {
     return true;
 }
 
-void RequestManager::modifyRequestDuration(int64_t handle, int64_t duration) {
-    (void)handle;
-    (void)duration;
-    return;
-}
-
 int64_t RequestManager::getActiveReqeustsCount() {
     this->mRequestMapMutex.lock_shared();
     int32_t size = this->mActiveRequests.size();

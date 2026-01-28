@@ -682,11 +682,6 @@ static void resetRunOnCoresExclusively(void* context) {
     }
 }
 
-static void no_op(void* context) {
-    (void)context;
-    return;
-}
-
 static void setPmQos(void* context) {
     if(context == nullptr) return;
     Resource* resource = static_cast<Resource*>(context);

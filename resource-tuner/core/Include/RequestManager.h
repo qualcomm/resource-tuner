@@ -126,8 +126,6 @@ public:
      */
     int8_t disableRequestProcessing(int64_t handle);
 
-    void modifyRequestDuration(int64_t handle, int64_t duration);
-
     void markRequestAsComplete(int64_t handle);
 
     int8_t getRequestProcessingStatus(int64_t handle);
