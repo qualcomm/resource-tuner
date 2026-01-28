@@ -1,8 +1,7 @@
----
 ##  New Enhancements
 - **XFAIL & SKIP support**:
   - Static: `MT_TEST_XFAIL`, `MT_TEST_SKIP`.
-  - Runtime: `MT_MARK_XFAIL(ctx, "reason")`, `MT_SKIP(ctx, "reason")`.
+  - Runtime: `MT_MARK_XFAIL(ctx, "reason" )`, `MT_SKIP(ctx, "reason")`.
   - CLI: `--xfail-strict` (XPASS counts as failure).
 - **Reports**:
   - JSON, JUnit XML, Markdown.
@@ -26,7 +25,7 @@ Build & run:
 mkdir build && cd build
 cmake .. -DBUILD_TESTS=ON
 make
-./tests/RestuneComponentTests 
+./tests/RestuneComponentTests
 ./tests/RestuneIntegrationTests
 ./tests/RestuneUnitTests
 ```
@@ -65,8 +64,6 @@ build/test-reports/
 ```
 Summary: total=47, passed=29, failed=11, skipped=0, xfail=7, xpass=0, time=314566.983 ms
 ```
-
----
 
 ---
 
@@ -123,5 +120,6 @@ Run all tests:
 ```bash
 ctest -V
 ```
+
 Reports will appear in `build/test-reports/`.
 
