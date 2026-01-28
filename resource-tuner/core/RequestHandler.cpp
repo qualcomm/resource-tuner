@@ -266,6 +266,12 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
        request->getRequestType() == REQ_RESOURCE_RETUNING) {
         // Note: Client Data Manager initialisation is not necessary for Untune / Retune Requests,
         // since the client is expected to be allocated already (as part of the Tune Request)
+        if(!clientDataManager->clientExists(request->getClientPID(), request->getClientTID())) {
+            // Client does not exist, drop the request
+            Request::cleanUpRequest(request);
+            return;
+        }
+
         if(request->getRequestType() == REQ_RESOURCE_UNTUNING) {
             // Update the Processing Status for this handle to false
             // This handles the Edge Case where the Client sends the Untune Request immediately.
@@ -278,16 +284,6 @@ static void processIncomingRequest(Request* request, int8_t isValidated=false) {
                 Request::cleanUpRequest(request);
                 return;
             }
-        } else {
-            // Done for handling Edge Cases,
-            // Refer the comment in the if-block for more explanation
-            requestManager->modifyRequestDuration(request->getHandle(), request->getDuration());
-        }
-
-        if(!clientDataManager->clientExists(request->getClientPID(), request->getClientTID())) {
-            // Client does not exist, drop the request
-            Request::cleanUpRequest(request);
-            return;
         }
     }
 

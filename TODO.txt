@@ -13,8 +13,6 @@
 3. Implementation specific
     - Adding irq resources
     - Client API requests encoding / decoding support
-    - Reorder sigId and category in the construction of sigCode (minor change)
-    - Allow List Addition (ongoing)
     - Client CLI improvements, to support all types of requests
     - Focused cgroup creation
     - Memory Leaks analysis and reduction. Major issues are resolved, still observing some lost blocks.

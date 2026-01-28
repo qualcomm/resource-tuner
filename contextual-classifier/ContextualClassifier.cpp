@@ -190,7 +190,7 @@ void ContextualClassifier::ClassifierMain() {
             this->mQueueCond.wait(
                 lock,
                 [this] {
-                    return !mPendingEv.empty() || this->mNeedExit;
+                    return !this->mPendingEv.empty() || this->mNeedExit;
                 }
             );
 
@@ -252,10 +252,7 @@ void ContextualClassifier::ClassifierMain() {
                 this->ApplyActions(sigId, sigType, ev.pid, ev.tgid);
             }
         } else if (ev.type == CC_APP_CLOSE) {
-			//Step1: move process to original cgroup
-
-			//Step2: remove actions, call untune signal
-            // RemoveActions(ev.pid, ev.tgid);
+            // No Action Needed, Pulse Monitor to take care of cleanup
         }
     }
 }
@@ -264,7 +261,7 @@ int ContextualClassifier::HandleProcEv() {
     pthread_setname_np(pthread_self(), "urmNetlinkListener");
     int32_t rc = 0;
 
-    while(!mNeedExit) {
+    while(!this->mNeedExit) {
         ProcEvent ev{};
         rc = mNetLinkComm.recvEvent(ev);
         if(rc == CC_IGNORE) {
@@ -329,12 +326,6 @@ int32_t ContextualClassifier::ClassifyProcess(pid_t processPid,
     (void)ctxDetails;
     CC_TYPE context = CC_APP;
 
-    if(this->mIgnoredProcesses.count(comm) != 0U) {
-        LOGD(CLASSIFIER_TAG,
-             "Skipping inference for ignored process: " + comm);
-        return CC_IGNORE;
-    }
-
     // Check if the process is still alive
     if(!AuxRoutines::fileExists(COMM(processPid))) {
         LOGD(CLASSIFIER_TAG,
@@ -343,7 +334,7 @@ int32_t ContextualClassifier::ClassifyProcess(pid_t processPid,
     }
 
     LOGD(CLASSIFIER_TAG,
-         "Starting classification for PID: "+ std::to_string(processPid));
+         "Starting classification for PID: " + std::to_string(processPid));
     context = mInference->Classify(processPid);
     return context;
 }
