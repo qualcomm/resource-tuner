@@ -128,25 +128,25 @@ enum Modes {
     (int32_t) ((resInfo ^ (EXTRACT_RESOURCE_MPAM_VALUE(resInfo) << 16)) | (newValue << 16));  \
 })                                                                                            \
 
-#define CONSTRUCT_RES_CODE(resType, resCode) ({                                              \
-    uint32_t resourceBitmap = 0;                                                             \
-    resourceBitmap |= ((uint32_t)resCode);                                                   \
-    resourceBitmap |= ((uint32_t)resType << 16);                                             \
-    resourceBitmap;                                                                          \
-})                                                                                           \
+#define CONSTRUCT_RES_CODE(resType, resCode) ({                                               \
+    uint32_t resourceBitmap = 0;                                                              \
+    resourceBitmap |= ((uint32_t)resCode);                                                    \
+    resourceBitmap |= ((uint32_t)resType << 16);                                              \
+    resourceBitmap;                                                                           \
+})                                                                                            \
 
-#define CONSTRUCT_SIG_CODE(sigCat, sigID) ({                                                \
-    uint32_t signalBitmap = 0;                                                              \
-    signalBitmap |= ((uint32_t)sigID);                                                      \
-    signalBitmap |= ((uint32_t)sigCat << 16);                                               \
-    signalBitmap;                                                                           \
-})                                                                                          \
+#define CONSTRUCT_SIG_CODE(sigCat, sigID) ({                                                  \
+    uint32_t signalBitmap = 0;                                                                \
+    signalBitmap |= ((uint32_t)sigID);                                                        \
+    signalBitmap |= ((uint32_t)sigCat << 16);                                                 \
+    signalBitmap;                                                                             \
+})                                                                                            \
 
-#define CUSTOM(opCode) ({                                                                   \
-    uint32_t opBitmap = opCode;                                                             \
-    opBitmap |= (1 << 31);                                                                  \
-    opBitmap;                                                                               \
-})                                                                                          \
+#define CUSTOM(opCode) ({                                                                     \
+    uint32_t opBitmap = opCode;                                                               \
+    opBitmap |= (1 << 31);                                                                    \
+    opBitmap;                                                                                 \
+})                                                                                            \
 
 // Common ResCode and ResInfo codes
 // These enums can be used directly as part of tuneResources API, to uniquely
@@ -163,6 +163,12 @@ X(RES_SCHED_UTIL_CLAMP_MAX,   0x00030001) \
 X(RES_SCHED_ENERGY_AWARE,     0x00030002) \
 X(RES_CPU_DMA_LATENCY,        0x00010000) \
 X(RES_PM_QOS_LATENCY,         0x00010001) \
+X(RES_DEVFREQ_GPU_MAX,        0x00050000) \
+X(RES_DEVFREQ_GPU_MIN,        0x00050001) \
+X(RES_DEVFREQ_GPU_POLL_INTV,  0x00050002) \
+X(RES_DEVFREQ_UFS_MAX,        0x000a0000) \
+X(RES_DEVFREQ_UFS_MIN,        0x000a0001) \
+X(RES_DEVFREQ_UFS_POLL_INTV,  0x000a0002) \
 /* cgroup resources */                    \
 X(RES_CGRP_MOVE_PID,          0x00090000) \
 X(RES_CGRP_MOVE_TID,          0x00090001) \

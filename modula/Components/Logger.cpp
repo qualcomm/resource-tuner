@@ -731,6 +731,14 @@ void Logger::typeLog(CommonMessageTypes type, const std::string& funcName, ...) 
             Logger::log(LOG_DEBUG, "CONTEXTUAL_CLASSIFIER", funcName, buffer);
             break;
 
+        case CommonMessageTypes::NOTIFY_MODEL_PREDICTION:
+            vsnprintf(buffer, sizeof(buffer),
+                      "Prediction complete. PID: %d, Comm: %s, Class: %s, "\
+                      "Probability: %.4f", args);
+
+            Logger::log(LOG_INFO, "CONTEXTUAL_CLASSIFIER", funcName, buffer);
+            break;
+
         default:
             break;
     }
