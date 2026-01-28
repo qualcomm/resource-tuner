@@ -21,7 +21,10 @@
 #include "SignalRegistry.h"
 #include "RestuneParser.h"
 
-static void* extensionsLibHandle = nullptr;
+#define MAX_EXTENSION_LIB_HANDLES 32
+static void* extensionLibHandles[MAX_EXTENSION_LIB_HANDLES];
+
+// Request Listener and Handler Threads
 static std::thread restuneHandlerThread;
 static std::thread resourceTunerListener;
 
@@ -37,16 +40,33 @@ static void restoreToSafeState() {
 // Load the Extensions Plugin lib if it is available
 // If the lib is not present, we simply return Success. Since this lib is optional
 static ErrCode loadExtensionsLib() {
-    std::string libPath = UrmSettings::mExtensionsPluginLibPath;
+    std::string libDirPath = UrmSettings::mExtensionPluginsLibPath;
 
-    // Check if the library file exists
-    extensionsLibHandle = dlopen(libPath.c_str(), RTLD_NOW);
-    if(extensionsLibHandle == nullptr) {
-        TYPELOGV(NOTIFY_EXTENSIONS_LOAD_FAILED, dlerror());
-        return RC_SUCCESS;  // Return success regardless, since this is an extension.
+    DIR* dir = opendir(libDirPath.c_str());
+    if(dir == nullptr) {
+        return RC_SUCCESS; // Return success regardless, since this is an extension.
     }
 
-    TYPELOGD(NOTIFY_EXTENSIONS_LIB_LOADED_SUCCESS);
+    int32_t extLibHandleIndex = 0;
+    int32_t libsLoaded = 0;
+    struct dirent* entry;
+    while(((entry = readdir(dir)) != nullptr) && (extLibHandleIndex < MAX_EXTENSION_LIB_HANDLES)) {
+        std::string libPath = libDirPath + "/" + entry->d_name;
+
+        // Check if the library file exists
+        extensionLibHandles[extLibHandleIndex] = dlopen(libPath.c_str(), RTLD_NOW);
+        if(extensionLibHandles[extLibHandleIndex] != nullptr) {
+            libsLoaded++;
+        } else {
+            TYPELOGV(NOTIFY_EXTENSIONS_LOAD_FAILED, libPath.c_str(), dlerror());
+        }
+        extLibHandleIndex++;
+    }
+    closedir(dir);
+
+    if(libsLoaded > 0) {
+        TYPELOGV(NOTIFY_EXTENSIONS_LIB_LOADED_SUCCESS, libsLoaded);
+    }
     return RC_SUCCESS;
 }
 
@@ -564,8 +584,11 @@ static ErrCode tear(void* arg) {
     // Delete the Sysfs Persistent File
     AuxRoutines::deleteFile(UrmSettings::mPersistenceFile);
 
-    if(extensionsLibHandle != nullptr) {
-        dlclose(extensionsLibHandle);
+    for(int32_t i = 0; i < MAX_EXTENSION_LIB_HANDLES; i++) {
+        if(extensionLibHandles[i] != nullptr) {
+            dlclose(extensionLibHandles[i]);
+            extensionLibHandles[i] = nullptr;
+        }
     }
 
     return RC_SUCCESS;
