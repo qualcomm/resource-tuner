@@ -1,5 +1,4 @@
 ---
-
 ##  New Enhancements
 - **XFAIL & SKIP support**:
   - Static: `MT_TEST_XFAIL`, `MT_TEST_SKIP`.
