@@ -8,10 +8,9 @@
 #include <thread>
 #include <chrono>
 #include <iostream>
-
-#include "Timer.h"         // your Timer component
-#include "ThreadPool.h"    // whatever defines ThreadPool
-#include "TestUtils.h"     // if you still need MakeAlloc<Timer>
+#include "Timer.h"
+#include "ThreadPool.h"
+#include "TestUtils.h"
 
 
 #define MTEST_NO_MAIN
@@ -58,7 +57,7 @@ static void REQUIRE_NEAR(mtest::TestContext& ctx,
 // ----------------- Tests -----------------
 
 // BaseCase: one-shot 200ms
-MT_TEST(timer, BaseCase, "component-serial") {
+MT_TEST(Component, BaseCase, "timer") {
     Init();
     Timer* timer = new Timer(afterTimer);
     isFinished.store(false);
@@ -76,7 +75,7 @@ MT_TEST(timer, BaseCase, "component-serial") {
 }
 
 // Kill before completion at ~100ms
-MT_TEST(timer, killBeforeCompletion, "component-serial") {
+MT_TEST(Component, killBeforeCompletion, "timer") {
     Init();
     Timer* timer = new Timer(afterTimer);
     isFinished.store(false);
@@ -95,7 +94,7 @@ MT_TEST(timer, killBeforeCompletion, "component-serial") {
 }
 
 // Kill after completion (~300ms)
-MT_TEST(timer, killAfterCompletion, "component-serial") {
+MT_TEST(Component, killAfterCompletion, "timer") {
     Init();
     Timer* timer = new Timer(afterTimer);
     isFinished.store(false);
@@ -114,7 +113,7 @@ MT_TEST(timer, killAfterCompletion, "component-serial") {
 }
 
 // Recurring timer: expect ~600ms for 3 cycles
-MT_TEST(timer, RecurringTimer, "component-serial") {
+MT_TEST(Component, RecurringTimer, "timer") {
     Init();
     Timer* recurringTimer = new Timer(afterTimer, true);
     isFinished.store(false);
@@ -139,7 +138,7 @@ MT_TEST(timer, RecurringTimer, "component-serial") {
 }
 
 // Recurring + premature kill: ~500ms (2 cycles + ~100ms)
-MT_TEST(timer, RecurringTimerPreMatureKill, "component-serial") {
+MT_TEST(Component, RecurringTimerPreMatureKill, "timer") {
     Init();
     Timer* recurringTimer = new Timer(afterTimer, true);
     isFinished.store(false);
@@ -166,7 +165,7 @@ MT_TEST(timer, RecurringTimerPreMatureKill, "component-serial") {
 
 // -------- Parameterized variant for BaseCase (try multiple targets) --------
 
-MT_TEST_P(timer, BaseCaseParam, "component-serial", int,
+MT_TEST_P(Component, BaseCaseParam, "timer", int,
           (std::initializer_list<int>{100, 200, 300})) { 
 
     Init();

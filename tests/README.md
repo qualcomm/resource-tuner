@@ -1,25 +1,7 @@
-# Mini Test Framework (`mtest`)
-
-A lightweight, header-only C++ testing framework for unit, component, and integration tests. Designed for simplicity, speed, and CI-friendly reporting.
-
----
-
-##  Features
-- Header-only: Single include (`mini.hpp`).
-- Simple macros: `MT_TEST`, `MT_TEST_F`, `MT_TEST_P_LIST`, `MT_TEST_FP_LIST`.
-- Assertions: `MT_REQUIRE`, `MT_CHECK`, `MT_REQUIRE_EQ`, `MT_CHECK_EQ`, `MT_FAIL`.
-- Fixtures & Parameterized tests.
-- Parallel execution with deterministic output.
-- Filtering by name (`--filter`) and tag (`--tag`).
-- Colored output and TAP v13 for CI.
-- Timing per test and summary.
-
----
-
 ##  New Enhancements
 - **XFAIL & SKIP support**:
   - Static: `MT_TEST_XFAIL`, `MT_TEST_SKIP`.
-  - Runtime: `MT_MARK_XFAIL(ctx, "reason")`, `MT_SKIP(ctx, "reason")`.
+  - Runtime: `MT_MARK_XFAIL(ctx, "reason" )`, `MT_SKIP(ctx, "reason")`.
   - CLI: `--xfail-strict` (XPASS counts as failure).
 - **Reports**:
   - JSON, JUnit XML, Markdown.
@@ -43,7 +25,9 @@ Build & run:
 mkdir build && cd build
 cmake .. -DBUILD_TESTS=ON
 make
-./tests/RestuneMiniTests
+./tests/RestuneComponentTests
+./tests/RestuneIntegrationTests
+./tests/RestuneUnitTests
 ```
 
 ---
@@ -80,8 +64,6 @@ build/test-reports/
 ```
 Summary: total=47, passed=29, failed=11, skipped=0, xfail=7, xpass=0, time=314566.983 ms
 ```
-
----
 
 ---
 
@@ -138,5 +120,6 @@ Run all tests:
 ```bash
 ctest -V
 ```
+
 Reports will appear in `build/test-reports/`.
 

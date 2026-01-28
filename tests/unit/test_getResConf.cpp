@@ -1,3 +1,5 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
 
 // tests/unit/test_getResConf.cpp
 //
@@ -84,7 +86,7 @@ static bool resolve_key(ResourceRegistry* rr,
 /**
  * @test getResConf returns nullptr for an unknown key.
  */
-MT_TEST(ResourceRegistry_GetResConf, UnknownId_ReturnsNull, "unit") {
+MT_TEST(unit, UnknownId_ReturnsNull, "resourceregistry") {
     auto rr = ResourceRegistry::getInstance();
     const uint32_t unknownId = 0xDEAD0000u;
 
@@ -123,7 +125,7 @@ MT_TEST(ResourceRegistry_GetResConf, KnownId_DefaultKey, "unit") {
  */
 
 // --- replace the body of KnownId_BuKeyMSB with this ---
-MT_TEST(ResourceRegistry_GetResConf, KnownId_BuKeyMSB, "unit") {
+MT_TEST(unit, KnownId_BuKeyMSB, "resourceregistry") {
     auto rr = ResourceRegistry::getInstance();
 
     const int beforeCount = rr->getTotalResourcesCount();

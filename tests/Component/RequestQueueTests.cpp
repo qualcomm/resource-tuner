@@ -401,7 +401,7 @@ static void ProducerPriority2(ProducerPriority2Ctx ctx) {
 
 // ---------- Tests (ported one-to-one) ----------
 
-MT_TEST(RequestQueue, TestRequestQueueTaskEnqueue, "component-serial") {
+MT_TEST(Component, TestRequestQueueTaskEnqueue, "requestqueue") {
     Init();
     std::shared_ptr<RequestQueue> queue = RequestQueue::getInstance();
     int32_t requestCount = 8;
@@ -423,7 +423,7 @@ MT_TEST(RequestQueue, TestRequestQueueTaskEnqueue, "component-serial") {
 }
 
 
-MT_TEST(RequestQueue, TestRequestQueueSingleTaskPickup1, "component-serial") {
+MT_TEST(Component, TestRequestQueueSingleTaskPickup1, "requestqueue") {
     Init();
     std::shared_ptr<RequestQueue> requestQueue = RequestQueue::getInstance();
 
@@ -444,7 +444,7 @@ MT_TEST(RequestQueue, TestRequestQueueSingleTaskPickup1, "component-serial") {
 }
 
 
-MT_TEST(RequestQueue, TestRequestQueueSingleTaskPickup2, "component-serial") {
+MT_TEST(Component, TestRequestQueueSingleTaskPickup2, "requestqueue") {
     Init();
     std::shared_ptr<RequestQueue> requestQueue = RequestQueue::getInstance();
     std::atomic<int32_t> requestsProcessed(0);
@@ -462,7 +462,7 @@ MT_TEST(RequestQueue, TestRequestQueueSingleTaskPickup2, "component-serial") {
     MT_REQUIRE_EQ(ctx, requestsProcessed.load(), 1);
 }
 
-MT_TEST(RequestQueue, TestRequestQueueMultipleTaskPickup, "component-serial") {
+MT_TEST(Component, TestRequestQueueMultipleTaskPickup, "requestqueue") {
     Init();
     std::shared_ptr<RequestQueue> requestQueue = RequestQueue::getInstance();
     std::atomic<int32_t> requestsProcessed(0);
@@ -480,7 +480,7 @@ MT_TEST(RequestQueue, TestRequestQueueMultipleTaskPickup, "component-serial") {
     MT_REQUIRE_EQ(ctx, requestsProcessed.load(), 4);
 }
 
-MT_TEST(RequestQueue, TestRequestQueueMultipleTaskAndProducersPickup, "component-serial") {
+MT_TEST(Component, TestRequestQueueMultipleTaskAndProducersPickup, "requestqueue") {
     Init();
     std::shared_ptr<RequestQueue> requestQueue = RequestQueue::getInstance();
     std::atomic<int32_t> requestsProcessed(0);
@@ -515,13 +515,13 @@ MT_TEST(RequestQueue, TestRequestQueueMultipleTaskAndProducersPickup, "component
     MT_REQUIRE_EQ(ctx, requestsProcessed.load(), totalNumberOfThreads + 1);
 }
 
-MT_TEST(RequestQueue, TestRequestQueueEmptyPoll, "component-serial") {
+MT_TEST(Component, TestRequestQueueEmptyPoll, "requestqueue") {
     Init();
     std::shared_ptr<RequestQueue> requestQueue = RequestQueue::getInstance();
     MT_REQUIRE(ctx, requestQueue->pop() == nullptr);
 }
 
-MT_TEST(RequestQueue, TestRequestQueuePollingPriority1, "component-serial") {
+MT_TEST(Component, TestRequestQueuePollingPriority1, "requestqueue") {
     Init();
     std::shared_ptr<RequestQueue> requestQueue = RequestQueue::getInstance();
     int8_t taskCondition = false;
@@ -593,7 +593,7 @@ MT_TEST(RequestQueue, TestRequestQueuePollingPriority1, "component-serial") {
     consumerThread.join();
 }
 
-MT_TEST(RequestQueue, TestRequestQueuePollingPriority2, "component-serial") {
+MT_TEST(Component, TestRequestQueuePollingPriority2, "requestqueue") {
     Init();
     std::shared_ptr<RequestQueue> requestQueue = RequestQueue::getInstance();
     int8_t taskCondition = false;
@@ -638,7 +638,7 @@ MT_TEST(RequestQueue, TestRequestQueuePollingPriority2, "component-serial") {
     producerThread.join();
 }
 
-MT_TEST(RequestQueue, TestRequestQueueInvalidPriority, "component-serial") {
+MT_TEST(Component, TestRequestQueueInvalidPriority, "requestqueue") {
     Init();
     std::shared_ptr<RequestQueue> requestQueue = RequestQueue::getInstance();
 

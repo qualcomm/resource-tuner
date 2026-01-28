@@ -1,6 +1,6 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include "../../../resource-tuner/core/Include/ResourceRegistry.h"
-#include "../../../resource-tuner/core/Include/TargetRegistry.h"
 
 // -------------- TargetRegistry stubs --------------
 std::shared_ptr<TargetRegistry> TargetRegistry::targetRegistryInstance = nullptr;

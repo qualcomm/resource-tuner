@@ -1,3 +1,6 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+
 #include "ErrCodes.h"
 #include "UrmPlatformAL.h"
 #include "Utils.h"
@@ -21,7 +24,7 @@ static void __ensure_baseline() {
 // --------------- Two tests wrapped with mini.hpp ------------
 
 // Wrap as a mini.hpp test: Handle generation should return positive handles and continue across calls.
-MT_TEST(Integration, HandleGeneration, "integration") {
+MT_TEST(Integration, TestHandleGeneration, "handlegeneration") {
     LOG_START
     // If this test depends on baseline, uncomment the next line:
     // __ensure_baseline();
@@ -64,7 +67,7 @@ MT_TEST(Integration, HandleGeneration, "integration") {
 }
 
 // Wrap as a mini.hpp test: invalid request verification (duration=0 should fail).
-MT_TEST(Integration, TestNullOrInvalidRequestVerification1, "Integration") {
+MT_TEST(Integration, TestNullOrInvalidRequestVerification1, "requestverification") {
     LOG_START
     // __ensure_baseline(); // uncomment if required
 
@@ -78,7 +81,7 @@ MT_TEST(Integration, TestNullOrInvalidRequestVerification1, "Integration") {
 }
 
 
-MT_TEST(Integration, TestNullOrInvalidRequestVerification2, "Integration") {
+MT_TEST(Integration, TestNullOrInvalidRequestVerification2, "requestverification") {
     LOG_START
     // duration = -1 is allowed; but num resources = 0 and list = nullptr ⇒ client-side rejection
     int64_t handle = tuneResources(-1, RequestPriority::REQ_PRIORITY_HIGH, 0, nullptr);
@@ -88,7 +91,7 @@ MT_TEST(Integration, TestNullOrInvalidRequestVerification2, "Integration") {
 }
 
 
-MT_TEST(Integration, TestNullOrInvalidRequestVerification3, "Integration") {
+MT_TEST(Integration, TestNullOrInvalidRequestVerification3, "requestverification") {
     LOG_START
     SysResource r{};           // invalid basic params
     r.mResCode = -1;
@@ -100,7 +103,7 @@ MT_TEST(Integration, TestNullOrInvalidRequestVerification3, "Integration") {
 }
 
 
-MT_TEST(Integration, TestClientPriorityAcquisitionVerification, "Integration") {
+MT_TEST(Integration, TestClientPriorityAcquisitionVerification, "requestverification") {
     LOG_START
     // Read original
     std::string node = "/etc/urm/tests/nodes/scaling_min_freq.txt";
@@ -125,7 +128,7 @@ MT_TEST(Integration, TestClientPriorityAcquisitionVerification, "Integration") {
 }
 
 
-MT_TEST(Integration, TestInvalidResourceTuning, "Integration") {
+MT_TEST(Integration, TestInvalidResourceTuning, "requestverification") {
     LOG_START
     std::string validNode = "/etc/urm/tests/nodes/scaling_min_freq.txt";
     int32_t original = C_STOI(AuxRoutines::readFromFile(validNode));
@@ -155,7 +158,7 @@ MT_TEST(Integration, TestInvalidResourceTuning, "Integration") {
 
 
 
-MT_TEST(Integration, TestOutOfBoundsResourceTuning, "Integration") {
+MT_TEST(Integration, TestOutOfBoundsResourceTuning, "requestverification") {
     LOG_START
     std::string node = "/etc/urm/tests/nodes/scaling_min_freq.txt";
     int32_t original = C_STOI(AuxRoutines::readFromFile(node));
@@ -178,7 +181,7 @@ MT_TEST(Integration, TestOutOfBoundsResourceTuning, "Integration") {
 
 
 
-MT_TEST(Integration, TestResourceLogicalToPhysicalTranslationVerification1, "Integration") {
+MT_TEST(Integration, TestResourceLogicalToPhysicalTranslationVerification1, "requestverification") {
     LOG_START
     std::string node = "/etc/urm/tests/nodes/target_test_resource2.txt";
     int32_t original = C_STOI(AuxRoutines::readFromFile(node));
@@ -204,7 +207,7 @@ MT_TEST(Integration, TestResourceLogicalToPhysicalTranslationVerification1, "Int
 }
 
 
-MT_TEST(Integration, TestResourceLogicalToPhysicalTranslationVerification2, "Integration") {
+MT_TEST(Integration, TestResourceLogicalToPhysicalTranslationVerification2, "requestverification") {
     LOG_START
 
     std::string node = "/etc/urm/tests/nodes/target_test_resource2.txt";
@@ -231,7 +234,7 @@ MT_TEST(Integration, TestResourceLogicalToPhysicalTranslationVerification2, "Int
 }
 
 
-MT_TEST(Integration, TestResourceLogicalToPhysicalTranslationVerification3, "Integration") {
+MT_TEST(Integration, TestResourceLogicalToPhysicalTranslationVerification3, "requestverification") {
     LOG_START
     // If your platform map is needed, call SetUp() or __ensure_baseline();
     // __ensure_baseline();
@@ -267,7 +270,7 @@ MT_TEST(Integration, TestResourceLogicalToPhysicalTranslationVerification3, "Int
 }
 
 
-MT_TEST(Integration, TestResourceLogicalToPhysicalTranslationVerification4, "Integration") {
+MT_TEST(Integration, TestResourceLogicalToPhysicalTranslationVerification4, "requestverification") {
     LOG_START
 
     std::string node = "/etc/urm/tests/nodes/target_test_resource2.txt";
@@ -294,7 +297,7 @@ MT_TEST(Integration, TestResourceLogicalToPhysicalTranslationVerification4, "Int
 }
 
 
-MT_TEST(Integration, TestNonSupportedResourceTuningVerification, "Integration") {
+MT_TEST(Integration, TestNonSupportedResourceTuningVerification, "requestverification") {
     LOG_START
 
     std::string node = "/etc/urm/tests/nodes/target_test_resource4.txt";
@@ -317,7 +320,7 @@ MT_TEST(Integration, TestNonSupportedResourceTuningVerification, "Integration") 
 }
 
 
-MT_TEST(Integration, TestResourceOperationModeVerification, "Integration") {
+MT_TEST(Integration, TestResourceOperationModeVerification, "requestverification") {
     LOG_START
 
     std::string node = "/etc/urm/tests/nodes/target_test_resource3.txt";
@@ -341,7 +344,7 @@ MT_TEST(Integration, TestResourceOperationModeVerification, "Integration") {
 
 
 
-MT_TEST(Integration, TestClientPermissionChecksVerification, "Integration") {
+MT_TEST(Integration, TestClientPermissionChecksVerification, "requestverification") {
     LOG_START
 
     std::string node = "/etc/urm/tests/nodes/target_test_resource1.txt";
@@ -895,7 +898,7 @@ MT_TEST(Integration, TestMultipleClientsLowerIsBetterPolicy, "request-applicatio
 }
 
 // Wrap as a mini.hpp test: Two clients; "Lazy-Apply" policy applies in FIFO order
-MT_TEST(RequestApplicationTests, TestMultipleClientsLazyApplyPolicy, "Integration") {
+MT_TEST(integration, TestMultipleClientsLazyApplyPolicy, "request-application") {
     (void)ctx; // silence unused parameter warning
     LOG_START
 
@@ -969,7 +972,7 @@ MT_TEST(RequestApplicationTests, TestMultipleClientsLazyApplyPolicy, "Integratio
 
 
 // Wrap as a mini.hpp test: Single client issues sequential requests; higher takes effect, then resets
-MT_TEST(RequestApplicationTests, TestSingleClientSequentialRequests, "Integration") {
+MT_TEST(Integration, TestSingleClientSequentialRequests, "request-application") {
     (void)ctx; // silence unused parameter warning
     LOG_START
 
@@ -1019,7 +1022,7 @@ MT_TEST(RequestApplicationTests, TestSingleClientSequentialRequests, "Integratio
 
 
 // Wrap as a mini.hpp test: Same client process, two threads issue concurrent requests (higher wins), then reset
-MT_TEST(RequestApplicationTests, TestMultipleClientTIDsConcurrentRequests, "Integration") {
+MT_TEST(Integration, TestMultipleClientTIDsConcurrentRequests, "request-application") {
     (void)ctx; // silence unused parameter warning
     LOG_START
 
@@ -1072,7 +1075,7 @@ MT_TEST(RequestApplicationTests, TestMultipleClientTIDsConcurrentRequests, "Inte
 
 
 // Wrap as a mini.hpp test: Infinite duration tune, then valid untune → node resets
-MT_TEST(RequestApplicationTests, TestInfiniteDurationTuneRequestAndValidUntuning, "Integration") {
+MT_TEST(Integration, TestInfiniteDurationTuneRequestAndValidUntuning, "request-application") {
     (void)ctx; // silence unused parameter warning
     LOG_START
 
@@ -1118,7 +1121,7 @@ MT_TEST(RequestApplicationTests, TestInfiniteDurationTuneRequestAndValidUntuning
 
 
 // Wrap as a mini.hpp test: Higher priority request should take effect over lower priority
-MT_TEST(RequestApplicationTests, TestPriorityBasedResourceAcquisition1, "Integration") {
+MT_TEST(Integration, TestPriorityBasedResourceAcquisition1, "request-application") {
     (void)ctx; // silence unused parameter warning
     LOG_START
 
@@ -1168,7 +1171,7 @@ MT_REQUIRE_EQ(ctx, originalValue, testResourceOriginalValue);
 
 
 // Higher priority request should override lower priority; timeline across staggered arrivals
-MT_TEST(RequestApplicationTests, TestPriorityBasedResourceAcquisition2, "Integration") {
+MT_TEST(Integration, TestPriorityBasedResourceAcquisition2, "request-application") {
     (void)ctx;
     LOG_START
 
@@ -1222,7 +1225,7 @@ MT_TEST(RequestApplicationTests, TestPriorityBasedResourceAcquisition2, "Integra
 
 
 // Higher priority (P1) keeps lower priority (P2) from taking effect even if V2 > V1
-MT_TEST(RequestApplicationTests, TestPriorityBasedResourceAcquisition3, "Integration") {
+MT_TEST(Integration, TestPriorityBasedResourceAcquisition3, "request-application") {
     (void)ctx;
     LOG_START
 
@@ -1277,7 +1280,7 @@ MT_TEST(RequestApplicationTests, TestPriorityBasedResourceAcquisition3, "Integra
 
 
 // Valid retune extends duration; value remains applied until extended expiry, then resets
-MT_TEST(RequestApplicationTests, TestRequestValidRetuning, "Integration") {
+MT_TEST(Integration, TestRequestValidRetuning, "request-application") {
     (void)ctx;
     LOG_START
 
@@ -1326,7 +1329,7 @@ MT_TEST(RequestApplicationTests, TestRequestValidRetuning, "Integration") {
 
 
 // Invalid retune (decreasing duration) should be rejected; original expiry still applies
-MT_TEST(RequestApplicationTests, TestRequestInvalidRetuning1, "Integration") {
+MT_TEST(Integration, TestRequestInvalidRetuning1, "request-application") {
     (void)ctx;
     LOG_START
 
@@ -1376,7 +1379,7 @@ MT_TEST(RequestApplicationTests, TestRequestInvalidRetuning1, "Integration") {
 
 
 // Wrap as a mini.hpp test: Cluster-type resource, logical cluster 0 → apply & reset
-MT_TEST(RequestApplicationTests, TestClusterTypeResourceTuneRequest1, "Integration") {
+MT_TEST(Integration, TestClusterTypeResourceTuneRequest1, "request-application") {
     (void)ctx; // silence unused parameter warning
     LOG_START
 
@@ -1427,7 +1430,7 @@ MT_TEST(RequestApplicationTests, TestClusterTypeResourceTuneRequest1, "Integrati
 
 
 // Wrap as a mini.hpp test: Cluster-type resource, logical cluster 2 → apply & reset
-MT_TEST(RequestApplicationTests, TestClusterTypeResourceTuneRequest2, "Integration") {
+MT_TEST(Integration, TestClusterTypeResourceTuneRequest2, "request-application") {
     (void)ctx; // silence unused parameter warning
     LOG_START
 
@@ -1477,7 +1480,7 @@ MT_TEST(RequestApplicationTests, TestClusterTypeResourceTuneRequest2, "Integrati
 }
 
 
-MT_TEST(SignalApplicationTests, TestSingleClientTuneSignal1, "Integration") {
+MT_TEST(Integration, TestSingleClientTuneSignal1, "signal-application") {
     (void)ctx;
     LOG_START
 
@@ -1511,7 +1514,7 @@ MT_TEST(SignalApplicationTests, TestSingleClientTuneSignal1, "Integration") {
 }
 
 
-MT_TEST(SignalApplicationTests, TestSingleClientTuneSignal2, "Integration") {
+MT_TEST(Integration, TestSingleClientTuneSignal2, "signal-application") {
     (void)ctx;
     LOG_START
 
@@ -1567,7 +1570,7 @@ MT_TEST(SignalApplicationTests, TestSingleClientTuneSignal2, "Integration") {
 }
 
 
-MT_TEST(SignalApplicationTests, TestSignalUntuning, "Integration") {
+MT_TEST(Integration, TestSignalUntuning, "signal-application") {
     LOG_START
 
     const std::string testResourceName = "/etc/urm/tests/nodes/sched_util_clamp_min.txt";
@@ -1623,7 +1626,7 @@ MT_TEST(SignalApplicationTests, TestSignalUntuning, "Integration") {
     LOG_END
 }
 
-MT_TEST(SignalApplicationTests, TestObservationSignal, "Integration") {
+MT_TEST(Integration, TestObservationSignal, "signal-application") {
     LOG_START
 
     std::vector<std::string> keys = {
@@ -1691,7 +1694,7 @@ static std::string encodeCluster(const std::string& nodePath, int32_t physicalCl
     return std::string(path);
 }
 
-MT_TEST(SignalApplicationTests, TestMultiResourceSignal, "Integration") {
+MT_TEST(Integration, TestMultiResourceSignal, "signal-application") {
     LOG_START
 
     // Cluster resource template

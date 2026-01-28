@@ -7,7 +7,6 @@
 #define MTEST_NO_MAIN
 #include "../framework/mini.h"
 
-// ParserTests.cpp (ported to mini.hpp with assert adaptation + no lambdas in concurrent test)
 #include "ErrCodes.h"
 #include "TestUtils.h"
 #include "RestuneParser.h"
@@ -50,13 +49,13 @@ namespace ResourceParsingTests {
         if (!done) { Init(); done = true; }
     }
 
-    MT_TEST(ResourceParsingTests, ResourceRestuneParserYAMLDataIntegrity1, "component-serial") {
+    MT_TEST(Component, ResourceRestuneParserYAMLDataIntegrity1, "resourceparsing") {
         EnsureInit();
         MT_REQUIRE(ctx, ResourceRegistry::getInstance() != nullptr);
         MT_REQUIRE_EQ(ctx, parsingStatus, RC_SUCCESS);
     }
 
-    MT_TEST(ResourceParsingTests, ResourceRestuneParserYAMLDataIntegrity3_1, "component-serial") {
+    MT_TEST(Component, ResourceRestuneParserYAMLDataIntegrity3_1, "resourceparsing") {
         EnsureInit();
         ResConfInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResConf(0x80ff0000);
 
@@ -73,7 +72,7 @@ namespace ResourceParsingTests {
         MT_REQUIRE_EQ(ctx, resourceConfigInfo->mApplyType, ResourceApplyType::APPLY_GLOBAL);
     }
 
-    MT_TEST(ResourceParsingTests, ResourceRestuneParserYAMLDataIntegrity3_2, "component-serial") {
+    MT_TEST(Component, ResourceRestuneParserYAMLDataIntegrity3_2, "resourceparsing") {
         EnsureInit();
         ResConfInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResConf(0x80ff0001);
 
@@ -90,7 +89,7 @@ namespace ResourceParsingTests {
         MT_REQUIRE_EQ(ctx, resourceConfigInfo->mApplyType, ResourceApplyType::APPLY_GLOBAL);
     }
 
-    MT_TEST(ResourceParsingTests, ResourceRestuneParserYAMLDataIntegrity3_3, "component-serial") {
+    MT_TEST(Component, ResourceRestuneParserYAMLDataIntegrity3_3, "resourceparsing") {
         EnsureInit();
         ResConfInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResConf(0x80ff0005);
 
@@ -126,13 +125,13 @@ namespace SignalParsingTests {
         if (!done) { Init(); done = true; }
     }
 
-    MT_TEST(SignalParsingTests, RestuneParserYAMLDataIntegrity1, "component-serial") {
+    MT_TEST(Component, RestuneParserYAMLDataIntegrity1, "signalparsing") {
         EnsureInit();
         MT_REQUIRE(ctx, SignalRegistry::getInstance() != nullptr);
         MT_REQUIRE_EQ(ctx, parsingStatus, RC_SUCCESS);
     }
 
-    MT_TEST(SignalParsingTests, RestuneParserYAMLDataIntegrity3_1, "component-serial") {
+    MT_TEST(Component, RestuneParserYAMLDataIntegrity3_1, "signalparsing") {
         EnsureInit();
         SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x000d0000);
 
@@ -161,7 +160,7 @@ namespace SignalParsingTests {
         MT_REQUIRE_EQ(ctx, resource1->getResInfo(), 0);
     }
 
-    MT_TEST(SignalParsingTests, RestuneParserYAMLDataIntegrity3_2, "component-serial") {
+    MT_TEST(Component, RestuneParserYAMLDataIntegrity3_2, "signalparsing") {
         EnsureInit();
         SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x000d0001);
 
@@ -196,13 +195,13 @@ namespace SignalParsingTests {
         MT_REQUIRE_EQ(ctx, resource2->getResInfo(), 256);
     }
 
-    MT_TEST(SignalParsingTests, RestuneParserYAMLDataIntegrity3_3, "component-serial") {
+    MT_TEST(Component, RestuneParserYAMLDataIntegrity3_3, "signalparsing") {
         EnsureInit();
         SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x000d0003);
         MT_REQUIRE_EQ(ctx, signalInfo, (SignalInfo*)nullptr);
     }
 
-    MT_TEST(SignalParsingTests, RestuneParserYAMLDataIntegrity3_4, "component-serial") {
+    MT_TEST(Component, RestuneParserYAMLDataIntegrity3_4, "signalparsing") {
         EnsureInit();
         SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x000d0007);
 
@@ -258,19 +257,19 @@ namespace InitConfigParsingTests {
         if (!done) { Init(); done = true; }
     }
 
-    MT_TEST(InitConfigParsingTests, InitRestuneParserYAMLDataIntegrity1, "component-serial") {
+    MT_TEST(Component, InitRestuneParserYAMLDataIntegrity1, "initconfigparsing") {
         EnsureInit();
         MT_REQUIRE(ctx, (TargetRegistry::getInstance() != nullptr));
         MT_REQUIRE_EQ(ctx, parsingStatus, RC_SUCCESS);
     }
 
-    MT_TEST(InitConfigParsingTests, InitRestuneParserYAMLDataIntegrity2, "component-serial") {
+    MT_TEST(Component, InitRestuneParserYAMLDataIntegrity2, "initconfigparsing") {
         EnsureInit();
         std::cout << "Count of Cgroups created: " << TargetRegistry::getInstance()->getCreatedCGroupsCount() << std::endl;
         MT_REQUIRE_EQ(ctx, TargetRegistry::getInstance()->getCreatedCGroupsCount(), 3);
     }
 
-    MT_TEST(InitConfigParsingTests, InitRestuneParserYAMLDataIntegrity3, "component-serial") {
+    MT_TEST(Component, InitRestuneParserYAMLDataIntegrity3, "initconfigparsing") {
         EnsureInit();
         std::vector<std::string> cGroupNames;
         TargetRegistry::getInstance()->getCGroupNames(cGroupNames);
@@ -288,7 +287,7 @@ namespace InitConfigParsingTests {
         }
     }
 
-    MT_TEST(InitConfigParsingTests, InitRestuneParserYAMLDataIntegrity4, "component-serial") {
+    MT_TEST(Component, InitRestuneParserYAMLDataIntegrity4, "initconfigparsing") {
         EnsureInit();
         CGroupConfigInfo* cameraConfig = TargetRegistry::getInstance()->getCGroupConfig(801);
         MT_REQUIRE(ctx, cameraConfig != nullptr);
@@ -301,12 +300,12 @@ namespace InitConfigParsingTests {
         MT_REQUIRE_EQ(ctx, videoConfig->mIsThreaded, true);
     }
 
-    MT_TEST(InitConfigParsingTests, InitRestuneParserYAMLDataIntegrity5, "component-serial") {
+    MT_TEST(Component, InitRestuneParserYAMLDataIntegrity5, "initconfigparsing") {
         EnsureInit();
         MT_REQUIRE_EQ(ctx, TargetRegistry::getInstance()->getCreatedMpamGroupsCount(), 3);
     }
 
-    MT_TEST(InitConfigParsingTests, InitRestuneParserYAMLDataIntegrity6, "component-serial") {
+    MT_TEST(Component, InitRestuneParserYAMLDataIntegrity6, "initconfigparsing") {
         EnsureInit();
         std::vector<std::string> mpamGroupNames;
         TargetRegistry::getInstance()->getMpamGroupNames(mpamGroupNames);
@@ -324,7 +323,7 @@ namespace InitConfigParsingTests {
         }
     }
 
-    MT_TEST(InitConfigParsingTests, InitRestuneParserYAMLDataIntegrity7, "component-serial") {
+    MT_TEST(Component, InitRestuneParserYAMLDataIntegrity7, "initconfigparsing") {
         EnsureInit();
         MpamGroupConfigInfo* cameraConfig = TargetRegistry::getInstance()->getMpamGroupConfig(0);
         MT_REQUIRE(ctx, cameraConfig != nullptr);
@@ -358,13 +357,13 @@ namespace PropertyParsingTests {
         if (!done) { Init(); done = true; }
     }
 
-    MT_TEST(PropertyParsingTests, SysRestuneParserYAMLDataIntegrity1, "component-serial") {
+    MT_TEST(Component, SysRestuneParserYAMLDataIntegrity1, "propertyparsing") {
         EnsureInit();
         MT_REQUIRE(ctx, PropertiesRegistry::getInstance() != nullptr);
         MT_REQUIRE_EQ(ctx, parsingStatus, RC_SUCCESS);
     }
 
-    MT_TEST(PropertyParsingTests, SysConfigGetPropSimpleRetrieval1, "component-serial") {
+    MT_TEST(Component, SysConfigGetPropSimpleRetrieval1, "propertyparsing") {
         EnsureInit();
         std::string resultBuffer;
         int8_t propFound = submitPropGetRequest("test.debug.enabled", resultBuffer, "false");
@@ -373,7 +372,7 @@ namespace PropertyParsingTests {
         MT_REQUIRE_EQ(ctx, std::strcmp(resultBuffer.c_str(), "true"), 0);
     }
 
-    MT_TEST(PropertyParsingTests, SysConfigGetPropSimpleRetrieval2, "component-serial") {
+    MT_TEST(Component, SysConfigGetPropSimpleRetrieval2, "propertyparsing") {
         EnsureInit();
         std::string resultBuffer;
         int8_t propFound = submitPropGetRequest("test.current.worker_thread.count", resultBuffer, "false");
@@ -382,7 +381,7 @@ namespace PropertyParsingTests {
         MT_REQUIRE_EQ(ctx, std::strcmp(resultBuffer.c_str(), "125"), 0);
     }
 
-    MT_TEST(PropertyParsingTests, SysConfigGetPropSimpleRetrievalInvalidProperty, "component-serial") {
+    MT_TEST(Component, SysConfigGetPropSimpleRetrievalInvalidProperty, "propertyparsing") {
         EnsureInit();
         std::string resultBuffer;
         int8_t propFound = submitPropGetRequest("test.historic.worker_thread.count", resultBuffer, "5");
@@ -411,7 +410,7 @@ namespace PropertyParsingTests {
         MT_REQUIRE_EQ((*tctx), std::strcmp(resultBuffer.c_str(), "false"), 0);
     }
 
-    MT_TEST(PropertyParsingTests, SysConfigGetPropConcurrentRetrieval, "component-serial") {
+    MT_TEST(Component, SysConfigGetPropConcurrentRetrieval, "propertyparsing") {
         EnsureInit();
         std::thread th1(PropGet_CurrentWorkers, &ctx);
         std::thread th2(PropGet_DebugEnabled, &ctx);
@@ -439,19 +438,19 @@ namespace TargetRestuneParserTests {
         if (!done) { Init(); done = true; }
     }
 
-    MT_TEST(TargetRestuneParserTests, TargetRestuneParserYAMLDataIntegrity1, "component-serial") {
+    MT_TEST(Component, TargetRestuneParserYAMLDataIntegrity1, "component-serial") {
         EnsureInit();
         MT_REQUIRE(ctx, TargetRegistry::getInstance() != nullptr);
         MT_REQUIRE_EQ(ctx, parsingStatus, RC_SUCCESS);
     }
 
-    MT_TEST(TargetRestuneParserTests, TargetRestuneParserYAMLDataIntegrity2, "component-serial") {
+    MT_TEST(Component, TargetRestuneParserYAMLDataIntegrity2, "targetrestuneparser") {
         EnsureInit();
         std::cout << "Determined Cluster Count = " << UrmSettings::targetConfigs.mTotalClusterCount << std::endl;
         MT_REQUIRE_EQ(ctx, UrmSettings::targetConfigs.mTotalClusterCount, 4);
     }
 
-    MT_TEST(TargetRestuneParserTests, TargetRestuneParserYAMLDataIntegrity3, "component-serial") {
+    MT_TEST(Component, TargetRestuneParserYAMLDataIntegrity3, "targetrestuneparser") {
         EnsureInit();
         MT_REQUIRE_EQ(ctx, TargetRegistry::getInstance()->getPhysicalClusterId(0), 4);
         MT_REQUIRE_EQ(ctx, TargetRegistry::getInstance()->getPhysicalClusterId(1), 0);
@@ -459,7 +458,7 @@ namespace TargetRestuneParserTests {
         MT_REQUIRE_EQ(ctx, TargetRegistry::getInstance()->getPhysicalClusterId(3), 7);
     }
 
-    MT_TEST(TargetRestuneParserTests, TargetRestuneParserYAMLDataIntegrity4, "component-serial") {
+    MT_TEST(Component, TargetRestuneParserYAMLDataIntegrity4, "targetrestuneparser") {
         EnsureInit();
         // Core distribution checks
         MT_REQUIRE_EQ(ctx, TargetRegistry::getInstance()->getPhysicalCoreId(1, 3), 2);
@@ -487,13 +486,13 @@ namespace ExtFeaturesParsingTests {
         if (!done) { Init(); done = true; }
     }
 
-    MT_TEST(ExtFeaturesParsingTests, ExtFeatRestuneParserYAMLDataIntegrity1, "component-serial") {
+    MT_TEST(Component, ExtFeatRestuneParserYAMLDataIntegrity1, "extfeatureparsing") {
         EnsureInit();
         MT_REQUIRE(ctx, ExtFeaturesRegistry::getInstance() != nullptr);
         MT_REQUIRE_EQ(ctx, parsingStatus, RC_SUCCESS);
     }
 
-    MT_TEST(ExtFeaturesParsingTests, ExtFeatRestuneParserYAMLDataIntegrity3, "component-serial") {
+    MT_TEST(Component, ExtFeatRestuneParserYAMLDataIntegrity3, "extfeatureparsing") {
         EnsureInit();
         ExtFeatureInfo* feature =
             ExtFeaturesRegistry::getInstance()->getExtFeatureConfigById(0x00000001);
@@ -509,7 +508,7 @@ namespace ExtFeaturesParsingTests {
         MT_REQUIRE_EQ(ctx, (*feature->mSignalsSubscribedTo)[1], 0x000a00ff);
     }
 
-    MT_TEST(ExtFeaturesParsingTests, ExtFeatRestuneParserYAMLDataIntegrity4, "component-serial") {
+    MT_TEST(Component, ExtFeatRestuneParserYAMLDataIntegrity4, "extfeatureparsing") {
         EnsureInit();
         ExtFeatureInfo* feature =
             ExtFeaturesRegistry::getInstance()->getExtFeatureConfigById(0x00000002);
@@ -554,13 +553,13 @@ namespace ResourceParsingTestsAddOn {
         }
     }
 
-    MT_TEST(ResourceParsingTestsAddOn, ResourceParsingSanity, "component-serial") {
+    MT_TEST(Component, ResourceParsingSanity, "resourceparsing") {
         EnsureInit();
         MT_REQUIRE(ctx, ResourceRegistry::getInstance() != nullptr);
         MT_REQUIRE_EQ(ctx, parsingStatus, RC_SUCCESS);
     }
 
-    MT_TEST(ResourceParsingTestsAddOn, ResourceParsingResourcesMerged1, "component-serial") {
+    MT_TEST(Component, ResourceParsingResourcesMerged1, "resourceparsing") {
         EnsureInit();
         ResConfInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResConf(0x80ff000b);
 
@@ -577,7 +576,7 @@ namespace ResourceParsingTestsAddOn {
         MT_REQUIRE_EQ(ctx, resourceConfigInfo->mApplyType, ResourceApplyType::APPLY_CORE);
     }
 
-    MT_TEST(ResourceParsingTestsAddOn, ResourceParsingResourcesMerged2, "component-serial") {
+    MT_TEST(Component, ResourceParsingResourcesMerged2, "resourceparsing") {
         EnsureInit();
         ResConfInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResConf(0x80ff1000);
 
@@ -594,7 +593,7 @@ namespace ResourceParsingTestsAddOn {
         MT_REQUIRE_EQ(ctx, resourceConfigInfo->mApplyType, ResourceApplyType::APPLY_CORE);
     }
 
-    MT_TEST(ResourceParsingTestsAddOn, ResourceParsingResourcesMerged3, "component-serial") {
+    MT_TEST(Component, ResourceParsingResourcesMerged3, "resourceparsing") {
         EnsureInit();
         ResConfInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResConf(0x80ff1001);
 
@@ -611,7 +610,7 @@ namespace ResourceParsingTestsAddOn {
         MT_REQUIRE_EQ(ctx, resourceConfigInfo->mApplyType, ResourceApplyType::APPLY_GLOBAL);
     }
 
-    MT_TEST(ResourceParsingTestsAddOn, ResourceParsingResourcesMerged4, "component-serial") {
+    MT_TEST(Component, ResourceParsingResourcesMerged4, "resourceparsing") {
         EnsureInit();
         ResConfInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResConf(0x80ff000c);
 
@@ -628,7 +627,7 @@ namespace ResourceParsingTestsAddOn {
         MT_REQUIRE_EQ(ctx, resourceConfigInfo->mApplyType, ResourceApplyType::APPLY_GLOBAL);
     }
 
-    MT_TEST(ResourceParsingTestsAddOn, ResourceParsingResourcesDefaultValuesCheck, "component-serial") {
+    MT_TEST(Component, ResourceParsingResourcesDefaultValuesCheck, "resourceparsing") {
         EnsureInit();
         ResConfInfo* resourceConfigInfo = ResourceRegistry::getInstance()->getResConf(0x80ff0009);
 
@@ -676,13 +675,13 @@ namespace SignalParsingTestsAddOn {
         }
     }
 
-    MT_TEST(SignalParsingTestsAddOn, SignalParsingSanity, "component-serial") {
+    MT_TEST(Component, SignalParsingSanity, "signalparsing") {
         EnsureInit();
         MT_REQUIRE(ctx, SignalRegistry::getInstance() != nullptr);
         MT_REQUIRE_EQ(ctx, parsingStatus, RC_SUCCESS);
     }
 
-    MT_TEST(SignalParsingTestsAddOn, SignalParsingSignalsMerged1, "component-serial") {
+    MT_TEST(Component, SignalParsingSignalsMerged1, "signalparsing") {
         EnsureInit();
         SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x80deaadd);
 
@@ -710,7 +709,7 @@ namespace SignalParsingTestsAddOn {
         MT_REQUIRE_EQ(ctx, resource1->getResInfo(), 0x000776aa);
     }
 
-    MT_TEST(SignalParsingTestsAddOn, SignalParsingSignalsMerged2, "component-serial") {
+    MT_TEST(Component, SignalParsingSignalsMerged2, "signalparsing") {
         EnsureInit();
         SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x000d0007);
 
@@ -747,7 +746,7 @@ namespace SignalParsingTestsAddOn {
         MT_REQUIRE_EQ(ctx, resource2->getResInfo(), 0);
     }
 
-    MT_TEST(SignalParsingTestsAddOn, SignalParsingSignalsMerged3, "component-serial") {
+    MT_TEST(Component, SignalParsingSignalsMerged3, "signalparsing") {
         EnsureInit();
         SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x801e00ab);
 
@@ -782,13 +781,13 @@ namespace SignalParsingTestsAddOn {
         MT_REQUIRE_EQ(ctx, resource2->getResInfo(), 0x00100112);
     }
 
-    MT_TEST(SignalParsingTestsAddOn, SignalParsingSignalsMerged4, "component-serial") {
+    MT_TEST(Component, SignalParsingSignalsMerged4, "signalparsing") {
         EnsureInit();
         SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x00080000);
         MT_REQUIRE_EQ(ctx, (signalInfo), (SignalInfo*)nullptr);
     }
 
-    MT_TEST(SignalParsingTestsAddOn, SignalParsingSignalsMerged5, "component-serial") {
+    MT_TEST(Component, SignalParsingSignalsMerged5, "signalparsing") {
         EnsureInit();
         SignalInfo* signalInfo = SignalRegistry::getInstance()->getSignalConfigById(0x80ceffcf);
 
@@ -846,13 +845,13 @@ namespace AppConfigParserTests {
         if (!done) { Init(); done = true; }
     }
 
-    MT_TEST(AppConfigParserTests, AppConfigParsingSanity, "component-serial") {
+    MT_TEST(Component, AppConfigParsingSanity, "appconfigparser") {
         EnsureInit();
         MT_REQUIRE(ctx, AppConfigs::getInstance() != nullptr);
         MT_REQUIRE_EQ(ctx, parsingStatus, RC_SUCCESS);
     }
 
-    MT_TEST(AppConfigParserTests, AppConfigParsingIntegrity1, "component-serial") {
+    MT_TEST(Component, AppConfigParsingIntegrity1, "appconfigparser") {
         EnsureInit();
         AppConfig* appConfigInfo = AppConfigs::getInstance()->getAppConfig("gst-launch-");
 
@@ -866,7 +865,7 @@ namespace AppConfigParserTests {
         MT_REQUIRE_EQ(ctx, appConfigInfo->mSignalCodes, (decltype(appConfigInfo->mSignalCodes))nullptr);
     }
 
-    MT_TEST(AppConfigParserTests, AppConfigParsingIntegrity2, "component-serial") {
+    MT_TEST(Component, AppConfigParsingIntegrity2, "appconfigparser") {
         EnsureInit();
         AppConfig* appConfigInfo = AppConfigs::getInstance()->getAppConfig("chrome");
 
@@ -880,10 +879,3 @@ namespace AppConfigParserTests {
         MT_REQUIRE(ctx, (appConfigInfo->mSignalCodes != nullptr));
     }
 } // namespace AppConfigParserTests
-
-// NOTE: No RunTests() / REGISTER_TEST() needed — mini.hpp auto-registers tests
-// and provides main() unless compiled with -DMTEST_NO_MAIN.
-//
-// Run serially:
-//   ./RestuneMiniTests --tag=component-serial --threads=1
-

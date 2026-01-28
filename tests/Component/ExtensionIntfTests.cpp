@@ -97,37 +97,37 @@ bool ExtensionFixture::parsed_ok   = false;
 // Suite: ExtensionIntfTests (tagged as "component-serial")
 // ---------------------------
 
-MT_TEST_F(ExtensionIntfTests, ModifiedResourceConfigPath, "component-serial", ExtensionFixture) {
+MT_TEST_F(Component, ModifiedResourceConfigPath, "extensionintf", ExtensionFixture) {
     MT_REQUIRE_EQ(ctx, Extensions::getResourceConfigFilePath(),
                   std::string("/etc/urm/tests/configs/ResourcesConfig.yaml"));
 }
 MT_TEST_F_END
 
-MT_TEST_F(ExtensionIntfTests, ModifiedPropertiesConfigPath, "component-serial", ExtensionFixture) {
+MT_TEST_F(Component, ModifiedPropertiesConfigPath, "extensionintf", ExtensionFixture) {
     MT_REQUIRE_EQ(ctx, Extensions::getPropertiesConfigFilePath(),
                   std::string("/etc/urm/tests/configs/PropertiesConfig.yaml"));
 }
 MT_TEST_F_END
 
-MT_TEST_F(ExtensionIntfTests, ModifiedSignalConfigPath, "component-serial", ExtensionFixture) {
+MT_TEST_F(Component, ModifiedSignalConfigPath, "extensionintf", ExtensionFixture) {
     MT_REQUIRE_EQ(ctx, Extensions::getSignalsConfigFilePath(),
                   std::string("/etc/urm/tests/configs/SignalsConfig.yaml"));
 }
 MT_TEST_F_END
 
-MT_TEST_F(ExtensionIntfTests, ModifiedTargetConfigPath, "component-serial", ExtensionFixture) {
+MT_TEST_F(Component, ModifiedTargetConfigPath, "extensionintf", ExtensionFixture) {
     MT_REQUIRE_EQ(ctx, Extensions::getTargetConfigFilePath(),
                   std::string("/etc/urm/tests/configs/TargetConfig.yaml"));
 }
 MT_TEST_F_END
 
-MT_TEST_F(ExtensionIntfTests, ModifiedInitConfigPath, "component-serial", ExtensionFixture) {
+MT_TEST_F(Component, ModifiedInitConfigPath, "extensionintf", ExtensionFixture) {
     MT_REQUIRE_EQ(ctx, Extensions::getInitConfigFilePath(),
                   std::string("/etc/urm/tests/configs/InitConfig.yaml"));
 }
 MT_TEST_F_END
 
-MT_TEST_F(ExtensionIntfTests, CustomResourceApplier1, "component-serial", ExtensionFixture) {
+MT_TEST_F(Component, CustomResourceApplier1, "extensionintf", ExtensionFixture) {
     auto rr    = ResourceRegistry::getInstance();     // shared_ptr<ResourceRegistry>
     auto* info = rr->getResConf(0x80ff0000);
     if (!info) {
@@ -141,7 +141,7 @@ MT_TEST_F(ExtensionIntfTests, CustomResourceApplier1, "component-serial", Extens
 }
 MT_TEST_F_END
 
-MT_TEST_F(ExtensionIntfTests, CustomResourceApplier2, "component-serial", ExtensionFixture) {
+MT_TEST_F(Component, CustomResourceApplier2, "extensionintf", ExtensionFixture) {
     auto rr    = ResourceRegistry::getInstance();
     auto* info = rr->getResConf(0x80ff0002);
     if (!info) {
@@ -155,7 +155,7 @@ MT_TEST_F(ExtensionIntfTests, CustomResourceApplier2, "component-serial", Extens
 }
 MT_TEST_F_END
 
-MT_TEST_F(ExtensionIntfTests, CustomResourceTear, "component-serial", ExtensionFixture) {
+MT_TEST_F(Component, CustomResourceTear, "extensionintf", ExtensionFixture) {
     auto rr    = ResourceRegistry::getInstance();
     auto* info = rr->getResConf(0x80ff0001);
     if (!info) {

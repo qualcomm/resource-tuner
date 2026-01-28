@@ -41,8 +41,6 @@ if(BUILD_TESTS)
 
    
 # --- Mini.hpp header-only unit/module/usecase tests ---
-# Source list for mini.hpp-based tests (add more .cpps here as you create them)
-# IMPORTANT: Do NOT include Integration/IntegrationTests.cpp here; it belongs to the integration runner.
 set(COMPONENT_TEST_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/framework/testrunner.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Component/ThreadPoolTests.cpp
@@ -50,10 +48,10 @@ set(COMPONENT_TEST_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/Component/SafeOpsTests.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Component/RequestQueueTests.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Component/RateLimiterTests.cpp
-    #${CMAKE_CURRENT_SOURCE_DIR}/Component/ParserTests.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Component/ParserTests.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Component/MiscTests.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Component/MemoryPoolTests.cpp
-    #${CMAKE_CURRENT_SOURCE_DIR}/Component/ExtensionIntfTests.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Component/ExtensionIntfTests.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Component/DeviceInfoTests.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Component/RequestMapTests.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Component/CocoTableTests.cpp
@@ -97,27 +95,16 @@ add_test(NAME RestuneComponentTests_All
                  --report-junit=${TEST_REPORT_DIR}/component_all.junit.xml
                  --report-md=${TEST_REPORT_DIR}/component_all.md)
 
-
-# (Optional) make XPASS fail the test run, useful in CI strict mode
-# set_tests_properties(RestuneMiniTests_All PROPERTIES
-#     PASS_REGULAR_EXPRESSION "Summary:.*failed=0"
-# )
-# set_tests_properties(RestuneMiniTests_Unit PROPERTIES
-#     PASS_REGULAR_EXPRESSION "Summary:.*failed=0"
-# )
-
 set_tests_properties(RestuneComponentTests_All PROPERTIES
     ENVIRONMENT "${TEST_REPORT_ENV};NO_COLOR="
 )
 
 
 # --- RestuneIntegrationTests ---
-# Build integration runner that exclusively compiles Integration/IntegrationTests.cpp
 add_executable(RestuneIntegrationTests
     ${CMAKE_CURRENT_SOURCE_DIR}/Integration/IntegrationTests.cpp
 )
 
-# Include directories (mini.hpp and any headers used)
 target_include_directories(RestuneIntegrationTests PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/framework         # mini.hpp location
     ${CMAKE_CURRENT_SOURCE_DIR}/Integration       # local includes used by Integration tests
@@ -134,9 +121,6 @@ target_link_libraries(RestuneIntegrationTests PRIVATE
     # pthread
 )
 
-# DO NOT define MTEST_NO_MAIN here; mini.hpp should provide main()
-
-# Install & register with CTest
 install(TARGETS RestuneIntegrationTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 
@@ -152,11 +136,8 @@ set_tests_properties(RestuneIntegrationTests_All PROPERTIES
     ENVIRONMENT "${TEST_REPORT_ENV};NO_COLOR="
 )
 
-
-
-
 # ----------------------------------------
-# Unified RestuneUnit binary (all unit tests)
+# all unit tests
 # ----------------------------------------
 
 # 1) One main TU that provides main()
@@ -169,7 +150,6 @@ set(RESTUNE_UNIT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/unit/test_submitResProvisionRequest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/unit/test_getResConf.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/unit/shims/SubmitShim.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/unit/stubs/RegistryStubs.cpp
     ${CMAKE_SOURCE_DIR}/resource-tuner/core/ResourceRegistry.cpp
 )
 
@@ -202,6 +182,7 @@ target_link_libraries(RestuneUnitTests PRIVATE
     UrmAuxUtils
     UrmExtAPIs
     RestuneTestUtils
+    RestuneCore
 )
 
 # 7) mini.hpp default behavior
@@ -212,8 +193,9 @@ target_compile_definitions(RestuneUnitTests PRIVATE
 # 8) Install & register with CTest
 install(TARGETS RestuneUnitTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
+
 add_test(NAME RestuneUnitTests_All
-         COMMAND RestuneUnit
+         COMMAND RestuneUnitTests
                  --report-json=${TEST_REPORT_DIR}/unit_all.json
                  --report-junit=${TEST_REPORT_DIR}/unit_all.junit.xml
                  --report-md=${TEST_REPORT_DIR}/unit_all.md)

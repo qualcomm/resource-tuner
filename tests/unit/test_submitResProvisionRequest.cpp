@@ -1,3 +1,5 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
 
 // (Optional) If you use a dedicated main TU, add this at top:
 
@@ -19,7 +21,7 @@ static RecordedCall g_lastCall;
 
 static void resetRecordedCall() { g_lastCall = RecordedCall{}; }
 
-// ✅ Move this OUT of the anonymous namespace so it has external linkage
+//  Move this OUT of the anonymous namespace so it has external linkage
 void __mock_processIncomingRequest(Request* request, int8_t isValidated) {
     g_lastCall.req  = request;
     g_lastCall.flag = isValidated;
@@ -35,7 +37,7 @@ namespace {
 
 // ---------------------- Tests ----------------------
 
-MT_TEST(Restune, Forwards_IsValidated_False, "unit") {
+MT_TEST(unit, Forwards_IsValidated_False, "restune") {
     resetRecordedCall();
     Request* req = makeNonNullRequestPtr();
 
@@ -46,7 +48,7 @@ MT_TEST(Restune, Forwards_IsValidated_False, "unit") {
     MT_REQUIRE_EQ(ctx, g_lastCall.flag,  0);
 }
 
-MT_TEST(Restune, Forwards_IsValidated_True, "unit") {
+MT_TEST(unit, Forwards_IsValidated_True, "restune") {
     resetRecordedCall();
     Request* req = makeNonNullRequestPtr();
 
@@ -57,7 +59,7 @@ MT_TEST(Restune, Forwards_IsValidated_True, "unit") {
     MT_REQUIRE_EQ(ctx, g_lastCall.flag,  1);
 }
 
-MT_TEST(Restune, Forwards_Null_Request_Pointer, "unit") {
+MT_TEST(unit, Forwards_Null_Request_Pointer, "restune") {
     resetRecordedCall();
 
     submitResProvisionRequest(nullptr, /*isValidated*/ 1);

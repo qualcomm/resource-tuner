@@ -50,7 +50,7 @@ bool DeviceInfoFixture::initialized = false;
 // Tag:  component-serial
 // ---------------------------
 
-MT_TEST_F(DeviceInfoTests, ClusterCountMatchesBaseline, "component-serial", DeviceInfoFixture) {
+MT_TEST_F(Component, ClusterCountMatchesBaseline, "deviceinfo", DeviceInfoFixture) {
     int32_t clusterCount         = UrmSettings::targetConfigs.mTotalClusterCount;
     int32_t expectedClusterCount = baseline.getExpectedClusterCount();
 
@@ -68,7 +68,7 @@ MT_TEST_F(DeviceInfoTests, ClusterCountMatchesBaseline, "component-serial", Devi
 }
 MT_TEST_F_END
 
-MT_TEST_F(DeviceInfoTests, CoreCountMatchesBaseline, "component-serial", DeviceInfoFixture) {
+MT_TEST_F(Component, CoreCountMatchesBaseline, "deviceinfo", DeviceInfoFixture) {
     int32_t coreCount         = UrmSettings::targetConfigs.mTotalCoreCount;
     int32_t expectedCoreCount = baseline.getExpectedCoreCount();
 
@@ -84,7 +84,7 @@ MT_TEST_F(DeviceInfoTests, CoreCountMatchesBaseline, "component-serial", DeviceI
 }
 MT_TEST_F_END
 
-MT_TEST_F(DeviceInfoTests, ClusterLogicalToPhysicalMapping, "component-serial", DeviceInfoFixture) {
+MT_TEST_F(Component, ClusterLogicalToPhysicalMapping, "deviceinfo", DeviceInfoFixture) {
     auto tr = TargetRegistry::getInstance();
 
     // Check Lgc 0..3 if baseline provides them (!= -1)

@@ -21,11 +21,11 @@ using namespace mtest;
 // Tag:  component-serial
 // ---------------------------
 
-MT_TEST(CocoTableTests, InsertRequest1, "component-serial") {
+MT_TEST(Component, InsertRequest1, "cocotable") {
     MT_REQUIRE_EQ(ctx, CocoTable::getInstance()->insertRequest(nullptr), false);
 }
 
-MT_TEST(CocoTableTests, InsertNewRequestNoSetup, "component-serial") {
+MT_TEST(Component, InsertNewRequestNoSetup, "cocotable") {
     Request* request = new Request;
     // If CocoTable requires preconditions (e.g., initialized pool, request properties),
     // this test expects insertion to fail without setup.
@@ -33,7 +33,7 @@ MT_TEST(CocoTableTests, InsertNewRequestNoSetup, "component-serial") {
     delete request;
 }
 
-MT_TEST(CocoTableTests, InsertRequestWithoutCocoNodes, "component-serial") {
+MT_TEST(Component, InsertRequestWithoutCocoNodes, "cocotable") {
     Request* request = new Request;
 
     // Original code hinted at MakeAlloc<std::vector<CocoNode*>>(1) but commented out.

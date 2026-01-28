@@ -1,9 +1,6 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-
-
-// RateLimiterTests_mtest.cpp
 #include <vector>
 #include <memory>
 #include <unordered_set>
@@ -11,7 +8,7 @@
 #include <limits>
 #include <chrono>
 #include <thread>
-#include <new>       // std::bad_alloc
+#include <new>       
 #include <iostream>
 
 #define MTEST_NO_MAIN
@@ -47,7 +44,7 @@ static Resource* generateResourceForTesting(int32_t seed) {
 // ---------- Tests (ported one-to-one; no lambdas introduced) ----------
 
 // TestClientSpammingScenario
-MT_TEST(RateLimiter, TestClientSpammingScenario, "component-serial") {
+MT_TEST(Component, TestClientSpammingScenario, "ratelimiter") {
     Init();
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RateLimiter>       rateLimiter       = RateLimiter::getInstance();
@@ -99,7 +96,7 @@ MT_TEST(RateLimiter, TestClientSpammingScenario, "component-serial") {
 }
 
 // TestClientHealthInCaseOfGoodRequests
-MT_TEST(RateLimiter, TestClientHealthInCaseOfGoodRequests, "component-serial") {
+MT_TEST(Component, TestClientHealthInCaseOfGoodRequests, "ratelimiter") {
     Init();
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RateLimiter>       rateLimiter       = RateLimiter::getInstance();
@@ -148,7 +145,7 @@ MT_TEST(RateLimiter, TestClientHealthInCaseOfGoodRequests, "component-serial") {
 }
 
 // TestClientSpammingWithGoodRequests
-MT_TEST(RateLimiter, TestClientSpammingWithGoodRequests, "component-serial") {
+MT_TEST(Component, TestClientSpammingWithGoodRequests, "ratelimiter") {
     Init();
     std::shared_ptr<ClientDataManager> clientDataManager = ClientDataManager::getInstance();
     std::shared_ptr<RateLimiter>       rateLimiter       = RateLimiter::getInstance();
