@@ -38,7 +38,8 @@ endif()
 
 # Build Tests conditionally
 if(BUILD_TESTS)
-  add_subdirectory(${CMAKE_SOURCE_DIR}/tests)
+  add_subdirectory(tests/resource-tuner)
+  add_subdirectory(tests/contextual-classifier)
 endif()
 
 set(SERVER_LIBS "")
