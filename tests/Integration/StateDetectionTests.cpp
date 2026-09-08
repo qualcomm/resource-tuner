@@ -69,10 +69,10 @@ static void TestRequestSuspension() {
     LOG_START
 
     // Submit 2 requests, enable background processing for one and not for another
-    std::string testResourceName1 = "/var/lib/urm/tests/nodes/scaling_min_freq.txt";
+    std::string testResourceName1 = GET_FULL_NODE_PATH("scaling_min_freq.txt");
     int32_t testResourceOriginalValue1 = 107;
 
-    std::string testResourceName2 = "/var/lib/urm/tests/nodes/sched_util_clamp_min.txt";
+    std::string testResourceName2 = GET_FULL_NODE_PATH("sched_util_clamp_min.txt");
     int32_t testResourceOriginalValue2 = 300;
 
     std::string value;
@@ -165,7 +165,7 @@ static void TestRequestSuspension() {
 static void TestRequestRejectionInSuspendMode() {
     LOG_START
 
-    std::string testResourceName = "/var/lib/urm/tests/nodes/scaling_max_freq.txt";
+    std::string testResourceName = GET_FULL_NODE_PATH("scaling_max_freq.txt");
     int32_t testResourceOriginalValue = 114;
 
     std::string value;
@@ -197,7 +197,7 @@ static void TestRequestRejectionInSuspendMode() {
 static void TestRequestResumptionPostResume() {
     LOG_START
 
-    std::string testResourceName = "/var/lib/urm/tests/nodes/scaling_min_freq.txt";
+    std::string testResourceName = GET_FULL_NODE_PATH("scaling_min_freq.txt");
     int32_t testResourceOriginalValue = 107;
 
     std::string value;

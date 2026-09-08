@@ -1,10 +1,10 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include "ResourceRegistry.h"
-#include "AuxRoutines.h"
 #include "UrmSettings.h"
+#include "AuxRoutines.h"
 #include "TargetRegistry.h"
+#include "ResourceRegistry.h"
 
 static const int32_t unsupportedResoure = -2;
 
@@ -271,6 +271,8 @@ ErrCode ResourceConfigInfoBuilder::setPath(const std::string& path) {
     std::string keyMatch = "";
     std::string remFilePath = "";
     int8_t foundSplit = false;
+    int8_t isCoreClusRes = false;
+
     for(char ch: tokens[1]) {
         if(ch == '/') {
             if(foundSplit) {
@@ -278,6 +280,9 @@ ErrCode ResourceConfigInfoBuilder::setPath(const std::string& path) {
             }
             foundSplit = true;
         } else {
+                if(ch == '%') {
+                    isCoreClusRes = true;
+                }
             if(foundSplit) {
                 remFilePath.push_back(ch);
             } else {
@@ -291,18 +296,27 @@ ErrCode ResourceConfigInfoBuilder::setPath(const std::string& path) {
         struct dirent* entry;
         while((entry = readdir(dir)) != nullptr) {
             std::string dirName = std::string(entry->d_name);
-            if(keyMatch.size() < dirName.size()) {
-                // calculate starting index
+
+            // Skip the current and parent directory entries
+            if(dirName == "." || dirName == "..") {
+                continue;
+            }
+
+            // Only consider actual directories
+            if(entry->d_type != DT_DIR) {
+                continue;
+            }
+
+            // Check if the directory name ends with keyMatch suffix
+            if(keyMatch.size() <= dirName.size()) {
                 int32_t start = dirName.size() - keyMatch.size();
-                if(start >= 0) {
-                    if(dirName.compare(start, keyMatch.size(), keyMatch) == 0) {
-                        // Generate the resulting path:
-                        std::string filePath =
-                            tokens[0] + "/" + dirName + "/" + remFilePath;
-                        if(AuxRoutines::fileExists(filePath)) {
-                            this->mResourceConfigInfo->mResourcePath = filePath;
-                            break;
-                        }
+                if(dirName.compare(start, keyMatch.size(), keyMatch) == 0) {
+                    // Generate the resulting path:
+                    std::string filePath =
+                        ((tokens[0].back() == '/') ? tokens[0] : tokens[0] + "/") + dirName + "/" + remFilePath;
+                    if(isCoreClusRes || AuxRoutines::fileExists(filePath)) {
+                        this->mResourceConfigInfo->mResourcePath = filePath;
+                        break;
                     }
                 }
             }

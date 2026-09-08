@@ -33,6 +33,8 @@ private:
     static uint32_t mTestsCount;
     static std::map<std::string, URMTest> mTests;
 
+    static std::string mBaseTestNodesPath;
+
     static int32_t mPassCount;
     static int32_t mFailCount;
     static int32_t mSkipCount;
@@ -44,6 +46,10 @@ public:
                    const std::string& tag);
 
     static int32_t runAll(const std::string& className);
+
+    static std::string getBaseTestNodePath();
+    static void setBaseTestNodePath(const std::string& path);
+
     static void addPass(const std::string& name, const std::string& testCat);
     static void addFail(const std::string& name, const std::string& testCat);
     static void addSkip(const std::string& name, const std::string& testCat);
@@ -84,9 +90,9 @@ public:
     TestAggregator::addSkip(__func__, TEST_SUBCAT);                               \
     return;                                                                       \
 
-#define REGISTER_AND_TRIGGER_SUITE(name)                                          \
-    int32_t main() {                                                              \
-        return TestAggregator::runAll(name);                                      \
-    }                                                                             \
+#define GET_FULL_NODE_PATH(nodeName) ({                                           \
+    std::string path = (TestAggregator::getBaseTestNodePath() + nodeName);        \
+    path;                                                                         \
+})                                                                                \
 
 #endif

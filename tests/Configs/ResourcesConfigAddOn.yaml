@@ -5,7 +5,7 @@ ResourceConfigs:
   - ResType: "0xff"
     ResID: "0x1000"
     Name: "CUSTOM_SCALING_FREQ"
-    Path: "/usr/local/customfreq/node"
+    Path: "/usr/local/customfreq/node" # non-existent path
     Supported: true
     HighThreshold: 90
     LowThreshold: 80
@@ -17,7 +17,7 @@ ResourceConfigs:
   - ResType: "0xff"
     ResID: "0x1001"
     Name: "CUSTOM_RESOURCE_ADDED_BY_BU"
-    Path: "/some/bu/specific/node/path/customized_to_usecase"
+    Path: "/some/bu/specific/node/path/customized_to_usecase" # non-existent path
     Supported: true
     HighThreshold: 512
     LowThreshold: 128
@@ -29,7 +29,7 @@ ResourceConfigs:
   - ResType: "0xff"
     ResID: "0x000b"
     Name: "OVERRIDE_RESOURCE_1"
-    Path: "/etc/resouce-tuner/tests/Configs/pathB/overwrite"
+    Path: "/etc/resouce-tuner/tests/Configs/pathB/overwrite" # non-existent path
     Supported: true
     HighThreshold: 220
     LowThreshold: 150
@@ -41,7 +41,7 @@ ResourceConfigs:
   - ResType: "0xff"
     ResID: "0x000c"
     Name: "OVERRIDE_RESOURCE_2"
-    Path: "/proc/kernel/tid/kernel/uclamp.tid.sched/rt"
+    Path: "/proc/kernel/tid/kernel/uclamp.tid.sched/rt" # non-existent path
     Supported: true
     HighThreshold: 100022
     LowThreshold: 87755
@@ -53,7 +53,7 @@ ResourceConfigs:
   - ResType: "0xff"
     ResID: "0x000d"
     Name: "TEST_RESOURCE_11"
-    Path: "/var/lib/urm/tests/nodes/target_test_resource4.txt"
+    Path: "/tmp/*/urm/tests/nodes/target_test_resource4.txt"
     Supported: true
     HighThreshold: 900
     LowThreshold: 300
@@ -66,7 +66,7 @@ ResourceConfigs:
   - ResType: "0xff"
     ResID: "0x000e"
     Name: "TEST_RESOURCE_12"
-    Path: "/var/lib/urm/tests/nodes/target_test_resource4.txt"
+    Path: "/tmp/*/urm/tests/nodes/target_test_resource4.txt"
     Supported: true
     HighThreshold: 900
     LowThreshold: 300
@@ -79,7 +79,7 @@ ResourceConfigs:
   - ResType: "0xff"
     ResID: "0x000f"
     Name: "TEST_RESOURCE_13"
-    Path: "/var/lib/urm/tests/nodes/target_test_resource5.txt"
+    Path: "/tmp/*/urm/tests/nodes/target_test_resource5.txt"
     Supported: true
     HighThreshold: 20
     LowThreshold: 0
