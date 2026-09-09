@@ -1,0 +1,108 @@
+'\" t
+.\"     Title: urm
+.\"    Author: URM Maintainers (Maintainers.userspace-resource-moderator@qti.qualcomm.com)
+.\" Generator: Asciidoctor 2.0.16
+.\"      Date: 2026-09-09
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "URM" "8" "2026-09-09" "\ \&" "\ \&"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+urm \- Userspace Resource Manager
+.SH "SYNOPSIS"
+.sp
+\fBsystemctl\fP [start|stop|restart|status] urm.service
+.SH "DESCRIPTION"
+.sp
+This manual page provides an overview of the Userspace Resource Manager
+(URM) service.
+Userspace Resource Manager (URM) is a lightweight, extensible framework designed to intelligently manage and provision system resources from userspace. It brings together two key components that enable dynamic, context‑aware optimization of performance and power across diverse embedded and resource‑constrained environments:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Contextual Classifier: Identifies static workload contexts—such as camera pipelines, multimedia sessions, installations, or background services. By understanding what the system is running, URM can apply the right resource strategy without manual intervention.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Resource Tuner: A userspace engine that dynamically provisions system resources—CPU, memory, GPU, I/O, caches, and more—using standard kernel interfaces such as procfs, sysfs, and cgroups. This enables fine‑grained control of system operating points to balance performance and power for each application or use case.
+.RE
+.SH "OPTIONS"
+.sp
+URM is managed through \fBsystemctl\fP(1) and does not provide any
+user\-facing command\-line options.
+.SH "EXAMPLES"
+.sp
+\fBsystemctl start urm\fP
+.br
+Starts the URM service.
+.sp
+\fBsystemctl stop urm\fP
+.br
+Stops the URM service.
+.sp
+\fBsystemctl restart urm\fP
+.br
+Restarts the URM service.
+.sp
+\fBsystemctl status urm\fP
+.br
+Displays the current service status.
+.sp
+\fBjournalctl \-u urm\fP
+.br
+Displays service logs.
+.SH "FILES"
+.sp
+\fB/etc/urm/\fP
+.RS 4
+Directory containing URM configuration files, including common as well as target\-specific configurations.
+.RE
+.sp
+\fB/usr/libexec/urm/\fP
+.RS 4
+Directory containing the post\-boot scripts for different platforms.
+.RE
+.sp
+\fB/usr/lib/urm/\fP
+.RS 4
+Directory hosting the plugins (.so), which are used to customize URM behaviour for different use\-cases.
+.RE
+.SH "SEE ALSO"
+.sp
+urmCli(8)
+.SH "AUTHOR"
+.sp
+URM Maintainers (Maintainers.userspace-resource-moderator@qti.qualcomm.com)
