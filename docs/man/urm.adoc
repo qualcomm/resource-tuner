@@ -1,0 +1,58 @@
+= urm(8)
+URM Maintainers (Maintainers.userspace-resource-moderator@qti.qualcomm.com)
+:doctype: manpage
+
+== NAME
+
+urm - Userspace Resource Manager
+
+== SYNOPSIS
+
+*systemctl* [start|stop|restart|status] urm.service
+
+== DESCRIPTION
+
+This manual page provides an overview of the Userspace Resource Manager
+(URM) service.
+Userspace Resource Manager (URM) is a lightweight, extensible framework designed to intelligently manage and provision system resources from userspace. It brings together two key components that enable dynamic, context‑aware optimization of performance and power across diverse embedded and resource‑constrained environments:
+
+- Contextual Classifier: Identifies static workload contexts—such as camera pipelines, multimedia sessions, installations, or background services. By understanding what the system is running, URM can apply the right resource strategy without manual intervention.
+
+- Resource Tuner: A userspace engine that dynamically provisions system resources—CPU, memory, GPU, I/O, caches, and more—using standard kernel interfaces such as procfs, sysfs, and cgroups. This enables fine‑grained control of system operating points to balance performance and power for each application or use case.
+
+== OPTIONS
+
+URM is managed through *systemctl*(1) and does not provide any
+user-facing command-line options.
+
+== EXAMPLES
+
+*systemctl start urm* +
+Starts the URM service.
+
+*systemctl stop urm* +
+Stops the URM service.
+
+*systemctl restart urm* +
+Restarts the URM service.
+
+*systemctl status urm* +
+Displays the current service status.
+
+*journalctl -u urm* +
+Displays service logs.
+
+== FILES
+
+*/etc/urm/*::
+Directory containing URM configuration files, including common as well as target-specific configurations.
+
+*/usr/libexec/urm/*::
+Directory containing the post-boot scripts for different platforms.
+
+*/usr/lib/urm/*::
+Directory hosting the plugins (.so), which are used to customize URM behaviour for different use-cases.
+
+== SEE ALSO
+
+urmCli(8)

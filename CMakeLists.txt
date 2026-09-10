@@ -68,3 +68,9 @@ if(PC_SYSTEMD_FOUND)
   pkg_get_variable(SYSTEMD_SYSTEM_UNIT_DIR systemd systemdsystemunitdir)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/urm.service DESTINATION ${SYSTEMD_SYSTEM_UNIT_DIR})
 endif()
+
+# Install manpages
+install(
+    FILES ${CMAKE_CURRENT_SOURCE_DIR}/docs/man/urm.8 ${CMAKE_CURRENT_SOURCE_DIR}/docs/man/urmCli.8
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/man/man8
+)
